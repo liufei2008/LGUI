@@ -154,7 +154,8 @@ void ULGUIGeometryModifierHelper::BeginModify(UIGeometry& InGeometry)
 	auto& originTangents = InGeometry.originTangents;
 
 	int vertCount = vertices.Num();
-	cacheVertices.SetNum(vertCount);
+	cacheVertices.SetNumZeroed(vertCount);
+
 	if (originNormals.Num() < vertCount)
 	{
 		originNormals.SetNumZeroed(vertCount);
@@ -210,6 +211,7 @@ void ULGUIGeometryModifierHelper::EndModify(UIGeometry& InGeometry)
 		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndModify]Indices count must be multiple of 3."));
 		return;
 	}
+	bool bVertexDataContainsNan = false;
 	for (auto& vertex : cacheVertices)
 	{
 		if (vertex.position.ContainsNaN()
@@ -221,8 +223,8 @@ void ULGUIGeometryModifierHelper::EndModify(UIGeometry& InGeometry)
 			|| vertex.uv3.ContainsNaN()
 			)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Vertex position contains NaN!."));
-			return;
+			UE_LOG(LGUI, Warning, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Vertex data contains NaN!."));
+			break;
 		}
 	}
 #endif

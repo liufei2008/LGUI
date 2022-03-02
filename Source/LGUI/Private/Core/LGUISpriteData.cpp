@@ -399,7 +399,7 @@ UTexture2D* ULGUISpriteData::GetAtlasTexture()
 	InitSpriteData();
 	return atlasTexture;
 }
-FLGUISpriteInfo ULGUISpriteData::GetSpriteInfo()
+const FLGUISpriteInfo& ULGUISpriteData::GetSpriteInfo()
 {
 	InitSpriteData();
 	return spriteInfo;

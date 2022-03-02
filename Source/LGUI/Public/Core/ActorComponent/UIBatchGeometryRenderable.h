@@ -9,8 +9,53 @@ class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
 class ULGUIMeshComponent;
+
+
+USTRUCT(BlueprintType)
+struct LGUI_API FLGUIGeometryVertex
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		FVector position = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		FColor color = FColor::White;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		FVector2D uv0 = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+		FVector2D uv1 = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+		FVector2D uv2 = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+		FVector2D uv3 = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+		FVector normal = FVector(1, 0, 0);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+		FVector tangent = FVector(0, 1, 0);
+};
+/** a helper class for make LGUI geometry */
+UCLASS(BlueprintType)
+class LGUI_API ULGUIGeometryHelper : public UObject
+{
+	GENERATED_BODY()
+public:
+	UIGeometry* UIGeo = nullptr;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddVertexSimple(FVector position, FColor color, FVector2D uv0);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddVertexStruct(FLGUIGeometryVertex vertex);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddTriangle(int index0, int index1, int index2);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
+};
+
+
 /** UI element which have render geometry, and can be batched and renderred by LGUICanvas */
-UCLASS(Abstract, NotBlueprintable)
+UCLASS(Abstract, Blueprintable, ClassGroup=(LGUI))
 class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
 {
 	GENERATED_BODY()
@@ -98,12 +143,12 @@ protected:
 		UMaterialInterface* CustomUIMaterial = nullptr;
 
 	/** if NeedTextureToCreateGeometry() is true, then we should provide this texture */
-	virtual UTexture* GetTextureToCreateGeometry() { return nullptr; }
+	virtual UTexture* GetTextureToCreateGeometry();
 
 	/** do anything before acturally create or update geometry */
-	virtual void OnBeforeCreateOrUpdateGeometry()PURE_VIRTUAL(UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry, );
+	virtual void OnBeforeCreateOrUpdateGeometry();
 	/** fill and update ui geometry */
-	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 	virtual void UpdateGeometry()override final;
 	virtual void MarkFlattenHierarchyIndexDirty()override;
@@ -111,6 +156,14 @@ protected:
 #if WITH_EDITOR
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
 #endif
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
+		UTexture* ReceiveGetTextureToCreateGeometry();
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
+		void ReceiveOnBeforeCreateOrUpdateGeometry();
+	/** create or update geometry data */
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
+		void ReceiveOnUpdateGeometry(ULGUIGeometryHelper* InGeometryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 private:
 	/** local space vertex position changed */
@@ -124,4 +177,5 @@ private:
 	FVector LocalMinPoint3D = FVector::ZeroVector, LocalMaxPoint3D = FVector::ZeroVector;
 #endif
 	void CalculateLocalBounds();
+	UPROPERTY(Transient)ULGUIGeometryHelper* GeometryHelper = nullptr;
 };

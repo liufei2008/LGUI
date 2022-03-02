@@ -50,7 +50,7 @@ private:
 public:
 	//Begin ULGUISpriteData_BaseObject interface
 	virtual UTexture2D * GetAtlasTexture()override;
-	virtual FLGUISpriteInfo GetSpriteInfo()override;
+	virtual const FLGUISpriteInfo& GetSpriteInfo()override;
 	virtual bool IsIndividual()const override;
 	virtual void AddUISprite(UUISpriteBase* InUISprite)override;
 	virtual void RemoveUISprite(UUISpriteBase* InUISprite)override;
