@@ -87,7 +87,7 @@ private:
 	bool bTextLayoutDirty = false;
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
-	mutable TUniquePtr<FTextGeometryCache> CacheTextGeometryData = nullptr;
+	mutable FTextGeometryCache CacheTextGeometryData;
 	bool UpdateCacheTextGeometry()const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

@@ -28,7 +28,7 @@ UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitia
 	}
 	size = CurrentFontSize;
 #endif
-	CacheTextGeometryData = TUniquePtr<FTextGeometryCache>(new FTextGeometryCache(this));
+	CacheTextGeometryData = FTextGeometryCache();
 }
 void UUIText::ApplyFontTextureScaleUp()
 {
@@ -78,7 +78,7 @@ void UUIText::ApplyRecreateText()
 {
 	if (IsValid(font))
 	{
-		CacheTextGeometryData->MarkDirty();
+		CacheTextGeometryData.MarkDirty();
 		MarkVertexPositionDirty();
 	}
 }
@@ -317,7 +317,7 @@ void UUIText::OnPostChangeFontProperty()
 FVector2D UUIText::GetTextRealSize()
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData->textRealSize;
+	return CacheTextGeometryData.textRealSize;
 }
 
 
@@ -452,11 +452,11 @@ void UUIText::OnUpdateLayout_Implementation()
 			bTextLayoutDirty = false;
 			if (overflowType == UITextOverflowType::HorizontalOverflow)
 			{
-				if (adjustWidth) SetWidth(CacheTextGeometryData->textRealSize.X);
+				if (adjustWidth) SetWidth(CacheTextGeometryData.textRealSize.X);
 			}
 			else if (overflowType == UITextOverflowType::VerticalOverflow)
 			{
-				if (adjustHeight) SetHeight(CacheTextGeometryData->textRealSize.Y);
+				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
 			}
 		}
 	}
@@ -467,7 +467,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 	if (!IsValid(this->GetFont()))return false;
 
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
-	CacheTextGeometryData->SetInputParameters(
+	CacheTextGeometryData.SetInputParameters(
 		this->text.ToString()
 		, this->visibleCharCount
 		, this->GetWidth()
@@ -487,40 +487,40 @@ bool UUIText::UpdateCacheTextGeometry()const
 	);
 	if (geometry->vertices.Num() == 0)
 	{
-		CacheTextGeometryData->MarkDirty();
+		CacheTextGeometryData.MarkDirty();
 	}
-	CacheTextGeometryData->ConditaionalCalculateGeometry();
+	CacheTextGeometryData.ConditaionalCalculateGeometry();
 	return true;
 }
 
 void UUIText::MarkVertexPositionDirty()
 {
 	bTextLayoutDirty = true;
-	CacheTextGeometryData->MarkDirty();
+	CacheTextGeometryData.MarkDirty();
 	Super::MarkVertexPositionDirty();
 }
 void UUIText::MarkUVDirty()
 {
 	bTextLayoutDirty = true;
-	CacheTextGeometryData->MarkDirty();
+	CacheTextGeometryData.MarkDirty();
 	Super::MarkUVDirty();
 }
 void UUIText::MarkTriangleDirty()
 {
 	bTextLayoutDirty = true;
-	CacheTextGeometryData->MarkDirty();
+	CacheTextGeometryData.MarkDirty();
 	Super::MarkTriangleDirty();
 }
 void UUIText::MarkTextureDirty()
 {
 	bTextLayoutDirty = true;
-	CacheTextGeometryData->MarkDirty();
+	CacheTextGeometryData.MarkDirty();
 	Super::MarkTextureDirty();
 }
 
 void UUIText::MarkAllDirtyRecursive()
 {
-	CacheTextGeometryData->MarkDirty();
+	CacheTextGeometryData.MarkDirty();
 	bTextLayoutDirty = true;
 	Super::MarkAllDirtyRecursive();
 }
@@ -544,17 +544,17 @@ int UUIText::VisibleCharCountInString(const FString& srcStr)
 const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray()const
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData->cacheCharPropertyArray;
+	return CacheTextGeometryData.cacheCharPropertyArray;
 }
 int32 UUIText::GetVisibleCharCount()const
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData->cacheCharPropertyArray.Num();
+	return CacheTextGeometryData.cacheCharPropertyArray.Num();
 }
 const TArray<FUIText_RichTextCustomTag>& UUIText::GetRichTextCustomTagArray()const
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData->cacheRichTextCustomTagArray;
+	return CacheTextGeometryData.cacheRichTextCustomTagArray;
 }
 
 
@@ -568,7 +568,7 @@ FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineSta
 	SetText(FText::FromString(inString));
 	UpdateCacheTextGeometry();
 	int lineCount = inOutLineEndIndex - inOutLineStartIndex;
-	auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	if (inOutLineEndIndex + 1 >= cacheTextPropertyArray.Num())
 	{
 		inOutLineEndIndex = cacheTextPropertyArray.Num() - 1;
@@ -639,7 +639,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 	else
 	{
 		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 
 		if (caretPositionIndex == 0)//first char
 		{
@@ -680,7 +680,7 @@ void UUIText::FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLi
 	if (text.ToString().Len() == 0)//no text
 		return;
 	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	auto lineCount = cacheTextPropertyArray.Num();//line count
 	if (lineCount == 1)//only one line
 		return;
@@ -709,7 +709,7 @@ void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPosition
 	if (text.ToString().Len() == 0)//no text
 		return;
 	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	auto lineCount = cacheTextPropertyArray.Num();//line count
 	if (lineCount == 1)//only one line
 		return;
@@ -744,7 +744,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 	else
 	{
 		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 
 		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
 		auto localPosition2D = FVector2D(localPosition.Y, localPosition.Z);
@@ -785,7 +785,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	OutSelectionProeprtyArray.Reset();
 	if (text.ToString().Len() == 0)return;
 	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData->cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	//start
 	FVector2D startCaretPosition;
 	int32 startCaretPositionLineIndex;
