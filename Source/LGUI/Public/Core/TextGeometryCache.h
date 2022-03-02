@@ -98,9 +98,8 @@ struct FUIText_RichTextCustomTag
 struct LGUI_API FTextGeometryCache
 {
 public:
-	FTextGeometryCache();
+	FTextGeometryCache() {}
 	FTextGeometryCache(UUIText* InUIText);
-	~FTextGeometryCache();
 	/**
 	 * @return true - anything change
 	 */

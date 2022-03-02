@@ -28,7 +28,7 @@ UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitia
 	}
 	size = CurrentFontSize;
 #endif
-	CacheTextGeometryData = FTextGeometryCache();
+	CacheTextGeometryData = FTextGeometryCache(this);
 }
 void UUIText::ApplyFontTextureScaleUp()
 {
@@ -485,7 +485,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetRichText()
 		, this->GetFont()
 	);
-	if (geometry->vertices.Num() == 0)
+	if (geometry->vertices.Num() == 0)//@todo: geometry is cleared before OnUpdateGeometry, consider use a cached UIGeometry
 	{
 		CacheTextGeometryData.MarkDirty();
 	}

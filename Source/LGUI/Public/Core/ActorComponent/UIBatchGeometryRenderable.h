@@ -51,6 +51,24 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
+
+	/**
+	 * Remove vertices and triangle indices data, left the geometry empty.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void ClearVerticesAndIndices();
+	/**
+	 * Add a list of triangles.
+	 * @param	InVertexTriangleStream	Vertices to add, length should be divisible by 3.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddVertexTriangleStream(const TArray<FLGUIGeometryVertex>& InVertexTriangleStream);
+	/**
+	 * Get a stream of vertex in triangles.
+	 * @param	OutVertexTriangleStream		Vertices stream, length is divisible by 3.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void GetVertexTriangleStream(TArray<FLGUIGeometryVertex>& OutVertexTriangleStream);
 };
 
 
