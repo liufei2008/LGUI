@@ -4,7 +4,6 @@
 
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable_BP.h"
 #include "Components/ActorComponent.h"
 #include "UIGeometryModifierBase.generated.h"
 
