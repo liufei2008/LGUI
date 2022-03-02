@@ -132,6 +132,31 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 	}
 }
 
+/**
+ * Unlike default TArray's SetNum, this LGUIGeometrySetArrayNum only Construct new item when get new memory.
+ * SetNum will Construct item from Num to NewNum, include old existing memory (memory between Num and Max), which is not what I want.
+ * What I want is, use default value only on new memory, so new item will not contains NaN value.
+ */
+template<class T>
+FORCEINLINE void LGUIGeometrySetArrayNum(TArray<T>& InArray, int32 NewNum)
+{
+	auto PrevMax = InArray.Max();
+	if (NewNum > InArray.Max())
+	{
+		InArray.AddUninitialized(InArray.Max() - InArray.Num());
+		InArray.SetNumZeroed(NewNum);
+	}
+	else
+	{
+		InArray.SetNumUninitialized(NewNum);
+	}
+	//SetNum could change array max, so memzero the additional memory
+	if (InArray.Max() > PrevMax)
+	{
+		FMemory::Memzero((uint8*)InArray.GetData() + PrevMax * sizeof(T), (InArray.Max() - PrevMax) * sizeof(T));
+	}
+}
+
 #pragma region UISprite_UITexture_Simple
 void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 	const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
@@ -139,7 +164,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 )
 {
 	auto& triangles = uiGeo->triangles;
-	triangles.SetNumUninitialized(6);
+	LGUIGeometrySetArrayNum(triangles, 6);
 	if (InTriangleChanged)
 	{
 		triangles[0] = 0;
@@ -152,8 +177,8 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
-	vertices.SetNumUninitialized(4);
-	originPositions.SetNumUninitialized(4);
+	LGUIGeometrySetArrayNum(vertices, 4);
+	LGUIGeometrySetArrayNum(originPositions, 4);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)
@@ -246,7 +271,7 @@ void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
 	{
 		triangleCount = 48;
 	}
-	triangles.SetNumUninitialized(triangleCount);
+	LGUIGeometrySetArrayNum(triangles, triangleCount);
 	if (InTriangleChanged)
 	{
 		int wSeg = 3, hSeg = 3;
@@ -274,8 +299,8 @@ void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 16;
-	vertices.SetNumUninitialized(verticesCount);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, verticesCount);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)
@@ -427,7 +452,7 @@ void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
 	int rectangleCount = widthRectCount * heightRectCount;
 	auto& triangles = uiGeo->triangles;
 	auto triangleCount = 6 * rectangleCount;
-	triangles.SetNumUninitialized(triangleCount);
+	LGUIGeometrySetArrayNum(triangles, triangleCount);
 	if (InTriangleChanged)
 	{
 		for (int i = 0, j = 0, triangleIndicesIndex = 0; i < rectangleCount; i++, j += 4)
@@ -444,8 +469,8 @@ void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 4 * rectangleCount;
-	vertices.SetNumUninitialized(verticesCount);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, verticesCount);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)
@@ -558,7 +583,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 {
 	auto& triangles = uiGeo->triangles;
 	auto triangleCount = 6;
-	triangles.SetNumUninitialized(6);
+	LGUIGeometrySetArrayNum(triangles, 6);
 	if (InTriangleChanged)
 	{
 		triangles[0] = 0;
@@ -572,8 +597,8 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 4;
-	vertices.SetNumUninitialized(4);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, 4);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged || InVertexUVChanged)
@@ -736,7 +761,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 {
 	auto& triangles = uiGeo->triangles;
 	auto triangleCount = 6;
-	triangles.SetNumUninitialized(6);
+	LGUIGeometrySetArrayNum(triangles, 6);
 	if (InTriangleChanged)
 	{
 		triangles[0] = 0;
@@ -750,8 +775,8 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 4;
-	vertices.SetNumUninitialized(4);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, 4);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		//pivot offset
@@ -1115,7 +1140,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 {
 	auto& triangles = uiGeo->triangles;
 	auto triangleCount = 9;
-	triangles.SetNumUninitialized(9);
+	LGUIGeometrySetArrayNum(triangles, 9);
 	if (InTriangleChanged)
 	{
 		switch (originType)
@@ -1186,8 +1211,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 5;
-	vertices.SetNumUninitialized(5);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, 5);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		//pivot offset
@@ -1707,7 +1732,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 {
 	auto& triangles = uiGeo->triangles;
 	auto triangleCount = 24;
-	triangles.SetNumUninitialized(24);
+	LGUIGeometrySetArrayNum(triangles, 24);
 	if (InTriangleChanged)
 	{
 		triangles[0] = 4;
@@ -1762,8 +1787,8 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto verticesCount = 10;
-	vertices.SetNumUninitialized(verticesCount);
-	originPositions.SetNumUninitialized(verticesCount);
+	LGUIGeometrySetArrayNum(vertices, verticesCount);
+	LGUIGeometrySetArrayNum(originPositions, verticesCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		//pivot offset
@@ -2362,23 +2387,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	auto CheckVertices = [&](int additionalVerticesCount)
 	{
 		int32 newCount = verticesCount + additionalVerticesCount;
-		if (originPositions.Num() < newCount)
-		{
-			originPositions.AddUninitialized(newCount - originPositions.Num());
-		}
-		if (vertices.Num() < newCount)
-		{
-			vertices.AddUninitialized(newCount - vertices.Num());
-		}
+		LGUIGeometrySetArrayNum(originPositions, newCount);
+		LGUIGeometrySetArrayNum(vertices, newCount);
 	};
 
 	auto CheckIndices = [&](int additionalIndicesCount)
 	{
 		int32 newCount = indicesCount + additionalIndicesCount;
-		if (triangles.Num() < newCount)
-		{
-			triangles.AddUninitialized(newCount - triangles.Num());
-		}
+		LGUIGeometrySetArrayNum(triangles, newCount);
 	};
 	 
 	enum class NewLineMode
