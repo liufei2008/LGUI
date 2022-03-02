@@ -23,34 +23,30 @@ void UUIEffectOutline::ApplyColorAndAlpha(FColor& InOutColor, uint8 InSourceAlph
 		InOutColor = outlineColor;
 	}
 }
-void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-	)
+void UUIEffectOutline::ModifyUIGeometry(
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+)
 {
-	auto& triangles = InGeometry->triangles;
-	auto& originPositions = InGeometry->originPositions;
-	auto& vertices = InGeometry->vertices;
+	auto& triangles = InGeometry.triangles;
+	auto& originPositions = InGeometry.originPositions;
+	auto& vertices = InGeometry.vertices;
 
 	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
-	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
-	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
+	const int32 singleChannelTriangleIndicesCount = triangleCount;
+	const int32 singleChannelVerticesCount = vertexCount;
 	const int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * (use8Direction ? 8 : 4);
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * (use8Direction ? 9 : 5);
-	if (singleChannelTriangleIndicesCount == triangleCount)
+
+	triangles.AddUninitialized(additionalTriangleIndicesCount);
+	//put orgin triangles on last pass, this will make the origin triangle render at top
+	for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
 	{
-		//create additional triangle pass
-		OutTriangleChanged = true;
-		triangles.AddUninitialized(additionalTriangleIndicesCount);
-		//put orgin triangles on last pass, this will make the origin triangle render at top
-		for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
-		{
-			auto index = triangles[originTriangleIndex];
-			triangles[triangleIndex] = index;
-		}
+		auto index = triangles[originTriangleIndex];
+		triangles[triangleIndex] = index;
 	}
+
 	//calculate other pass
 	{
 		int channelTriangleIndex1 = 0
@@ -92,18 +88,14 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 		}
 	}
 
-	if (singleChannelVerticesCount == vertexCount)
+	vertexCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
+	originPositions.Reserve(vertexCount);
+	vertices.Reserve(vertexCount);
+	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 	{
-		vertexCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
-		originPositions.Reserve(vertexCount);
-		vertices.Reserve(vertexCount);
-		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-		{
-			originPositions.Add(FVector());
-			vertices.Add(FVector());
-		}
+		originPositions.Add(FVector());
+		vertices.Add(FVector());
 	}
-	InOutOriginVerticesCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
 
 	//vertices
 	{

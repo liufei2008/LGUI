@@ -23,12 +23,12 @@ void UUIEffectGradientColor::ApplyColorAndAlpha(FColor& InOutColor, FColor InTin
 		InOutColor = InTintColor;
 	}
 }
-void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-	)
+void UUIEffectGradientColor::ModifyUIGeometry(
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+)
 {
-	auto& triangles = InGeometry->triangles;
-	auto& vertices = InGeometry->vertices;
+	auto& triangles = InGeometry.triangles;
+	auto& vertices = InGeometry.vertices;
 
 	auto vertexCount = vertices.Num();
 	int32 triangleCount = triangles.Num();

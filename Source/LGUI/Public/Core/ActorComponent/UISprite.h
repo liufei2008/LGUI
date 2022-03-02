@@ -90,8 +90,7 @@ protected:
 	void CalculateTiledWidth();
 	void CalculateTiledHeight();
 
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UISpriteType GetSpriteType()const { return type; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	UISpriteFillMethod GetFillMethod()const { return fillMethod; }

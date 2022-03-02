@@ -56,6 +56,7 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 		{
 			drawcall->texture = geometry->texture;
 			drawcall->textureChanged = true;
+			drawcall->needToUpdateVertex = true;
 		}
 	}
 }

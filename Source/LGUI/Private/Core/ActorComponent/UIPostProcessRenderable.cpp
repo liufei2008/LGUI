@@ -76,14 +76,6 @@ void UUIPostProcessRenderable::MarkAllDirtyRecursive()
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIPostProcessRenderable::CreateGeometry()
-{
-	geometry->Clear();
-	OnCreateGeometry();
-	UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-	UpdateRegionVertex();
-}
-
 DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
 void UUIPostProcessRenderable::UpdateGeometry()
 {
@@ -95,47 +87,38 @@ void UUIPostProcessRenderable::UpdateGeometry()
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		CreateGeometry();
-		goto COMPLETE;
+		geometry->Clear();
+		OnUpdateGeometry(geometry.Get(), true, true, true, true);
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
+		UpdateRegionVertex();
 	}
-	else//if already renderred, update data
+	else//if geometry is created, update data
 	{
-		//update geometry
+		if (bLocalVertexPositionChanged || bUVChanged || bColorChanged)
 		{
-			OnUpdateGeometry(bLocalVertexPositionChanged, bUVChanged, bColorChanged);
-
-			if (bLocalVertexPositionChanged || bTransformChanged)
-			{
-				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-			}
+			geometry->Clear();
+			OnUpdateGeometry(geometry.Get(), false, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
+		}
+		if (bLocalVertexPositionChanged || bTransformChanged)
+		{
+			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
+		}
+		if (bLocalVertexPositionChanged || bUVChanged || bColorChanged || bTransformChanged)
+		{
 			UpdateRegionVertex();
 		}
 	}
-COMPLETE:
+
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	bColorChanged = false;
 	bTransformChanged = false;
-	;
 }
-void UUIPostProcessRenderable::OnCreateGeometry()
+void UUIPostProcessRenderable::OnUpdateGeometry(UIGeometry* InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	UIGeometry::FromUIRectSimple(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas.Get(), this);
-}
-void UUIPostProcessRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexPositionChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), RenderCanvas.Get(), this);
-	}
-	if (InVertexUVChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleUV(geometry, FLGUISpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
+	UIGeometry::UpdateUIRectSimpleVertex(InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), RenderCanvas.Get(), this, this->GetFinalColor(), 
+		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+		);
 }
 void UUIPostProcessRenderable::UpdateRegionVertex()
 {

@@ -26,9 +26,9 @@ protected:
 		bool use8Direction = false;
 	FORCEINLINE void ApplyColorAndAlpha(FColor& InOutColor, uint8 InSourceAlpha);
 public:
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-		)override;
+	virtual void ModifyUIGeometry(UIGeometry& InGeometry
+		, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+	)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetOutlineColor()const { return outlineColor; }

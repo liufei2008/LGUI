@@ -11,53 +11,28 @@ UUISpriteBase_BP::UUISpriteBase_BP(const FObjectInitializer& ObjectInitializer):
 
 void UUISpriteBase_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (IsValid(createGeometryHelper))
-	{
-		createGeometryHelper->ConditionalBeginDestroy();
-	}
-	if (IsValid(updateGeometryHelper))
-	{
-		updateGeometryHelper->ConditionalBeginDestroy();
-	}
-
 	Super::EndPlay(EndPlayReason);
 }
 
 void UUISpriteBase_BP::OnBeforeCreateOrUpdateGeometry()
 {
-	if (!IsValid(createGeometryHelper))
-	{
-		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-		createGeometryHelper->UIBatchGeometryRenderable = this;
-	}
-	if (!IsValid(updateGeometryHelper))
-	{
-		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-		createGeometryHelper->UIBatchGeometryRenderable = this;
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
+		if (!IsValid(createGeometryHelper))
+		{
+			createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
+		}
 		ReceiveOnBeforeCreateOrUpdateGeometry();
-	}
-}
-void UUISpriteBase_BP::OnCreateGeometry()
-{
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
-	{
-		ReceiveOnCreateGeometry(createGeometryHelper, sprite);
 	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("UUISpriteBase_BP.OnUpdateGeometry"), STAT_UISprite_OnUpdateGeometry, STATGROUP_LGUI);
-void UUISpriteBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUISpriteBase_BP::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		updateGeometryHelper->BeginUpdateVertices();
-		{
-			SCOPE_CYCLE_COUNTER(STAT_UISprite_OnUpdateGeometry);
-			ReceiveOnUpdateGeometry(updateGeometryHelper, sprite, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
-		}
-		updateGeometryHelper->EndUpdateVertices();
+		createGeometryHelper->UIGeo = &InGeo;
+		SCOPE_CYCLE_COUNTER(STAT_UISprite_OnUpdateGeometry);
+		ReceiveOnUpdateGeometry(createGeometryHelper, sprite, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
 	}
 }

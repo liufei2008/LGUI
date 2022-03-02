@@ -40,7 +40,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector position;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetPosition()const { return position; }
@@ -58,7 +58,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FRotator rotator;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FRotator GetRotator()const { return rotator; }
@@ -76,7 +76,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector scale = FVector::OneVector;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetScale()const { return scale; }

@@ -23,74 +23,56 @@ void UUIEffectLongShadow::ApplyColorAndAlpha(FColor& InOutColor, FColor InTintCo
 		InOutColor = InTintColor;
 	}
 }
-void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-	)
+void UUIEffectLongShadow::ModifyUIGeometry(
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+)
 {
-	auto& triangles = InGeometry->triangles;
-	auto& originPositions = InGeometry->originPositions;
-	auto& vertices = InGeometry->vertices;
+	auto& triangles = InGeometry.triangles;
+	auto& originPositions = InGeometry.originPositions;
+	auto& vertices = InGeometry.vertices;
 
 	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
-	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
-	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
+	const int32 singleChannelTriangleIndicesCount = triangleCount;
+	const int32 singleChannelVerticesCount = vertexCount;
 	int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 1);
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 2);
-	if (singleChannelTriangleIndicesCount == triangleCount)
+
+	triangles.AddUninitialized(additionalTriangleIndicesCount);
+	//put orgin triangles on last pass, this will make the origin triangle render at top
+	for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
 	{
-		OutTriangleChanged = true;
-		triangles.AddUninitialized(additionalTriangleIndicesCount);
-		//put orgin triangles on last pass, this will make the origin triangle render at top
-		for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
-		{
-			auto index = triangles[originTriangleIndex];
-			triangles[triangleIndex] = index;
-		}
-		//calculate other pass
-		int32 prevChannelVerticesCount = singleChannelVerticesCount;
-		int32 shadowChannelCount = shadowSegment + 1;
-		for (int channelIndex = 0, originTriangleIndex = 0, triangleIndex = 0; channelIndex < shadowChannelCount; triangleIndex++, originTriangleIndex++)
-		{
-			auto index = triangles[originTriangleIndex + additionalTriangleIndicesCount] + prevChannelVerticesCount;
-			triangles[triangleIndex] = index;
-			if (originTriangleIndex + 1 == singleChannelTriangleIndicesCount)
-			{
-				channelIndex += 1;
-				originTriangleIndex = -1;
-				prevChannelVerticesCount += singleChannelVerticesCount;
-			}
-		}
+		auto index = triangles[originTriangleIndex];
+		triangles[triangleIndex] = index;
 	}
-	else
+	//calculate other pass
+	int32 prevChannelVerticesCount = singleChannelVerticesCount;
+	int32 shadowChannelCount = shadowSegment + 1;
+	for (int channelIndex = 0, originTriangleIndex = 0, triangleIndex = 0; channelIndex < shadowChannelCount; triangleIndex++, originTriangleIndex++)
 	{
-		//update triangle data is slightly different from create triangle data. the first pass may changed or not, all we need to do is set origin data (which can be calculated from other pass)
-		int lastPassVerticesCount = singleChannelVerticesCount * (shadowSegment + 1);
-		for (int lastPassTriangleIndex = additionalTriangleIndicesCount, firstPassTriangleIndex = 0; firstPassTriangleIndex < singleChannelTriangleIndicesCount; lastPassTriangleIndex++, firstPassTriangleIndex++)
+		auto index = triangles[originTriangleIndex + additionalTriangleIndicesCount] + prevChannelVerticesCount;
+		triangles[triangleIndex] = index;
+		if (originTriangleIndex + 1 == singleChannelTriangleIndicesCount)
 		{
-			triangles[firstPassTriangleIndex] = triangles[lastPassTriangleIndex] + lastPassVerticesCount;
+			channelIndex += 1;
+			originTriangleIndex = -1;
+			prevChannelVerticesCount += singleChannelVerticesCount;
 		}
 	}
 
-	if (singleChannelVerticesCount == vertexCount)
+	vertexCount = singleChannelVerticesCount * (shadowSegment + 2);
+	originPositions.Reserve(vertexCount);
+	vertices.Reserve(vertexCount);
+	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 	{
-		vertexCount = singleChannelVerticesCount * (shadowSegment + 2);
-		originPositions.Reserve(vertexCount);
-		vertices.Reserve(vertexCount);
-		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-		{
-			originPositions.Add(FVector());
-			vertices.Add(FVector());
-		}
+		originPositions.Add(FVector());
+		vertices.Add(FVector());
 	}
-	InOutOriginVerticesCount = singleChannelVerticesCount * (shadowSegment + 2);
 
 	//verticies
 	{
 		FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
-		int32 shadowChannelCount = shadowSegment + 1;
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
 			auto originVert = originPositions[channelOriginVertIndex];

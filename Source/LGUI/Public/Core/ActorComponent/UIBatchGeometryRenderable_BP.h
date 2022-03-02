@@ -35,7 +35,7 @@ class LGUI_API ULGUICreateGeometryHelper : public UObject
 {
 	GENERATED_BODY()
 public:
-	TWeakObjectPtr<UUIBatchGeometryRenderable> UIBatchGeometryRenderable = nullptr;
+	UIGeometry* UIGeo = nullptr;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddVertexSimple(FVector position, FColor color, FVector2D uv0);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -47,27 +47,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
-};
-/** a helper class for update LGUI geometry */
-UCLASS(BlueprintType)
-class LGUI_API ULGUIUpdateGeometryHelper : public UObject
-{
-	GENERATED_BODY()
-public:
-	TWeakObjectPtr<UUIBatchGeometryRenderable> UIBatchGeometryRenderable = nullptr;
-	/** DO NOT modify this vertices array's size!!! DO NOT add or remove any element of this array. */
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
-		TArray<FLGUIGeometryVertex> cacheVertices;
-	/** DO NOT modify this vertices array's size!!! DO NOT add or remove any element of this array. */
-	void BeginUpdateVertices();
-	void EndUpdateVertices();
-
-	UE_DEPRECATED(4.24, "No need to call this anymore.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "BeginUpdateVertices", DeprecatedFunction, DeprecationMessage = "No need to call this anymore."))
-		void BeginUpdateVertices_BP() {};
-	UE_DEPRECATED(4.24, "No need to call this anymore.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "EndUpdateVertices", DeprecatedFunction, DeprecationMessage = "No need to call this anymore."))
-		void EndUpdateVertices_BP() {};
 };
 
 /** a wrapper class, blueprint can use this to create custom UI type */
@@ -88,17 +67,13 @@ protected:
 		UTexture* ReceiveGetTextureToCreateGeometry();
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void ReceiveOnBeforeCreateOrUpdateGeometry();
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateGeometry"))
-		void ReceiveOnCreateGeometry(ULGUICreateGeometryHelper* InCreateGeometryHelper);
 	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
-		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+		void ReceiveOnUpdateGeometry(ULGUICreateGeometryHelper* InCreateGoemetryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 protected:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper = nullptr;
-	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper = nullptr;
 };

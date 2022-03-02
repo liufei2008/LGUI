@@ -95,11 +95,12 @@ struct FUIText_RichTextCustomTag
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd;
 };
 
-struct FTextGeometryCache
+struct LGUI_API FTextGeometryCache
 {
 public:
-	FTextGeometryCache() {}
+	FTextGeometryCache();
 	FTextGeometryCache(UUIText* InUIText);
+	~FTextGeometryCache();
 	/**
 	 * @return true - anything change
 	 */

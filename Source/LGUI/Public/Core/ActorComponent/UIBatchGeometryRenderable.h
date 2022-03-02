@@ -31,11 +31,12 @@ protected:
 
 	/** if have GeometryModifier component */
 	bool HaveGeometryModifier(bool includeDisabled = true);
+	/** Will any geometry modifier change these data? */
+	void GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor);
 	/** 
 	 * use GeometryModifier to modify geometry 
-	 * @return	true if the modifier change the triangle count, else false
 	 */
-	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool transformChanged);
+	void ApplyGeometryModifier(bool triangleChanged, bool uvChanged, bool colorChanged, bool vertexPositionChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -101,12 +102,9 @@ protected:
 
 	/** do anything before acturally create or update geometry */
 	virtual void OnBeforeCreateOrUpdateGeometry()PURE_VIRTUAL(UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry, );
-	/** create ui geometry */
-	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIBatchGeometryRenderable::OnCreateGeometry, );
-	/** update ui geometry */
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
+	/** fill and update ui geometry */
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
 
-	bool CreateGeometry();
 	virtual void UpdateGeometry()override final;
 	virtual void MarkFlattenHierarchyIndexDirty()override;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const override;

@@ -4,9 +4,16 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
 
+FTextGeometryCache::FTextGeometryCache()
+{
+}
 FTextGeometryCache::FTextGeometryCache(UUIText* InUIText)
 {
 	this->UIText = InUIText;
+}
+FTextGeometryCache::~FTextGeometryCache()
+{
+	
 }
 bool FTextGeometryCache::SetInputParameters(
 	const FString& InContent,
@@ -128,7 +135,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->pivot
 			, this->color
 			, this->fontSpace
-			, this->UIText->GetGeometry()
+			, this->UIText->GetGeometry().Get()
 			, this->fontSize
 			, this->paragraphHAlign
 			, this->paragraphVAlign
@@ -147,3 +154,4 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 		);
 	}
 }
+

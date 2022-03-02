@@ -10,19 +10,19 @@ UUIEffectPositionAsUV::UUIEffectPositionAsUV()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-	)
+void UUIEffectPositionAsUV::ModifyUIGeometry(
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+)
 {
 	auto uiRenderable = GetUIRenderable();
 	if (!uiRenderable)return;
 	auto renderCanvas = uiRenderable->GetRenderCanvas();
-	auto& originPositions = InGeometry->originPositions;
+	auto& originPositions = InGeometry.originPositions;
 	switch (uvChannel)
 	{
 	case 0:
 	{
-		auto& vertices = InGeometry->vertices;
+		auto& vertices = InGeometry.vertices;
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
@@ -39,7 +39,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV1 should be checked!"));
 			return;
 		}
-		auto& vertices = InGeometry->vertices;
+		auto& vertices = InGeometry.vertices;
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
@@ -56,7 +56,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV2 should be checked!"));
 			return;
 		}
-		auto& vertices = InGeometry->vertices;
+		auto& vertices = InGeometry.vertices;
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
@@ -73,7 +73,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV3 should be checked!"));
 			return;
 		}
-		auto& vertices = InGeometry->vertices;
+		auto& vertices = InGeometry.vertices;
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{

@@ -218,41 +218,54 @@ bool UUIBatchGeometryRenderable::HaveGeometryModifier(bool includeDisabled)
 	}
 	return false;
 }
-bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool transformChanged)
+
+void UUIBatchGeometryRenderable::GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
 {
-	if (uvChanged || colorChanged || vertexPositionChanged || transformChanged)
-	{
-		SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
 #if WITH_EDITOR
-		if (!this->GetWorld()->IsGameWorld())
-		{
-			GetOwner()->GetComponents(GeometryModifierComponentArray, false);
-			GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
-				return A.GetExecuteOrder() < B.GetExecuteOrder();
-				});
-		}
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		GetOwner()->GetComponents(GeometryModifierComponentArray, false);
+		GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
+			return A.GetExecuteOrder() < B.GetExecuteOrder();
+			});
+	}
 #endif
-		int count = GeometryModifierComponentArray.Num();
-		if (count > 0)
+
+	int count = GeometryModifierComponentArray.Num();
+	if (count > 0)
+	{
+		for (int i = 0; i < count; i++)
 		{
-			int32 originVerticesCount = geometry->originVerticesCount;
-			int32 originTriangleIndicesCount = geometry->originTriangleCount;
-			bool modifierAffectTriangleCount = false;
-			for (int i = 0; i < count; i++)
+			auto modifierComp = GeometryModifierComponentArray[i];
+			if (modifierComp->GetEnable())
 			{
-				auto modifierComp = GeometryModifierComponentArray[i];
-				if (modifierComp->GetEnable())
-				{
-					bool thisModifierAffectTriangleCount = false;
-					modifierComp->ModifyUIGeometry(geometry, originVerticesCount, originTriangleIndicesCount, thisModifierAffectTriangleCount,
-						uvChanged, colorChanged, vertexPositionChanged, transformChanged);
-					if (thisModifierAffectTriangleCount)modifierAffectTriangleCount = true;
-				}
+				bool TempTriangleIndices = false, TempVertexPosition = false, TempUV = false, TempColor = false;
+				modifierComp->ModifierWillChangeVertexData(TempTriangleIndices, TempVertexPosition, TempUV, TempColor);
+				if (TempTriangleIndices)OutTriangleIndices = true;
+				if (TempVertexPosition)OutVertexPosition = true;
+				if (TempUV)OutUV = true;
+				if (TempColor)OutColor = true;
 			}
-			return modifierAffectTriangleCount;
 		}
 	}
-	return false;
+}
+
+void UUIBatchGeometryRenderable::ApplyGeometryModifier(bool triangleChanged, bool uvChanged, bool colorChanged, bool vertexPositionChanged)
+{
+	SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
+
+	int count = GeometryModifierComponentArray.Num();
+	if (count > 0)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			auto modifierComp = GeometryModifierComponentArray[i];
+			if (modifierComp->GetEnable())
+			{
+				modifierComp->ModifyUIGeometry(*(geometry.Get()), triangleChanged, uvChanged, colorChanged, vertexPositionChanged);
+			}
+		}
+	}
 }
 
 void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
@@ -272,59 +285,50 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		CreateGeometry();
-		goto COMPLETE;
+		geometry->Clear();
+		geometry->texture = GetTextureToCreateGeometry();
+		geometry->material = CustomUIMaterial;
+		OnUpdateGeometry(*(geometry.Get()), true, true, true, true);
+		ApplyGeometryModifier(true, true, true, true);
+		CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
 	}
 	else//if geometry is created, update data
 	{
-		if (bTriangleChanged)//triangle change, need to recreate geometry
+		if (bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged)
 		{
-			CreateGeometry();
-			drawcall->needToRebuildMesh = true;
-			goto COMPLETE;
-		}
-		else//update geometry
-		{
-			OnUpdateGeometry(bLocalVertexPositionChanged, bUVChanged, bColorChanged);
-			
-			if (ApplyGeometryModifier(bUVChanged, bColorChanged, bLocalVertexPositionChanged, bTransformChanged))//vertex data change, need to update geometry's vertex
+			auto PrevVerticesCount = geometry->vertices.Num();
+			auto PrevTriangleCount = geometry->triangles.Num();
+			geometry->Clear();
+			//check if GeometryModifier will affect vertex data, if so we need to update these data in OnUpdateGeometry
 			{
-				drawcall->needToRebuildMesh = true;
-				drawcall->needToUpdateVertex = true;
+				bool TempTriangleIndices = false, TempVertexPosition = false, TempUV = false, TempColor = false;
+				GeometryModifierWillChangeVertexData(TempTriangleIndices, TempVertexPosition, TempUV, TempColor);
+				if (TempTriangleIndices)bTriangleChanged = true;
+				if (TempVertexPosition)bLocalVertexPositionChanged = true;
+				if (TempUV)bUVChanged = true;
+				if (TempColor)bColorChanged = true;
 			}
-			else
-			{
-				drawcall->needToUpdateVertex = true;
-			}
+			OnUpdateGeometry(*(geometry.Get()), bTriangleChanged, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
+			ApplyGeometryModifier(bTriangleChanged, bUVChanged, bColorChanged, bLocalVertexPositionChanged);
+			drawcall->needToUpdateVertex = true;
 			if (bLocalVertexPositionChanged)
 			{
 				CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
 			}
-			if (bLocalVertexPositionChanged || bTransformChanged)
-			{
-				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-			}
+		}
+		if (bLocalVertexPositionChanged || bTransformChanged)
+		{
+			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
+			drawcall->needToUpdateVertex = true;
 		}
 	}
-COMPLETE:
+
 	bTriangleChanged = false;
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	bColorChanged = false;
 	bTransformChanged = false;
-	;
-}
-
-bool UUIBatchGeometryRenderable::CreateGeometry()
-{
-	geometry->Clear();
-	geometry->texture = GetTextureToCreateGeometry();
-	geometry->material = CustomUIMaterial;
-	OnCreateGeometry();
-	ApplyGeometryModifier(true, true, true, true);
-	CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
-	UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-	return true;
 }
 
 bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)

@@ -83,11 +83,11 @@ protected:
 private:
 	bool bHasAddToFont = false;
 	/** visible/renderable char count of current text. -1 means not set yet */
-	int visibleCharCount = -1;
+	mutable int visibleCharCount = -1;
 	bool bTextLayoutDirty = false;
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
-	mutable FTextGeometryCache CacheTextGeometryData;
+	mutable TUniquePtr<FTextGeometryCache> CacheTextGeometryData = nullptr;
 	bool UpdateCacheTextGeometry()const;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -102,8 +102,7 @@ protected:
 	virtual UTexture* GetTextureToCreateGeometry()override;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual void OnCultureChanged_Implementation()override;
 public:
 	void ApplyFontTextureScaleUp();
