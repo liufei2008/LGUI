@@ -158,7 +158,7 @@ void UUIEffectTextAnimation_PropertyWithEase::SetEaseCurve(UCurveFloat* value)
 void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -169,7 +169,7 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos = FMath::Lerp(pos, pos + position, lerpValue);
 		}
 	}
@@ -179,7 +179,7 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -191,7 +191,7 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 		auto position = FVector(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos = FMath::Lerp(pos, pos + position, lerpValue);
 		}
 	}
@@ -200,17 +200,17 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = vertPositions[startVertIndex];
+		FVector charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += vertPositions[vertIndex];
+			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
@@ -218,7 +218,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - charCenterPos;
 			pos = charCenterPos + calcRotationMatrix.TransformPosition(vector);
 		}
@@ -229,17 +229,17 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = vertPositions[startVertIndex];
+		FVector charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += vertPositions[vertIndex];
+			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
@@ -248,7 +248,7 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - charCenterPos;
 			pos = charCenterPos + calcRotationMatrix.TransformPosition(vector);
 		}
@@ -258,17 +258,17 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = vertPositions[startVertIndex];
+		FVector charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += vertPositions[vertIndex];
+			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
@@ -276,7 +276,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - charCenterPos;
 			pos = charCenterPos + vector * calcScale;
 		}
@@ -287,17 +287,17 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = InGeometry->originPositions;
+	auto& originVertices = InGeometry->originVertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = vertPositions[startVertIndex];
+		FVector charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += vertPositions[vertIndex];
+			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
@@ -306,7 +306,7 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = vertPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - charCenterPos;
 			pos = charCenterPos + vector * calcScale;
 		}

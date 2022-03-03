@@ -45,10 +45,10 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 	}
 
 	auto& vertices = InGeo.vertices;
-	auto& originPositions = InGeo.originPositions;
+	auto& originVertices = InGeo.originVertices;
 	int vertexCount = (FullCycle ? 1 : 2) + Sides;
 	vertices.SetNumZeroed(vertexCount);
-	originPositions.SetNumUninitialized(vertexCount);
+	originVertices.SetNumUninitialized(vertexCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		//vert offset
@@ -89,7 +89,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 
 			float x = pivotOffsetX;
 			float y = pivotOffsetY;
-			originPositions[0] = FVector(0, x, y);
+			originVertices[0].Position = FVector(0, x, y);
 
 			for (int i = 0, count = Sides; i < count; i++)
 			{
@@ -97,7 +97,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 				cos = FMath::Cos(angle);
 				x = cos * halfW * VertexOffsetArray[i] + pivotOffsetX;
 				y = sin * halfH * VertexOffsetArray[i] + pivotOffsetY;
-				originPositions[i + 1] = FVector(0, x, y);
+				originVertices[i + 1].Position = FVector(0, x, y);
 				angle += singleAngle;
 			}
 			if (!FullCycle)
@@ -106,7 +106,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 				cos = FMath::Cos(angle);
 				x = cos * halfW * VertexOffsetArray[Sides] + pivotOffsetX;
 				y = sin * halfH * VertexOffsetArray[Sides] + pivotOffsetY;
-				originPositions[Sides + 1] = FVector(0, x, y);
+				originVertices[Sides + 1].Position = FVector(0, x, y);
 			}
 		}
 
@@ -178,32 +178,15 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 			UIGeometry::UpdateUIColor(&InGeo, GetFinalColor());
 		}
 
-		//@todo: optimize these additional data
+		//additional data
 		{
-			//normals
-			if (RenderCanvas->GetRequireNormal())
+			//normal & tangent
+			if (RenderCanvas->GetRequireNormal() || RenderCanvas->GetRequireTangent())
 			{
-				auto& normals = InGeo.originNormals;
-				if (normals.Num() == 0)
+				for (int i = 0; i < vertexCount; i++)
 				{
-					normals.Reserve(vertexCount);
-					for (int i = 0; i < vertexCount; i++)
-					{
-						normals.Add(FVector(-1, 0, 0));
-					}
-				}
-			}
-			//tangents
-			if (RenderCanvas->GetRequireTangent())
-			{
-				auto& tangents = InGeo.originNormals;
-				if (tangents.Num() == 0)
-				{
-					tangents.Reserve(vertexCount);
-					for (int i = 0; i < vertexCount; i++)
-					{
-						tangents.Add(FVector(0, 1, 0));
-					}
+					originVertices[i].Normal = FVector(-1, 0, 0);
+					originVertices[i].Tangent = FVector(0, 1, 0);
 				}
 			}
 			//uv1

@@ -156,15 +156,15 @@ bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitRe
 		if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
 		{
 			//triangle hit test
-			auto& vertices = InGeo->originPositions;
+			auto& vertices = InGeo->originVertices;
 			auto& triangleIndices = InGeo->triangles;
 			int triangleCount = triangleIndices.Num() / 3;
 			int index = 0;
 			for (int i = 0; i < triangleCount; i++)
 			{
-				auto point0 = (vertices[triangleIndices[index++]]);
-				auto point1 = (vertices[triangleIndices[index++]]);
-				auto point2 = (vertices[triangleIndices[index++]]);
+				auto point0 = (vertices[triangleIndices[index++]].Position);
+				auto point1 = (vertices[triangleIndices[index++]].Position);
+				auto point2 = (vertices[triangleIndices[index++]].Position);
 				FVector hitPoint, hitNormal;
 				if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 				{

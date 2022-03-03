@@ -29,7 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
 		FVector2D uv3 = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector normal = FVector(1, 0, 0);
+		FVector normal = FVector(-1, 0, 0);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
 		FVector tangent = FVector(0, 1, 0);
 };

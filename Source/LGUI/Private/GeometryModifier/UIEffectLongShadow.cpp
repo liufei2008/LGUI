@@ -28,10 +28,10 @@ void UUIEffectLongShadow::ModifyUIGeometry(
 )
 {
 	auto& triangles = InGeometry.triangles;
-	auto& originPositions = InGeometry.originPositions;
+	auto& originVertices = InGeometry.originVertices;
 	auto& vertices = InGeometry.vertices;
 
-	auto vertexCount = originPositions.Num();
+	auto vertexCount = originVertices.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
@@ -62,27 +62,22 @@ void UUIEffectLongShadow::ModifyUIGeometry(
 	}
 
 	vertexCount = singleChannelVerticesCount * (shadowSegment + 2);
-	originPositions.Reserve(vertexCount);
-	vertices.Reserve(vertexCount);
-	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-	{
-		originPositions.Add(FVector());
-		vertices.Add(FVector());
-	}
+	originVertices.AddDefaulted(vertexCount);
+	vertices.AddDefaulted(vertexCount);
 
 	//verticies
 	{
 		FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
-			auto originVert = originPositions[channelOriginVertIndex];
+			auto originVert = originVertices[channelOriginVertIndex].Position;
 			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
 			auto originAlpha = vertices[channelOriginVertIndex].Color.A;
 			for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
 			{
 				int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
 				vertices[channelVertIndex].TextureCoordinate[0] = originUV;
-				auto& vert = originPositions[channelVertIndex];
+				auto& vert = originVertices[channelVertIndex].Position;
 				vert = originVert;
 				vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
 				vert.Y += shadowSizeInterval.Y * (shadowChannelCount - channelIndex);

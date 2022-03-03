@@ -28,10 +28,10 @@ void UUIEffectOutline::ModifyUIGeometry(
 )
 {
 	auto& triangles = InGeometry.triangles;
-	auto& originPositions = InGeometry.originPositions;
+	auto& originVertices = InGeometry.originVertices;
 	auto& vertices = InGeometry.vertices;
 
-	auto vertexCount = originPositions.Num();
+	auto vertexCount = originVertices.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
@@ -89,13 +89,8 @@ void UUIEffectOutline::ModifyUIGeometry(
 	}
 
 	vertexCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
-	originPositions.Reserve(vertexCount);
-	vertices.Reserve(vertexCount);
-	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-	{
-		originPositions.Add(FVector());
-		vertices.Add(FVector());
-	}
+	originVertices.AddDefaulted(vertexCount);
+	vertices.AddDefaulted(vertexCount);
 
 	//vertices
 	{
@@ -137,38 +132,38 @@ void UUIEffectOutline::ModifyUIGeometry(
 				ApplyColorAndAlpha(vertices[channelVertIndex8].Color, originAlpha);
 			}
 
-			auto originVert = originPositions[channelOriginVertIndex];
-			auto& channel1Vert = originPositions[channelVertIndex1];
+			auto originVert = originVertices[channelOriginVertIndex].Position;
+			auto& channel1Vert = originVertices[channelVertIndex1].Position;
 			channel1Vert = originVert;
 			channel1Vert.Y += outlineSize.X;
 			channel1Vert.Z += outlineSize.Y;
-			auto& channel2Vert = originPositions[channelVertIndex2];
+			auto& channel2Vert = originVertices[channelVertIndex2].Position;
 			channel2Vert = originVert;
 			channel2Vert.Y -= outlineSize.X;
 			channel2Vert.Z += outlineSize.Y;
-			auto& channel3Vert = originPositions[channelVertIndex3];
+			auto& channel3Vert = originVertices[channelVertIndex3].Position;
 			channel3Vert = originVert;
 			channel3Vert.Y += outlineSize.X;
 			channel3Vert.Z -= outlineSize.Y;
-			auto& channel4Vert = originPositions[channelVertIndex4];
+			auto& channel4Vert = originVertices[channelVertIndex4].Position;
 			channel4Vert = originVert;
 			channel4Vert.Y -= outlineSize.X;
 			channel4Vert.Z -= outlineSize.Y;
 			if (use8Direction)
 			{
-				auto& channel5Vert = originPositions[channelVertIndex5];
+				auto& channel5Vert = originVertices[channelVertIndex5].Position;
 				channel5Vert = originVert;
 				channel5Vert.Y -= outlineSize.X;
 				channel5Vert.Z += 0;
-				auto& channel6Vert = originPositions[channelVertIndex6];
+				auto& channel6Vert = originVertices[channelVertIndex6].Position;
 				channel6Vert = originVert;
 				channel6Vert.Y += outlineSize.X;
 				channel6Vert.Z += 0;
-				auto& channel7Vert = originPositions[channelVertIndex7];
+				auto& channel7Vert = originVertices[channelVertIndex7].Position;
 				channel7Vert = originVert;
 				channel7Vert.Y += 0;
 				channel7Vert.Z += outlineSize.Y;
-				auto& channel8Vert = originPositions[channelVertIndex8];
+				auto& channel8Vert = originVertices[channelVertIndex8].Position;
 				channel8Vert = originVert;
 				channel8Vert.Y += 0;
 				channel8Vert.Z -= outlineSize.Y;

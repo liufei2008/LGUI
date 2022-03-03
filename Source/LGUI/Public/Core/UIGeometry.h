@@ -14,16 +14,39 @@ class ULGUICanvas;
 class UUIItem;
 class UUIBaseRenderable;
 
+/** Origin position/ normal/ tangent stored in UI item's local space */
+struct FLGUIOriginVertexData
+{
+public:
+	FLGUIOriginVertexData()
+	{
+		Position = FVector::ZeroVector;
+		Normal = FVector(-1, 0, 0);
+		Tangent = FVector(0, 1, 0);
+	}
+	FLGUIOriginVertexData(FVector InPosition)
+	{
+		Position = InPosition;
+		Normal = FVector(-1, 0, 0);
+		Tangent = FVector(0, 1, 0);
+	}
+	FLGUIOriginVertexData(FVector InPosition, FVector InNormal, FVector InTangent)
+	{
+		Position = InPosition;
+		Normal = InNormal;
+		Tangent = InTangent;
+	}
+	FVector Position;
+	FVector Normal;
+	FVector Tangent;
+};
+
 class LGUI_API UIGeometry
 {
 public:
-	//local space vertex position
-	TArray<FVector> originPositions;
-	//local space vertex normal
-	TArray<FVector> originNormals;
-	//local space vertex tangent
-	TArray<FVector> originTangents;
-	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originPositions/originNormals/originTangents
+	//local space vertex position/ normal/ tangent
+	TArray<FLGUIOriginVertexData> originVertices;
+	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originVertices/originNormals/originTangents
 	TArray<FDynamicMeshVertex> vertices;
 	//triangle indices
 	TArray<FLGUIIndexType> triangles;
@@ -51,9 +74,7 @@ public:
 	{
 		vertices.Reset();
 		triangles.Reset();
-		originPositions.Reset();
-		originNormals.Reset();
-		originTangents.Reset();
+		originVertices.Reset();
 	}
 	/**
 	 * Fill this data to other.
@@ -65,14 +86,10 @@ public:
 		if (vertices.Num() != Target->vertices.Num())
 		{
 			Target->vertices.SetNumUninitialized(vertices.Num());
-			Target->originPositions.SetNumUninitialized(vertices.Num());
-			Target->originNormals.SetNumUninitialized(originNormals.Num());
-			Target->originTangents.SetNumUninitialized(originTangents.Num());
+			Target->originVertices.SetNumUninitialized(vertices.Num());
 			verticesCountChanged = true;
 		}
-		FMemory::Memcpy(Target->originPositions.GetData(), originPositions.GetData(), originPositions.Num() * sizeof(FVector));
-		FMemory::Memcpy(Target->originNormals.GetData(), originNormals.GetData(), originNormals.Num() * sizeof(FVector));
-		FMemory::Memcpy(Target->originTangents.GetData(), originTangents.GetData(), originTangents.Num() * sizeof(FVector));
+		FMemory::Memcpy(Target->originVertices.GetData(), originVertices.GetData(), originVertices.Num() * sizeof(FLGUIOriginVertexData));
 		FMemory::Memcpy(Target->vertices.GetData(), vertices.GetData(), vertices.Num() * sizeof(FDynamicMeshVertex));
 
 		bool triangleCountChanged = false;
@@ -150,8 +167,8 @@ public:
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, ULGUIFontData_BaseObject* font, bool richText);
 private:
-	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
-	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FVector>& vertices);
+	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& sentenceProperty);
+	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices);
 #pragma endregion
 
 public:
@@ -166,5 +183,5 @@ public:
 		, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
 	);
 private:
-	static void OffsetVertices(TArray<FVector>& vertices, int count, float offsetX, float offsetY);
+	static void OffsetVertices(TArray<FLGUIOriginVertexData>& vertices, int count, float offsetX, float offsetY);
 };

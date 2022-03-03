@@ -13,10 +13,10 @@ void UUIEffectShadow::ModifyUIGeometry(
 )
 {
 	auto& triangles = InGeometry.triangles;
-	auto& originPositions = InGeometry.originPositions;
+	auto& originVertices = InGeometry.originVertices;
 	auto& vertices = InGeometry.vertices;
 
-	auto vertexCount = originPositions.Num();
+	auto vertexCount = originVertices.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 	
@@ -33,20 +33,15 @@ void UUIEffectShadow::ModifyUIGeometry(
 	}
 	
 	vertexCount = singleChannelVerticesCount + singleChannelVerticesCount;
-	originPositions.Reserve(vertexCount);
-	vertices.Reserve(vertexCount);
-	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-	{
-		originPositions.Add(FVector());
-		vertices.Add(FVector());
-	}
+	originVertices.AddDefaulted(vertexCount);
+	vertices.AddDefaulted(vertexCount);
 
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{
-		auto originVertPos = originPositions[channelIndexOrigin];
+		auto originVertPos = originVertices[channelIndexOrigin].Position;
 		originVertPos.Y += shadowOffset.X;
 		originVertPos.Z += shadowOffset.Y;
-		originPositions[channelIndex1] = originVertPos;
+		originVertices[channelIndex1].Position = originVertPos;
 
 		if (multiplySourceAlpha)
 		{

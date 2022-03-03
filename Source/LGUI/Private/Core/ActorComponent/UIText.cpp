@@ -209,44 +209,30 @@ void UUIText::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool I
 
 	if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
 	{
-		//@todo: optimize these additional data
-		int32 vertexCount = InGeo.vertices.Num();
-		//normals
-		if (RenderCanvas->GetRequireNormal())
+		//additional data
 		{
-			auto& normals = InGeo.originNormals;
-			if (normals.Num() == 0)
+			//normal & tangent
+			if (RenderCanvas->GetRequireNormal() || RenderCanvas->GetRequireTangent())
 			{
-				normals.Reserve(vertexCount);
-				for (int i = 0; i < vertexCount; i++)
+				auto& originVertices = InGeo.originVertices;
+				for (int i = 0; i < originVertices.Num(); i++)
 				{
-					normals.Add(FVector(-1, 0, 0));
+					originVertices[i].Normal = FVector(-1, 0, 0);
+					originVertices[i].Tangent = FVector(0, 1, 0);
 				}
 			}
-		}
-		//tangents
-		if (RenderCanvas->GetRequireTangent())
-		{
-			auto& tangents = InGeo.originTangents;
-			if (tangents.Num() == 0)
+			//uv1
+			if (RenderCanvas->GetRequireUV1())
 			{
-				tangents.Reserve(vertexCount);
-				for (int i = 0; i < vertexCount; i++)
+				auto& vertices = InGeo.vertices;
+				int32 vertexCount = vertices.Num();
+				for (int i = 0; i < vertexCount; i += 4)
 				{
-					tangents.Add(FVector(0, 1, 0));
+					vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+					vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
+					vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 0);
+					vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 0);
 				}
-			}
-		}
-		//uv1
-		if (RenderCanvas->GetRequireUV1())
-		{
-			auto& vertices = InGeo.vertices;
-			for (int i = 0; i < vertexCount; i += 4)
-			{
-				vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-				vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
-				vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 0);
-				vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 0);
 			}
 		}
 	}
