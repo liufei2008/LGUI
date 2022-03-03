@@ -381,7 +381,7 @@ void UUI2DLineRendererBase::SetEndType(EUI2DLineRenderer_EndType newValue)
 	if (EndType != newValue)
 	{
 		EndType = newValue;
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 	}
 }
 void UUI2DLineRendererBase::SetLineWidth(float newValue)

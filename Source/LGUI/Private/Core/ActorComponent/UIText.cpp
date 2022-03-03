@@ -59,7 +59,7 @@ void UUIText::ApplyFontTextureChange()
 {
 	if (IsValid(font))
 	{
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 		MarkTextureDirty();
 		geometry->texture = font->GetFontTexture();
 		if (RenderCanvas.IsValid())
@@ -336,7 +336,7 @@ void UUIText::SetText(const FText& newText) {
 		int newVisibleCharCount = VisibleCharCountInString(text.ToString());
 		if (newVisibleCharCount != visibleCharCount)//visible char count change
 		{
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, true);
 			visibleCharCount = newVisibleCharCount;
 		}
 		else//visible char count not change, just mark update vertex and uv
@@ -382,7 +382,7 @@ void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
 		if (overflowType == UITextOverflowType::ClampContent
 			|| newOverflowType == UITextOverflowType::ClampContent
 			)
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, true);
 		else
 			MarkVertexPositionDirty();
 		overflowType = newOverflowType;
@@ -412,7 +412,7 @@ void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
 		}
 		else
 		{
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, true);
 		}
 		fontStyle = newFontStyle;
 	}
@@ -421,7 +421,7 @@ void UUIText::SetRichText(bool newRichText)
 {
 	if (richText != newRichText)
 	{
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 		richText = newRichText;
 	}
 }

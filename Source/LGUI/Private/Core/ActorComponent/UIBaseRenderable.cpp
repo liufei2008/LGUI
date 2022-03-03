@@ -7,7 +7,9 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
 
-
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 void UUIRenderableCustomRaycast::Init(UUIBaseRenderable* InUIRenderable)
 {
@@ -152,10 +154,8 @@ bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitRe
 	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
 	{
 		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-		//hit point inside rect area
-		if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
+		//triangle hit test
 		{
-			//triangle hit test
 			auto& vertices = InGeo->originVertices;
 			auto& triangleIndices = InGeo->triangles;
 			int triangleCount = triangleIndices.Num() / 3;
@@ -202,25 +202,21 @@ bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Sta
 	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
 	{
 		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-		//hit point inside rect area
-		if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
+		if (CustomRaycastObject->Raycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z)))
 		{
-			if (CustomRaycastObject->Raycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z)))
-			{
-				OutHit.TraceStart = Start;
-				OutHit.TraceEnd = End;
+			OutHit.TraceStart = Start;
+			OutHit.TraceEnd = End;
 #if ENGINE_MAJOR_VERSION < 5
-				OutHit.Actor = GetOwner();
+			OutHit.Actor = GetOwner();
 #endif
-				OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
-				OutHit.Location = GetComponentTransform().TransformPosition(IntersectionPoint);
-				OutHit.Normal = GetComponentTransform().TransformVector(FVector(-1, 0, 0));
-				OutHit.Normal.Normalize();
-				OutHit.Distance = FVector::Distance(Start, OutHit.Location);
-				OutHit.ImpactPoint = OutHit.Location;
-				OutHit.ImpactNormal = OutHit.Normal;
-				return true;
-			}
+			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+			OutHit.Location = GetComponentTransform().TransformPosition(IntersectionPoint);
+			OutHit.Normal = GetComponentTransform().TransformVector(FVector(-1, 0, 0));
+			OutHit.Normal.Normalize();
+			OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+			OutHit.ImpactPoint = OutHit.Location;
+			OutHit.ImpactNormal = OutHit.Normal;
+			return true;
 		}
 	}
 	return false;
@@ -292,3 +288,7 @@ float UUIBaseRenderable::Color255To1_Table[256] =
 	,0.8901961,0.8941177,0.8980392,0.9019608,0.9058824,0.9098039,0.9137255,0.9176471,0.9215686,0.9254902,0.9294118,0.9333333,0.9372549,0.9411765,0.945098,0.9490196,0.9529412,0.9568627,0.9607843,0.9647059
 	,0.9686275,0.972549,0.9764706,0.9803922,0.9843137,0.9882353,0.9921569,0.9960784,1
 };
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

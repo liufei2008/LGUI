@@ -35,7 +35,7 @@ void UUI2DLineRaw::SetPoints(const TArray<FVector2D>& InPoints)
 	if (InPoints.Num() != PointArray.Num())
 	{
 		PointArray = InPoints;
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 	}
 	else
 	{

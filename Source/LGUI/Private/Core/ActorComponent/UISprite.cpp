@@ -224,7 +224,7 @@ void UUISprite::SetSpriteType(UISpriteType newType) {
 	if (type != newType)
 	{
 		type = newType;
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 		if (type == UISpriteType::Tiled)
 		{
 			CalculateTiledWidth();
@@ -239,7 +239,7 @@ void UUISprite::SetFillMethod(UISpriteFillMethod newValue)
 		fillMethod = newValue;
 		if (type == UISpriteType::Filled)
 		{
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
@@ -252,12 +252,11 @@ void UUISprite::SetFillOrigin(uint8 newValue)
 		{
 			if (fillMethod == UISpriteFillMethod::Radial90)
 			{
-				MarkVertexPositionDirty();
-				MarkUVDirty();
+				MarkVerticesDirty(false, true, true, false);
 			}
 			else if (fillMethod == UISpriteFillMethod::Radial180 || fillMethod == UISpriteFillMethod::Radial360)
 			{
-				MarkTriangleDirty();
+				MarkVerticesDirty(true, true, true, true);
 			}
 		}
 	}

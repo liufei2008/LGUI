@@ -66,7 +66,7 @@ void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem *child, bool 
                 return false;
             });
 
-            MarkTriangleDirty();
+            MarkVerticesDirty(true, true, true, true);
         }
     }
     else
@@ -75,7 +75,7 @@ void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem *child, bool 
         if (SortedItemArray.Find(child, index))
         {
             SortedItemArray.RemoveAt(index);
-            MarkTriangleDirty();
+            MarkVerticesDirty(true, true, true, true);
         }
     }
 }
