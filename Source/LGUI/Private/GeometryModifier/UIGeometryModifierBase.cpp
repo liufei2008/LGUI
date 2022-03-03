@@ -109,7 +109,7 @@ void UUIGeometryModifierBase::ModifyUIGeometry(
 		}
 		GeometryModifierHelper->UIGeo = &InGeometry;
 		SCOPE_CYCLE_COUNTER(STAT_UIGeometryModifierBase_ModifyUIGeometry);
-		ReceiveModifyUIGeometry(GeometryModifierHelper, InTriangleChanged, InUVChanged, InColorChanged, InVertexPositionChanged);
+		ReceiveModifyUIGeometry(GeometryModifierHelper);
 	}
 }
 
