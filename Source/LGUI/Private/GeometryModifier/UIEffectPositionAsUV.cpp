@@ -17,7 +17,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(
 	auto uiRenderable = GetUIRenderable();
 	if (!uiRenderable)return;
 	auto renderCanvas = uiRenderable->GetRenderCanvas();
-	auto& originPositions = InGeometry.originPositions;
+	auto& originVertices = InGeometry.originVertices;
 	switch (uvChannel)
 	{
 	case 0:
@@ -26,7 +26,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = originPositions[i];
+			auto& vert = originVertices[i].Position;
 			vertices[i].TextureCoordinate[0] = FVector2D(vert.Y, vert.Z);
 		}
 	}
@@ -43,7 +43,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = originPositions[i];
+			auto& vert = originVertices[i].Position;
 			vertices[i].TextureCoordinate[1] = FVector2D(vert.Y, vert.Z);
 		}
 	}
@@ -60,7 +60,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = originPositions[i];
+			auto& vert = originVertices[i].Position;
 			vertices[i].TextureCoordinate[2] = FVector2D(vert.Y, vert.Z);
 		}
 	}
@@ -77,7 +77,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(
 		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = originPositions[i];
+			auto& vert = originVertices[i].Position;
 			vertices[i].TextureCoordinate[3] = FVector2D(vert.Y, vert.Z);
 		}
 	}

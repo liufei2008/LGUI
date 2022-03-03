@@ -126,7 +126,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 	float halfW = this->GetWidth() * 0.5f;
 	float halfH = this->GetHeight() * 0.5f;
 	//positions
-	auto& originPositions = InGeo.originPositions;
+	auto& originVertices = InGeo.originVertices;
 
 	FVector2D pos0, pos1;
 	float lineLeftWidth = LineWidth * LineWidthOffset;
@@ -136,8 +136,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 	if (CanConnectStartEndPoint(pointCount))
 	{
 		GenerateLinePoint(InPointArray[0], InPointArray[pointCount - 1], InPointArray[1], lineLeftWidth, lineRightWidth, pos0, pos1, prevLineDir);
-		originPositions[0] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
-		originPositions[1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
+		originVertices[0].Position = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+		originVertices[1].Position = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 	}
 	else
 	{
@@ -165,8 +165,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 		pos0 = v0 + lineLeftWidth * widthDir;
 		pos1 = v0 - lineRightWidth * widthDir;
 
-		originPositions[0] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
-		originPositions[1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
+		originVertices[0].Position = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+		originVertices[1].Position = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 
 		if (EndType == EUI2DLineRenderer_EndType::Cap)
 		{	
@@ -178,8 +178,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 			pos1 = capPoint - lineRightWidth * widthDir;
 
 			auto vertIndex = (pointCount + 1) * 2;
-			originPositions[vertIndex] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
-			originPositions[vertIndex + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
+			originVertices[vertIndex].Position = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+			originVertices[vertIndex + 1].Position = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 		}
 	}
 
@@ -190,8 +190,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 		{
 			FVector2D posA, posB;
 			GenerateLinePoint(InPointArray[i], InPointArray[i - 1], InPointArray[i + 1], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
-			originPositions[i + i] = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
-			originPositions[i + i + 1] = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
+			originVertices[i + i].Position = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
+			originVertices[i + i + 1].Position = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
 		}
 	}
 
@@ -200,8 +200,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 	{
 		FVector2D posA, posB;
 		GenerateLinePoint(InPointArray[pointCount - 1], InPointArray[pointCount - 2], InPointArray[0], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
-		originPositions[i2] = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
-		originPositions[i2 + 1] = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
+		originVertices[i2].Position = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
+		originVertices[i2 + 1].Position = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
 	}
 	else
 	{
@@ -210,8 +210,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 		FVector2D vEnd1 = InPointArray[pointCount - 1];
 		//if (vEnd2 == vEnd1)
 		//{
-		//	originPositions[i2] = originPositions[i2 - 2];
-		//	originPositions[i2 + 1] = originPositions[i2 - 1];
+		//	originVertices[i2].Position = originVertices[i2 - 2].Position;
+		//	originVertices[i2 + 1].Position = originVertices[i2 - 1].Position;
 		//}
 		//else
 		{
@@ -237,8 +237,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 			pos0 = vEnd1 + lineLeftWidth * widthDir;
 			pos1 = vEnd1 - lineRightWidth * widthDir;
 
-			originPositions[i2] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
-			originPositions[i2 + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
+			originVertices[i2].Position = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+			originVertices[i2 + 1].Position = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 
 			if (EndType == EUI2DLineRenderer_EndType::Cap)
 			{
@@ -250,8 +250,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 				pos1 = capPoint - lineRightWidth * widthDir;
 
 				auto vertIndex = pointCount * 2;
-				originPositions[vertIndex] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
-				originPositions[vertIndex + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
+				originVertices[vertIndex].Position = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+				originVertices[vertIndex + 1].Position = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 			}
 		}
 	}
@@ -325,14 +325,14 @@ void UUI2DLineRendererBase::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleC
 	}
 
 	auto& vertices = InGeo.vertices;
-	auto& originPositions = InGeo.originPositions;
+	auto& originVertices = InGeo.originVertices;
 	int vertexCount = pointCount * 2;
 	if (EndType == EUI2DLineRenderer_EndType::Cap)
 	{
 		vertexCount += 4;
 	}
 	vertices.SetNumUninitialized(vertexCount);
-	originPositions.SetNumUninitialized(vertexCount);
+	originVertices.SetNumUninitialized(vertexCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)
@@ -348,23 +348,13 @@ void UUI2DLineRendererBase::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleC
 			UIGeometry::UpdateUIColor(&InGeo, GetFinalColor());
 		}
 
-		//not set anything for uv1
-		//normals
-		if (RenderCanvas->GetRequireNormal())
+		//normal & tangent
+		if (RenderCanvas->GetRequireNormal() || RenderCanvas->GetRequireTangent())
 		{
-			auto& normals = geometry->originNormals;
-			if (normals.Num() == 0)
+			for (int i = 0; i < originVertices.Num(); i++)
 			{
-				normals.AddDefaulted(vertexCount);
-			}
-		}
-		//tangents
-		if (RenderCanvas->GetRequireTangent())
-		{
-			auto& tangents = geometry->originTangents;
-			if (tangents.Num() == 0)
-			{
-				tangents.AddDefaulted(vertexCount);
+				originVertices[i].Normal = FVector(-1, 0, 0);
+				originVertices[i].Tangent = FVector(0, 1, 0);
 			}
 		}
 	}

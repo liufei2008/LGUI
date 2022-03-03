@@ -157,7 +157,7 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 		return 0;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -166,7 +166,7 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 	float charPivotPos = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPos += originPositions[vertIndex].Y;
+		charPivotPos += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPos /= charPropertyItem.VertCount;
 	return (charPivotPos - leftPos) / InUIText->GetWidth();
@@ -182,7 +182,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsoluteP
 		return;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -190,7 +190,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsoluteP
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += originPositions[vertIndex].Y;
+		charPivotPosH += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	OutPosition = FVector(0, charPivotPosH, 0);
@@ -211,7 +211,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		return;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -219,7 +219,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += originPositions[vertIndex].Y;
+		charPivotPosH += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	auto charPivotPos = FVector(0, charPivotPosH, 0);
@@ -230,7 +230,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos += InPosition;
 		}
 	}
@@ -240,7 +240,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		auto charPivotOffset = charPivotPos - InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos -= charPivotOffset;
 		}
 	}
@@ -252,7 +252,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		auto calcRotationMatrix = FRotationMatrix(InRotator);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - InPosition;
 			pos = InPosition + calcRotationMatrix.TransformPosition(vector);
 		}
@@ -262,7 +262,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			auto vector = pos - charPivotPos;
 			pos = charPivotPos + vector * InScale;
 		}
@@ -278,7 +278,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 		return;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -290,7 +290,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos += InPosition;
 		}
 	}
@@ -300,13 +300,13 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 		auto charCenterPos = FVector::ZeroVector;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += originPositions[vertIndex];
+			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		auto centerOffset = charCenterPos - InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = originPositions[vertIndex];
+			auto& pos = originVertices[vertIndex].Position;
 			pos -= centerOffset;
 		}
 	}
@@ -323,21 +323,21 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate
 		return;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 	float charPivotPos = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPos += originPositions[vertIndex].Y;
+		charPivotPos += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPos /= charPropertyItem.VertCount;
 
 	auto calcRotationMatrix = FRotationMatrix(InRotator);
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& pos = originPositions[vertIndex];
+		auto& pos = originVertices[vertIndex].Position;
 		auto vector = pos - FVector(0, charPivotPos, 0);
 		pos = FVector(0, charPivotPos, 0) + calcRotationMatrix.TransformPosition(vector);
 	}
@@ -352,7 +352,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 		return;
 	}
 #endif
-	auto& originPositions = UIGeo->originPositions;
+	auto& originVertices = UIGeo->originVertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -360,7 +360,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += originPositions[vertIndex].Y;
+		charPivotPosH += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	auto charPivotPos = FVector(0, charPivotPosH, 0);
@@ -368,7 +368,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 	auto calcScale = InScale;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& pos = originPositions[vertIndex];
+		auto& pos = originVertices[vertIndex].Position;
 		auto vector = pos - charPivotPos;
 		pos = charPivotPos + vector * calcScale;
 	}
