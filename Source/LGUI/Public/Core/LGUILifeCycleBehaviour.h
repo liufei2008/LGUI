@@ -56,7 +56,7 @@ protected:
 	/**
 	 * This function is always called before any Start functions and also after a prefab is instantiated.
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
-	 * NOTE!!! For LGUILifeCycleUIBehaviour, if UIItem is not "ActiveInHierarchy" during start up, then Awake is not called until "ActiveInHierarchy" becomes true.
+	 * NOTE!!! If RootComponent is UIItem: if UIItem is not "ActiveInHierarchy" during start up, then Awake is not called until "ActiveInHierarchy" becomes true.
 	 * Awake execute order in prefab: deeper and lower in hierarchy will execute earlier, so scripts on root actor will execute latest.
 	 */
 	virtual void Awake();
@@ -82,7 +82,7 @@ protected:
 	/**
 	 * This function is always called before any Start functions and also after a prefab is instantiated.
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
-	 * NOTE!!! For LGUILifeCycleUIBehaviour, if UIItem is inactive during start up, then Awake is not called until it is made active.
+	 * NOTE!!! If RootComponent is UIItem: if UIItem is inactive during start up, then Awake is not called until it is made active.
 	 * Awake execute order in prefab: deeper and lower in hierarchy will execute earlier, so scripts on root actor will execute latest.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Awake"), Category = "LGUILifeCycleBehaviour")void ReceiveAwake();
@@ -113,8 +113,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		bool GetEnable() const { return enable; }
 	/**
-	 * For LGUILifeCycleBehaviour, return true when RootComponent is visible and this component is enable.
-	 * For LGUILifeCycleUIBehaviour, return true when UIItem is "ActiveInHierarchy" and this component is enable. "ActiveInHierarchy" is related to UIItem's IsUIActive.
+	 * return true when RootComponent is visible and this component is enable.
+	 * NOTE!!! If RootComponent is UIItem: return true when UIItem is "ActiveInHierarchy" and this component is enable. "ActiveInHierarchy" is related to UIItem's IsUIActive.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		virtual bool GetIsActiveAndEnable() const;
