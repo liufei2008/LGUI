@@ -135,14 +135,7 @@ protected:
 	UPROPERTY(Transient) ULGUIGeometryModifierHelper* GeometryModifierHelper = nullptr;
 	/**
 	 * Modify UI geometry's vertex and triangle.
-	 * @param	InTriangleChanged			triangle changed
-	 * @param	InUVChanged			vertex uv changed
-	 * @param	InColorChanged			vertex color changed
-	 * @param	InVertexPositionChanged			vertex position changed
-	 * @param	InTransformChanged			object's transform changed
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "ModifyUIGeometry"))
-		void ReceiveModifyUIGeometry(ULGUIGeometryModifierHelper* InGeometryModifierHelper
-			, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
-		);
+		void ReceiveModifyUIGeometry(ULGUIGeometryModifierHelper* InGeometryModifierHelper);
 };
