@@ -196,6 +196,6 @@ void UUIEffectOutline::SetUse8Direction(bool newValue)
 	if (use8Direction != newValue)
 	{
 		use8Direction = newValue;
-		if (GetUIRenderable())GetUIRenderable()->MarkTriangleDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkVerticesDirty(true, true, true, true);
 	}
 }

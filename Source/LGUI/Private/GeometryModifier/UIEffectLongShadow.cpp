@@ -124,7 +124,7 @@ void UUIEffectLongShadow::SetShadowSegment(uint8 newSegment)
 	if (shadowSegment != newSegment)
 	{
 		shadowSegment = newSegment;
-		if (GetUIRenderable())GetUIRenderable()->MarkTriangleDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkVerticesDirty(true, true, true, true);
 	}
 }
 void UUIEffectLongShadow::SetUseGradientColor(bool newBool)

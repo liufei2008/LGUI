@@ -72,12 +72,15 @@ namespace LGUIPrefabSystem4
 			{
 				TArray<uint8> SubPrefabOverrideData;
 				auto SubPrefabObject = DataItem.Object.Get();
-				WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
-				FLGUIPrefabOverrideParameterRecordData RecordDataItem;
-				RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
-				RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
-				RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
-				OutActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
+				if (MapObjectToGuid.Contains(SubPrefabObject))
+				{
+					WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
+					FLGUIPrefabOverrideParameterRecordData RecordDataItem;
+					RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
+					RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
+					RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
+					OutActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
+				}
 			}
 		}
 		else

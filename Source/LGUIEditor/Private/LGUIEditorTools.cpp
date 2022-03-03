@@ -390,6 +390,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 			{
 				PrefabHelperObject->Modify();
 			}
+			PrefabHelperObject->SetCanNotifyAttachment(false);
 			struct LOCAL {
 				static void CollectSubPrefabActors(AActor* InActor, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
 				{
@@ -444,6 +445,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 				}
 				PrefabHelperObject->MakePrefabAsSubPrefab(KeyValue.Value.PrefabAsset, KeyValue.Key, SubMapGuidToObject, KeyValue.Value.ObjectOverrideParameterArray);
 			}
+			PrefabHelperObject->SetCanNotifyAttachment(true);
 		}
 		else 
 		{
@@ -572,6 +574,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	}
 	if (PrefabHelperObject == nullptr)return;
 
+	PrefabHelperObject->SetCanNotifyAttachment(false);
 	GEditor->BeginTransaction(LOCTEXT("PasteActor", "LGUI Paste Actors"));
 	for (auto item : selectedActors)
 	{
@@ -606,6 +609,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 			UE_LOG(LGUIEditor, Error, TEXT("Source copied actor is missing!"));
 		}
 	}
+	PrefabHelperObject->SetCanNotifyAttachment(true);
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
 }

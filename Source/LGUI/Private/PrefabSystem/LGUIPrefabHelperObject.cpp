@@ -214,6 +214,7 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 	{
 		auto SubPrefabRootActor = KeyValue.Key;
 		FLGUISubPrefabData& SubPrefabData = KeyValue.Value;
+		SubPrefabData.CheckParameters();
 		if (InSubPrefabRootActor == SubPrefabRootActor || InSubPrefabRootActor->IsAttachedTo(SubPrefabRootActor))
 		{
 			for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
@@ -257,6 +258,7 @@ FLGUISubPrefabData ULGUIPrefabHelperObject::GetSubPrefabData(AActor* InSubPrefab
 	{
 		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
 		{
+			KeyValue.Value.CheckParameters();
 			return KeyValue.Value;
 		}
 	}
@@ -388,6 +390,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	{
 		auto SubPrefabRootActor = SubPrefabKeyValue.Key;
 		auto& SubPrefabData = SubPrefabKeyValue.Value;
+		SubPrefabData.CheckParameters();
 		if (SubPrefabData.PrefabAsset == InSubPrefab
 			&& (InSubPrefabRootActor != nullptr ? SubPrefabRootActor == InSubPrefabRootActor : true)
 			)

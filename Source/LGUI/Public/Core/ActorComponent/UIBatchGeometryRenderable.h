@@ -134,7 +134,8 @@ protected:
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
-	void MarkTriangleDirty();
+	UE_DEPRECATED(4.24, "Use MarkVerticesDirty(true, true, true, true) instead")
+		void MarkTriangleDirty() { MarkVerticesDirty(true, true, true, true); }
 	virtual void MarkTextureDirty();
 	virtual void MarkMaterialDirty();
 	virtual void MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty);

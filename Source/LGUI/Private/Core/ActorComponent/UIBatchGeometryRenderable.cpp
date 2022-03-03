@@ -96,10 +96,6 @@ void UUIBatchGeometryRenderable::MarkUVDirty()
 {
 	MarkVerticesDirty(false, false, true, false);
 }
-void UUIBatchGeometryRenderable::MarkTriangleDirty()
-{
-	MarkVerticesDirty(true, false, false, false);
-}
 
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {

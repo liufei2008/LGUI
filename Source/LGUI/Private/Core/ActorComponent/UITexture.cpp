@@ -151,7 +151,7 @@ void UUITexture::SetTextureType(UITextureType newType)
 	if (type != newType)
 	{
 		type = newType;
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 	}
 }
 void UUITexture::SetSpriteData(FLGUISpriteInfo newSpriteData) 
@@ -190,7 +190,7 @@ void UUITexture::SetFillMethod(UISpriteFillMethod newValue)
 		fillMethod = newValue;
 		if (type == UITextureType::Filled)
 		{
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
@@ -207,7 +207,7 @@ void UUITexture::SetFillOrigin(uint8 newValue)
 			}
 			else if (fillMethod == UISpriteFillMethod::Radial180 || fillMethod == UISpriteFillMethod::Radial360)
 			{
-				MarkTriangleDirty();
+				MarkVerticesDirty(true, true, true, true);
 			}
 		}
 	}

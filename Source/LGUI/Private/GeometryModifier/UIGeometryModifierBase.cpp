@@ -21,33 +21,18 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 }
-UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()
+UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()const
 {
 	if(!UIRenderable.IsValid())
 	{
-		if (auto actor = GetOwner())
+		if (auto Actor = GetOwner())
 		{
-			TInlineComponentArray<class UUIBatchGeometryRenderable*> components;
-			actor->GetComponents(components);
-			if (components.Num() > 1)
+			if (auto RootComp = Actor->GetRootComponent())
 			{
-				for (auto comp : components)
+				if (auto UIRenderableComp = Cast<UUIBatchGeometryRenderable>(RootComp))
 				{
-					if (comp->GetFName() == componentName)
-					{
-						UIRenderable = (UUIBatchGeometryRenderable*)comp;
-						break;
-					}
+					UIRenderable = UIRenderableComp;
 				}
-				if (!UIRenderable.IsValid())
-				{
-					UE_LOG(LGUI, Warning, TEXT("[UUIGeometryModifierBase::GetUIRenderable]Cannot find component of name:%s, will use first one."), *(componentName.ToString()));
-					UIRenderable = (UUIBatchGeometryRenderable*)components[0];
-				}
-			}
-			else if(components.Num() == 1)
-			{
-				UIRenderable = (UUIBatchGeometryRenderable*)components[0];
 			}
 		}
 	}
@@ -57,26 +42,9 @@ UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()
 void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (GetOwner())
+	if (GetUIRenderable())
 	{
-		if (auto rootComp = GetOwner()->GetRootComponent())
-		{
-			if (auto uiRenderable = Cast<UUIItem>(rootComp))
-			{
-				uiRenderable->EditorForceUpdate();
-			}
-		}
-	}
-	if (auto Property = PropertyChangedEvent.Property)
-	{
-		auto PropertyName = Property->GetFName();
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIGeometryModifierBase, componentName))
-		{
-			//remove from old
-			RemoveFromUIBatchGeometry();
-			//add to new
-			AddToUIBatchGeometry();
-		}
+		UIRenderable->EditorForceUpdate();
 	}
 }
 #endif
@@ -115,7 +83,7 @@ void UUIGeometryModifierBase::SetEnable(bool value)
 		bEnable = value;
 		if (GetUIRenderable() != nullptr)
 		{
-			UIRenderable->MarkTriangleDirty();
+			UIRenderable->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
@@ -149,6 +117,11 @@ void UUIGeometryModifierBase::ModifyUIGeometry(
 
 float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositionRatio01(UUIText* InUIText, int InCharIndex)const
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositionRatio01]InUIText not valid!"));
+		return 0;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -174,6 +147,11 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 
 void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsolutePosition(UUIText* InUIText, int InCharIndex, FVector& OutPosition)const
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsolutePosition]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -203,6 +181,11 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	, const FVector& InScale
 )
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transform]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -263,13 +246,18 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			auto vector = pos - charPivotPos;
-			pos = charPivotPos + vector * InScale;
+			auto vector = pos - InPosition;
+			pos = InPosition + vector * InScale;
 		}
 	}
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Position(UUIText* InUIText, int InCharIndex, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType)
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Position]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -315,6 +303,11 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate(UUIText* InUIText, int InCharIndex, const FRotator& InRotator)
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -344,6 +337,11 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(UUIText* InUIText, int InCharIndex, const FVector& InScale)
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -375,6 +373,11 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Color(UUIText* InUIText, int InCharIndex, const FColor& InColor)
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Color]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
@@ -396,6 +399,11 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Color(
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Alpha(UUIText* InUIText, int InCharIndex, const float& InAlpha)
 {
+	if (InUIText == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Alpha]InUIText not valid!"));
+		return;
+	}
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
 	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())

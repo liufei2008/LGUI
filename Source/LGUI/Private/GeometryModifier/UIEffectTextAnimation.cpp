@@ -89,7 +89,7 @@ void UUIEffectTextAnimation::SetSelector(UUIEffectTextAnimation_Selector* value)
 		selector = value;
 		if (CheckUIText())
 		{
-			uiText->MarkTriangleDirty();
+			uiText->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
@@ -100,7 +100,7 @@ void UUIEffectTextAnimation::SetProperties(const TArray<UUIEffectTextAnimation_P
 		properties = value;
 		if (CheckUIText())
 		{
-			uiText->MarkTriangleDirty();
+			uiText->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
@@ -116,7 +116,7 @@ void UUIEffectTextAnimation::SetProperty(int index, UUIEffectTextAnimation_Prope
 		properties[index] = value;
 		if (CheckUIText())
 		{
-			uiText->MarkTriangleDirty();
+			uiText->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }

@@ -220,7 +220,7 @@ void UUIPolygon::SetSides(int value) {
 	{
 		Sides = value;
 		Sides = FMath::Max(Sides, FullCycle ? 3 : 1);
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 	}
 }
 void UUIPolygon::SetUVType(UIPolygonUVType value)

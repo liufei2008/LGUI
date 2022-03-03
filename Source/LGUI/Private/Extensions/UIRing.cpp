@@ -84,7 +84,7 @@ void UUIRing::SetSegment(int newValue)
 	if (Segment != newValue)
 	{
 		Segment = newValue;
-		MarkTriangleDirty();
+		MarkVerticesDirty(true, true, true, true);
 	}
 }
 

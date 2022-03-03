@@ -88,23 +88,17 @@ protected:
 	/** Execute order of this effect in actor. Smaller executeOrder will execute eailer */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
-	/** 
-	 * If there are multiple UIBatchGeometryRenderable components, then select one of them by name.
-	 * Leave it empty if only one UIBatchGeometryRenderable component.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName componentName;
 
 private:
-	TWeakObjectPtr<UUIBatchGeometryRenderable> UIRenderable;
+	mutable TWeakObjectPtr<UUIBatchGeometryRenderable> UIRenderable;
 	void RemoveFromUIBatchGeometry();
 	void AddToUIBatchGeometry();
 public:
 	UE_DEPRECATED(4.24, "Use GetUIRenderable instead.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetUIRenderable instead."))
-		UUIBatchGeometryRenderable* GetRenderableUIItem() { return GetUIRenderable(); }
+		UUIBatchGeometryRenderable* GetRenderableUIItem()const { return GetUIRenderable(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UUIBatchGeometryRenderable* GetUIRenderable();
+		UUIBatchGeometryRenderable* GetUIRenderable()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetEnable()const { return bEnable; }
 
