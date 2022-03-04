@@ -26,10 +26,12 @@ namespace LGUIPrefabSystem
 		friend class FLGUIDuplicateOverrideParameterObjectReader;
 
 	public:
+		virtual ~ActorSerializerBase() {}
+
 		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData);
 		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData);
 
-		void SetupArchive(FArchive& InArchive);
+		virtual void SetupArchive(FArchive& InArchive);
 
 		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
 		TArray<UObject*> WillSerailizeActorArray;
@@ -59,5 +61,6 @@ namespace LGUIPrefabSystem
 	protected:
 		UWorld* TargetWorld = nullptr;//world that need to spawn actor
 		bool bIsEditorOrRuntime = true;
+		static bool CanUseUnversionedPropertySerialization();
 	};
 }

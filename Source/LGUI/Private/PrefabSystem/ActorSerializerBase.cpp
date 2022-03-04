@@ -237,7 +237,7 @@ namespace LGUIPrefabSystem
 		return result;
 	}
 
-	static bool CanUseUnversionedPropertySerialization()
+	bool ActorSerializerBase::CanUseUnversionedPropertySerialization()
 	{
 		bool bTemp;
 		static bool bAllow = GConfig->GetBool(TEXT("Core.System"), TEXT("CanUseUnversionedPropertySerialization"), bTemp, GEngineIni) && bTemp;
