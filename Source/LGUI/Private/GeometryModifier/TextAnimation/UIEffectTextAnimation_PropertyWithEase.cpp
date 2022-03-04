@@ -395,7 +395,7 @@ void UUIEffectTextAnimation_ColorRandomProperty::ApplyProperty(UUIText* InUIText
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		auto color = FColor(FMath::FRandRange(min.R, max.R), FMath::FRandRange(min.G, max.G), FMath::FRandRange(min.B, max.B), FMath::FRandRange(min.A, max.A));
+		auto color = FColor((uint8)FMath::RandRange(min.R, max.R), (uint8)FMath::RandRange(min.G, max.G), (uint8)FMath::RandRange(min.B, max.B), (uint8)FMath::RandRange(min.A, max.A));
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		FVector colorHsv;

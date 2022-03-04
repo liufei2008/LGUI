@@ -122,7 +122,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 	int pointCount = InPointArray.Num();
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0;
-	UIGeometry::CalculatePivotOffset(this->GetWidth(), this->GetHeight(), this->GetPivot(), pivotOffsetX, pivotOffsetY);
+	UIGeometry::CalculatePivotOffset(this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), pivotOffsetX, pivotOffsetY);
 	float halfW = this->GetWidth() * 0.5f;
 	float halfH = this->GetHeight() * 0.5f;
 	//positions

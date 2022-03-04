@@ -48,7 +48,7 @@ enum class UITextOverflowType :uint8
 struct FUITextCaretProperty
 {
 	/** caret position. caret is on left side of char */
-	FVector2D caretPosition;
+	FVector2f caretPosition;
 	/** char index in text */
 	int32 charIndex;
 };
@@ -60,7 +60,7 @@ struct FUITextLineProperty
 /** for range selection in TextInputComponent */
 struct FUITextSelectionProperty
 {
-	FVector2D Pos;
+	FVector2f Pos;
 	int32 Size;
 };
 /** char property */
@@ -108,9 +108,9 @@ public:
 		int32 InVisibleCharCount,
 		float InWidth,
 		float InHeight,
-		FVector2D InPivot,
+		FVector2f InPivot,
 		FColor InColor,
-		FVector2D InFontSpace,
+		FVector2f InFontSpace,
 		float InFontSize,
 		UITextParagraphHorizontalAlign InParagraphHAlign,
 		UITextParagraphVerticalAlign InParagraphVAlign,
@@ -127,9 +127,9 @@ private:
 	int32 visibleCharCount = -1;
 	float width = 0;
 	float height = 0;
-	FVector2D pivot = FVector2D::ZeroVector;
+	FVector2f pivot = FVector2f::ZeroVector;
 	FColor color = FColor::White;
-	FVector2D fontSpace = FVector2D::ZeroVector;
+	FVector2f fontSpace = FVector2f::ZeroVector;
 	float fontSize = 0;
 	UITextParagraphHorizontalAlign paragraphHAlign = UITextParagraphHorizontalAlign::Left;
 	UITextParagraphVerticalAlign paragraphVAlign = UITextParagraphVerticalAlign::Bottom;
@@ -146,7 +146,7 @@ private:
 
 public:
 #pragma region OutputResults
-	FVector2D textRealSize = FVector2D::ZeroVector;
+	FVector2f textRealSize = FVector2f::ZeroVector;
 	/** cached texture property */
 	TArray<FUITextLineProperty> cacheTextPropertyArray;
 	/** char properties, from first char to last one in array */

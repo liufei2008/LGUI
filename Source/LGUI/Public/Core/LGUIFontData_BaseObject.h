@@ -80,21 +80,21 @@ struct FLGUICharData_HighPrecision
 	float uv3X = 0;
 	float uv3Y = 0;
 
-	FVector2D GetUV0()
+	FVector2f GetUV0()
 	{
-		return FVector2D(uv0X, uv0Y);
+		return FVector2f(uv0X, uv0Y);
 	}
-	FVector2D GetUV3()
+	FVector2f GetUV3()
 	{
-		return FVector2D(uv3X, uv3Y);
+		return FVector2f(uv3X, uv3Y);
 	}
-	FVector2D GetUV2()
+	FVector2f GetUV2()
 	{
-		return FVector2D(uv0X, uv3Y);
+		return FVector2f(uv0X, uv3Y);
 	}
-	FVector2D GetUV1()
+	FVector2f GetUV1()
 	{
-		return FVector2D(uv3X, uv0Y);
+		return FVector2f(uv3X, uv0Y);
 	}
 };
 

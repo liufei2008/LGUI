@@ -73,7 +73,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 		{
 			auto width = this->GetWidth();
 			auto height = this->GetHeight();
-			auto pivot = this->GetPivot();
+			auto pivot = FVector2f(this->GetPivot());
 			//pivot offset
 			float pivotOffsetX = 0, pivotOffsetY = 0;
 			UIGeometry::CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY);
@@ -131,7 +131,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 
 				float x = centerUVX;
 				float y = centerUVY;
-				vertices[0].TextureCoordinate[0] = FVector2D(x, y);
+				vertices[0].TextureCoordinate[0] = FVector2f(x, y);
 
 				int count = FullCycle ? Sides : (Sides + 1);
 				for (int i = 0; i < count; i++)
@@ -140,15 +140,15 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 					cos = FMath::Cos(angle);
 					x = cos * halfUVWidth + centerUVX;
 					y = sin * halfUVHeight + centerUVY;
-					vertices[i + 1].TextureCoordinate[0] = FVector2D(x, y);
+					vertices[i + 1].TextureCoordinate[0] = FVector2f(x, y);
 					angle += singleAngle;
 				}
 			}
 			break;
 			case UIPolygonUVType::HeightCenter:
 			{
-				vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
-				FVector2D otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				vertices[0].TextureCoordinate[0] = FVector2f(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				FVector2f otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
 				for (int i = 1; i < vertexCount; i++)
 				{
 					vertices[i].TextureCoordinate[0] = otherUV;
@@ -157,7 +157,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 			break;
 			case UIPolygonUVType::StretchSpriteHeight:
 			{
-				vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				vertices[0].TextureCoordinate[0] = FVector2f(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
 				float uvX = spriteInfo.uv3X;
 				float uvY = spriteInfo.uv0Y;
 				float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (vertexCount - 2);
@@ -194,7 +194,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 			{
 				for (int i = 0; i < vertexCount; i++)
 				{
-					vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+					vertices[i].TextureCoordinate[1] = FVector2f(0, 1);
 				}
 			}
 		}

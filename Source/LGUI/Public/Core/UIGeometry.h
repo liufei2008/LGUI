@@ -20,25 +20,25 @@ struct FLGUIOriginVertexData
 public:
 	FLGUIOriginVertexData()
 	{
-		Position = FVector::ZeroVector;
-		Normal = FVector(-1, 0, 0);
-		Tangent = FVector(0, 1, 0);
+		Position = FVector3f::ZeroVector;
+		Normal = FVector3f(-1, 0, 0);
+		Tangent = FVector3f(0, 1, 0);
 	}
-	FLGUIOriginVertexData(FVector InPosition)
+	FLGUIOriginVertexData(FVector3f InPosition)
 	{
 		Position = InPosition;
-		Normal = FVector(-1, 0, 0);
-		Tangent = FVector(0, 1, 0);
+		Normal = FVector3f(-1, 0, 0);
+		Tangent = FVector3f(0, 1, 0);
 	}
-	FLGUIOriginVertexData(FVector InPosition, FVector InNormal, FVector InTangent)
+	FLGUIOriginVertexData(FVector3f InPosition, FVector3f InNormal, FVector3f InTangent)
 	{
 		Position = InPosition;
 		Normal = InNormal;
 		Tangent = InTangent;
 	}
-	FVector Position;
-	FVector Normal;
-	FVector Tangent;
+	FVector3f Position;
+	FVector3f Normal;
+	FVector3f Tangent;
 };
 
 class LGUI_API UIGeometry
@@ -106,27 +106,27 @@ public:
 #pragma region UISprite_UITexture_Simple
 public:
 	static void UpdateUIRectSimpleVertex(UIGeometry* uiGeo, 
-		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 public:
 	static void UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
-		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
 #pragma region UISprite_Tiled
 public:
 	static void UpdateUIRectTiledVertex(UIGeometry* uiGeo, 
-		const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
+		const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const float& width, const float& height, const FVector2f& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
 #pragma region UISprite_Fill_Horizontal_Vertical
 public:
-	static void UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
+	static void UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -134,7 +134,7 @@ public:
 #pragma endregion
 #pragma region UISprite_Fill_Radial90
 public:
-	static void UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
+	static void UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -142,7 +142,7 @@ public:
 #pragma endregion
 #pragma region UISprite_Fill_Radial180
 public:
-	static void UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
+	static void UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -150,7 +150,7 @@ public:
 #pragma endregion
 #pragma region UISprite_Fill_Radial360
 public:
-	static void UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
+	static void UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -158,11 +158,11 @@ public:
 #pragma endregion
 #pragma region UIText
 public:
-	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-		, const FColor& color, const FVector2D& fontSpace, UIGeometry* uiGeo, const float& fontSize
+	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
+		, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, const float& fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 		, bool adjustWidth, bool adjustHeight
-		, UITextFontStyle fontStyle, FVector2D& textRealSize
+		, UITextFontStyle fontStyle, FVector2f& textRealSize
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, ULGUIFontData_BaseObject* font, bool richText);
@@ -175,11 +175,11 @@ public:
 	static void UpdateUIColor(UIGeometry* uiGeo, const FColor& color);
 	static void TransformVertices(class ULGUICanvas* canvas, class UUIBaseRenderable* item, UIGeometry* uiGeo);
 	static void CalculatePivotOffset(
-		const float& width, const float& height, const FVector2D& pivot
+		const float& width, const float& height, const FVector2f& pivot
 		, float& pivotOffsetX, float& pivotOffsetY
 	);
 	static void CalculateOffsetAndSize(
-		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo
+		const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo
 		, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
 	);
 private:

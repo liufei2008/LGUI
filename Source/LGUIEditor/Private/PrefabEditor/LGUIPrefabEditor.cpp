@@ -59,7 +59,7 @@ FLGUIPrefabEditor::FLGUIPrefabEditor()
 }
 FLGUIPrefabEditor::~FLGUIPrefabEditor()
 {
-	PrefabHelperObject->MarkPendingKill();
+	PrefabHelperObject->MarkAsGarbage();
 	PrefabHelperObject = nullptr;
 
 	LGUIPrefabEditorInstanceCollection.Remove(this);

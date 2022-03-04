@@ -632,7 +632,7 @@ void UUIItem::CalculateAnchorFromTransform()
 void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 {
 	Super::OnChildAttached(ChildComponent);
-	if (this->IsPendingKillOrUnreachable())return;
+	if (!IsValid(this) || this->IsUnreachable())return;
 	if (GetWorld() == nullptr)return;
 	if (UUIItem* childUIItem = Cast<UUIItem>(ChildComponent))
 	{
@@ -718,7 +718,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
 	Super::OnChildDetached(ChildComponent);
-	if (this->IsPendingKillOrUnreachable())return;
+	if (!IsValid(this) || this->IsUnreachable())return;
 	if (GetWorld() == nullptr)return;
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
@@ -741,7 +741,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 void UUIItem::OnAttachmentChanged()
 {
 	Super::OnAttachmentChanged();
-	if (this->IsPendingKillOrUnreachable())return;
+	if (!IsValid(this) || this->IsUnreachable())return;
 	if (GetWorld() == nullptr)return;
 
 #if WITH_EDITORONLY_DATA
@@ -847,7 +847,7 @@ void UUIItem::OnRegister()
 			//create helper for root component
 			if (this->GetOwner()->GetRootComponent() == this 
 				&& this->GetOwner()->GetWorld() != nullptr
-				&& !this->IsPendingKillOrUnreachable())
+				&& (IsValid(this) && !this->IsUnreachable()))
 			{
 				if (!HelperComp)
 				{

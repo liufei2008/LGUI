@@ -61,12 +61,12 @@ public:
 		FTextureRHIRef ScreenTargetTexture,
 		FTextureRHIRef ScreenTargetResolveTexture,
 		FGlobalShaderMap* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix,
+		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
 		const FIntRect& ViewRect,
-		const FVector4& DepthTextureScaleOffset, 
-		const FVector4& ViewTextureScaleOffset
+		const FVector4f& DepthTextureScaleOffset, 
+		const FVector4f& ViewTextureScaleOffset
 	) {};
 	//end post process interface
 };

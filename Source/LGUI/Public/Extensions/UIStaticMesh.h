@@ -83,7 +83,7 @@ public:
 
 private:
 	// ~ UObject Interface
-	virtual void PreSave(const class ITargetPlatform* TargetPlatform) override;
+	virtual void PreSave(class FObjectPreSaveContext SaveContext) override;
 	// ~ UObject Interface
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;

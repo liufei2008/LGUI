@@ -55,12 +55,13 @@ public:
 	TSharedRef<SDockTab> SpawnCurveEditorTab(const FSpawnTabArgs&)
 	{
 		const FSlateIcon SequencerGraphIcon = FSlateIcon(FEditorStyle::GetStyleSetName(), "GenericCurveEditor.TabIcon");
-		return SNew(SDockTab)
-			.Icon(SequencerGraphIcon.GetIcon())
+		auto Tab = SNew(SDockTab)
 			.Label(NSLOCTEXT("Sequencer", "SequencerMainGraphEditorTitle", "Sequencer Curves"))
 			[
 				SNullWidget::NullWidget
 			];
+		Tab->SetTabIcon(SequencerGraphIcon.GetIcon());
+		return Tab;
 	}
 
 	void Construct(const FArguments&, TWeakPtr<FBlueprintEditor> InBlueprintEditor)

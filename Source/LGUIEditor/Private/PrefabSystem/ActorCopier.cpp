@@ -456,7 +456,7 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 	//finish Actor Spawn
 	for (auto Actor : CreatedActors)
 	{
-		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destoyed when BeginPlay
+		if (Actor->IsValidLowLevel())//check, incase some actor is destoyed when BeginPlay
 		{
 			Actor->FinishSpawning(FTransform::Identity, true);//BeginPlay execute
 		}
@@ -464,7 +464,7 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 	//blueprint actor need to reassign parent after FinishSpawning
 	for (auto ActorAndParentData : BlueprintActorAndParentArray)
 	{
-		if (ActorAndParentData.Actor->IsValidLowLevel() && !ActorAndParentData.Actor->IsPendingKill() && ActorAndParentData.Parent->IsValidLowLevel() && !ActorAndParentData.Parent->IsPendingKill())
+		if (ActorAndParentData.Actor->IsValidLowLevel() && ActorAndParentData.Parent->IsValidLowLevel())
 		{
 			ActorAndParentData.Actor->GetRootComponent()->AttachToComponent(ActorAndParentData.Parent, FAttachmentTransformRules::KeepRelativeTransform);
 		}

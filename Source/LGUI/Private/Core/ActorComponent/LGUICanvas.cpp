@@ -2875,7 +2875,8 @@ FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)
 	return itemToCanvasTf2D;
 }
 
-void GetMinMax(float a, float b, float c, float d, float& min, float& max)
+template<class T>
+FORCEINLINE void GetMinMax(T a, T b, T c, T d, T& min, T& max)
 {
 	float abMin = FMath::Min(a, b);
 	float abMax = FMath::Max(a, b);

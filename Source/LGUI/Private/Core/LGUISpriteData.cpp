@@ -86,7 +86,7 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 }
 void ULGUISpriteData::CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding)
 {
-	if (spriteTexture->Resource != nullptr && atlasTexture->Resource != nullptr)
+	if (spriteTexture->GetResource() != nullptr && atlasTexture->GetResource() != nullptr)
 	{
 		FBox2D srcRegionBox(FVector2D(0, 0), FVector2D(InPackedRect.width, InPackedRect.height));
 		FBox2D dstRegionBox(FVector2D(InPackedRect.x, InPackedRect.y), FVector2D(InPackedRect.x + InPackedRect.width, InPackedRect.y + InPackedRect.height));
@@ -101,8 +101,8 @@ void ULGUISpriteData::CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InA
 			rbp::Rect PackedRect;
 		};
 		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
-		RegionData->SpriteTextureResource = (FTexture2DResource*)spriteTexture->Resource;
-		RegionData->AtlasTextureResource = (FTexture2DResource*)atlasTexture->Resource;
+		RegionData->SpriteTextureResource = (FTexture2DResource*)spriteTexture->GetResource();
+		RegionData->AtlasTextureResource = (FTexture2DResource*)atlasTexture->GetResource();
 		RegionData->SrcRegionBox = srcRegionBox;
 		RegionData->DstRegionBox = dstRegionBox;
 		RegionData->SpaceBetweenSprites = InAtlasTexturePadding;

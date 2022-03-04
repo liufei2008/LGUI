@@ -60,10 +60,10 @@ public:
 		float buv3Y = 0;
 
 public:
-	FVector2D GetUV0()const { return FVector2D(uv0X, uv0Y); }
-	FVector2D GetUV1()const { return FVector2D(uv3X, uv0Y); }
-	FVector2D GetUV2()const { return FVector2D(uv0X, uv3Y); }
-	FVector2D GetUV3()const { return FVector2D(uv3X, uv3Y); }
+	auto GetUV0()const { return FVector2f(uv0X, uv0Y); }
+	auto GetUV1()const { return FVector2f(uv3X, uv0Y); }
+	auto GetUV2()const { return FVector2f(uv0X, uv3Y); }
+	auto GetUV3()const { return FVector2f(uv3X, uv3Y); }
 
 	uint16 GetSourceWidth()const { return width + paddingLeft + paddingRight; }
 	uint16 GetSourceHeight()const { return height + paddingTop + paddingBottom; }

@@ -47,13 +47,13 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 				FColor Color = (LOD.VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0) ? LOD.VertexBuffers.ColorVertexBuffer.VertexColor(i) : FColor::White;
 
 				// Copy all the UVs that we have, and as many as we can fit.
-				const FVector2D& UV0 = (TexCoordsPerVertex > 0) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 0) : FVector2D(1, 1);
+				const FVector2f& UV0 = (TexCoordsPerVertex > 0) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 0) : FVector2f(1, 1);
 
-				const FVector2D& UV1 = (TexCoordsPerVertex > 1) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 1) : FVector2D(1, 1);
+				const FVector2f& UV1 = (TexCoordsPerVertex > 1) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 1) : FVector2f(1, 1);
 
-				const FVector2D& UV2 = (TexCoordsPerVertex > 2) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 2) : FVector2D(1, 1);
+				const FVector2f& UV2 = (TexCoordsPerVertex > 2) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 2) : FVector2f(1, 1);
 
-				const FVector2D& UV3 = (TexCoordsPerVertex > 3) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 3) : FVector2D(1, 1);
+				const FVector2f& UV3 = (TexCoordsPerVertex > 3) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 3) : FVector2f(1, 1);
 
 				const FVector TangentX = FVector(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentX(i));
 				const FVector TangentZ = FVector(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentZ(i));
@@ -63,10 +63,10 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 					TangentX,
 					TangentZ,
 					Color,
-					UV0,
-					UV1,
-					UV2,
-					UV3
+					FVector2D(UV0),
+					FVector2D(UV1),
+					FVector2D(UV2),
+					FVector2D(UV3)
 				));
 			}
 		}
@@ -129,9 +129,10 @@ void ULGUIStaticMeshCacheData::EnsureValidData()
 #endif
 }
 
-void ULGUIStaticMeshCacheData::PreSave(const class ITargetPlatform* TargetPlatform)
+#include "UObject/ObjectSaveContext.h"
+void ULGUIStaticMeshCacheData::PreSave(FObjectPreSaveContext SaveContext)
 {
-	Super::PreSave(TargetPlatform);
+	Super::PreSave(SaveContext);
 	EnsureValidData();
 }
 #if WITH_EDITOR
@@ -304,18 +305,18 @@ void UUIStaticMesh::CreateGeometry()
 			break;
 			}
 
-				vert.TextureCoordinate[0] = sourceVert.UV0;
+				vert.TextureCoordinate[0] = FVector2f(sourceVert.UV0);
 			if (needUV1)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV1;
+				vert.TextureCoordinate[0] = FVector2f(sourceVert.UV1);
 			}
 			if (needUV2)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV2;
+				vert.TextureCoordinate[0] = FVector2f(sourceVert.UV2);
 			}
 			if (needUV3)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV3;
+				vert.TextureCoordinate[0] = FVector2f(sourceVert.UV3);
 			}
 
 			if (needNormal)

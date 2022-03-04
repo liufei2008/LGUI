@@ -19,15 +19,15 @@ FLGUIComponentReference::FLGUIComponentReference(UActorComponent* InComp)
 
 AActor* FLGUIComponentReference::GetActor()const
 {
-	if (TargetComp && !TargetComp->IsPendingKill())
+	if (IsValid(TargetComp))
 	{
 		return ((UActorComponent*)TargetComp)->GetOwner();
 	}
 	return nullptr;
 }
 
-bool FLGUIComponentReference::IsValid()const
+bool FLGUIComponentReference::IsValidComponentReference()const
 {
-	return TargetComp && !TargetComp->IsPendingKill();
+	return IsValid(TargetComp);
 }
 

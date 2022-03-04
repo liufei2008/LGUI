@@ -116,7 +116,7 @@ void UUIPostProcessRenderable::UpdateGeometry()
 }
 void UUIPostProcessRenderable::OnUpdateGeometry(UIGeometry* InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	UIGeometry::UpdateUIRectSimpleVertex(InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), RenderCanvas.Get(), this, this->GetFinalColor(), 
+	UIGeometry::UpdateUIRectSimpleVertex(InGeo, this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), FLGUISpriteInfo(), RenderCanvas.Get(), this, this->GetFinalColor(), 
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 		);
 }
@@ -129,10 +129,10 @@ void UUIPostProcessRenderable::UpdateRegionVertex()
 		//full screen vertex position
 		renderScreenToMeshRegionVertexArray =
 		{
-			FLGUIPostProcessCopyMeshRegionVertex(FVector(-1, -1, 0), FVector(0.0f, 0.0f, 0.0f)),
-			FLGUIPostProcessCopyMeshRegionVertex(FVector(1, -1, 0), FVector(0.0f, 0.0f, 0.0f)),
-			FLGUIPostProcessCopyMeshRegionVertex(FVector(-1, 1, 0), FVector(0.0f, 0.0f, 0.0f)),
-			FLGUIPostProcessCopyMeshRegionVertex(FVector(1, 1, 0), FVector(0.0f, 0.0f, 0.0f))
+			FLGUIPostProcessCopyMeshRegionVertex(FVector3f(-1, -1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
+			FLGUIPostProcessCopyMeshRegionVertex(FVector3f(1, -1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
+			FLGUIPostProcessCopyMeshRegionVertex(FVector3f(-1, 1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
+			FLGUIPostProcessCopyMeshRegionVertex(FVector3f(1, 1, 0), FVector3f(0.0f, 0.0f, 0.0f))
 		};
 	}
 	if (renderMeshRegionToScreenVertexArray.Num() == 0)
@@ -166,14 +166,14 @@ void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
 		{
 			TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-			FVector2D RectSize;
-			FMatrix objectToWorldMatrix;
+			FVector2f RectSize;
+			FMatrix44f objectToWorldMatrix;
 		};
 		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
-		updateData->RectSize = FVector2D(this->GetWidth(), this->GetHeight());
-		updateData->objectToWorldMatrix = this->RenderCanvas->GetActualRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		updateData->RectSize = FVector2f(this->GetWidth(), this->GetHeight());
+		updateData->objectToWorldMatrix = FMatrix44f(this->RenderCanvas->GetActualRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale());
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
 			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
@@ -200,9 +200,9 @@ void UUIPostProcessRenderable::SendMaskTextureToRenderProxy()
 	{
 		auto TempRenderProxy = RenderProxy.Get();
 		FTexture2DResource* maskTextureResource = nullptr;
-		if (IsValid(this->maskTexture) && this->maskTexture->Resource != nullptr)
+		if (IsValid(this->maskTexture) && this->maskTexture->GetResource() != nullptr)
 		{
-			maskTextureResource = (FTexture2DResource*)this->maskTexture->Resource;
+			maskTextureResource = (FTexture2DResource*)this->maskTexture->GetResource();
 		}
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateMaskTexture)
 			([TempRenderProxy, maskTextureResource](FRHICommandListImmediate& RHICmdList)
@@ -239,8 +239,8 @@ void UUIPostProcessRenderable::SetRectClipParameter(const FVector4& OffsetAndSiz
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
 			([TempRenderProxy, rectClipOffsetAndSize, rectClipFeather](FRHICommandListImmediate& RHICmdList)
 				{
-					TempRenderProxy->rectClipOffsetAndSize = rectClipOffsetAndSize;
-					TempRenderProxy->rectClipFeather = rectClipFeather;
+					TempRenderProxy->rectClipOffsetAndSize = FVector4f(rectClipOffsetAndSize);
+					TempRenderProxy->rectClipFeather = FVector4f(rectClipFeather);
 				});
 	}
 }
@@ -251,15 +251,15 @@ void UUIPostProcessRenderable::SetTextureClipParameter(UTexture* ClipTex, const 
 		auto TempRenderProxy = RenderProxy.Get();
 		FTexture2DResource* clipTextureResource = nullptr;
 		auto textureClipOffsetAndSize = OffsetAndSize;
-		if (IsValid(ClipTex) && ClipTex->Resource != nullptr)
+		if (IsValid(ClipTex) && ClipTex->GetResource() != nullptr)
 		{
-			clipTextureResource = (FTexture2DResource*)ClipTex->Resource;
+			clipTextureResource = (FTexture2DResource*)ClipTex->GetResource();
 		}
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
 			([TempRenderProxy, textureClipOffsetAndSize, clipTextureResource](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->clipTexture = clipTextureResource;
-					TempRenderProxy->textureClipOffsetAndSize = textureClipOffsetAndSize;
+					TempRenderProxy->textureClipOffsetAndSize = FVector4f(textureClipOffsetAndSize);
 				});
 	}
 }

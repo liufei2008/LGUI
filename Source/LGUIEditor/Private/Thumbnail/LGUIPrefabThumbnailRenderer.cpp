@@ -22,7 +22,7 @@ bool ULGUIPrefabThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
 	auto prefab = Cast<ULGUIPrefab>(Object);
-	if (prefab != nullptr && !prefab->IsPendingKill())
+	if (IsValid(prefab))
 	{
 		TSharedRef<FLGUIPrefabThumbnailScene> ThumbnailScene = ThumbnailScenes.EnsureThumbnailScene(prefab->GetPathName());
 		ThumbnailScene->SetPrefab(prefab);
@@ -35,13 +35,13 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 		ViewFamily.EngineShowFlags.DisableAdvancedFeatures();
 		ViewFamily.EngineShowFlags.MotionBlur = 0;
 
-		ThumbnailScene->GetView(&ViewFamily, X, Y, Width, Height);
+		ThumbnailScene->CreateView(&ViewFamily, X, Y, Width, Height);
 		RenderViewFamily(Canvas, &ViewFamily);
 	}
 	//draw prefab icon
 	{
 		auto PrefabIconTexture = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/PrefabThumbnailOverlay"));
-		if (PrefabIconTexture != nullptr && PrefabIconTexture->Resource != nullptr)
+		if (PrefabIconTexture != nullptr && PrefabIconTexture->GetResource() != nullptr)
 		{
 			const float Scale = 0.3f;
 			float triangleWidth = Width * Scale, triangleHeight = Height * Scale;
@@ -71,7 +71,7 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 			Triangle2->V1_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle2->V1_UV = FVector2D(0, 1.0f); Triangle2->V1_Color = SpriteColor;
 			Triangle2->V2_Pos = FVector2D(X + triangleWidth + xOffset, Y + triangleHeight + yOffset); Triangle2->V2_UV = FVector2D(1.0f, 1.0f); Triangle2->V2_Color = SpriteColor;
 
-			FCanvasTriangleItem CanvasTriangle(Triangles, PrefabIconTexture->Resource);
+			FCanvasTriangleItem CanvasTriangle(Triangles, PrefabIconTexture->GetResource());
 			CanvasTriangle.BlendMode = ESimpleElementBlendMode::SE_BLEND_Translucent;
 			Canvas->DrawItem(CanvasTriangle);
 		}

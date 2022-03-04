@@ -88,7 +88,7 @@ public:
 	{
 		FLGUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2D& InvSize)
+	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2f& InvSize)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), InvSizeParameter, InvSize);
 	}
@@ -98,7 +98,7 @@ public:
 	}
 	void SetHorizontalOrVertical(FRHICommandListImmediate& RHICmdList, bool HorizontalOrVertical)
 	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), HorizontalOrVerticalFilterParameter, HorizontalOrVertical ? FVector2D(1.0f, 0.0f) : FVector2D(0.0f, 1.0f));
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), HorizontalOrVerticalFilterParameter, HorizontalOrVertical ? FVector2f(1.0f, 0.0f) : FVector2f(0.0f, 1.0f));
 	}
 private:
 	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
@@ -297,7 +297,7 @@ public:
 		MainTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_MainTextureScaleOffset"));
 		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& MVP, const FVector4& MainTextureScaleOffset, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix44f& MVP, const FVector4f& MainTextureScaleOffset, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), MVPParameter, MVP);
@@ -324,7 +324,7 @@ public:
 	{
 		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& MVP)
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix44f& MVP)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), MVPParameter, MVP);
 	}
@@ -397,7 +397,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);
@@ -463,7 +463,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);
@@ -494,7 +494,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_RECT_CLIP"), 1);
 		FLGUIRenderMeshPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4& OffsetAndSize, const FVector4& Feather)
+	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4f& OffsetAndSize, const FVector4f& Feather)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), OffsetAndSizeParameter, OffsetAndSize);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), FeatherParameter, Feather);
@@ -522,7 +522,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);
@@ -551,7 +551,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_RECT_CLIP"), 1);
 		FLGUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4& OffsetAndSize, const FVector4& Feather)
+	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4f& OffsetAndSize, const FVector4f& Feather)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), OffsetAndSizeParameter, OffsetAndSize);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), FeatherParameter, Feather);
@@ -579,7 +579,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);
@@ -612,7 +612,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_TEXTURE_CLIP"), 1);
 		FLGUIRenderMeshPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4& OffsetAndSize
+	void SetClipParameters(FRHICommandListImmediate& RHICmdList, const FVector4f& OffsetAndSize
 		, FTextureRHIRef ClipTexture
 		, FRHISamplerState* ClipTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
@@ -643,7 +643,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);
@@ -673,7 +673,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_TEXTURE_CLIP"), 1);
 		FLGUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetClipParameters(FRHICommandListImmediate & RHICmdList, const FVector4 & OffsetAndSize
+	void SetClipParameters(FRHICommandListImmediate & RHICmdList, const FVector4f & OffsetAndSize
 		, FTextureRHIRef ClipTexture
 		, FRHISamplerState * ClipTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
@@ -704,7 +704,7 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);

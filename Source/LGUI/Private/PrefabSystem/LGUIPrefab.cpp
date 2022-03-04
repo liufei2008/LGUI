@@ -270,18 +270,6 @@ void ULGUIPrefab::PostCDOContruct()
 {
 	Super::PostCDOContruct();
 }
-bool ULGUIPrefab::PreSaveRoot(const TCHAR* Filename)
-{
-	return Super::PreSaveRoot(Filename);
-}
-void ULGUIPrefab::PostSaveRoot(bool bCleanupIsRequired)
-{
-	Super::PostSaveRoot(bCleanupIsRequired);
-}
-void ULGUIPrefab::PreSave(const class ITargetPlatform* TargetPlatform)
-{
-	Super::PreSave(TargetPlatform);
-}
 
 void ULGUIPrefab::PostRename(UObject* OldOuter, const FName OldName)
 {

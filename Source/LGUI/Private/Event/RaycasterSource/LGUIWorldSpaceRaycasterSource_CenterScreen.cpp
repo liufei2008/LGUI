@@ -16,7 +16,7 @@ bool ULGUIWorldSpaceRaycasterSource_CenterScreen::GenerateRay(ULGUIPointerEventD
 			LocalPlayer->ViewportClient->GetViewportSize(ViewportSize);
 			// get the projection data
 			FSceneViewProjectionData ProjectionData;
-			if (LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, eSSP_FULL, /*out*/ ProjectionData))
+			if (LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, ProjectionData))
 			{
 				auto ViewProMatrix = ProjectionData.ViewRotationMatrix * ProjectionData.ProjectionMatrix;//VieProjectionMatrix without position
 				FMatrix const InvViewProjMatrix = ViewProMatrix.InverseFast();

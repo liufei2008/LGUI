@@ -47,7 +47,7 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
 		auto newTexture = texture;
-		if (oldTexture->Resource != nullptr && newTexture->Resource != nullptr)
+		if (oldTexture->GetResource() != nullptr && newTexture->GetResource() != nullptr)
 		{
 			ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
 				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
@@ -57,8 +57,8 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 				CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
 				CopyInfo.DestPosition = FIntVector(0, 0, 0);
 				RHICmdList.CopyTexture(
-					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-					((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+					((FTexture2DResource*)oldTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DResource*)newTexture->GetResource())->GetTexture2DRHI(),
 					CopyInfo
 				);
 				oldTexture->RemoveFromRoot();//ready for gc
@@ -146,10 +146,11 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 
 	//create texture
 	auto texture = NewObject<UTexture2D>();
-	texture->PlatformData = new FTexturePlatformData();
-	texture->PlatformData->SizeX = packSize;
-	texture->PlatformData->SizeY = packSize;
-	texture->PlatformData->PixelFormat = PF_B8G8R8A8;
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = packSize;
+	PlatformData->SizeY = packSize;
+	PlatformData->PixelFormat = PF_B8G8R8A8;
+	texture->SetPlatformData(PlatformData);
 	texture->AddToRoot();
 
 	int32 atlasSize = packSize;
@@ -168,7 +169,7 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 			spriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 			spriteTexture->SRGB = false;
 			spriteTexture->UpdateResource();
-			const FColor* spriteColorBuffer = reinterpret_cast<const FColor*>(spriteTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
+			const FColor* spriteColorBuffer = reinterpret_cast<const FColor*>(spriteTexture->GetPlatformData()->Mips[0].BulkData.LockReadOnly());
 			rbp::Rect rect = packResult[spriteIndex];
 			int32 spriteWidth = spriteTexture->GetSizeX();
 			int32 spriteHeight = spriteTexture->GetSizeY();
@@ -261,19 +262,19 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 					destY += atlasSize;
 				}*/
 			}
-			spriteTexture->PlatformData->Mips[0].BulkData.Unlock();
+			spriteTexture->GetPlatformData()->Mips[0].BulkData.Unlock();
 		}
 	}
 
 	{
 		FTexture2DMipMap* textureMip = new FTexture2DMipMap();
-		texture->PlatformData->Mips.Add(textureMip);
+		texture->GetPlatformData()->Mips.Add(textureMip);
 		textureMip->SizeX = packSize;
 		textureMip->SizeY = packSize;
 		textureMip->BulkData.Lock(LOCK_READ_WRITE);
 		void* textureData = textureMip->BulkData.Realloc(packSize * packSize * GPixelFormats[PF_B8G8R8A8].BlockBytes);
 		FMemory::Memcpy(textureData, pixelData, pixelBufferLength);
-		texture->PlatformData->Mips[0].BulkData.Unlock();
+		texture->GetPlatformData()->Mips[0].BulkData.Unlock();
 		//texture->Source.Init(atlasSize, atlasSize, 1, 1, ETextureSourceFormat::TSF_BGRA8, pixelData);
 		delete[] pixelData;
 	}
@@ -288,9 +289,9 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 		TArray<uint8> _mipRGBBs;
 
 		//Access source data
-		auto* priorData = (const uint8*)texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
-		int priorwidth = texture->PlatformData->Mips[0].SizeX;
-		int priorheight = texture->PlatformData->Mips[0].SizeY;
+		auto* priorData = (const uint8*)texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+		int priorwidth = texture->GetPlatformData()->Mips[0].SizeX;
+		int priorheight = texture->GetPlatformData()->Mips[0].SizeY;
 
 		while (true)
 		{
@@ -350,7 +351,7 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 
 			// Allocate next mipmap.
 			FTexture2DMipMap* mip = new FTexture2DMipMap;
-			texture->PlatformData->Mips.Add(mip);
+			texture->GetPlatformData()->Mips.Add(mip);
 			mip->SizeX = mipwidth;
 			mip->SizeY = mipheight;
 			mip->BulkData.Lock(LOCK_READ_WRITE);
@@ -364,7 +365,7 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 			mipsAdd++;
 		}
 
-		texture->PlatformData->Mips[0].BulkData.Unlock();
+		texture->GetPlatformData()->Mips[0].BulkData.Unlock();
 		texture->UpdateResource();
 	}
 

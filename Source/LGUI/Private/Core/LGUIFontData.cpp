@@ -429,7 +429,7 @@ void ULGUIFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int n
 
 void ULGUIFontData::UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData)
 {
-	if (Texture->Resource)
+	if (Texture->GetResource())
 	{
 		struct FUpdateTextureRegionsData
 		{
@@ -441,7 +441,7 @@ void ULGUIFontData::UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureR
 		};
 		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
 
-		auto Texture2DRes = (FTexture2DResource*)Texture->Resource;
+		auto Texture2DRes = (FTexture2DResource*)Texture->GetResource();
 		RegionData->Region = Region;
 		RegionData->SrcPitch = SrcPitch;
 		RegionData->SrcBpp = SrcBpp;
@@ -481,7 +481,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
 		auto newTexture = texture;
-		if (oldTexture->Resource != nullptr && newTexture->Resource != nullptr)
+		if (oldTexture->GetResource() != nullptr && newTexture->GetResource() != nullptr)
 		{
 			ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
 				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
@@ -494,8 +494,8 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
 					CopyInfo.DestPosition = FIntVector(0, 0, 0);
 					RHICmdList.CopyTexture(
-						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+						((FTexture2DResource*)oldTexture->GetResource())->GetTexture2DRHI(),
+						((FTexture2DResource*)newTexture->GetResource())->GetTexture2DRHI(),
 						CopyInfo
 					);
 					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.

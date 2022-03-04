@@ -7,12 +7,12 @@
 
 struct LGUI_API FLGUIHudVertex
 {
-	FVector Position;
+	FVector3f Position;
 	FColor Color;
-	FVector2D TextureCoordinate0;
-	FVector2D TextureCoordinate1;
-	FVector2D TextureCoordinate2;
-	FVector2D TextureCoordinate3;
+	FVector2f TextureCoordinate0;
+	FVector2f TextureCoordinate1;
+	FVector2f TextureCoordinate2;
+	FVector2f TextureCoordinate3;
 };
 
 class LGUI_API FLGUIHudVertexDeclaration : public FRenderResource
@@ -28,10 +28,10 @@ LGUI_API FVertexDeclarationRHIRef& GetLGUIHudVertexDeclaration();
 
 struct LGUI_API FLGUIPostProcessVertex
 {
-	FVector Position;
-	FVector2D TextureCoordinate0;
+	FVector3f Position;
+	FVector2f TextureCoordinate0;
 
-	FLGUIPostProcessVertex(FVector InPosition, FVector2D InTextureCoordinate0)
+	FLGUIPostProcessVertex(FVector3f InPosition, FVector2f InTextureCoordinate0)
 	{
 		Position = InPosition;
 		TextureCoordinate0 = InTextureCoordinate0;
@@ -52,10 +52,10 @@ LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration();
 
 struct LGUI_API FLGUIPostProcessCopyMeshRegionVertex
 {
-	FVector ScreenPosition;
-	FVector LocalPosition;
+	FVector3f ScreenPosition;
+	FVector3f LocalPosition;
 
-	FLGUIPostProcessCopyMeshRegionVertex(FVector InScreenPosition, FVector InLocalPosition)
+	FLGUIPostProcessCopyMeshRegionVertex(FVector3f InScreenPosition, FVector3f InLocalPosition)
 	{
 		ScreenPosition = InScreenPosition;
 		LocalPosition = InLocalPosition;

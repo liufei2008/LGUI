@@ -113,7 +113,7 @@ GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertex
 GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();\
 GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();\
 GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
-SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::ForceApply);
 
 void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 #if ENGINE_MAJOR_VERSION >= 5
@@ -124,10 +124,10 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	, FTextureRHIRef ScreenTargetTexture
 	, FGlobalShaderMap* GlobalShaderMap
 	, FTextureRHIRef MeshRegionTexture
-	, const FMatrix& ModelViewProjectionMatrix
+	, const FMatrix44f& ModelViewProjectionMatrix
 	, bool IsWorldSpace
 	, float BlendDepthForWorld
-	, const FVector4& DepthTextureScaleOffset
+	, const FVector4f& DepthTextureScaleOffset
 	, const FIntRect& ViewRect
 	, FRHISamplerState* ResultTextureSamplerState
 )

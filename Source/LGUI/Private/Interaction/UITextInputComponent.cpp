@@ -901,7 +901,7 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 		{
 			//set to full text, and find CaretPositionLineIndex
 			TextActor->GetUIText()->SetText(FText::FromString(Text));
-			FVector2D caretPosition;
+			FVector2f caretPosition;
 			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
 			//calculate MaxVisibleLineCount
 			MaxVisibleLineCount = (int)((TextActor->GetUIText()->GetHeight() + TextActor->GetUIText()->GetFontSpace().Y) / (TextActor->GetUIText()->GetFontSize() + TextActor->GetUIText()->GetFontSpace().Y));
@@ -995,7 +995,7 @@ void UUITextInputComponent::MoveUp(bool withSelection)
 		CaretPositionLineIndex--;
 
 		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->GetRelativeLocation());
+		FVector2f caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 		UpdateCaretPosition(caretPosition, !withSelection);
@@ -1033,7 +1033,7 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 			CaretPositionLineIndex++;
 
 			UpdateUITextComponent();
-			FVector2D caretPosition(CaretObject->GetRelativeLocation());
+			FVector2f caretPosition(CaretObject->GetRelativeLocation());
 			TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 			CaretPositionIndex += VisibleCharStartIndex;
 			UpdateCaretPosition(caretPosition, !withSelection);
@@ -1241,7 +1241,7 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 	}
 	else
 	{
-		FVector2D caretPos;
+		FVector2f caretPos;
 		int tempCaretPositionLineIndex = 0;
 		TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex - VisibleCharStartIndex, caretPos, tempCaretPositionLineIndex);
 		CaretPositionLineIndex = tempCaretPositionLineIndex + VisibleCharStartLineIndex;
@@ -1249,7 +1249,7 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 		UpdateCaretPosition(caretPos, InHideSelection);
 	}
 }
-void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
+void UUITextInputComponent::UpdateCaretPosition(FVector2f InCaretPosition, bool InHideSelection)
 {
 	if (!TextActor.IsValid())return;
 	if (!CaretObject.IsValid())
@@ -1425,7 +1425,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* 
 	{
 		if (TextActor != nullptr)
 		{
-			FVector2D caretPosition;
+			FVector2f caretPosition;
 			int tempCaretPositionLineIndex;
 			TextActor->GetUIText()->FindCaretByPosition(eventData->GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
 			int displayTextLength = TextActor->GetUIText()->GetText().ToString().Len();//visible text length

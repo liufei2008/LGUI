@@ -33,7 +33,7 @@ void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawFrame(class ULGUISpriteData
 
 		auto SpriteInfo = Sprite->GetSpriteInfo();
 		// Draw triangles
-		if (SourceTexture->Resource != nullptr)
+		if (SourceTexture->GetResource() != nullptr)
 		{
 			float triangleWidth = Width, triangleHeight = Height;
 			float spriteWidth = SpriteInfo.width;
@@ -53,16 +53,16 @@ void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawFrame(class ULGUISpriteData
 			const FLinearColor SpriteColor(FLinearColor::White);
 
 			FCanvasUVTri* Triangle1 = new (Triangles) FCanvasUVTri();
-			Triangle1->V0_Pos = FVector2D(X + triangleWidth + xOffset, Y + yOffset); Triangle1->V0_UV = SpriteInfo.GetUV3(); Triangle1->V0_Color = SpriteColor;
-			Triangle1->V1_Pos = FVector2D(X + xOffset, Y + yOffset); Triangle1->V1_UV = SpriteInfo.GetUV2(); Triangle1->V1_Color = SpriteColor;
-			Triangle1->V2_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle1->V2_UV = SpriteInfo.GetUV0(); Triangle1->V2_Color = SpriteColor;
+			Triangle1->V0_Pos = FVector2D(X + triangleWidth + xOffset, Y + yOffset); Triangle1->V0_UV = FVector2D(SpriteInfo.GetUV3()); Triangle1->V0_Color = SpriteColor;
+			Triangle1->V1_Pos = FVector2D(X + xOffset, Y + yOffset); Triangle1->V1_UV = FVector2D(SpriteInfo.GetUV2()); Triangle1->V1_Color = SpriteColor;
+			Triangle1->V2_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle1->V2_UV = FVector2D(SpriteInfo.GetUV0()); Triangle1->V2_Color = SpriteColor;
 
 			FCanvasUVTri* Triangle2 = new (Triangles) FCanvasUVTri();
-			Triangle2->V0_Pos = FVector2D(X + triangleWidth + xOffset, Y + yOffset); Triangle2->V0_UV = SpriteInfo.GetUV3(); Triangle2->V0_Color = SpriteColor;
-			Triangle2->V1_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle2->V1_UV = SpriteInfo.GetUV0(); Triangle2->V1_Color = SpriteColor;
-			Triangle2->V2_Pos = FVector2D(X + triangleWidth + xOffset, Y + triangleHeight + yOffset); Triangle2->V2_UV = SpriteInfo.GetUV1(); Triangle2->V2_Color = SpriteColor;
+			Triangle2->V0_Pos = FVector2D(X + triangleWidth + xOffset, Y + yOffset); Triangle2->V0_UV = FVector2D(SpriteInfo.GetUV3()); Triangle2->V0_Color = SpriteColor;
+			Triangle2->V1_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle2->V1_UV = FVector2D(SpriteInfo.GetUV0()); Triangle2->V1_Color = SpriteColor;
+			Triangle2->V2_Pos = FVector2D(X + triangleWidth + xOffset, Y + triangleHeight + yOffset); Triangle2->V2_UV = FVector2D(SpriteInfo.GetUV1()); Triangle2->V2_Color = SpriteColor;
 
-			FCanvasTriangleItem CanvasTriangle(Triangles, SourceTexture->Resource);
+			FCanvasTriangleItem CanvasTriangle(Triangles, SourceTexture->GetResource());
 			CanvasTriangle.BlendMode = bUseTranslucentBlend ? ESimpleElementBlendMode::SE_BLEND_Translucent : ESimpleElementBlendMode::SE_BLEND_Opaque;
 			Canvas->DrawItem(CanvasTriangle);
 		}
@@ -93,7 +93,7 @@ void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawGrid(int32 X, int32 Y, uint
 		4.0f,
 		4.0f,
 		FLinearColor(0.15f, 0.15f, 0.15f),
-		GridTexture->Resource,
+		GridTexture->GetResource(),
 		bAlphaBlend);
 }
 void ULGUISpriteDataBaseObjectThumbnailRenderer::BeginDestroy()

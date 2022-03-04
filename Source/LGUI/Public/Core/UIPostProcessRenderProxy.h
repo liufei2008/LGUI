@@ -59,16 +59,16 @@ private:
 public:
 	ELGUICanvasClipType clipType;
 
-	FVector4 rectClipOffsetAndSize;
-	FVector4 rectClipFeather;
+	FVector4f rectClipOffsetAndSize;
+	FVector4f rectClipFeather;
 
 	FTexture2DResource* clipTexture;
-	FVector4 textureClipOffsetAndSize;
+	FVector4f textureClipOffsetAndSize;
 
-	FMatrix objectToWorldMatrix = FMatrix::Identity;
+	FMatrix44f objectToWorldMatrix = FMatrix44f::Identity;
 	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-	FVector2D RectSize;
+	FVector2f RectSize;
 	FTexture2DResource* maskTexture = nullptr;
 
 	/**
@@ -83,10 +83,10 @@ public:
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef MeshRegionTexture
-		, const FMatrix & ModelViewProjectionMatrix
+		, const FMatrix44f & ModelViewProjectionMatrix
 		, bool IsWorldSpace
 		, float BlendDepthForWorld
-		, const FVector4& DepthTextureScaleOffset
+		, const FVector4f& DepthTextureScaleOffset
 		, const FIntRect& ViewRect
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);

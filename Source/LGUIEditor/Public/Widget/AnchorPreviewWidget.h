@@ -268,8 +268,8 @@ namespace LGUIAnchorPreviewWidget
 											.VAlign(EVerticalAlignment::VAlign_Center)
 											[
 												SNew(SBox)
-												.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, Size.X, InArgs._PersistentHAlign.Get(), InArgs._ButtonEnable.Get())
-												.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, Size.Y, InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+												.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, float(Size.X), InArgs._PersistentHAlign.Get(), InArgs._ButtonEnable.Get())
+												.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, float(Size.Y), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
 												[
 													SNew(SImage)
 													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))

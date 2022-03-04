@@ -172,7 +172,7 @@ private:
 	void UpdateUITextComponent();
 	void UpdatePlaceHolderComponent();
 	void UpdateCaretPosition(bool InHideSelection = true);
-	void UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection = true);
+	void UpdateCaretPosition(FVector2f InCaretPosition, bool InHideSelection = true);
 	void UpdateSelection();
 	void UpdateInputComposition();
 	void HideSelectionMask();
@@ -194,9 +194,9 @@ private:
 	int MaxVisibleLineCount = 0;
 
 	//mouse position when press, world space
-	FVector PressMousePosition = FVector(0, 0, 0);
+	FVector3f PressMousePosition = FVector3f(0, 0, 0);
 	//caret position when press, UIText space
-	FVector2D PressCaretPosition = FVector2D(0, 0);
+	FVector2f PressCaretPosition = FVector2f(0, 0);
 	int PressCaretPositionIndex = 0, PressCaretPositionLineIndex = 0;
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;

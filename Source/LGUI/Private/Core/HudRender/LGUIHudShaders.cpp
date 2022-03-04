@@ -77,7 +77,7 @@ void FLGUIWorldRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermu
 	OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 	FLGUIHudRenderPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 }
-void FLGUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler)
+void FLGUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler)
 {
 	SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 	SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthBlendParameter, DepthBlend);

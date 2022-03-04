@@ -92,12 +92,12 @@ public:
 		FTextureRHIRef ScreenTargetTexture,
 		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix,
+		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
 		const FIntRect& ViewRect,
-		const FVector4& DepthTextureScaleOffset,
-		const FVector4& ViewTextureScaleOffset
+		const FVector4f& DepthTextureScaleOffset,
+		const FVector4f& ViewTextureScaleOffset
 	) override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
@@ -109,7 +109,7 @@ public:
 		float height = RectSize.Y;
 		width = FMath::Max(width, 1.0f);
 		height = FMath::Max(height, 1.0f);
-		FVector2D inv_TextureSize(1.0f / width, 1.0f / height);
+		FVector2f inv_TextureSize(1.0f / width, 1.0f / height);
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
@@ -196,7 +196,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 							GraphicsPSOInit.NumSamples = 1;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 							PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
@@ -225,7 +225,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 							GraphicsPSOInit.NumSamples = 1;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 							PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
@@ -282,7 +282,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 							GraphicsPSOInit.NumSamples = 1;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
@@ -310,7 +310,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 							GraphicsPSOInit.NumSamples = 1;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
@@ -549,9 +549,9 @@ void UUIBackgroundBlur::SendStrengthTextureToRenderProxy()
 	{
 		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());
 		FTexture2DResource* strengthTextureResource = nullptr;
-		if (IsValid(this->strengthTexture) && this->strengthTexture->Resource != nullptr)
+		if (IsValid(this->strengthTexture) && this->strengthTexture->GetResource() != nullptr)
 		{
-			strengthTextureResource = (FTexture2DResource*)this->strengthTexture->Resource;
+			strengthTextureResource = (FTexture2DResource*)this->strengthTexture->GetResource();
 		}
 		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
 			([BackgroundBlurRenderProxy, strengthTextureResource](FRHICommandListImmediate& RHICmdList)

@@ -182,9 +182,6 @@ public:
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PostInitProperties()override;
 	virtual void PostCDOContruct()override;
-	virtual bool PreSaveRoot(const TCHAR* Filename)override;
-	virtual void PostSaveRoot(bool bCleanupIsRequired)override;
-	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
 	virtual void PostRename(UObject* OldOuter, const FName OldName)override;
 	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;

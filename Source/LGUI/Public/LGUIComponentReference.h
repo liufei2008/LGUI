@@ -54,7 +54,7 @@ public:
 		return HelperClass;
 	}
 #endif
-	bool IsValid()const;
+	bool IsValidComponentReference()const;
 
 #if WITH_EDITORONLY_DATA
 	/** old data */

@@ -264,7 +264,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	//assign parent for blueprint actor after actor spawn, otherwise blueprint actor will attach to world root
 	for (auto item : BlueprintAndParentArray)
 	{
-		if (item.BlueprintActor->IsValidLowLevel() && !item.BlueprintActor->IsPendingKill() && item.ParentActor->IsValidLowLevel() && !item.ParentActor->IsPendingKill())
+		if (item.BlueprintActor->IsValidLowLevel() && item.ParentActor->IsValidLowLevel())
 		{
 			item.BlueprintActor->GetRootComponent()->AttachToComponent(item.ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 		}

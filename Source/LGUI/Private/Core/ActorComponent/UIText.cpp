@@ -228,10 +228,10 @@ void UUIText::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool I
 				int32 vertexCount = vertices.Num();
 				for (int i = 0; i < vertexCount; i += 4)
 				{
-					vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-					vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
-					vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 0);
-					vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 0);
+					vertices[i].TextureCoordinate[1] = FVector2f(0, 1);
+					vertices[i + 1].TextureCoordinate[1] = FVector2f(1, 1);
+					vertices[i + 2].TextureCoordinate[1] = FVector2f(0, 0);
+					vertices[i + 3].TextureCoordinate[1] = FVector2f(1, 0);
 				}
 			}
 		}
@@ -300,10 +300,10 @@ void UUIText::OnPostChangeFontProperty()
 }
 #endif
 
-FVector2D UUIText::GetTextRealSize()
+FVector2D UUIText::GetTextRealSize()const
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData.textRealSize;
+	return FVector2D(CacheTextGeometryData.textRealSize);
 }
 
 
@@ -457,9 +457,9 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->visibleCharCount
 		, this->GetWidth()
 		, this->GetHeight()
-		, this->GetPivot()
+		, FVector2f(this->GetPivot())
 		, this->GetFinalColor()
-		, this->GetFontSpace()
+		, FVector2f(this->GetFontSpace())
 		, this->GetFontSize()
 		, this->GetParagraphHorizontalAlignment()
 		, this->GetParagraphVerticalAlignment()
@@ -564,7 +564,7 @@ FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineSta
 	return inString.Mid(inOutCharStartIndex, inOutCharEndIndex - inOutCharStartIndex);
 }
 //caret is at left side of char
-void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex)
+void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex)
 {
 	outCaretPosition.X = outCaretPosition.Y = 0;
 	outCaretPositionLineIndex = 0;
@@ -648,7 +648,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 		}
 	}
 }
-void UUIText::FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretUp(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.ToString().Len() == 0)//no text
 		return;
@@ -677,7 +677,7 @@ void UUIText::FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLi
 	}
 	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
 }
-void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretDown(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.ToString().Len() == 0)//no text
 		return;
@@ -707,7 +707,7 @@ void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPosition
 	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
 }
 //find caret by position, caret is on left side of char
-void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.ToString().Len() == 0)//no text
 	{
@@ -720,7 +720,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 
 		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
-		auto localPosition2D = FVector2D(localPosition.Y, localPosition.Z);
+		auto localPosition2D = FVector2f(localPosition.Y, localPosition.Z);
 
 		float nearestDistance = MAX_FLT;
 		int lineCount = cacheTextPropertyArray.Num();
@@ -760,11 +760,11 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	UpdateCacheTextGeometry();
 	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	//start
-	FVector2D startCaretPosition;
+	FVector2f startCaretPosition;
 	int32 startCaretPositionLineIndex;
 	FindCaretByIndex(InSelectionStartCaretIndex, startCaretPosition, startCaretPositionLineIndex);
 	//end
-	FVector2D endCaretPosition;
+	FVector2f endCaretPosition;
 	int32 endCaretPositionLineIndex;
 	FindCaretByIndex(InSelectionEndCaretIndex, endCaretPosition, endCaretPositionLineIndex);
 	//if select from down to up, then convert it from up to down

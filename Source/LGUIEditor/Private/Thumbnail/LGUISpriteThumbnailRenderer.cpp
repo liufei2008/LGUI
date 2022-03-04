@@ -32,7 +32,7 @@ void ULGUISpriteThumbnailRenderer::DrawFrame(class ULGUISpriteData* Sprite, int3
 		DrawGrid(X, Y, Width, Height, Canvas);
 
 		// Draw triangles
-		if (SourceTexture->Resource != nullptr)
+		if (SourceTexture->GetResource() != nullptr)
 		{
 			float triangleWidth = Width, triangleHeight = Height;
 			float textureWidth = SourceTexture->GetSurfaceWidth();
@@ -61,7 +61,7 @@ void ULGUISpriteThumbnailRenderer::DrawFrame(class ULGUISpriteData* Sprite, int3
 			Triangle2->V1_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle2->V1_UV = FVector2D(0, 1.0f); Triangle2->V1_Color = SpriteColor;
 			Triangle2->V2_Pos = FVector2D(X + triangleWidth + xOffset, Y + triangleHeight + yOffset); Triangle2->V2_UV = FVector2D(1.0f, 1.0f); Triangle2->V2_Color = SpriteColor;
 
-			FCanvasTriangleItem CanvasTriangle(Triangles, SourceTexture->Resource);
+			FCanvasTriangleItem CanvasTriangle(Triangles, SourceTexture->GetResource());
 			CanvasTriangle.BlendMode = bUseTranslucentBlend ? ESimpleElementBlendMode::SE_BLEND_Translucent : ESimpleElementBlendMode::SE_BLEND_Opaque;
 			Canvas->DrawItem(CanvasTriangle);
 		}
@@ -92,7 +92,7 @@ void ULGUISpriteThumbnailRenderer::DrawGrid(int32 X, int32 Y, uint32 Width, uint
 		4.0f,
 		4.0f,
 		FLinearColor(0.15f, 0.15f, 0.15f),
-		GridTexture->Resource,
+		GridTexture->GetResource(),
 		bAlphaBlend);
 }
 void ULGUISpriteThumbnailRenderer::BeginDestroy()

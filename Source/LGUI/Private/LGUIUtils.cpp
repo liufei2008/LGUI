@@ -84,15 +84,16 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 		InDefaultName,
 		RF_Transient
 		);
-	texture->PlatformData = new FTexturePlatformData();
-	texture->PlatformData->SizeX = InSize;
-	texture->PlatformData->SizeY = InSize;
-	texture->PlatformData->PixelFormat = PF_B8G8R8A8;
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = InSize;
+	PlatformData->SizeY = InSize;
+	PlatformData->PixelFormat = PF_B8G8R8A8;
+	texture->SetPlatformData(PlatformData);
 	// Allocate first mipmap.
 	int32 NumBlocksX = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeX;
 	int32 NumBlocksY = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeY;
 	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	texture->PlatformData->Mips.Add(Mip);
+	texture->GetPlatformData()->Mips.Add(Mip);
 	Mip->SizeX = InSize;
 	Mip->SizeY = InSize;
 	Mip->BulkData.Lock(LOCK_READ_WRITE);
@@ -238,7 +239,6 @@ void LGUIUtils::LogObjectFlags(UObject* obj)
 \n	RF_DuplicateTransient:%d\
 \n	RF_StrongRefOnFrame:%d\
 \n	RF_NonPIEDuplicateTransient:%d\
-\n	RF_Dynamic:%d\
 \n	RF_WillBeLoaded:%d\
 ")
 , *obj->GetPathName()
@@ -269,7 +269,6 @@ void LGUIUtils::LogObjectFlags(UObject* obj)
 , obj->HasAnyFlags(EObjectFlags::RF_DuplicateTransient)
 , obj->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
 , obj->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
-, obj->HasAnyFlags(EObjectFlags::RF_Dynamic)
 , obj->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
 );
 }

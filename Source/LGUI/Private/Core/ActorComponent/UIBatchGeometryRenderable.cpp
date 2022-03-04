@@ -462,11 +462,11 @@ void ULGUIGeometryHelper::AddVertexSimple(FVector position, FColor color, FVecto
 	}
 #endif
 	auto& originVertices = UIGeo->originVertices;
-	originVertices.Add(position);
+	originVertices.Add(FVector3f(position));
 	auto& vertices = UIGeo->vertices;
 	FDynamicMeshVertex vert;
 	vert.Color = color;
-	vert.TextureCoordinate[0] = uv0;
+	vert.TextureCoordinate[0] = FVector2f(uv0);
 	vertices.Add(vert);
 }
 void ULGUIGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent)
@@ -490,10 +490,10 @@ void ULGUIGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2
 	auto& vertices = UIGeo->vertices;
 	FDynamicMeshVertex vert;
 	vert.Color = color;
-	vert.TextureCoordinate[0] = uv0;
-	vert.TextureCoordinate[1] = uv1;
-	vert.TextureCoordinate[2] = uv2;
-	vert.TextureCoordinate[3] = uv3;
+	vert.TextureCoordinate[0] = FVector2f(uv0);
+	vert.TextureCoordinate[1] = FVector2f(uv1);
+	vert.TextureCoordinate[2] = FVector2f(uv2);
+	vert.TextureCoordinate[3] = FVector2f(uv3);
 	vertices.Add(vert);
 }
 void ULGUIGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
@@ -517,10 +517,10 @@ void ULGUIGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 	auto& vertices = UIGeo->vertices;
 	FDynamicMeshVertex vert;
 	vert.Color = vertex.color;
-	vert.TextureCoordinate[0] = vertex.uv0;
-	vert.TextureCoordinate[1] = vertex.uv1;
-	vert.TextureCoordinate[2] = vertex.uv2;
-	vert.TextureCoordinate[3] = vertex.uv3;
+	vert.TextureCoordinate[0] = FVector2f(vertex.uv0);
+	vert.TextureCoordinate[1] = FVector2f(vertex.uv1);
+	vert.TextureCoordinate[2] = FVector2f(vertex.uv2);
+	vert.TextureCoordinate[3] = FVector2f(vertex.uv3);
 	vertices.Add(vert);
 }
 void ULGUIGeometryHelper::AddTriangle(int index0, int index1, int index2)
@@ -590,10 +590,10 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 		originVertices[i] = FLGUIOriginVertexData(originVert.position, originVert.normal, originVert.tangent);
 		auto& vert = vertices[i];
 		vert.Color = originVert.color;
-		vert.TextureCoordinate[0] = originVert.uv0;
-		vert.TextureCoordinate[1] = originVert.uv1;
-		vert.TextureCoordinate[2] = originVert.uv2;
-		vert.TextureCoordinate[3] = originVert.uv3;
+		vert.TextureCoordinate[0] = FVector2f(originVert.uv0);
+		vert.TextureCoordinate[1] = FVector2f(originVert.uv1);
+		vert.TextureCoordinate[2] = FVector2f(originVert.uv2);
+		vert.TextureCoordinate[3] = FVector2f(originVert.uv3);
 	}
 }
 
@@ -640,10 +640,10 @@ void ULGUIGeometryHelper::AddVertexTriangleStream(const TArray<FLGUIGeometryVert
 		originVertices.Add(FLGUIOriginVertexData(originVert.position, originVert.normal, originVert.tangent));
 		FDynamicMeshVertex vert(FVector::ZeroVector);
 		vert.Color = originVert.color;
-		vert.TextureCoordinate[0] = originVert.uv0;
-		vert.TextureCoordinate[1] = originVert.uv1;
-		vert.TextureCoordinate[2] = originVert.uv2;
-		vert.TextureCoordinate[3] = originVert.uv3;
+		vert.TextureCoordinate[0] = FVector2f(originVert.uv0);
+		vert.TextureCoordinate[1] = FVector2f(originVert.uv1);
+		vert.TextureCoordinate[2] = FVector2f(originVert.uv2);
+		vert.TextureCoordinate[3] = FVector2f(originVert.uv3);
 		vertices.Add(vert);
 	}
 }
@@ -665,10 +665,10 @@ void ULGUIGeometryHelper::GetVertexTriangleStream(TArray<FLGUIGeometryVertex>& O
 		FLGUIGeometryVertex vertex;
 		auto vertIndex = triangles[i];
 		auto& vert = vertices[vertIndex];
-		vertex.uv0 = vert.TextureCoordinate[0];
-		vertex.uv1 = vert.TextureCoordinate[1];
-		vertex.uv2 = vert.TextureCoordinate[2];
-		vertex.uv3 = vert.TextureCoordinate[3];
+		vertex.uv0 = FVector2D(vert.TextureCoordinate[0]);
+		vertex.uv1 = FVector2D(vert.TextureCoordinate[1]);
+		vertex.uv2 = FVector2D(vert.TextureCoordinate[2]);
+		vertex.uv3 = FVector2D(vert.TextureCoordinate[3]);
 		vertex.color = vert.Color;
 		auto& originVert = originVertices[vertIndex];
 		vertex.position = originVert.Position;

@@ -168,7 +168,7 @@ private:
 
 SLGUIPrefabSequenceEditor::~SLGUIPrefabSequenceEditor()
 {
-	GEditor->OnObjectsReplaced().Remove(OnObjectsReplacedHandle);
+	FCoreUObjectDelegates::OnObjectsReplaced.Remove(OnObjectsReplacedHandle);
 }
 
 void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
@@ -255,11 +255,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 							.VAlign( VAlign_Center )
 							.AutoWidth()
 							[
-			#if ENGINE_MAJOR_VERSION >= 5
-								SNew(SEditorHeaderButton)
-			#else
 								SNew(SButton)
-			#endif
 								.OnClicked(this, &SLGUIPrefabSequenceEditor::OnNewAnimationClicked)
 								.Text(LOCTEXT("NewAnimationButtonText", "+ Animation"))
 							]
@@ -292,7 +288,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 
 	CreateCommandList();
 
-	OnObjectsReplacedHandle = GEditor->OnObjectsReplaced().AddSP(this, &SLGUIPrefabSequenceEditor::OnObjectsReplaced);
+	OnObjectsReplacedHandle = FCoreUObjectDelegates::OnObjectsReplaced.AddSP(this, &SLGUIPrefabSequenceEditor::OnObjectsReplaced);
 
 	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
 }

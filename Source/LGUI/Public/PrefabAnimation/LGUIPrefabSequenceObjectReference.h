@@ -27,9 +27,9 @@ struct LGUI_API FLGUIPrefabSequenceObjectReference
 	/**
 	 * Check whether this object reference is valid or not
 	 */
-	bool IsValid() const
+	bool IsValidReference() const
 	{
-		return Object != nullptr && !Object->IsPendingKill();
+		return IsValid(Object);
 	}
 
 	/**
