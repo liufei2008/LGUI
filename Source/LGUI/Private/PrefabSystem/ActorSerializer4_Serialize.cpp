@@ -9,6 +9,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Misc/NetworkVersion.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"
@@ -192,6 +193,10 @@ namespace LGUIPrefabSystem4
 		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 		InPrefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
+		InPrefab->ArchiveVersion = GPackageFileUE4Version;
+		InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUE4Version;
+		InPrefab->ArEngineNetVer = FNetworkVersion::GetEngineNetworkProtocolVersion();
+		InPrefab->ArGameNetVer = FNetworkVersion::GetGameNetworkProtocolVersion();
 
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
