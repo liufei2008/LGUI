@@ -2,8 +2,10 @@
 
 #include "PrefabSystem/LGUIPrefab.h"
 #include "LGUI.h"
+#if WITH_EDITOR
 #include "PrefabSystem/2/ActorSerializer.h"
 #include "PrefabSystem/ActorSerializer3.h"
+#endif
 #include "PrefabSystem/ActorSerializer4.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -342,17 +344,24 @@ AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool
 	if (InWorld)
 	{
 #if WITH_EDITOR
-		if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+		switch (PrefabVersion)
+		{
+		case LGUI_PREFAB_VERSION_ArchiveVersion:
+		case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 		{
 			LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 		}
-		else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+		break;
+		case LGUI_PREFAB_VERSION_BuildinFArchive:
 		{
 			LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 		}
-		else
+		break;
+		default:
 		{
 			LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+		}
+		break;
 		}
 #else
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
@@ -377,17 +386,24 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 	if (World)
 	{
 #if WITH_EDITOR
-		if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+		switch (PrefabVersion)
+		{
+		case LGUI_PREFAB_VERSION_ArchiveVersion:
+		case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 		{
 			LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
 		}
-		else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+		break;
+		case LGUI_PREFAB_VERSION_BuildinFArchive:
 		{
 			LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
 		}
-		else
+		break;
+		default:
 		{
 			LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+		}
+		break;
 		}
 #else
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
@@ -402,17 +418,24 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 	if (World)
 	{
 #if WITH_EDITOR
-		if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+		switch (PrefabVersion)
+		{
+		case LGUI_PREFAB_VERSION_ArchiveVersion:
+		case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 		{
 			LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 		}
-		else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+		break;
+		case LGUI_PREFAB_VERSION_BuildinFArchive:
 		{
 			LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 		}
-		else
+		break;
+		default:
 		{
 			LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
+		}
+		break;
 		}
 #else
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
@@ -428,21 +451,26 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 )
 {
 	AActor* LoadedRootActor = nullptr;
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+	switch (PrefabVersion)
+	{
+	case LGUI_PREFAB_VERSION_ArchiveVersion:
+	case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 	{
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this, InParent
 			, InOutMapGuidToObject, OutSubPrefabMap
 			, InSetHierarchyIndexForRootComponent
 		);
 	}
-	else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	break;
+	case LGUI_PREFAB_VERSION_BuildinFArchive:
 	{
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this, InParent
 			, InOutMapGuidToObject, OutSubPrefabMap
 			, InSetHierarchyIndexForRootComponent
 		);
 	}
-	else
+	break;
+	default:
 	{
 		TArray<AActor*> OutCreatedActors;
 		TArray<FGuid> OutCreatedActorsGuid;
@@ -452,6 +480,8 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 		{
 			InOutMapGuidToObject.Add(OutCreatedActorsGuid[i], OutCreatedActors[i]);
 		}
+	}
+	break;
 	}
 	return LoadedRootActor;
 }
@@ -495,7 +525,10 @@ void ULGUIPrefab::SavePrefab(AActor* RootActor
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
 	AActor* LoadedRootActor = nullptr;
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+	switch (PrefabVersion)
+	{
+	case LGUI_PREFAB_VERSION_ArchiveVersion:
+	case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
@@ -503,7 +536,8 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
 	}
-	else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	break;
+	case LGUI_PREFAB_VERSION_BuildinFArchive:
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
@@ -511,10 +545,13 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
 	}
-	else
+	break;
+	default:
 	{
 		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(InWorld, this
 			, InParent);
+	}
+	break;
 	}
 	return LoadedRootActor;
 }
@@ -522,22 +559,29 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, UObject*>& OutMapGuidToObject, bool SetRelativeTransformToIdentity)
 {
 	AActor* LoadedRootActor = nullptr;
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_NestedDefaultSubObject)
+	switch (PrefabVersion)
+	{
+	case LGUI_PREFAB_VERSION_ArchiveVersion:
+	case LGUI_PREFAB_VERSION_NestedDefaultSubObject:
 	{
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, OutMapGuidToObject, OutSubPrefabMap
 		);
 	}
-	else if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	break;
+	case LGUI_PREFAB_VERSION_BuildinFArchive:
 	{
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, OutMapGuidToObject, OutSubPrefabMap
 		);
 	}
-	else
+	break;
+	default:
 	{
 		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(InWorld, this
 			, InParent);
+	}
+	break;
 	}
 	return LoadedRootActor;
 }
