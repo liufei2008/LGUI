@@ -575,14 +575,21 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer::DeserializeActorRecursive(FLGUIActorSaveData& InActorData)
 	{
-		auto NewActor = (AActor*)MapGuidToObject[InActorData.ActorGuid];
-		WriterOrReaderFunction(NewActor, InActorData.ActorPropertyData, false);
-
-		for (auto& ChildSaveData : InActorData.ChildActorData)
+		if (auto ObjectPtr = MapGuidToObject.Find(InActorData.ActorGuid))
 		{
-			DeserializeActorRecursive(ChildSaveData);
+			auto NewActor = (AActor*)(*ObjectPtr);
+			WriterOrReaderFunction(NewActor, InActorData.ActorPropertyData, false);
+
+			for (auto& ChildSaveData : InActorData.ChildActorData)
+			{
+				DeserializeActorRecursive(ChildSaveData);
+			}
+			return NewActor;
 		}
-		return NewActor;
+		else
+		{
+			return nullptr;
+		}
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION

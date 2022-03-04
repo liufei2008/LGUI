@@ -270,6 +270,16 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 {
 	PrefabBeingEdited = InPrefab;
 	PrefabHelperObject->PrefabAsset = PrefabBeingEdited;
+	if (PrefabBeingEdited->ReferenceClassList.Contains(nullptr))
+	{
+		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceClass", "Prefab missing some class reference!");
+		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+	}
+	if (PrefabBeingEdited->ReferenceAssetList.Contains(nullptr))
+	{
+		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceClass", "Prefab missing some asset reference!");
+		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+	}
 
 	FLGUIPrefabEditorCommand::Register();
 
