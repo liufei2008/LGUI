@@ -222,7 +222,7 @@ FText FLGUIPrefabCustomization::GetPrefabVersionText()const
 		}
 		else
 		{
-			return FText::Format(LOCTEXT("PrefabSystemVersionError", "%d (This prefab is made by a different prefab system version.)"), TargetScriptPtr->PrefabVersion);
+			return FText::Format(LOCTEXT("PrefabSystemVersionError", "{0} (This prefab is made by a different prefab system version.)"), TargetScriptPtr->PrefabVersion);
 		}
 	}
 	else
