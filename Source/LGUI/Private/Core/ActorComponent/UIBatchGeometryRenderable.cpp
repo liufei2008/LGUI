@@ -464,7 +464,7 @@ void ULGUIGeometryHelper::AddVertexSimple(FVector position, FColor color, FVecto
 	auto& originVertices = UIGeo->originVertices;
 	originVertices.Add(FVector3f(position));
 	auto& vertices = UIGeo->vertices;
-	FDynamicMeshVertex vert;
+	FDynamicMeshVertex vert(FVector::ZeroVector);
 	vert.Color = color;
 	vert.TextureCoordinate[0] = FVector2f(uv0);
 	vertices.Add(vert);
@@ -488,7 +488,7 @@ void ULGUIGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2
 	auto& originVertices = UIGeo->originVertices;
 	originVertices.Add(FLGUIOriginVertexData(position, normal, tangent));
 	auto& vertices = UIGeo->vertices;
-	FDynamicMeshVertex vert;
+	FDynamicMeshVertex vert(FVector::ZeroVector);
 	vert.Color = color;
 	vert.TextureCoordinate[0] = FVector2f(uv0);
 	vert.TextureCoordinate[1] = FVector2f(uv1);
@@ -515,7 +515,7 @@ void ULGUIGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 	auto& originVertices = UIGeo->originVertices;
 	originVertices.Add(FLGUIOriginVertexData(vertex.position, vertex.normal, vertex.tangent));
 	auto& vertices = UIGeo->vertices;
-	FDynamicMeshVertex vert;
+	FDynamicMeshVertex vert(FVector::ZeroVector);
 	vert.Color = vertex.color;
 	vert.TextureCoordinate[0] = FVector2f(vertex.uv0);
 	vert.TextureCoordinate[1] = FVector2f(vertex.uv1);
