@@ -16,11 +16,13 @@
 #define LGUI_PREFAB_VERSION_BuildinFArchive 3
 /** Version 4: Support nested default sub object. */
 #define LGUI_PREFAB_VERSION_NestedDefaultSubObject 4
+/** Version 5: Support FArchive's version. */
+#define LGUI_PREFAB_VERSION_ArchiveVersion 5
 
 /**
  * Current prefab system version
  */
-#define LGUI_CURRENT_PREFAB_VERSION LGUI_PREFAB_VERSION_NestedDefaultSubObject
+#define LGUI_CURRENT_PREFAB_VERSION LGUI_PREFAB_VERSION_ArchiveVersion
 
 class ULGUIPrefab;
 class ULGUIPrefabHelperObject;
@@ -126,15 +128,21 @@ public:
 	/** Engine's minor version when creating this prefab */
 	UPROPERTY()
 		uint16 EngineMinorVersion;
+	UPROPERTY()
+		uint16 EnginePatchVersion;
+	UPROPERTY()int32 ArchiveVersion = -1;
+	UPROPERTY()int32 ArchiveLicenseeVer = -1;
+	UPROPERTY()uint32 ArEngineNetVer = 0;
+	UPROPERTY()uint32 ArGameNetVer = 0;
 
 	/** build version for ReferenceAssetList */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY()
 		TArray<UObject*> ReferenceAssetListForBuild;
 	/** build version for ReferenceClassList */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY()
 		TArray<UClass*> ReferenceClassListForBuild;
 	/** build version for ReferenceNameList */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY()
 		TArray<FName> ReferenceNameListForBuild;
 	/**
 	 * serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize

@@ -55,6 +55,13 @@ namespace LGUIPrefabSystem
 		TArray<UClass*> ReferenceClassList;
 		TArray<FName> ReferenceNameList;
 
+		uint16 PrefabVersion = 0;
+		int32 ArchiveVersion = -1;
+		int32 ArchiveLicenseeVer = -1;
+		FEngineVersionBase ArEngineVer;
+		uint32 ArEngineNetVer = 0;
+		uint32 ArGameNetVer = 0;
+
 		TMap<FGuid, UObject*> MapGuidToObject;
 		TMap<UObject*, FGuid> MapObjectToGuid;
 
