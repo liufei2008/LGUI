@@ -193,8 +193,9 @@ namespace LGUIPrefabSystem4
 		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 		InPrefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
-		InPrefab->ArchiveVersion = GPackageFileUE4Version;
-		InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUE4Version;
+		InPrefab->ArchiveVersion = GPackageFileUEVersion.FileVersionUE4;
+		InPrefab->ArchiveVersionUE5 = GPackageFileUEVersion.FileVersionUE5;
+		InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUEVersion;
 		InPrefab->ArEngineNetVer = FNetworkVersion::GetEngineNetworkProtocolVersion();
 		InPrefab->ArGameNetVer = FNetworkVersion::GetGameNetworkProtocolVersion();
 

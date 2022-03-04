@@ -131,6 +131,7 @@ public:
 	UPROPERTY()
 		uint16 EnginePatchVersion;
 	UPROPERTY()int32 ArchiveVersion = -1;
+	UPROPERTY()int32 ArchiveVersionUE5 = -1;
 	UPROPERTY()int32 ArchiveLicenseeVer = -1;
 	UPROPERTY()uint32 ArEngineNetVer = 0;
 	UPROPERTY()uint32 ArGameNetVer = 0;

@@ -56,7 +56,7 @@ namespace LGUIPrefabSystem
 		TArray<FName> ReferenceNameList;
 
 		uint16 PrefabVersion = 0;
-		int32 ArchiveVersion = -1;
+		FPackageFileVersion ArchiveVersion = -1;
 		int32 ArchiveLicenseeVer = -1;
 		FEngineVersionBase ArEngineVer;
 		uint32 ArEngineNetVer = 0;

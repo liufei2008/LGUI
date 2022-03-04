@@ -258,8 +258,8 @@ namespace LGUIPrefabSystem
 
 		if (InArchive.IsLoading() && this->PrefabVersion >= LGUI_PREFAB_VERSION_ArchiveVersion)
 		{
-			InArchive.SetUE4Ver(this->ArchiveVersion);
-			InArchive.SetLicenseeUE4Ver(this->ArchiveLicenseeVer);
+			InArchive.SetUEVer(this->ArchiveVersion);
+			InArchive.SetLicenseeUEVer(this->ArchiveLicenseeVer);
 			InArchive.SetEngineVer(this->ArEngineVer);
 			InArchive.SetEngineNetVer(this->ArEngineNetVer);
 			InArchive.SetGameNetVer(this->ArGameNetVer);
