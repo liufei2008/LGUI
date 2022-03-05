@@ -256,13 +256,13 @@ namespace LGUIPrefabSystem
 		InArchive.ArNoDelta = true;
 		InArchive.ArNoIntraPropertyDelta = true;
 
-		if (InArchive.IsLoading() && this->PrefabVersion >= LGUI_PREFAB_VERSION_ArchiveVersion)
+		if (InArchive.IsLoading() && bOverrideVersions)
 		{
 			InArchive.SetUE4Ver(this->ArchiveVersion);
-			InArchive.SetLicenseeUE4Ver(this->ArchiveLicenseeVer);
-			InArchive.SetEngineVer(this->ArEngineVer);
-			InArchive.SetEngineNetVer(this->ArEngineNetVer);
-			InArchive.SetGameNetVer(this->ArGameNetVer);
+			if (this->ArchiveLicenseeVer > -1) InArchive.SetLicenseeUE4Ver(this->ArchiveLicenseeVer);
+			if (!this->ArEngineVer.IsEmpty()) InArchive.SetEngineVer(this->ArEngineVer);
+			if (this->ArEngineNetVer > 0) InArchive.SetEngineNetVer(this->ArEngineNetVer);
+			if (this->ArGameNetVer > 0) InArchive.SetGameNetVer(this->ArGameNetVer);
 		}
 	}
 }

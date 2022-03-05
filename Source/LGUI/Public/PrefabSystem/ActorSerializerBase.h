@@ -8,6 +8,7 @@
 #include "Serialization/BufferArchive.h"
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
+#include "UObject/ObjectVersion.h"
 
 namespace LGUIPrefabSystem
 {
@@ -55,8 +56,9 @@ namespace LGUIPrefabSystem
 		TArray<UClass*> ReferenceClassList;
 		TArray<FName> ReferenceNameList;
 
+		bool bOverrideVersions = true;
 		uint16 PrefabVersion = 0;
-		int32 ArchiveVersion = -1;
+		int32 ArchiveVersion = (int32)EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
 		int32 ArchiveLicenseeVer = -1;
 		FEngineVersionBase ArEngineVer;
 		uint32 ArEngineNetVer = 0;
