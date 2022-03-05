@@ -4,25 +4,31 @@
 #include "CoreMinimal.h"
 #include "LGUIPrefab.generated.h"
 
-/**
- * Version 2: Support ActorGuid (start from 4.26)
- * Version 3: Use UE's build-in FArchive to serialize/deserialize. 
- *		Compare to version2: 1. About 2~3 times faster when deserialize.
- *							 2. Smaller disc space take.
- *							 3. Support CoreRedirects.
- *							 4. Support object flags.
- *							 5. Support all object serialization and reference, inlude default sub object and component.
- */
-#define LGUI_PREFAB_VERSION_BuildinFArchive 3
-/** Version 4: Support nested default sub object. */
-#define LGUI_PREFAB_VERSION_NestedDefaultSubObject 4
-/** Version 5: Support FArchive's version. */
-#define LGUI_PREFAB_VERSION_ArchiveVersion 5
+enum class ELGUIPrefabVersion : uint16
+{
+	/** Version 2: Support ActorGuid (start from 4.26). */
+	OldVersion = 2,
+	/**
+	 * Version 3: Use UE's build-in FArchive to serialize/deserialize.
+	 *		Compare to version2: 1. About 2~3 times faster when deserialize.
+	 *							 2. Smaller disc space take.
+	 *							 3. Support CoreRedirects.
+	 *							 4. Support object flags.
+	 *							 5. Support all object serialization and reference, inlude default sub object and component.
+	 */
+	BuildinFArchive = 3,
+	/** Support nested default sub object. */
+	NestedDefaultSubObject = 4,
+
+	/** new version must be added before this line. */
+	MAX_NO_USE,
+	NEWEST = MAX_NO_USE - 1,
+};
 
 /**
  * Current prefab system version
  */
-#define LGUI_CURRENT_PREFAB_VERSION LGUI_PREFAB_VERSION_ArchiveVersion
+#define LGUI_CURRENT_PREFAB_VERSION (uint16)ELGUIPrefabVersion::NEWEST
 
 class ULGUIPrefab;
 class ULGUIPrefabHelperObject;
@@ -130,7 +136,7 @@ public:
 		uint16 EngineMinorVersion;
 	UPROPERTY()
 		uint16 EnginePatchVersion;
-	UPROPERTY()int32 ArchiveVersion = -1;
+	UPROPERTY()int32 ArchiveVersion = EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
 	UPROPERTY()int32 ArchiveVersionUE5 = -1;
 	UPROPERTY()int32 ArchiveLicenseeVer = -1;
 	UPROPERTY()uint32 ArEngineNetVer = 0;

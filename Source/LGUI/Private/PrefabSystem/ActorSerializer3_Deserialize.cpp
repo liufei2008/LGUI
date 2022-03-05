@@ -271,6 +271,12 @@ namespace LGUIPrefabSystem3
 			this->ReferenceClassList = InPrefab->ReferenceClassListForBuild;
 			this->ReferenceNameList = InPrefab->ReferenceNameListForBuild;
 		}
+		this->PrefabVersion = InPrefab->PrefabVersion;
+		this->ArchiveVersion = FPackageFileVersion(InPrefab->ArchiveVersion, (EUnrealEngineObjectUE5Version)InPrefab->ArchiveVersionUE5);
+		this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer;
+		this->ArEngineVer = FEngineVersionBase(InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, InPrefab->EnginePatchVersion);
+		this->ArEngineNetVer = InPrefab->ArEngineNetVer;
+		this->ArGameNetVer = InPrefab->ArGameNetVer;
 
 		FLGUIPrefabSaveData SaveData;
 		{

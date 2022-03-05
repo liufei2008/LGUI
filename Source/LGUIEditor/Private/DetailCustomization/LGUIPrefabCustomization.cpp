@@ -306,7 +306,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
+		if (TargetScriptPtr->PrefabVersion >= (uint16)ELGUIPrefabVersion::BuildinFArchive
 			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
@@ -324,7 +324,7 @@ FText FLGUIPrefabCustomization::AgentObjectText()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
+		if (TargetScriptPtr->PrefabVersion >= (uint16)ELGUIPrefabVersion::BuildinFArchive
 			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
