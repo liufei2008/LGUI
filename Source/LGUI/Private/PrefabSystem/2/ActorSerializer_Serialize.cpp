@@ -466,6 +466,7 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	ToBinary.Empty();
 	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
+	Prefab->EnginePatchVersion = ENGINE_PATCH_VERSION;
 	Prefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
 	Prefab->CreateTime = FDateTime::Now();
 

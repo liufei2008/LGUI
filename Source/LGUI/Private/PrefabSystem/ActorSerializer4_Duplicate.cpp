@@ -37,6 +37,7 @@ namespace LGUIPrefabSystem4
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = false;
 		return serializer.SerializeActor_ForDuplicate(OriginRootActor, Parent);
 	}
 
@@ -66,6 +67,7 @@ namespace LGUIPrefabSystem4
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = false;
 		//serialize
 		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
