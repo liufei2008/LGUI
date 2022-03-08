@@ -99,7 +99,7 @@ protected:
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Custom"))
 		UUIRenderableCustomRaycast* CustomRaycastObject;
 
-	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
+	bool LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
 	bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);
 
     virtual void ApplyUIActiveState(bool InStateChange) override;

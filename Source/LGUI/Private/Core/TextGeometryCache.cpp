@@ -128,7 +128,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->pivot
 			, this->color
 			, this->fontSpace
-			, this->UIText->GetGeometry().Get()
+			, this->UIText->GetGeometry()
 			, this->fontSize
 			, this->paragraphHAlign
 			, this->paragraphVAlign

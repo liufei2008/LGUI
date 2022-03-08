@@ -272,7 +272,7 @@ bool UUIPostProcessRenderable::LineTraceUI(FHitResult& OutHit, const FVector& St
 	}
 	else if (RaycastType == EUIRenderableRaycastType::Geometry)
 	{
-		return LineTraceUIGeometry(geometry, OutHit, Start, End);
+		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
 	}
 	else
 	{

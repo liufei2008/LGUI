@@ -142,7 +142,7 @@ void UUIBaseRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FV
 }
 #endif
 
-bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)
+bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);

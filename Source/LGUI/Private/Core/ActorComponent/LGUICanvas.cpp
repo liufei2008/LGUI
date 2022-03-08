@@ -808,7 +808,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		}
 		return false;
 	};
-	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, TSharedPtr<UIGeometry> InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType) {
+	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, UIGeometry* InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType) {
 		TSharedPtr<UUIDrawcall> DrawcallItem = nullptr;
 		//if this UIItem exist in InCacheUIDrawcallList, then grab the entire drawcall item (may include other UIItem in renderObjectList). No need to worry other UIItem, because they could be cleared in further operation, or exist in the same drawcall
 		int32 FoundDrawcallIndex = INDEX_NONE;
@@ -961,7 +961,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 				auto UIBatchGeometryRenderableItem = (UUIBatchGeometryRenderable*)UIRenderableItem;
 				auto ItemGeo = UIBatchGeometryRenderableItem->GetGeometry();
-				if (ItemGeo.IsValid() == false)continue;
+				check(ItemGeo);
 				if (ItemGeo->vertices.Num() == 0)continue;
 
 				int DrawcallIndexToFitin;
@@ -1010,7 +1010,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 				auto UIPostProcessRenderableItem = (UUIPostProcessRenderable*)UIRenderableItem;
 				auto ItemGeo = UIPostProcessRenderableItem->GetGeometry();
-				if (ItemGeo.IsValid() == false)continue;
+				check(ItemGeo);
 				if (ItemGeo->vertices.Num() == 0)continue;
 				//every postprocess is a drawcall
 				PushSingleDrawcall(UIRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess);
