@@ -153,7 +153,7 @@ public:
 	void SortGeometryModifier();
 
 	virtual void MarkAllDirtyRecursive()override;
-	TSharedPtr<UIGeometry> GetGeometry()const { return geometry; }
+	UIGeometry* GetGeometry()const { return geometry.Get(); }
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 protected:

@@ -49,7 +49,7 @@ public:
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
-	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
+	UIGeometry* GetGeometry() { return geometry.Get(); }
 public:
 	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
 	virtual bool IsRenderProxyValid()const;
