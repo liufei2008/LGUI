@@ -338,7 +338,7 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 	}
 	else if (RaycastType == EUIRenderableRaycastType::Geometry)
 	{
-		return LineTraceUIGeometry(geometry, OutHit, Start, End);
+		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
 	}
 	else
 	{
