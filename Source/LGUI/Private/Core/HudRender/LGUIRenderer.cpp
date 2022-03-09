@@ -70,7 +70,6 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = ViewProjectionMatrix;
 	}
-	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
@@ -326,10 +325,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	}
 	else
 	{
-		if (bContainsPostProcess || MultiSampleCount > 1)
+		if (bContainsPostProcess)
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = MultiSampleCount;
+			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
 			if (!ScreenColorRenderTarget.IsValid())
 				return;
@@ -411,7 +410,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
 			ViewRect.Size(),
-			MultiSampleCount,
+			1,
 			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
@@ -422,7 +421,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.NumSamples = MultiSampleCount;
+		GraphicsPSOInit.NumSamples = 1;
 
 		for (int canvasIndex = 0; canvasIndex < WorldSpaceRenderCanvasParameterArray.Num(); canvasIndex++)
 		{
@@ -456,7 +455,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								);
 								RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 								RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-								GraphicsPSOInit.NumSamples = MultiSampleCount;
+								GraphicsPSOInit.NumSamples = 1;
 							}break;
 							case ELGUIHudPrimitiveType::Mesh://render mesh
 							{
@@ -483,7 +482,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 										GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-										GraphicsPSOInit.NumSamples = MultiSampleCount;
+										GraphicsPSOInit.NumSamples = 1;
 										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -524,7 +523,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
 			ViewRect.Size(),
-			MultiSampleCount,
+			1,
 			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
@@ -535,7 +534,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.NumSamples = MultiSampleCount;
+		GraphicsPSOInit.NumSamples = 1;
 
 		for (int primitiveIndex = 0; primitiveIndex < ScreenSpaceRenderParameter.HudPrimitiveArray.Num(); primitiveIndex++)
 		{
@@ -565,7 +564,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-						GraphicsPSOInit.NumSamples = MultiSampleCount;
+						GraphicsPSOInit.NumSamples = 1;
 					}break;
 					case ELGUIHudPrimitiveType::Mesh://render mesh
 					{
@@ -592,7 +591,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = MultiSampleCount;
+								GraphicsPSOInit.NumSamples = 1;
 								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -620,7 +619,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	}
 	else
 	{
-		if (bContainsPostProcess || MultiSampleCount > 1)
+		if (bContainsPostProcess)
 		{
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
 			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());

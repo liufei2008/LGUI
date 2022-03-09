@@ -127,31 +127,15 @@ public:
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-		if (ScreenTargetTexture->IsMultisampled())
-		{
-			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
-				, RegisterExternalTexture(GraphBuilder, ScreenTargetResolveImage, TEXT("LGUI_BlurEffectRenderTexture1"))
-				, BlurEffectRenderTexture1
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
-		else
-		{
-			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
-				, RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("LGUI_BlurEffectRenderTexture1"))
-				, OriginScreenTargetTexture
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
+		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+			, RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("LGUI_BlurEffectRenderTexture1"))
+			, OriginScreenTargetTexture
+			, GlobalShaderMap
+			, renderScreenToMeshRegionVertexArray
+			, modelViewProjectionMatrix
+			, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+			, ViewTextureScaleOffset
+		);
 		//do the blur process on the area
 		{
 			if (strengthTexture != nullptr)//use mask texture to control blur strength
@@ -363,31 +347,15 @@ public:
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-		if (ScreenTargetTexture->IsMultisampled())
-		{
-			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, BlurEffectRenderTexture1
-				, ScreenTargetResolveImage
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
-		else
-		{
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, BlurEffectRenderTexture1
-				, ScreenTargetTexture
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
+		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+			, BlurEffectRenderTexture1
+			, ScreenTargetTexture
+			, GlobalShaderMap
+			, renderScreenToMeshRegionVertexArray
+			, modelViewProjectionMatrix
+			, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+			, ViewTextureScaleOffset
+		);
 		//do the blur process on the area
 		{
 			if (strengthTexture != nullptr)//use mask texture to control blur strength
@@ -507,7 +475,7 @@ public:
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
+		GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
