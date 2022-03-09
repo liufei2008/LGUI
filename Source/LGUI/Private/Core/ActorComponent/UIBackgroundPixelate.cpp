@@ -197,31 +197,15 @@ public:
 
 		//copy rect area from screen image to a render target, so we can just process this area
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-		if (ScreenTargetTexture->IsMultisampled())
-		{
-			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, PixelateEffectRenderTargetTexture
-				, ScreenTargetResolveImage
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
-		else
-		{
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, PixelateEffectRenderTargetTexture
-				, ScreenTargetTexture
-				, GlobalShaderMap
-				, renderScreenToMeshRegionVertexArray
-				, modelViewProjectionMatrix
-				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
+		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+			, PixelateEffectRenderTargetTexture
+			, ScreenTargetTexture
+			, GlobalShaderMap
+			, renderScreenToMeshRegionVertexArray
+			, modelViewProjectionMatrix
+			, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
+			, ViewTextureScaleOffset
+		);
 		//after pixelate process, copy the area back to screen image
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 

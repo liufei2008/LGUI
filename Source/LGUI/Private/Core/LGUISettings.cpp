@@ -59,10 +59,6 @@ const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
 {
 	return GetDefault<ULGUISettings>()->atlasSettingForSpecificPackingTag;
 }
-ELGUIScreenSpaceUIAntiAliasing ULGUISettings::GetAntiAliasingSampleCount()
-{
-	return GetDefault<ULGUISettings>()->antiAliasing;
-}
 float ULGUISettings::GetAutoBatchThreshold()
 {
 #if WITH_EDITOR
