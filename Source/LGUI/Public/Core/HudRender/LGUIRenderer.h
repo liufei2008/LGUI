@@ -99,7 +99,6 @@ public:
 	void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList
 	);
-	uint16 GetMultiSampleCount()const { return MultiSampleCount; }
 private:
 	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided);
 	struct FRenderCanvasParameter
@@ -131,7 +130,6 @@ private:
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
-	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);

@@ -19,19 +19,6 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
 
-/**
- * Aniti Aliasing(MSAA) for LGUI screen space UI renderring
- */
-UENUM(BlueprintType, Category = LGUI)
-enum class ELGUIScreenSpaceUIAntiAliasing :uint8
-{
-	Hidden=0				UMETA(Hidden),
-	Disabled=1,
-	SampleCount_2x=2		UMETA(DisplayName = "2x"),
-	SampleCount_4x=4		UMETA(DisplayName = "4x"),
-	SampleCount_8x=8		UMETA(DisplayName = "8x"),
-};
-
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIAtlasSettings
 {
@@ -72,9 +59,6 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
 
-	UPROPERTY(EditAnywhere, config, Category = "Rendering")
-		ELGUIScreenSpaceUIAntiAliasing antiAliasing = ELGUIScreenSpaceUIAntiAliasing::Disabled;
-
 	/**
 	 * LGUI renderer use ISceneViewExtension to render, so this value can sort with other view extensions, higher comes first.
 	 */
@@ -103,7 +87,6 @@ public:
 	static int32 GetAtlasTexturePadding(const FName& InPackingTag);
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
-	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
 	static float GetAutoBatchThreshold();
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{

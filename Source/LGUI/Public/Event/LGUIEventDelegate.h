@@ -73,17 +73,17 @@ private:
 	friend struct FLGUIEventDelegate;
 	friend class FLGUIEventDelegateCustomization;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")double DoubleValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int8 Int8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint8 UInt8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int16 Int16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint16 UInt16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int32 Int32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue = false;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")double DoubleValue = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int8 Int8Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint8 UInt8Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int16 Int16Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint16 UInt16Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int32 Int32Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value = 0;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value;

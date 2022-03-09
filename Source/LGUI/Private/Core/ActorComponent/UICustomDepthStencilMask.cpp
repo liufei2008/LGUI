@@ -146,15 +146,8 @@ public:
 #endif
 
 			//copy render target
-			if (ScreenTargetTexture->IsMultisampled())
-			{
-				RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, ScreenTarget_ProcessRenderTargetTexture);
-			}
-			else
-			{
-				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetTexture, ScreenTarget_ProcessRenderTargetTexture);
-			}
+			Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetTexture, ScreenTarget_ProcessRenderTargetTexture);
+
 			RHICmdList.CopyToResolveTarget(OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, FResolveParams());
 			//@todo: dont't konw why below two line is needed; if remove them, then OriginScreenTargetTexture seems black
 			{
