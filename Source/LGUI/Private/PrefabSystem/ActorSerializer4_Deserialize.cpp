@@ -344,6 +344,7 @@ namespace LGUIPrefabSystem4
 				CreatedNewComponent->CollectDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
+					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 					auto Index = ObjectData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 					if (Index == INDEX_NONE)
 					{
@@ -387,6 +388,7 @@ namespace LGUIPrefabSystem4
 				CreatedNewObject->CollectDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
+					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 					auto Index = ObjectData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 					if (Index == INDEX_NONE)
 					{
@@ -580,6 +582,7 @@ namespace LGUIPrefabSystem4
 				NewActor->CollectDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
+					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 					auto Index = InActorData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 					if (Index == INDEX_NONE)
 					{
