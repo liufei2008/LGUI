@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "Misc/NetworkVersion.h"
 #include "LGUIPrefab.generated.h"
 
 enum class ELGUIPrefabVersion : uint16
@@ -136,10 +137,10 @@ public:
 		uint16 EngineMinorVersion;
 	UPROPERTY()
 		uint16 EnginePatchVersion;
-	UPROPERTY()int32 ArchiveVersion = EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
+	UPROPERTY()int32 ArchiveVersion = (int32)EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
 	UPROPERTY()int32 ArchiveVersionUE5 = -1;
-	UPROPERTY()int32 ArchiveLicenseeVer = -1;
-	UPROPERTY()uint32 ArEngineNetVer = 0;
+	UPROPERTY()int32 ArchiveLicenseeVer = (int32)EUnrealEngineObjectLicenseeUEVersion::VER_LIC_NONE;
+	UPROPERTY()uint32 ArEngineNetVer = (uint32)EEngineNetworkVersionHistory::HISTORY_REPLAY_DORMANCY;
 	UPROPERTY()uint32 ArGameNetVer = 0;
 
 	/** build version for ReferenceAssetList */

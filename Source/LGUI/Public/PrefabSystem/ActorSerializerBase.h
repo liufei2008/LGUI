@@ -58,8 +58,8 @@ namespace LGUIPrefabSystem
 
 		bool bOverrideVersions = true;
 		uint16 PrefabVersion = 0;
-		FPackageFileVersion ArchiveVersion = FPackageFileVersion((int32)EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG, (EUnrealEngineObjectUE5Version)0);//this default version is the time when LGUIPrefab support FArchive version
-		int32 ArchiveLicenseeVer = -1;
+		FPackageFileVersion ArchiveVersion;
+		int32 ArchiveLicenseeVer = 0;
 		FEngineVersionBase ArEngineVer;
 		uint32 ArEngineNetVer = 0;
 		uint32 ArGameNetVer = 0;

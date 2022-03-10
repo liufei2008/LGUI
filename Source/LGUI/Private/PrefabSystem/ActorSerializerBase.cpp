@@ -259,10 +259,10 @@ namespace LGUIPrefabSystem
 		if (InArchive.IsLoading() && bOverrideVersions)
 		{
 			InArchive.SetUEVer(this->ArchiveVersion);
-			if (this->ArchiveLicenseeVer > -1) InArchive.SetLicenseeUEVer(this->ArchiveLicenseeVer);
+			InArchive.SetLicenseeUEVer(this->ArchiveLicenseeVer);
 			if (!this->ArEngineVer.IsEmpty()) InArchive.SetEngineVer(this->ArEngineVer);
-			if (this->ArEngineNetVer > 0) InArchive.SetEngineNetVer(this->ArEngineNetVer);
-			if (this->ArGameNetVer > 0) InArchive.SetGameNetVer(this->ArGameNetVer);
+			InArchive.SetEngineNetVer(this->ArEngineNetVer);
+			InArchive.SetGameNetVer(this->ArGameNetVer);
 		}
 	}
 }
