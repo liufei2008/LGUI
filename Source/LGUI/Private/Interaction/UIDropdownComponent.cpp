@@ -105,7 +105,7 @@ void UUIDropdownComponent::Show()
 	canvasOnListRoot->SetOverrideSorting(true);
 
 	//create list item as options
-	if (!ItemTemplate.IsValid())
+	if (!ItemTemplate.IsValidComponentReference())
 	{
 		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ItemTemplate is not valid!"));
 		return;
@@ -522,7 +522,7 @@ void UUIDropdownItemComponent::Init(const FUIDropdownOptionData& Data, const TFu
 	{
 		SpriteActor->GetUISprite()->SetSprite(Data.Sprite);
 	}
-	if (Toggle.IsValid())
+	if (Toggle.IsValidComponentReference())
 	{
 		auto toggleComp = Toggle.GetComponent<UUIToggleComponent>();
 		toggleComp->RegisterToggleEvent([OnSelect, toggleComp](bool select){
@@ -532,7 +532,7 @@ void UUIDropdownItemComponent::Init(const FUIDropdownOptionData& Data, const TFu
 }
 void UUIDropdownItemComponent::SetSelectionState(const bool& InSelect)
 {
-	if (Toggle.IsValid())
+	if (Toggle.IsValidComponentReference())
 	{
 		Toggle.GetComponent<UUIToggleComponent>()->SetValue(InSelect, false);
 	}

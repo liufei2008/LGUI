@@ -384,6 +384,57 @@ FString ULGUIEventDelegateParameterHelper::ParameterTypeToName(LGUIEventDelegate
 
 
 
+#if WITH_EDITOR
+TArray<FLGUIEventDelegateData*> FLGUIEventDelegateData::AllEventDelegateDataArray;
+FLGUIEventDelegateData::FLGUIEventDelegateData()
+{
+	AllEventDelegateDataArray.Add(this);
+}
+FLGUIEventDelegateData::~FLGUIEventDelegateData()
+{
+	AllEventDelegateDataArray.Remove(this);
+}
+void FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile()
+{
+	for (auto Item : AllEventDelegateDataArray)
+	{
+		Item->RefreshOnBlueprintRecompile();
+	}
+}
+void FLGUIEventDelegateData::RefreshOnBlueprintRecompile()
+{
+	if (!IsValid(TargetObject))
+	{
+		if (IsValid(HelperActor) && IsValid(HelperClass))
+		{
+			if (HelperClass == AActor::StaticClass())
+			{
+				TargetObject = HelperActor;
+			}
+			else
+			{
+				TArray<UActorComponent*> Components;
+				HelperActor->GetComponents(HelperClass, Components);
+				if (Components.Num() == 1)
+				{
+					TargetObject = Components[0];
+				}
+				else if(Components.Num() > 1)
+				{
+					for (auto Comp : Components)
+					{
+						if (Comp->GetFName() == HelperComponentName)
+						{
+							TargetObject = Comp;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+#endif
+
 void FLGUIEventDelegateData::Execute()
 {
 	if (UseNativeParameter)
