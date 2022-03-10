@@ -267,9 +267,13 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 	return true;
 }
 
+#include "Event/LGUIEventDelegate.h"
+#include "LGUIComponentReference.h"
 void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 {
 	RefreshAllUI();
+	FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile();
+	FLGUIComponentReference::RefreshAllOnBlueprintRecompile();
 }
 
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)

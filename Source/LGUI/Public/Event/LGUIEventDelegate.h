@@ -69,6 +69,19 @@ USTRUCT()
 struct LGUI_API FLGUIEventDelegateData
 {
 	GENERATED_BODY()
+#if WITH_EDITORONLY_DATA
+public:
+	FLGUIEventDelegateData();
+	~FLGUIEventDelegateData();
+	/**
+	 * If TargetObject is a BlueprintCreatedComponent, when hit compile on blueprint editor, the TargetObject will lose reference.
+	 * So we need to find the referenced TargetObject after blueprint compile.
+	 */
+	static void RefreshAllOnBlueprintRecompile();
+private:
+	static TArray<FLGUIEventDelegateData*> AllEventDelegateDataArray;
+	void RefreshOnBlueprintRecompile();
+#endif
 private:
 	friend struct FLGUIEventDelegate;
 	friend class FLGUIEventDelegateCustomization;

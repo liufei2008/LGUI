@@ -17,7 +17,18 @@ struct LGUI_API FLGUIComponentReference
 	GENERATED_BODY()
 	FLGUIComponentReference(TSubclassOf<UActorComponent> InCompClass);
 	FLGUIComponentReference(UActorComponent* InComp);
-	FLGUIComponentReference() {}
+	FLGUIComponentReference();
+	~FLGUIComponentReference();
+#if WITH_EDITORONLY_DATA
+	/**
+	 * If TargetObject is a BlueprintCreatedComponent, when hit compile on blueprint editor, the TargetObject will lose reference.
+	 * So we need to find the referenced TargetObject after blueprint compile.
+	 */
+	static void RefreshAllOnBlueprintRecompile();
+private:
+	static TArray<FLGUIComponentReference*> AllLGUIComponentReferenceArray;
+	void RefreshOnBlueprintRecompile();
+#endif
 protected:
 	friend class FLGUIComponentReferenceCustomization;
 #if WITH_EDITORONLY_DATA
