@@ -100,6 +100,7 @@ namespace LGUIPrefabSystem4
 			Actor->CollectDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
+				if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 				if (!MapObjectToGuid.Contains(DefaultSubObject))
 				{
 					MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
@@ -256,6 +257,7 @@ namespace LGUIPrefabSystem4
 				Object->CollectDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
+					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 					if (!MapObjectToGuid.Contains(DefaultSubObject))
 					{
 						MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
@@ -277,6 +279,7 @@ namespace LGUIPrefabSystem4
 				Object->CollectDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
+					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 					if (!MapObjectToGuid.Contains(DefaultSubObject))
 					{
 						MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
