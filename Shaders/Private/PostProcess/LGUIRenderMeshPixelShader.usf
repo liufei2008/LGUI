@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 #include "LGUIRenderMeshVertexShader.usf"
 
 #if LGUI_RECT_CLIP
