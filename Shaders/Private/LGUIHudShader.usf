@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Generated/Material.ush"
