@@ -19,11 +19,12 @@
 #include "Core/LGUISettings.h"
 #include "GameFramework/Actor.h"
 #include "EngineUtils.h"
+#include "UObject/ObjectSaveContext.h"
 
 #define LOCTEXT_NAMESPACE "LGUINativeSceneOutlinerExtension"
 FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 {
-	OnPreSaveWorldDelegateHandle = FEditorDelegates::PreSaveWorld.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreSaveWorld);
+	OnPreSaveWorldDelegateHandle = FEditorDelegates::PreSaveWorldWithContext.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreSaveWorld);
 	OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnMapOpened);
 	OnPreBeginPIEDelegateHandle = FEditorDelegates::PreBeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreBeginPIE);
 	OnBeginPIEDelegateHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnBeginPIE);
@@ -31,7 +32,7 @@ FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 }
 FLGUINativeSceneOutlinerExtension::~FLGUINativeSceneOutlinerExtension()
 {
-	FEditorDelegates::PreSaveWorld.Remove(OnPreSaveWorldDelegateHandle);
+	FEditorDelegates::PreSaveWorldWithContext.Remove(OnPreSaveWorldDelegateHandle);
 	FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
 	FEditorDelegates::PreBeginPIE.Remove(OnPreBeginPIEDelegateHandle);
 	FEditorDelegates::BeginPIE.Remove(OnBeginPIEDelegateHandle);
@@ -55,7 +56,7 @@ TStatId FLGUINativeSceneOutlinerExtension::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
 
-void FLGUINativeSceneOutlinerExtension::OnPreSaveWorld(uint32 SaveFlags, UWorld* World)
+void FLGUINativeSceneOutlinerExtension::OnPreSaveWorld(UWorld* World, FObjectPreSaveContext Context)
 {
 	SaveSceneOutlinerState();
 }

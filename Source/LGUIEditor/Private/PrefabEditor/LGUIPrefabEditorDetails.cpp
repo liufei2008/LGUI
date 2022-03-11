@@ -4,7 +4,6 @@
 #include "Engine/Selection.h"
 #include "LevelEditor.h"
 #include "Modules/ModuleManager.h"
-#include "SSCSEditor.h"
 #include "ISCSEditorUICustomization.h"
 #include "GameFramework/Actor.h"
 #include "UnrealEdGlobals.h"
@@ -15,6 +14,8 @@
 #include "LGUIPrefabOverrideDataViewer.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "LGUIEditorTools.h"
+#include "SSubobjectEditorModule.h"
+#include "SSubobjectInstanceEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorDetailTab"
 
@@ -46,18 +47,18 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
     DetailsView = PropPlugin.CreateDetailView(DetailsViewArgs);
     DetailsView->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateSP(this, &SLGUIPrefabEditorDetails::IsPropertyReadOnly));
 
-	SCSEditor = SNew(SSCSEditor)
-		.EditorMode(EComponentEditorMode::ActorInstance)
-		.AllowEditing(this, &SLGUIPrefabEditorDetails::IsSSCSEditorAllowEditing)
-		.ActorContext(this, &SLGUIPrefabEditorDetails::GetActorContext)
-		.OnSelectionUpdated(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged)
-		.OnItemDoubleClicked(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewItemDoubleClicked);
+	FModuleManager::LoadModuleChecked<FSubobjectEditorModule>("SubobjectEditor");
+	SubobjectEditor = SNew(SSubobjectInstanceEditor)
+		.AllowEditing(this, &SLGUIPrefabEditorDetails::IsEditorAllowEditing)
+		.ObjectContext(this, &SLGUIPrefabEditorDetails::GetActorContextAsObject)
+		.OnSelectionUpdated(this, &SLGUIPrefabEditorDetails::OnEditorTreeViewSelectionChanged)
+		.OnItemDoubleClicked(this, &SLGUIPrefabEditorDetails::OnEditorTreeViewItemDoubleClicked);
 
 	
 	TSharedPtr<ISCSEditorUICustomization> Customization = MakeShared<LGUISCSEditorUICustomization>();
-	SCSEditor->SetUICustomization(Customization);
+	SubobjectEditor->SetUICustomization(Customization);
 #if ENGINE_MAJOR_VERSION >= 5
-	auto ButtonBox = SCSEditor->GetToolButtonsBox().ToSharedRef();
+	auto ButtonBox = SubobjectEditor->GetToolButtonsBox().ToSharedRef();
 	DetailsView->SetNameAreaCustomContent(ButtonBox);
 #endif
 
@@ -185,7 +186,7 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 			.Padding(FMargin(0, 2))
 			.AutoHeight()
 			[
-				SCSEditor.ToSharedRef()
+				SubobjectEditor.ToSharedRef()
 			]
 			+ SVerticalBox::Slot()
 			.Padding(FMargin(0, 2))
@@ -219,7 +220,7 @@ EVisibility SLGUIPrefabEditorDetails::GetPrefabButtonVisibility()const
 	return IsPrefabButtonEnable() ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-bool SLGUIPrefabEditorDetails::IsSSCSEditorAllowEditing()const
+bool SLGUIPrefabEditorDetails::IsEditorAllowEditing()const
 {
 	if (PrefabEditorPtr.IsValid() && CachedActor.IsValid())
 	{
@@ -254,9 +255,9 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 
 			CachedActor = Actor;
 			RefreshOverrideParameter();
-			if (SCSEditor)
+			if (SubobjectEditor)
 			{
-				SCSEditor->UpdateTree();
+				SubobjectEditor->UpdateTree();
 			}
 		}
 
@@ -285,17 +286,17 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 	}
 }
 
-void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged(const TArray<TSharedPtr<class FSCSEditorTreeNode> >& SelectedNodes)
+void SLGUIPrefabEditorDetails::OnEditorTreeViewSelectionChanged(const TArray<FSubobjectEditorTreeNodePtrType>& SelectedNodes)
 {
 	if (SelectedNodes.Num() > 0)
 	{
 		TArray<UObject*> SelectedObjects;
 
-		for (const TSharedPtr<FSCSEditorTreeNode>& Node : SelectedNodes)
+		for (auto& Node : SelectedNodes)
 		{
 			if (Node.IsValid())
 			{
-				UObject* Object = const_cast<UObject*>(Node->GetObject<UObject>());
+				UObject* Object = const_cast<UObject*>(Node->GetObject());
 				if (Object)
 				{
 					SelectedObjects.Add(Object);
@@ -310,7 +311,7 @@ void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged(const TArray<
 	}
 }
 
-void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewItemDoubleClicked(const TSharedPtr<class FSCSEditorTreeNode> ClickedNode)
+void SLGUIPrefabEditorDetails::OnEditorTreeViewItemDoubleClicked(const FSubobjectEditorTreeNodePtrType ClickedNode)
 {
 
 }

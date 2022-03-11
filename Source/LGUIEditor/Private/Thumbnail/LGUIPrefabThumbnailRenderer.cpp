@@ -30,13 +30,13 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 			return;
 
 		FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(RenderTarget, ThumbnailScene->GetScene(), FEngineShowFlags(ESFIM_Game))
-			.SetWorldTimes(FApp::GetCurrentTime() - GStartTime, FApp::GetDeltaTime(), FApp::GetCurrentTime() - GStartTime));
+			.SetTime(UThumbnailRenderer::GetTime()));
 
 		ViewFamily.EngineShowFlags.DisableAdvancedFeatures();
 		ViewFamily.EngineShowFlags.MotionBlur = 0;
 
-		ThumbnailScene->CreateView(&ViewFamily, X, Y, Width, Height);
-		RenderViewFamily(Canvas, &ViewFamily);
+		auto View = ThumbnailScene->CreateView(&ViewFamily, X, Y, Width, Height);
+		RenderViewFamily(Canvas, &ViewFamily, View);
 	}
 	//draw prefab icon
 	{

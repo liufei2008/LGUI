@@ -45,7 +45,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	//end TickableEditorObject interface
 private:
-	void OnPreSaveWorld(uint32 SaveFlags, class UWorld* World);
+	void OnPreSaveWorld(class UWorld* World, class FObjectPreSaveContext Context);
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
 	void OnPreBeginPIE(const bool IsSimulating);
 	void OnBeginPIE(const bool IsSimulating);

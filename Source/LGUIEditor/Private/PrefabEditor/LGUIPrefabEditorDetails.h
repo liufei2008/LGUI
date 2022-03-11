@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
+#include "SSubobjectEditor.h"
 #pragma once
 
 class FLGUIPrefabEditor;
@@ -27,9 +28,10 @@ public:
 	void RefreshOverrideParameter();
 private:
 	AActor* GetActorContext() const;
+	UObject* GetActorContextAsObject() const { return GetActorContext(); }
 	void OnEditorSelectionChanged(UObject* Object);
-	void OnSCSEditorTreeViewSelectionChanged(const TArray<TSharedPtr<class FSCSEditorTreeNode> >& SelectedNodes);
-	void OnSCSEditorTreeViewItemDoubleClicked(const TSharedPtr<class FSCSEditorTreeNode> ClickedNode);
+	void OnEditorTreeViewSelectionChanged(const TArray<FSubobjectEditorTreeNodePtrType>& SelectedNodes);
+	void OnEditorTreeViewItemDoubleClicked(const FSubobjectEditorTreeNodePtrType ClickedNode);
 
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 
@@ -37,11 +39,11 @@ private:
 	bool IsPrefabButtonEnable()const;
 	FOptionalSize GetPrefabButtonHeight()const;
 	EVisibility GetPrefabButtonVisibility()const;
-	bool IsSSCSEditorAllowEditing()const;
+	bool IsEditorAllowEditing()const;
 
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> OverrideParameterEditor;
 	TSharedPtr<class IDetailsView> DetailsView;
 	TSharedPtr<class SBox> ComponentsBox;
-	TSharedPtr<class SSCSEditor> SCSEditor;
+	TSharedPtr<class SSubobjectEditor> SubobjectEditor;
 	TWeakObjectPtr<AActor> CachedActor;
 };
