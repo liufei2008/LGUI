@@ -185,6 +185,42 @@ void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 	}
 }
 
+struct LGUIVersionScope
+{
+public:
+	uint16 PrefabVersion = 0;
+	uint16 EngineMajorVersion = 0;
+	uint16 EngineMinorVersion = 0;
+	uint16 EnginePatchVersion = 0;
+	int32 ArchiveVersion = 0;
+	int32 ArchiveLicenseeVer = 0;
+	uint32 ArEngineNetVer = 0;
+	uint32 ArGameNetVer = 0;
+
+	ULGUIPrefab* Prefab = nullptr;
+	LGUIVersionScope(ULGUIPrefab* InPrefab)
+	{
+		Prefab = InPrefab;
+		this->EngineMajorVersion = Prefab->EngineMajorVersion;
+		this->EngineMinorVersion = Prefab->EngineMinorVersion;
+		this->PrefabVersion = Prefab->PrefabVersion;
+		this->ArchiveVersion = Prefab->ArchiveVersion;
+		this->ArchiveLicenseeVer = Prefab->ArchiveLicenseeVer;
+		this->ArEngineNetVer = Prefab->ArEngineNetVer;
+		this->ArGameNetVer = Prefab->ArGameNetVer;
+	}
+	~LGUIVersionScope()
+	{
+		Prefab->EngineMajorVersion = this->EngineMajorVersion;
+		Prefab->EngineMinorVersion = this->EngineMinorVersion;
+		Prefab->PrefabVersion = this->PrefabVersion;
+		Prefab->ArchiveVersion = this->ArchiveVersion;
+		Prefab->ArchiveLicenseeVer = this->ArchiveLicenseeVer;
+		Prefab->ArEngineNetVer = this->ArEngineNetVer;
+		Prefab->ArGameNetVer = this->ArGameNetVer;
+	}
+};
+
 ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
 {
 	if (PrefabHelperObject == nullptr)
@@ -208,8 +244,10 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		UE_LOG(LGUI, Warning, TEXT("AgentObjects not valid, recreate it! prefab: '%s'"), *(this->GetPathName()));
 		MakeAgentObjectsInPreviewWorld();
 	}
+
 	//serialize to runtime data
 	{
+		LGUIVersionScope VersionProtect(this);
 		//check override parameter. although parameter is refreshed when sub prefab change, but what if sub prefab is changed outside of editor?
 		bool AnythingChange = false;
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
