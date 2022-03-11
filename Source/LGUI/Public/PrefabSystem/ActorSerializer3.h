@@ -170,7 +170,6 @@ namespace LGUIPrefabSystem3
 			, bool InForEditorOrRuntimeUse
 		);
 		
-	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, AActor* InParentRootActor
@@ -179,6 +178,7 @@ namespace LGUIPrefabSystem3
 			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 		);
 
+	private:
 		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
 		//bool bUseDeltaSerialization = false;//true means only serialize property that not default value. Why comment this?: If parent-prefab override sub-prefab's value to default then DeltaSerialization will not store override parameter
 

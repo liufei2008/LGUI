@@ -746,6 +746,12 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 						return FReply::Unhandled();
 					}
+					if (PrefabAsset->PrefabVersion <= (uint16)ELGUIPrefabVersion::OldVersion)
+					{
+						auto MsgText = LOCTEXT("Error_UnsupportOldPrefabVersion", "Operation error! Target prefab's version is too old! Please make it newer: open the prefab and hit \"Save\" button.");
+						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+						return FReply::Unhandled();
+					}
 
 					PrefabsToLoad.Add(PrefabAsset);
 				}
