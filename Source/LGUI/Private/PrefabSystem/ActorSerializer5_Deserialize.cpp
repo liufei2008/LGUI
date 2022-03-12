@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -13,14 +12,14 @@
 #include "Misc/NetworkVersion.h"
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
-#include "PrefabSystem/ActorSerializer5.h"
+#include "PrefabSystem/ActorSerializer4.h"
 #include "Utils/LGUIUtils.h"
 #endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem4
+namespace LGUIPrefabSystem5
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
@@ -297,7 +296,16 @@ namespace LGUIPrefabSystem4
 				return nullptr;
 			}
 			auto FromBinary = FMemoryReader(LoadedData, false);
-			FromBinary << SaveData;
+#if WITH_EDITOR
+			if (bIsEditorOrRuntime)
+			{
+				FStructuredArchiveFromArchive(FromBinary).GetSlot() << SaveData;
+			}
+			else
+#endif
+			{
+				FromBinary << SaveData;
+			}
 		}
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
@@ -383,7 +391,7 @@ namespace LGUIPrefabSystem4
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
+					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
@@ -521,17 +529,17 @@ namespace LGUIPrefabSystem4
 						);
 					}
 					break;
-					case ELGUIPrefabVersion::ObjectName:
+					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
-					case ELGUIPrefabVersion::NestedDefaultSubObject:
+					case ELGUIPrefabVersion::ObjectName:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -673,6 +681,4 @@ namespace LGUIPrefabSystem4
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
-#endif
-
 #endif

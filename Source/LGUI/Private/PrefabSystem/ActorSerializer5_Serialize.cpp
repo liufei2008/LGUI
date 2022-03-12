@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
@@ -19,7 +18,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem4
+namespace LGUIPrefabSystem5
 {
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
@@ -154,14 +153,22 @@ namespace LGUIPrefabSystem4
 		SerializeActorToData(OriginRootActor, SaveData);
 
 		FBufferArchive ToBinary;
-		ToBinary << SaveData;
+#if WITH_EDITOR
+		if (bIsEditorOrRuntime)
+		{
+			FStructuredArchiveFromArchive(ToBinary).GetSlot() << SaveData;
+		}
+		else
+#endif
+		{
+			ToBinary << SaveData;
+		}
 
 		if (ToBinary.Num() <= 0)
 		{
 			UE_LOG(LGUI, Warning, TEXT("Save binary length is 0!"));
 			return;
 		}
-
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -272,6 +279,7 @@ namespace LGUIPrefabSystem4
 			{
 				FLGUIObjectSaveData ObjectSaveDataItem;
 				ObjectSaveDataItem.ObjectClass = FindOrAddClassFromList(Class);
+				ObjectSaveDataItem.ObjectName = Object->GetFName();
 				ObjectSaveDataItem.ObjectGuid = MapObjectToGuid[Object];
 				ObjectSaveDataItem.ObjectFlags = (uint32)Object->GetFlags();
 				ObjectSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
@@ -295,6 +303,4 @@ namespace LGUIPrefabSystem4
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
-#endif
-
 #endif

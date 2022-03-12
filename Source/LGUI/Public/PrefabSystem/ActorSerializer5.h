@@ -1,6 +1,5 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,7 +13,7 @@
 class ULGUIPrefabOverrideParameterObject;
 class UUIItem;
 
-namespace LGUIPrefabSystem4
+namespace LGUIPrefabSystem5
 {
 	struct FLGUICommonObjectSaveData
 	{
@@ -32,6 +31,7 @@ namespace LGUIPrefabSystem4
 	struct FLGUIObjectSaveData : FLGUICommonObjectSaveData
 	{
 	public:
+		FName ObjectName;
 		FGuid OuterObjectGuid;//outer object
 
 		friend FArchive& operator<<(FArchive& Ar, FLGUIObjectSaveData& ObjectData)
@@ -39,11 +39,29 @@ namespace LGUIPrefabSystem4
 			Ar << ObjectData.ObjectClass;
 			Ar << ObjectData.ObjectGuid;
 			Ar << ObjectData.ObjectFlags;
-			Ar << ObjectData.OuterObjectGuid;
 			Ar << ObjectData.PropertyData;
+
 			Ar << ObjectData.DefaultSubObjectGuidArray;
 			Ar << ObjectData.DefaultSubObjectNameArray;
+
+			Ar << ObjectData.ObjectName;
+			Ar << ObjectData.OuterObjectGuid;
 			return Ar;
+		}
+
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIObjectSaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
+			Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
+			Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
+			Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData);
+
+			Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
+			Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
+
+			Record << SA_VALUE(TEXT("ObjectName"), Data.ObjectName);
+			Record << SA_VALUE(TEXT("OuterObjectGuid"), Data.OuterObjectGuid);
 		}
 	};
 
@@ -60,13 +78,30 @@ namespace LGUIPrefabSystem4
 			Ar << ComponentData.ObjectClass;
 			Ar << ComponentData.ObjectGuid;
 			Ar << ComponentData.ObjectFlags;
-			Ar << ComponentData.OuterObjectGuid;
+			Ar << ComponentData.PropertyData;
+
 			Ar << ComponentData.ComponentName;
 			Ar << ComponentData.SceneComponentParentGuid;
-			Ar << ComponentData.PropertyData;
+			Ar << ComponentData.OuterObjectGuid;
+
 			Ar << ComponentData.DefaultSubObjectGuidArray;
 			Ar << ComponentData.DefaultSubObjectNameArray;
 			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIComponentSaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
+			Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
+			Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
+			Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData);
+
+			Record << SA_VALUE(TEXT("ComponentName"), Data.ComponentName);
+			Record << SA_VALUE(TEXT("SceneComponentParentGuid"), Data.SceneComponentParentGuid);
+			Record << SA_VALUE(TEXT("OuterObjectGuid"), Data.OuterObjectGuid);
+
+			Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
+			Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
 		}
 	};
 
@@ -82,6 +117,13 @@ namespace LGUIPrefabSystem4
 			Ar << Data.OverrideParameterData;
 			Ar << Data.OverrideParameterNameSet;
 			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabOverrideParameterRecordData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
+			Record << SA_VALUE(TEXT("OverrideParameterData"), Data.OverrideParameterData);
+			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNameSet);
 		}
 	};
 
@@ -114,13 +156,41 @@ namespace LGUIPrefabSystem4
 				Ar << ActorData.ObjectClass;
 				Ar << ActorData.ObjectFlags;
 				Ar << ActorData.PropertyData;
+
 				Ar << ActorData.RootComponentGuid;
+
 				Ar << ActorData.DefaultSubObjectGuidArray;
 				Ar << ActorData.DefaultSubObjectNameArray;
 
 				Ar << ActorData.ChildActorData;
 			}
 			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIActorSaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("bIsPrefab"), Data.bIsPrefab);
+			if (Data.bIsPrefab)
+			{
+				Record << SA_VALUE(TEXT("PrefabAssetIndex"), Data.PrefabAssetIndex);
+				Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
+				Record << SA_VALUE(TEXT("ObjectOverrideParameterArray"), Data.ObjectOverrideParameterArray);
+				Record << SA_VALUE(TEXT("MapObjectGuidFromParentPrefabToSubPrefab"), Data.MapObjectGuidFromParentPrefabToSubPrefab);
+			}
+			else
+			{
+				Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
+				Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
+				Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
+				Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData);
+
+				Record << SA_VALUE(TEXT("RootComponentGuid"), Data.RootComponentGuid);
+
+				Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
+				Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
+
+				Record << SA_VALUE(TEXT("ChildActorData"), Data.ChildActorData);
+			}
 		}
 	};
 
@@ -137,6 +207,13 @@ namespace LGUIPrefabSystem4
 			Ar << GameData.SavedObjects;
 			Ar << GameData.SavedComponents;
 			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabSaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("SavedActor"), Data.SavedActor);
+			Record << SA_VALUE(TEXT("SavedObjects"), Data.SavedObjects);
+			Record << SA_VALUE(TEXT("SavedComponents"), Data.SavedComponents);
 		}
 	};
 
@@ -167,6 +244,20 @@ namespace LGUIPrefabSystem4
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
+		);
+		
+		/**
+		 * Duplicate actor with hierarchy
+		 */
+		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
+		/**
+		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
+		 */
+		static AActor* DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
+			, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, const TMap<UObject*, FGuid>& InMapObjectToGuid
+			, TMap<AActor*, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+			, TMap<FGuid, UObject*>& OutMapGuidToObject
 		);
 
 		static AActor* LoadSubPrefab(
@@ -240,4 +331,3 @@ namespace LGUIPrefabSystem4
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 	};
 }
-#endif

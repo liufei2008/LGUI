@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -18,7 +18,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem4
+namespace LGUIPrefabSystem5
 {
 	AActor* ActorSerializer::DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent)
 	{
