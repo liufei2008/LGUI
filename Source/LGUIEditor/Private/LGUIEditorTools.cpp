@@ -19,7 +19,7 @@
 #include "PrefabSystem/ActorReplaceTool.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "LGUIEditorModule.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 
@@ -435,7 +435,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 					}
 				}
 			}
-			copiedActor = LGUIPrefabSystem4::ActorSerializer::DuplicateActorForEditor(Actor, Parent, PrefabHelperObject->SubPrefabMap, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
+			copiedActor = LGUIPrefabSystem5::ActorSerializer::DuplicateActorForEditor(Actor, Parent, PrefabHelperObject->SubPrefabMap, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
 			for (auto& KeyValue : DuplicatedSubPrefabMap)
 			{
 				TMap<FGuid, UObject*> SubMapGuidToObject;
@@ -449,7 +449,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		}
 		else 
 		{
-			copiedActor = LGUIPrefabSystem4::ActorSerializer::DuplicateActorForEditor(Actor, Parent, {}, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
+			copiedActor = LGUIPrefabSystem5::ActorSerializer::DuplicateActorForEditor(Actor, Parent, {}, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
 		}
 		copiedActor->SetActorLabel(copiedActorLabel);
 		GEditor->SelectActor(Actor, false, true);
