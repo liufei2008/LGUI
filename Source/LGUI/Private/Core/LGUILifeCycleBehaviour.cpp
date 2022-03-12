@@ -3,7 +3,7 @@
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "LGUI.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "Components/SceneComponent.h"
 
 ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
@@ -447,7 +447,7 @@ USceneComponent* ULGUILifeCycleBehaviour::GetRootSceneComponent()const
 
 AActor* ULGUILifeCycleBehaviour::InstantiateActor(AActor* OriginObject, USceneComponent* Parent)
 {
-	return LGUIPrefabSystem4::ActorSerializer::DuplicateActor(OriginObject, Parent);
+	return LGUIPrefabSystem5::ActorSerializer::DuplicateActor(OriginObject, Parent);
 }
 AActor* ULGUILifeCycleBehaviour::InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent)
 {

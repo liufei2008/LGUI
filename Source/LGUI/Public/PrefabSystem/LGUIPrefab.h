@@ -20,6 +20,8 @@ enum class ELGUIPrefabVersion : uint16
 	BuildinFArchive = 3,
 	/** Support nested default sub object. */
 	NestedDefaultSubObject = 4,
+	/** Support UObject name. */
+	ObjectName = 5,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
