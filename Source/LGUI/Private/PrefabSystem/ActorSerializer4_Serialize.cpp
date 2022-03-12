@@ -47,7 +47,6 @@ namespace LGUIPrefabSystem4
 		}
 		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
-		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
