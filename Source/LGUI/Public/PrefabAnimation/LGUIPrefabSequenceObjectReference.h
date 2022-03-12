@@ -15,19 +15,24 @@ struct LGUI_API FLGUIPrefabSequenceObjectReference
 {
 	GENERATED_BODY()
 
-	/**
-	 * Default construction to a null reference
-	 */
-	FLGUIPrefabSequenceObjectReference()
-	{}
+#if WITH_EDITOR
+private:
+	static TArray<FLGUIPrefabSequenceObjectReference*> AllObjectReferenceArray;
+	void RefreshReference();
+public:
+	static void RefreshAllOnBlueprintRecompile();
+#endif
+public:
+	FLGUIPrefabSequenceObjectReference();
+	~FLGUIPrefabSequenceObjectReference();
 
 
-	static FLGUIPrefabSequenceObjectReference CreateForObject(UObject* InObject);
+	static bool CreateForObject(UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult);
 
 	/**
 	 * Check whether this object reference is valid or not
 	 */
-	bool IsValid() const
+	bool IsValidReference() const
 	{
 		return Object != nullptr && !Object->IsPendingKill();
 	}
@@ -51,6 +56,21 @@ private:
 
 	UPROPERTY()
 	UObject* Object = nullptr;
+
+#if WITH_EDITORONLY_DATA
+	/** HelperActor's actor label, could use this for refind HelperActor in editor */
+	UPROPERTY()
+		FString HelperActorLabel;
+	/** Editor helper actor, for direct reference actor */
+	UPROPERTY()
+		AActor* HelperActor;
+	/** Editor helper, target object class. If class is actor then Object is HelperActor, if class is ActorComponent then Object is the component. */
+	UPROPERTY()
+		UClass* HelperClass;
+	/** Editor helper, if Object is actor component and HelperActor have multiple components, then select by component name. */
+	UPROPERTY()
+		FName HelperComponentName;
+#endif
 };
 
 USTRUCT()

@@ -44,6 +44,25 @@ void UUIEffectTextAnimation::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		}
 	}
 }
+
+#if WITH_EDITOR
+void UUIEffectTextAnimation::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (PropertyChangedEvent.Property != nullptr)
+	{
+		auto PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIEffectTextAnimation, selectorOffset))
+		{
+			if (IsValid(selector))
+			{
+				selector->SetOffset(selectorOffset);
+			}
+		}
+	}
+}
+#endif
+
 void UUIEffectTextAnimation::ModifyUIGeometry(
 	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 )
@@ -121,17 +140,24 @@ void UUIEffectTextAnimation::SetProperty(int index, UUIEffectTextAnimation_Prope
 	}
 }
 
-UUIText* UUIEffectTextAnimation_Selector::GetUIText()
+UUIText* UUIEffectTextAnimation_Selector::GetUIText()const
 {
-	if (auto outter = this->GetOuter())
+	GetUIEffectTextAnimation();
+	return UIEffectTextAnimation.IsValid() ? UIEffectTextAnimation->GetUIText() : nullptr;
+}
+
+UUIEffectTextAnimation* UUIEffectTextAnimation_Selector::GetUIEffectTextAnimation()const
+{
+	if (!UIEffectTextAnimation.IsValid())
 	{
-		if (auto uiTextAnimation = Cast<UUIEffectTextAnimation>(outter))
+		if (auto outter = this->GetOuter())
 		{
-			return uiTextAnimation->GetUIText();
+			UIEffectTextAnimation = Cast<UUIEffectTextAnimation>(outter);
 		}
 	}
-	return nullptr;
+	return UIEffectTextAnimation.Get();
 }
+
 void UUIEffectTextAnimation_Selector::SetOffset(float value)
 {
 	if (offset != value)
@@ -148,19 +174,26 @@ float UUIEffectTextAnimation::GetSelectorOffset()const
 {
 	if (IsValid(selector))
 	{
-		return selector->GetOffset();
+		selectorOffset = selector->GetOffset();
 	}
-	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::GetSelectorOffset]selector is null!"));
-	return 0;
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::GetSelectorOffset]selector is null!"));
+	}
+	return selectorOffset;
 }
 
 void UUIEffectTextAnimation::SetSelectorOffset(float value)
 {
 	if (IsValid(selector))
 	{
-		return selector->SetOffset(value);
+		selector->SetOffset(value);
+		selectorOffset = value;
 	}
-	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::SetSelectorOffset]selector is null!"));
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::SetSelectorOffset]selector is null!"));
+	}
 }
 
 UUIText* UUIEffectTextAnimation_Property::GetUIText()
