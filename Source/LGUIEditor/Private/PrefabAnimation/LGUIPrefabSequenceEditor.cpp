@@ -215,7 +215,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 										return FText::FromString(DisplayText);
 									}
 								}
-								return LOCTEXT("NullSequenceComponent", "Null");
+								return LOCTEXT("NullSequenceComponent", "Null (LGUIPrefabSequence)");
 							})
 							.ToolTipText(LOCTEXT("ObjectButtonTooltipText", "Actor.Component, click to select target"))
 							.IsEnabled_Lambda([=](){

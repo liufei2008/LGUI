@@ -27,7 +27,10 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float offset = 0.5f;
-	class UUIText* GetUIText();
+	class UUIText* GetUIText()const;
+	class UUIEffectTextAnimation* GetUIEffectTextAnimation()const;
+private:
+	mutable TWeakObjectPtr<class UUIEffectTextAnimation> UIEffectTextAnimation = nullptr;
 public:
 	virtual bool Select(class UUIText* InUIText, FUIEffectTextAnimation_SelectResult& OutSelection) PURE_VIRTUAL(UUIEffectTextAnimation_Selector::Select, return false;);
 	
@@ -66,12 +69,18 @@ protected:
 	/** Properties defines which property will affect and how it affect */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<UUIEffectTextAnimation_Property*> properties;
+	/** This is just a agent to selector's offset property, for Sequencer access it. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		mutable float selectorOffset = 0.0f;
 
 	UPROPERTY(Transient)class UUIText* uiText;
 	FUIEffectTextAnimation_SelectResult selection;
 	bool CheckUIText();
 	virtual void BeginPlay()override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
 public:
 	virtual void ModifyUIGeometry(UIGeometry& InGeometry
 		, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged

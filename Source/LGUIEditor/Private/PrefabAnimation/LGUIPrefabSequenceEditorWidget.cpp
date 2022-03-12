@@ -322,10 +322,7 @@ public:
 				if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 				if (!AllBoundObjects.Contains(Comp))//already bounded
 				{
-					if (!Actor->BlueprintCreatedComponents.Contains(Comp))//blueprint created component not allowed, because LGUIPrefabSequene use UObject to direct reference target object, and this method not support BlueprintCreatedComponents
-					{
-						ValidCompArray.Add(Comp);
-					}
+					ValidCompArray.Add(Comp);
 				}
 			}
 

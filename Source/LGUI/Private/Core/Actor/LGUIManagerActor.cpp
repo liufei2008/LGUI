@@ -269,11 +269,13 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 
 #include "Event/LGUIEventDelegate.h"
 #include "LGUIComponentReference.h"
+#include "PrefabAnimation/LGUIPrefabSequenceObjectReference.h"
 void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 {
 	RefreshAllUI();
 	FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile();
 	FLGUIComponentReference::RefreshAllOnBlueprintRecompile();
+	FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile();
 }
 
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)

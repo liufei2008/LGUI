@@ -93,7 +93,14 @@ void ULGUIPrefabSequence::PostInitProperties()
 
 void ULGUIPrefabSequence::BindPossessableObject(const FGuid& ObjectId, UObject& PossessedObject, UObject* Context)
 {
-	ObjectReferences.CreateBinding(ObjectId, FLGUIPrefabSequenceObjectReference::CreateForObject(&PossessedObject));
+	if (CanPossessObject(PossessedObject, Context))
+	{
+		FLGUIPrefabSequenceObjectReference ObjectRef;
+		if (FLGUIPrefabSequenceObjectReference::CreateForObject(&PossessedObject, ObjectRef))
+		{
+			ObjectReferences.CreateBinding(ObjectId, ObjectRef);
+		}
+	}
 }
 
 bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackContext) const
@@ -104,15 +111,22 @@ bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackC
 	}
 
 	AActor* ActorContext = CastChecked<AActor>(InPlaybackContext);
+	AActor* Actor = Cast<AActor>(&Object);
+	if (Actor == nullptr)
+	{
+		if (auto Component = Cast<UActorComponent>(&Object))
+		{
+			Actor = Component->GetOwner();
+		}
+	}
 
-	if (AActor* Actor = Cast<AActor>(&Object))
+	if (Actor != nullptr)
 	{
-		return Actor == InPlaybackContext || Actor->GetLevel() == ActorContext->GetLevel();
+		return Actor->GetLevel() == ActorContext->GetLevel()
+			&& (Actor == InPlaybackContext || Actor->IsAttachedTo(ActorContext))//only allow actor self or child actor
+			;
 	}
-	else if (UActorComponent* Component = Cast<UActorComponent>(&Object))
-	{
-		return Component->GetOwner() ? Component->GetOwner()->GetLevel() == ActorContext->GetLevel() : false;
-	}
+
 	return false;
 }
 
