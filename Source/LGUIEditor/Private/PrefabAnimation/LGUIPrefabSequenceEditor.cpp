@@ -203,35 +203,36 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 						[
 							SNew(SHorizontalBox)
 							+SHorizontalBox::Slot()
+							.AutoWidth()
 							[
-							SNew(SButton)
-							.Text_Lambda([=](){
-								if (WeakSequenceComponent.IsValid())
-								{
-									auto Actor = WeakSequenceComponent->GetOwner();
-									if (Actor)
+								SNew(SButton)
+								.Text_Lambda([=](){
+									if (WeakSequenceComponent.IsValid())
 									{
-										auto DisplayText = Actor->GetActorLabel() + TEXT(".") + WeakSequenceComponent->GetName();
-										return FText::FromString(DisplayText);
+										auto Actor = WeakSequenceComponent->GetOwner();
+										if (Actor)
+										{
+											auto DisplayText = Actor->GetActorLabel() + TEXT(".") + WeakSequenceComponent->GetName();
+											return FText::FromString(DisplayText);
+										}
 									}
-								}
-								return LOCTEXT("NullSequenceComponent", "Null (LGUIPrefabSequence)");
-							})
-							.ToolTipText(LOCTEXT("ObjectButtonTooltipText", "Actor.Component, click to select target"))
-							.IsEnabled_Lambda([=](){
-								return WeakSequenceComponent.IsValid();
-							})
-							.ButtonStyle( FEditorStyle::Get(), "PropertyEditor.AssetComboStyle" )
-							.ForegroundColor(FEditorStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
-							.OnClicked_Lambda([=](){
-								if (WeakSequenceComponent.IsValid())
-								{
-									GEditor->SelectNone(true, true);
-									GEditor->SelectActor(WeakSequenceComponent->GetOwner(), true, true);
-									GEditor->SelectComponent(WeakSequenceComponent.Get(), true, true);
-								}
-								return FReply::Handled();
-							})
+									return LOCTEXT("NullSequenceComponent", "Null (LGUIPrefabSequence)");
+								})
+								.ToolTipText(LOCTEXT("ObjectButtonTooltipText", "Actor.Component, click to select target"))
+								.IsEnabled_Lambda([=](){
+									return WeakSequenceComponent.IsValid();
+								})
+								.ButtonStyle( FEditorStyle::Get(), "PropertyEditor.AssetComboStyle" )
+								.ForegroundColor(FEditorStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
+								.OnClicked_Lambda([=](){
+									if (WeakSequenceComponent.IsValid())
+									{
+										GEditor->SelectNone(true, true);
+										GEditor->SelectActor(WeakSequenceComponent->GetOwner(), true, true);
+										GEditor->SelectComponent(WeakSequenceComponent.Get(), true, true);
+									}
+									return FReply::Handled();
+								})
 							]
 							+SHorizontalBox::Slot()
 							.HAlign(HAlign_Right)
@@ -255,11 +256,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 							.VAlign( VAlign_Center )
 							.AutoWidth()
 							[
-			#if ENGINE_MAJOR_VERSION >= 5
-								SNew(SEditorHeaderButton)
-			#else
 								SNew(SButton)
-			#endif
 								.OnClicked(this, &SLGUIPrefabSequenceEditor::OnNewAnimationClicked)
 								.Text(LOCTEXT("NewAnimationButtonText", "+ Animation"))
 							]
