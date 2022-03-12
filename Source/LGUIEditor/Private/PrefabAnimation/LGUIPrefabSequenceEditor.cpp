@@ -259,13 +259,8 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 							.VAlign( VAlign_Center )
 							.AutoWidth()
 							[
-#if ENGINE_MAJOR_VERSION >= 5
-								SNew(SEditorHeaderButton)
-								.Text(LOCTEXT("NewAnimationButtonText", "Animation"))
-#else
 								SNew(SButton)
 								.Text(LOCTEXT("NewAnimationButtonText", "+ Animation"))
-#endif
 								.OnClicked(this, &SLGUIPrefabSequenceEditor::OnNewAnimationClicked)
 							]
 							+ SHorizontalBox::Slot()
