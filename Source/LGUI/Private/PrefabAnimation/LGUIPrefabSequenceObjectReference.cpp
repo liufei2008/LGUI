@@ -7,11 +7,88 @@
 #include "UObject/Package.h"
 
 
-FLGUIPrefabSequenceObjectReference FLGUIPrefabSequenceObjectReference::CreateForObject(UObject* InObject)
+#if WITH_EDITOR
+TArray<FLGUIPrefabSequenceObjectReference*> FLGUIPrefabSequenceObjectReference::AllObjectReferenceArray;
+void FLGUIPrefabSequenceObjectReference::RefreshReference()
 {
-	FLGUIPrefabSequenceObjectReference NewReference;
-	NewReference.Object = InObject;
-	return NewReference;
+	if (!IsValid(Object))
+	{
+		if (IsValid(HelperActor) && IsValid(HelperClass))
+		{
+			if (HelperClass == AActor::StaticClass())
+			{
+				Object = HelperActor;
+			}
+			else
+			{
+				TArray<UActorComponent*> Components;
+				HelperActor->GetComponents(HelperClass, Components);
+				if (Components.Num() == 1)
+				{
+					Object = Components[0];
+				}
+				else if (Components.Num() > 1)
+				{
+					for (auto Comp : Components)
+					{
+						if (Comp->GetFName() == HelperComponentName)
+						{
+							Object = Comp;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+void FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile()
+{
+	for (auto& Item : AllObjectReferenceArray)
+	{
+		Item->RefreshReference();
+	}
+}
+#endif
+
+FLGUIPrefabSequenceObjectReference::FLGUIPrefabSequenceObjectReference()
+{
+#if WITH_EDITOR
+	AllObjectReferenceArray.Add(this);
+#endif
+}
+FLGUIPrefabSequenceObjectReference::~FLGUIPrefabSequenceObjectReference()
+{
+#if WITH_EDITOR
+	AllObjectReferenceArray.Remove(this);
+#endif
+}
+
+bool FLGUIPrefabSequenceObjectReference::CreateForObject(UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult)
+{
+	OutResult.Object = InObject;
+#if WITH_EDITOR
+	if (auto Actor = Cast<AActor>(InObject))
+	{
+		OutResult.HelperActor = Actor;
+		OutResult.HelperClass = AActor::StaticClass();
+		OutResult.HelperActorLabel = Actor->GetActorLabel();
+		OutResult.HelperComponentName = NAME_None;
+		return true;
+	}
+	else
+	{
+		if (auto Component = Cast<UActorComponent>(InObject))
+		{
+			Actor = Component->GetOwner();
+			OutResult.HelperActor = Actor;
+			OutResult.HelperClass = Component->GetClass();
+			OutResult.HelperActorLabel = Actor->GetActorLabel();
+			OutResult.HelperComponentName = Component->GetFName();
+			return true;
+		}
+	}
+#endif
+	return false;
 }
 
 UObject* FLGUIPrefabSequenceObjectReference::Resolve() const
