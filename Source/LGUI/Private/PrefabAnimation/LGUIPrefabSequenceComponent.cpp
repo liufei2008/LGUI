@@ -34,21 +34,18 @@ void ULGUIPrefabSequenceComponent::Awake()
 			}
 		}
 	}
+
+	InitSequencePlayer();
 }
 void ULGUIPrefabSequenceComponent::Start()
 {
 	Super::Start();
 
 	this->SetCanExecuteUpdate(true);
-	if (auto CurrentSequence = GetCurrentSequence())
-	{
-		SequencePlayer = NewObject<ULGUIPrefabSequencePlayer>(this, "SequencePlayer");
-		SequencePlayer->Initialize(CurrentSequence, PlaybackSettings);
 
-		if (PlaybackSettings.bAutoPlay)
-		{
-			SequencePlayer->Play();
-		}
+	if (PlaybackSettings.bAutoPlay)
+	{
+		SequencePlayer->Play();
 	}
 }
 
@@ -94,7 +91,7 @@ ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByIndex(int32 InIn
 	return SequenceArray[InIndex];
 }
 
-void ULGUIPrefabSequenceComponent::Play()
+void ULGUIPrefabSequenceComponent::InitSequencePlayer()
 {
 	if (auto CurrentSequence = GetCurrentSequence())
 	{
@@ -103,15 +100,14 @@ void ULGUIPrefabSequenceComponent::Play()
 			SequencePlayer = NewObject<ULGUIPrefabSequencePlayer>(this, "SequencePlayer");
 		}
 		SequencePlayer->Initialize(CurrentSequence, PlaybackSettings);
-		SequencePlayer->Play();
 	}
 }
-void ULGUIPrefabSequenceComponent::PlaySequenceByIndex(int32 InIndex)
+void ULGUIPrefabSequenceComponent::SetSequenceByIndex(int32 InIndex)
 {
 	CurrentSequenceIndex = InIndex;
-	Play();
+	InitSequencePlayer();
 }
-void ULGUIPrefabSequenceComponent::PlaySequenceByName(FName InName)
+void ULGUIPrefabSequenceComponent::SetSequenceByName(FName InName)
 {
 	int FoundIndex = -1;
 	FoundIndex = SequenceArray.IndexOfByPredicate([InName](const ULGUIPrefabSequence* Item) {
@@ -120,12 +116,8 @@ void ULGUIPrefabSequenceComponent::PlaySequenceByName(FName InName)
 	if (FoundIndex != INDEX_NONE)
 	{
 		CurrentSequenceIndex = FoundIndex;
-		Play();
+		InitSequencePlayer();
 	}
-}
-void ULGUIPrefabSequenceComponent::SetCurrentSequenceIndex(int32 InIndex) 
-{ 
-	CurrentSequenceIndex = InIndex; 
 }
 
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::AddNewAnimation()
