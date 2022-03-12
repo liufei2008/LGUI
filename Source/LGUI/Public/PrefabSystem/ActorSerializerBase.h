@@ -56,7 +56,7 @@ namespace LGUIPrefabSystem
 		TArray<UClass*> ReferenceClassList;
 		TArray<FName> ReferenceNameList;
 
-		bool bOverrideVersions = true;
+		bool bOverrideVersions = false;
 		uint16 PrefabVersion = 0;
 		FPackageFileVersion ArchiveVersion;
 		int32 ArchiveLicenseeVer = 0;

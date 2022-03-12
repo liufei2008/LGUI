@@ -396,8 +396,9 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			)
 		{
 			//store override parameter to data
-			LGUIPrefabSystem4::ActorSerializer serailizer;
-			auto OverrideData = serailizer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
+			LGUIPrefabSystem4::ActorSerializer serializer;
+			serializer.bOverrideVersions = false;
+			auto OverrideData = serializer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
 
 			TArray<AActor*> ChildrenActors;
 			LGUIUtils::CollectChildrenActors(SubPrefabRootActor, ChildrenActors);
@@ -456,7 +457,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			}
 			//no need to clear invalid objects, because when SavePrefab it will do the clear work
 			//apply override parameter. 
-			serailizer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
 
 			if (SubPrefabData.CheckParameters())
 			{
