@@ -23,36 +23,28 @@ public:
 
 	ULGUIPrefabSequenceComponent();
 
-	ULGUIPrefabSequence* GetCurrentSequence() const
-	{
-		return GetSequenceByIndex(CurrentSequenceIndex);
-	}
-
-	ULGUIPrefabSequencePlayer* GetSequencePlayer() const 
-	{
-		return SequencePlayer;
-	}
-
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIPrefabSequence* GetSequenceByName(FName InName) const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIPrefabSequence* GetSequenceByIndex(int32 InIndex) const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		const TArray<ULGUIPrefabSequence*>& GetSequenceArray() const { return SequenceArray; }
-	/** Init SequencePlayer and play animation with CurrentSequenceIndex */
+	/** Init SequencePlayer with current sequence. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void Play();
-	/** Find animation in SequenceArray with InIndex, then init SequencePlayer and play animation */
+		void InitSequencePlayer();
+	/** Find animation in SequenceArray by Index, then set it to SequencePlayer. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void PlaySequenceByIndex(int32 InIndex);
-	/** Find animation in SequenceArray with InName, then init SequencePlayer and play animation */
+		void SetSequenceByIndex(int32 InIndex);
+	/** Find animation in SequenceArray by Name, then set it to SequencePlayer */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void PlaySequenceByName(FName InName);
+		void SetSequenceByName(FName InName);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetCurrentSequenceIndex()const { return CurrentSequenceIndex; }
-	/** Set CurrentSequenceIndex, then call Play to play animation with the index */
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetCurrentSequenceIndex(int32 InIndex);
+		ULGUIPrefabSequence* GetCurrentSequence() const { return GetSequenceByIndex(CurrentSequenceIndex); }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUIPrefabSequencePlayer* GetSequencePlayer() const { return SequencePlayer; }
 
 	ULGUIPrefabSequence* AddNewAnimation();
 	bool DeleteAnimationByIndex(int32 InIndex);
@@ -72,7 +64,6 @@ protected:
 		TArray<ULGUIPrefabSequence*> SequenceArray;
 	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
-
-	UPROPERTY(transient, BlueprintReadOnly, Category= Playback)
+	UPROPERTY(transient)
 		ULGUIPrefabSequencePlayer* SequencePlayer;
 };
