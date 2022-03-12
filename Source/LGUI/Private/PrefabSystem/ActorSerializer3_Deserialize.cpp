@@ -35,6 +35,7 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
@@ -59,6 +60,7 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
@@ -87,6 +89,7 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
@@ -111,6 +114,7 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
+		serializer.bOverrideVersions = true;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.LoadedRootActor = InParentLoadedRootActor;
