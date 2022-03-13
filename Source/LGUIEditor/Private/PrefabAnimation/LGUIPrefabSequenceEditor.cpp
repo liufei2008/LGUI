@@ -95,6 +95,12 @@ private:
 		auto Animation = ListItem.Pin()->Animation;
 
 		const FName NewName = *InText.ToString().Left(NAME_SIZE - 1);
+		UObject* ExistingObject = StaticFindObject(NULL, Animation->GetOuter(), *NewName.ToString(), true);
+		if (ExistingObject != nullptr && ExistingObject != Animation)
+		{
+			OutErrorMessage = LOCTEXT("NameInUseByAnimation", "An animation with this name already exists");
+			return false;
+		}
 
 		if (Animation->GetFName() != NewName)
 		{
@@ -140,10 +146,8 @@ private:
 			{
 				const FScopedTransaction Transaction(TransactionName);
 				Animation->Modify();
-				Animation->GetMovieScene()->Modify();
 
 				Animation->Rename(*NewNameStr);
-				Animation->GetMovieScene()->Rename(*NewNameStr);
 
 				if (bNewAnimation)
 				{
