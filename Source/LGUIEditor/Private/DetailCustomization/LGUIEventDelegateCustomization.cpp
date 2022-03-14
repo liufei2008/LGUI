@@ -668,7 +668,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			);
-			if (ParamType == EventParameterType)//if function support native parameter, then draw another button, and show as native parameter
+			if (ParamType == EventParameterType && EventParameterType != LGUIEventDelegateParameterType::Empty)//if function support native parameter, then draw another button, and show as native parameter
 			{
 				FunctionSelectorName = FString::Printf(TEXT("%s(NativeParameter)"), *Func->GetName());
 				MenuBuilder.AddMenuEntry(
