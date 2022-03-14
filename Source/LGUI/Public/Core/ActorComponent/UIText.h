@@ -85,6 +85,7 @@ private:
 	/** visible/renderable char count of current text. -1 means not set yet */
 	mutable int visibleCharCount = -1;
 	bool bTextLayoutDirty = false;
+	void MarkTextLayoutDirty();
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
 	mutable FTextGeometryCache CacheTextGeometryData;

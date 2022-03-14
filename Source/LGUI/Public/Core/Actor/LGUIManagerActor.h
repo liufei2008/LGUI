@@ -213,6 +213,7 @@ private:
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 
 	void UpdateLayout();
+	bool bNeedUpdateLayout = false;
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -257,6 +258,7 @@ public:
 	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
+	static void MarkUpdateLayout(UWorld* InWorld);
 #if WITH_EDITOR
 	static bool GetIsPlaying(UWorld* InWorld);
 #endif

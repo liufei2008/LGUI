@@ -950,7 +950,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Start"), STAT_LGUILifeCycleBehaviourStart, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayout"), STAT_UIItemUpdateLayout, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UpdateLayoutInterface"), STAT_UpdateLayoutInterface, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateGeometryAndDrawcall"), STAT_UpdateGeometryAndDrawcall, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
@@ -1363,12 +1363,16 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 
 void ALGUIManagerActor::UpdateLayout()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
+	SCOPE_CYCLE_COUNTER(STAT_UpdateLayoutInterface);
 
 	//update Layout
-	for (auto& item : AllLayoutArray)
+	if (bNeedUpdateLayout)
 	{
-		ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
+		bNeedUpdateLayout = false;
+		for (auto& item : AllLayoutArray)
+		{
+			ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
+		}
 	}
 }
 void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
@@ -1527,6 +1531,13 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 		check(Instance->AllLayoutArray.Contains(InItem));
 #endif
 		Instance->AllLayoutArray.RemoveSingle(InItem);
+	}
+}
+void ALGUIManagerActor::MarkUpdateLayout(UWorld* InWorld)
+{
+	if (auto Instance = GetInstance(InWorld, false))
+	{
+		Instance->bNeedUpdateLayout = true;
 	}
 }
 
