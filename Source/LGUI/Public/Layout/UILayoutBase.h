@@ -49,14 +49,14 @@ public:
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
-	virtual void MarkRebuildLayout_Implementation()override { bNeedRebuildLayout = true; RebuildChildrenList(); }
+	virtual void MarkRebuildLayout_Implementation()override { MarkNeedRebuildLayout(); RebuildChildrenList(); }
 	// End LGUILayout interface
 
 	/**
 	 * Mark this layout need to be rebuild. Same as MarkRebuildLayout(Interface call).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void MarkNeedRebuildLayout() { bNeedRebuildLayout = true; }
+		void MarkNeedRebuildLayout();
 
 protected:
 

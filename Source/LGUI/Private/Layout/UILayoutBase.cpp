@@ -130,6 +130,24 @@ void UUILayoutBase::RebuildChildrenList()
     }
 }
 
+void UUILayoutBase::MarkNeedRebuildLayout()
+{
+    bNeedRebuildLayout = true; 
+    if (auto World = this->GetWorld())
+    {
+#if WITH_EDITOR
+        if (!World->IsGameWorld())
+        {
+
+        }
+        else
+#endif
+        {
+            ALGUIManagerActor::MarkUpdateLayout(World);
+        }
+    }
+}
+
 void UUILayoutBase::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
