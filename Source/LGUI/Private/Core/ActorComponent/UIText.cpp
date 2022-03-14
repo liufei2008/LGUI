@@ -426,6 +426,24 @@ void UUIText::SetRichText(bool newRichText)
 	}
 }
 
+void UUIText::MarkTextLayoutDirty()
+{
+	bTextLayoutDirty = true;
+	if (auto World = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!World->IsGameWorld())
+		{
+
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::MarkUpdateLayout(World);
+		}
+	}
+}
+
 void UUIText::OnUpdateLayout_Implementation()
 {
 	if (!this->RenderCanvas.IsValid())return;
@@ -480,21 +498,21 @@ bool UUIText::UpdateCacheTextGeometry()const
 
 void UUIText::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
 {
-	bTextLayoutDirty = true;
+	MarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
 	Super::MarkVerticesDirty(InTriangleDirty, InVertexPositionDirty, InVertexUVDirty, InVertexColorDirty);
 }
 void UUIText::MarkTextureDirty()
 {
-	bTextLayoutDirty = true;
+	MarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
 	Super::MarkTextureDirty();
 }
 
 void UUIText::MarkAllDirtyRecursive()
 {
+	MarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
-	bTextLayoutDirty = true;
 	Super::MarkAllDirtyRecursive();
 }
 int UUIText::VisibleCharCountInString(const FString& srcStr)

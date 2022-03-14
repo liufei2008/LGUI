@@ -160,7 +160,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
-				bLayoutDirty = true;
+				MarkLayoutDirty();
 			}
 		}
 		else
@@ -168,7 +168,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
-				bLayoutDirty = true;
+				MarkLayoutDirty();
 			}
 		}
 	}
@@ -185,7 +185,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
-				bLayoutDirty = true;
+				MarkLayoutDirty();
 			}
 		}
 		else
@@ -193,7 +193,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
-				bLayoutDirty = true;
+				MarkLayoutDirty();
 			}
 		}
 	}
@@ -202,12 +202,12 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 void UUIScrollViewWithScrollbarComponent::OnUIChildHierarchyIndexChanged(UUIItem* child)
 {
 	Super::OnUIChildHierarchyIndexChanged(child);
-	bLayoutDirty = true;
+	MarkLayoutDirty();
 }
 void UUIScrollViewWithScrollbarComponent::OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)
 {
 	Super::OnUIChildAttachmentChanged(child, attachOrDetach);
-	bLayoutDirty = true;
+	MarkLayoutDirty();
 }
 
 bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
@@ -241,6 +241,24 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 		}
 	}
 	return false;
+}
+
+void UUIScrollViewWithScrollbarComponent::MarkLayoutDirty()
+{
+	bLayoutDirty = true;
+	if (auto World = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!World->IsGameWorld())
+		{
+
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::MarkUpdateLayout(World);
+		}
+	}
 }
 
 void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
