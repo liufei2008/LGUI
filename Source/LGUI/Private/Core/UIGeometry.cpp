@@ -3467,7 +3467,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIBaseRenderable* item,
 	}
 	
 	FLGUICacheTransformContainer tempTf;
-	canvas->GetCacheUIItemToCanvasTransform(item, true, tempTf);
+	canvas->GetCacheUIItemToCanvasTransform(item, tempTf);
 	auto itemToCanvasTf = tempTf.Transform;
 
 

@@ -716,6 +716,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			|| bMin.Y >= aMax.Y
 			);
 	};
+	FLGUICacheTransformContainer OtherItemToCanvasTf;
 	auto OverlapWithOtherDrawcall = [&](const FLGUICacheTransformContainer& ItemToCanvasTf, TSharedPtr<UUIDrawcall> DrawcallItem) {
 		switch (DrawcallItem->type)
 		{
@@ -725,8 +726,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			for (auto& otherItem : DrawcallItem->renderObjectList)
 			{
 				if (!ProcessedUIItemSet.Contains(otherItem.Get()))continue;//only calculate processed UIItem
-				FLGUICacheTransformContainer OtherItemToCanvasTf;
-				this->GetCacheUIItemToCanvasTransform(otherItem.Get(), true, OtherItemToCanvasTf);
+				this->GetCacheUIItemToCanvasTransform(otherItem.Get(), OtherItemToCanvasTf);
 				//check bounds overlap
 				if (IntersectBounds(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D, OtherItemToCanvasTf.BoundsMin2D, OtherItemToCanvasTf.BoundsMax2D))
 				{
@@ -737,8 +737,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
-			FLGUICacheTransformContainer OtherItemToCanvasTf;
-			DrawcallItem->postProcessRenderableObject->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(DrawcallItem->postProcessRenderableObject.Get(), true, OtherItemToCanvasTf);
+			DrawcallItem->postProcessRenderableObject->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(DrawcallItem->postProcessRenderableObject.Get(), OtherItemToCanvasTf);
 			//check bounds overlap
 			if (IntersectBounds(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D, OtherItemToCanvasTf.BoundsMin2D, OtherItemToCanvasTf.BoundsMax2D))
 			{
@@ -952,7 +951,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		{
 			auto UIRenderableItem = (UUIBaseRenderable*)(Item);
 			FLGUICacheTransformContainer UIItemToCanvasTf;
-			this->GetCacheUIItemToCanvasTransform(UIRenderableItem, true, UIItemToCanvasTf);
+			this->GetCacheUIItemToCanvasTransform(UIRenderableItem, UIItemToCanvasTf);
 			bool is2DUIItem = Is2DUITransform(UIItemToCanvasTf.Transform);
 			switch (UIRenderableItem->GetUIRenderableType())
 			{
@@ -2843,34 +2842,30 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 }
 
 
-bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
+DECLARE_CYCLE_STAT(TEXT("Canvas 2DTransform"), STAT_Transform2D, STATGROUP_LGUI);
+void ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, FLGUICacheTransformContainer& outResult)
 {
+	//SCOPE_CYCLE_COUNTER(STAT_Transform2D);
 	if (auto tfPtr = this->CacheUIItemToCanvasTransformMap.Find(item))
 	{
 		outResult = *tfPtr;
-		return true;
 	}
 	else
 	{
-		if (createIfNotExist)
-		{
-			auto inverseCanvasTf = this->UIItem->GetComponentTransform().Inverse();
-			const auto& itemTf = item->GetComponentTransform();
+		auto inverseCanvasTf = this->UIItem->GetComponentTransform().Inverse();
+		const auto& itemTf = item->GetComponentTransform();
 
-			FTransform itemToCanvasTf;
-			FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
-			outResult.Transform = itemToCanvasTf;
+		FTransform itemToCanvasTf;
+		FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
+		outResult.Transform = itemToCanvasTf;
 
-			auto itemToCanvasTf2D = ConvertTo2DTransform(itemToCanvasTf);
-			FVector2D itemMin, itemMax;
-			CalculateUIItem2DBounds(item, itemToCanvasTf2D, itemMin, itemMax);
+		auto itemToCanvasTf2D = ConvertTo2DTransform(itemToCanvasTf);
+		FVector2D itemMin, itemMax;
+		CalculateUIItem2DBounds(item, itemToCanvasTf2D, itemMin, itemMax);
 
-			outResult.BoundsMin2D = itemMin;
-			outResult.BoundsMax2D = itemMax;
-			CacheUIItemToCanvasTransformMap.Add(item, outResult);
-			return true;
-		}
-		return false;
+		outResult.BoundsMin2D = itemMin;
+		outResult.BoundsMax2D = itemMax;
+		CacheUIItemToCanvasTransformMap.Add(item, outResult);
 	}
 }
 FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)

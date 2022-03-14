@@ -505,7 +505,7 @@ private:
 
 	TMap<UUIBaseRenderable*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
-	bool GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
+	void GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, FLGUICacheTransformContainer& outResult);
 	/** Is this canvas renderred by other canvas? */
 	bool IsRenderByOtherCanvas()const;
 	/** If this canvas is renderred by other canvas, then use this to get that canvas. */
