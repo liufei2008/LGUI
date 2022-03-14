@@ -1369,6 +1369,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 					}
 				}
 				DrawcallItem->drawcallMesh = prevUIMesh;
+				//create new mesh, need to sort it
+				bNeedToSortRenderPriority = true;
 			}
 		}
 		break;
@@ -1388,6 +1390,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				DrawcallItem->drawcallMeshSection = MeshSection;
 				DrawcallItem->directMeshRenderableObject->SetMeshData(UIMesh, MeshSection);
 				UIMesh->CreateMeshSectionData(MeshSection.Pin());
+				//create new mesh section, need to sort it
+				bNeedToSortRenderPriority = true;
 			}
 			prevUIMesh = DrawcallItem->drawcallMesh.Get();
 		}
@@ -1410,6 +1414,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				{
 					MeshSection = UIMesh->GetMeshSection();
 					DrawcallItem->drawcallMeshSection = MeshSection;
+					//create new mesh section, need to sort it
+					bNeedToSortRenderPriority = true;
 				}
 				auto MeshSectionPtr = MeshSection.Pin();
 				MeshSectionPtr->vertices.Reset();
