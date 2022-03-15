@@ -137,7 +137,7 @@ void UUIScrollbarComponent::UnregisterSlideEvent(const FLGUIDelegateHandleWrappe
     OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
-bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *eventData)
+bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
     Super::OnPointerDown_Implementation(eventData);
     if (eventData->inputType == ELGUIPointerInputType::Pointer)
@@ -146,7 +146,7 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *
         {
             if (eventData->enterComponent != Handle)
             {
-                const auto &pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData->worldPoint);
+                const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData->worldPoint);
                 float value01 = Value;
                 switch (DirectionType)
                 {
@@ -154,13 +154,13 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *
                 {
                     float validSpace = HandleArea->GetWidth() * (1.0f - Size);
                     float valueDiff01;
-                    if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
+                    if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().Y)) / validSpace;
                     }
                     else
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().Y)) / validSpace;
                     }
                     value01 += valueDiff01;
                 }
@@ -169,13 +169,13 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *
                 {
                     float validSpace = HandleArea->GetWidth() * (1.0f - Size);
                     float valueDiff01;
-                    if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
+                    if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().Y)) / validSpace;
                     }
                     else
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().Y)) / validSpace;
                     }
                     value01 -= valueDiff01;
                 }
@@ -184,13 +184,13 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *
                 {
                     float validSpace = HandleArea->GetHeight() * (1.0f - Size);
                     float valueDiff01;
-                    if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
+                    if (pointerInHandleAreaSpace.Z > Handle->GetRelativeLocation().Z)
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Z - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Z)) / validSpace;
                     }
                     else
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Z - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Z)) / validSpace;
                     }
                     value01 += valueDiff01;
                 }
@@ -199,13 +199,13 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData *
                 {
                     float validSpace = HandleArea->GetHeight() * (1.0f - Size);
                     float valueDiff01;
-                    if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
+                    if (pointerInHandleAreaSpace.Z > Handle->GetRelativeLocation().Z)
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Z - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Z)) / validSpace;
                     }
                     else
                     {
-                        valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
+                        valueDiff01 = (pointerInHandleAreaSpace.Z - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Z)) / validSpace;
                     }
                     value01 -= valueDiff01;
                 }
