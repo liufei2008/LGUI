@@ -700,14 +700,19 @@ void ULGUICanvas::UpdateGeometry_Implement()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("Canvas DrawcallBatch"), STAT_DrawcallBatch, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
-	SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
+	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 
-	//use a set to store already processed UIItem. good for overlap calculation
-	TSet<UUIBaseRenderable*> ProcessedUIItemSet;
-	ProcessedUIItemSet.Reserve(UIRenderableList.Num());
+	auto RenderCanvasUIItem = InRenderCanvas->GetUIItem();
+	auto RenderCanvasLocalLeftBottom = RenderCanvasUIItem->GetLocalSpaceLeftBottomPoint();
+	auto RenderCanvasLocalRightTop = RenderCanvasUIItem->GetLocalSpaceRightTopPoint();
+	auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
+	auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
+	auto ThisLocalLeftBottom = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(WorldLeftBottom);
+	auto ThisLocalRightTop = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(WorldRightTop);
+	auto CanvasRect = UIQuadTree::Rectangle(FVector2D(ThisLocalLeftBottom.Y, ThisLocalLeftBottom.Z), FVector2D(ThisLocalRightTop.Y, ThisLocalRightTop.Z));
 
 	auto IntersectBounds = [](FVector2D aMin, FVector2D aMax, FVector2D bMin, FVector2D bMax) {
 		return !(bMin.X >= aMax.X
@@ -723,15 +728,9 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		case EUIDrawcallType::BatchGeometry:
 		{
 			//compare drawcall item's bounds
-			for (auto& otherItem : DrawcallItem->renderObjectList)
+			if (DrawcallItem->renderObjectListTreeRootNode->Overlap(UIQuadTree::Rectangle(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D)))
 			{
-				if (!ProcessedUIItemSet.Contains(otherItem.Get()))continue;//only calculate processed UIItem
-				this->GetCacheUIItemToCanvasTransform(otherItem.Get(), OtherItemToCanvasTf);
-				//check bounds overlap
-				if (IntersectBounds(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D, OtherItemToCanvasTf.BoundsMin2D, OtherItemToCanvasTf.BoundsMax2D))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 		break;
@@ -807,7 +806,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		}
 		return false;
 	};
-	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, UIGeometry* InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType) {
+	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, UIGeometry* InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType, const FLGUICacheTransformContainer& InItemToCanvasTf) {
 		TSharedPtr<UUIDrawcall> DrawcallItem = nullptr;
 		//if this UIItem exist in InCacheUIDrawcallList, then grab the entire drawcall item (may include other UIItem in renderObjectList). No need to worry other UIItem, because they could be cleared in further operation, or exist in the same drawcall
 		int32 FoundDrawcallIndex = INDEX_NONE;
@@ -858,6 +857,13 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 				DrawcallItem->texture = InItemGeo->texture;
 				DrawcallItem->material = InItemGeo->material.Get();
+
+				if (DrawcallItem->renderObjectListTreeRootNode != nullptr)
+				{
+					delete DrawcallItem->renderObjectListTreeRootNode;
+				}
+				DrawcallItem->renderObjectListTreeRootNode = new UIQuadTree::Node(CanvasRect);
+				DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
@@ -874,26 +880,29 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		}
 		else
 		{
-			DrawcallItem = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-			DrawcallItem->type = InDrawcallType;
 
 			switch (InDrawcallType)
 			{
+			default:
 			case EUIDrawcallType::BatchGeometry:
 			{
+				DrawcallItem = TSharedPtr<UUIDrawcall>(new UUIDrawcall(CanvasRect));
 				DrawcallItem->needToUpdateVertex = true;
 				DrawcallItem->texture = InItemGeo->texture;
 				DrawcallItem->material = InItemGeo->material.Get();
 				DrawcallItem->renderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
+				DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
 			{
+				DrawcallItem = TSharedPtr<UUIDrawcall>(new UUIDrawcall(InDrawcallType));
 				DrawcallItem->postProcessRenderableObject = (UUIPostProcessRenderable*)InUIItem;
 			}
 			break;
 			case EUIDrawcallType::DirectMesh:
 			{
+				DrawcallItem = TSharedPtr<UUIDrawcall>(new UUIDrawcall(InDrawcallType));
 				DrawcallItem->directMeshRenderableObject = (UUIDirectMeshRenderable*)InUIItem;
 			}
 			break;
@@ -916,7 +925,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		}
 		//OutNeedToSortRenderPriority = true;//@todo: this line could make it sort every time, which is not good performance
 	};
-	auto ClearDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable) {
+	auto ClearDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable, const FLGUICacheTransformContainer& InItemToCanvasTf) {
 		if (InDrawcallItem->drawcallMesh.IsValid())
 		{
 			if (InDrawcallItem->drawcallMeshSection.IsValid())
@@ -927,7 +936,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		}
 		InDrawcallItem->needToUpdateVertex = true;
 		InDrawcallItem->materialNeedToReassign = true;
-		InDrawcallItem->renderObjectList.Remove(InUIBatchGeometryRenderable);
+		int index = InDrawcallItem->renderObjectList.IndexOfByKey(InUIBatchGeometryRenderable);
+		InDrawcallItem->renderObjectList.RemoveAt(index);
 		InUIBatchGeometryRenderable->drawcall = nullptr;
 	};
 
@@ -951,7 +961,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		{
 			auto UIRenderableItem = (UUIBaseRenderable*)(Item);
 			FLGUICacheTransformContainer UIItemToCanvasTf;
-			this->GetCacheUIItemToCanvasTransform(UIRenderableItem, UIItemToCanvasTf);
+			InRenderCanvas->GetCacheUIItemToCanvasTransform(UIRenderableItem, UIItemToCanvasTf);
 			bool is2DUIItem = Is2DUITransform(UIItemToCanvasTf.Transform);
 			switch (UIRenderableItem->GetUIRenderableType())
 			{
@@ -970,17 +980,19 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
 					if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
 					{
-							
+						//need to update tree
+						DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
 					}
 					else//not exist in this drawcall
 					{
 						auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
 						if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 						{
-							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
+							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
 						}
 						//add to this drawcall
 						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
+						DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
 						DrawcallItem->needToUpdateVertex = true;
 						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
 						//copy update state from old to new
@@ -997,11 +1009,11 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 					{
 						if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall. if not exist, then just add the entire drawcall to list
 						{
-							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
+							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
 						}
 					}
 					//make a new drawacll
-					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
+					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry, UIItemToCanvasTf);
 				}
 			}
 			break;
@@ -1012,7 +1024,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 				check(ItemGeo);
 				if (ItemGeo->vertices.Num() == 0)continue;
 				//every postprocess is a drawcall
-				PushSingleDrawcall(UIRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess);
+				PushSingleDrawcall(UIRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess, UIItemToCanvasTf);
 				//no need to copy drawcall's update data for UIPostProcessRenderable, because UIPostProcessRenderable's drawcall should be the same as previours one
 			}
 			break;
@@ -1020,13 +1032,11 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 				auto UIDirectMeshRenderableItem = (UUIDirectMeshRenderable*)UIRenderableItem;
 				//every direct mesh is a drawcall
-				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::DirectMesh);
+				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::DirectMesh, UIItemToCanvasTf);
 				//no need to copy drawcall's update data for UIDirectMeshRenderable, because UIDirectMeshRenderable's drawcall should be the same as previours one
 			}
 			break;
 			}
-
-			ProcessedUIItemSet.Add(UIRenderableItem);
 		}
 	}
 }

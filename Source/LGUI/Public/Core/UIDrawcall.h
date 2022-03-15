@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Engine/Texture.h"
 #include "Core/LGUIIndexBuffer.h"
+#include "Core/UIQuadTree.h"
 
 class UUIPostProcessRenderable;
 class UIGeometry;
@@ -27,6 +28,23 @@ enum class EUIDrawcallType :uint8
 class LGUI_API UUIDrawcall
 {
 public:
+	UUIDrawcall(EUIDrawcallType InType)
+	{
+		type = InType;
+	}
+	UUIDrawcall(UIQuadTree::Rectangle InCanvasRect)
+	{
+		type = EUIDrawcallType::BatchGeometry;
+		renderObjectListTreeRootNode = new UIQuadTree::Node(InCanvasRect);
+	}
+	~UUIDrawcall()
+	{
+		if (renderObjectListTreeRootNode != nullptr)
+		{
+			delete renderObjectListTreeRootNode;
+			renderObjectListTreeRootNode = nullptr;
+		}
+	}
 	EUIDrawcallType type = EUIDrawcallType::None;
 
 	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
@@ -49,6 +67,7 @@ public:
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
 	bool shouldSortRenderObjectList = false;//should sort renderObjectList
+	UIQuadTree::Node* renderObjectListTreeRootNode = nullptr;
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 
