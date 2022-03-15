@@ -145,10 +145,12 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor)
 {
 	if (this->IsInsidePrefabEditor())
 	{
-		check(IsValid(this->LoadedRootActor));
-		if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
+		if (IsValid(this->LoadedRootActor))
 		{
-			return true;
+			if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
+			{
+				return true;
+			}
 		}
 	}
 	else

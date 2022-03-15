@@ -307,7 +307,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= (uint16)ELGUIPrefabVersion::BuildinFArchive
-			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
+			&& (!IsValid(TargetScriptPtr->PrefabHelperObject) || !IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
 			return EVisibility::Visible;
@@ -325,7 +325,7 @@ FText FLGUIPrefabCustomization::AgentObjectText()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= (uint16)ELGUIPrefabVersion::BuildinFArchive
-			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
+			&& (!IsValid(TargetScriptPtr->PrefabHelperObject) || !IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
 			return LOCTEXT("AgentObjectNotValid", "NotValid");

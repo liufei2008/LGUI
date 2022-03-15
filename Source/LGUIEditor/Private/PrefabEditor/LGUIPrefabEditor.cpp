@@ -277,13 +277,18 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	}
 	if (PrefabBeingEdited->ReferenceAssetList.Contains(nullptr))
 	{
-		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceClass", "Prefab missing some asset reference!");
+		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceAsset", "Prefab missing some asset reference!");
 		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 	}
 
 	FLGUIPrefabEditorCommand::Register();
 
 	PrefabHelperObject->LoadPrefab(GetPreviewScene().GetWorld(), GetPreviewScene().GetParentComponentForPrefab(PrefabBeingEdited));
+	if (!IsValid(PrefabHelperObject->LoadedRootActor))
+	{
+		auto MsgText = LOCTEXT("Error_LoadPrefabFail", "Load prefab fail! Nothing loaded!");
+		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+	}
 	PrefabHelperObject->RootAgentActorForPrefabEditor = GetPreviewScene().GetRootAgentActor();
 	PrefabHelperObject->MarkAsManagerObject();
 
