@@ -278,8 +278,11 @@ void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
 	}
 }
 
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable UpdateGeometry"), STAT_UpdateGeometry, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateGeometry);
+
 	Super::UpdateGeometry();
 
 	OnBeforeCreateOrUpdateGeometry();
@@ -433,7 +436,7 @@ void UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable_Blueprint.OnUpdateGeometry"), STAT_BatchGeometryRenderable_OnUpdateGeometry, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable Blueprint.OnUpdateGeometry"), STAT_BatchGeometryRenderable_OnUpdateGeometry, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
