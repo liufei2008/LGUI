@@ -163,8 +163,13 @@ namespace LGUIPrefabSystem5
 
 				if (CompData.SceneComponentParentGuid.IsValid())
 				{
-					auto ParentComp = Cast<USceneComponent>(MapGuidToObject[CompData.SceneComponentParentGuid]);
-					SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
+					if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.SceneComponentParentGuid))
+					{
+						if (auto ParentComp = Cast<USceneComponent>(*ParentObjectPtr))
+						{
+							SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
+						}
+					}
 				}
 			}
 		}
@@ -172,8 +177,13 @@ namespace LGUIPrefabSystem5
 		for (auto CompData : SubPrefabRootComponents)
 		{
 			auto SceneComp = (USceneComponent*)CompData.Component;
-			auto ParentComp = (USceneComponent*)MapGuidToObject[CompData.SceneComponentParentGuid];
-			SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
+			if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.SceneComponentParentGuid))
+			{
+				if (auto ParentComp = Cast<USceneComponent>(*ParentObjectPtr))
+				{
+					SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
+				}
+			}
 		}
 
 		//attach root actor's parent
@@ -346,13 +356,20 @@ namespace LGUIPrefabSystem5
 					if (!ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong class:%s!"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong component class: %s"), *(ObjectClass->GetFName().ToString()));
 						continue;
 					}
 
-					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
-					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewComponent);
+					if (auto OuterObjectPtr = MapGuidToObject.Find(ObjectData.OuterObjectGuid))
+					{
+						CreatedNewComponent = NewObject<UActorComponent>(*OuterObjectPtr, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
+						MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewComponent);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Owner actor when creating component: %s"), *(ObjectData.ComponentName.ToString()));
+						continue;
+					}
 				}
 			}
 
@@ -390,13 +407,20 @@ namespace LGUIPrefabSystem5
 						|| ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong class:%s!"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong object class: %s"), *(ObjectClass->GetFName().ToString()));
 						continue;
 					}
 
-					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
-					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
+					if (auto OuterObjectPtr = MapGuidToObject.Find(ObjectData.OuterObjectGuid))
+					{
+						CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
+						MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Outer object when creating object: %s"), *(ObjectData.ObjectName.ToString()));
+						continue;
+					}
 				}
 			}
 
