@@ -129,7 +129,6 @@ public:
 		FColor GetPixelAtPoint(const FVector2D& InPoint)const PURE_VIRTUAL(UUIBatchGeometryRenderable::GetPixelAtPoint, return FColor::White;);
 #endif
 protected:
-	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 public:
 	void MarkVertexPositionDirty();

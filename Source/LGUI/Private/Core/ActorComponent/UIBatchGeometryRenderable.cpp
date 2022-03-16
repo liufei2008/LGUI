@@ -56,11 +56,6 @@ void UUIBatchGeometryRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
-{
-	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
-}
-
 void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
     Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
