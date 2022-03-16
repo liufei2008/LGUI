@@ -31,7 +31,10 @@ public:
 		static AActor* LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	static AActor* LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 
-	/** Duplicate actor and all it's children actors */
+	/**
+	 * Duplicate actor and all it's children actors
+	 * @todo: If duplicate a same actor for multiple times, there is a way to optimize: Prepare a serialize data before any duplicate operation, then pass the same data to duplicate multiple.
+	 */
 	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Copy actor with hierarchy"), Category = LGUI)
 		static AActor* DuplicateActor(AActor* Target, USceneComponent* Parent);
 

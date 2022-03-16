@@ -701,17 +701,12 @@ void ULGUICanvas::UpdateGeometry_Implement()
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
+void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
-
-	auto RenderCanvasUIItem = InRenderCanvas->GetUIItem();
-	auto RenderCanvasLocalLeftBottom = RenderCanvasUIItem->GetLocalSpaceLeftBottomPoint();
-	auto RenderCanvasLocalRightTop = RenderCanvasUIItem->GetLocalSpaceRightTopPoint();
-	auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
-	auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
-	auto ThisLocalLeftBottom = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(WorldLeftBottom);
-	auto ThisLocalRightTop = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(WorldRightTop);
+	
+	auto ThisLocalLeftBottom = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasLeftBottomPoint);
+	auto ThisLocalRightTop = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasRightTopPoint);
 	auto CanvasRect = UIQuadTree::Rectangle(FVector2D(ThisLocalLeftBottom.Y, ThisLocalLeftBottom.Z), FVector2D(ThisLocalRightTop.Y, ThisLocalRightTop.Z));
 
 	auto IntersectBounds = [](FVector2D aMin, FVector2D aMax, FVector2D bMin, FVector2D bMax) {
@@ -953,7 +948,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			auto ChildRenderCanvas = Item->GetRenderCanvas();
 			if (ChildRenderCanvas->IsRenderByOtherCanvas())
 			{
-				ChildRenderCanvas->UpdateDrawcall_Implement(InRenderCanvas, InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
+				ChildRenderCanvas->UpdateDrawcall_Implement(InRenderCanvas, InRenderCanvasLeftBottomPoint, InRenderCanvasRightTopPoint, InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
 				FitInDrawcallMinIndex = InUIDrawcallList.Num();//after children drawcall, update this index so parent's UI element will not batch into children's drawcall
 			}
 		}
@@ -1221,8 +1216,13 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 			UIDrawcallList.Reset();
 
+			auto RenderCanvasUIItem = this->GetUIItem();
+			auto RenderCanvasLocalLeftBottom = RenderCanvasUIItem->GetLocalSpaceLeftBottomPoint();
+			auto RenderCanvasLocalRightTop = RenderCanvasUIItem->GetLocalSpaceRightTopPoint();
+			auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
+			auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
 			bool bOutNeedToSortRenderPriority = bNeedToSortRenderPriority;
-			UpdateDrawcall_Implement(this, UIDrawcallList, CacheUIDrawcallList
+			UpdateDrawcall_Implement(this, WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
 				, bOutNeedToSortRenderPriority//cannot pass a uint32:1 here, so use a temp bool
 			);
 			bNeedToSortRenderPriority = bOutNeedToSortRenderPriority;
