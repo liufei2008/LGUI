@@ -31,7 +31,6 @@ protected:
 	TSharedPtr<UIGeometry> geometry = nullptr;
 	virtual void UpdateGeometry()override final;
 
-	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 
 	virtual void MarkAllDirtyRecursive()override;

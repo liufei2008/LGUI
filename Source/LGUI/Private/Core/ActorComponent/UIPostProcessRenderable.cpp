@@ -45,10 +45,6 @@ void UUIPostProcessRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
-{
-	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
-}
 void UUIPostProcessRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
     Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
