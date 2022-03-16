@@ -28,7 +28,6 @@ protected:
 #endif
 	virtual void OnUnregister()override;
 
-	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void UpdateGeometry()override;
 
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
