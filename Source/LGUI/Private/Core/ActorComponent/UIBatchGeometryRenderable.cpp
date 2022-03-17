@@ -320,6 +320,21 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			drawcall->needToUpdateVertex = true;
 		}
 	}
+	if (geometry->vertices.Num() >= LGUI_MAX_VERTEX_COUNT)
+	{
+		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleDdrawcall", "[UUIBatchGeometryRenderable::UpdateGeometry] Too many vertex ({0}) in single UI element: {1}")
+			, geometry->vertices.Num()
+#if WITH_EDITOR
+			, FText::FromString(this->GetOwner()->GetActorLabel())
+#else
+			, FText::FromString(this->GetPathName())
+#endif
+		);
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errorMsg, 10);
+#endif
+		UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
+	}
 
 	bTriangleChanged = false;
 	bLocalVertexPositionChanged = false;

@@ -700,10 +700,10 @@ void ULGUICanvas::UpdateGeometry_Implement()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
+DECLARE_CYCLE_STAT(TEXT("Canvas BatchDrawcall"), STAT_BatchDrawcall, STATGROUP_LGUI);
+void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
-	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
+	SCOPE_CYCLE_COUNTER(STAT_BatchDrawcall);
 	
 	auto ThisLocalLeftBottom = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasLeftBottomPoint);
 	auto ThisLocalRightTop = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasRightTopPoint);
@@ -751,7 +751,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 
 	int FitInDrawcallMinIndex = InUIDrawcallList.Num();//0 means the first canvas that processing drawcall. if not 0 means this is child canvas, then we should skip the previours canvas when batch drawcall, because child canvas's UI element can't batch into other canvas's drawcall
 
-	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
+	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, int32 InUIItemVerticesCount, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
 	{
 		auto LastDrawcallIndex = InUIDrawcallList.Num() - 1;
 		if (LastDrawcallIndex < 0)
@@ -761,11 +761,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 		//first step, check last drawcall, because 3d UI can only batch into last drawcall
 		{
 			auto LastDrawcall = InUIDrawcallList[LastDrawcallIndex];
-			if (
-				LastDrawcall->type == EUIDrawcallType::BatchGeometry
-				&& LastDrawcall->material == InUIItem->GetGeometry()->material
-				&& LastDrawcall->texture == InUIItem->GetGeometry()->texture
-				)
+			if (LastDrawcall->CanConsumeUIBatchGeometryRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))
 			{
 				OutDrawcallIndexToFitin = LastDrawcallIndex;
 				return true;
@@ -784,11 +780,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 				return false;
 			}
 
-			if (
-				DrawcallItem->type != EUIDrawcallType::BatchGeometry
-				|| DrawcallItem->material != InUIItem->GetGeometry()->material
-				|| DrawcallItem->texture != InUIItem->GetGeometry()->texture
-				)//can't fit in this drawcall, should check overlap
+			if (!DrawcallItem->CanConsumeUIBatchGeometryRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))//can't fit in this drawcall, should check overlap
 			{
 				if (OverlapWithOtherDrawcall(InUIItemToCanvasTf, DrawcallItem))//overlap with other drawcall, can't batch
 				{
@@ -859,6 +851,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 				}
 				DrawcallItem->renderObjectListTreeRootNode = new UIQuadTree::Node(CanvasRect);
 				DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
+				DrawcallItem->verticesCount = InItemGeo->vertices.Num();
+				DrawcallItem->indicesCount = InItemGeo->triangles.Num();
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
@@ -886,6 +880,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 				DrawcallItem->texture = InItemGeo->texture;
 				DrawcallItem->material = InItemGeo->material.Get();
 				DrawcallItem->renderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
+				DrawcallItem->verticesCount = InItemGeo->vertices.Num();
+				DrawcallItem->indicesCount = InItemGeo->triangles.Num();
 				DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
 			}
 			break;
@@ -948,7 +944,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 			auto ChildRenderCanvas = Item->GetRenderCanvas();
 			if (ChildRenderCanvas->IsRenderByOtherCanvas())
 			{
-				ChildRenderCanvas->UpdateDrawcall_Implement(InRenderCanvas, InRenderCanvasLeftBottomPoint, InRenderCanvasRightTopPoint, InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
+				ChildRenderCanvas->BatchDrawcall_Implement(InRenderCanvas, InRenderCanvasLeftBottomPoint, InRenderCanvasRightTopPoint, InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
 				FitInDrawcallMinIndex = InUIDrawcallList.Num();//after children drawcall, update this index so parent's UI element will not batch into children's drawcall
 			}
 		}
@@ -967,9 +963,10 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 				auto ItemGeo = UIBatchGeometryRenderableItem->GetGeometry();
 				check(ItemGeo);
 				if (ItemGeo->vertices.Num() == 0)continue;
+				if (ItemGeo->vertices.Num() > LGUI_MAX_VERTEX_COUNT)continue;
 
 				int DrawcallIndexToFitin;
-				if (CanFitInDrawcall(UIBatchGeometryRenderableItem, is2DUIItem, UIItemToCanvasTf, DrawcallIndexToFitin))
+				if (CanFitInDrawcall(UIBatchGeometryRenderableItem, is2DUIItem, ItemGeo->vertices.Num(), UIItemToCanvasTf, DrawcallIndexToFitin))
 				{
 					auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
 					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
@@ -977,6 +974,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 					{
 						//need to update tree
 						DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
+						DrawcallItem->verticesCount += ItemGeo->vertices.Num();
+						DrawcallItem->indicesCount += ItemGeo->triangles.Num();
 					}
 					else//not exist in this drawcall
 					{
@@ -988,6 +987,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 						//add to this drawcall
 						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
 						DrawcallItem->renderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
+						DrawcallItem->verticesCount += ItemGeo->vertices.Num();
+						DrawcallItem->indicesCount += ItemGeo->triangles.Num();
 						DrawcallItem->needToUpdateVertex = true;
 						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
 						//copy update state from old to new
@@ -996,6 +997,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 							OldDrawcall->CopyUpdateState(DrawcallItem.Get());
 						}
 					}
+					check(DrawcallItem->verticesCount < LGUI_MAX_VERTEX_COUNT);
 				}
 				else//cannot fit in any other drawcall
 				{
@@ -1009,6 +1011,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FV
 					}
 					//make a new drawacll
 					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry, UIItemToCanvasTf);
+					check(UIBatchGeometryRenderableItem->drawcall->verticesCount < LGUI_MAX_VERTEX_COUNT);
 				}
 			}
 			break;
@@ -1222,7 +1225,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
 			auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
 			bool bOutNeedToSortRenderPriority = bNeedToSortRenderPriority;
-			UpdateDrawcall_Implement(this, WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
+			BatchDrawcall_Implement(this, WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
 				, bOutNeedToSortRenderPriority//cannot pass a uint32:1 here, so use a temp bool
 			);
 			bNeedToSortRenderPriority = bOutNeedToSortRenderPriority;
@@ -1337,8 +1340,11 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	}
 }
 
+DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcallMesh"), STAT_UpdateDrawcallMesh, STATGROUP_LGUI);
 void ULGUICanvas::UpdateDrawcallMesh_Implement()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcallMesh);
+
 	ULGUIMeshComponent* prevUIMesh = nullptr;
 	if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)//WorldSpace-UE-Renderer only have one drawcall mesh, so we just get the first one
 	{
