@@ -309,8 +309,12 @@ void SLGUIPrefabSequenceEditor::AssignLGUIPrefabSequenceComponent(TWeakObjectPtr
 
 ULGUIPrefabSequence* SLGUIPrefabSequenceEditor::GetLGUIPrefabSequence() const
 {
-	ULGUIPrefabSequenceComponent* SequenceComponent = WeakSequenceComponent.Get();
-	return SequenceComponent ? SequenceComponent->GetSequenceByIndex(CurrentSelectedAnimationIndex) : nullptr;
+	if (CurrentSelectedAnimationIndex != INDEX_NONE)
+	{
+		ULGUIPrefabSequenceComponent* SequenceComponent = WeakSequenceComponent.Get();
+		return SequenceComponent ? SequenceComponent->GetSequenceByIndex(CurrentSelectedAnimationIndex) : nullptr;
+	}
+	return nullptr;
 }
 
 void SLGUIPrefabSequenceEditor::OnObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap)
@@ -332,7 +336,7 @@ TSharedRef<ITableRow> SLGUIPrefabSequenceEditor::OnGenerateRowForAnimationListVi
 
 void SLGUIPrefabSequenceEditor::OnAnimationListViewSelectionChanged(TSharedPtr<FWidgetAnimationListItem> InListItem, ESelectInfo::Type InSelectInfo)
 {
-	CurrentSelectedAnimationIndex = -1;
+	CurrentSelectedAnimationIndex = INDEX_NONE;
 	if (InListItem.IsValid())
 	{
 		auto& SequenceArray = WeakSequenceComponent->GetSequenceArray();
@@ -427,27 +431,15 @@ TSharedPtr<SWidget> SLGUIPrefabSequenceEditor::OnContextMenuOpening()const
 			if (SelectedItems.Num() == 1)
 			{
 				auto SelectedItem = SelectedItems[0];
-				if (SelectedItem->Animation->IsObjectReferencesGood(WeakSequenceComponent->GetOwner()) && SelectedItem->Animation->NeedFixEditorHelpers(WeakSequenceComponent->GetOwner()))
-				{
-					MenuBuilder.AddMenuSeparator();
-					MenuBuilder.AddMenuEntry(
-						LOCTEXT("FixEditorHelpers", "Fix editor helpers"),
-						LOCTEXT("FixEditorHelpers_Tooltip", "Fix editor helpers"),
-						FSlateIcon(),
-						FUIAction(FExecuteAction::CreateLambda([=]() {
-							SelectedItem->Animation->FixEditorHelper(WeakSequenceComponent->GetOwner());
-							}))
-					);
-				}
-				if (!SelectedItem->Animation->IsObjectReferencesGood(WeakSequenceComponent->GetOwner()) && SelectedItem->Animation->NeedFixEditorHelpers(WeakSequenceComponent->GetOwner()))
+				if (!SelectedItem->Animation->IsObjectReferencesGood(WeakSequenceComponent->GetOwner()))
 				{
 					MenuBuilder.AddMenuSeparator();
 					MenuBuilder.AddMenuEntry(
 						LOCTEXT("TryFixObjectReference", "Try fix object reference"),
-						LOCTEXT("", ""),
+						LOCTEXT("TryFixObjectReference_Tooltip", "LGUI can search target object by actor's path relative to ContextActor (Owner actor of LGUIPrefabSequenceComponent), so if ActorLabel and Actor's hierarchy is same as before, it is possible to fix the bad tracks."),
 						FSlateIcon(),
 						FUIAction(FExecuteAction::CreateLambda([=]() {
-							SelectedItem->Animation->FixObjectReference(WeakSequenceComponent->GetOwner());
+							SelectedItem->Animation->FixObjectReferences(WeakSequenceComponent->GetOwner());
 							}))
 					);
 				}
@@ -525,7 +517,7 @@ void SLGUIPrefabSequenceEditor::OnDeleteAnimation()
 		{
 			Animations.RemoveAt(CurrentSelectedAnimationIndex);
 			AnimationListView->RebuildList();
-			CurrentSelectedAnimationIndex = -1;
+			CurrentSelectedAnimationIndex = INDEX_NONE;
 			PrefabSequenceEditor->AssignSequence(nullptr);
 		}
 	}

@@ -70,6 +70,41 @@ void ULGUIPrefabSequenceComponent::Update(float DeltaSeconds)
 	}
 }
 
+#if WITH_EDITOR
+void ULGUIPrefabSequenceComponent::PreDuplicate(FObjectDuplicationParameters& DupParams)
+{
+	Super::PreDuplicate(DupParams);
+	FixEditorHelpers();
+}
+void ULGUIPrefabSequenceComponent::PreSave(const class ITargetPlatform* TargetPlatform)
+{
+	Super::PreSave(TargetPlatform);
+	FixEditorHelpers();
+}
+void ULGUIPrefabSequenceComponent::PostDuplicate(bool bDuplicateForPIE)
+{
+	Super::PostDuplicate(bDuplicateForPIE);
+}
+void ULGUIPrefabSequenceComponent::PostInitProperties()
+{
+	Super::PostInitProperties();
+}
+void ULGUIPrefabSequenceComponent::PostLoad()
+{
+	Super::PostLoad();
+}
+void ULGUIPrefabSequenceComponent::FixEditorHelpers()
+{
+	for (auto& Sequence : SequenceArray)
+	{
+		if (Sequence->IsObjectReferencesGood(GetOwner()) && !Sequence->IsEditorHelpersGood(this->GetOwner()))
+		{
+			Sequence->FixEditorHelpers(this->GetOwner());
+		}
+	}
+}
+#endif
+
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByName(FName InName) const
 {
 	for (auto Item : SequenceArray)
