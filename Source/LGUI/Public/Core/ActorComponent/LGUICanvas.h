@@ -522,7 +522,7 @@ private:
 	void MarkFinishRenderFrameRecursive();
 
 	void UpdateGeometry_Implement();
-	void UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
+	void BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
 	void UpdateDrawcallMesh_Implement();
 	void UpdateDrawcallMaterial_Implement();
 	static bool Is2DUITransform(const FTransform& Transform);

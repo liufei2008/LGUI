@@ -68,6 +68,8 @@ public:
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
 	bool shouldSortRenderObjectList = false;//should sort renderObjectList
 	UIQuadTree::Node* renderObjectListTreeRootNode = nullptr;
+	int32 verticesCount = 0;//vertices count of all renderObjectList
+	int32 indicesCount = 0;//triangle indices count of all renderObjectList
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 
@@ -75,4 +77,5 @@ public:
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
+	bool CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount);
 };

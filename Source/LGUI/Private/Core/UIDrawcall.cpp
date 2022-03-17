@@ -21,18 +21,10 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUI
 	}
 	else
 	{
-		int totalVertCount = 0;
-		int totalTriangleIndicesCount = 0;
-		for (int i = 0; i < count; i++)
-		{
-			auto uiGeo = renderObjectList[i]->GetGeometry();
-			totalVertCount += uiGeo->vertices.Num();
-			totalTriangleIndicesCount += uiGeo->triangles.Num();
-		}
 		int prevVertexCount = 0;
 		int triangleIndicesIndex = 0;
-		vertices.Reserve(totalVertCount);
-		triangles.SetNumUninitialized(totalTriangleIndicesCount);
+		vertices.Reserve(this->verticesCount);
+		triangles.SetNumUninitialized(this->indicesCount);
 		for (int geoIndex = 0; geoIndex < count; geoIndex++)
 		{
 			auto uiGeo = renderObjectList[geoIndex]->GetGeometry();
@@ -61,3 +53,10 @@ void UUIDrawcall::CopyUpdateState(UUIDrawcall* Target)
 	if (shouldSortRenderObjectList)Target->shouldSortRenderObjectList = true;
 }
 
+bool UUIDrawcall::CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount)
+{
+	return this->type == EUIDrawcallType::BatchGeometry
+		&& this->material == geo->material
+		&& this->texture == geo->texture
+		&& this->verticesCount + itemVertCount < LGUI_MAX_VERTEX_COUNT;
+}
