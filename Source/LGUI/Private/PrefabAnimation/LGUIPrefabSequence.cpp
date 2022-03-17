@@ -96,7 +96,17 @@ void ULGUIPrefabSequence::BindPossessableObject(const FGuid& ObjectId, UObject& 
 	if (CanPossessObject(PossessedObject, Context))
 	{
 		FLGUIPrefabSequenceObjectReference ObjectRef;
-		if (FLGUIPrefabSequenceObjectReference::CreateForObject(&PossessedObject, ObjectRef))
+		AActor* ActorContext = CastChecked<AActor>(Context);
+		AActor* Actor = Cast<AActor>(&PossessedObject);
+		if (Actor == nullptr)
+		{
+			if (auto Component = Cast<UActorComponent>(&PossessedObject))
+			{
+				Actor = Component->GetOwner();
+			}
+		}
+		check(Actor != nullptr);
+		if (FLGUIPrefabSequenceObjectReference::CreateForObject(Actor, &PossessedObject, ObjectRef))
 		{
 			ObjectReferences.CreateBinding(ObjectId, ObjectRef);
 		}
@@ -169,4 +179,26 @@ ETrackSupport ULGUIPrefabSequence::IsTrackSupported(TSubclassOf<class UMovieScen
 	return Super::IsTrackSupported(InTrackClass);
 }
 
+bool ULGUIPrefabSequence::IsObjectReferencesGood(AActor* InContextActor)const
+{
+	return ObjectReferences.IsAllReferencesGood(InContextActor);
+}
+bool ULGUIPrefabSequence::NeedFixEditorHelpers(AActor* InContextActor)const
+{
+	return ObjectReferences.NeedFixEditorHelpers(InContextActor);
+}
+void ULGUIPrefabSequence::FixObjectReference(AActor* InContextActor)
+{
+	if (ObjectReferences.FixObjectReference(InContextActor))
+	{
+		this->Modify();
+	}
+}
+void ULGUIPrefabSequence::FixEditorHelper(AActor* InContextActor)
+{
+	if (ObjectReferences.FixEditorHelper(InContextActor))
+	{
+		this->Modify();
+	}
+}
 #endif
