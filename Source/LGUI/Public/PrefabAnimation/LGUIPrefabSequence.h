@@ -58,9 +58,9 @@ public:
 	static FOnInitialize& OnInitializeSequence() { return OnInitializeSequenceEvent; }
 
 	bool IsObjectReferencesGood(AActor* InContextActor)const;
-	bool NeedFixEditorHelpers(AActor* InContextActor)const;
-	void FixObjectReference(AActor* InContextActor);
-	void FixEditorHelper(AActor* InContextActor);
+	bool IsEditorHelpersGood(AActor* InContextActor)const;
+	void FixObjectReferences(AActor* InContextActor);
+	void FixEditorHelpers(AActor* InContextActor);
 private:
 	static FOnInitialize OnInitializeSequenceEvent;
 #endif

@@ -54,7 +54,15 @@ public:
 	virtual void Start() override;
 	virtual void OnDestroy() override;
 	virtual void Update(float DeltaTime) override;
+#if WITH_EDITOR
+	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
+	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
+	virtual void PostDuplicate(bool bDuplicateForPIE)override;
+	virtual void PostInitProperties()override;
+	virtual void PostLoad()override;
 
+	void FixEditorHelpers();
+#endif
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))

@@ -128,12 +128,12 @@ struct FLGUIPrefabSequenceObjectReferenceMap
 	void ResolveBinding(const FGuid& ObjectId, TArray<UObject*, TInlineAllocator<1>>& OutObjects) const;
 
 #if WITH_EDITOR
-	bool IsAllReferencesGood(AActor* InContextActor)const;
-	bool NeedFixEditorHelpers(AActor* InContextActor)const;
+	bool IsObjectReferencesGood(AActor* InContextActor)const;
+	bool IsEditorHelpersGood(AActor* InContextActor)const;
 	//return true if anything changed
-	bool FixObjectReference(AActor* InContextActor);
+	bool FixObjectReferences(AActor* InContextActor);
 	//return true if anything changed
-	bool FixEditorHelper(AActor* InContextActor);
+	bool FixEditorHelpers(AActor* InContextActor);
 #endif
 private:
 	
