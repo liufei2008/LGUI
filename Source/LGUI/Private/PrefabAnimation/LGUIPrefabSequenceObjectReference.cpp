@@ -5,7 +5,11 @@
 #include "Engine/SimpleConstructionScript.h"
 #include "Engine/Blueprint.h"
 #include "UObject/Package.h"
+#include "LGUI.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 #if WITH_EDITOR
 TArray<FLGUIPrefabSequenceObjectReference*> FLGUIPrefabSequenceObjectReference::AllObjectReferenceArray;
@@ -29,12 +33,19 @@ void FLGUIPrefabSequenceObjectReference::RefreshReference()
 				}
 				else if (Components.Num() > 1)
 				{
+					bool getObject = false;
 					for (auto Comp : Components)
 					{
 						if (Comp->GetFName() == HelperComponentName)
 						{
 							Object = Comp;
+							getObject = true;
+							break;
 						}
+					}
+					if (!getObject)
+					{
+						Object = Components[0];
 					}
 				}
 			}
@@ -63,32 +74,193 @@ FLGUIPrefabSequenceObjectReference::~FLGUIPrefabSequenceObjectReference()
 #endif
 }
 
-bool FLGUIPrefabSequenceObjectReference::CreateForObject(UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult)
-{
-	OutResult.Object = InObject;
 #if WITH_EDITOR
-	if (auto Actor = Cast<AActor>(InObject))
+FString FLGUIPrefabSequenceObjectReference::GetActorPathRelativeToContextActor(AActor* InContextActor, AActor* InActor)
+{
+	if (InActor == InContextActor)
 	{
-		OutResult.HelperActor = Actor;
-		OutResult.HelperClass = AActor::StaticClass();
-		OutResult.HelperActorLabel = Actor->GetActorLabel();
-		OutResult.HelperComponentName = NAME_None;
+		return TEXT("/");
+	}
+	else if (InActor->IsAttachedTo(InContextActor))
+	{
+		FString Result = InActor->GetActorLabel();
+		AActor* Parent = InActor->GetAttachParentActor();
+		while (Parent != nullptr && Parent != InContextActor)
+		{
+			Result = Parent->GetActorLabel() + "/" + Result;
+			Parent = Parent->GetAttachParentActor();
+		}
+		return Result;
+	}
+	return TEXT("");
+}
+AActor* FLGUIPrefabSequenceObjectReference::GetActorFromContextActorByRelativePath(AActor* InContextActor, const FString& InPath)
+{
+	if (InPath == TEXT("/"))
+	{
+		return InContextActor;
+	}
+	else
+	{
+		TArray<FString> SplitedArray;
+		{
+			if (InPath.Contains(TEXT("/")))
+			{
+				FString SourceString = InPath;
+				FString Left, Right;
+				TArray<AActor*> ChildrenActors;
+				while (SourceString.Split(TEXT("/"), &Left, &Right, ESearchCase::CaseSensitive))
+				{
+					SplitedArray.Add(Left);
+					SourceString = Right;
+				}
+				SplitedArray.Add(Right);
+			}
+			else
+			{
+				SplitedArray.Add(InPath);
+			}
+		}
+
+		AActor* ParentActor = InContextActor;
+		TArray<AActor*> ChildrenActors;
+		for (int i = 0; i < SplitedArray.Num(); i++)
+		{
+			auto& PathItem = SplitedArray[i];
+			ParentActor->GetAttachedActors(ChildrenActors);
+			AActor* FoundChildActor = nullptr;
+			for (auto& ChildActor : ChildrenActors)
+			{
+				if (PathItem == ChildActor->GetActorLabel())
+				{
+					FoundChildActor = ChildActor;
+					break;
+				}
+			}
+			if (FoundChildActor != nullptr)
+			{
+				if (i + 1 == SplitedArray.Num())
+				{
+					return FoundChildActor;
+				}
+				ParentActor = FoundChildActor;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+	}
+	return nullptr;
+}
+bool FLGUIPrefabSequenceObjectReference::FixObjectReferenceFromEditorHelpers(AActor* InContextActor)
+{
+	if (auto FoundHelperActor = GetActorFromContextActorByRelativePath(InContextActor, this->HelperActorPath))
+	{
+		HelperActor = FoundHelperActor;
+		HelperActorLabel = HelperActor->GetActorLabel();
+		if (HelperClass == AActor::StaticClass())
+		{
+			Object = HelperActor;
+			return true;
+		}
+		else if (HelperClass->IsChildOf(UActorComponent::StaticClass()))
+		{
+			TArray<UActorComponent*> Components;
+			HelperActor->GetComponents(HelperClass, Components);
+			if (Components.Num() == 1)
+			{
+				Object = Components[0];
+				return true;
+			}
+			else if (Components.Num() > 1)
+			{
+				for (auto& CompItem : Components)
+				{
+					if (CompItem->GetFName() == HelperComponentName)
+					{
+						Object = CompItem;
+						break;
+					}
+				}
+				if (Object == nullptr)
+				{
+					Object = Components[0];
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+bool FLGUIPrefabSequenceObjectReference::CanFixObjectReferenceFromEditorHelpers()const
+{
+	return IsValid(HelperClass)
+		&& !HelperComponentName.IsNone()
+		&& !HelperActorPath.IsEmpty()
+		;
+}
+bool FLGUIPrefabSequenceObjectReference::IsObjectReferenceGood(AActor* InContextActor)const
+{
+	AActor* Actor = Cast<AActor>(Object);
+	if (Actor == nullptr)
+	{
+		if (auto Component = Cast<UActorComponent>(Object))
+		{
+			Actor = Component->GetOwner();
+		}
+	}
+
+	if (Actor != nullptr)
+	{
+		return Actor->GetLevel() == InContextActor->GetLevel()
+			&& (Actor == InContextActor || Actor->IsAttachedTo(InContextActor))//only allow actor self or child actor
+			;
+	}
+	return false;
+}
+bool FLGUIPrefabSequenceObjectReference::IsEditorHelpersGood(AActor* InContextActor)const
+{
+	return IsValid(HelperActor)
+		&& IsValid(HelperClass)
+		&& !HelperComponentName.IsNone()
+		&& HelperActorPath == GetActorPathRelativeToContextActor(InContextActor, HelperActor)
+		;
+}
+bool FLGUIPrefabSequenceObjectReference::FixEditorHelpers(AActor* InContextActor)
+{
+	if (auto Actor = Cast<AActor>(Object))
+	{
+		this->HelperActor = Actor;
+		this->HelperClass = AActor::StaticClass();
+		this->HelperActorLabel = Actor->GetActorLabel();
+		this->HelperComponentName = TEXT("Actor");
+		this->HelperActorPath = GetActorPathRelativeToContextActor(InContextActor, Actor);
 		return true;
 	}
 	else
 	{
-		if (auto Component = Cast<UActorComponent>(InObject))
+		if (auto Component = Cast<UActorComponent>(Object))
 		{
 			Actor = Component->GetOwner();
-			OutResult.HelperActor = Actor;
-			OutResult.HelperClass = Component->GetClass();
-			OutResult.HelperActorLabel = Actor->GetActorLabel();
-			OutResult.HelperComponentName = Component->GetFName();
+			this->HelperActor = Actor;
+			this->HelperClass = Component->GetClass();
+			this->HelperActorLabel = Actor->GetActorLabel();
+			this->HelperComponentName = Component->GetFName();
+			this->HelperActorPath = GetActorPathRelativeToContextActor(InContextActor, Actor);
 			return true;
 		}
 	}
-#endif
 	return false;
+}
+#endif
+
+bool FLGUIPrefabSequenceObjectReference::CreateForObject(AActor* InContextActor, UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult)
+{
+	OutResult.Object = InObject;
+#if WITH_EDITOR
+	return OutResult.FixEditorHelpers(InContextActor);
+#endif
 }
 
 UObject* FLGUIPrefabSequenceObjectReference::Resolve() const
@@ -141,3 +313,74 @@ void FLGUIPrefabSequenceObjectReferenceMap::ResolveBinding(const FGuid& ObjectId
 		}
 	}
 }
+
+#if WITH_EDITOR
+bool FLGUIPrefabSequenceObjectReferenceMap::IsAllReferencesGood(AActor* InContextActor)const
+{
+	for (auto& Reference : References)
+	{
+		for (auto& RefItem : Reference.Array)
+		{
+			if (!RefItem.IsObjectReferenceGood(InContextActor))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+bool FLGUIPrefabSequenceObjectReferenceMap::NeedFixEditorHelpers(AActor* InContextActor)const
+{
+	for (auto& Reference : References)
+	{
+		for (auto& RefItem : Reference.Array)
+		{
+			if (!RefItem.IsEditorHelpersGood(InContextActor))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+bool FLGUIPrefabSequenceObjectReferenceMap::FixObjectReference(AActor* InContextActor)
+{
+	bool anythingChanged = false;
+	for (auto& Reference : References)
+	{
+		for (auto& RefItem : Reference.Array)
+		{
+			if (!RefItem.IsObjectReferenceGood(InContextActor) && RefItem.CanFixObjectReferenceFromEditorHelpers())
+			{
+				if (RefItem.FixObjectReferenceFromEditorHelpers(InContextActor))
+				{
+					anythingChanged = true;
+				}
+			}
+		}
+	}
+	return anythingChanged;
+}
+bool FLGUIPrefabSequenceObjectReferenceMap::FixEditorHelper(AActor* InContextActor)
+{
+	bool anythingChanged = false;
+	for (auto& Reference : References)
+	{
+		for (auto& RefItem : Reference.Array)
+		{
+			if (RefItem.IsObjectReferenceGood(InContextActor) && !RefItem.IsEditorHelpersGood(InContextActor))
+			{
+				if (RefItem.FixEditorHelpers(InContextActor))
+				{
+					anythingChanged = true;
+				}
+			}
+		}
+	}
+	return anythingChanged;
+}
+#endif
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

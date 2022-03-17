@@ -26,8 +26,16 @@ public:
 	FLGUIPrefabSequenceObjectReference();
 	~FLGUIPrefabSequenceObjectReference();
 
-
-	static bool CreateForObject(UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult);
+#if WITH_EDITOR
+	static FString GetActorPathRelativeToContextActor(AActor* InContextActor, AActor* InActor);
+	static AActor* GetActorFromContextActorByRelativePath(AActor* InContextActor, const FString& InPath);
+	bool FixObjectReferenceFromEditorHelpers(AActor* InContextActor);
+	bool CanFixObjectReferenceFromEditorHelpers()const;
+	bool IsObjectReferenceGood(AActor* InContextActor)const;
+	bool IsEditorHelpersGood(AActor* InContextActor)const;
+	bool FixEditorHelpers(AActor* InContextActor);
+#endif
+	static bool CreateForObject(AActor* InContextActor, UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult);
 
 	/**
 	 * Check whether this object reference is valid or not
@@ -58,10 +66,13 @@ private:
 	UObject* Object = nullptr;
 
 #if WITH_EDITORONLY_DATA
-	/** HelperActor's actor label, could use this for refind HelperActor in editor */
+	/** HelperActor's actor label/ */
 	UPROPERTY()
 		FString HelperActorLabel;
-	/** Editor helper actor, for direct reference actor */
+	/** HelperActor's path relative to context actor, split by '/'. If only '/' means it is the context actor. could use this to replace reference object in editor/ */
+	UPROPERTY()
+		FString HelperActorPath;
+	/** Editor helper actor, for direct reference actor. */
 	UPROPERTY()
 		AActor* HelperActor;
 	/** Editor helper, target object class. If class is actor then Object is HelperActor, if class is ActorComponent then Object is the component. */
@@ -116,6 +127,14 @@ struct FLGUIPrefabSequenceObjectReferenceMap
 	 */
 	void ResolveBinding(const FGuid& ObjectId, TArray<UObject*, TInlineAllocator<1>>& OutObjects) const;
 
+#if WITH_EDITOR
+	bool IsAllReferencesGood(AActor* InContextActor)const;
+	bool NeedFixEditorHelpers(AActor* InContextActor)const;
+	//return true if anything changed
+	bool FixObjectReference(AActor* InContextActor);
+	//return true if anything changed
+	bool FixEditorHelper(AActor* InContextActor);
+#endif
 private:
 	
 	UPROPERTY()
