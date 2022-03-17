@@ -181,22 +181,22 @@ ETrackSupport ULGUIPrefabSequence::IsTrackSupported(TSubclassOf<class UMovieScen
 
 bool ULGUIPrefabSequence::IsObjectReferencesGood(AActor* InContextActor)const
 {
-	return ObjectReferences.IsAllReferencesGood(InContextActor);
+	return ObjectReferences.IsObjectReferencesGood(InContextActor);
 }
-bool ULGUIPrefabSequence::NeedFixEditorHelpers(AActor* InContextActor)const
+bool ULGUIPrefabSequence::IsEditorHelpersGood(AActor* InContextActor)const
 {
-	return ObjectReferences.NeedFixEditorHelpers(InContextActor);
+	return ObjectReferences.IsEditorHelpersGood(InContextActor);
 }
-void ULGUIPrefabSequence::FixObjectReference(AActor* InContextActor)
+void ULGUIPrefabSequence::FixObjectReferences(AActor* InContextActor)
 {
-	if (ObjectReferences.FixObjectReference(InContextActor))
+	if (ObjectReferences.FixObjectReferences(InContextActor))
 	{
 		this->Modify();
 	}
 }
-void ULGUIPrefabSequence::FixEditorHelper(AActor* InContextActor)
+void ULGUIPrefabSequence::FixEditorHelpers(AActor* InContextActor)
 {
-	if (ObjectReferences.FixEditorHelper(InContextActor))
+	if (ObjectReferences.FixEditorHelpers(InContextActor))
 	{
 		this->Modify();
 	}

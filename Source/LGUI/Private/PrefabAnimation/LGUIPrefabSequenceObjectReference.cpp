@@ -260,6 +260,8 @@ bool FLGUIPrefabSequenceObjectReference::CreateForObject(AActor* InContextActor,
 	OutResult.Object = InObject;
 #if WITH_EDITOR
 	return OutResult.FixEditorHelpers(InContextActor);
+#else
+	return true;
 #endif
 }
 
@@ -315,7 +317,7 @@ void FLGUIPrefabSequenceObjectReferenceMap::ResolveBinding(const FGuid& ObjectId
 }
 
 #if WITH_EDITOR
-bool FLGUIPrefabSequenceObjectReferenceMap::IsAllReferencesGood(AActor* InContextActor)const
+bool FLGUIPrefabSequenceObjectReferenceMap::IsObjectReferencesGood(AActor* InContextActor)const
 {
 	for (auto& Reference : References)
 	{
@@ -329,7 +331,7 @@ bool FLGUIPrefabSequenceObjectReferenceMap::IsAllReferencesGood(AActor* InContex
 	}
 	return true;
 }
-bool FLGUIPrefabSequenceObjectReferenceMap::NeedFixEditorHelpers(AActor* InContextActor)const
+bool FLGUIPrefabSequenceObjectReferenceMap::IsEditorHelpersGood(AActor* InContextActor)const
 {
 	for (auto& Reference : References)
 	{
@@ -337,13 +339,13 @@ bool FLGUIPrefabSequenceObjectReferenceMap::NeedFixEditorHelpers(AActor* InConte
 		{
 			if (!RefItem.IsEditorHelpersGood(InContextActor))
 			{
-				return true;
+				return false;
 			}
 		}
 	}
-	return false;
+	return true;
 }
-bool FLGUIPrefabSequenceObjectReferenceMap::FixObjectReference(AActor* InContextActor)
+bool FLGUIPrefabSequenceObjectReferenceMap::FixObjectReferences(AActor* InContextActor)
 {
 	bool anythingChanged = false;
 	for (auto& Reference : References)
@@ -361,7 +363,7 @@ bool FLGUIPrefabSequenceObjectReferenceMap::FixObjectReference(AActor* InContext
 	}
 	return anythingChanged;
 }
-bool FLGUIPrefabSequenceObjectReferenceMap::FixEditorHelper(AActor* InContextActor)
+bool FLGUIPrefabSequenceObjectReferenceMap::FixEditorHelpers(AActor* InContextActor)
 {
 	bool anythingChanged = false;
 	for (auto& Reference : References)
