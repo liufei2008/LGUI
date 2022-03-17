@@ -417,8 +417,39 @@ TSharedPtr<SWidget> SLGUIPrefabSequenceEditor::OnContextMenuOpening()const
 		MenuBuilder.AddMenuEntry(FGenericCommands::Get().Rename);
 		MenuBuilder.AddMenuEntry(FGenericCommands::Get().Duplicate);
 		MenuBuilder.AddMenuSeparator();
-
 		MenuBuilder.AddMenuEntry(FGenericCommands::Get().Delete);
+		//create fix button
+		{
+			auto SelectedItems = AnimationListView->GetSelectedItems();
+			if (SelectedItems.Num() == 1)
+			{
+				auto SelectedItem = SelectedItems[0];
+				if (SelectedItem->Animation->IsObjectReferencesGood(WeakSequenceComponent->GetOwner()) && SelectedItem->Animation->NeedFixEditorHelpers(WeakSequenceComponent->GetOwner()))
+				{
+					MenuBuilder.AddMenuSeparator();
+					MenuBuilder.AddMenuEntry(
+						LOCTEXT("FixEditorHelpers", "Fix editor helpers"),
+						LOCTEXT("FixEditorHelpers_Tooltip", "Fix editor helpers"),
+						FSlateIcon(),
+						FUIAction(FExecuteAction::CreateLambda([=]() {
+							SelectedItem->Animation->FixEditorHelper(WeakSequenceComponent->GetOwner());
+							}))
+					);
+				}
+				if (!SelectedItem->Animation->IsObjectReferencesGood(WeakSequenceComponent->GetOwner()) && SelectedItem->Animation->NeedFixEditorHelpers(WeakSequenceComponent->GetOwner()))
+				{
+					MenuBuilder.AddMenuSeparator();
+					MenuBuilder.AddMenuEntry(
+						LOCTEXT("TryFixObjectReference", "Try fix object reference"),
+						LOCTEXT("", ""),
+						FSlateIcon(),
+						FUIAction(FExecuteAction::CreateLambda([=]() {
+							SelectedItem->Animation->FixObjectReference(WeakSequenceComponent->GetOwner());
+							}))
+					);
+				}
+			}
+		}
 	}
 	MenuBuilder.EndSection();
 

@@ -57,6 +57,10 @@ public:
 	DECLARE_EVENT_OneParam(ULGUIPrefabSequence, FOnInitialize, ULGUIPrefabSequence*)
 	static FOnInitialize& OnInitializeSequence() { return OnInitializeSequenceEvent; }
 
+	bool IsObjectReferencesGood(AActor* InContextActor)const;
+	bool NeedFixEditorHelpers(AActor* InContextActor)const;
+	void FixObjectReference(AActor* InContextActor);
+	void FixEditorHelper(AActor* InContextActor);
 private:
 	static FOnInitialize OnInitializeSequenceEvent;
 #endif
