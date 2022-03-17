@@ -951,7 +951,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Start"), STAT_LGUILifeCycleBehaviourStart, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UpdateLayoutInterface"), STAT_UpdateLayoutInterface, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("Canvas UpdateGeometryAndDrawcall"), STAT_UpdateGeometryAndDrawcall, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Canvas Update"), STAT_UpdateCanvas, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//editor draw helper frame
@@ -1070,7 +1070,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 	//update drawcall
 	{
-		SCOPE_CYCLE_COUNTER(STAT_UpdateGeometryAndDrawcall);
+		SCOPE_CYCLE_COUNTER(STAT_UpdateCanvas);
 		for (auto& item : AllCanvasArray)
 		{
 			if (item.IsValid())
