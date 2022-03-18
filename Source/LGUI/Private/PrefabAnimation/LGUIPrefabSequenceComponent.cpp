@@ -76,9 +76,10 @@ void ULGUIPrefabSequenceComponent::PreDuplicate(FObjectDuplicationParameters& Du
 	Super::PreDuplicate(DupParams);
 	FixEditorHelpers();
 }
-void ULGUIPrefabSequenceComponent::PreSave(const class ITargetPlatform* TargetPlatform)
+#include "UObject/ObjectSaveContext.h"
+void ULGUIPrefabSequenceComponent::PreSave(FObjectPreSaveContext SaveContext)
 {
-	Super::PreSave(TargetPlatform);
+	Super::PreSave(SaveContext);
 	FixEditorHelpers();
 }
 void ULGUIPrefabSequenceComponent::PostDuplicate(bool bDuplicateForPIE)

@@ -56,7 +56,7 @@ public:
 	virtual void Update(float DeltaTime) override;
 #if WITH_EDITOR
 	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
-	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
+	virtual void PreSave(class FObjectPreSaveContext SaveContext)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
 	virtual void PostInitProperties()override;
 	virtual void PostLoad()override;
