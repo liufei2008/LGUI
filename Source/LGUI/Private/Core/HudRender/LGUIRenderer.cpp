@@ -25,15 +25,17 @@
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
 #endif
-FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld, UTextureRenderTarget2D* InCustomRenderTarget)
+FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	World = InWorld;
-	CustomRenderTarget = InCustomRenderTarget;
 
 #if WITH_EDITORONLY_DATA
 	bIsEditorPreview = !World->IsGameWorld();
@@ -146,6 +148,10 @@ bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 	if (InViewport == nullptr)return false;
 	if (InViewport->GetClient() == nullptr)return false;
 	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
+	if (bIsRenderToRenderTarget)
+	{
+		if (!CustomRenderTarget.IsValid())return false;
+	}
 	return true;
 }
 #endif
@@ -313,16 +319,22 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
 	FTextureRHIRef ScreenColorRenderTargetResolveTexture = nullptr;
+	FTextureRHIRef OriginScreenColorTexture = nullptr;
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
 	uint16 MultiSample = 1;
 	auto ViewRect = RenderView.UnscaledViewRect;
-	if (CustomRenderTarget.IsValid())
+	if (bIsRenderToRenderTarget)
 	{
-		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
-		//clear render target;
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
-		RHICmdList.EndRenderPass();
+		if (CustomRenderTarget.IsValid())
+		{
+			ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+			//clear render target;
+			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
+			RHICmdList.EndRenderPass();
+
+			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
+		}
 	}
 	else
 	{
@@ -341,6 +353,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #else
 			RHICmdList.CopyToResolveTarget((FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
 #endif
+			OriginScreenColorTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
 		}
 		else
 		{
@@ -445,7 +458,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								hudPrimitive->OnRenderPostProcess_RenderThread(
 									RHICmdList,
 									this,
-									(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+									OriginScreenColorTexture,
 									ScreenColorRenderTargetTexture,
 									ScreenColorRenderTargetResolveTexture,
 									GlobalShaderMap,
@@ -554,7 +567,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						hudPrimitive->OnRenderPostProcess_RenderThread(
 							RHICmdList,
 							this,
-							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+							OriginScreenColorTexture,
 							ScreenColorRenderTargetTexture,
 							ScreenColorRenderTargetResolveTexture,
 							GlobalShaderMap,
@@ -616,9 +629,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	RHICmdList.EndRenderPass();
 	//copy back to screen
-	if (CustomRenderTarget.IsValid())
+	if (bIsRenderToRenderTarget)
 	{
-		
+
 	}
 	else
 	{
@@ -830,6 +843,12 @@ void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
 	ScreenSpaceRenderParameter.RenderCanvas = nullptr;
 }
 
+void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue, UTextureRenderTarget2D* InRenderTarget)
+{
+	bIsRenderToRenderTarget = InValue;
+	CustomRenderTarget = InRenderTarget;
+}
+
 void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
 {
 	int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
@@ -863,6 +882,7 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 	bContainsPostProcess = false;
 	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
 	{
+		UE_LOG(LGUI, Error, TEXT("Item PrimitiveType:%d"), (uint8)item->GetPrimitiveType());
 		if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
 		{
 			bContainsPostProcess = true;
@@ -919,3 +939,7 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 #endif
 	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

@@ -126,6 +126,8 @@ private:
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
 	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(int32 StartIndex);
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();
 public:
 	/** mark canvas layout dirty */
 	void MarkCanvasLayoutDirty();
