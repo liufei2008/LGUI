@@ -26,7 +26,7 @@ public:
 class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
 {
 public:
-	FLGUIHudRenderer(const FAutoRegister&, UWorld* InWorld, UTextureRenderTarget2D* InCustomRenderTarget);
+	FLGUIHudRenderer(const FAutoRegister&, UWorld* InWorld);
 	virtual ~FLGUIHudRenderer();
 
 	//begin ISceneViewExtension interfaces
@@ -69,6 +69,8 @@ public:
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRenderCanvas();
+
+	void SetRenderToRenderTarget(bool InValue, UTextureRenderTarget2D* InRenderTarget);
 
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
@@ -127,7 +129,6 @@ private:
 	};
 	TArray<FRenderCanvasParameter> WorldSpaceRenderCanvasParameterArray;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
-	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
 	bool bContainsPostProcess = false;
@@ -138,6 +139,8 @@ private:
 	void SortPrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
+	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
+	bool bIsRenderToRenderTarget = false;
 
 	void RenderLGUI_RenderThread(
 #if ENGINE_MAJOR_VERSION >= 5

@@ -95,6 +95,15 @@ void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorCom
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTargetViewExtension()
+{
+	if (!RenderTargetViewExtension.IsValid())
+	{
+		RenderTargetViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(GetWorld());
+	}
+	return RenderTargetViewExtension;
+}
+
 void ULGUICanvas::UpdateCanvas()
 {
 	if (!bCanTickUpdate)return;
@@ -114,25 +123,46 @@ void ULGUICanvas::UpdateCanvas()
 			{
 				if (bCurrentIsLGUIRendererOrUERenderer)
 				{
-					if (!bHasAddToLGUIScreenSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+					switch (GetActualRenderMode())
 					{
-						TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+					case ELGUIRenderMode::ScreenSpaceOverlay:
+					{
+						if (!bHasAddToLGUIScreenSpaceRenderer)
+						{
+							TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-						if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
-						{
+							if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
+							{
 
-						}
-						else
+							}
+							else
 #endif
-						{
-							ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-						}
+							{
+								ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+							}
 
-						if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
-						{
-							ViewExtension->SetScreenSpaceRenderCanvas(this);
-							bHasAddToLGUIScreenSpaceRenderer = true;
+							if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
+							{
+								ViewExtension->SetScreenSpaceRenderCanvas(this);
+								bHasAddToLGUIScreenSpaceRenderer = true;
+							}
 						}
+					}
+					break;
+					case ELGUIRenderMode::RenderTarget:
+					{
+						if (!bHasAddToLGUIScreenSpaceRenderer)
+						{
+							if (IsValid(renderTarget))
+							{
+								GetRenderTargetViewExtension();
+								RenderTargetViewExtension->SetScreenSpaceRenderCanvas(this);
+								RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
+								bHasAddToLGUIScreenSpaceRenderer = true;
+							}
+						}
+					}
+					break;
 					}
 				}
 			}
@@ -321,6 +351,11 @@ void ULGUICanvas::RemoveFromViewExtension()
 			ViewExtension->ClearScreenSpaceRenderCanvas();
 		}
 	}
+
+	if (RenderTargetViewExtension.IsValid())
+	{
+		RenderTargetViewExtension->SetRenderToRenderTarget(false, nullptr);
+	}
 }
 
 bool ULGUICanvas::CheckRootCanvas()const
@@ -452,7 +487,7 @@ bool ULGUICanvas::IsRenderToRenderTarget()
 {
 	if (RootCanvas.IsValid())
 	{
-		return RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget);
+		return RootCanvas->renderMode == ELGUIRenderMode::RenderTarget;
 	}
 	return false;
 }
@@ -472,7 +507,7 @@ bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
 	if (RootCanvas.IsValid())
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
-			|| (RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget))
+			|| RootCanvas->renderMode == ELGUIRenderMode::RenderTarget
 			|| RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI
 			;
 	}
@@ -1502,13 +1537,23 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 						{
 							if (GetWorld()->WorldType != EWorldType::EditorPreview)//editor preview not visible
 							{
-								if (this->IsRenderToWorldSpace())
+								switch (GetActualRenderMode())
+								{
+								case ELGUIRenderMode::RenderTarget:
+								{
+									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(this->GetRootCanvas()->GetRenderTargetViewExtension());
+								}
+								break;
+								case ELGUIRenderMode::ScreenSpaceOverlay:
+								{
+									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true));
+								}
+								break;
+								case ELGUIRenderMode::WorldSpace_LGUI:
 								{
 									uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetActualSortOrder(), ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true));
 								}
-								else
-								{
-									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true));
+								break;
 								}
 								uiPostProcessPrimitive->SetVisibility(true);
 							}
@@ -1520,13 +1565,23 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				{
 					if (bCurrentIsLGUIRendererOrUERenderer)
 					{
-						if (this->IsRenderToWorldSpace())
+						switch (GetActualRenderMode())
+						{
+						case ELGUIRenderMode::RenderTarget:
+						{
+							uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(this->GetRootCanvas()->GetRenderTargetViewExtension());
+						}
+						break;
+						case ELGUIRenderMode::ScreenSpaceOverlay:
+						{
+							uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ALGUIManagerActor::GetViewExtension(GetWorld(), true));
+						}
+						break;
+						case ELGUIRenderMode::WorldSpace_LGUI:
 						{
 							uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetActualSortOrder(), ALGUIManagerActor::GetViewExtension(GetWorld(), true));
 						}
-						else
-						{
-							uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ALGUIManagerActor::GetViewExtension(GetWorld(), true));
+						break;
 						}
 						uiPostProcessPrimitive->SetVisibility(true);
 					}
@@ -1598,15 +1653,26 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 			{
 				if (bCurrentIsLGUIRendererOrUERenderer)
 				{
-					if (this->IsRenderToWorldSpace())
+					switch (GetActualRenderMode())
 					{
-						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
-						UIMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
+					case ELGUIRenderMode::RenderTarget:
+					{
+						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, this->GetRootCanvas()->GetRenderTargetViewExtension(), RootCanvas.Get(), false);
+						UIMesh->SetSupportUERenderer(true);
 					}
-					else
+					break;
+					case ELGUIRenderMode::ScreenSpaceOverlay:
 					{
-						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-						UIMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
+						UIMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+						UIMesh->SetSupportUERenderer(true);
+					}
+					break;
+					case ELGUIRenderMode::WorldSpace_LGUI:
+					{
+						UIMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
+						UIMesh->SetSupportUERenderer(false);
+					}
+					break;
 					}
 				}
 				else
@@ -1620,13 +1686,23 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 		{
 			if (bCurrentIsLGUIRendererOrUERenderer)
 			{
-				if (this->IsRenderToWorldSpace())
+				switch (GetActualRenderMode())
+				{
+				case ELGUIRenderMode::RenderTarget:
+				{
+					UIMesh->SetSupportLGUIRenderer(true, this->GetRootCanvas()->GetRenderTargetViewExtension(), RootCanvas.Get(), false);
+				}
+				break;
+				case ELGUIRenderMode::ScreenSpaceOverlay:
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+				}
+				break;
+				case ELGUIRenderMode::WorldSpace_LGUI:
 				{
 					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), this, true);
 				}
-				else
-				{
-					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+				break;
 				}
 				UIMesh->SetSupportUERenderer(false);
 			}
