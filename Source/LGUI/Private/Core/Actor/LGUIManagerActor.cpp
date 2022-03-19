@@ -316,7 +316,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject
 		{
 			if (InCreateIfNotExist)
 			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
 			}
 		}
 		else
@@ -326,7 +326,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject
 				Instance->ScreenSpaceOverlayViewExtension.Reset();
 				if (InCreateIfNotExist)
 				{
-					Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+					Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
 				}
 			}
 		}
@@ -1427,7 +1427,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetVi
 		{
 			if (InCreateIfNotExist)
 			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
 			}
 		}
 		return Instance->ScreenSpaceOverlayViewExtension;

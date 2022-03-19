@@ -95,10 +95,12 @@ void ULGUICanvasScaler::CheckAndApplyViewportParameter()
 	break;
 	case ELGUIRenderMode::RenderTarget:
 	{
-		auto renderTarget = Canvas->GetRenderTarget();
-		ViewportSize.X = renderTarget->SizeX;
-		ViewportSize.Y = renderTarget->SizeY;
-		OnViewportParameterChanged();
+		if (auto renderTarget = Canvas->GetRenderTarget())
+		{
+			ViewportSize.X = renderTarget->SizeX;
+			ViewportSize.Y = renderTarget->SizeY;
+			OnViewportParameterChanged();
+		}
 	}
 	break;
 	}
