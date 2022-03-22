@@ -48,12 +48,12 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource : public UObject
 {
 	GENERATED_BODY()
 private:
-	TWeakObjectPtr<ULGUIWorldSpaceRaycaster> RaycasterObject = nullptr;
+	TWeakObjectPtr<ULGUIBaseRaycaster> RaycasterObject = nullptr;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIWorldSpaceRaycaster* GetRaycasterObject()const;
+		ULGUIBaseRaycaster* GetRaycasterObject()const;
 	/** Called by LGUIWorldSpaceRaycaster when register, use as initialize. */
-	virtual void Init(ULGUIWorldSpaceRaycaster* InRaycaster);
+	virtual void Init(ULGUIBaseRaycaster* InRaycaster);
 	/** Generate ray for raycast hit test */
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
 	/** Should convert press event to drag event? */
@@ -61,7 +61,7 @@ public:
 protected:
 	/** Called by LGUIWorldSpaceRaycaster when register, use as initialize. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
-		void ReceiveInit(ULGUIWorldSpaceRaycaster* InRaycaster);
+		void ReceiveInit(ULGUIBaseRaycaster* InRaycaster);
 	/** Generate ray for raycast hit test */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "EmitRay"), Category = "LGUI")
 		bool ReceiveGenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
