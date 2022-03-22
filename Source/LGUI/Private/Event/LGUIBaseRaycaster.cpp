@@ -74,6 +74,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 			const auto& AllUIItemArray = LGUIManagerActor->GetAllUIItemArray();
 			for (auto& uiItem : AllUIItemArray)
 			{
+				if (!uiItem.IsValid())continue;
 				if (ShouldSkipUIItem(uiItem.Get()))continue;
 
 				FHitResult thisHit;

@@ -16,11 +16,10 @@ ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 void ULGUIScreenSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
-	FText ErrorMsg;
 	auto Canvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
 	if (!IsValid(Canvas) || !Canvas->IsRootCanvas())
 	{
-		ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceRaycaster::BeginPlay]Canvas is not valid! LGUIScreenSpaceRaycaster can only attach to ScreenSpaceUIRoot!");
+		auto ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceRaycaster::BeginPlay]Canvas is not valid! LGUIScreenSpaceRaycaster can only attach to ScreenSpaceUIRoot!");
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(ErrorMsg);
@@ -34,11 +33,7 @@ void ULGUIScreenSpaceRaycaster::BeginPlay()
 
 bool ULGUIScreenSpaceRaycaster::ShouldSkipUIItem(UUIItem* UIItem)
 {
-	if (UIItem != nullptr)
-	{
-		return !UIItem->IsScreenSpaceOverlayUI();
-	}
-	return true;
+	return !UIItem->IsScreenSpaceOverlayUI();
 }
 
 bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)

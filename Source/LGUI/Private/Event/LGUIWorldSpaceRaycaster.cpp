@@ -5,11 +5,11 @@
 #include "Core/ActorComponent/UIItem.h"
 
 
-ULGUIWorldSpaceRaycaster* ULGUIWorldSpaceRaycasterSource::GetRaycasterObject()const
+ULGUIBaseRaycaster* ULGUIWorldSpaceRaycasterSource::GetRaycasterObject()const
 {
 	return RaycasterObject.Get();
 }
-void ULGUIWorldSpaceRaycasterSource::Init(ULGUIWorldSpaceRaycaster* InRaycaster)
+void ULGUIWorldSpaceRaycasterSource::Init(ULGUIBaseRaycaster* InRaycaster)
 {
 	RaycasterObject = InRaycaster;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
@@ -58,11 +58,7 @@ void ULGUIWorldSpaceRaycaster::OnRegister()
 
 bool ULGUIWorldSpaceRaycaster::ShouldSkipUIItem(class UUIItem* UIItem)
 {
-	if (UIItem != nullptr)
-	{
-		return !UIItem->IsWorldSpaceUI();
-	}
-	return true;
+	return !UIItem->IsWorldSpaceUI();
 }
 
 bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
