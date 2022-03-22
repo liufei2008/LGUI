@@ -882,7 +882,6 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 	bContainsPostProcess = false;
 	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
 	{
-		UE_LOG(LGUI, Error, TEXT("Item PrimitiveType:%d"), (uint8)item->GetPrimitiveType());
 		if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
 		{
 			bContainsPostProcess = true;

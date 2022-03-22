@@ -2822,18 +2822,14 @@ void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Typ
 
 void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 {
-	//@todo:test this!!!
 	if (renderTarget != value)
 	{
 		renderTarget = value;
 		if (renderMode == ELGUIRenderMode::RenderTarget)
 		{
-			if (IsValid(renderTarget))
+			if (RenderTargetViewExtension.IsValid())
 			{
-				/*if (ViewExtension.IsValid())
-				{
-					ViewExtension.Reset();
-				}*/
+				RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
 			}
 		}
 	}

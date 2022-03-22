@@ -29,7 +29,7 @@ enum class ELGUIRenderMode :uint8
 	/**
 	 * Render to a custom render target.
 	 */
-	RenderTarget=2		UMETA(DisplayName = "Render Target (Experimental)"),
+	RenderTarget=2		UMETA(DisplayName = "Render Target"),
 };
 
 UENUM(BlueprintType, Category = LGUI)
