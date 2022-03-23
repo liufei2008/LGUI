@@ -113,6 +113,7 @@ GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertex
 GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();\
 GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();\
 GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
+GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();\
 SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
