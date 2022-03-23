@@ -88,9 +88,8 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 #endif
 		FLGUIHudRenderer* Renderer,
-		FTextureRHIRef OriginScreenTargetTexture,
+		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
-		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
@@ -115,7 +114,7 @@ public:
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = 1;
+			desc.NumSamples = ScreenTargetTexture->GetNumSamples();
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
 			if (!BlurEffectRenderTarget1.IsValid())
@@ -129,7 +128,7 @@ public:
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
 			, RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("LGUI_BlurEffectRenderTexture1"))
-			, OriginScreenTargetTexture
+			, ScreenTargetTexture
 			, GlobalShaderMap
 			, renderScreenToMeshRegionVertexArray
 			, modelViewProjectionMatrix
@@ -179,7 +178,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-							GraphicsPSOInit.NumSamples = 1;
+							GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -208,7 +207,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-							GraphicsPSOInit.NumSamples = 1;
+							GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -265,7 +264,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-							GraphicsPSOInit.NumSamples = 1;
+							GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -293,7 +292,7 @@ public:
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-							GraphicsPSOInit.NumSamples = 1;
+							GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 							VertexShader->SetParameters(RHICmdList);
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -311,14 +310,6 @@ public:
 		}
 
 		//after blur process, copy the area back to screen image
-		FGraphicsPipelineStateInitializer GraphicsPSOInit;
-		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
 		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
@@ -335,7 +326,7 @@ public:
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = 1;
+			desc.NumSamples = ScreenTargetTexture->GetNumSamples();
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
 			if (!BlurEffectRenderTarget1.IsValid())
@@ -372,7 +363,7 @@ public:
 				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-				GraphicsPSOInit.NumSamples = 1;
+				GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
 				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -426,7 +417,7 @@ public:
 				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-				GraphicsPSOInit.NumSamples = 1;
+				GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
 				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -468,14 +459,6 @@ public:
 		}
 
 		//after blur process, copy the area back to screen image
-		FGraphicsPipelineStateInitializer GraphicsPSOInit;
-		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-		GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target

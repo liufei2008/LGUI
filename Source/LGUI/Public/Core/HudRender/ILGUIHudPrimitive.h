@@ -57,9 +57,8 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 #endif
 		FLGUIHudRenderer* Renderer,
-		FTextureRHIRef OriginScreenTargetTexture,
+		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
-		FTextureRHIRef ScreenTargetResolveTexture,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
