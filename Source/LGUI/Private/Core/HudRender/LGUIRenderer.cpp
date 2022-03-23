@@ -318,7 +318,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
-	FTextureRHIRef ScreenColorRenderTargetResolveTexture = nullptr;
 	FTextureRHIRef OriginScreenColorTexture = nullptr;
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
@@ -347,7 +346,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			if (!ScreenColorRenderTarget.IsValid())
 				return;
 			ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
-			ScreenColorRenderTargetResolveTexture = ScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
 			CopyRenderTarget(RHICmdList, GlobalShaderMap, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
 #else
@@ -460,7 +458,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 									this,
 									OriginScreenColorTexture,
 									ScreenColorRenderTargetTexture,
-									ScreenColorRenderTargetResolveTexture,
 									GlobalShaderMap,
 									ViewProjectionMatrix,
 									true,
@@ -569,7 +566,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							this,
 							OriginScreenColorTexture,
 							ScreenColorRenderTargetTexture,
-							ScreenColorRenderTargetResolveTexture,
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
 							false,

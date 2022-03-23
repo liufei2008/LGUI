@@ -82,9 +82,8 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 #endif
 		FLGUIHudRenderer* Renderer,
-		FTextureRHIRef OriginScreenTargetTexture,
+		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
-		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
@@ -131,7 +130,7 @@ public:
 			TRefCountPtr<IPooledRenderTarget> DepthTexture_ProcessRenderTarget;
 
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = 1;
+			desc.NumSamples = ScreenTargetTexture->GetNumSamples();
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
@@ -148,8 +147,8 @@ public:
 			//copy render target
 			Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetTexture, ScreenTarget_ProcessRenderTargetTexture);
 
-			RHICmdList.CopyToResolveTarget(OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, FResolveParams());
-			//@todo: dont't konw why below two line is needed; if remove them, then OriginScreenTargetTexture seems black
+			RHICmdList.CopyToResolveTarget(OriginScreenColorTexture, OriginScreenTarget_ProcessRenderTargetTexture, FResolveParams());
+			//@todo: dont't konw why below two line is needed; if remove them, then OriginScreenColorTexture seems black
 			{
 				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTarget"));
 				RHICmdList.EndRenderPass();
@@ -170,7 +169,7 @@ public:
 					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-					GraphicsPSOInit.NumSamples = 1;
+					GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 					VertexShader->SetParameters(RHICmdList);
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
@@ -203,7 +202,7 @@ public:
 					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-					GraphicsPSOInit.NumSamples = 1;
+					GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 					VertexShader->SetParameters(RHICmdList);
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
@@ -246,7 +245,7 @@ public:
 			TRefCountPtr<IPooledRenderTarget> Result_ProcessRenderTarget;
 
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = 1;
+			desc.NumSamples = ScreenTargetTexture->GetNumSamples();
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget2"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget3"));
@@ -263,34 +262,18 @@ public:
 
 			//copy rect area from screen image to render target, so we can just process this area
 			auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-			if (ScreenTargetTexture->IsMultisampled())
-			{
-				RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-					, ScreenTarget_ProcessRenderTargetTexture
-					, ScreenTargetResolveImage
-					, GlobalShaderMap
-					, renderScreenToMeshRegionVertexArray
-					, modelViewProjectionMatrix
-					, ViewRect
-					, ViewTextureScaleOffset
-				);
-			}
-			else
-			{
-				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-					, ScreenTarget_ProcessRenderTargetTexture
-					, ScreenTargetTexture
-					, GlobalShaderMap
-					, renderScreenToMeshRegionVertexArray
-					, modelViewProjectionMatrix
-					, ViewRect
-					, ViewTextureScaleOffset
-				);
-			}
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, ScreenTarget_ProcessRenderTargetTexture
+				, ScreenTargetTexture
+				, GlobalShaderMap
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, ViewRect
+				, ViewTextureScaleOffset
+			);
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
 				, OriginScreenTarget_ProcessRenderTargetTexture
-				, OriginScreenTargetTexture
+				, OriginScreenColorTexture
 				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
@@ -327,7 +310,7 @@ public:
 					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-					GraphicsPSOInit.NumSamples = 1;
+					GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 					VertexShader->SetParameters(RHICmdList);
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
@@ -356,7 +339,7 @@ public:
 					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-					GraphicsPSOInit.NumSamples = 1;
+					GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 					VertexShader->SetParameters(RHICmdList);
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
