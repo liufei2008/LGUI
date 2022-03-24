@@ -27,7 +27,7 @@ public:
 	}
 	FLGUIRenderTargetGeometrySource_Sceneproxy(ULGUIRenderTargetGeometrySource* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
-		, ArcAngle(FMath::DegreesToRadians(FMath::Abs(InComponent->GetCylinderArcAngle())))
+		, ArcAngle(FMath::Max(FMath::DegreesToRadians(FMath::Abs(InComponent->GetCylinderArcAngle())), 0.01f))
 		, ArcAngleSign(FMath::Sign(InComponent->GetCylinderArcAngle()))
 		, Pivot(InComponent->GetPivot())
 		, RenderTarget(InComponent->GetRenderTarget())
@@ -273,7 +273,17 @@ void ULGUIRenderTargetGeometrySource::BeginPlay()
 		if (auto ParentComp = this->GetAttachParent())
 		{
 			StaticMeshComp = Cast<UStaticMeshComponent>(ParentComp);
-			if (!StaticMeshComp.IsValid())
+			if (StaticMeshComp.IsValid())
+			{
+				if (MaterialInstance != nullptr)//already called UpdateMaterialInstance, so we need to manually set material to static mesh
+				{
+					if (bOverrideStaticMeshMaterial)
+					{
+						StaticMeshComp->SetMaterial(0, MaterialInstance);
+					}
+				}
+			}
+			else
 			{
 				auto ErrorMsg = LOCTEXT("StaticMeshComponentNotValid", "[ULGUIRenderTargetGeometrySource::BeginPlay]StaticMesh component not valid!");
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
@@ -287,10 +297,6 @@ void ULGUIRenderTargetGeometrySource::BeginPlay()
 
 FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 {
-	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)
-	{
-		return nullptr;
-	}
 	if (GetCanvas())
 	{
 		UpdateMaterialInstance();
@@ -455,6 +461,14 @@ bool ULGUIRenderTargetGeometrySource::CanEditChange(const FProperty* InProperty)
 		{
 			return GeometryMode == ELGUIRenderTargetGeometryMode::Cylinder;
 		}
+		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, bOverrideStaticMeshMaterial))
+		{
+			return GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh;
+		}
+		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, bCanInteractOnBackside))
+		{
+			return GeometryMode != ELGUIRenderTargetGeometryMode::StaticMesh;
+		}
 	}
 
 	return Super::CanEditChange(InProperty);
@@ -568,6 +582,13 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 		if (SourceMat)
 		{
 			MaterialInstance = UMaterialInstanceDynamic::Create(SourceMat, this);
+			if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh && bOverrideStaticMeshMaterial)
+			{
+				if (StaticMeshComp.IsValid())
+				{
+					StaticMeshComp->SetMaterial(0, MaterialInstance);
+				}
+			}
 		}
 	}
 	UpdateMaterialInstanceParameters();
@@ -631,6 +652,10 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 		//start and end point must be different side of X plane
 		if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
 		{
+			if (LocalSpaceRayOrigin.X > 0 && !bCanInteractOnBackside)//ray origin is on backside but backside can't interact
+			{
+				return false;
+			}
 			auto LocalHitPoint = FMath::LinePlaneIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 			auto RenderTargetSize = this->GetRenderTargetSize();
 			auto LocalSpaceLeft = RenderTargetSize.X * -Pivot.X;;
@@ -681,6 +706,16 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 
 		float UVInterval = 1.0f / NumSegments;
 		int32 TriangleIndex = 0;
+
+		struct FHitResultContainer
+		{
+			FVector2D UV;
+			FVector HitPoint;
+			float DistSquare;
+			FMatrix RectMatrix;
+		};
+		static TArray<FHitResultContainer> MultiHitResult;
+		MultiHitResult.Reset();
 		for (int32 Segment = 0; Segment < NumSegments; Segment++)
 		{
 			Angle += RadiansPerStep;
@@ -703,6 +738,10 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 			//start and end point must be different side of X plane
 			if (FMath::Sign(RectSpaceRayOrigin.X) != FMath::Sign(RectSpaceRayEnd.X))
 			{
+				if (RectSpaceRayOrigin.X > 0 && !bCanInteractOnBackside)//ray origin is on backside but backside can't interact
+				{
+					continue;
+				}
 				auto HitPoint = FMath::LinePlaneIntersection(RectSpaceRayOrigin, RectSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 				//hit point inside rect area
 				float Left = 0;
@@ -711,19 +750,33 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 				float Top = RenderTargetSize.Y;
 				if (HitPoint.Y > Left && HitPoint.Y < Right && HitPoint.Z > Bottom && HitPoint.Z < Top)
 				{
-					OutHitUV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
-					OutHitUV.Y = HitPoint.Z / Top;
+					FHitResultContainer HitResult;
+					HitResult.UV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
+					HitResult.UV.Y = HitPoint.Z / Top;
+					HitResult.DistSquare = FVector::DistSquared(InStart, OutHitPoint);
+					HitResult.HitPoint = HitPoint;
+					HitResult.RectMatrix = LocalRectMatrix;
 
-					OutHitPoint = GetComponentTransform().TransformPosition(LocalRectMatrix.TransformPosition(HitPoint));
-					OutHitNormal = GetComponentTransform().TransformVector(LocalRectMatrix.TransformVector(FVector(-1, 0, 0)));
-					OutHitDistance = FVector::Distance(InStart, OutHitPoint);
-
-					return true;
+					MultiHitResult.Add(HitResult);
 				}
 			}
 
 			Position0 = Position2;
 			Position1 = Position3;
+		}
+		if (MultiHitResult.Num() > 0)
+		{
+			MultiHitResult.Sort([](const FHitResultContainer& A, const FHitResultContainer& B) {
+				return A.DistSquare < B.DistSquare;
+				});
+			auto& HitResult = MultiHitResult[0];
+
+			OutHitUV = HitResult.UV;
+			OutHitPoint = GetComponentTransform().TransformPosition(HitResult.RectMatrix.TransformPosition(HitResult.HitPoint));
+			OutHitNormal = GetComponentTransform().TransformVector(HitResult.RectMatrix.TransformVector(FVector(-1, 0, 0)));
+			OutHitDistance = FMath::Sqrt(HitResult.DistSquare);
+
+			return true;
 		}
 	}
 		break;
@@ -739,6 +792,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 			{
 				if (UGameplayStatics::FindCollisionUV(HitResult, 0, OutHitUV))
 				{
+					OutHitUV.Y = 1.0f - OutHitUV.Y;
 					OutHitPoint = HitResult.Location;
 					OutHitNormal = HitResult.Normal;
 					OutHitDistance = HitResult.Distance;
