@@ -53,7 +53,7 @@ void FLGUIHudRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShader
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
-			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
 			VertexShader->SetParameters(RHICmdList);
 			PixelShader->SetParameters(RHICmdList, Src);
@@ -68,9 +68,9 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
 	, FTextureRHIRef Src
 	, FGlobalShaderMap* GlobalShaderMap
 	, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData
-	, const FMatrix& MVP
+	, const FMatrix44f& MVP
 	, const FIntRect& ViewRect
-	, const FVector4& SrcTextureScaleOffset
+	, const FVector4f& SrcTextureScaleOffset
 )
 {
 	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
@@ -97,7 +97,7 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = NumSamples;
-			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
 			PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
 
@@ -129,61 +129,59 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
-	FTextureRHIRef ScreenColorRenderTargetResolveTexture = nullptr;
-	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
+	FTextureRHIRef OriginScreenColorTexture = nullptr;//@todo: can use a normal texture here?
+	TRefCountPtr<IPooledRenderTarget> OriginScreenColorRenderTarget = nullptr;
 
+	uint8 NumSamples = 1;
 	auto ViewRect = RenderView.UnscaledViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	if (CustomRenderTarget.IsValid())
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 		//clear render target;
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
 		RHICmdList.EndRenderPass();
+
+		ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
 	}
 	else
 	{
-//		if (bContainsPostProcess || MultiSampleCount > 1)
-//		{
-//			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-//			desc.NumSamples = MultiSampleCount;
-//			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
-//			if (!ScreenColorRenderTarget.IsValid())
-//				return;
-//			ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
-//			ScreenColorRenderTargetResolveTexture = ScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
-//#if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
-//			CopyRenderTarget(GraphBuilder, GlobalShaderMap, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
-//#else
-//			RHICmdList.CopyToResolveTarget((FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
-//#endif
-//		}
-//		else
+		ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
+		NumSamples = RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetNumSamples();
+
+		if (bNeedOriginScreenColorTextureOnPostProcess)
 		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_ShaderResource, false));
+			desc.NumSamples = NumSamples;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
+			if (!OriginScreenColorRenderTarget.IsValid())
+				return;
+			OriginScreenColorTexture = OriginScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
+			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
 		}
 	}
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 
 	//auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
 	const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
-	FVector4 DepthTextureScaleOffset;
-	FVector4 ViewTextureScaleOffset;
+	FVector4f DepthTextureScaleOffset;
+	FVector4f ViewTextureScaleOffset;
 	switch (RenderView.StereoPass)
 	{
 	case EStereoscopicPass::eSSP_FULL:
 	{
-		DepthTextureScaleOffset = FVector4(
+		DepthTextureScaleOffset = FVector4f(
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
 			0, 0
 		);
-		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
+		ViewTextureScaleOffset = FVector4f(1, 1, 0, 0);
 	}
 	break;
-	case EStereoscopicPass::eSSP_LEFT_EYE:
+	case EStereoscopicPass::eSSP_PRIMARY:
 	{
-		DepthTextureScaleOffset = FVector4(
+		DepthTextureScaleOffset = FVector4f(
 			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
 			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 			0.5f, 1.0f,
@@ -192,9 +190,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		ViewTextureScaleOffset = DepthTextureScaleOffset;
 	}
 	break;
-	case EStereoscopicPass::eSSP_RIGHT_EYE:
+	case EStereoscopicPass::eSSP_SECONDARY:
 	{
-		DepthTextureScaleOffset = FVector4(
+		DepthTextureScaleOffset = FVector4f(
 			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
 			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 			0.5f, 1.0f,
@@ -226,7 +224,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
 			ViewRect.Size(),
-			MultiSampleCount,
+			1,
 			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
@@ -252,11 +250,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							hudPrimitive->OnRenderPostProcess_RenderThread(
 								GraphBuilder,
 								this,
-								(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+								OriginScreenColorTexture,
 								ScreenColorRenderTargetTexture,
-								ScreenColorRenderTargetResolveTexture,
 								GlobalShaderMap,
-								ViewProjectionMatrix,
+								FMatrix44f(ViewProjectionMatrix),
 								true,
 								canvasParamItem.BlendDepth,
 								ViewRect,
@@ -274,7 +271,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								RDG_EVENT_NAME("LGUI_RenderWorld"),
 								PSShaderParameters,
 								ERDGPassFlags::Raster,
-								[this, hudPrimitive, &InView, ViewRect, PSShaderParameters, SceneDepthTexST = DepthTextureScaleOffset, SceneDepthBlend = canvasParamItem.BlendDepth](FRHICommandListImmediate& RHICmdList)
+								[this, hudPrimitive, &InView, ViewRect, PSShaderParameters, SceneDepthTexST = DepthTextureScaleOffset, SceneDepthBlend = canvasParamItem.BlendDepth, NumSamples](FRHICommandListImmediate& RHICmdList)
 							{
 								FSceneView RenderView(InView);//use a copied view
 								auto ViewLocation = RenderView.ViewLocation;
@@ -295,7 +292,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								RenderView.SetupCommonViewUniformBufferParameters(
 									ViewUniformShaderParameters,
 									ViewRect.Size(),
-									MultiSampleCount,
+									1,
 									ViewRect,
 									RenderView.ViewMatrices,
 									FViewMatrices()
@@ -328,8 +325,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 										GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-										GraphicsPSOInit.NumSamples = MultiSampleCount;
-										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+										GraphicsPSOInit.NumSamples = NumSamples;
+										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
 										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -370,7 +367,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
 			ViewRect.Size(),
-			MultiSampleCount,
+			1,
 			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
@@ -380,7 +377,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.NumSamples = MultiSampleCount;
+		GraphicsPSOInit.NumSamples = NumSamples;
 
 		for (int primitiveIndex = 0; primitiveIndex < ScreenSpaceRenderParameter.HudPrimitiveArray.Num(); primitiveIndex++)
 		{
@@ -396,11 +393,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						hudPrimitive->OnRenderPostProcess_RenderThread(
 							GraphBuilder,
 							this,
-							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+							OriginScreenColorTexture,
 							ScreenColorRenderTargetTexture,
-							ScreenColorRenderTargetResolveTexture,
 							GlobalShaderMap,
-							ScreenSpaceRenderParameter.ViewProjectionMatrix,
+							FMatrix44f(ScreenSpaceRenderParameter.ViewProjectionMatrix),
 							false,
 							0.0f,
 							ViewRect,
@@ -416,7 +412,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							RDG_EVENT_NAME("LGUI_RenderScreen"),
 							PassParameters,
 							ERDGPassFlags::Raster,
-							[this, hudPrimitive, &InView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset](FRHICommandListImmediate& RHICmdList)
+							[this, hudPrimitive, &InView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples](FRHICommandListImmediate& RHICmdList)
 						{
 							FSceneView RenderView(InView);//use a copied view
 							RenderView.SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewOrigin;
@@ -427,7 +423,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							RenderView.SetupCommonViewUniformBufferParameters(
 								ViewUniformShaderParameters,
 								ViewRect.Size(),
-								MultiSampleCount,
+								1,
 								ViewRect,
 								RenderView.ViewMatrices,
 								FViewMatrices()
@@ -460,8 +456,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 									GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 									GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-									GraphicsPSOInit.NumSamples = MultiSampleCount;
-									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+									GraphicsPSOInit.NumSamples = NumSamples;
+									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
 									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -481,26 +477,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	END_LGUI_RENDER :
 #endif
 
-	//copy back to screen
-	if (CustomRenderTarget.IsValid())
+	if (OriginScreenColorRenderTarget.IsValid())
 	{
-		
-	}
-	else
-	{
-		if (bContainsPostProcess || MultiSampleCount > 1)
-		{
-#if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
-			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
-#else
-			CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
-#endif
-		}
-	}
-	//release render target
-	if (ScreenColorRenderTarget.IsValid())
-	{
-		ScreenColorRenderTarget.SafeRelease();
+		OriginScreenColorRenderTarget.SafeRelease();
 	}
 }
 #endif
