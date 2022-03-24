@@ -113,7 +113,7 @@ GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertex
 GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();\
 GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();\
 GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
-GraphicsPSOInit.NumSamples = ScreenTargetTexture->GetNumSamples();\
+GraphicsPSOInit.NumSamples = NumSamples;\
 SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
@@ -133,6 +133,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	, FRHISamplerState* ResultTextureSamplerState
 )
 {
+	uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
 #if ENGINE_MAJOR_VERSION >= 5
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
@@ -145,7 +146,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 		RDG_EVENT_NAME("RenderMeshToScreen"),
 		PSShaderParameters,
 		ERDGPassFlags::Raster,
-		[this, PSShaderParameters, GlobalShaderMap, MeshRegionTexture, ModelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, ResultTextureSamplerState](FRHICommandListImmediate& RHICmdList)
+		[this, PSShaderParameters, GlobalShaderMap, MeshRegionTexture, ModelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, ResultTextureSamplerState, NumSamples](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
