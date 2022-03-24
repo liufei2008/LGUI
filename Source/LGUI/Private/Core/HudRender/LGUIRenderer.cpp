@@ -24,6 +24,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "ClearQuad.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -329,9 +330,17 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		{
 			ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
 			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
-			//clear render target;
-			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
-			RHICmdList.EndRenderPass();
+			//clear render target
+#if WITH_EDITOR
+			if (bIsPlaying)
+#endif
+			{
+				FRHIRenderPassInfo RPInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::DontLoad_Store);
+				TransitionRenderPassTargets(RHICmdList, RPInfo);
+				RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender_ClearRenderTarget"));
+				DrawClearQuad(RHICmdList, FLinearColor(0, 0, 0, 0));
+				RHICmdList.EndRenderPass();
+			}
 
 			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
 		}
