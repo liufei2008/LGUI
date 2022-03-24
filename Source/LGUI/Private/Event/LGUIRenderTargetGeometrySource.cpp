@@ -77,7 +77,7 @@ public:
 
 		if (RenderTarget)
 		{
-			auto TextureResource = RenderTarget->Resource;
+			auto TextureResource = RenderTarget->GetResource();
 			if (TextureResource)
 			{
 				switch (GeometryMode)
@@ -97,10 +97,10 @@ public:
 
 						if (VisibilityMap & (1 << ViewIndex))
 						{
-							VertexIndices[0] = MeshBuilder.AddVertex(FVector(0, U, V), FVector2D(0, 1), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[1] = MeshBuilder.AddVertex(FVector(0, UL, V), FVector2D(1, 1), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[2] = MeshBuilder.AddVertex(FVector(0, U, VL), FVector2D(0, 0), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[3] = MeshBuilder.AddVertex(FVector(0, UL, VL), FVector2D(1, 0), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
+							VertexIndices[0] = MeshBuilder.AddVertex(FVector3f(0, U, V), FVector2f(0, 1), FVector3f(0, -1, 0), FVector3f(0, 0, -1), FVector3f(1, 0, 0), FColor::White);
+							VertexIndices[1] = MeshBuilder.AddVertex(FVector3f(0, UL, V), FVector2f(1, 1), FVector3f(0, -1, 0), FVector3f(0, 0, -1), FVector3f(1, 0, 0), FColor::White);
+							VertexIndices[2] = MeshBuilder.AddVertex(FVector3f(0, U, VL), FVector2f(0, 0), FVector3f(0, -1, 0), FVector3f(0, 0, -1), FVector3f(1, 0, 0), FColor::White);
+							VertexIndices[3] = MeshBuilder.AddVertex(FVector3f(0, UL, VL), FVector2f(1, 0), FVector3f(0, -1, 0), FVector3f(0, 0, -1), FVector3f(1, 0, 0), FColor::White);
 
 							MeshBuilder.AddTriangle(VertexIndices[0], VertexIndices[3], VertexIndices[2]);
 							MeshBuilder.AddTriangle(VertexIndices[0], VertexIndices[1], VertexIndices[3]);
@@ -140,20 +140,20 @@ public:
 							Triangles.Reserve(6 * NumSegments);
 							const float RadiansPerStep = ArcAngle / NumSegments;
 							float Angle = -ArcAngle * 0.5f;
-							const FVector CenterPoint = FVector(0, HalfChordLength + PivotOffsetX, V);
+							const auto CenterPoint = FVector3f(0, HalfChordLength + PivotOffsetX, V);
 							auto Vert = FDynamicMeshVertex();
 							Vert.Color = FColor::White;
-							Vert.Position = FVector(0, Radius * FMath::Sin(Angle), V);
-							auto TangentX2D = FVector2D(CenterPoint) - FVector2D(Vert.Position);
+							Vert.Position = FVector3f(0, Radius * FMath::Sin(Angle), V);
+							auto TangentX2D = FVector2f(CenterPoint) - FVector2f(Vert.Position);
 							TangentX2D.Normalize();
-							auto TangentZ = FVector(TangentX2D, 0);
-							auto TangentY = FVector(0, 0, 1);
-							auto TangentX = FVector::CrossProduct(TangentY, TangentZ);
+							auto TangentZ = FVector3f(TangentX2D, 0);
+							auto TangentY = FVector3f(0, 0, 1);
+							auto TangentX = FVector3f::CrossProduct(TangentY, TangentZ);
 							Vert.SetTangents(TangentX, TangentY, TangentZ);
-							Vert.TextureCoordinate[0] = FVector2D(0, 1);
+							Vert.TextureCoordinate[0] = FVector2f(0, 1);
 							Vertices.Add(Vert);
 							Vert.Position.Z = VL;
-							Vert.TextureCoordinate[0] = FVector2D(0, 0);
+							Vert.TextureCoordinate[0] = FVector2f(0, 0);
 							Vertices.Add(Vert);
 
 							float UVInterval = 1.0f / NumSegments;
@@ -164,16 +164,16 @@ public:
 								Angle += RadiansPerStep;
 								UVX += UVInterval;
 
-								Vert.Position = FVector(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
-								TangentX2D = FVector2D(Vert.Position) - FVector2D(CenterPoint);
+								Vert.Position = FVector3f(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
+								TangentX2D = FVector2f(Vert.Position) - FVector2f(CenterPoint);
 								TangentX2D.Normalize();
-								TangentZ = FVector(TangentX2D, 0);
-								TangentX = FVector::CrossProduct(TangentY, TangentZ);
+								TangentZ = FVector3f(TangentX2D, 0);
+								TangentX = FVector3f::CrossProduct(TangentY, TangentZ);
 								Vert.SetTangents(TangentX, TangentY, TangentZ);
-								Vert.TextureCoordinate[0] = FVector2D(UVX, 1);
+								Vert.TextureCoordinate[0] = FVector2f(UVX, 1);
 								Vertices.Add(Vert);
 								Vert.Position.Z = VL;
-								Vert.TextureCoordinate[0] = FVector2D(UVX, 0);
+								Vert.TextureCoordinate[0] = FVector2f(UVX, 0);
 								Vertices.Add(Vert);
 
 								Triangles.Add(TriangleIndex);
@@ -243,10 +243,10 @@ public:
 	virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
 
 private:
-	FVector Origin;
+	FVector3f Origin;
 	float ArcAngle;
 	float ArcAngleSign;
-	FVector2D Pivot;
+	FVector2f Pivot;
 	UTextureRenderTarget2D* RenderTarget;
 	UMaterialInstanceDynamic* MaterialInstance = nullptr;
 	ELGUIRenderTargetGeometryMode GeometryMode;
@@ -709,10 +709,10 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 
 		struct FHitResultContainer
 		{
-			FVector2D UV;
-			FVector HitPoint;
+			FVector2f UV;
+			FVector3f HitPoint;
 			float DistSquare;
-			FMatrix RectMatrix;
+			FMatrix44f RectMatrix;
 		};
 		static TArray<FHitResultContainer> MultiHitResult;
 		MultiHitResult.Reset();
@@ -720,17 +720,17 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 		{
 			Angle += RadiansPerStep;
 
-			auto Position2 = FVector(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
+			auto Position2 = FVector3f(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
 			auto Position3 = Position2;
 			Position3.Z = VL;
 
 			auto Y = Position2 - Position0;
 			Y.Normalize();
-			auto Z = FVector(0, 0, 1);
-			auto X = FVector::CrossProduct(Y, Z);
+			auto Z = FVector3f(0, 0, 1);
+			auto X = FVector3f::CrossProduct(Y, Z);
 			X.Normalize();
 			
-			auto LocalRectMatrix = FMatrix(X, Y, Z, Position0);
+			auto LocalRectMatrix = FMatrix44f(X, Y, Z, Position0);
 			auto ToLocalRectMatrix = LocalRectMatrix.Inverse();
 
 			auto RectSpaceRayOrigin = ToLocalRectMatrix.TransformPosition(LocalSpaceRayOrigin);
@@ -742,7 +742,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 				{
 					continue;
 				}
-				auto HitPoint = FMath::LinePlaneIntersection(RectSpaceRayOrigin, RectSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+				auto HitPoint = FMath::LinePlaneIntersection((FVector3f)RectSpaceRayOrigin, (FVector3f)RectSpaceRayEnd, FVector3f::ZeroVector, FVector3f(1, 0, 0));
 				//hit point inside rect area
 				float Left = 0;
 				float Right = (FVector2D(Position2) - FVector2D(Position0)).Size();
@@ -753,7 +753,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 					FHitResultContainer HitResult;
 					HitResult.UV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
 					HitResult.UV.Y = HitPoint.Z / Top;
-					HitResult.DistSquare = FVector::DistSquared(InStart, OutHitPoint);
+					HitResult.DistSquare = FVector3f::DistSquared(InStart, OutHitPoint);
 					HitResult.HitPoint = HitPoint;
 					HitResult.RectMatrix = LocalRectMatrix;
 
@@ -771,9 +771,9 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 				});
 			auto& HitResult = MultiHitResult[0];
 
-			OutHitUV = HitResult.UV;
-			OutHitPoint = GetComponentTransform().TransformPosition(HitResult.RectMatrix.TransformPosition(HitResult.HitPoint));
-			OutHitNormal = GetComponentTransform().TransformVector(HitResult.RectMatrix.TransformVector(FVector(-1, 0, 0)));
+			OutHitUV = (FVector2D)HitResult.UV;
+			OutHitPoint = GetComponentTransform().TransformPosition((FVector)HitResult.RectMatrix.TransformPosition(HitResult.HitPoint));
+			OutHitNormal = GetComponentTransform().TransformVector((FVector)HitResult.RectMatrix.TransformVector(FVector(-1, 0, 0)));
 			OutHitDistance = FMath::Sqrt(HitResult.DistSquare);
 
 			return true;
