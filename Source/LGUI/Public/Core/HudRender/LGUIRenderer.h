@@ -131,7 +131,7 @@ private:
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
-	bool bContainsPostProcess = false;
+	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
 	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);

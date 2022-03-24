@@ -631,6 +631,7 @@ public:
 		return Sections.Num() > 0;
 	}
 	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::Mesh; }
+	virtual bool PostProcessRequireOriginScreenColorTexture()const override { return false; }
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const

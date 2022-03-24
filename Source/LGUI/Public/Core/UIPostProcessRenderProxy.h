@@ -39,12 +39,12 @@ public:
 	void RemoveFromLGUIRenderer_RenderThread(bool isWorld);
 
 	//begin ILGUIHudPrimitive interface
-	virtual bool CanRender() const { return bIsVisible; };
-	virtual int GetRenderPriority() const { return RenderPriority; };
+	virtual bool CanRender() const override { return bIsVisible; };
+	virtual int GetRenderPriority() const override { return RenderPriority; };
 
-	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) {};
+	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) override {};
 
-	virtual ELGUIHudPrimitiveType GetPrimitiveType()const { return ELGUIHudPrimitiveType::PostProcess; };
+	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::PostProcess; };
 	//end ILGUIHudPrimitive interface
 private:
 	void SetUITranslucentSortPriority_RenderThread(int value)
