@@ -49,6 +49,8 @@
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIScreenSpaceRaycaster.h"
 #include "Event/LGUIWorldSpaceRaycaster.h"
+#include "Event/LGUIRenderTargetInteraction.h"
+#include "Event/LGUIRenderTargetGeometrySource.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "Event/InputModule/LGUI_StandaloneInputModule.h"
