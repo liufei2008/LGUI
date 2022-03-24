@@ -48,6 +48,10 @@ private:
 	/** Curvature of a cylindrical widget in degrees. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = -180.0f, ClampMax = 180.0f))
 		float CylinderArcAngle = 45;
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bOverrideStaticMeshMaterial = true;
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bCanInteractOnBackside = false;
 	TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
 
 
