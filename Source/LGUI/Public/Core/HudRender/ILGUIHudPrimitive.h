@@ -38,17 +38,19 @@ public:
 
 	virtual bool CanRender() const = 0;
 	virtual int GetRenderPriority() const = 0;
+	virtual ELGUIHudPrimitiveType GetPrimitiveType()const = 0;
 
 	//begin mesh interface
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	//end mesh interface
 
 	//begin post process interface
-	virtual ELGUIHudPrimitiveType GetPrimitiveType()const = 0;
+	virtual bool PostProcessRequireOriginScreenColorTexture()const = 0;
 	/**
 	 * render thread function that will do the post process draw
-	 * @param	ScreenImage				the full screen render image
-	 * @param	ViewProjectionMatrix	for vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
+	 * @param	ScreenTargetTexture				The full screen render target
+	 * @param	OriginScreenColorTexture		Origin screen color texture. PostProcessNeedOriginScreenColorTexture must return true for this to work.
+	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 #if ENGINE_MAJOR_VERSION >= 5
