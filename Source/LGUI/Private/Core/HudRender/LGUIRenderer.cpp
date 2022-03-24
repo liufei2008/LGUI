@@ -318,16 +318,17 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
-	FTextureRHIRef OriginScreenColorTexture = nullptr;
-	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
+	FTextureRHIRef OriginScreenColorTexture = nullptr;//@todo: can use a normal texture here?
+	TRefCountPtr<IPooledRenderTarget> OriginScreenColorRenderTarget = nullptr;
 
-	uint16 MultiSample = 1;
+	uint8 NumSamples = 1;
 	auto ViewRect = RenderView.UnscaledViewRect;
 	if (bIsRenderToRenderTarget)
 	{
 		if (CustomRenderTarget.IsValid())
 		{
 			ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 			//clear render target;
 			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
 			RHICmdList.EndRenderPass();
@@ -337,26 +338,18 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	}
 	else
 	{
-		if (bContainsPostProcess)
+		ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
+		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
+
+		if (bNeedOriginScreenColorTextureOnPostProcess)
 		{
-			MultiSample = 1;
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = MultiSample;
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
-			if (!ScreenColorRenderTarget.IsValid())
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_ShaderResource, false));
+			desc.NumSamples = NumSamples;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
+			if (!OriginScreenColorRenderTarget.IsValid())
 				return;
-			ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
-#if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
-			CopyRenderTarget(RHICmdList, GlobalShaderMap, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
-#else
-			RHICmdList.CopyToResolveTarget((FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
-#endif
-			OriginScreenColorTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
-		}
-		else
-		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
-			MultiSample = RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetNumSamples();
+			OriginScreenColorTexture = OriginScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
+			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
 		}
 	}
 
@@ -435,7 +428,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.NumSamples = 1;
+		GraphicsPSOInit.NumSamples = NumSamples;
 
 		for (int canvasIndex = 0; canvasIndex < WorldSpaceRenderCanvasParameterArray.Num(); canvasIndex++)
 		{
@@ -468,7 +461,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								);
 								RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 								RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-								GraphicsPSOInit.NumSamples = MultiSample;
+								GraphicsPSOInit.NumSamples = NumSamples;
 							}break;
 							case ELGUIHudPrimitiveType::Mesh://render mesh
 							{
@@ -495,7 +488,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 										GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-										GraphicsPSOInit.NumSamples = MultiSample;
+										GraphicsPSOInit.NumSamples = NumSamples;
 										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -547,7 +540,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.NumSamples = MultiSample;
+		GraphicsPSOInit.NumSamples = NumSamples;
 
 		for (int primitiveIndex = 0; primitiveIndex < ScreenSpaceRenderParameter.HudPrimitiveArray.Num(); primitiveIndex++)
 		{
@@ -576,7 +569,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-						GraphicsPSOInit.NumSamples = MultiSample;
+						GraphicsPSOInit.NumSamples = NumSamples;
 					}break;
 					case ELGUIHudPrimitiveType::Mesh://render mesh
 					{
@@ -603,7 +596,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = MultiSample;
+								GraphicsPSOInit.NumSamples = NumSamples;
 								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
@@ -624,26 +617,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #endif
 
 	RHICmdList.EndRenderPass();
-	//copy back to screen
-	if (bIsRenderToRenderTarget)
-	{
 
-	}
-	else
+	if (OriginScreenColorRenderTarget.IsValid())
 	{
-		if (bContainsPostProcess)
-		{
-#if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
-			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
-#else
-			CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
-#endif
-		}
-	}
-	//release render target
-	if (ScreenColorRenderTarget.IsValid())
-	{
-		ScreenColorRenderTarget.SafeRelease();
+		OriginScreenColorRenderTarget.SafeRelease();
 	}
 }
 #endif
@@ -875,12 +852,14 @@ void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* In
 
 void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 {
-	bContainsPostProcess = false;
+	bNeedOriginScreenColorTextureOnPostProcess = false;
 	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
 	{
-		if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
+		if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess
+			&& item->PostProcessRequireOriginScreenColorTexture()
+			)
 		{
-			bContainsPostProcess = true;
+			bNeedOriginScreenColorTextureOnPostProcess = true;
 			return;
 		}
 	}
@@ -888,9 +867,11 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 	{
 		for (auto& item : renderItem.HudPrimitiveArray)
 		{
-			if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
+			if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess
+				&& item->PostProcessRequireOriginScreenColorTexture()
+				)
 			{
-				bContainsPostProcess = true;
+				bNeedOriginScreenColorTextureOnPostProcess = true;
 				return;
 			}
 		}

@@ -17,6 +17,8 @@ enum class EUICustomDepthStencilMaskSourceType :uint8
 
 /** 
  * Use CustomDepth or CustomDepthStencil as mask, so specified object can render on top of screen-space-UI.
+ * Use it on ScreenSpace or WorldSpace-LGUIRenderer.
+ * If android OpenGL ES3.1, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
  * Android: CustomDepth mode not supported yet.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))

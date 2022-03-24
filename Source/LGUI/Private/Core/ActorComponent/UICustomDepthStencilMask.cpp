@@ -75,6 +75,10 @@ public:
 	{
 		return FUIPostProcessRenderProxy::CanRender() && maskStrength > 0.0f;
 	}
+	virtual bool PostProcessRequireOriginScreenColorTexture()const override
+	{
+		return true;
+	}
 	virtual void OnRenderPostProcess_RenderThread(
 #if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder,
