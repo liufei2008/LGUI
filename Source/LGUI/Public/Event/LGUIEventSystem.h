@@ -139,9 +139,6 @@ public:
 	void CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 
-	void LogEventData(ULGUIBaseEventData* eventData);
-
-
 	void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* eventData);
@@ -154,6 +151,8 @@ public:
 	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
 	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
+
+	void LogEventData(ULGUIBaseEventData* eventData);
 };
 
 /*
