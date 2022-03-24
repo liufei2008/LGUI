@@ -101,6 +101,60 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
 	TArray<FName> needToHidePropertyNames;
+
+	if (TargetScriptArray[0]->GetWorld() != nullptr)
+	{
+		category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("DrawcallCountLabel", "DrawcallCount"))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.ColorAndOpacity(FLinearColor(FColor::Green))
+		]
+		.ValueContent()
+		[
+			SNew(STextBlock)
+			.Text(this, &FLGUICanvasCustomization::GetDrawcallInfo)
+			.ToolTipText(this, &FLGUICanvasCustomization::GetDrawcallInfoTooltip)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.ColorAndOpacity(FLinearColor(FColor::Green))
+		]
+		;
+	}
+
+	auto OverrideSortingHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bOverrideSorting));
+	bool bOverrideSorting;
+	OverrideSortingHandle->GetValue(bOverrideSorting);
+	category.AddProperty(OverrideSortingHandle);
+	OverrideSortingHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
+
+	if (bOverrideSorting)
+	{
+		category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder)));
+		//sortOrder info
+		{
+			category.AddCustomRow(LOCTEXT("SortOrderInfo", "SortOrderInfo"))
+			.WholeRowContent()
+			.MinDesiredWidth(500)
+			[
+				SNew(SBox)
+				.HeightOverride(20)
+				[
+					SNew(STextBlock)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.Text(this, &FLGUICanvasCustomization::GetSortOrderInfo, TargetScriptArray[0])
+					.AutoWrapText(true)
+				]
+			]
+			;
+		}
+	}
+	else
+	{
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
+	}
+
 	if (TargetScriptArray[0]->IsRootCanvas())
 	{
 		switch (TargetScriptArray[0]->renderMode)
@@ -218,61 +272,9 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		}
 	}
 
-	if (TargetScriptArray[0]->GetWorld() != nullptr)
-	{
-		category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
-		.NameContent()
-		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("DrawcallCountLabel", "DrawcallCount"))
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.ColorAndOpacity(FLinearColor(FColor::Green))
-		]
-		.ValueContent()
-		[
-			SNew(STextBlock)
-			.Text(this, &FLGUICanvasCustomization::GetDrawcallInfo)
-			.ToolTipText(this, &FLGUICanvasCustomization::GetDrawcallInfoTooltip)
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.ColorAndOpacity(FLinearColor(FColor::Green))
-		]
-		;
-	}
 	if (!needToHidePropertyNames.Contains(FName(TEXT("renderMode"))))
 	{
 		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));//show before sortOrder
-	}
-
-	auto OverrideSortingHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bOverrideSorting));
-	bool bOverrideSorting;
-	OverrideSortingHandle->GetValue(bOverrideSorting);
-	category.AddProperty(OverrideSortingHandle);
-	OverrideSortingHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
-
-	if (bOverrideSorting)
-	{
-		category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder)));
-		//sortOrder info
-		{
-			category.AddCustomRow(LOCTEXT("SortOrderInfo", "SortOrderInfo"))
-				.WholeRowContent()
-				.MinDesiredWidth(500)
-				[
-					SNew(SBox)
-					.HeightOverride(20)
-				[
-					SNew(STextBlock)
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				.Text(this, &FLGUICanvasCustomization::GetSortOrderInfo, TargetScriptArray[0])
-				.AutoWrapText(true)
-				]
-				]
-			;
-		}
-	}
-	else
-	{
-		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	}
 
 	for (auto item : needToHidePropertyNames)

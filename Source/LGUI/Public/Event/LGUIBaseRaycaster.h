@@ -67,8 +67,8 @@ public:
 	/** Called by InputModule to decide if current trigger press need to convert to drag */
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) PURE_VIRTUAL(ULGUIBaseRaycaster::ShouldStartDrag, return false;);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)void ActivateRaycaster();
-	UFUNCTION(BlueprintCallable, Category = LGUI)void DeactivateRaycaster();
+	UFUNCTION(BlueprintCallable, Category = LGUI)virtual void ActivateRaycaster();
+	UFUNCTION(BlueprintCallable, Category = LGUI)virtual void DeactivateRaycaster();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetPointerID()const { return pointerID; }

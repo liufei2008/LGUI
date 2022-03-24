@@ -33,7 +33,7 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 		}
 		else
 		{
-			for (auto inputData : standaloneInputDataArray)//handle multiple click in one frame
+			for (auto& inputData : standaloneInputDataArray)//handle multiple click in one frame
 			{
 				eventData->pointerPosition = FVector(inputData.mousePosition, 0);
 				eventData->nowIsTriggerPressed = inputData.triggerPress;
