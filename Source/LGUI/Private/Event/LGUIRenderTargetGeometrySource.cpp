@@ -80,6 +80,7 @@ public:
 			auto TextureResource = RenderTarget->Resource;
 			if (TextureResource)
 			{
+				const EShaderPlatform ShaderPlatform = GShaderPlatformForFeatureLevel[ViewFamily.GetFeatureLevel()];
 				switch (GeometryMode)
 				{
 				case ELGUIRenderTargetGeometryMode::Plane:
@@ -143,7 +144,7 @@ public:
 							const FVector CenterPoint = FVector(0, HalfChordLength + PivotOffsetX, V);
 							auto Vert = FDynamicMeshVertex();
 							Vert.Color = FColor::White;
-							Vert.Position = FVector(0, Radius * FMath::Sin(Angle), V);
+							Vert.Position = FVector(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
 							auto TangentX2D = FVector2D(CenterPoint) - FVector2D(Vert.Position);
 							TangentX2D.Normalize();
 							auto TangentZ = FVector(TangentX2D, 0);
@@ -254,6 +255,9 @@ private:
 	FMaterialRelevance MaterialRelevance;
 };
 
+
+#define PARAMETER_NAME_MAINTEXTURE "MainTexture"
+#define PARAMETER_NAME_FLIPY "FlipY"
 
 
 ULGUIRenderTargetGeometrySource::ULGUIRenderTargetGeometrySource()
@@ -465,7 +469,7 @@ bool ULGUIRenderTargetGeometrySource::CanEditChange(const FProperty* InProperty)
 		{
 			return GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh;
 		}
-		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, bCanInteractOnBackside))
+		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, bEnableInteractOnBackside))
 		{
 			return GeometryMode != ELGUIRenderTargetGeometryMode::StaticMesh;
 		}
@@ -540,6 +544,31 @@ void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
 	}
 }
 
+void ULGUIRenderTargetGeometrySource::SetEnableInteractOnBackside(bool Value)
+{
+	if (bEnableInteractOnBackside != Value)
+	{
+		bEnableInteractOnBackside = Value;
+	}
+}
+void ULGUIRenderTargetGeometrySource::SetFlipVerticalOnGLES(bool Value)
+{
+	if (bFlipVerticalOnGLES != Value)
+	{
+		bFlipVerticalOnGLES = Value;
+#if PLATFORM_ANDROID
+		if (MaterialInstance != nullptr)
+		{
+			auto ShaderPlatform = GShaderPlatformForFeatureLevel[GetWorld()->FeatureLevel];
+			if (ShaderPlatform == EShaderPlatform::SP_OPENGL_ES3_1_ANDROID)
+			{
+				MaterialInstance->SetScalarParameterValue(PARAMETER_NAME_FLIPY, bFlipVerticalOnGLES ? 1.0f : 0.0f);
+			}
+		}
+#endif
+	}
+}
+
 FIntPoint ULGUIRenderTargetGeometrySource::GetRenderTargetSize()const
 {
 	if (auto Canvas = GetCanvas())
@@ -560,12 +589,13 @@ void ULGUIRenderTargetGeometrySource::UpdateBodySetup(bool bDrawSizeChanged)
 		FKBoxElem* BoxElem = BodySetup->AggGeom.BoxElems.GetData();
 
 		const float Width = ComputeComponentWidth();
-		const float Height = GetRenderTargetSize().Y;
+		const float Height = ComputeComponentHeight();
+		const float Thickness = ComputeComponentThickness();
 		const FVector Origin = FVector(.5f,
-			-(Width * 0.5f) + (Width * Pivot.X),
-			-(Height * 0.5f) + (Height * Pivot.Y));
+			Width * (0.5f - Pivot.X),
+			Height * (0.5f - Pivot.Y));
 
-		BoxElem->X = 0.01f;
+		BoxElem->X = Thickness;
 		BoxElem->Y = Width;
 		BoxElem->Z = Height;
 
@@ -598,7 +628,14 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstanceParameters()
 {
 	if (MaterialInstance)
 	{
-		MaterialInstance->SetTextureParameterValue("MainTexture", GetRenderTarget());
+		MaterialInstance->SetTextureParameterValue(PARAMETER_NAME_MAINTEXTURE, GetRenderTarget());
+#if PLATFORM_ANDROID
+		auto ShaderPlatform = GShaderPlatformForFeatureLevel[GetWorld()->FeatureLevel];
+		if (ShaderPlatform == EShaderPlatform::SP_OPENGL_ES3_1_ANDROID)
+		{
+			MaterialInstance->SetScalarParameterValue(PARAMETER_NAME_FLIPY, bFlipVerticalOnGLES ? 1.0f : 0.0f);
+		}
+#endif
 	}
 }
 
@@ -622,6 +659,8 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentWidth() const
 	switch (GeometryMode)
 	{
 	default:
+		return 0.0f;
+		break;
 	case ELGUIRenderTargetGeometryMode::Plane:
 		return RenderTargetSize.X;
 		break;
@@ -629,8 +668,42 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentWidth() const
 	case ELGUIRenderTargetGeometryMode::Cylinder:
 		const float ArcAngleRadians = FMath::DegreesToRadians(GetCylinderArcAngle());
 		const float Radius = RenderTargetSize.X / ArcAngleRadians;
-		// Chord length is 2*R*Sin(Theta/2)
 		return 2.0f * Radius * FMath::Sin(0.5f * ArcAngleRadians);
+		break;
+	}
+}
+
+float ULGUIRenderTargetGeometrySource::ComputeComponentHeight() const
+{
+	auto RenderTargetSize = GetRenderTargetSize();
+	switch (GeometryMode)
+	{
+	default:
+		return 0.0f;
+		break;
+	case ELGUIRenderTargetGeometryMode::Plane:
+	case ELGUIRenderTargetGeometryMode::Cylinder:
+		return RenderTargetSize.Y;
+		break;
+	}
+}
+
+float ULGUIRenderTargetGeometrySource::ComputeComponentThickness() const
+{
+	auto RenderTargetSize = GetRenderTargetSize();
+	switch (GeometryMode)
+	{
+	default:
+		return 0.0f;
+		break;
+	case ELGUIRenderTargetGeometryMode::Plane:
+		return 0.01f;
+		break;
+
+	case ELGUIRenderTargetGeometryMode::Cylinder:
+		const float ArcAngleRadians = FMath::DegreesToRadians(GetCylinderArcAngle());
+		const float Radius = RenderTargetSize.X / ArcAngleRadians;
+		return Radius * FMath::Cos(0.5f * ArcAngleRadians);
 		break;
 	}
 }
@@ -652,13 +725,13 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 		//start and end point must be different side of X plane
 		if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
 		{
-			if (LocalSpaceRayOrigin.X > 0 && !bCanInteractOnBackside)//ray origin is on backside but backside can't interact
+			if (LocalSpaceRayOrigin.X > 0 && !bEnableInteractOnBackside)//ray origin is on backside but backside can't interact
 			{
 				return false;
 			}
 			auto LocalHitPoint = FMath::LinePlaneIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 			auto RenderTargetSize = this->GetRenderTargetSize();
-			auto LocalSpaceLeft = RenderTargetSize.X * -Pivot.X;;
+			auto LocalSpaceLeft = RenderTargetSize.X * -Pivot.X;
 			auto LocalSpaceRight = RenderTargetSize.X - LocalSpaceLeft;
 			auto LocalSpaceBottom = RenderTargetSize.Y * -Pivot.Y;
 			auto LocalSpaceTop = RenderTargetSize.Y - LocalSpaceBottom;
@@ -738,7 +811,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 			//start and end point must be different side of X plane
 			if (FMath::Sign(RectSpaceRayOrigin.X) != FMath::Sign(RectSpaceRayEnd.X))
 			{
-				if (RectSpaceRayOrigin.X > 0 && !bCanInteractOnBackside)//ray origin is on backside but backside can't interact
+				if (RectSpaceRayOrigin.X > 0 && !bEnableInteractOnBackside)//ray origin is on backside but backside can't interact
 				{
 					continue;
 				}
