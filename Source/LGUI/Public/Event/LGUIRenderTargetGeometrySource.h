@@ -10,9 +10,6 @@
 class ULGUICanvas;
 class ULGUIWorldSpaceRaycasterSource;
 
-/**
- * This defines how interaction point mapped to RenderTarget
- */
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIRenderTargetGeometryMode : uint8
 {
@@ -20,14 +17,14 @@ enum class ELGUIRenderTargetGeometryMode : uint8
 	Cylinder = 1,
 
 	/**
-	 * RenderTarget mapped onto a static mesh. The component must attach to target StaticMeshComponent so we can find and use it.
+	 * RenderTarget mapped onto a static mesh. This component must attach to target StaticMeshComponent so we can find and use it.
 	 * And in order to interact by LGUIRenderTargetRaycaster, the 'Support UV From Hit Results' must be enabled in project settings.
 	 */
 	StaticMesh = 100,
 };
 
 /**
- * 
+ * This component can generate a geometry to display LGUI's render target, and perform interaction source for LGUIRenderTargetInteraction component.
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, Experimental, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation", Sockets, Base, Lighting, LOD, Mesh))
 class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent
@@ -48,10 +45,17 @@ private:
 	/** Curvature of a cylindrical widget in degrees. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = -180.0f, ClampMax = 180.0f))
 		float CylinderArcAngle = 45;
+	/** Use this component's material for target static mesh component. */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bOverrideStaticMeshMaterial = true;
+	/** Enable backside interaction? Front side always interactable. */
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		bool bCanInteractOnBackside = false;
+		bool bEnableInteractOnBackside = false;
+	/**
+	 * Android GLES is flipped, so we flip it back. This just set the material property "FlipY".
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bFlipVerticalOnGLES = true;
 	TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
 
 
@@ -66,6 +70,8 @@ private:
 	void UpdateMaterialInstance();
 	void UpdateMaterialInstanceParameters();
 	float ComputeComponentWidth() const;
+	float ComputeComponentHeight() const;
+	float ComputeComponentThickness() const;
 public:
 	/* UPrimitiveComponent Interface */
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -97,6 +103,12 @@ public:
 		FVector2D GetPivot()const { return Pivot; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetCylinderArcAngle()const { return CylinderArcAngle; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetOverrideStaticMeshMaterial()const { return bOverrideStaticMeshMaterial; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetEnableInteractOnBackside()const { return bEnableInteractOnBackside; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetFlipVerticalOnGLES()const { return bFlipVerticalOnGLES; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetGeometryMode(ELGUIRenderTargetGeometryMode Value);
@@ -104,6 +116,10 @@ public:
 		void SetPivot(const FVector2D Value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetCylinderArcAngle(float Value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetEnableInteractOnBackside(bool Value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetFlipVerticalOnGLES(bool Value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FIntPoint GetRenderTargetSize()const;
