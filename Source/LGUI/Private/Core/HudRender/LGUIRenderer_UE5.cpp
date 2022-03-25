@@ -147,11 +147,17 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			if (bIsPlaying)
 #endif
 			{
-				FRHIRenderPassInfo RPInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::DontLoad_Store);
-				TransitionRenderPassTargets(RHICmdList, RPInfo);
-				RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender_ClearRenderTarget"));
-				DrawClearQuad(RHICmdList, FLinearColor(0, 0, 0, 0));
-				RHICmdList.EndRenderPass();
+				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIHudRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
+				GraphBuilder.AddPass(
+					RDG_EVENT_NAME("LGUIHudRender_ClearRenderTarget"),
+					Parameters,
+					ERDGPassFlags::Raster,
+					[](FRHICommandListImmediate& RHICmdList)
+					{
+						DrawClearQuad(RHICmdList, FLinearColor(0, 0, 0, 0));
+					}
+				);
 			}
 
 			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
