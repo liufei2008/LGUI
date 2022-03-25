@@ -26,7 +26,7 @@ enum class ELGUIRenderTargetGeometryMode : uint8
 /**
  * This component can generate a geometry to display LGUI's render target, and perform interaction source for LGUIRenderTargetInteraction component.
  */
-UCLASS(ClassGroup = LGUI, Blueprintable, Experimental, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation", Sockets, Base, Lighting, LOD, Mesh))
+UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation", Sockets, Base, Lighting, LOD, Mesh))
 class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent
 {
 	GENERATED_BODY()

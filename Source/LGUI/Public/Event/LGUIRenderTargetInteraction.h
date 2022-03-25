@@ -16,7 +16,7 @@ class ULGUIRenderTargetGeometrySource;
  * Perform a raycaster and interaction for LGUIRenderTargetGeometrySource object, which shows the LGUI RenderTarget UI.
  * This component should be placed on a actor which have a LGUIRenderTargetGeometrySource component.
  */
-UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable, Experimental)
+UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUIRenderTargetInteraction : public ULGUIBaseRaycaster
 	, public ILGUIPointerEnterExitInterface
 	, public ILGUIPointerDownUpInterface
@@ -34,7 +34,7 @@ public:
 	virtual void DeactivateRaycaster()override;
 protected:
 	/** inherited events of this component can bubble up? */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bAllowEventBubbleUp = false;
 
 	TWeakObjectPtr<ULGUICanvas> TargetCanvas = nullptr;
