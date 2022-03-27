@@ -169,7 +169,7 @@ void FLGUIHudRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate&
 
 void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTarget"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTarget"));
 	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
@@ -205,7 +205,7 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
 	, const FVector4& SrcTextureScaleOffset
 )
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTargetOnMeshRegion"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTargetOnMeshRegion"));
 	RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 	TShaderMapRef<FLGUICopyMeshRegionVS> VertexShader(GlobalShaderMap);
@@ -362,7 +362,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 	}
 
-	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
+	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_Store);
 	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 	FVector4 DepthTextureScaleOffset;
 	FVector4 ViewTextureScaleOffset;

@@ -392,14 +392,14 @@ public:
 						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
 					}
 					//render vertical
-					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_DontStore), TEXT("Vertical"));
+					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
-					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
+					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
@@ -445,14 +445,14 @@ public:
 						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
 					}
 					//render vertical
-					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_DontStore), TEXT("Vertical"));
+					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
-					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
+					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
