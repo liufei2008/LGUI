@@ -146,6 +146,12 @@ namespace LGUIPrefabSystem5
 	}
 	void ActorSerializer::SerializeActor(AActor* OriginRootActor, ULGUIPrefab* InPrefab)
 	{
+		if (!InPrefab)
+		{
+			UE_LOG(LGUI, Error, TEXT("Save Prefab, InPrefab is null!"));
+			return;
+		}
+
 		auto StartTime = FDateTime::Now();
 
 		FLGUIPrefabSaveData SaveData;

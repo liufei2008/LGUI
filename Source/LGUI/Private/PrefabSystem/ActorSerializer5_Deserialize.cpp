@@ -268,11 +268,12 @@ namespace LGUIPrefabSystem5
 		}
 		if (!TargetWorld)
 		{
-			UE_LOG(LGUI, Error, TEXT("Load Prefab, World is null!"));
+			UE_LOG(LGUI, Error, TEXT("Load Prefab: '%s', World is null!"), *InPrefab->GetPathName());
 			return nullptr;
 		}
 
 		auto StartTime = FDateTime::Now();
+		PrefabAssetPath = InPrefab->GetPathName();
 
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
@@ -356,7 +357,7 @@ namespace LGUIPrefabSystem5
 					if (!ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong component class: %s"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong component class: '%s'. Prefab: '%s'"), *(ObjectClass->GetFName().ToString()), *PrefabAssetPath);
 						continue;
 					}
 
@@ -367,7 +368,7 @@ namespace LGUIPrefabSystem5
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Owner actor when creating component: %s"), *(ObjectData.ComponentName.ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Owner actor when creating component: %s. Prefab: '%s'"), *(ObjectData.ComponentName.ToString()), *PrefabAssetPath);
 						continue;
 					}
 				}
@@ -407,7 +408,7 @@ namespace LGUIPrefabSystem5
 						|| ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong object class: %s"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong object class: '%s'. Prefab: '%s'"), *(ObjectClass->GetFName().ToString()), *PrefabAssetPath);
 						continue;
 					}
 
@@ -418,7 +419,7 @@ namespace LGUIPrefabSystem5
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Outer object when creating object: %s"), *(ObjectData.ObjectName.ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Outer object when creating object: '%s'. Prefab: '%s'"), *(ObjectData.ObjectName.ToString()), *PrefabAssetPath);
 						continue;
 					}
 				}
@@ -575,7 +576,7 @@ namespace LGUIPrefabSystem5
 					break;
 					default:
 					{
-						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer4", "Error_UnsupportOldPrefabVersion", "Detect old prefab version which is not support nested prefab! The prefab is: {0}"), FText::FromString(SubPrefabAsset->GetPathName()));
+						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer4", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
 						LGUIUtils::EditorNotification(MsgText, 1.0f);
 					}
 					break;
@@ -601,7 +602,7 @@ namespace LGUIPrefabSystem5
 				if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 				{
 					ActorClass = AActor::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Class:%s is not a Actor, use default. Prefab: '%s'"), *(ActorClass->GetFName().ToString()), *PrefabAssetPath);
 				}
 
 				AActor* NewActor = nullptr;
@@ -684,7 +685,7 @@ namespace LGUIPrefabSystem5
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (InActorData.ObjectClass));
+				UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Actor Class of index:%d not found! Prefab: '%s'"), (InActorData.ObjectClass), *PrefabAssetPath);
 			}
 		}
 	}

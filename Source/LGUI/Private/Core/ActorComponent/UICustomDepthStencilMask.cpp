@@ -225,7 +225,7 @@ public:
 					);
 				}
 
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("LGUIPostProcessCustomDepthMask"));
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_Store), TEXT("LGUIPostProcessCustomDepthMask"));
 				RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
 				Renderer->DrawFullScreenQuad(RHICmdList);
 				RHICmdList.EndRenderPass();
@@ -362,7 +362,7 @@ public:
 					);
 				}
 
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Result_ProcessRenderTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("LGUIPostProcessCustomDepthMask"));
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Result_ProcessRenderTargetTexture, ERenderTargetActions::Load_Store), TEXT("LGUIPostProcessCustomDepthMask"));
 				RHICmdList.SetViewport(0, 0, 0.0f, Result_ProcessRenderTargetTexture->GetSizeXYZ().X, Result_ProcessRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 				Renderer->DrawFullScreenQuad(RHICmdList);
 				RHICmdList.EndRenderPass();
