@@ -23,6 +23,7 @@
 #endif
 #include "Serialization/BufferArchive.h"
 #include "LGUIEditableTextPropertyHandle.h"
+#include "Widgets/Input/NumericUnitTypeInterface.inl"
 
 #define LOCTEXT_NAMESPACE "LGUIEventDelegateCustomization"
 
