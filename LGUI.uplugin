@@ -17,26 +17,17 @@
 		{
 			"Name": "LGUI",
 			"Type": "Runtime",
-			"LoadingPhase": "PostConfigInit",
-			"WhitelistPlatforms": [
-				"Win64"
-			]
+			"LoadingPhase": "PostConfigInit"
 		},
 		{
 			"Name": "LGUIEditor",
 			"Type": "UncookedOnly",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
-				"Win64"
-			]
+			"LoadingPhase": "Default"
 		},
 		{
 			"Name": "LTween",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
-				"Win64"
-			]
+			"LoadingPhase": "Default"
 		}
 	]
 }

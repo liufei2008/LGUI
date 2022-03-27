@@ -308,6 +308,8 @@ namespace LGUIPrefabSystem5
 		AActor* LoadedRootActor = nullptr;
 		int32 ActorIndexInPrefab = 0;
 		bool bIsSubPrefab = false;
+		/** A temperary string for log if is loading or saving prefab (not duplicate). */
+		FString PrefabAssetPath;
 
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 

@@ -97,13 +97,13 @@ private:
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value = 0;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value = 0;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FQuat QuatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value = FVector4(0, 0, 0, 0);
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FQuat QuatValue = FQuat::Identity;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue = FColor::White;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue = FLinearColor::White;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue = FRotator::ZeroRotator;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FString StringValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FName NameValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FText TextValue;
@@ -111,16 +111,16 @@ private:
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* HelperActor;
+		AActor* HelperActor = nullptr;
 	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* HelperClass;
+		UClass* HelperClass = nullptr;
 	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* TargetObject;
+		UObject* TargetObject = nullptr;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName functionName;
@@ -133,7 +133,7 @@ private:
 		TArray<uint8> ParamBuffer;
 	/** Object reference, can reference actor/class/asset */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* ReferenceObject;
+		UObject* ReferenceObject = nullptr;
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -152,10 +152,10 @@ private:
 public:
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		AActor* targetActor;
+		AActor* targetActor = nullptr;
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* componentClass;
+		UClass* componentClass = nullptr;
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		FName componentName;
@@ -170,10 +170,10 @@ public:
 		FText ReferenceText;
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		AActor* ReferenceActor;
+		AActor* ReferenceActor = nullptr;
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* ReferenceClass;
+		UClass* ReferenceClass = nullptr;
 	
 #endif
 };
