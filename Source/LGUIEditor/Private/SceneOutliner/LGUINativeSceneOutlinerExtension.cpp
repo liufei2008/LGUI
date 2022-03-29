@@ -13,7 +13,6 @@
 #include "ActorTreeItem.h"
 #include "FolderTreeItem.h"
 #include "WorldTreeItem.h"
-#include "JsonObjectConverter.h"
 #include "SceneOutlinerStandaloneTypes.h"
 #include "EditorActorFolders.h"
 #include "Core/LGUISettings.h"

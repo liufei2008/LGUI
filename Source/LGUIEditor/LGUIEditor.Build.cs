@@ -33,14 +33,10 @@ public class LGUIEditor : ModuleRules
                 "DesktopPlatform",//file system
                 "ImageWrapper",//texture load
                 "InputCore",//STableRow
-                "Json",//json
-                "JsonUtilities",//json
                 "AssetTools",//Asset editor
-                "KismetWidgets",
                 "ContentBrowser",//LGUI editor
                 "SceneOutliner",//LGUIPrefab editor, extend SceneOutliner
                 "ApplicationCore",//ClipboardCopy
-                "BlueprintGraph",//K2Node
                 "KismetCompiler",
                 "AppFramework",
                 //"AssetRegistry",

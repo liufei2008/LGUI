@@ -10,6 +10,7 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "LGUIEditorTools.h"
+#include "LGUIHeaders.h"
 
 #define LOCTEXT_NAMESPACE "LGUIFontDataCustomization"
 

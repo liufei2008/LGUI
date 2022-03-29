@@ -2,7 +2,7 @@
 
 #include "DetailCustomization/UISpriteBaseCustomization.h"
 #include "LGUIEditorUtils.h"
-#include "Core/ActorComponent/UISpriteBase.h"
+#include "LGUIHeaders.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"

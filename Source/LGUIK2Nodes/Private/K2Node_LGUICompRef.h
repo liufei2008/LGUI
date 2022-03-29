@@ -13,7 +13,7 @@ class UEdGraphPin;
 struct FEdGraphPinType;
 
 UCLASS()
-class LGUIEDITOR_API UK2Node_LGUICompRef_GetComponent : public UK2Node
+class LGUIK2NODES_API UK2Node_LGUICompRef_GetComponent : public UK2Node
 {
 	GENERATED_BODY()
 public:

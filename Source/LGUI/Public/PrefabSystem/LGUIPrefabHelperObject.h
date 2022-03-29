@@ -4,12 +4,9 @@
 
 #include "LGUI.h"
 #include "Components/SceneComponent.h"
+#include "LGUIPrefab.h"
 #include "LGUIPrefabHelperObject.generated.h"
 
-class ULGUIPrefab;
-class ULGUIPrefabOverrideParameterObject;
-struct FLGUISubPrefabData;
-struct FLGUIPrefabOverrideParameterData;
 class AActor;
 
 /**
