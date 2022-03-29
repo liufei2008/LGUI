@@ -40,7 +40,6 @@ void UUIText::ApplyFontTextureScaleUp()
 			auto& uv = vertices[i].TextureCoordinate[0];
 			uv *= 0.5f;
 		}
-		MarkUVDirty();
 	}
 	geometry->texture = font->GetFontTexture();
 	if (RenderCanvas.IsValid())
@@ -52,6 +51,7 @@ void UUIText::ApplyFontTextureScaleUp()
 			drawcall->needToUpdateVertex = true;
 		}
 	}
+	MarkVerticesDirty(false, true, true, false);
 	MarkCanvasUpdate(true, true, false);
 }
 

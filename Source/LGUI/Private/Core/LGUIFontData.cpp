@@ -486,21 +486,16 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 			ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
 				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
-				//copy old texture pixels
-				if (oldTextureSize != 0)
-				{
-					FRHICopyTextureInfo CopyInfo;
-					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
-					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
-					CopyInfo.DestPosition = FIntVector(0, 0, 0);
-					RHICmdList.CopyTexture(
-						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
-						CopyInfo
-					);
-					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.
-					oldTexture->RemoveFromRoot();//ready for gc
-				}
+				FRHICopyTextureInfo CopyInfo;
+				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+				CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
+				CopyInfo.DestPosition = FIntVector(0, 0, 0);
+				RHICmdList.CopyTexture(
+					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
+					((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+					CopyInfo
+				);
+				oldTexture->RemoveFromRoot();//ready for gc
 			});
 		}
 	}

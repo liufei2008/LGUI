@@ -47,7 +47,6 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 			uv.TextureCoordinate[0].X *= 0.5f;
 			uv.TextureCoordinate[0].Y *= 0.5f;
 		}
-		MarkUVDirty();
 	}
 	geometry->texture = sprite->GetAtlasTexture();
 	if (RenderCanvas.IsValid())
@@ -59,6 +58,8 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 			drawcall->needToUpdateVertex = true;
 		}
 	}
+	MarkVerticesDirty(false, true, true, false);
+	MarkCanvasUpdate(true, true, false);
 }
 
 void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSize)
