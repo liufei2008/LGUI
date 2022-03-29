@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UIItemCustomization.h"
-#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Widgets/Layout/Anchors.h"
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
@@ -9,17 +8,16 @@
 #include "IDetailGroup.h"
 #include "LGUIEditorStyle.h"
 #include "Editor.h"
-#include "Core/Actor/LGUIManagerActor.h"
 #include "Widget/ComponentTransformDetails.h"
 #include "Widget/AnchorPreviewWidget.h"
 #include "PropertyCustomizationHelpers.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "EditorViewportClient.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "LGUIEditorUtils.h"
 #include "LGUIEditorTools.h"
 #include "Layout/UILayoutBase.h"
 #include "Layout/UILayoutElement.h"
+#include "LGUIHeaders.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"

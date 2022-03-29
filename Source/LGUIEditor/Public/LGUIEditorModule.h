@@ -10,8 +10,6 @@
 #include "IDetailsView.h"
 #include "PropertyHandle.h"
 
-#include "LGUIHeaders.h"
-
 class FToolBarBuilder;
 class FMenuBuilder;
 DECLARE_LOG_CATEGORY_EXTERN(LGUIEditor, Log, All);
@@ -78,5 +76,5 @@ private:
 	FDelegateHandle SequenceEditorHandle;
 	FDelegateHandle OnInitializeSequenceHandle;
 	FName LGUIPrefabSequenceComponentName;
-	static void OnInitializeSequence(ULGUIPrefabSequence* Sequence);
+	static void OnInitializeSequence(class ULGUIPrefabSequence* Sequence);
 };

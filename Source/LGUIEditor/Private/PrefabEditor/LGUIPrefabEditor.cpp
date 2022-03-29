@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "LGUIPrefabEditor.h"
-#include "PrefabSystem/LGUIPrefab.h"
 #include "LGUIEditorModule.h"
 #include "LGUIPrefabEditorViewport.h"
 #include "LGUIPrefabPreviewScene.h"
@@ -18,8 +17,6 @@
 #include "LGUIPrefabEditorCommand.h"
 #include "Framework/MultiBox/MultiBoxExtender.h"
 #include "LGUIEditorTools.h"
-#include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "Engine/Selection.h"
 #include "ToolMenus.h"
 #include "LGUIEditorUtils.h"
@@ -28,6 +25,7 @@
 #include "EditorStyleSet.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "LGUIHeaders.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
