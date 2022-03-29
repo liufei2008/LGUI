@@ -21,6 +21,11 @@
 		},
 		{
 			"Name": "LGUIEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "LGUIK2Nodes",
 			"Type": "UncookedOnly",
 			"LoadingPhase": "Default"
 		},

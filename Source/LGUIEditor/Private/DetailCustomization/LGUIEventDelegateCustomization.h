@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 #include "CoreMinimal.h"
 #include "IPropertyTypeCustomization.h"
+#include "Event/LGUIEventDelegate.h"
 #pragma once
 
 

@@ -1,9 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
-#include "K2Node/K2Node_LGUICompRef.h"
-
-#include "LGUIComponentReference.h"
-#include "LGUIEditorModule.h"
-
+#include "K2Node_LGUICompRef.h"
+#include "LGUIHeaders.h"
 #include "EdGraphSchema_K2.h"
 #include "KismetCompiler.h"
 #include "KismetCompilerMisc.h"
