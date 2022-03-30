@@ -481,12 +481,19 @@ void ULGUIRenderTargetGeometrySource::PostEditChangeProperty(FPropertyChangedEve
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (auto Property = PropertyChangedEvent.Property)
+	if (auto Property = PropertyChangedEvent.MemberProperty)
 	{
 		auto PropertyName = Property->GetName();
 		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, CylinderArcAngle))
 		{
 			CylinderArcAngle = FMath::Sign(CylinderArcAngle) * FMath::Clamp(FMath::Abs(CylinderArcAngle), 1.0f, 180.0f);
+		}
+		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTargetGeometrySource, TargetCanvas))
+		{
+			if (!TargetCanvas.IsValidComponentReference())
+			{
+				TargetCanvasObject = nullptr;
+			}
 		}
 	}
 }
@@ -494,6 +501,10 @@ void ULGUIRenderTargetGeometrySource::PostEditChangeProperty(FPropertyChangedEve
 
 ULGUICanvas* ULGUIRenderTargetGeometrySource::GetCanvas()const
 {
+	if (TargetCanvasObject.IsValid())
+	{
+		return TargetCanvasObject.Get();
+	}
 	if (!TargetCanvas.IsValidComponentReference())
 	{
 		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas not valid!"));
@@ -515,7 +526,27 @@ ULGUICanvas* ULGUIRenderTargetGeometrySource::GetCanvas()const
 		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
 		return nullptr;
 	}
+	TargetCanvasObject = Canvas;
 	return Canvas;
+}
+
+void ULGUIRenderTargetGeometrySource::SetCanvas(ULGUICanvas* Value)
+{
+	if (TargetCanvasObject.Get() != Value)
+	{
+		if (!Value->IsRootCanvas())
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::SetCanvas]TargetCanvas must be a root canvas!"));
+			return;
+		}
+		if (Value->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Value->GetRenderTarget()))
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::SetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
+			return;
+		}
+		TargetCanvasObject = Value;
+		MarkRenderStateDirty();
+	}
 }
 
 void ULGUIRenderTargetGeometrySource::SetGeometryMode(ELGUIRenderTargetGeometryMode Value)
@@ -573,7 +604,10 @@ FIntPoint ULGUIRenderTargetGeometrySource::GetRenderTargetSize()const
 {
 	if (auto Canvas = GetCanvas())
 	{
-		return FIntPoint(Canvas->GetRenderTarget()->GetSurfaceWidth(), Canvas->GetRenderTarget()->GetSurfaceHeight());
+		if (auto RenderTarget = GetRenderTarget())
+		{
+			return FIntPoint(RenderTarget->GetSurfaceWidth(), RenderTarget->GetSurfaceHeight());
+		}
 	}
 	return FIntPoint(2, 2);
 }
