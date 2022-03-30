@@ -78,6 +78,10 @@ AActor* FLGUIComponentReference::GetActor()const
 
 bool FLGUIComponentReference::IsValidComponentReference()const
 {
+#if WITH_EDITOR
+	return IsValid(HelperActor) && IsValid(TargetComp);
+#else
 	return IsValid(TargetComp);
+#endif
 }
 
