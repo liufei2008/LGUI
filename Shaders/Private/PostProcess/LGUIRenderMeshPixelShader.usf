@@ -6,7 +6,7 @@ float4 _RectClipOffsetAndSize;
 float4 _RectClipFeather;
 float RectClip(float3 pos, float2 offset, float2 size, float2 feather)
 {
-    return (1.0f - saturate((abs(pos.x - offset.x) - size.x) / feather.x)) * (1.0f - saturate((abs(pos.y - offset.y) - size.y) / feather.y));
+    return (1.0f - saturate((abs(pos.y - offset.x) - size.x) / feather.x)) * (1.0f - saturate((abs(pos.z - offset.y) - size.y) / feather.y));
 }
 #endif
 #if LGUI_TEXTURE_CLIP
@@ -15,7 +15,7 @@ Texture2D _ClipTex;
 SamplerState _ClipTexSampler;
 float TextureClip(float3 pos, float2 offset, float2 size)
 {
-    float2 uv = (pos.xy - offset) / size;
+    float2 uv = (pos.yz - offset) / size;
     uv.y = 1.0 - uv.y;
     return _ClipTex.Sample(_ClipTexSampler, uv).r;
 }
