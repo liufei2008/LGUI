@@ -57,6 +57,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bFlipVerticalOnGLES = true;
 	TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
+	mutable TWeakObjectPtr<class ULGUICanvas> TargetCanvasObject = nullptr;
 
 
 	/** The body setup of the displayed quad */
@@ -96,7 +97,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUICanvas* GetCanvas()const;
-
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUIRenderTargetGeometryMode GetGeometryMode()const { return GeometryMode; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -110,6 +110,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetFlipVerticalOnGLES()const { return bFlipVerticalOnGLES; }
 
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetCanvas(ULGUICanvas* Value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetGeometryMode(ELGUIRenderTargetGeometryMode Value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
