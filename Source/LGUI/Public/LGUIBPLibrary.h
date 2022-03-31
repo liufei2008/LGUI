@@ -14,6 +14,7 @@
 class UUIItem;
 class UUIBaseRenderable;
 class UUISector;
+class ULGUIPrefab;
 
 UCLASS()
 class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary

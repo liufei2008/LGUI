@@ -7,10 +7,9 @@
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/ActorComponent/UIText.h"
-#include "Engine/Engine.h"
 #include "Framework/Application/SlateApplication.h"
 #include "LGUI.h"
+#include "PrefabSystem/LGUIPrefab.h"
 
 void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
