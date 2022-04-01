@@ -104,71 +104,67 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTa
 	return RenderTargetViewExtension;
 }
 
-void ULGUICanvas::UpdateCanvas()
+void ULGUICanvas::UpdateRootCanvas()
 {
-	if (!bCanTickUpdate)return;
-
-	if (CheckUIItem())
+	if (ensure(this == RootCanvas))
 	{
-		/**
-		 * Why use bPrevUIItemIsActive?:
-		 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
-		 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
-		 */
-		bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
-		if (bNowUIItemIsActive || bPrevUIItemIsActive)
+		if (bCurrentIsLGUIRendererOrUERenderer)
 		{
-			bPrevUIItemIsActive = bNowUIItemIsActive;
-			if (this == RootCanvas)
+			switch (GetActualRenderMode())
 			{
-				if (bCurrentIsLGUIRendererOrUERenderer)
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+			{
+				if (!bHasAddToLGUIScreenSpaceRenderer)
 				{
-					switch (GetActualRenderMode())
-					{
-					case ELGUIRenderMode::ScreenSpaceOverlay:
-					{
-						if (!bHasAddToLGUIScreenSpaceRenderer)
-						{
-							TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-							if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
-							{
-
-							}
-							else
-#endif
-							{
-								ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-							}
-
-							if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
-							{
-								ViewExtension->SetScreenSpaceRenderCanvas(this);
-								bHasAddToLGUIScreenSpaceRenderer = true;
-							}
-						}
-					}
-					break;
-					case ELGUIRenderMode::RenderTarget:
+					if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
 					{
-						if (!bHasAddToLGUIScreenSpaceRenderer)
-						{
-							if (IsValid(renderTarget))
-							{
-								GetRenderTargetViewExtension();
-								RenderTargetViewExtension->SetScreenSpaceRenderCanvas(this);
-								RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
-								bHasAddToLGUIScreenSpaceRenderer = true;
-							}
-						}
+
 					}
-					break;
+					else
+#endif
+					{
+						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+					}
+
+					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
+					{
+						ViewExtension->SetScreenSpaceRenderCanvas(this);
+						bHasAddToLGUIScreenSpaceRenderer = true;
 					}
 				}
 			}
-
-			if (!this->IsRenderByOtherCanvas())//if is render by other canvas then skip update
+			break;
+			case ELGUIRenderMode::RenderTarget:
 			{
+				if (!bHasAddToLGUIScreenSpaceRenderer)
+				{
+					if (IsValid(renderTarget))
+					{
+						GetRenderTargetViewExtension();
+						RenderTargetViewExtension->SetScreenSpaceRenderCanvas(this);
+						RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
+						bHasAddToLGUIScreenSpaceRenderer = true;
+					}
+				}
+			}
+			break;
+			}
+		}
+
+		if (CheckUIItem())
+		{
+			/**
+			 * Why use bPrevUIItemIsActive?:
+			 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
+			 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
+			 */
+			bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
+			if (bNowUIItemIsActive || bPrevUIItemIsActive)
+			{
+				bPrevUIItemIsActive = bNowUIItemIsActive;
+
 				UpdateCanvasDrawcallRecursive();
 				MarkFinishRenderFrameRecursive();
 			}
@@ -284,30 +280,27 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 
 void ULGUICanvas::ClearDrawcall()
 {
-	if (!this->IsRenderByOtherCanvas())
+	for (auto item : PooledUIMeshList)
 	{
-		for (auto item : PooledUIMeshList)
+		if (item.IsValid())
 		{
-			if (item.IsValid())
-			{
-				item->ClearAllMeshSection();
-				item->DestroyComponent();
-			}
+			item->ClearAllMeshSection();
+			item->DestroyComponent();
 		}
-		PooledUIMeshList.Empty();
-		for (auto item : UsingUIMeshList)
-		{
-			if (item.IsValid())
-			{
-				item->DestroyComponent();
-			}
-		}
-		UsingUIMeshList.Empty();
-
-		PooledUIMaterialList.Empty();
-		UIDrawcallList.Empty();
-		CacheUIDrawcallList.Empty();
 	}
+	PooledUIMeshList.Empty();
+	for (auto item : UsingUIMeshList)
+	{
+		if (item.IsValid())
+		{
+			item->DestroyComponent();
+		}
+	}
+	UsingUIMeshList.Empty();
+
+	PooledUIMaterialList.Empty();
+	UIDrawcallList.Empty();
+	CacheUIDrawcallList.Empty();
 }
 
 void ULGUICanvas::RemoveFromViewExtension()
@@ -517,16 +510,13 @@ bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
 void ULGUICanvas::MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall)
 {
 	this->bCanTickUpdate = true;
-	this->GetActualRenderCanvas()->bCanTickUpdate = true;
 	if (bMaterialOrTextureChanged || bTransformOrVertexPositionChanged || bHierarchyOrderChanged || bForceRebuildDrawcall)
 	{
 		this->bShouldRebuildDrawcall = true;
-		this->GetActualRenderCanvas()->bShouldRebuildDrawcall = true;
 	}
 	if (bHierarchyOrderChanged)
 	{
 		this->bShouldSortRenderableOrder = true;
-		this->GetActualRenderCanvas()->bShouldSortRenderableOrder = true;
 	}
 }
 
@@ -637,7 +627,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 
 void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 {
-	auto& ActualUIDrawcallList = this->GetActualRenderCanvas()->UIDrawcallList;
 	if (UIRenderableList.Remove(UIRenderableItem) > 0)
 	{
 		auto Drawcall = UIRenderableItem->drawcall;
@@ -722,10 +711,6 @@ void ULGUICanvas::UpdateGeometry_Implement()
 		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{
 			auto ChildRenderCanvas = Item->GetRenderCanvas();
-			if (ChildRenderCanvas->IsRenderByOtherCanvas())
-			{
-				ChildRenderCanvas->UpdateGeometry_Implement();
-			}
 		}
 		else
 		{
@@ -736,7 +721,7 @@ void ULGUICanvas::UpdateGeometry_Implement()
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas BatchDrawcall"), STAT_BatchDrawcall, STATGROUP_LGUI);
-void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
+void ULGUICanvas::BatchDrawcall_Implement(const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
 	SCOPE_CYCLE_COUNTER(STAT_BatchDrawcall);
 	
@@ -785,7 +770,6 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 	};
 
 	int FitInDrawcallMinIndex = InUIDrawcallList.Num();//0 means the first canvas that processing drawcall. if not 0 means this is child canvas, then we should skip the previours canvas when batch drawcall, because child canvas's UI element can't batch into other canvas's drawcall
-
 	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, int32 InUIItemVerticesCount, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
 	{
 		auto LastDrawcallIndex = InUIDrawcallList.Num() - 1;
@@ -942,7 +926,6 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 		{
 			((UUIBaseRenderable*)InUIItem)->drawcall = DrawcallItem;
 		}
-		DrawcallItem->manageCanvas = this;
 		InUIDrawcallList.Add(DrawcallItem);
 
 		if (FoundDrawcallIndex != 0)//if not find drawcall or found drawcall not at head of array, means drawcall list's order is changed compare to cache list, then we need to sort render order
@@ -951,7 +934,7 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 		}
 		//OutNeedToSortRenderPriority = true;//@todo: this line could make it sort every time, which is not good performance
 	};
-	auto ClearDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable, const FLGUICacheTransformContainer& InItemToCanvasTf) {
+	auto ClearObjectFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable, const FLGUICacheTransformContainer& InItemToCanvasTf) {
 		if (InDrawcallItem->drawcallMesh.IsValid())
 		{
 			if (InDrawcallItem->drawcallMeshSection.IsValid())
@@ -966,7 +949,30 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 		InDrawcallItem->renderObjectList.RemoveAt(index);
 		InUIBatchGeometryRenderable->drawcall = nullptr;
 	};
+	auto RemoveDrawcallWhenBreakMeshSequence = [&](int InStartIndex) {
+		for (int DrawcallIndex = InStartIndex; DrawcallIndex < InUIDrawcallList.Num(); DrawcallIndex++)
+		{
+			auto DrawcallItem = InUIDrawcallList[DrawcallIndex];
+			if (DrawcallItem->drawcallMesh.IsValid())
+			{
+				for (int CacheDrawcallIndex = 0; CacheDrawcallIndex < InCacheUIDrawcallList.Num(); CacheDrawcallIndex++)
+				{
+					auto CacheDrawcallItem = InCacheUIDrawcallList[CacheDrawcallIndex];
+					if (DrawcallItem->drawcallMesh == CacheDrawcallItem->drawcallMesh)
+					{
+						if (CacheDrawcallItem->drawcallMeshSection.IsValid())
+						{
+							DrawcallItem->drawcallMesh->DeleteMeshSection(CacheDrawcallItem->drawcallMeshSection.Pin());
+						}
+						CacheDrawcallItem->drawcallMesh = nullptr;
+						CacheDrawcallItem->drawcallMeshSection = nullptr;
+					}
+				}
+			}
+		}
+	};
 
+	int MeshStartDrawcallIndex = 0;
 	//for sorted ui items, iterate from head to tail, compare drawcall from tail to head
 	for (int i = 0; i < UIRenderableList.Num(); i++)
 	{
@@ -976,18 +982,49 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 		
 		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{
-			auto ChildRenderCanvas = Item->GetRenderCanvas();
-			if (ChildRenderCanvas->IsRenderByOtherCanvas())
+			auto ChildCanvas = Item->GetRenderCanvas();
+			if (!ChildCanvas->GetOverrideSorting())
 			{
-				ChildRenderCanvas->BatchDrawcall_Implement(InRenderCanvas, InRenderCanvasLeftBottomPoint, InRenderCanvasRightTopPoint, InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
-				FitInDrawcallMinIndex = InUIDrawcallList.Num();//after children drawcall, update this index so parent's UI element will not batch into children's drawcall
+				RemoveDrawcallWhenBreakMeshSequence(MeshStartDrawcallIndex);
+
+				if (InCacheUIDrawcallList.Num() > 0)
+				{
+					int FoundIndex = InCacheUIDrawcallList.IndexOfByPredicate([ChildCanvas](const TSharedPtr<UUIDrawcall>& CacheDrawcallItem) {
+						return CacheDrawcallItem->type == EUIDrawcallType::ChildCanvas && CacheDrawcallItem->childCanvas == ChildCanvas;
+						});
+					if (FoundIndex != INDEX_NONE)
+					{
+						InUIDrawcallList.Add(InCacheUIDrawcallList[FoundIndex]);
+						InCacheUIDrawcallList.RemoveAt(FoundIndex);
+					}
+					else
+					{
+						auto ChildCanvasDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall(EUIDrawcallType::ChildCanvas));
+						ChildCanvasDrawcall->childCanvas = ChildCanvas;
+						InUIDrawcallList.Add(ChildCanvasDrawcall);
+					}
+					if (FoundIndex != 0)//if not find drawcall or found drawcall not at head of array, means drawcall list's order is changed compare to cache list, then we need to sort render order
+					{
+						OutNeedToSortRenderPriority = true;
+					}
+				}
+				else
+				{
+					auto ChildCanvasDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall(EUIDrawcallType::ChildCanvas));
+					ChildCanvasDrawcall->childCanvas = ChildCanvas;
+					InUIDrawcallList.Add(ChildCanvasDrawcall);
+					OutNeedToSortRenderPriority = true;
+				}
+
+				FitInDrawcallMinIndex = InUIDrawcallList.Num();
+				MeshStartDrawcallIndex = InUIDrawcallList.Num();
 			}
 		}
 		else
 		{
 			auto UIRenderableItem = (UUIBaseRenderable*)(Item);
 			FLGUICacheTransformContainer UIItemToCanvasTf;
-			InRenderCanvas->GetCacheUIItemToCanvasTransform(UIRenderableItem, UIItemToCanvasTf);
+			this->GetCacheUIItemToCanvasTransform(UIRenderableItem, UIItemToCanvasTf);
 			bool is2DUIItem = Is2DUITransform(UIItemToCanvasTf.Transform);
 			switch (UIRenderableItem->GetUIRenderableType())
 			{
@@ -1017,7 +1054,7 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 						auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
 						if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 						{
-							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
+							ClearObjectFromDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
 						}
 						//add to this drawcall
 						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
@@ -1039,9 +1076,9 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 					auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
 					if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 					{
-						if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall. if not exist, then just add the entire drawcall to list
+						if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall.
 						{
-							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
+							ClearObjectFromDrawcall(OldDrawcall, UIBatchGeometryRenderableItem, UIItemToCanvasTf);
 						}
 					}
 					//make a new drawacll
@@ -1059,6 +1096,10 @@ void ULGUICanvas::BatchDrawcall_Implement(ULGUICanvas* InRenderCanvas, const FVe
 				//every postprocess is a drawcall
 				PushSingleDrawcall(UIRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess, UIItemToCanvasTf);
 				//no need to copy drawcall's update data for UIPostProcessRenderable, because UIPostProcessRenderable's drawcall should be the same as previours one
+
+				RemoveDrawcallWhenBreakMeshSequence(MeshStartDrawcallIndex);
+				FitInDrawcallMinIndex = InUIDrawcallList.Num();
+				MeshStartDrawcallIndex = InUIDrawcallList.Num();
 			}
 			break;
 			case EUIRenderableType::UIDirectMeshRenderable:
@@ -1145,32 +1186,6 @@ void ULGUICanvas::SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue)
 	}
 }
 
-ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(int32 InStartIndex)
-{
-	for (auto i = InStartIndex; i < UIDrawcallList.Num(); i++)
-	{
-		auto DrawcallItem = UIDrawcallList[i];
-		switch (DrawcallItem->type)
-		{
-		case EUIDrawcallType::DirectMesh:
-		case EUIDrawcallType::BatchGeometry:
-		{
-			if (DrawcallItem->drawcallMesh.IsValid())
-			{
-				return DrawcallItem->drawcallMesh.Get();
-			}
-		}
-		break;
-		case EUIDrawcallType::PostProcess:
-		{
-			return nullptr;
-		}
-		break;
-		}
-	}
-	return nullptr;
-}
-
 void ULGUICanvas::MarkFinishRenderFrameRecursive()
 {
 	//mark children canvas
@@ -1190,47 +1205,21 @@ void ULGUICanvas::MarkFinishRenderFrameRecursive()
 
 void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 {
-	//update children canvas
-	for (auto item : ChildrenCanvasArray)
+	/**
+	 * Why use bPrevUIItemIsActive?:
+	 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
+	 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
+	 */
+	bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
+	if (bNowUIItemIsActive || bPrevUIItemIsActive)
 	{
-		if (item.IsValid() && item->GetIsUIActive())
+		bPrevUIItemIsActive = bNowUIItemIsActive;
+		//update children canvas
+		for (auto& item : ChildrenCanvasArray)
 		{
-			item->UpdateCanvasDrawcallRecursive();
-		}
-	}
-
-	//reset transform map, because transform change
-	CacheUIItemToCanvasTransformMap.Reset();
-
-	if (this->IsRenderByOtherCanvas())//if is render by other canvas then skip drawcall creation
-	{
-		return;
-	}
-
-	//check if add to renderer
-	if (bCurrentIsLGUIRendererOrUERenderer)
-	{
-		if (!bHasAddToLGUIWorldSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
-		{
-			TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())//editor world
+			if (item.IsValid())
 			{
-				if (GetWorld()->WorldType != EWorldType::EditorPreview)
-				{
-					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-				}
-			}
-			else
-#endif
-			{
-				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-			}
-
-			if (ViewExtension.IsValid())//all WorldSpace_LGUI canvas should add to LGUIRenderer
-			{
-				ViewExtension->AddWorldSpaceRenderCanvas(this);
-				bHasAddToLGUIWorldSpaceRenderer = true;
+				item->UpdateCanvasDrawcallRecursive();
 			}
 		}
 	}
@@ -1239,9 +1228,37 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	if (bCanTickUpdate)
 	{
 		bCanTickUpdate = false;
-#if !UE_BUILD_SHIPPING
-		check(!this->IsRenderByOtherCanvas());
+
+		//reset transform map, because transform change
+		CacheUIItemToCanvasTransformMap.Reset();
+
+		//check if add to renderer
+		if (bCurrentIsLGUIRendererOrUERenderer)
+		{
+			if (!bHasAddToLGUIWorldSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
+			{
+				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())//editor world
+				{
+					if (GetWorld()->WorldType != EWorldType::EditorPreview)
+					{
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+					}
+				}
+				else
 #endif
+				{
+					ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+				}
+
+				if (ViewExtension.IsValid())//all WorldSpace_LGUI canvas should add to LGUIRenderer
+				{
+					ViewExtension->AddWorldSpaceRenderCanvas(this);
+					bHasAddToLGUIWorldSpaceRenderer = true;
+				}
+			}
+		}
 
 		UpdateGeometry_Implement();
 
@@ -1260,7 +1277,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
 			auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
 			bool bOutNeedToSortRenderPriority = bNeedToSortRenderPriority;
-			BatchDrawcall_Implement(this, WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
+			BatchDrawcall_Implement(WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
 				, bOutNeedToSortRenderPriority//cannot pass a uint32:1 here, so use a temp bool
 			);
 			bNeedToSortRenderPriority = bOutNeedToSortRenderPriority;
@@ -1296,10 +1313,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 				}
 				if (DrawcallInCache->materialInstanceDynamic.IsValid())
 				{
-					if (DrawcallInCache->manageCanvas.IsValid())//manageCanvas could be destroyed before UpdateDrawcall
-					{
-						DrawcallInCache->manageCanvas->AddUIMaterialToPool(DrawcallInCache->materialInstanceDynamic.Get());
-					}
+					this->AddUIMaterialToPool(DrawcallInCache->materialInstanceDynamic.Get());
 					DrawcallInCache->materialInstanceDynamic.Reset();
 				}
 				if (DrawcallInCache->postProcessRenderableObject.IsValid())
@@ -1316,13 +1330,13 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 			CacheUIDrawcallList.Reset();
 		}
+
+		//update drawcall mesh
+		UpdateDrawcallMesh_Implement();
+
+		//update drawcall material
+		UpdateDrawcallMaterial_Implement();
 	}
-
-	//update drawcall mesh
-	UpdateDrawcallMesh_Implement();
-
-	//update drawcall material
-	UpdateDrawcallMaterial_Implement();
 
 	//sort render priority
 	{
@@ -1380,21 +1394,34 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcallMesh);
 
-	ULGUIMeshComponent* prevUIMesh = nullptr;
-	if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)//WorldSpace-UE-Renderer only have one drawcall mesh, so we just get the first one
+	auto FindNextValidMeshInDrawcallList = [&](int32 InStartIndex)
 	{
-		check(UsingUIMeshList.Num() <= 1);
-		if (UsingUIMeshList.Num() == 1)
+		for (auto i = InStartIndex; i < UIDrawcallList.Num(); i++)
 		{
-			prevUIMesh = UsingUIMeshList[0].Get();
+			auto DrawcallItem = UIDrawcallList[i];
+			switch (DrawcallItem->type)
+			{
+			case EUIDrawcallType::DirectMesh:
+			case EUIDrawcallType::BatchGeometry:
+			{
+				if (DrawcallItem->drawcallMesh.IsValid())
+				{
+					return DrawcallItem->drawcallMesh.Get();
+				}
+			}
+			break;
+			case EUIDrawcallType::PostProcess:
+			case EUIDrawcallType::ChildCanvas:
+			{
+				return (ULGUIMeshComponent*)nullptr;
+			}
+			break;
+			}
 		}
-		else
-		{
-			prevUIMesh = this->GetUIMeshFromPool().Get();
-		}
-	}
+		return (ULGUIMeshComponent*)nullptr;
+	};
 
-
+	ULGUIMeshComponent* CurrentUIMesh = nullptr;
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -1406,22 +1433,28 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		{
 			if (!DrawcallItem->drawcallMesh.IsValid())
 			{
-				if (prevUIMesh == nullptr)
+				if (CurrentUIMesh == nullptr)
 				{
 					//if drawcall mesh is not valid, we need to search in next drawcalls and find mesh drawcall object (not post process drawcall)
 					if (auto foundMesh = FindNextValidMeshInDrawcallList(i + 1))
 					{
-						prevUIMesh = foundMesh;
+						CurrentUIMesh = foundMesh;
 					}
 					else//not find valid mesh, then get from pool
 					{
-						prevUIMesh = this->GetUIMeshFromPool().Get();
+						CurrentUIMesh = this->GetUIMeshFromPool().Get();
 					}
 				}
-				DrawcallItem->drawcallMesh = prevUIMesh;
+				DrawcallItem->drawcallMesh = CurrentUIMesh;
 				//create new mesh, need to sort it
 				bNeedToSortRenderPriority = true;
 			}
+		}
+		break;
+		case EUIDrawcallType::PostProcess:
+		case EUIDrawcallType::ChildCanvas:
+		{
+			CurrentUIMesh = nullptr;
 		}
 		break;
 		}
@@ -1443,7 +1476,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				//create new mesh section, need to sort it
 				bNeedToSortRenderPriority = true;
 			}
-			prevUIMesh = DrawcallItem->drawcallMesh.Get();
+			CurrentUIMesh = DrawcallItem->drawcallMesh.Get();
 		}
 		break;
 		case EUIDrawcallType::BatchGeometry:
@@ -1484,7 +1517,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				DrawcallItem->needToUpdateVertex = false;
 				DrawcallItem->vertexPositionChanged = false;
 			}
-			prevUIMesh = DrawcallItem->drawcallMesh.Get();
+			CurrentUIMesh = DrawcallItem->drawcallMesh.Get();
 		}
 		break;
 		case EUIDrawcallType::PostProcess:
@@ -1499,7 +1532,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				}
 				else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
 				{
-					prevUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
+					CurrentUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
 				}
 			}
 			else
@@ -1512,7 +1545,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				}
 				else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
 				{
-					prevUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
+					CurrentUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
 				}
 			}
 
@@ -1590,36 +1623,6 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		}
 		break;
 		}
-	}
-}
-
-bool ULGUICanvas::IsRenderByOtherCanvas()const
-{
-	if (this->IsRootCanvas())
-	{
-		return false;
-	}
-	else
-	{
-		return
-			this->ParentCanvas.IsValid()
-
-			&& !this->GetForceSelfRender()
-			&& !this->GetOverrideSorting()
-			&& !this->GetOverrideAddionalShaderChannel()
-			;
-	}
-}
-
-ULGUICanvas* ULGUICanvas::GetActualRenderCanvas()const
-{
-	if (this->IsRenderByOtherCanvas())
-	{
-		return this->ParentCanvas->GetActualRenderCanvas();
-	}
-	else
-	{
-		return (ULGUICanvas*)this;
 	}
 }
 
@@ -1728,8 +1731,10 @@ void ULGUICanvas::AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh)
 	}
 }
 
-void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority)
+void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& InOutProcessedCanvasArray)
 {
+	InOutProcessedCanvasArray.Add(this);
+
 	ULGUIMeshComponent* prevUIMesh = nullptr;
 	int drawcallIndex = 0;
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
@@ -1763,6 +1768,11 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority)
 		case EUIDrawcallType::PostProcess:
 		{
 			DrawcallItem->postProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(InOutRenderPriority++);
+		}
+		break;
+		case EUIDrawcallType::ChildCanvas:
+		{
+			DrawcallItem->childCanvas->SortDrawcall(InOutRenderPriority, InOutProcessedCanvasArray);
 		}
 		break;
 		}
@@ -1835,11 +1845,11 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
-		auto TempClipType = DrawcallItem->manageCanvas->GetActualClipType();
+		auto TempClipType = this->GetActualClipType();
 		if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 		{
 			auto UIMat = DrawcallItem->materialInstanceDynamic;
-			if (!UIMat.IsValid() || DrawcallItem->materialChanged || DrawcallItem->manageCanvas->bClipTypeChanged)
+			if (!UIMat.IsValid() || DrawcallItem->materialChanged || this->bClipTypeChanged)
 			{
 				if (DrawcallItem->material.IsValid())//custom material
 				{
@@ -1869,7 +1879,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				}
 				else
 				{
-					UIMat = DrawcallItem->manageCanvas->GetUIMaterialFromPool(TempClipType);
+					UIMat = this->GetUIMaterialFromPool(TempClipType);
 					DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), UIMat.Get());
 				}
 				DrawcallItem->materialInstanceDynamic = UIMat;
@@ -1895,7 +1905,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		}
 		else if (DrawcallItem->type == EUIDrawcallType::PostProcess)
 		{
-			if (DrawcallItem->manageCanvas->bClipTypeChanged
+			if (this->bClipTypeChanged
 				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
@@ -1909,7 +1919,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		}
 		else if (DrawcallItem->type == EUIDrawcallType::DirectMesh)
 		{
-			if (DrawcallItem->manageCanvas->bClipTypeChanged
+			if (this->bClipTypeChanged
 				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
@@ -1930,10 +1940,10 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		case ELGUICanvasClipType::Rect:
 		{
 			if (bNeedToSetClipParameter
-				|| DrawcallItem->manageCanvas->bRectClipParameterChanged)
+				|| this->bRectClipParameterChanged)
 			{
-				auto TempRectClipOffsetAndSize = DrawcallItem->manageCanvas->GetRectClipOffsetAndSize();
-				auto TempRectClipFeather = DrawcallItem->manageCanvas->GetRectClipFeather();
+				auto TempRectClipOffsetAndSize = this->GetRectClipOffsetAndSize();
+				auto TempRectClipFeather = this->GetRectClipFeather();
 
 				switch (DrawcallItem->type)
 				{
@@ -1971,10 +1981,10 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		case ELGUICanvasClipType::Texture:
 		{
 			if (bNeedToSetClipParameter
-				|| DrawcallItem->manageCanvas->bTextureClipParameterChanged)
+				|| this->bTextureClipParameterChanged)
 			{
-				auto TempTextureClipOffsetAndSize = DrawcallItem->manageCanvas->GetTextureClipOffsetAndSize();
-				auto TempClipTexture = DrawcallItem->manageCanvas->GetClipTexture();
+				auto TempTextureClipOffsetAndSize = this->GetTextureClipOffsetAndSize();
+				auto TempClipTexture = this->GetClipTexture();
 
 				switch (DrawcallItem->type)
 				{
@@ -2075,14 +2085,8 @@ bool ULGUICanvas::IsPointVisible(FVector InWorldPoint)
 	case ELGUICanvasClipType::Rect:
 	{
 		ConditionalCalculateRectRange();
-		//if render by other canvas, we should use that canvas to check point visibility, because clip range is transformed to other canvas.
-		ULGUICanvas* CheckCanvas = this;
-		if (this->IsRenderByOtherCanvas())
-		{
-			CheckCanvas = this->GetActualRenderCanvas();
-		}
 		//transform to local space
-		auto LocalPoint = CheckCanvas->UIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
+		auto LocalPoint = this->UIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
 		//out of range
 		if (LocalPoint.Y < clipRectMin.X) return false;
 		if (LocalPoint.Z < clipRectMin.Y) return false;
@@ -2166,17 +2170,6 @@ void ULGUICanvas::ConditionalCalculateRectRange()
 				clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
 			}
 		}
-		//if render by other canvas, we should transform rect to that canvas space
-		if (this->IsRenderByOtherCanvas())
-		{
-			auto RenderCanvas = this->GetActualRenderCanvas();
-			auto RenderCanvasTfInv = RenderCanvas->UIItem->GetComponentTransform().Inverse();
-			auto ThisTf = this->UIItem->GetComponentTransform();
-			auto ClipRectMinPoint = RenderCanvasTfInv.TransformPosition(ThisTf.TransformPosition(FVector(0, clipRectMin.X, clipRectMin.Y)));
-			clipRectMin = FVector2D(ClipRectMinPoint.Y, ClipRectMinPoint.Z);
-			auto ClipRectMaxPoint = RenderCanvasTfInv.TransformPosition(ThisTf.TransformPosition(FVector(0, clipRectMax.X, clipRectMax.Y)));
-			clipRectMax = FVector2D(ClipRectMaxPoint.Y, ClipRectMaxPoint.Z);
-		}
 	}
 	else
 	{
@@ -2215,15 +2208,6 @@ FLinearColor ULGUICanvas::GetRectClipFeather()
 FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 {
 	auto Offset = FVector2D(UIItem->GetWidth() * -UIItem->GetPivot().X, UIItem->GetHeight() * -UIItem->GetPivot().Y);
-	//if render by other canvas, we should transform offset to that canvas space
-	if (this->IsRenderByOtherCanvas())
-	{
-		auto RenderCanvas = this->GetActualRenderCanvas();
-		auto RenderCanvasTfInv = RenderCanvas->UIItem->GetComponentTransform().Inverse();
-		auto ThisTf = this->UIItem->GetComponentTransform();
-		auto OffsetPoint = RenderCanvasTfInv.TransformPosition(ThisTf.TransformPosition(FVector(0, Offset.X, Offset.Y)));
-		Offset = FVector2D(OffsetPoint.Y, OffsetPoint.Z);
-	}
 	return FLinearColor(Offset.X, Offset.Y, UIItem->GetWidth(), UIItem->GetHeight());
 }
 

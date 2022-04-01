@@ -138,9 +138,9 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	}
 	for (auto& item : AllCanvasArray)
 	{
-		if (item.IsValid())
+		if (item.IsValid() && item->IsRootCanvas())
 		{
-			item->UpdateCanvas();
+			item->UpdateRootCanvas();
 		}
 	}
 
@@ -281,16 +281,19 @@ void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 {
 	int32 RenderPriority = 0;
-	int32 prevSortOrder = INT_MIN;
-	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
+	static TSet<ULGUICanvas*> ProcessedCanvasArray;
+	ProcessedCanvasArray.Reset();
 	for (int i = 0; i < AllCanvasArray.Num(); i++)
 	{
 		auto canvasItem = this->AllCanvasArray[i];
-		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
+		if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				canvasItem->SortDrawcall(RenderPriority);
+				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
+				{
+					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
+				}
 			}
 		}
 	}
@@ -1073,9 +1076,9 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		SCOPE_CYCLE_COUNTER(STAT_UpdateCanvas);
 		for (auto& item : AllCanvasArray)
 		{
-			if (item.IsValid())
+			if (item.IsValid() && item->IsRootCanvas())
 			{
-				item->UpdateCanvas();
+				item->UpdateRootCanvas();
 			}
 		}
 	}
@@ -1126,16 +1129,19 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//@todo: cleanup this function
 {
 	int32 RenderPriority = 0;
-	int32 prevSortOrder = INT_MIN;
-	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
+	static TSet<ULGUICanvas*> ProcessedCanvasArray;
+	ProcessedCanvasArray.Reset();
 	for (int i = 0; i < AllCanvasArray.Num(); i++)
 	{
 		auto canvasItem = this->AllCanvasArray[i];
-		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
+		if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				canvasItem->SortDrawcall(RenderPriority);
+				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
+				{
+					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
+				}
 			}
 		}
 	}
