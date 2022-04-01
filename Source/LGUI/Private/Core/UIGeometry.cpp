@@ -3451,8 +3451,6 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIBaseRenderable* item,
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
 
-	canvas = canvas->GetActualRenderCanvas();//Canvas could be render by other canvas
-
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto vertexCount = vertices.Num();
