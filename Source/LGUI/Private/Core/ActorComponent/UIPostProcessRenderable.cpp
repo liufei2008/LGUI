@@ -169,7 +169,7 @@ void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->RectSize = FVector2D(this->GetWidth(), this->GetHeight());
-		updateData->objectToWorldMatrix = this->RenderCanvas->GetActualRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		updateData->objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
 			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{

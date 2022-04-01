@@ -19,10 +19,10 @@ struct FLGUIMeshSection;
 
 enum class EUIDrawcallType :uint8
 {
-	None,
 	BatchGeometry = 1,
 	PostProcess,
 	DirectMesh,
+	ChildCanvas,
 };
 
 class LGUI_API UUIDrawcall
@@ -45,7 +45,7 @@ public:
 			renderObjectListTreeRootNode = nullptr;
 		}
 	}
-	EUIDrawcallType type = EUIDrawcallType::None;
+	EUIDrawcallType type = EUIDrawcallType::BatchGeometry;
 
 	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;//drawcall use this material to render, can be null to use default material
@@ -73,7 +73,7 @@ public:
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 
-	TWeakObjectPtr<ULGUICanvas> manageCanvas;//this drawcall's manage canvas. a canvas could render by other canvas, but this manageCanvas stores the direct manage canvas, not the actual render canvas
+	TWeakObjectPtr<ULGUICanvas> childCanvas;//insert point to sort child canvas
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
