@@ -22,6 +22,7 @@
 #include "PrefabSystem/ActorSerializer5.h"
 #include "LGUIEditorModule.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
+#include "LGUIHeaders.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
