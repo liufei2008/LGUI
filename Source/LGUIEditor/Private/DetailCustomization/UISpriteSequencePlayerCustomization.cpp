@@ -2,7 +2,7 @@
 
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
 #include "Extensions/UISpriteSequencePlayer.h"
-
+#include "LGUIEditorUtils.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"

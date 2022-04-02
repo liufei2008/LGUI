@@ -7,7 +7,7 @@
 #include "IDetailGroup.h"
 #include "Interaction/UIToggleGroupComponent.h"
 #include "Interaction/UISelectableTransitionComponent.h"
-
+#include "Interaction/UIToggleComponent.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"

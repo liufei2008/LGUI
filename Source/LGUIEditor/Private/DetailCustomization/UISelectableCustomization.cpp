@@ -6,7 +6,8 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "IDetailGroup.h"
 #include "Interaction/UISelectableComponent.h"
-
+#include "Interaction/UISelectableTransitionComponent.h"
+#include "Core/ActorComponent/UISprite.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"

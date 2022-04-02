@@ -3,6 +3,7 @@
 #include "DataFactory/LGUISpriteDataFactory.h"
 #include "LGUIEditorModule.h"
 #include "Core/LGUISettings.h"
+#include "Core/LGUISpriteData.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Sound/SoundCue.h"
