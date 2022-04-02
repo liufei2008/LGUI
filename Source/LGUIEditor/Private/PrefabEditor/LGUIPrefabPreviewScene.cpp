@@ -9,6 +9,8 @@
 #include "Components/SphereReflectionCaptureComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
+#include "Core/ActorComponent/LGUICanvas.h"
+#include "Layout/LGUICanvasScaler.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabPreviewScene"
 

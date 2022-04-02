@@ -102,6 +102,8 @@
 #include "Layout/ILGUILayoutInterface.h"
 
 #include "PrefabSystem/LGUIPrefab.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #include "Utils/LGUIUtils.h"
 

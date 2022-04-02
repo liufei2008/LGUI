@@ -3,7 +3,8 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-
+#include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"

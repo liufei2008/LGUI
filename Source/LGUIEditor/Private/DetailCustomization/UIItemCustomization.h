@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "IDetailCustomization.h"
+#include "Layout/ILGUILayoutInterface.h"
 #include "Widget/AnchorPreviewWidget.h"
 #pragma once
 

@@ -18,6 +18,7 @@
 #include "Core/LGUISettings.h"
 #include "GameFramework/Actor.h"
 #include "EngineUtils.h"
+#include "Utils/LGUIUtils.h"
 #include "UObject/ObjectSaveContext.h"
 
 #define LOCTEXT_NAMESPACE "LGUINativeSceneOutlinerExtension"
