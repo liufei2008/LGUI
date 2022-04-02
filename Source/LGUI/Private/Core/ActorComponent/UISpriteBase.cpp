@@ -69,7 +69,6 @@ void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSiz
 		if((!IsValid(sprite) || !IsValid(newSprite))
 			|| (sprite->GetAtlasTexture() != newSprite->GetAtlasTexture()))
 		{
-			MarkTextureDirty();
 			//remove from old
 			if (IsValid(sprite))
 			{
@@ -84,6 +83,7 @@ void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSiz
 			}
 		}
 		sprite = newSprite;
+		MarkTextureDirty();
 		MarkUVDirty();
 		if (setSize) SetSizeFromSpriteData();
 	}
