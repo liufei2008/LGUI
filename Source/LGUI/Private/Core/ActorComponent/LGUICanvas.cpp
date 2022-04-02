@@ -372,6 +372,7 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 		{
 			ParentCanvas->ChildrenCanvasArray.Remove(this);
 			ParentCanvas->UIRenderableList.Remove(this->UIItem.Get());
+			ParentCanvas->MarkCanvasUpdate(false, false, true, true);
 		}
 		ParentCanvas = InParentCanvas;
 		if (ParentCanvas.IsValid())
@@ -385,8 +386,8 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 				ParentCanvas->UIRenderableList.AddUnique(this->UIItem.Get());
 			}
 			ParentCanvas->ChildrenCanvasArray.AddUnique(this);
+			ParentCanvas->MarkCanvasUpdate(false, false, true, true);
 		}
-		this->MarkCanvasUpdate(false, false, true, true);
 	}
 }
 
@@ -1772,7 +1773,10 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 		break;
 		case EUIDrawcallType::ChildCanvas:
 		{
-			DrawcallItem->childCanvas->SortDrawcall(InOutRenderPriority, InOutProcessedCanvasArray);
+			if (ensure(DrawcallItem->childCanvas.IsValid()))
+			{
+				DrawcallItem->childCanvas->SortDrawcall(InOutRenderPriority, InOutProcessedCanvasArray);
+			}
 		}
 		break;
 		}
@@ -2911,6 +2915,18 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 		}
 	}
 	return nullptr;
+}
+int32 ULGUICanvas::GetDrawcallCount()const
+{
+	int32 Result = 0;
+	for (auto& Item : UIDrawcallList)
+	{
+		if (Item->type != EUIDrawcallType::ChildCanvas)
+		{
+			Result++;
+		}
+	}
+	return Result;
 }
 
 
