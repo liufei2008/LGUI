@@ -404,7 +404,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
-	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
+	int GetDrawcallCount()const;
 
 	/** Override LGUI's screen space UI render's camera location. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)

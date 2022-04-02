@@ -387,7 +387,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
 	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
-		int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+		int drawcallCount = TargetScriptArray[0]->GetDrawcallCount();
 		auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
 		int allDrawcallCount = 0;
 		auto world = TargetScriptArray[0]->GetWorld();
@@ -401,7 +401,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 				{
 					if (canvasItem->GetWorld() == world)
 					{
-						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+						allDrawcallCount += canvasItem->GetDrawcallCount();
 					}
 				}
 			}
@@ -413,7 +413,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 					{
 						if (canvasItem->GetWorld() == world)
 						{
-							allDrawcallCount += canvasItem->UIDrawcallList.Num();
+							allDrawcallCount += canvasItem->GetDrawcallCount();
 						}
 					}
 				}
@@ -425,7 +425,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 }
 FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 {
-	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+	int drawcallCount = TargetScriptArray[0]->GetDrawcallCount();
 	auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
 	int allDrawcallCount = 0;
 	FString spaceText;
@@ -460,7 +460,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 			{
 				if (canvasItem->GetWorld() == world)
 				{
-					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					allDrawcallCount += canvasItem->GetDrawcallCount();
 				}
 			}
 		}
@@ -472,7 +472,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 				{
 					if (canvasItem->GetWorld() == world)
 					{
-						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+						allDrawcallCount += canvasItem->GetDrawcallCount();
 					}
 				}
 			}
