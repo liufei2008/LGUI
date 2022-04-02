@@ -33,12 +33,14 @@ PRAGMA_DISABLE_OPTIMIZATION
 
 TArray<FString> FLGUIEventDelegateCustomization::CopySourceData;
 
+TSharedPtr<IPropertyHandleArray> FLGUIEventDelegateCustomization::GetEventListHandle(TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	return PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, eventList))->AsArray();
+}
+
 void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
-
-	EventParameterType = GetNativeParameterType(PropertyHandle);
-	EventListHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, eventList))->AsArray();
 
 	//add parameter type property
 	bool bIsInWorld = false;
@@ -58,73 +60,308 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		return;
 	}
 
-	auto nameStr = PropertyHandle->GetPropertyDisplayName().ToString();
-	FString paramTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName(EventParameterType, nullptr);
-	nameStr = nameStr + "(" + paramTypeString + ")";
-	auto titleWidget = 
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
-		.VAlign(EVerticalAlignment::VAlign_Center)
-		.AutoWidth()
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(nameStr))
-			.ToolTipText(PropertyHandle->GetToolTipText())
-			//.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		+SHorizontalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Right)
-		[
-			IsParameterTypeValid(EventParameterType) ?
-			(
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
-				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					[
-						PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListAdd))
-					]
-					+ SHorizontalBox::Slot()
-					[
-						PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListEmpty))
-					]
-				]
-			)
-			:
-			(
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
-				[
-					SNew(STextBlock)
-					.AutoWrapText(true)
-					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-					.Text(LOCTEXT("ParameterTypeWrong", "Parameter type is wrong!"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-			)
-		];
-
-	auto verticalLayout = 
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.AutoHeight()
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	OnEventArrayNumChangedDelegate = FSimpleDelegate::CreateLambda([&]() {
+		CustomizationUtils.GetPropertyUtilities()->ForceRefresh();
+		});
+	EventListHandle->SetOnNumElementsChanged(OnEventArrayNumChangedDelegate);
+	UpdateEventsLayout(PropertyHandle);
+	ChildBuilder.AddCustomRow(LOCTEXT("EventDelegate", "EventDelegate"))
+		.WholeRowContent()
 		[
 			SNew(SBox)
-			.Padding(FMargin(8, 0))
-			.HeightOverride(30)
+			.Padding(FMargin(-10, 0, -2, 0))
 			[
-				titleWidget
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				[
+					SNew(SBox)
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SNew(SBox)
+						.WidthOverride(1000)
+						.HeightOverride(this, &FLGUIEventDelegateCustomization::GetEventTotalHeight)
+						[
+							SNew(SImage)
+							.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventGroup"))
+							.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+						]
+					]
+				]
+				+ SOverlay::Slot()
+				[
+					EventsVerticalLayout.ToSharedRef()
+				]
 			]
-		];
+		]
+	;
+
+}
+
+FText FLGUIEventDelegateCustomization::GetEventTitleName(TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto NameStr = PropertyHandle->GetPropertyDisplayName().ToString();
+	FString ParamTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName(EventParameterType, nullptr);
+	NameStr = NameStr + "(" + ParamTypeString + ")";
+	return FText::FromString(NameStr);
+}
+
+FText FLGUIEventDelegateCustomization::GetEventItemFunctionName(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
+{
+	//function
+	auto FunctionNameHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
+	FName FunctionFName;
+	FunctionNameHandle->GetValue(FunctionFName);
+	FString FunctionName = FunctionFName.ToString();
+	//parameterType
+	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
+
+	bool ComponentValid = false;//event target component valid?
+	bool EventFunctionValid = false;//event target function valid?
+	UFunction* EventFunction = nullptr;
+
+	if (auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle))
+	{
+		EventFunction = TargetObject->FindFunction(FunctionFName);
+		if (EventFunction)
+		{
+			if (ULGUIEventDelegateParameterHelper::IsStillSupported(EventFunction, FunctionParameterType))
+			{
+				EventFunctionValid = true;
+			}
+		}
+	}
+
+	if (!EventFunctionValid)//function not valid, show tip
+	{
+		if (FunctionName != "None Function" && !FunctionName.IsEmpty())
+		{
+			FString Prefix = "(NotValid)";
+			FunctionName = Prefix.Append(FunctionName);
+		}
+	}
+	if (FunctionName.IsEmpty())FunctionName = "None Function";
+	return FText::FromString(FunctionName);
+}
+
+UObject* FLGUIEventDelegateCustomization::GetEventItemTargetObject(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
+{
+	//TargetObject
+	auto TargetObjectHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
+	UObject* TargetObject = nullptr;
+	TargetObjectHandle->GetValue(TargetObject);
+	return TargetObject;
+}
+
+FText FLGUIEventDelegateCustomization::GetComponentDisplayName(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
+{
+	FString ComponentDisplayName;
+	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
+	auto HelperActor = GetEventItemHelperActor(EventItemPropertyHandle);
+	if (TargetObject)
+	{
+		if (TargetObject == HelperActor)
+		{
+			ComponentDisplayName = LGUIEventActorSelfName;
+		}
+		else
+		{
+			if (auto Comp = Cast<UActorComponent>(TargetObject))
+			{
+				ComponentDisplayName = TargetObject->GetName();
+			}
+			else
+			{
+				ComponentDisplayName = "(WrongType)";
+			}
+		}
+	}
+	else
+	{
+		ComponentDisplayName = "None";
+	}
+	return FText::FromString(ComponentDisplayName);
+}
+
+EVisibility FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
+	//function
+	auto FunctionNameHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
+	FName FunctionFName;
+	FunctionNameHandle->GetValue(FunctionFName);
+	//parameterType
+	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
+	UFunction* EventFunction = nullptr;
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+
+	if (TargetObject)
+	{
+		EventFunction = TargetObject->FindFunction(FunctionFName);
+	}
+
+	if (IsValid(TargetObject) && IsValid(EventFunction))
+	{
+		bool bUseNativeParameter = false;
+		auto UseNativeParameterHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UseNativeParameter));
+		UseNativeParameterHandle->GetValue(bUseNativeParameter);
+
+		if ((EventParameterType == FunctionParameterType) && bUseNativeParameter)//support native parameter
+		{
+			return EVisibility::Visible;
+		}
+	}
+	return EVisibility::Collapsed;
+}
+
+EVisibility FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
+	//function
+	auto FunctionNameHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
+	FName FunctionFName;
+	FunctionNameHandle->GetValue(FunctionFName);
+	//parameterType
+	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
+	UFunction* EventFunction = nullptr;
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+
+	if (TargetObject)
+	{
+		EventFunction = TargetObject->FindFunction(FunctionFName);
+	}
+
+	if (IsValid(TargetObject) && IsValid(EventFunction))
+	{
+		bool bUseNativeParameter = false;
+		auto UseNativeParameterHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UseNativeParameter));
+		UseNativeParameterHandle->GetValue(bUseNativeParameter);
+
+		if ((EventParameterType == FunctionParameterType) && bUseNativeParameter)//support native parameter
+		{
+
+		}
+		else
+		{
+			return EVisibility::Visible;
+		}
+	}
+	return EVisibility::Collapsed;
+}
+
+EVisibility FLGUIEventDelegateCustomization::GetNotValidParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
+	//function
+	auto FunctionNameHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
+	FName FunctionFName;
+	FunctionNameHandle->GetValue(FunctionFName);
+	//parameterType
+	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
+	UFunction* EventFunction = nullptr;
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+
+	if (TargetObject)
+	{
+		EventFunction = TargetObject->FindFunction(FunctionFName);
+	}
+
+	if (IsValid(TargetObject) && IsValid(EventFunction))
+	{
+		return EVisibility::Collapsed;
+	}
+	else
+	{
+		return EVisibility::Visible;
+	}
+}
+
+AActor* FLGUIEventDelegateCustomization::GetEventItemHelperActor(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
+{
+	//HelperActor
+	auto HelperActorHandle = EventItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
+	AActor* HelperActor = nullptr;
+	UObject* HelperActorObject = nullptr;
+	HelperActorHandle->GetValue(HelperActorObject);
+	if (HelperActorObject != nullptr)
+	{
+		HelperActor = Cast<AActor>(HelperActorObject);
+	}
+	return HelperActor;
+}
+
+void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+
+	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
+	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
+
+	SAssignNew(EventsVerticalLayout, SVerticalBox)
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		SNew(SBox)
+		.Padding(FMargin(8, 0))
+		.HeightOverride(30)
+		[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			.AutoWidth()
+			[
+				SNew(STextBlock)
+				.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
+				.ToolTipText(PropertyHandle->GetToolTipText())
+				//.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			+SHorizontalBox::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Right)
+			[
+				IsParameterTypeValid(EventParameterType) ?
+				(
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.HAlign(HAlign_Left)
+					.VAlign(VAlign_Center)
+					.Padding(2, 0)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListAdd, PropertyHandle))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListEmpty, PropertyHandle))
+						]
+					]
+				)
+				:
+				(
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Left)
+					.VAlign(VAlign_Center)
+					.Padding(2, 0)
+					[
+						SNew(STextBlock)
+						.AutoWrapText(true)
+						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+						.Text(LOCTEXT("ParameterTypeWrong", "Parameter type is wrong!"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+				)
+			]
+		]
+	];
+
+	EventParameterWidgetArray.Empty(); 
 	uint32 arrayCount;
 	EventListHandle->GetNumElements(arrayCount);
 	for (int32 EventItemIndex = 0; EventItemIndex < (int32)arrayCount; EventItemIndex++)
@@ -152,66 +389,60 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 
 		HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
 			
-		FString ComponentDisplayName;
-		if (IsValid(TargetObject))
-		{
-			if (TargetObject == HelperActor)
-			{
-				ComponentDisplayName = LGUIEventActorSelfName;
-			}
-			else
-			{
-				if (auto Comp = Cast<UActorComponent>(TargetObject))
-				{
-					ComponentDisplayName = TargetObject->GetName();
-				}
-				else
-				{
-					ComponentDisplayName = "(WrongType)";
-				}
-			}
-		}
-		else
-		{
-			ComponentDisplayName = "None";
-		}
-
 		//function
 		auto FunctionNameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
 		FName FunctionFName;
 		FunctionNameHandle->GetValue(FunctionFName);
-		FString FunctionName = FunctionFName.ToString();
 		//parameterType
+		auto paramTypeHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
+		paramTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnParameterTypeChange, ItemHandle));
 		auto FunctionParameterType = GetEventDataParameterType(ItemHandle);
 
-		bool ComponentValid = false;//event target component valid?
-		bool EventFunctionValid = false;//event target function valid?
 		UFunction* EventFunction = nullptr;
-
 		if (TargetObject)
 		{
 			EventFunction = TargetObject->FindFunction(FunctionFName);
-			if (EventFunction)
-			{
-				if (ULGUIEventDelegateParameterHelper::IsStillSupported(EventFunction, FunctionParameterType))
-				{
-					EventFunctionValid = true;
-				}
-			}
 		}
-
-		if (!EventFunctionValid)//function not valid, show tip
-		{
-			if (FunctionName != "None Function" && !FunctionName.IsEmpty())
-			{
-				FString Prefix = "(NotValid)";
-				FunctionName = Prefix.Append(FunctionName);
-			}
-		}
-		if (FunctionName.IsEmpty())FunctionName = "None Function";
-
 
 		//parameter
+		//TSharedRef<SWidget> ParameterWidget = 
+		//	SNew(SHorizontalBox)
+		//	+SHorizontalBox::Slot()
+		//	.AutoWidth()
+		//	[
+		//		SNew(SBox)
+		//		.Visibility(this, &FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility, ItemHandle, PropertyHandle)
+		//		.VAlign(EVerticalAlignment::VAlign_Center)
+		//		[
+		//			SNew(STextBlock)
+		//			.Text(LOCTEXT("(NativeParameter)", "(NativeParameter)"))
+		//			.Font(IDetailLayoutBuilder::GetDetailFont())
+		//		]
+		//	]
+		//	+SHorizontalBox::Slot()
+		//	.AutoWidth()
+		//	[
+		//		SNew(SBox)
+		//		.Visibility(this, &FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisibility, ItemHandle, PropertyHandle)
+		//		.MinDesiredWidth(500)
+		//		[
+		//			DrawFunctionParameter(ItemHandle, FunctionParameterType, EventFunction)
+		//		]
+		//	]
+		//	+SHorizontalBox::Slot()
+		//	.AutoWidth()
+		//	[
+		//		SNew(SBox)
+		//		.Visibility(this, &FLGUIEventDelegateCustomization::GetNotValidParameterWidgetVisibility, ItemHandle, PropertyHandle)
+		//		.VAlign(EVerticalAlignment::VAlign_Center)
+		//		[
+		//			SNew(STextBlock)
+		//			.Text(LOCTEXT("(NotValid)", "(NotValid)"))
+		//			.Font(IDetailLayoutBuilder::GetDetailFont())
+		//		]
+		//	]
+		//	;
+
 		TSharedRef<SWidget> ParameterWidget = SNew(SBox);
 		if (IsValid(TargetObject) && IsValid(EventFunction))
 		{
@@ -288,7 +519,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("C", "C"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, true, EventItemIndex)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, true, EventItemIndex, PropertyHandle)
 							.ToolTipText(LOCTEXT("Copy", "Copy this function"))
 						]
 					]
@@ -307,7 +538,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 						.HAlign(HAlign_Center)
 						.VAlign(VAlign_Center)
 						.Text(LOCTEXT("P", "P"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex)
+						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex, PropertyHandle)
 						.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
 					]
 					]
@@ -326,7 +557,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 						.HAlign(HAlign_Center)
 						.VAlign(VAlign_Center)
 						.Text(LOCTEXT("+", "+"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount)
+						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount, PropertyHandle)
 						.ToolTipText(LOCTEXT("Add", "Add new one"))
 					]
 					]
@@ -345,7 +576,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 						.HAlign(HAlign_Center)
 						.VAlign(VAlign_Center)
 						.Text(LOCTEXT("-", "-"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount)
+						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount, PropertyHandle)
 						.ToolTipText(LOCTEXT("Delete", "Delete this one"))
 					]
 					]
@@ -354,7 +585,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		];
 
 
-		verticalLayout->AddSlot()
+		EventsVerticalLayout->AddSlot()
 			.AutoHeight()
 			[
 				SNew(SBox)
@@ -409,17 +640,17 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 											//Component
 											SNew(SComboButton)
 											.HasDownArrow(true)
-											.IsEnabled(this, &FLGUIEventDelegateCustomization::IsComponentSelectorMenuEnabled, EventItemIndex)
+											.IsEnabled(this, &FLGUIEventDelegateCustomization::IsComponentSelectorMenuEnabled, EventItemIndex, PropertyHandle)
 											.ToolTipText(LOCTEXT("Component", "Pick component for this event"))
 											.ButtonContent()
 											[
 												SNew(STextBlock)
-												.Text(FText::FromString(ComponentDisplayName))
+												.Text(this, &FLGUIEventDelegateCustomization::GetComponentDisplayName, ItemHandle)
 												.Font(IDetailLayoutBuilder::GetDetailFont())
 											]
 											.MenuContent()
 											[
-												MakeComponentSelectorMenu(EventItemIndex)
+												MakeComponentSelectorMenu(EventItemIndex, PropertyHandle)
 											]
 										]
 									]
@@ -443,17 +674,17 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 												//function
 												SNew(SComboButton)
 												.HasDownArrow(true)
-												.IsEnabled(this, &FLGUIEventDelegateCustomization::IsFunctionSelectorMenuEnabled, EventItemIndex)
+												.IsEnabled(this, &FLGUIEventDelegateCustomization::IsFunctionSelectorMenuEnabled, EventItemIndex, PropertyHandle)
 												.ToolTipText(LOCTEXT("Function", "Pick a function to execute of this event"))
 												.ButtonContent()
 												[
 													SNew(STextBlock)
-													.Text(FText::FromString(FunctionName))
+													.Text(this, &FLGUIEventDelegateCustomization::GetEventItemFunctionName, ItemHandle)
 													.Font(IDetailLayoutBuilder::GetDetailFont())
 												]
 												.MenuContent()
 												[
-													MakeFunctionSelectorMenu(EventItemIndex)
+													MakeFunctionSelectorMenu(EventItemIndex, PropertyHandle)
 												]
 											]
 										]
@@ -475,41 +706,11 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 			]
 		;
 	}
-	ChildBuilder.AddCustomRow(LOCTEXT("EventDelegate", "EventDelegate"))
-		.WholeRowContent()
-		[
-			SNew(SBox)
-			.Padding(FMargin(-10, 0, -2, 0))
-			[
-				SNew(SOverlay)
-				+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.VAlign(EVerticalAlignment::VAlign_Center)
-					[
-						SNew(SBox)
-						.WidthOverride(1000)
-						.HeightOverride(this, &FLGUIEventDelegateCustomization::GetEventTotalHeight)
-						[
-							SNew(SImage)
-							.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventGroup"))
-							.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
-						]
-					]
-				]
-				+ SOverlay::Slot()
-				[
-					verticalLayout
-				]
-			]
-		]
-	;
-
 }
 
-void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, int32 itemIndex)
+void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
 {
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 	auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 	TargetObjectHandle->SetValue(Comp);
@@ -522,8 +723,9 @@ void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, i
 
 	PropertyUtilites->ForceRefresh();
 }
-void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex)
+void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
 {
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 
 	auto HelperActorHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
@@ -538,8 +740,9 @@ void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex)
 
 	PropertyUtilites->ForceRefresh();
 }
-void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, int32 itemIndex, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter)
+void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, int32 itemIndex, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> PropertyHandle)
 {
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 	auto nameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
 	nameHandle->SetValue(FuncName);
@@ -554,10 +757,9 @@ void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IProp
 	auto ParamTypeHandle = EventDataItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
 	ParamTypeHandle->SetValue((uint8)ParameterType);
 }
-LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)
+LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)const
 {
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
-	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
 	uint8 supportParameterTypeUint8;
 	NativeParameterTypeHandle->GetValue(supportParameterTypeUint8);
 	LGUIEventDelegateParameterType eventParameterType = (LGUIEventDelegateParameterType)supportParameterTypeUint8;
@@ -568,19 +770,18 @@ void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(TSharedRef<
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	ChildBuilder.AddProperty(NativeParameterTypeHandle.ToSharedRef());
 }
-LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)
+LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)const
 {
 	auto paramTypeHandle = EventDataItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
-	paramTypeHandle->SetOnPropertyValueChanged(
-		FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnParameterTypeChange, EventDataItemHandle));
 	uint8 functionParameterTypeUint8;
 	paramTypeHandle->GetValue(functionParameterTypeUint8);
 	LGUIEventDelegateParameterType functionParameterType = (LGUIEventDelegateParameterType)functionParameterTypeUint8;
 	return functionParameterType;
 }
 
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(int32 itemIndex)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
 {
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 	auto HelperActorHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
 	UObject* HelperActorObject = nullptr;
@@ -594,7 +795,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(i
 
 	auto HelperActor = (AActor*)HelperActorObject;
 	MenuBuilder.AddMenuEntry(
-		FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectActorSelf, itemIndex)),
+		FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectActorSelf, itemIndex, PropertyHandle)),
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		[
@@ -617,7 +818,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(i
 		auto CompName = Comp->GetFName();
 		auto CompTypeName = Comp->GetClass()->GetName();
 		MenuBuilder.AddMenuEntry(
-			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectComponent, Comp, itemIndex)),
+			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectComponent, Comp, itemIndex, PropertyHandle)),
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -637,8 +838,10 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(i
 	}
 	return MenuBuilder.MakeWidget();
 }
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(int32 itemIndex)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
 {
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType(PropertyHandle);
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 	auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 	UObject* TargetObject = nullptr;
@@ -659,7 +862,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 			FString ParamTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName(ParamType, Func);
 			auto FunctionSelectorName = FString::Printf(TEXT("%s(%s)"), *Func->GetName(), *ParamTypeString);
 			MenuBuilder.AddMenuEntry(
-				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, ParamType, false)),
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, ParamType, false, PropertyHandle)),
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
 				.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -673,7 +876,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 			{
 				FunctionSelectorName = FString::Printf(TEXT("%s(NativeParameter)"), *Func->GetName());
 				MenuBuilder.AddMenuEntry(
-					FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, ParamType, true)),
+					FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, ParamType, true, PropertyHandle)),
 					SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
 					.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -687,6 +890,83 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 		}
 	}
 	return MenuBuilder.MakeWidget();
+}
+
+bool FLGUIEventDelegateCustomization::IsComponentSelectorMenuEnabled(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto ItemHandle = EventListHandle->GetElement(itemIndex);
+	auto HelperActorHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
+	UObject* HelperActorObject = nullptr;
+	HelperActorHandle->GetValue(HelperActorObject);
+	return IsValid(HelperActorObject);
+}
+bool FLGUIEventDelegateCustomization::IsFunctionSelectorMenuEnabled(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)const
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto ItemHandle = EventListHandle->GetElement(itemIndex);
+	auto HelperActorHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
+	UObject* HelperActorObject = nullptr;
+	HelperActorHandle->GetValue(HelperActorObject);
+
+	auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
+	UObject* TargetObject = nullptr;
+	TargetObjectHandle->GetValue(TargetObject);
+
+	return IsValid(HelperActorObject) && IsValid(TargetObject);
+}
+void FLGUIEventDelegateCustomization::OnClickListAdd(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	EventListHandle->AddItem();
+	PropertyUtilites->ForceRefresh();
+}
+void FLGUIEventDelegateCustomization::OnClickListEmpty(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	EventListHandle->EmptyArray();
+	PropertyUtilites->ForceRefresh();
+}
+FReply FLGUIEventDelegateCustomization::OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	if (AddOrRemove)
+	{
+		if (Count == 0)
+		{
+			EventListHandle->AddItem();
+		}
+		else
+		{
+			if (Index == Count - 1)//current is last, add to last
+				EventListHandle->AddItem();
+			else
+				EventListHandle->Insert(Index + 1);
+		}
+	}
+	else
+	{
+		if (Count != 0)
+			EventListHandle->DeleteItem(Index);
+	}
+	PropertyUtilites->ForceRefresh();
+	return FReply::Handled();
+}
+FReply FLGUIEventDelegateCustomization::OnClickCopyPaste(bool CopyOrPaste, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto eventDataHandle = EventListHandle->GetElement(Index);
+	if (CopyOrPaste)
+	{
+		CopySourceData.Reset();
+		eventDataHandle->GetPerObjectValues(CopySourceData);
+	}
+	else
+	{
+		eventDataHandle->SetPerObjectValues(CopySourceData);
+		PropertyUtilites->ForceRefresh();
+	}
+	return FReply::Handled();
 }
 
 
