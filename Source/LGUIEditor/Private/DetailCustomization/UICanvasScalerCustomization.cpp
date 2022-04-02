@@ -9,6 +9,7 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "LGUIEditorUtils.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 #define LOCTEXT_NAMESPACE "UICanvasScalarCustomization"
 

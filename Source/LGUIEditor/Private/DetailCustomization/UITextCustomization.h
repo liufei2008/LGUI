@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "IDetailCustomization.h"
+#include "Core/TextGeometryCache.h"
 #pragma once
 
 /**

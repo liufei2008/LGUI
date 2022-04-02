@@ -1,5 +1,6 @@
 // Copyright 2019-2022 LexLiu. All Rights Reserved.
 #include "CoreMinimal.h"
+#include "DetailCategoryBuilder.h"
 #include "IDetailCustomization.h"
 #pragma once
 

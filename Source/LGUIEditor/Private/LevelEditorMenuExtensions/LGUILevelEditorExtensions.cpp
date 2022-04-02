@@ -5,6 +5,7 @@
 #include "Engine/EngineTypes.h"
 #include "LGUIEditorStyle.h"
 #include "LevelEditor.h"
+#include "Core/ActorComponent/UIItem.h"
 
 #define LOCTEXT_NAMESPACE "FLGUILevelEditorExtensions"
 

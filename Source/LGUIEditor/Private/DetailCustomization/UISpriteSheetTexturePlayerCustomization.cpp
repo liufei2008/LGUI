@@ -2,7 +2,7 @@
 
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
 #include "Extensions/UISpriteSheetTexturePlayer.h"
-
+#include "LGUIEditorUtils.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
