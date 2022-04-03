@@ -36,9 +36,9 @@ UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
 	None,
-	/** Clip content by a rectange area, with edge feather. Support nested rect clip. Support input hit test. */
+	/** Clip content by a rectange area, with edge feather. Support nested rect clip. */
 	Rect,
-	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. Not support input hit test. */
+	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
 	Texture,
 };
 
@@ -142,7 +142,7 @@ public:
 	void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
-	bool IsPointVisible(FVector worldPoint);
+	bool CalculatePointVisibilityOnClip(FVector worldPoint);
 	/** calculate rect clip range */
 	void ConditionalCalculateRectRange();
 	const FVector2D& GetClipRectMin() { ConditionalCalculateRectRange(); return clipRectMin; }
@@ -240,8 +240,12 @@ protected:
 		FVector2D clipFeather = FVector2D(4, 4);
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FMargin clipRectOffset = FMargin(0);
+	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UTexture* clipTexture = nullptr;
+		UTexture2D* clipTexture = nullptr;
+	/** Threshold for line trace interaction test, if transparent value less then this threshold then hit test return false. */
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float clipTextureHitTestThreshold = 0.1f;
 
 	/** if inherit parent's rect clip value. only valid if self is RectClip */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -315,7 +319,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRectClipOffset(FMargin newOffset);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetClipTexture(UTexture* newTexture);
+		void SetClipTexture(UTexture2D* newTexture);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetInheriRectClip(bool newBool);
 	/** 
@@ -378,7 +382,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D GetClipFeather()const { return clipFeather; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		UTexture* GetClipTexture()const { return clipTexture; }
+		UTexture2D* GetClipTexture()const { return clipTexture; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetInheritRectClip()const { return inheritRectClip; }
 
