@@ -10,6 +10,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "IDetailGroup.h"
 
 #define LOCTEXT_NAMESPACE "LGUICanvasCustomization"
 FLGUICanvasCustomization::FLGUICanvasCustomization()
@@ -155,6 +156,10 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	}
 
+	auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
+	clipTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
+	auto clipType = TargetScriptArray[0]->GetClipType();
+
 	if (TargetScriptArray[0]->IsRootCanvas())
 	{
 		switch (TargetScriptArray[0]->renderMode)
@@ -176,19 +181,18 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			break;
 		}
 
-		auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
-		clipTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
-		auto clipType = TargetScriptArray[0]->GetClipType();
 		if (clipType == ELGUICanvasClipType::None)
 		{
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold));
 		}
 		else if (clipType == ELGUICanvasClipType::Rect)
 		{
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold));
 		}
 		else if (clipType == ELGUICanvasClipType::Texture)
 		{
@@ -237,19 +241,18 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 		if (TargetScriptArray[0]->GetOverrideClipType())
 		{
-			auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
-			clipTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
-			auto clipType = TargetScriptArray[0]->GetClipType();
 			if (clipType == ELGUICanvasClipType::None)
 			{
 				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
 				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
 				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold));
 			}
 			else if (clipType == ELGUICanvasClipType::Rect)
 			{
 				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold));
 			}
 			else if (clipType == ELGUICanvasClipType::Texture)
 			{
@@ -261,9 +264,10 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		else
 		{
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold));
 		}
 
 		if (!TargetScriptArray[0]->GetOverrideBlendDepth())
@@ -272,9 +276,59 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		}
 	}
 
-	if (!needToHidePropertyNames.Contains(FName(TEXT("renderMode"))))
+	if (!needToHidePropertyNames.Contains(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode)))
 	{
-		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));//show before sortOrder
+		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+	}
+	if (!needToHidePropertyNames.Contains(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect)))
+	{
+		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+	}
+	if (!needToHidePropertyNames.Contains(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType)))
+	{
+		//category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
+		IDetailGroup& ClipTypeGroup = category.AddGroup(FName(TEXT("ClipType")), LOCTEXT("ClipType", "ClipType"));
+		ClipTypeGroup.HeaderProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType)));
+		if (clipType == ELGUICanvasClipType::None)
+		{
+			
+		}
+		else if (clipType == ELGUICanvasClipType::Rect)
+		{
+			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather)));
+			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset)));
+			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip)));
+		}
+		else if (clipType == ELGUICanvasClipType::Texture)
+		{
+			auto ClipTextureProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			ClipTextureProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
+			ClipTypeGroup.AddPropertyRow(ClipTextureProperty);
+			ClipTypeGroup.AddWidgetRow()
+				.ValueContent()
+				[
+					SNew(SBox)
+					.IsEnabled(this, &FLGUICanvasCustomization::IsFixClipTextureEnabled, ClipTextureProperty)
+					[
+						SNew(SButton)
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						.OnClicked(this, &FLGUICanvasCustomization::OnClickFixClipTextureSetting, ClipTextureProperty)
+						.ToolTipText(LOCTEXT("FixTextureForHitTest_Tooltip", "\
+By default we can't access texture's pixel data, which is required for line trace.\
+Click this button to fix it by change texture settings.\
+LGUI will change CompressionSettings & MipGenSettings\
+"))
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("FixTextureSettingsForHitTest", "FixTextureForHitTest"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					]
+				]
+			;
+			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTextureHitTestThreshold)));
+		}
 	}
 
 	for (auto item : needToHidePropertyNames)
@@ -282,6 +336,44 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		DetailBuilder.HideProperty(item);
 	}
 }
+
+FReply FLGUICanvasCustomization::OnClickFixClipTextureSetting(TSharedRef<IPropertyHandle> ClipTextureHandle)
+{
+	UObject* ClipTextureObject = nullptr;
+	ClipTextureHandle->GetValue(ClipTextureObject);
+	if (IsValid(ClipTextureObject))
+	{
+		auto clipTexture = Cast<UTexture2D>(ClipTextureObject);
+		if (clipTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon
+			|| clipTexture->MipGenSettings != TextureMipGenSettings::TMGS_NoMipmaps
+			)
+		{
+			clipTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+			clipTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+			clipTexture->UpdateResource();
+			clipTexture->Modify();
+		}
+	}
+
+	return FReply::Handled();
+}
+bool FLGUICanvasCustomization::IsFixClipTextureEnabled(TSharedRef<IPropertyHandle> ClipTextureHandle)const
+{
+	UObject* ClipTextureObject = nullptr;
+	ClipTextureHandle->GetValue(ClipTextureObject);
+	if (IsValid(ClipTextureObject))
+	{
+		auto clipTexture = Cast<UTexture2D>(ClipTextureObject);
+		if (clipTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon
+			|| clipTexture->MipGenSettings != TextureMipGenSettings::TMGS_NoMipmaps
+			)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
 	if (DetailBuilder)

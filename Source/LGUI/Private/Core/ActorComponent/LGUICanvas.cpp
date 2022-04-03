@@ -2078,7 +2078,7 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* UIMat)
 	}
 }
 
-bool ULGUICanvas::IsPointVisible(FVector InWorldPoint)
+bool ULGUICanvas::CalculatePointVisibilityOnClip(FVector InWorldPoint)
 {
 	//if not use clip or use texture clip, then point is visible. texture clip not support this calculation yet.
 	switch (GetActualClipType())
@@ -2098,9 +2098,35 @@ bool ULGUICanvas::IsPointVisible(FVector InWorldPoint)
 		if (LocalPoint.Z > clipRectMax.Y) return false;
 	}
 	break;
-	case ELGUICanvasClipType::Texture://@todo: support this!
+	case ELGUICanvasClipType::Texture:
+	{
+		if (IsValid(clipTexture))
+		{
+			if(clipTexture->PlatformData && clipTexture->PlatformData->Mips.Num() > 0)
+			{
+				//calcualte pixel position on hit point
+				auto LocalPoint = this->UIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
+				auto LocalLeftBottomPoint = UIItem->GetLocalSpaceLeftBottomPoint();
+				auto UVX01 = (LocalPoint.Y - UIItem->GetLocalSpaceLeft()) / UIItem->GetWidth();
+				auto UVY01 = (LocalPoint.Z - UIItem->GetLocalSpaceBottom()) / UIItem->GetHeight();
+				UVY01 = 1.0f - UVY01;
+				auto TexPosX = (int)(UVX01 * clipTexture->PlatformData->SizeX);
+				auto TexPosY = (int)(UVY01 * clipTexture->PlatformData->SizeY);
+				auto TexPos = TexPosX + TexPosY * clipTexture->PlatformData->SizeX;
+
+				bool Result = true;
+				if (auto Pixels = static_cast<const FColor*>(clipTexture->PlatformData->Mips[0].BulkData.LockReadOnly()))
+				{
+					auto TransparentValue = Pixels[TexPos].R;
+					Result = TransparentValue > (uint8)(clipTextureHitTestThreshold * 255);
+				}
+				clipTexture->PlatformData->Mips[0].BulkData.Unlock();
+				return Result;
+			}
+		}
 		return true;
-		break;
+	}
+	break;
 	}
 
 	return true;
@@ -2242,7 +2268,7 @@ void ULGUICanvas::SetRectClipOffset(FMargin newOffset)
 		MarkCanvasUpdate(true, true, false);
 	}
 }
-void ULGUICanvas::SetClipTexture(UTexture* newTexture) 
+void ULGUICanvas::SetClipTexture(UTexture2D* newTexture) 
 {
 	if (clipTexture != newTexture)
 	{

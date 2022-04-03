@@ -775,7 +775,7 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakO
 				uiRenderable->SetRaycastTarget(true);
 				if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
 				{
-					if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
+					if (uiRenderable->GetRenderCanvas()->CalculatePointVisibilityOnClip(hitInfo.Location))
 					{
 						HitResultArray.Add(hitInfo);
 					}
