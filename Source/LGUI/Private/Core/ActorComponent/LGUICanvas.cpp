@@ -2102,7 +2102,8 @@ bool ULGUICanvas::CalculatePointVisibilityOnClip(FVector InWorldPoint)
 	{
 		if (IsValid(clipTexture))
 		{
-			if(clipTexture->PlatformData && clipTexture->PlatformData->Mips.Num() > 0)
+			auto PlatformData = clipTexture->PlatformData;
+			if(PlatformData && PlatformData->Mips.Num() > 0)
 			{
 				//calcualte pixel position on hit point
 				auto LocalPoint = this->UIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
@@ -2110,17 +2111,17 @@ bool ULGUICanvas::CalculatePointVisibilityOnClip(FVector InWorldPoint)
 				auto UVX01 = (LocalPoint.Y - UIItem->GetLocalSpaceLeft()) / UIItem->GetWidth();
 				auto UVY01 = (LocalPoint.Z - UIItem->GetLocalSpaceBottom()) / UIItem->GetHeight();
 				UVY01 = 1.0f - UVY01;
-				auto TexPosX = (int)(UVX01 * clipTexture->PlatformData->SizeX);
-				auto TexPosY = (int)(UVY01 * clipTexture->PlatformData->SizeY);
-				auto TexPos = TexPosX + TexPosY * clipTexture->PlatformData->SizeX;
+				auto TexPosX = (int)(UVX01 * PlatformData->SizeX);
+				auto TexPosY = (int)(UVY01 * PlatformData->SizeY);
+				auto TexPos = TexPosX + TexPosY * PlatformData->SizeX;
 
 				bool Result = true;
-				if (auto Pixels = static_cast<const FColor*>(clipTexture->PlatformData->Mips[0].BulkData.LockReadOnly()))
+				if (auto Pixels = static_cast<const FColor*>(PlatformData->Mips[0].BulkData.LockReadOnly()))
 				{
 					auto TransparentValue = Pixels[TexPos].R;
 					Result = TransparentValue > (uint8)(clipTextureHitTestThreshold * 255);
 				}
-				clipTexture->PlatformData->Mips[0].BulkData.Unlock();
+				PlatformData->Mips[0].BulkData.Unlock();
 				return Result;
 			}
 		}
