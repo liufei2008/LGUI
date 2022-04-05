@@ -2124,7 +2124,7 @@ bool ULGUICanvas::CalculatePointVisibilityOnClip(FVector InWorldPoint)
 				auto TexPos = TexPosX + TexPosY * PlatformData->SizeX;
 
 				bool Result = true;
-				if (auto Pixels = static_cast<const FColor*>(PlatformData->Mips[0].BulkData.LockReadOnly()))
+				if (auto Pixels = (FColor*)(PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY)))
 				{
 					auto TransparentValue = Pixels[TexPos].R;
 					Result = TransparentValue > (uint8)(clipTextureHitTestThreshold * 255);
