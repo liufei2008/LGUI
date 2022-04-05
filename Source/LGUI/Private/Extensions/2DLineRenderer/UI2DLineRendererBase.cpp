@@ -318,7 +318,7 @@ void UUI2DLineRendererBase::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleC
 	{
 		triangleIndicesCount += 12;
 	}
-	triangles.SetNumUninitialized(triangleIndicesCount);
+	UIGeometry::LGUIGeometrySetArrayNum(triangles, triangleIndicesCount);
 	if (InTriangleChanged)
 	{
 		Update2DLineRendererBaseTriangle(InGeo, CurrentPointArray);
@@ -331,8 +331,8 @@ void UUI2DLineRendererBase::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleC
 	{
 		vertexCount += 4;
 	}
-	vertices.SetNumUninitialized(vertexCount);
-	originVertices.SetNumUninitialized(vertexCount);
+	UIGeometry::LGUIGeometrySetArrayNum(vertices, vertexCount);
+	UIGeometry::LGUIGeometrySetArrayNum(originVertices, vertexCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)

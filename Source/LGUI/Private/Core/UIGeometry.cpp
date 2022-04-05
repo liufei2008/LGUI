@@ -132,31 +132,6 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVerti
 	}
 }
 
-/**
- * Unlike default TArray's SetNum, this LGUIGeometrySetArrayNum only Construct new item when get new memory.
- * SetNum will Construct item from Num to NewNum, include old existing memory (memory between Num and Max), which is not what I want.
- * What I want is, use default value only on new memory, so new item will not contains NaN value.
- */
-template<class T>
-FORCEINLINE void LGUIGeometrySetArrayNum(TArray<T>& InArray, int32 NewNum)
-{
-	auto PrevMax = InArray.Max();
-	if (NewNum > InArray.Max())
-	{
-		InArray.AddUninitialized(InArray.Max() - InArray.Num());
-		InArray.SetNumZeroed(NewNum);
-	}
-	else
-	{
-		InArray.SetNumUninitialized(NewNum);
-	}
-	//SetNum could change array max, so memzero the additional memory
-	if (InArray.Max() > PrevMax)
-	{
-		FMemory::Memzero((uint8*)InArray.GetData() + PrevMax * sizeof(T), (InArray.Max() - PrevMax) * sizeof(T));
-	}
-}
-
 #pragma region UISprite_UITexture_Simple
 void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 	const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
