@@ -722,13 +722,11 @@ void ULGUICanvas::UpdateGeometry_Implement()
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas BatchDrawcall"), STAT_BatchDrawcall, STATGROUP_LGUI);
-void ULGUICanvas::BatchDrawcall_Implement(const FVector& InRenderCanvasLeftBottomPoint, const FVector& InRenderCanvasRightTopPoint, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
+void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, const FVector2D& InCanvasRightTop, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
 	SCOPE_CYCLE_COUNTER(STAT_BatchDrawcall);
 	
-	auto ThisLocalLeftBottom = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasLeftBottomPoint);
-	auto ThisLocalRightTop = this->GetUIItem()->GetComponentTransform().InverseTransformPosition(InRenderCanvasRightTopPoint);
-	auto CanvasRect = UIQuadTree::Rectangle(FVector2D(ThisLocalLeftBottom.Y, ThisLocalLeftBottom.Z), FVector2D(ThisLocalRightTop.Y, ThisLocalRightTop.Z));
+	auto CanvasRect = UIQuadTree::Rectangle(InCanvasLeftBottom, InCanvasRightTop);
 
 	auto IntersectBounds = [](FVector2D aMin, FVector2D aMax, FVector2D bMin, FVector2D bMax) {
 		return !(bMin.X >= aMax.X
@@ -1272,13 +1270,23 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 			UIDrawcallList.Reset();
 
-			auto RenderCanvasUIItem = this->GetUIItem();
-			auto RenderCanvasLocalLeftBottom = RenderCanvasUIItem->GetLocalSpaceLeftBottomPoint();
-			auto RenderCanvasLocalRightTop = RenderCanvasUIItem->GetLocalSpaceRightTopPoint();
-			auto WorldLeftBottom = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalLeftBottom.X, RenderCanvasLocalLeftBottom.Y));
-			auto WorldRightTop = RenderCanvasUIItem->GetComponentTransform().TransformPosition(FVector(0, RenderCanvasLocalRightTop.X, RenderCanvasLocalRightTop.Y));
+			//rect size minimal at 100, so UIQuadTree can work properly (prevent too small rect)
+			auto Width = FMath::Max(UIItem->GetWidth(), 100.0f);
+			auto Height = FMath::Max(UIItem->GetHeight(), 100.0f);
+			FVector2D LeftBottomPoint;
+			LeftBottomPoint.X = Width * -UIItem->GetPivot().X;
+			LeftBottomPoint.Y = Height * -UIItem->GetPivot().Y;
+			FVector2D RightTopPoint;
+			RightTopPoint.X = Width * (1.0f - UIItem->GetPivot().X);
+			RightTopPoint.Y = Height * (1.0f - UIItem->GetPivot().Y);
 			bool bOutNeedToSortRenderPriority = bNeedToSortRenderPriority;
-			BatchDrawcall_Implement(WorldLeftBottom, WorldRightTop, UIDrawcallList, CacheUIDrawcallList
+			if (FMath::Abs(RightTopPoint.X - LeftBottomPoint.X) <= 0.01f
+				|| FMath::Abs(RightTopPoint.Y - LeftBottomPoint.Y) <= 0.01f
+				)
+			{
+				UE_LOG(LGUI, Error, TEXT(""));
+			}
+			BatchDrawcall_Implement(LeftBottomPoint, RightTopPoint, UIDrawcallList, CacheUIDrawcallList
 				, bOutNeedToSortRenderPriority//cannot pass a uint32:1 here, so use a temp bool
 			);
 			bNeedToSortRenderPriority = bOutNeedToSortRenderPriority;
