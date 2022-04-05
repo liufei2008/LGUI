@@ -124,19 +124,19 @@ void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBa
 	{
 		SortGeometryModifier();
 	}
-	MarkVerticesDirty();
+	MarkVerticesDirty(true, true, true, true);
 }
 void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	GeometryModifierComponentArray.Remove(InModifier);
-	MarkVerticesDirty();
+	MarkVerticesDirty(true, true, true, true);
 }
 void UUIBatchGeometryRenderable::SortGeometryModifier()
 {
 	GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
 		return A.GetExecuteOrder() < B.GetExecuteOrder();
 		});
-	MarkVerticesDirty();
+	MarkVerticesDirty(true, true, true, true);
 }
 
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
