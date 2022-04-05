@@ -6,6 +6,10 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 UUIPolygon::UUIPolygon(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -17,7 +21,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 
 	auto& triangles = InGeo.triangles;
 	auto triangleCount = Sides * 3;
-	triangles.SetNumUninitialized(triangleCount);
+	UIGeometry::LGUIGeometrySetArrayNum(triangles, triangleCount);
 	if (InTriangleChanged)
 	{
 		int index = 0;
@@ -47,8 +51,8 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 	auto& vertices = InGeo.vertices;
 	auto& originVertices = InGeo.originVertices;
 	int vertexCount = (FullCycle ? 1 : 2) + Sides;
-	vertices.SetNumZeroed(vertexCount);
-	originVertices.SetNumUninitialized(vertexCount);
+	UIGeometry::LGUIGeometrySetArrayNum(vertices, vertexCount);
+	UIGeometry::LGUIGeometrySetArrayNum(originVertices, vertexCount);
 	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		//vert offset
@@ -262,3 +266,7 @@ AUIPolygonActor::AUIPolygonActor()
 	UIPolygon = CreateDefaultSubobject<UUIPolygon>(TEXT("UIPolygonComponent"));
 	RootComponent = UIPolygon;
 }
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
