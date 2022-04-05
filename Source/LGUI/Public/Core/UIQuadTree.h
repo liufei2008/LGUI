@@ -45,6 +45,10 @@ namespace UIQuadTree
 		FVector2D Center;
 		//All rects present in this node. Several rects can overlap a single rect without ever overlapping each other.
 		TArray<Rectangle> ValueArray;
+		//Current split depth from top one
+		int32 Depth = 0;
+		//Max split depth
+		const int32 MaxDepth = 8;
 
 		Node* TopLeft = nullptr;
 		Node* TopRight = nullptr;
@@ -80,6 +84,11 @@ namespace UIQuadTree
 					TopRight = new Node(Rectangle(
 						Center, NodeRect.Max
 					));
+
+					BottomLeft->Depth = this->Depth + 1;
+					BottomRight->Depth = this->Depth + 1;
+					TopLeft->Depth = this->Depth + 1;
+					TopRight->Depth = this->Depth + 1;
 				}
 				//try insert to sub node
 				if (TopLeft->NodeRect.Contains(InRect))
@@ -167,6 +176,11 @@ namespace UIQuadTree
 		}
 		void Insert(Rectangle InRect)
 		{
+			if (this->Depth >= MaxDepth)//reach max depth, means can't split rect, just add to ValueArray
+			{
+				ValueArray.Add(InRect);
+				return;
+			}
 			//not contains sub node
 			if (TopLeft == nullptr)
 			{
