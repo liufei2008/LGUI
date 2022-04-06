@@ -217,8 +217,8 @@ void UUIText::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool I
 				auto& originVertices = InGeo.originVertices;
 				for (int i = 0; i < originVertices.Num(); i++)
 				{
-					originVertices[i].Normal = FVector(-1, 0, 0);
-					originVertices[i].Tangent = FVector(0, 1, 0);
+					originVertices[i].Normal = FVector3f(-1, 0, 0);
+					originVertices[i].Tangent = FVector3f(0, 1, 0);
 				}
 			}
 			//uv1

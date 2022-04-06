@@ -93,7 +93,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 
 			float x = pivotOffsetX;
 			float y = pivotOffsetY;
-			originVertices[0].Position = FVector(0, x, y);
+			originVertices[0].Position = FVector3f(0, x, y);
 
 			for (int i = 0, count = Sides; i < count; i++)
 			{
@@ -101,7 +101,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 				cos = FMath::Cos(angle);
 				x = cos * halfW * VertexOffsetArray[i] + pivotOffsetX;
 				y = sin * halfH * VertexOffsetArray[i] + pivotOffsetY;
-				originVertices[i + 1].Position = FVector(0, x, y);
+				originVertices[i + 1].Position = FVector3f(0, x, y);
 				angle += singleAngle;
 			}
 			if (!FullCycle)
@@ -110,7 +110,7 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 				cos = FMath::Cos(angle);
 				x = cos * halfW * VertexOffsetArray[Sides] + pivotOffsetX;
 				y = sin * halfH * VertexOffsetArray[Sides] + pivotOffsetY;
-				originVertices[Sides + 1].Position = FVector(0, x, y);
+				originVertices[Sides + 1].Position = FVector3f(0, x, y);
 			}
 		}
 
@@ -189,8 +189,8 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 			{
 				for (int i = 0; i < vertexCount; i++)
 				{
-					originVertices[i].Normal = FVector(-1, 0, 0);
-					originVertices[i].Tangent = FVector(0, 1, 0);
+					originVertices[i].Normal = FVector3f(-1, 0, 0);
+					originVertices[i].Tangent = FVector3f(0, 1, 0);
 				}
 			}
 			//uv1

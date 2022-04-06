@@ -233,7 +233,7 @@ public:
 
 	virtual void OnTransformChanged() override
 	{
-		Origin = GetLocalToWorld().GetOrigin();
+		Origin = (FVector3f)(GetLocalToWorld().GetOrigin());
 	}
 
 	virtual bool CanBeOccluded() const override
@@ -788,8 +788,8 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 	case ELGUIRenderTargetGeometryMode::Cylinder:
 	{
 		auto InverseTf = GetComponentTransform().Inverse();
-		auto LocalSpaceRayOrigin = InverseTf.TransformPosition(InStart);
-		auto LocalSpaceRayEnd = InverseTf.TransformPosition(InEnd);
+		auto LocalSpaceRayOrigin = (FVector3f)InverseTf.TransformPosition(InStart);
+		auto LocalSpaceRayEnd = (FVector3f)InverseTf.TransformPosition(InEnd);
 
 		auto RenderTargetSize = this->GetRenderTargetSize();
 		auto ArcAngle = FMath::DegreesToRadians(FMath::Abs(GetCylinderArcAngle()));
@@ -807,7 +807,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 		const float RadiansPerStep = ArcAngle / NumSegments;
 		float Angle = -ArcAngle * 0.5f;
 			
-		auto Position0 = FVector(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
+		auto Position0 = FVector3f(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
 		auto Position1 = Position0;
 		Position1.Z = VL;
 
@@ -852,7 +852,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 				auto HitPoint = FMath::LinePlaneIntersection((FVector3f)RectSpaceRayOrigin, (FVector3f)RectSpaceRayEnd, FVector3f::ZeroVector, FVector3f(1, 0, 0));
 				//hit point inside rect area
 				float Left = 0;
-				float Right = (FVector2D(Position2) - FVector2D(Position0)).Size();
+				float Right = (FVector2f(Position2) - FVector2f(Position0)).Size();
 				float Bottom = 0;
 				float Top = RenderTargetSize.Y;
 				if (HitPoint.Y > Left && HitPoint.Y < Right && HitPoint.Z > Bottom && HitPoint.Z < Top)
@@ -860,7 +860,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 					FHitResultContainer HitResult;
 					HitResult.UV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
 					HitResult.UV.Y = HitPoint.Z / Top;
-					HitResult.DistSquare = FVector3f::DistSquared(InStart, OutHitPoint);
+					HitResult.DistSquare = FVector3f::DistSquared((FVector3f)InStart, (FVector3f)OutHitPoint);
 					HitResult.HitPoint = HitPoint;
 					HitResult.RectMatrix = LocalRectMatrix;
 
@@ -880,7 +880,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 
 			OutHitUV = (FVector2D)HitResult.UV;
 			OutHitPoint = GetComponentTransform().TransformPosition((FVector)HitResult.RectMatrix.TransformPosition(HitResult.HitPoint));
-			OutHitNormal = GetComponentTransform().TransformVector((FVector)HitResult.RectMatrix.TransformVector(FVector(-1, 0, 0)));
+			OutHitNormal = GetComponentTransform().TransformVector((FVector)HitResult.RectMatrix.TransformVector(FVector3f(-1, 0, 0)));
 			OutHitDistance = FMath::Sqrt(HitResult.DistSquare);
 
 			return true;

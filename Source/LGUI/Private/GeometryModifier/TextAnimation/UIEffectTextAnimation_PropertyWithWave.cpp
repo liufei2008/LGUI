@@ -42,7 +42,7 @@ void UUIEffectTextAnimation_PositionWaveProperty::ApplyProperty(UUIText* InUITex
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
-		FVector wavePosition = position * FMath::Sin(PIxFreq + charIndex * frequency);
+		auto wavePosition = (FVector3f)position * FMath::Sin(PIxFreq + charIndex * frequency);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -70,15 +70,15 @@ void UUIEffectTextAnimation_RotationWaveProperty::ApplyProperty(UUIText* InUITex
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
-		auto waveRotator = rotator * FMath::Sin(PIxFreq + charIndex * frequency);
-		auto calcRotationMatrix = FRotationMatrix(waveRotator * lerpValue);
+		auto waveRotator = (FRotator3f)rotator * FMath::Sin(PIxFreq + charIndex * frequency);
+		auto calcRotationMatrix = FRotationMatrix44f(waveRotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -107,14 +107,14 @@ void UUIEffectTextAnimation_ScaleWaveProperty::ApplyProperty(UUIText* InUIText, 
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
-		auto waveScale = FVector::OneVector + (scale - FVector::OneVector) * FMath::Sin(PIxFreq + charIndex * frequency);
+		auto waveScale = FVector3f::OneVector + ((FVector3f)scale - FVector3f::OneVector) * FMath::Sin(PIxFreq + charIndex * frequency);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;

@@ -37,7 +37,7 @@ void AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int st
 	{
 		auto item = originVertices[i].Position;
 
-		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(item);
+		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(FVector(item));
 		canvasSpaceLocation.Y -= halfCanvasWidth;
 		canvasSpaceLocation.Z -= halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
@@ -47,7 +47,7 @@ void AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int st
 		item.Y += halfCanvasWidth;
 		item.Z += halfCanvasHeight;
 
-		originVertices[i].Position = canvasToComponentTransform.TransformPosition(item);
+		originVertices[i].Position = FVector3f(canvasToComponentTransform.TransformPosition(FVector(item)));
 	}
 }
 void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>& originVertices, ULGUICanvas* renderCanvas, UUIItem* uiComp)
@@ -69,7 +69,7 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>
 		int vertIndex = vertArray[i];
 		auto originPos = originVertices[vertIndex].Position;
 
-		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
+		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(FVector(originPos));
 		canvasSpaceLocation.Y -= halfCanvasWidth;
 		canvasSpaceLocation.Z -= halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
@@ -79,7 +79,7 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>
 		canvasSpaceLocation.Y += halfCanvasWidth;
 		canvasSpaceLocation.Z += halfCanvasHeight;
 
-		originVertices[vertIndex].Position = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
+		originVertices[vertIndex].Position = FVector3f(canvasToComponentTransform.TransformPosition(canvasSpaceLocation));
 	}
 }
 void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVertices, const TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUICanvas* renderCanvas, UUIItem* uiComp)
@@ -107,7 +107,7 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVerti
 		{
 			auto originPos = originVertices[vertStartIndex].Position;
 
-			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
+			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(FVector(originPos));
 			canvasSpaceLocation.Y -= halfCanvasWidth;
 			canvasSpaceLocation.Z -= halfCanvasHeight;
 			float screenSpaceLocationX = canvasSpaceLocation.Y * rootCanvasScale;
@@ -118,7 +118,7 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVerti
 			canvasSpaceLocation.Z += halfCanvasHeight;
 
 			auto newPos = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
-			originVertices[vertStartIndex].Position = newPos;
+			originVertices[vertStartIndex].Position = FVector3f(newPos);
 			offsetY = newPos.Y - originPos.Y;
 			offsetZ = newPos.Z - originPos.Z;
 		}
@@ -3446,14 +3446,14 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIBaseRenderable* item,
 
 	for (int i = 0; i < vertexCount; i++)
 	{
-		vertices[i].Position = itemToCanvasTf.TransformPosition(originVertices[i].Position);
+		vertices[i].Position = FVector3f(itemToCanvasTf.TransformPosition(FVector(originVertices[i].Position)));
 	}
 
 	if (canvas->GetRequireNormal())
 	{
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i].TangentZ = itemToCanvasTf.TransformVector(originVertices[i].Normal);
+			vertices[i].TangentZ = itemToCanvasTf.TransformVector(FVector(originVertices[i].Normal));
 			vertices[i].TangentZ.Vector.W = -127;
 		}
 	}
@@ -3461,7 +3461,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIBaseRenderable* item,
 	{
 		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices[i].TangentX = itemToCanvasTf.TransformVector(originVertices[i].Tangent);
+			vertices[i].TangentX = itemToCanvasTf.TransformVector(FVector(originVertices[i].Tangent));
 		}
 	}
 }

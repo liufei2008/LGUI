@@ -170,7 +170,7 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			pos = FMath::Lerp(pos, pos + position, lerpValue);
+			pos = FMath::Lerp(pos, pos + (FVector3f)position, lerpValue);
 		}
 	}
 }
@@ -188,7 +188,7 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
-		auto position = FVector(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
+		auto position = FVector3f(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -207,7 +207,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
@@ -215,7 +215,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
-		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
+		auto calcRotationMatrix = FRotationMatrix44f(((FRotator3f)rotator) * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -236,7 +236,7 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
@@ -244,8 +244,8 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
-		auto rotator = FRotator(FMath::FRandRange(min.Pitch, max.Pitch), FMath::FRandRange(min.Yaw, max.Yaw), FMath::FRandRange(min.Roll, max.Roll));
-		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
+		auto rotator = FRotator3f(FMath::FRandRange(min.Pitch, max.Pitch), FMath::FRandRange(min.Yaw, max.Yaw), FMath::FRandRange(min.Roll, max.Roll));
+		auto calcRotationMatrix = FRotationMatrix44f(rotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -265,7 +265,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
@@ -273,7 +273,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
-		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
+		auto calcScale = FMath::Lerp(FVector3f::OneVector, (FVector3f)scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -294,7 +294,7 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		FVector charCenterPos = originVertices[startVertIndex].Position;
+		auto charCenterPos = originVertices[startVertIndex].Position;
 		for (int vertIndex = startVertIndex + 1; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
@@ -302,8 +302,8 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 		charCenterPos /= charPropertyItem.VertCount;
 		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
-		auto scale = FVector(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
-		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
+		auto scale = FVector3f(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
+		auto calcScale = FMath::Lerp(FVector3f::OneVector, scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;

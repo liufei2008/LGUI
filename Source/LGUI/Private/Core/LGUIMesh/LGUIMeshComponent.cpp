@@ -415,7 +415,7 @@ public:
 						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
 						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
 						if (requireNormalOrTangent)
-							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i, LGUIVert.TangentX.ToFVector(), LGUIVert.GetTangentY(), LGUIVert.TangentZ.ToFVector());
+							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i, LGUIVert.TangentX.ToFVector3f(), LGUIVert.GetTangentY(), LGUIVert.TangentZ.ToFVector3f());
 						Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, LGUIVert.TextureCoordinate[0]);
 						if (requireUV1)
 							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 1, LGUIVert.TextureCoordinate[1]);
@@ -953,8 +953,8 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 			return FBoxSphereBounds(EForceInit::ForceInitToZero);
 		}
 
-		FVector vecMin = MeshSections[0]->vertices[0].Position;
-		FVector vecMax = vecMin;
+		auto vecMin = MeshSections[0]->vertices[0].Position;
+		auto vecMax = vecMin;
 		for (auto& MeshSection : MeshSections)
 		{
 			const auto& vertices = MeshSection->vertices;
@@ -974,10 +974,10 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 				vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
 			}
 		}
-		FVector vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
-		FVector BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
+		auto vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
+		auto BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
 
-		return FBoxSphereBounds(vecOrigin, BoxPoint, BoxPoint.Size()).TransformBy(LocalToWorld);
+		return FBoxSphereBounds(FVector(vecOrigin), FVector(BoxPoint), double(BoxPoint.Size())).TransformBy(LocalToWorld);
 	}
 	else
 	{

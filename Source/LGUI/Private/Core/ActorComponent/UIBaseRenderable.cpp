@@ -162,9 +162,9 @@ bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHi
 			int index = 0;
 			for (int i = 0; i < triangleCount; i++)
 			{
-				auto point0 = (vertices[triangleIndices[index++]].Position);
-				auto point1 = (vertices[triangleIndices[index++]].Position);
-				auto point2 = (vertices[triangleIndices[index++]].Position);
+				auto point0 = (FVector)(vertices[triangleIndices[index++]].Position);
+				auto point1 = (FVector)(vertices[triangleIndices[index++]].Position);
+				auto point2 = (FVector)(vertices[triangleIndices[index++]].Position);
 				FVector hitPoint, hitNormal;
 				if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 				{

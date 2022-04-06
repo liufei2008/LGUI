@@ -205,7 +205,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		charPivotPosH += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
-	auto charPivotPos = FVector(0, charPivotPosH, 0);
+	auto charPivotPos = FVector3f(0, charPivotPosH, 0);
 	switch (InPositionType)
 	{
 	default:
@@ -214,13 +214,13 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			pos += InPosition;
+			pos += (FVector3f)InPosition;
 		}
 	}
 	break;
 	case ELGUIGeometryModifierHelper_UITextModifyPositionType::Absolute:
 	{
-		auto charPivotOffset = charPivotPos - InPosition;
+		auto charPivotOffset = charPivotPos - (FVector3f)InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -232,12 +232,12 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 
 	if (InRotator != FRotator::ZeroRotator)
 	{
-		auto calcRotationMatrix = FRotationMatrix(InRotator);
+		auto calcRotationMatrix = FRotationMatrix44f((FRotator3f)InRotator);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			auto vector = pos - InPosition;
-			pos = InPosition + calcRotationMatrix.TransformPosition(vector);
+			auto vector = pos - (FVector3f)InPosition;
+			pos = (FVector3f)InPosition + calcRotationMatrix.TransformPosition(vector);
 		}
 	}
 
@@ -246,8 +246,8 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			auto vector = pos - InPosition;
-			pos = InPosition + vector * InScale;
+			auto vector = pos - (FVector3f)InPosition;
+			pos = (FVector3f)InPosition + vector * (FVector3f)InScale;
 		}
 	}
 }
@@ -279,19 +279,19 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
-			pos += InPosition;
+			pos += (FVector3f)InPosition;
 		}
 	}
 	break;
 	case ELGUIGeometryModifierHelper_UITextModifyPositionType::Absolute:
 	{
-		auto charCenterPos = FVector::ZeroVector;
+		auto charCenterPos = FVector3f::ZeroVector;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			charCenterPos += originVertices[vertIndex].Position;
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		auto centerOffset = charCenterPos - InPosition;
+		auto centerOffset = charCenterPos - (FVector3f)InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = originVertices[vertIndex].Position;
@@ -327,12 +327,12 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate
 	}
 	charPivotPos /= charPropertyItem.VertCount;
 
-	auto calcRotationMatrix = FRotationMatrix(InRotator);
+	auto calcRotationMatrix = FRotationMatrix44f((FRotator3f)InRotator);
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
 		auto& pos = originVertices[vertIndex].Position;
-		auto vector = pos - FVector(0, charPivotPos, 0);
-		pos = FVector(0, charPivotPos, 0) + calcRotationMatrix.TransformPosition(vector);
+		auto vector = pos - FVector3f(0, charPivotPos, 0);
+		pos = FVector3f(0, charPivotPos, 0) + calcRotationMatrix.TransformPosition(vector);
 	}
 }
 void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(UUIText* InUIText, int InCharIndex, const FVector& InScale)
@@ -361,9 +361,9 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 		charPivotPosH += originVertices[vertIndex].Position.Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
-	auto charPivotPos = FVector(0, charPivotPosH, 0);
+	auto charPivotPos = FVector3f(0, charPivotPosH, 0);
 
-	auto calcScale = InScale;
+	auto calcScale = (FVector3f)InScale;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
 		auto& pos = originVertices[vertIndex].Position;

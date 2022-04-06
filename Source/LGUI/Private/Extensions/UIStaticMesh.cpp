@@ -41,7 +41,7 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 			for (uint32 i = 0; i < NumVerts; ++i)
 			{
 				// Copy Position
-				const FVector& Position = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(i);
+				const FVector3f& Position = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(i);
 
 				// Copy Color
 				FColor Color = (LOD.VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0) ? LOD.VertexBuffers.ColorVertexBuffer.VertexColor(i) : FColor::White;
@@ -55,13 +55,13 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 
 				const FVector2f& UV3 = (TexCoordsPerVertex > 3) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 3) : FVector2f(1, 1);
 
-				const FVector TangentX = FVector(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentX(i));
-				const FVector TangentZ = FVector(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentZ(i));
+				const FVector3f TangentX = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentX(i));
+				const FVector3f TangentZ = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentZ(i));
 
 				OutVerts.Add(FLGUIStaticMeshVertex(
-					Position,
-					TangentX,
-					TangentZ,
+					FVector(Position),
+					FVector(TangentX),
+					FVector(TangentZ),
 					Color,
 					FVector2D(UV0),
 					FVector2D(UV1),
@@ -230,7 +230,7 @@ void UUIStaticMesh::UpdateMeshColor()
 		{
 			auto& sourceVert = sourceVertexData[i];
 			auto& vert = VertexData[i];
-			vert.Position = sourceVert.Position;
+			vert.Position = FVector3f(sourceVert.Position);
 			switch (tempVertexColorType)
 			{
 			case UIStaticMeshVertexColorType::MultiplyWithUIColor:
@@ -280,7 +280,7 @@ void UUIStaticMesh::CreateGeometry()
 		{
 			auto& sourceVert = sourceVertexData[i];
 			auto& vert = VertexData[i];
-			vert.Position = sourceVert.Position;
+			vert.Position = FVector3f(sourceVert.Position);
 			switch (tempVertexColorType)
 			{
 			case UIStaticMeshVertexColorType::MultiplyWithUIColor:
@@ -369,7 +369,7 @@ void UUIStaticMesh::UpdateMeshTransform()
 		for (int i = 0; i < numVertices; i++)
 		{
 			auto& vert = VertexData[i];
-			vert.Position = sourceVertexData[i].Position;
+			vert.Position = FVector3f(sourceVertexData[i].Position);
 			if (needNormal)
 			{
 				vert.TangentZ = sourceVertexData[i].TangentZ;
@@ -386,7 +386,7 @@ void UUIStaticMesh::UpdateMeshTransform()
 	auto vertexCount = vertices.Num();
 	for (int i = 0; i < vertexCount; i++)
 	{
-		vertices[i].Position = itemToCanvasTf.TransformPosition(vertices[i].Position);
+		vertices[i].Position = FVector3f(itemToCanvasTf.TransformPosition(FVector(vertices[i].Position)));
 	}
 	if (RenderCanvas->GetRequireNormal())
 	{
