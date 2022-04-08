@@ -15,11 +15,7 @@ class FSceneViewFamily;
 struct FLGUIMeshBatchContainer
 {
 	FMeshBatch Mesh;
-#if ENGINE_MAJOR_VERSION >= 5
-	FBufferRHIRef VertexBufferRHI;
-#else
 	FVertexBufferRHIRef VertexBufferRHI;
-#endif
 	int32 NumVerts = 0;
 
 	FLGUIMeshBatchContainer() {}
@@ -53,11 +49,7 @@ public:
 	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-		FRDGBuilder& GraphBuilder,
-#else
 		FRHICommandListImmediate& RHICmdList,
-#endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,

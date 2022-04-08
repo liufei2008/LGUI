@@ -123,9 +123,7 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 					{
 						OutHit.TraceStart = Start;
 						OutHit.TraceEnd = End;
-#if ENGINE_MAJOR_VERSION < 5
 						OutHit.Actor = GetOwner();
-#endif
 						OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 						OutHit.Location = GetComponentTransform().TransformPosition(HitPoint);
 						OutHit.Normal = GetComponentTransform().TransformVector(HitNormal);

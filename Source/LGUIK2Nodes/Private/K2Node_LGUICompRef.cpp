@@ -155,9 +155,7 @@ void UK2Node_LGUICompRef_GetComponent::PinConnectionListChanged(UEdGraphPin* Pin
 void UK2Node_LGUICompRef_GetComponent::NodeConnectionListChanged()
 {
 	Super::NodeConnectionListChanged();
-#if ENGINE_MAJOR_VERSION < 5//UE5 get some compile error from this when start up engine
 	SetOutputPinType();
-#endif
 }
 void UK2Node_LGUICompRef_GetComponent::NotifyPinConnectionListChanged(UEdGraphPin* Pin)
 {

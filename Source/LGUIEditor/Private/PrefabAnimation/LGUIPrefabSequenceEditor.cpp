@@ -27,9 +27,6 @@
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 #include "Misc/TextFilter.h"
 #include "PropertyCustomizationHelpers.h"
-#if ENGINE_MAJOR_VERSION >= 5
-#include "SEditorHeaderButton.h"
-#endif
 
 #define LOCTEXT_NAMESPACE "SLGUIPrefabSequenceEditor"
 
