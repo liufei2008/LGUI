@@ -506,6 +506,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
+				.AutoWidth()
 				[
 					SNew(SVerticalBox)
 					+SVerticalBox::Slot()
@@ -513,7 +514,6 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 					[
 						SNew(SBox)
 						.HeightOverride(additionalButtonHeight)
-						.WidthOverride(30)
 						[
 							SNew(SButton)
 							.HAlign(HAlign_Center)
@@ -525,60 +525,60 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 					]
 				]
 				+ SHorizontalBox::Slot()
+				.AutoWidth()
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					[
-					SNew(SBox)
-					.HeightOverride(additionalButtonHeight)
-					.WidthOverride(30)
-					[
-						SNew(SButton)
-						.HAlign(HAlign_Center)
-						.VAlign(VAlign_Center)
-						.Text(LOCTEXT("P", "P"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex, PropertyHandle)
-						.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
-					]
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("P", "P"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex, PropertyHandle)
+							.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
+						]
 					]
 				]
 				+ SHorizontalBox::Slot()
+				.AutoWidth()
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					[
-					SNew(SBox)
-					.HeightOverride(additionalButtonHeight)
-					.WidthOverride(30)
-					[
-						SNew(SButton)
-						.HAlign(HAlign_Center)
-						.VAlign(VAlign_Center)
-						.Text(LOCTEXT("+", "+"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount, PropertyHandle)
-						.ToolTipText(LOCTEXT("Add", "Add new one"))
-					]
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("+", "+"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount, PropertyHandle)
+							.ToolTipText(LOCTEXT("Add", "Add new one"))
+						]
 					]
 				]
 				+ SHorizontalBox::Slot()
+				.AutoWidth()
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					[
-					SNew(SBox)
-					.HeightOverride(additionalButtonHeight)
-					.WidthOverride(30)
-					[
-						SNew(SButton)
-						.HAlign(HAlign_Center)
-						.VAlign(VAlign_Center)
-						.Text(LOCTEXT("-", "-"))
-						.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount, PropertyHandle)
-						.ToolTipText(LOCTEXT("Delete", "Delete this one"))
-					]
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("-", "-"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount, PropertyHandle)
+							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
+						]
 					]
 				]
 			]

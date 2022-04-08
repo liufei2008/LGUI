@@ -66,7 +66,9 @@ void FLGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, boo
 }
 void FLGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
 {
+#if ENGINE_MAJOR_VERSION < 5//this will trigger 'ActorComponent::RegisterComponent ensure(MyOwnerWorld)' in ue5
 	SaveSceneOutlinerState();
+#endif
 }
 void FLGUINativeSceneOutlinerExtension::OnBeginPIE(const bool IsSimulating)
 {

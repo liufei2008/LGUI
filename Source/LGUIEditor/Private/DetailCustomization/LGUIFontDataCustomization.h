@@ -21,7 +21,10 @@ private:
 	void OnPathTextChanged(const FString& InText, TSharedRef<IPropertyHandle> InPathProperty);
 	void OnPathTextCommitted(const FString& InText, TSharedRef<IPropertyHandle> InPathProperty, IDetailLayoutBuilder* DetailBuilderPtr);
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilderPtr);
-	TArray<TSharedPtr<FString>> faceSelections;
+	TArray<TSharedPtr<FString>> FontFaceOptions;
+	TSharedRef<ITableRow> FontFaceOptions_GenerateComboItem(TSharedPtr<FString> InItem, const TSharedRef<STableViewBase>& OwnerTable, IDetailLayoutBuilder* DetailBuilder);
+	void FontFaceOptions_OnComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	FText FontFaceOptions_GetCurrentFace()const;
 
 	FText GetCurrentValue() const;
 	void OnFontFaceComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle);
@@ -29,8 +32,8 @@ private:
 
 	void OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
 	FText GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const;
-	TSharedRef<ITableRow> GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable);
-	void HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
-	TArray<TSharedPtr<FName>> NameList;
+	TSharedRef<ITableRow> PackingTagOptions_GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable, IDetailLayoutBuilder* DetailBuilder);
+	void PackingTagOptions_OnComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	TArray<TSharedPtr<FName>> PackingTagOptions;
 	void RefreshNameList(IDetailLayoutBuilder* DetailBuilder);
 };
