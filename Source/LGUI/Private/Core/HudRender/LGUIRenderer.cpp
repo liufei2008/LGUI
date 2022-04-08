@@ -88,16 +88,8 @@ void FLGUIHudRenderer::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 }
 void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
-#if ENGINE_MAJOR_VERSION < 5
 	RenderLGUI_RenderThread(RHICmdList, InView);
-#endif
 }
-#if ENGINE_MAJOR_VERSION >= 5
-void FLGUIHudRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
-{
-	RenderLGUI_RenderThread(GraphBuilder, InView);
-}
-#endif
 int32 FLGUIHudRenderer::GetPriority() const
 {
 #if WITH_EDITOR
@@ -107,7 +99,6 @@ int32 FLGUIHudRenderer::GetPriority() const
 #endif
 	return Priority;
 }
-#if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 26)
 bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
 {
 #if WITH_EDITOR
@@ -128,34 +119,6 @@ bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionConte
 	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
 }
-#else
-bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
-{
-#if WITH_EDITOR
-	if (GEngine == nullptr) return false;
-	bCanRenderScreenSpace = true;
-	bIsPlaying = ALGUIManagerActor::GetIsPlaying(World.Get());
-	//check if simulation
-	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
-	{
-		if (editor->bIsSimulatingInEditor)bCanRenderScreenSpace = false;
-	}
-
-	if (bIsPlaying == bIsEditorPreview)bCanRenderScreenSpace = false;
-#endif
-
-
-	if (!World.IsValid())return false;
-	if (InViewport == nullptr)return false;
-	if (InViewport->GetClient() == nullptr)return false;
-	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
-	if (bIsRenderToRenderTarget)
-	{
-		if (!CustomRenderTarget.IsValid())return false;
-	}
-	return true;
-}
-#endif
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 	
@@ -164,8 +127,6 @@ void FLGUIHudRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate&
 {
 
 }
-
-#if ENGINE_MAJOR_VERSION < 5
 
 void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
@@ -239,7 +200,6 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
 
 	RHICmdList.EndRenderPass();
 }
-#endif
 
 void FLGUIHudRenderer::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 {
@@ -305,7 +265,6 @@ void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer
 	}
 }
 
-#if ENGINE_MAJOR_VERSION < 5
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	FRHICommandListImmediate& RHICmdList
@@ -632,7 +591,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		OriginScreenColorRenderTarget.SafeRelease();
 	}
 }
-#endif
 
 void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
 {
@@ -897,11 +855,7 @@ void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 	Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 0.0f));
 	Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 0.0f));
 
-#if ENGINE_MAJOR_VERSION >= 5
-	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadVertexBuffer"), &Vertices);
-#else
 	FRHIResourceCreateInfo CreateInfo(&Vertices);
-#endif
 	VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
 void FLGUIFullScreenQuadIndexBuffer::InitRHI()
@@ -917,11 +871,7 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 	IndexBuffer.AddUninitialized(NumIndices);
 	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
-#if ENGINE_MAJOR_VERSION >= 5
-	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer"), &IndexBuffer);
-#else
 	FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
-#endif
 	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
 

@@ -75,11 +75,7 @@ public:
 	 * Use a mesh to render the MeshRegionTexture to ScreenTargetTexture
 	 */
 	void RenderMeshOnScreen_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-		FRDGBuilder& GraphBuilder
-#else
 		FRHICommandListImmediate& RHICmdList
-#endif
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef MeshRegionTexture

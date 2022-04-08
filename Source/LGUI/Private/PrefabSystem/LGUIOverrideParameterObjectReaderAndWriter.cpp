@@ -106,36 +106,6 @@ namespace LGUIPrefabSystem
 
 		return *this;
 	}
-#if ENGINE_MAJOR_VERSION >= 5
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FObjectPtr& Value)
-	{
-		auto Res = Value.Get();
-		if (Res != nullptr)
-		{
-			auto Property = this->GetSerializedProperty();
-			if (CastField<FClassProperty>(Property) != nullptr)//class property
-			{
-				auto id = Serializer.FindOrAddClassFromList((UClass*)Res);
-				auto type = (uint8)EObjectType::Class;
-				*this << type;
-				*this << id;
-				return *this;
-			}
-			else
-			{
-				if (SerializeObject(Res))
-				{
-					return *this;
-				}
-			}
-		}
-
-		auto noneType = (uint8)EObjectType::None;
-		*this << noneType;
-
-		return *this;
-	}
-#endif
 	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FWeakObjectPtr& Value)
 	{
 		if (Value.IsValid())
@@ -260,15 +230,6 @@ namespace LGUIPrefabSystem
 		SerializeObject(Res, true);
 		return *this;
 	}
-#if ENGINE_MAJOR_VERSION >= 5
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FObjectPtr& Value)
-	{
-		UObject* Res = nullptr;
-		SerializeObject(Res, true);
-		Value = Res;
-		return *this;
-	}
-#endif
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FWeakObjectPtr& Value)
 	{
 		UObject* Res = nullptr;

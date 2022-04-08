@@ -266,11 +266,7 @@ void FLGUIPrefabEditorViewportClient::ApplyDeltaToActors(const FVector& InDrag, 
 	{
 		AActor* Actor = static_cast<AActor*>(*SelectedActorIt);
 		checkSlow(Actor->IsA(AActor::StaticClass()));
-#if ENGINE_MAJOR_VERSION >= 5
-		if (!Actor->IsLockLocation())
-#else
 		if (!Actor->bLockLocation)
-#endif
 		{
 			// Finally, verify that no actor in the parent hierarchy is also selected
 			bool bHasParentInSelection = false;
@@ -358,31 +354,6 @@ ULGUIPrefab* FLGUIPrefabEditorViewportClient::GetPrefabBeingEdited()const
 
 namespace LevelEditorViewportClientHelper
 {
-#if ENGINE_MAJOR_VERSION >= 5
-	FProperty* GetEditTransformProperty(UE::Widget::EWidgetMode WidgetMode)
-	{
-		FProperty* ValueProperty = nullptr;
-		switch (WidgetMode)
-		{
-		case UE::Widget::WM_Translate:
-			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
-			break;
-		case UE::Widget::WM_Rotate:
-			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeRotationPropertyName());
-			break;
-		case UE::Widget::WM_Scale:
-			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeScale3DPropertyName());
-			break;
-		case UE::Widget::WM_TranslateRotateZ:
-			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
-			break;
-		case UE::Widget::WM_2D:
-			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
-			break;
-		default:
-			break;
-		}
-#else
 	FProperty* GetEditTransformProperty(FWidget::EWidgetMode WidgetMode)
 	{
 		FProperty* ValueProperty = nullptr;
@@ -406,7 +377,6 @@ namespace LevelEditorViewportClientHelper
 		default:
 			break;
 		}
-#endif
 		return ValueProperty;
 	}
 }
@@ -496,11 +466,7 @@ bool FLGUIPrefabEditorViewportClient::CanMoveActorInViewport(const AActor* InAct
 	}
 
 	// The actor cannot be location locked
-#if ENGINE_MAJOR_VERSION >= 5
-	if (InActor->IsLockLocation())
-#else
 	if (InActor->bLockLocation)
-#endif
 	{
 		return false;
 	}
@@ -524,10 +490,6 @@ bool FLGUIPrefabEditorViewportClient::CanMoveActorInViewport(const AActor* InAct
 
 	return true;
 }
-
-#if ENGINE_MAJOR_VERSION >= 5
-#include "UnrealWidget.h"
-#endif
 
 void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, int32 InMouseX, int32 InMouseY)
 {
@@ -609,31 +571,6 @@ void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventSt
 			FText ObjectTypeBeingTracked = bIsDraggingComponents ? LOCTEXT("TransactionFocus_Components", "Components") : LOCTEXT("TransactionFocus_Actors", "Actors");
 			FText TrackingDescription;
 
-#if ENGINE_MAJOR_VERSION >= 5
-			switch (GetWidgetMode())
-			{
-			case UE::Widget::WM_Translate:
-				TrackingDescription = FText::Format(LOCTEXT("MoveTransaction", "Move {0}"), ObjectTypeBeingTracked);
-				break;
-			case UE::Widget::WM_Rotate:
-				TrackingDescription = FText::Format(LOCTEXT("RotateTransaction", "Rotate {0}"), ObjectTypeBeingTracked);
-				break;
-			case UE::Widget::WM_Scale:
-				TrackingDescription = FText::Format(LOCTEXT("ScaleTransaction", "Scale {0}"), ObjectTypeBeingTracked);
-				break;
-			case UE::Widget::WM_TranslateRotateZ:
-				TrackingDescription = FText::Format(LOCTEXT("TranslateRotateZTransaction", "Translate/RotateZ {0}"), ObjectTypeBeingTracked);
-				break;
-			case UE::Widget::WM_2D:
-				TrackingDescription = FText::Format(LOCTEXT("TranslateRotate2D", "Translate/Rotate2D {0}"), ObjectTypeBeingTracked);
-				break;
-			default:
-				if (bNudge)
-				{
-					TrackingDescription = FText::Format(LOCTEXT("NudgeTransaction", "Nudge {0}"), ObjectTypeBeingTracked);
-				}
-			}
-#else
 			switch (GetWidgetMode())
 			{
 			case FWidget::WM_Translate:
@@ -657,7 +594,6 @@ void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventSt
 					TrackingDescription = FText::Format(LOCTEXT("NudgeTransaction", "Nudge {0}"), ObjectTypeBeingTracked);
 				}
 			}
-#endif
 
 			if (!TrackingDescription.IsEmpty())
 			{

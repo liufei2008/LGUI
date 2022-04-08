@@ -49,9 +49,6 @@ namespace LGUIPrefabSystem
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
@@ -71,9 +68,6 @@ namespace LGUIPrefabSystem
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
@@ -113,9 +107,6 @@ namespace LGUIPrefabSystem
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
@@ -135,9 +126,6 @@ namespace LGUIPrefabSystem
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;

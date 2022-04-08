@@ -2077,9 +2077,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 		{
 			OutHit.TraceStart = Start;
 			OutHit.TraceEnd = End;
-#if ENGINE_MAJOR_VERSION < 5
 			OutHit.Actor = GetOwner();
-#endif
 			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 			OutHit.Location = GetComponentTransform().TransformPosition(result);
 			OutHit.Normal = GetComponentTransform().TransformVector(FVector(1, 0, 0));
