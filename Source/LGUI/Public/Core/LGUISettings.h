@@ -88,14 +88,7 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static float GetAutoBatchThreshold();
-	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
-	{
-#if ENGINE_MAJOR_VERSION >= 5
-		return ((int32)FMath::Pow(2.0, (double)InType)) * 256;
-#else
-		return FMath::Pow(2, (int32)InType) * 256;
-#endif
-	}
+	static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType);
 	static int32 GetPriorityInSceneViewExtension();
 private:
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);

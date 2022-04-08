@@ -71,6 +71,14 @@ float ULGUISettings::GetAutoBatchThreshold()
 	return GetDefault<ULGUISettings>()->AutoBatchThreshold;
 #endif
 }
+int32 ULGUISettings::ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
+{
+#if ENGINE_MAJOR_VERSION >= 5
+	return ((int32)FMath::Pow(2.0, (double)InType)) * 256;
+#else
+	return FMath::Pow(2, (int32)InType) * 256;
+#endif
+}
 int32 ULGUISettings::GetPriorityInSceneViewExtension()
 {
 	return GetDefault<ULGUISettings>()->PriorityInSceneViewExtension;
