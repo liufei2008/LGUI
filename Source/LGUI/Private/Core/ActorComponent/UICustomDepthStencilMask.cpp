@@ -80,11 +80,7 @@ public:
 		return true;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder,
-#else
-		FRHICommandListImmediate& RHICmdList,
-#endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
@@ -99,9 +95,8 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
 		if (maskStrength <= 0.0f)return;
-#if ENGINE_MAJOR_VERSION >= 5
 		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-#else
+#if 0
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 		{

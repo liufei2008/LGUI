@@ -44,9 +44,7 @@ public:
 	virtual void SubscribeToPostProcessingPass(EPostProcessingPass Pass, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)override {};
 
 	virtual void PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
-#if ENGINE_MAJOR_VERSION >= 5
 	virtual void PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)override;
-#endif
 	virtual void PostRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
 
 	virtual int32 GetPriority() const override;
@@ -75,22 +73,13 @@ public:
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
 	void CopyRenderTarget(
-#if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder,
-#else
-		FRHICommandListImmediate& RHICmdList,
-#endif
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst
 	);
 	void CopyRenderTargetOnMeshRegion(
-#if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder,
 		FRDGTextureRef Dst,
-#else
-		FRHICommandListImmediate& RHICmdList,
-		FTextureRHIRef Dst,
-#endif
 		FTextureRHIRef Src,
 		FGlobalShaderMap* GlobalShaderMap,
 		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
@@ -143,11 +132,7 @@ private:
 	bool bIsRenderToRenderTarget = false;
 
 	void RenderLGUI_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder
-#else
-		FRHICommandListImmediate& RHICmdList
-#endif
 		, FSceneView& InView);
 #if WITH_EDITORONLY_DATA
 public:
@@ -172,9 +157,7 @@ public:
 static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
 
-#if ENGINE_MAJOR_VERSION >= 5
 BEGIN_SHADER_PARAMETER_STRUCT(FLGUIWorldRenderPSParameter, )
 	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
 	RENDER_TARGET_BINDING_SLOTS()
 END_SHADER_PARAMETER_STRUCT()
-#endif

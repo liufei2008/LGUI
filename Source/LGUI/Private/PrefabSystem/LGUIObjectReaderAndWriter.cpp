@@ -118,7 +118,6 @@ namespace LGUIPrefabSystem
 
 		return *this;
 	}
-#if ENGINE_MAJOR_VERSION >= 5
 	FArchive& FLGUIObjectWriter::operator<<(FObjectPtr& Value)
 	{
 		auto Res = Value.Get();
@@ -147,7 +146,6 @@ namespace LGUIPrefabSystem
 
 		return *this;
 	}
-#endif
 	FArchive& FLGUIObjectWriter::operator<<(FWeakObjectPtr& Value)
 	{
 		if (Value.IsValid())
@@ -271,7 +269,6 @@ namespace LGUIPrefabSystem
 		}
 		return *this;
 	}
-#if ENGINE_MAJOR_VERSION >= 5
 	FArchive& FLGUIObjectReader::operator<<(FObjectPtr& Value)
 	{
 		UObject* Res = nullptr;
@@ -282,7 +279,6 @@ namespace LGUIPrefabSystem
 		}
 		return *this;
 	}
-#endif
 	FArchive& FLGUIObjectReader::operator<<(FWeakObjectPtr& Value)
 	{
 		UObject* Res = nullptr;

@@ -396,9 +396,6 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 	if (direction == ELGUINavigationDirection::None)
 	{
 		hitResult.hitResult.Component = (UPrimitiveComponent*)currentHover;//this convert is incorrect, but I need this pointer
-#if ENGINE_MAJOR_VERSION < 5
-		hitResult.hitResult.Actor = currentHover->GetOwner();
-#endif
 		hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
 		hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
 		hitResult.hitResult.Normal.Normalize();
@@ -442,9 +439,6 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 		if (IsValid(newSelectable))
 		{
 			hitResult.hitResult.Component = (UPrimitiveComponent*)newSelectable->GetRootUIComponent();//this convert is incorrect, but I need this pointer
-#if ENGINE_MAJOR_VERSION < 5
-			hitResult.hitResult.Actor = newSelectable->GetOwner();
-#endif
 			hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
 			hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
 			hitResult.hitResult.Normal.Normalize();

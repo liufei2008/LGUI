@@ -157,17 +157,10 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			//RootAgentActor->bHiddenEd = true;
 			//RootAgentActor->bHiddenEdLayer = true;
 			//RootAgentActor->bHiddenEdLevel = true;
-#if ENGINE_MAJOR_VERSION >= 5
 			RootAgentActor->SetLockLocation(true);
 
 			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
-#else
-			RootAgentActor->bLockLocation = true;
-
-			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
-			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
-#endif
 		}
 
 		RootAgentActor->SetActorLabel(*RootAgentActorName);

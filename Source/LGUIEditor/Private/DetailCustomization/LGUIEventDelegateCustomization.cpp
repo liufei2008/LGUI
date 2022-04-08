@@ -16,11 +16,7 @@
 #include "Widgets/SWidget.h"
 #include "Math/UnitConversion.h"
 #include "STextPropertyEditableTextBox.h"
-#if ENGINE_MAJOR_VERSION < 5
-#include "SEnumCombobox.h"
-#else
 #include "SEnumCombo.h"
-#endif
 #include "Serialization/BufferArchive.h"
 #include "LGUIEditableTextPropertyHandle.h"
 #include "Widgets/Input/NumericUnitTypeInterface.inl"
@@ -1150,9 +1146,6 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SLGUIVectorInputBox)
 					.AllowSpin(false)
 					.bColorAxisLabels(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.AllowResponsiveLayout(true)
-#endif
 					.EnableX(true)
 					.EnableY(true)
 					.ShowX(true)
@@ -1180,9 +1173,6 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SLGUIVectorInputBox)
 					.AllowSpin(false)
 					.bColorAxisLabels(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.AllowResponsiveLayout(true)
-#endif
 					.EnableX(true)
 					.EnableY(true)
 					.EnableZ(true)
@@ -1214,9 +1204,6 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SLGUIVectorInputBox)
 					.AllowSpin(false)
 					.bColorAxisLabels(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.AllowResponsiveLayout(true)
-#endif
 					.EnableX(true)
 					.EnableY(true)
 					.EnableZ(true)
@@ -1256,11 +1243,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SAssignNew(ColorPickerParentWidget, SColorBlock)
 					.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, false, ValueHandle, ParamBufferHandle)
 					.ShowBackgroundForAlpha(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.IgnoreAlpha(false)
-#else
 					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Separate)
-#endif
 					.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, false, ValueHandle, ParamBufferHandle)
 					.Size(FVector2D(35.0f, 12.0f))
 				]
@@ -1272,11 +1255,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SColorBlock)
 					.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, false, ValueHandle, ParamBufferHandle)
 					.ShowBackgroundForAlpha(false)
-#if ENGINE_MAJOR_VERSION < 5
-					.IgnoreAlpha(true)
-#else
 					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
-#endif
 					.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, false, ValueHandle, ParamBufferHandle)
 					.Size(FVector2D(35.0f, 12.0f))
 				];
@@ -1298,11 +1277,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SAssignNew(ColorPickerParentWidget, SColorBlock)
 					.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, true, ValueHandle, ParamBufferHandle)
 					.ShowBackgroundForAlpha(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.IgnoreAlpha(false)
-#else
 					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Separate)
-#endif
 					.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, true, ValueHandle, ParamBufferHandle)
 					.Size(FVector2D(35.0f, 12.0f))
 				]
@@ -1314,11 +1289,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SColorBlock)
 					.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, true, ValueHandle, ParamBufferHandle)
 					.ShowBackgroundForAlpha(false)
-#if ENGINE_MAJOR_VERSION < 5
-					.IgnoreAlpha(true)
-#else
 					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
-#endif
 					.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, true, ValueHandle, ParamBufferHandle)
 					.Size(FVector2D(35.0f, 12.0f))
 				];
@@ -1340,9 +1311,6 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SLGUIVectorInputBox)
 					.AllowSpin(false)
 					.bColorAxisLabels(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.AllowResponsiveLayout(true)
-#endif
 					.EnableX(true)
 					.EnableY(true)
 					.EnableZ(true)
@@ -1455,9 +1423,6 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					SNew(SRotatorInputBox)
 					.AllowSpin(false)
 					.bColorAxisLabels(true)
-#if ENGINE_MAJOR_VERSION < 5
-					.AllowResponsiveLayout(true)
-#endif
 					.Roll(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 0, ValueHandle, ParamBufferHandle)
 					.Pitch(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 1, ValueHandle, ParamBufferHandle)
 					.Yaw(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 2, ValueHandle, ParamBufferHandle)

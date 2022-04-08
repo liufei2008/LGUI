@@ -308,9 +308,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 									SNew(STextBlock)
 									.Text(this, &FUIItemCustomization::GetHAlignText, AnchorMinHandle, AnchorMaxHandle)
 									.Font(IDetailLayoutBuilder::GetDetailFont())
-#if ENGINE_MAJOR_VERSION <= 4
-									.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.8f)))
-#endif
 								]
 							]
 							+SVerticalBox::Slot()
@@ -343,9 +340,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 								SNew(STextBlock)
 								.Text(this, &FUIItemCustomization::GetVAlignText, AnchorMinHandle, AnchorMaxHandle)
 								.Font(IDetailLayoutBuilder::GetDetailFont())
-#if ENGINE_MAJOR_VERSION <= 4
-								.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.8f)))
-#endif
 								.Justification(ETextJustify::Center)
 								.RenderTransformPivot(FVector2D(0, 0.5f))
 								.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(90)), FVector2D(-12, -10)))

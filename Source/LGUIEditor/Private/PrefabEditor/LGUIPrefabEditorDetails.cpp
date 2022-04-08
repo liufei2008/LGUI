@@ -57,10 +57,8 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 	
 	TSharedPtr<ISCSEditorUICustomization> Customization = MakeShared<LGUISCSEditorUICustomization>();
 	SubobjectEditor->SetUICustomization(Customization);
-#if ENGINE_MAJOR_VERSION >= 5
 	auto ButtonBox = SubobjectEditor->GetToolButtonsBox().ToSharedRef();
 	DetailsView->SetNameAreaCustomContent(ButtonBox);
-#endif
 
 	ChildSlot
 		[

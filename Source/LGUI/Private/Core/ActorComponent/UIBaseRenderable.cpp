@@ -170,9 +170,6 @@ bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHi
 				{
 					OutHit.TraceStart = Start;
 					OutHit.TraceEnd = End;
-#if ENGINE_MAJOR_VERSION < 5
-					OutHit.Actor = GetOwner();
-#endif
 					OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 					OutHit.Location = GetComponentTransform().TransformPosition(hitPoint);
 					OutHit.Normal = GetComponentTransform().TransformVector(hitNormal);
@@ -206,9 +203,6 @@ bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Sta
 		{
 			OutHit.TraceStart = Start;
 			OutHit.TraceEnd = End;
-#if ENGINE_MAJOR_VERSION < 5
-			OutHit.Actor = GetOwner();
-#endif
 			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 			OutHit.Location = GetComponentTransform().TransformPosition(IntersectionPoint);
 			OutHit.Normal = GetComponentTransform().TransformVector(FVector(-1, 0, 0));
