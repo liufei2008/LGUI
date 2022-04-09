@@ -65,6 +65,7 @@ namespace LGUIPrefabSystem
 #endif
 		if (!Object->IsAsset()//skip asset, because asset is referenced directly
 			&& Object->GetWorld() == TargetWorld
+			&& !Object->IsPendingKillOrUnreachable()
 			&& !Object->HasAnyFlags(EObjectFlags::RF_Transient)
 			&& !WillSerailizeActorArray.Contains(Object)
 			&& !Object->GetClass()->IsChildOf(AActor::StaticClass())//skip actor
