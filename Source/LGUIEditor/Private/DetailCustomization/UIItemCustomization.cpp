@@ -18,6 +18,7 @@
 #include "Layout/UILayoutBase.h"
 #include "Layout/UILayoutElement.h"
 #include "LGUIHeaders.h"
+#include "PrefabEditor/LGUIPrefabEditor.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
@@ -756,6 +757,7 @@ bool FUIItemCustomization::IsAnchorEditable()const
 	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
 		auto UIItem = TargetScriptArray[0];
+		if (FLGUIPrefabEditor::ActorIsRootAgent(UIItem->GetOwner()))return true;//special for PrefabEditor's agent root actor
 		if (UIItem->GetParentUIItem() != nullptr)return true;//not root
 		if (UIItem->IsCanvasUIItem() && UIItem->GetRenderCanvas() != nullptr && UIItem->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
 		{
@@ -1095,7 +1097,7 @@ FText FUIItemCustomization::GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle
 }
 
 TArray<float> FUIItemCustomization::ValueRangeArray = {
-		1.0f, 10.0f, 100.0f, 1000.0f
+		1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f
 };
 TOptional<float> FUIItemCustomization::GetMinMaxSliderValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool MinOrMax)const
 {
