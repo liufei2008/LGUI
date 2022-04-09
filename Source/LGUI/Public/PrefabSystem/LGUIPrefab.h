@@ -84,6 +84,10 @@ public:
 		FVector ViewLocationForPrefabEditor = FVector::ZeroVector;
 	UPROPERTY()
 		FRotator ViewRotationForPrefabEditor = FRotator::ZeroRotator;
+	UPROPERTY()
+		FIntPoint CanvasSize = FIntPoint(1920, 1080);
+	UPROPERTY()
+		uint8 CanvasRenderMode = 0;//default is ELGUIRenderMode::ScreenSpaceOverlay
 };
 
 //@todo: prefab variant
