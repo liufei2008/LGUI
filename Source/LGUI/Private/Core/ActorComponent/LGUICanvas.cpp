@@ -1280,12 +1280,6 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			RightTopPoint.X = Width * (1.0f - UIItem->GetPivot().X);
 			RightTopPoint.Y = Height * (1.0f - UIItem->GetPivot().Y);
 			bool bOutNeedToSortRenderPriority = bNeedToSortRenderPriority;
-			if (FMath::Abs(RightTopPoint.X - LeftBottomPoint.X) <= 0.01f
-				|| FMath::Abs(RightTopPoint.Y - LeftBottomPoint.Y) <= 0.01f
-				)
-			{
-				UE_LOG(LGUI, Error, TEXT(""));
-			}
 			BatchDrawcall_Implement(LeftBottomPoint, RightTopPoint, UIDrawcallList, CacheUIDrawcallList
 				, bOutNeedToSortRenderPriority//cannot pass a uint32:1 here, so use a temp bool
 			);
@@ -3020,6 +3014,9 @@ void ULGUICanvas::CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransf
 	GetMinMax(point1.X, point2.X, point3.X, point4.X, min.X, max.X);
 	GetMinMax(point1.Y, point2.Y, point3.Y, point4.Y, min.Y, max.Y);
 }
+
+const int32 UIQuadTree::Node::MaxDepth = 8;
+const int32 UIQuadTree::Node::MaxSubRects = 4;
 
 #undef LOCTEXT_NAMESPACE
 

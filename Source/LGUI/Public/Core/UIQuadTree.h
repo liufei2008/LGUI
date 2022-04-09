@@ -44,11 +44,13 @@ namespace UIQuadTree
 		Rectangle NodeRect;
 		FVector2D Center;
 		//All rects present in this node. Several rects can overlap a single rect without ever overlapping each other.
-		TArray<Rectangle> ValueArray;
+		TArray<Rectangle> RectArray;
 		//Current split depth from top one
 		int32 Depth = 0;
 		//Max split depth
-		const int32 MaxDepth = 8;
+		static const int32 MaxDepth;
+		//If reach MaxSubRects then we start to split children nodes
+		static const int32 MaxSubRects;
 
 		Node* TopLeft = nullptr;
 		Node* TopRight = nullptr;
@@ -58,38 +60,39 @@ namespace UIQuadTree
 		//insert a rect, and potentially create sub areas
 		void InsertWithSplit(Rectangle InRect)
 		{
+			//create sub nodes
+			if (TopLeft == nullptr)
+			{
+				BottomLeft = new Node(Rectangle(
+					NodeRect.Min, Center
+				));
+				BottomRight = new Node(Rectangle(
+					FVector2D(Center.X, NodeRect.Min.Y), FVector2D(NodeRect.Max.X, Center.Y)
+				));
+				TopLeft = new Node(Rectangle(
+					FVector2D(NodeRect.Min.X, Center.Y), FVector2D(Center.X, NodeRect.Max.Y)
+				));
+				TopRight = new Node(Rectangle(
+					Center, NodeRect.Max
+				));
+
+				BottomLeft->Depth = this->Depth + 1;
+				BottomRight->Depth = this->Depth + 1;
+				TopLeft->Depth = this->Depth + 1;
+				TopRight->Depth = this->Depth + 1;
+			}
+
 			//the rect overlap on more than one sub area of this node, means it can't divide into any single child node
 			if (
 				(InRect.Min.X < Center.X && InRect.Max.X > Center.X)
 				|| (InRect.Min.Y < Center.Y && InRect.Max.Y > Center.Y)
 				)
 			{
-				this->ValueArray.Add(InRect);
+				this->RectArray.Add(InRect);
 			}
 			//can insert into child node
 			else
 			{
-				//create sub nodes
-				if (TopLeft == nullptr)
-				{
-					BottomLeft = new Node(Rectangle(
-						NodeRect.Min, Center
-					));
-					BottomRight = new Node(Rectangle(
-						FVector2D(Center.X, NodeRect.Min.Y), FVector2D(NodeRect.Max.X, Center.Y)
-					));
-					TopLeft = new Node(Rectangle(
-						FVector2D(NodeRect.Min.X, Center.Y), FVector2D(Center.X, NodeRect.Max.Y)
-					));
-					TopRight = new Node(Rectangle(
-						Center, NodeRect.Max
-					));
-
-					BottomLeft->Depth = this->Depth + 1;
-					BottomRight->Depth = this->Depth + 1;
-					TopLeft->Depth = this->Depth + 1;
-					TopRight->Depth = this->Depth + 1;
-				}
 				//try insert to sub node
 				if (TopLeft->NodeRect.Contains(InRect))
 				{
@@ -107,9 +110,9 @@ namespace UIQuadTree
 				{
 					BottomRight->Insert(InRect);
 				}
-				else//not contains in all area, could be out side this rect, just put it to ValueArray
+				else//not contains in all area, could be out side this rect, just put it to RectArray
 				{
-					this->ValueArray.Add(InRect);
+					this->RectArray.Add(InRect);
 				}
 			}
 		}
@@ -137,14 +140,14 @@ namespace UIQuadTree
 		bool Overlap(Rectangle InRect)
 		{
 			//empty node
-			if (this->ValueArray.Num() == 0 && TopLeft == nullptr)
+			if (this->RectArray.Num() == 0 && TopLeft == nullptr)
 			{
 				return false;
 			}
 			if (this->NodeRect.Intersects(InRect))
 			{
-				//check ValueArray
-				for (auto& ItemRect : ValueArray)
+				//check RectArray
+				for (auto& ItemRect : RectArray)
 				{
 					if (ItemRect.Intersects(InRect))
 					{
@@ -176,30 +179,28 @@ namespace UIQuadTree
 		}
 		void Insert(Rectangle InRect)
 		{
-			if (this->Depth >= MaxDepth)//reach max depth, means can't split rect, just add to ValueArray
+			if (this->Depth >= MaxDepth)//reach max depth, means can't split rect, just add to RectArray
 			{
-				ValueArray.Add(InRect);
+				RectArray.Add(InRect);
 				return;
 			}
 			//not contains sub node
 			if (TopLeft == nullptr)
 			{
-				//empty rect, just add to ValueArray
-				if (ValueArray.Num() == 0)
+				//less then MaxSubRects, just add to RectArray
+				if (RectArray.Num() < MaxSubRects)
 				{
-					ValueArray.Add(InRect);
+					RectArray.Add(InRect);
 				}
-				//only have one rect, because prev is empty, so we need to use InsertWithSplit to potentially split area
-				else if (ValueArray.Num() == 1)
-				{
-					auto First = ValueArray[0];
-					ValueArray.RemoveAt(0);
-					InsertWithSplit(First);
-					InsertWithSplit(InRect);
-				}
-				//sub area could still be null because all prev areas is added to ValueArray
+				//split node, move rects to sub nodes
 				else
 				{
+					auto TempRect = RectArray;
+					RectArray.Empty();
+					for (auto& Item : TempRect)
+					{
+						InsertWithSplit(Item);
+					}
 					InsertWithSplit(InRect);
 				}
 			}
