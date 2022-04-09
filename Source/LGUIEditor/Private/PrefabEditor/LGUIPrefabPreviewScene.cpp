@@ -113,6 +113,8 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	{
 		if (InPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
 		{
+			auto CanvasSize = InPrefab->PrefabDataForPrefabEditor.CanvasSize;
+			auto RenderMode = (ELGUIRenderMode)InPrefab->PrefabDataForPrefabEditor.CanvasRenderMode;
 			//create Canvas for UI
 			auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
 			RootUICanvasActor->SetActorLabel(*RootAgentActorName);
@@ -121,15 +123,11 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
 			CanvasComp->RegisterComponent();
 			RootUICanvasActor->AddInstanceComponent(CanvasComp);
-			CanvasComp->SetRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
+			CanvasComp->SetRenderMode(RenderMode);
 
-			RootUICanvasActor->GetUIItem()->SetWidth(1920);
-			RootUICanvasActor->GetUIItem()->SetHeight(1080);
-
-			auto CanvasScaler = NewObject<ULGUICanvasScaler>(RootUICanvasActor);
-			CanvasScaler->RegisterComponent();
-			RootUICanvasActor->AddInstanceComponent(CanvasScaler);
-			CanvasScaler->SetUIScaleMode(LGUIScaleMode::ConstantPixelSize);
+			RootUICanvasActor->GetUIItem()->SetWidth(CanvasSize.X);
+			RootUICanvasActor->GetUIItem()->SetHeight(CanvasSize.Y);
+			RootUICanvasActor->GetUIItem()->SetHierarchyIndex(0);
 
 			RootAgentActor = RootUICanvasActor;
 		}

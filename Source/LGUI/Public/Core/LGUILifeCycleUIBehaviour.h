@@ -28,7 +28,7 @@ public:
 	UE_DEPRECATED(4.24, "GetRootComponent not valid anymore, use GetRootUIComponent instead")
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeprecatedFunction, DeprecationMessage = "GetRootComponent not valid anymore, use GetRootUIComponent instead"))
 		UUIItem* GetRootComponent() const { return GetRootUIComponent(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
+	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DisplayName="Get Root UI Component"))
 		UUIItem* GetRootUIComponent() const;
 private:
 	/** Some UI callback functions want execute before Awake, but most behaviours should executed inside or after Awake. So use this array to cache these callbacks and execute when Awake called. */

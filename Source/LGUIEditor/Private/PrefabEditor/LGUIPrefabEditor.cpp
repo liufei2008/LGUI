@@ -342,7 +342,7 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 }
 
-void FLGUIPrefabEditor::GetViewInitialLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)
+void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)
 {
 	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor == FRotator::ZeroRotator)
 	{
@@ -423,22 +423,8 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
-		//save view location and rotation
-		auto ViewTransform = ViewportPtr->GetViewportClient()->GetViewTransform();
-		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor = ViewTransform.GetLocation();
-		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor = ViewTransform.GetRotation();
-
-		//refresh parameter, remove invalid
-		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
-		{
-			KeyValue.Value.CheckParameters();
-		}
-
-		PrefabHelperObject->SavePrefab();
-		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
-		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
-		FAssetEditorToolkit::SaveAsset_Execute();
-		ULGUIEditorManagerObject::RefreshAllUI();
+		OnApply();//apply change
+		FAssetEditorToolkit::SaveAsset_Execute();//save asset
 	}
 }
 void FLGUIPrefabEditor::OnApply()
@@ -449,6 +435,17 @@ void FLGUIPrefabEditor::OnApply()
 		auto ViewTransform = ViewportPtr->GetViewportClient()->GetViewTransform();
 		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor = ViewTransform.GetLocation();
 		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor = ViewTransform.GetRotation();
+		if (auto RootAgentActor = GetPreviewScene().GetRootAgentActor())
+		{
+			if (auto UIItem = Cast<UUIItem>(RootAgentActor->GetRootComponent()))
+			{
+				PrefabBeingEdited->PrefabDataForPrefabEditor.CanvasSize = FIntPoint(UIItem->GetWidth(), UIItem->GetHeight());
+			}
+			if (auto Canvas = RootAgentActor->FindComponentByClass<ULGUICanvas>())
+			{
+				PrefabBeingEdited->PrefabDataForPrefabEditor.CanvasRenderMode = (uint8)Canvas->GetRenderMode();
+			}
+		}
 
 		//refresh parameter, remove invalid
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
