@@ -55,7 +55,7 @@ public:
 		void SetStrengthTexture(UTexture2D* newValue);
 
 	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 protected:
 	float inv_SampleLevelInterval = 1.0f;
 	FORCEINLINE float GetBlurStrengthInternal();

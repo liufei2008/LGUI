@@ -37,10 +37,10 @@ void UUIDirectMeshRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIDirectMeshRenderable::MarkAllDirtyRecursive()
+void UUIDirectMeshRenderable::MarkAllDirty()
 {
 	bLocalVertexPositionChanged = true;
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 }
 
 void UUIDirectMeshRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)

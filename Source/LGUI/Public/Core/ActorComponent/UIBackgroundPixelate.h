@@ -42,7 +42,7 @@ public:
 		void SetApplyAlphaToStrength(bool newValue);
 
 	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 protected:
 	FORCEINLINE float GetStrengthInternal();
 protected:

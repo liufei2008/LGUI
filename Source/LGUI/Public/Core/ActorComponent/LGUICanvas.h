@@ -29,7 +29,9 @@ enum class ELGUIRenderMode :uint8
 	/**
 	 * Render to a custom render target.
 	 */
-	RenderTarget=2		UMETA(DisplayName = "Render Target"),
+	RenderTarget = 2		UMETA(DisplayName = "Render Target"),
+	
+	None = 255				UMETA(Hidden),
 };
 
 UENUM(BlueprintType, Category = LGUI)
@@ -184,6 +186,9 @@ public:
 	void SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& InOutProcessedCanvasArray);
 
 	void SetParentCanvas(ULGUICanvas* InParentCanvas);
+
+	DECLARE_EVENT_ThreeParams(ULGUICanvas, FLGUICanvasRenderModeChangeEvent, ULGUICanvas*, ELGUIRenderMode, ELGUIRenderMode);
+	FLGUICanvasRenderModeChangeEvent OnRenderModeChanged;
 protected:
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
 	UPROPERTY(Transient) mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
@@ -463,17 +468,25 @@ private:
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
 	uint32 bHasAddToLGUIWorldSpaceRenderer : 1;//is this canvas added to LGUI world space renderer
-	/**
-	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share render data.
-	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
-	 */
-	uint32 bCurrentIsLGUIRendererOrUERenderer : 1;
+
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 
 	mutable uint32 bIsViewProjectionMatrixDirty : 1;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
+
+	/**
+	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share same render data.
+	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
+	 */
+	ELGUIRenderMode CurrentRenderMode = ELGUIRenderMode::None;
+	bool RenderModeIsLGUIRendererOrUERenderer(ELGUIRenderMode InRenderMode)const
+	{
+		return 
+			InRenderMode != ELGUIRenderMode::WorldSpace
+			;
+	}
 
 	FVector OverrideViewLocation;
 	FRotator OverrideViewRotation;

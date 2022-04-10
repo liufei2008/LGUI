@@ -34,7 +34,7 @@ protected:
 
 	void MarkVertexPositionDirty();
 
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 
