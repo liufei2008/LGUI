@@ -139,6 +139,7 @@ public:
 
 	void MarkColorDirty();
 	virtual void MarkAllDirty()override;
+	virtual void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false) override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
 

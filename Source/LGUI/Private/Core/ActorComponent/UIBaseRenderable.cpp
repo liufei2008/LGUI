@@ -126,6 +126,18 @@ void UUIBaseRenderable::MarkAllDirty()
 	Super::MarkAllDirty();
 }
 
+void UUIBaseRenderable::MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall)
+{
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkCanvasUpdate(bMaterialOrTextureChanged, bTransformOrVertexPositionChanged, bHierarchyOrderChanged, bForceRebuildDrawcall);
+		if(bTransformOrVertexPositionChanged)
+		{
+			RenderCanvas->MarkItemTransformOrVertexPositionChanged(this);
+		}
+	}
+}
+
 void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
 {
 	OutMinPoint = GetLocalSpaceLeftBottomPoint();
@@ -135,8 +147,8 @@ void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FV
 #if WITH_EDITOR
 void UUIBaseRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const
 {
-	auto MinPoint2D = GetLocalSpaceLeftBottomPoint();
-	auto MaxPoint2D = GetLocalSpaceRightTopPoint();
+	const auto MinPoint2D = GetLocalSpaceLeftBottomPoint();
+	const auto MaxPoint2D = GetLocalSpaceRightTopPoint();
 	OutMinPoint = FVector(0.1f, MinPoint2D.X, MinPoint2D.Y);
 	OutMaxPoint = FVector(0.1f, MaxPoint2D.X, MaxPoint2D.Y);
 }
@@ -144,21 +156,21 @@ void UUIBaseRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FV
 
 bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	auto inverseTf = GetComponentTransform().Inverse();
-	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
-	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
+	const auto InverseTf = GetComponentTransform().Inverse();
+	const auto LocalSpaceRayOrigin = InverseTf.TransformPosition(Start);
+	const auto LocalSpaceRayEnd = InverseTf.TransformPosition(End);
 
 	//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false, 5.0f);//just for test
 	//check Line-Plane intersection first, then check Line-Triangle
 	//start and end point must be different side of X plane
-	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
 	{
-		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+		auto IntersectionPoint = FMath::LinePlaneIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 		//triangle hit test
 		{
 			auto& vertices = InGeo->originVertices;
 			auto& triangleIndices = InGeo->triangles;
-			int triangleCount = triangleIndices.Num() / 3;
+			const int triangleCount = triangleIndices.Num() / 3;
 			int index = 0;
 			for (int i = 0; i < triangleCount; i++)
 			{
@@ -166,7 +178,7 @@ bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHi
 				auto point1 = (FVector)(vertices[triangleIndices[index++]].Position);
 				auto point2 = (FVector)(vertices[triangleIndices[index++]].Position);
 				FVector hitPoint, hitNormal;
-				if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
+				if (FMath::SegmentTriangleIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 				{
 					OutHit.TraceStart = Start;
 					OutHit.TraceEnd = End;
@@ -192,14 +204,14 @@ bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Sta
 		UE_LOG(LGUI, Error, TEXT("[UUIBaseRenderable::LineTraceUIGeometry]EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"));
 		return false;
 	}
-	auto inverseTf = GetComponentTransform().Inverse();
-	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
-	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
+	const auto InverseTf = GetComponentTransform().Inverse();
+	const auto LocalSpaceRayOrigin = InverseTf.TransformPosition(Start);
+	const auto LocalSpaceRayEnd = InverseTf.TransformPosition(End);
 
-	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
 	{
-		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-		if (CustomRaycastObject->Raycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z)))
+		const auto IntersectionPoint = FMath::LinePlaneIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+		if (CustomRaycastObject->Raycast(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z)))
 		{
 			OutHit.TraceStart = Start;
 			OutHit.TraceEnd = End;

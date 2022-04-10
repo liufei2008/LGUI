@@ -139,9 +139,13 @@ public:
 	 *		2. Transform & vertex position change, drawcall could overlap with eachother
 	 *		3. Hierarchy order change, this is directly related to render order
 	 * And about drawcall's rebuild, it's not actually force rebuild, it will check and reuse prev drawcall if possible.
+	 * @param	bMaterialOrTextureChanged	Material or texture change
+	 * @param	bTransformOrVertexPositionChanged	UI element's transform change, or vertex position change
+	 * @param	bHierarchyOrderChanged	UI element's hierarchy order change
 	 * @param	bForceRebuildDrawcall	Mark it rebuild no matter what parameter change.
 	 */
 	void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
+	void MarkItemTransformOrVertexPositionChanged(UUIBaseRenderable* InRenderable);
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool CalculatePointVisibilityOnClip(FVector worldPoint);
@@ -174,14 +178,14 @@ public:
 	ULGUICanvas* GetRootCanvas()const;
 	bool IsRootCanvas()const;
 
-	bool IsRenderToScreenSpace();
-	bool IsRenderToRenderTarget();
-	bool IsRenderToWorldSpace();
-	bool IsRenderByLGUIRendererOrUERenderer();
+	bool IsRenderToScreenSpace()const;
+	bool IsRenderToRenderTarget()const;
+	bool IsRenderToWorldSpace()const;
+	bool IsRenderByLGUIRendererOrUERenderer()const;
 
-	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem.Get(); }
+	FORCEINLINE UUIItem* GetUIItem()const { return UIItem.Get(); }
 	bool GetIsUIActive()const;
-	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { return ParentCanvas; }
+	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }
 
 	void SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& InOutProcessedCanvasArray);
 
@@ -514,7 +518,7 @@ public:
 	void GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, FLGUICacheTransformContainer& outResult);
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
-	void CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
+	static void CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 
 	/** canvas array belong to this canvas in hierarchy. */
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
