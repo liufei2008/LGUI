@@ -42,9 +42,9 @@ void UUICustomDepthStencilMask::PostEditChangeProperty(FPropertyChangedEvent& Pr
 	}
 }
 #endif
-void UUICustomDepthStencilMask::MarkAllDirtyRecursive()
+void UUICustomDepthStencilMask::MarkAllDirty()
 {
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 
 	if (this->RenderCanvas.IsValid())
 	{

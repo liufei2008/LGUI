@@ -11,6 +11,7 @@
 
 class ULGUICanvas;
 class UUICanvasGroup;
+enum class ELGUIRenderMode : uint8;
 
 /**
  * Base class for almost all UI related things.
@@ -243,9 +244,11 @@ public:
 		class ULGUICanvasScaler* GetCanvasScaler()const;
 
 	/** mark all dirty for UI element to update, include all children */
-	virtual void MarkAllDirtyRecursive();
+	void MarkAllDirtyRecursive();
+	virtual void MarkAllDirty();
 	/** force refresh render canvas, remove from old and add to new */
 	void ForceRefreshRenderCanvasRecursive();
+	virtual void MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode);
 private:
 	void SetOnAnchorChange(bool InPivotChange, bool InSizeChange);
 	void SetOnTransformChange();

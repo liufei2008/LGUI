@@ -138,7 +138,7 @@ public:
 	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI.
 
 	void MarkColorDirty();
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
 

@@ -33,7 +33,7 @@ protected:
 
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 
 protected:
 	/** Use maskTexture's red channel to mask out blur result. */

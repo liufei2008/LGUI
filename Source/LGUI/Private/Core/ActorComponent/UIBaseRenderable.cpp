@@ -120,10 +120,10 @@ void UUIBaseRenderable::MarkColorDirty()
 	MarkCanvasUpdate(false, false, false);
 }
 
-void UUIBaseRenderable::MarkAllDirtyRecursive()
+void UUIBaseRenderable::MarkAllDirty()
 {
 	bColorChanged = true;
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 }
 
 void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const

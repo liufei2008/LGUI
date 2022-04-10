@@ -139,7 +139,7 @@ void UUIBatchGeometryRenderable::SortGeometryModifier()
 	MarkVerticesDirty(true, true, true, true);
 }
 
-void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
+void UUIBatchGeometryRenderable::MarkAllDirty()
 {
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -156,7 +156,7 @@ void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 		}
 		MarkCanvasUpdate(true, false, false);
 	}
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 }
 void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 {

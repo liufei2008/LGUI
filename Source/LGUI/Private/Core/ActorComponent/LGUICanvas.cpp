@@ -68,7 +68,7 @@ void ULGUICanvas::BeginPlay()
 {
 	Super::BeginPlay();
 	CheckRootCanvas();
-	bCurrentIsLGUIRendererOrUERenderer = IsRenderByLGUIRendererOrUERenderer();
+	CurrentRenderMode = this->GetActualRenderMode();
 	if (CheckUIItem())
 	{
 		bPrevUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
@@ -108,7 +108,7 @@ void ULGUICanvas::UpdateRootCanvas()
 {
 	if (ensure(this == RootCanvas))
 	{
-		if (bCurrentIsLGUIRendererOrUERenderer)
+		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
 			switch (GetActualRenderMode())
 			{
@@ -377,14 +377,7 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 		ParentCanvas = InParentCanvas;
 		if (ParentCanvas.IsValid())
 		{
-#if !UE_BUILD_SHIPPING
-			check(!ParentCanvas->ChildrenCanvasArray.Contains(this));
-			check(!ParentCanvas->UIRenderableList.Contains(this->UIItem.Get()));
-#endif
-			if (this->UIItem->GetIsUIActiveInHierarchy())
-			{
-				ParentCanvas->UIRenderableList.AddUnique(this->UIItem.Get());
-			}
+			ParentCanvas->UIRenderableList.AddUnique(this->UIItem.Get());
 			ParentCanvas->ChildrenCanvasArray.AddUnique(this);
 			ParentCanvas->MarkCanvasUpdate(false, false, true, true);
 		}
@@ -410,20 +403,33 @@ void ULGUICanvas::CheckRenderMode()
 {
 	RemoveFromViewExtension();
 
-	bool oldIsLGUIRendererOrUERenderer = bCurrentIsLGUIRendererOrUERenderer;
-	if (RootCanvas.IsValid())
+	auto OldRenderMode = CurrentRenderMode;
+	if (this->IsRegistered())
 	{
-		bCurrentIsLGUIRendererOrUERenderer = RootCanvas->IsRenderByLGUIRendererOrUERenderer();
+		if (RootCanvas.IsValid())
+		{
+			CurrentRenderMode = RootCanvas->GetRenderMode();
+		}
+		else
+		{
+			CurrentRenderMode = ELGUIRenderMode::None;
+		}
 	}
-	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
-	if (bCurrentIsLGUIRendererOrUERenderer != oldIsLGUIRendererOrUERenderer)
+	else
+	{
+		CurrentRenderMode = ELGUIRenderMode::None;
+	}
+	//if render space changed, we need to change recreate all render data
+	if (CurrentRenderMode != OldRenderMode)
 	{
 		if (CheckUIItem())
 		{
-			UIItem->MarkAllDirtyRecursive();
+			UIItem->MarkRenderModeChangeRecursive(this, OldRenderMode, CurrentRenderMode);
 		}
 		//clear drawcall, delete mesh, because UE/LGUI render's mesh data not compatible
 		this->ClearDrawcall();
+
+		OnRenderModeChanged.Broadcast(this, OldRenderMode, CurrentRenderMode);
 	}
 
 	for (auto ChildCanvas : ChildrenCanvasArray)
@@ -1232,7 +1238,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 		CacheUIItemToCanvasTransformMap.Reset();
 
 		//check if add to renderer
-		if (bCurrentIsLGUIRendererOrUERenderer)
+		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
 			if (!bHasAddToLGUIWorldSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
 			{
@@ -1569,7 +1575,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 					}
 					else
 					{
-						if (bCurrentIsLGUIRendererOrUERenderer)
+						if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 						{
 							if (GetWorld()->WorldType != EWorldType::EditorPreview)//editor preview not visible
 							{
@@ -1599,7 +1605,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				else
 #endif
 				{
-					if (bCurrentIsLGUIRendererOrUERenderer)
+					if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 					{
 						switch (GetActualRenderMode())
 						{
@@ -1657,7 +1663,7 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 			}
 			else
 			{
-				if (bCurrentIsLGUIRendererOrUERenderer)
+				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 				{
 					switch (GetActualRenderMode())
 					{
@@ -1690,7 +1696,7 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 		else
 #endif
 		{
-			if (bCurrentIsLGUIRendererOrUERenderer)
+			if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 			{
 				switch (GetActualRenderMode())
 				{
@@ -2338,7 +2344,7 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 		}
 		if (this == RootCanvas)
 		{
-			if (bCurrentIsLGUIRendererOrUERenderer)
+			if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 			{
 				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
@@ -2871,7 +2877,7 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 {
 	if (IsRootCanvas())
 	{
-		return this->bCurrentIsLGUIRendererOrUERenderer
+		return this->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode)
 			&& pixelPerfect;
 	}
 	else
@@ -2880,14 +2886,14 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 		{
 			if (GetOverridePixelPerfect())
 			{
-				return RootCanvas->bCurrentIsLGUIRendererOrUERenderer
+				return RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode)
 					&& this->pixelPerfect;
 			}
 			else
 			{
 				if (ParentCanvas.IsValid())
 				{
-					return RootCanvas->bCurrentIsLGUIRendererOrUERenderer
+					return RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode)
 						&& ParentCanvas->GetActualPixelPerfect();
 				}
 			}
@@ -2904,7 +2910,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 
 		if (RootCanvas.IsValid())
 		{
-			if (RootCanvas->bCurrentIsLGUIRendererOrUERenderer)
+			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 			{
 				if (RootCanvas->IsRenderToWorldSpace())
 				{

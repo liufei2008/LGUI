@@ -44,7 +44,7 @@ protected:
 		int stencilValue = 0;
 public:
 	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetFullScreen()const { return bFullScreen; }
