@@ -9,7 +9,7 @@ namespace UIQuadTree
 	struct Rectangle
 	{
 		Rectangle() {}
-		Rectangle(FVector2D InMin, FVector2D InMax)
+		Rectangle(const FVector2D& InMin, const FVector2D& InMax)
 		{
 			this->Min = InMin;
 			this->Max = InMax;
@@ -20,7 +20,7 @@ namespace UIQuadTree
 			return (Max - Min) * 0.5f + Min;
 		}
 
-		bool Contains(Rectangle InRect)
+		bool Contains(const Rectangle& InRect)const
 		{
 			return this->Min.X <= InRect.Min.X
 				&& this->Max.X >= InRect.Max.X
@@ -28,7 +28,7 @@ namespace UIQuadTree
 				&& this->Max.Y >= InRect.Max.Y
 				;
 		}
-		bool Intersects(Rectangle InRect)
+		bool Intersects(const Rectangle& InRect)const
 		{
 			return !(this->Min.X >= InRect.Max.X
 				|| this->Max.X <= InRect.Min.X
@@ -48,9 +48,9 @@ namespace UIQuadTree
 		//Current split depth from top one
 		int32 Depth = 0;
 		//Max split depth
-		static const int32 MaxDepth;
+		static constexpr int32 MaxDepth(){return  8;}
 		//If reach MaxSubRects then we start to split children nodes
-		static const int32 MaxSubRects;
+		static constexpr int32 MaxSubRects(){return 4;}
 
 		Node* TopLeft = nullptr;
 		Node* TopRight = nullptr;
@@ -179,7 +179,7 @@ namespace UIQuadTree
 		}
 		void Insert(Rectangle InRect)
 		{
-			if (this->Depth >= MaxDepth)//reach max depth, means can't split rect, just add to RectArray
+			if (this->Depth >= MaxDepth())//reach max depth, means can't split rect, just add to RectArray
 			{
 				RectArray.Add(InRect);
 				return;
@@ -188,7 +188,7 @@ namespace UIQuadTree
 			if (TopLeft == nullptr)
 			{
 				//less then MaxSubRects, just add to RectArray
-				if (RectArray.Num() < MaxSubRects)
+				if (RectArray.Num() < MaxSubRects())
 				{
 					RectArray.Add(InRect);
 				}
@@ -197,7 +197,7 @@ namespace UIQuadTree
 				{
 					auto TempRect = RectArray;
 					RectArray.Empty();
-					for (auto& Item : TempRect)
+					for (const auto& Item : TempRect)
 					{
 						InsertWithSplit(Item);
 					}
