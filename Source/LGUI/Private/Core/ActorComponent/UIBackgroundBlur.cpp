@@ -47,9 +47,9 @@ void UUIBackgroundBlur::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 #endif
 
 
-void UUIBackgroundBlur::MarkAllDirtyRecursive()
+void UUIBackgroundBlur::MarkAllDirty()
 {
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 
 	if (this->RenderCanvas.IsValid())
 	{

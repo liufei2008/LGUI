@@ -98,7 +98,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray()const;
 public:
-	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkAllDirty()override;
 protected:
 	virtual UTexture* GetTextureToCreateGeometry()override;
 

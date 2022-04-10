@@ -65,11 +65,11 @@ void UUIPostProcessRenderable::MarkUVDirty()
 	MarkCanvasUpdate(false, false, false);
 }
 
-void UUIPostProcessRenderable::MarkAllDirtyRecursive()
+void UUIPostProcessRenderable::MarkAllDirty()
 {
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);

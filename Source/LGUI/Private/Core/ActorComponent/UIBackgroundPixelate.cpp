@@ -40,9 +40,9 @@ void UUIBackgroundPixelate::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 #endif
-void UUIBackgroundPixelate::MarkAllDirtyRecursive()
+void UUIBackgroundPixelate::MarkAllDirty()
 {
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 
 	if (this->RenderCanvas.IsValid())
 	{

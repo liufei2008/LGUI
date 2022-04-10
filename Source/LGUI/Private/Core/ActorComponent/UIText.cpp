@@ -509,11 +509,11 @@ void UUIText::MarkTextureDirty()
 	Super::MarkTextureDirty();
 }
 
-void UUIText::MarkAllDirtyRecursive()
+void UUIText::MarkAllDirty()
 {
 	MarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
-	Super::MarkAllDirtyRecursive();
+	Super::MarkAllDirty();
 }
 int UUIText::VisibleCharCountInString(const FString& srcStr)
 {

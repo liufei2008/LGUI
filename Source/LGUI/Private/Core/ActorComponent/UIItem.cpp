@@ -441,6 +441,19 @@ void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& In
 
 void UUIItem::MarkAllDirtyRecursive()
 {
+	MarkAllDirty();
+	
+	for (auto uiChild : UIChildren)
+	{
+		if (IsValid(uiChild))
+		{
+			uiChild->MarkAllDirtyRecursive();
+		}
+	}
+}
+
+void UUIItem::MarkAllDirty()
+{
 	bFlattenHierarchyIndexDirty = true;
 	bWidthCached = false;
 	bHeightCached = false;
@@ -448,12 +461,19 @@ void UUIItem::MarkAllDirtyRecursive()
 	bAnchorRightCached = false;
 	bAnchorTopCached = false;
 	bAnchorBottomCached = false;
-	
-	for (auto uiChild : UIChildren)
+}
+
+void UUIItem::MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode)
+{
+	if (this->RenderCanvas == Canvas)
 	{
-		if (IsValid(uiChild))
+		MarkAllDirty();
+		for (auto uiChild : UIChildren)
 		{
-			uiChild->MarkAllDirtyRecursive();
+			if (IsValid(uiChild))
+			{
+				uiChild->MarkRenderModeChangeRecursive(Canvas, OldRenderMode, NewRenderMode);
+			}
 		}
 	}
 }
