@@ -1112,8 +1112,10 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			case EUIRenderableType::UIDirectMeshRenderable:
 			{
 				auto UIDirectMeshRenderableItem = (UUIDirectMeshRenderable*)UIRenderableItem;
+				if (!UIDirectMeshRenderableItem->HaveValidData())continue;
 				//every direct mesh is a drawcall
 				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::DirectMesh, UIItemToCanvasTf);
+				UIDirectMeshRenderableItem->drawcall->material = UIDirectMeshRenderableItem->GetMaterial();
 				//no need to copy drawcall's update data for UIDirectMeshRenderable, because UIDirectMeshRenderable's drawcall should be the same as previours one
 			}
 			break;
@@ -1479,7 +1481,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				MeshSection = UIMesh->GetMeshSection();
 
 				DrawcallItem->drawcallMeshSection = MeshSection;
-				DrawcallItem->directMeshRenderableObject->SetMeshData(UIMesh, MeshSection);
+				DrawcallItem->directMeshRenderableObject->OnMeshDataReady();
 				UIMesh->CreateMeshSectionData(MeshSection.Pin());
 				//create new mesh section, need to sort it
 				bNeedToSortRenderPriority = true;
@@ -1857,10 +1859,13 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 	{
 		auto DrawcallItem = UIDrawcallList[i];
 		auto TempClipType = this->GetActualClipType();
-		if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
+		switch (DrawcallItem->type)
+		{
+		case EUIDrawcallType::BatchGeometry:
+		case EUIDrawcallType::DirectMesh:
 		{
 			auto UIMat = DrawcallItem->materialInstanceDynamic;
-			if (!UIMat.IsValid() || DrawcallItem->materialChanged || this->bClipTypeChanged)
+			if (!UIMat.IsValid() || DrawcallItem->materialChanged || this->bClipTypeChanged)//@todo: UIMat could always be nullptr!
 			{
 				if (DrawcallItem->material.IsValid())//custom material
 				{
@@ -1914,7 +1919,8 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), UIMat.Get());
 			}
 		}
-		else if (DrawcallItem->type == EUIDrawcallType::PostProcess)
+		break;
+		case EUIDrawcallType::PostProcess:
 		{
 			if (this->bClipTypeChanged
 				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
@@ -1928,19 +1934,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				bNeedToSetClipParameter = true;
 			}
 		}
-		else if (DrawcallItem->type == EUIDrawcallType::DirectMesh)
-		{
-			if (this->bClipTypeChanged
-				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
-				)
-			{
-				if (DrawcallItem->directMeshRenderableObject.IsValid())
-				{
-					DrawcallItem->directMeshRenderableObject->SetClipType(TempClipType);
-					DrawcallItem->materialChanged = false;
-				}
-				bNeedToSetClipParameter = true;
-			}
+		break;
 		}
 
 		//clip parameter
@@ -1960,6 +1954,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				{
 				default:
 				case EUIDrawcallType::BatchGeometry:
+				case EUIDrawcallType::DirectMesh:
 				{
 					auto UIMat = DrawcallItem->materialInstanceDynamic;
 					if (UIMat.IsValid())
@@ -1974,14 +1969,6 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 					if (DrawcallItem->postProcessRenderableObject.IsValid())
 					{
 						DrawcallItem->postProcessRenderableObject->SetRectClipParameter(TempRectClipOffsetAndSize, TempRectClipFeather);
-					}
-				}
-				break;
-				case EUIDrawcallType::DirectMesh:
-				{
-					if (DrawcallItem->directMeshRenderableObject.IsValid())
-					{
-						DrawcallItem->directMeshRenderableObject->SetRectClipParameter(TempRectClipOffsetAndSize, TempRectClipFeather);
 					}
 				}
 				break;
@@ -2001,6 +1988,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				{
 				default:
 				case EUIDrawcallType::BatchGeometry:
+				case EUIDrawcallType::DirectMesh:
 				{
 					auto UIMat = DrawcallItem->materialInstanceDynamic;
 					if (UIMat.IsValid())
@@ -2015,14 +2003,6 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 					if (DrawcallItem->postProcessRenderableObject.IsValid())
 					{
 						DrawcallItem->postProcessRenderableObject->SetTextureClipParameter(TempClipTexture, TempTextureClipOffsetAndSize);
-					}
-				}
-				break;
-				case EUIDrawcallType::DirectMesh:
-				{
-					if (DrawcallItem->directMeshRenderableObject.IsValid())
-					{
-						DrawcallItem->directMeshRenderableObject->SetTextureClipParameter(TempClipTexture, TempTextureClipOffsetAndSize);
 					}
 				}
 				break;
