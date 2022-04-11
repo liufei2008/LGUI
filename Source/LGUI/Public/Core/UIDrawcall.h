@@ -30,50 +30,50 @@ class LGUI_API UUIDrawcall
 public:
 	UUIDrawcall(EUIDrawcallType InType)
 	{
-		type = InType;
+		Type = InType;
 	}
 	UUIDrawcall(UIQuadTree::Rectangle InCanvasRect)
 	{
-		type = EUIDrawcallType::BatchGeometry;
-		renderObjectListTreeRootNode = new UIQuadTree::Node(InCanvasRect);
+		Type = EUIDrawcallType::BatchGeometry;
+		RenderObjectListTreeRootNode = new UIQuadTree::Node(InCanvasRect);
 	}
 	~UUIDrawcall()
 	{
-		if (renderObjectListTreeRootNode != nullptr)
+		if (RenderObjectListTreeRootNode != nullptr)
 		{
-			delete renderObjectListTreeRootNode;
-			renderObjectListTreeRootNode = nullptr;
+			delete RenderObjectListTreeRootNode;
+			RenderObjectListTreeRootNode = nullptr;
 		}
 	}
-	EUIDrawcallType type = EUIDrawcallType::BatchGeometry;
+	EUIDrawcallType Type = EUIDrawcallType::BatchGeometry;
 
-	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
-	TWeakObjectPtr<UMaterialInterface> material = nullptr;//drawcall use this material to render, can be null to use default material
-	TWeakObjectPtr<UMaterialInstanceDynamic> materialInstanceDynamic = nullptr;//created MaterialInstanceDynamic that render this drawcall
-	TWeakObjectPtr<ULGUIMeshComponent> drawcallMesh = nullptr;//mesh for render this drawcall
-	TWeakPtr<FLGUIMeshSection> drawcallMeshSection = nullptr;//section of mesh which render this drawcall
+	TWeakObjectPtr<UTexture> Texture = nullptr;//drawcall used this texture to render
+	TWeakObjectPtr<UMaterialInterface> Material = nullptr;//drawcall use this material to render, can be null to use default material
+	TWeakObjectPtr<UMaterialInterface> RenderMaterial = nullptr;//material that render this drawcall
+	TWeakObjectPtr<ULGUIMeshComponent> DrawcallMesh = nullptr;//mesh for render this drawcall
+	TWeakPtr<FLGUIMeshSection> DrawcallMeshSection = nullptr;//section of mesh which render this drawcall
 
-	bool materialChanged = true;
-	bool materialNeedToReassign = true;//once a mesh section is recreated, and the material is still valid, then we need to re-assign the material to newly created mesh section
-	bool textureChanged = true;
+	bool bMaterialContainsLGUIParameter = false;//if Material contains LGUI's parameter, then a MaterialInstanceDynamic will be created and stored as RenderMaterial, other wise RenderMaterial is same as Material
+	bool bMaterialChanged = true;
+	bool bMaterialNeedToReassign = true;//once a mesh section is recreated, and the material is still valid, then we need to re-assign the material to newly created mesh section
+	bool bTextureChanged = true;
 
-	bool needToUpdateVertex = true;
-	bool vertexPositionChanged = true;//if vertex position changed? use for update bounds
+	bool bNeedToUpdateVertex = true;
+	bool bVertexPositionChanged = true;//if vertex position changed? use for update bounds
 
-	TWeakObjectPtr<UUIPostProcessRenderable> postProcessRenderableObject;//post process object
-	bool needToAddPostProcessRenderProxyToRender = true;//this parameter is needed when: post process object have added to render before (means PostProcessRenderProxy is already created) and then removed, and now add to render again, so this will be true by default newly created drawcall
+	TWeakObjectPtr<UUIPostProcessRenderable> PostProcessRenderableObject;//post process object
+	bool bNeedToAddPostProcessRenderProxyToRender = true;//this parameter is needed when: post process object have added to render before (means PostProcessRenderProxy is already created) and then removed, and now add to render again, so this will be true by default newly created drawcall
 
-	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
+	TWeakObjectPtr<UUIDirectMeshRenderable> DirectMeshRenderableObject;
 
-	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
-	bool shouldSortRenderObjectList = false;//should sort renderObjectList
-	UIQuadTree::Node* renderObjectListTreeRootNode = nullptr;
-	int32 verticesCount = 0;//vertices count of all renderObjectList
-	int32 indicesCount = 0;//triangle indices count of all renderObjectList
+	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> RenderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
+	UIQuadTree::Node* RenderObjectListTreeRootNode = nullptr;
+	int32 VerticesCount = 0;//vertices count of all renderObjectList
+	int32 IndicesCount = 0;//triangle indices count of all renderObjectList
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 
-	TWeakObjectPtr<ULGUICanvas> childCanvas;//insert point to sort child canvas
+	TWeakObjectPtr<ULGUICanvas> ChildCanvas;//insert point to sort child canvas
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);

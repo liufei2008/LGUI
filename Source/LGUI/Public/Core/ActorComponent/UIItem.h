@@ -317,7 +317,7 @@ protected:
 		int32 hierarchyIndex = INDEX_NONE;
 	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
 	mutable int32 flattenHierarchyIndex = 0;
-	virtual void MarkFlattenHierarchyIndexDirty();
+	void MarkFlattenHierarchyIndexDirty();
 private:
 	/** Only for RootUIItem */
 	void RecalculateFlattenHierarchyIndex()const;

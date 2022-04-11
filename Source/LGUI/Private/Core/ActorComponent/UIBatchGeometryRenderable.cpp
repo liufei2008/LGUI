@@ -99,7 +99,7 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 		if (drawcall.IsValid())
 		{
 			geometry->texture = GetTextureToCreateGeometry();
-			drawcall->textureChanged = true;
+			drawcall->bTextureChanged = true;
 		}
 		MarkCanvasUpdate(true, false, false);
 	}
@@ -111,7 +111,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 		if (drawcall.IsValid())
 		{
 			geometry->material = CustomUIMaterial;
-			drawcall->materialChanged = true;
+			drawcall->bMaterialChanged = true;
 		}
 		MarkCanvasUpdate(true, false, false);
 	}
@@ -149,10 +149,10 @@ void UUIBatchGeometryRenderable::MarkAllDirty()
 		if (drawcall.IsValid())
 		{
 			geometry->texture = GetTextureToCreateGeometry();
-			drawcall->textureChanged = true;
+			drawcall->bTextureChanged = true;
 
 			geometry->material = CustomUIMaterial;
-			drawcall->materialChanged = true;
+			drawcall->bMaterialChanged = true;
 		}
 		MarkCanvasUpdate(true, false, false);
 	}
@@ -176,9 +176,9 @@ UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic
 			return (UMaterialInstanceDynamic*)CustomUIMaterial;//if CustomUIMaterial is a MaterialInstanceDynamic then just return it directly
 		}
 	}
-	if (drawcall.IsValid())
+	if (drawcall.IsValid() && drawcall->RenderMaterial.IsValid() && drawcall->bMaterialContainsLGUIParameter)
 	{
-		return drawcall->materialInstanceDynamic.Get();
+		return (UMaterialInstanceDynamic*)drawcall->RenderMaterial.Get();
 	}
 	return nullptr;
 }
@@ -264,15 +264,6 @@ void UUIBatchGeometryRenderable::ApplyGeometryModifier(bool triangleChanged, boo
 	}
 }
 
-void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
-{
-	Super::MarkFlattenHierarchyIndexDirty();
-	if (drawcall.IsValid())
-	{
-		drawcall->shouldSortRenderObjectList = true;//hierarchy order change, should sort objects in drawcall
-	}
-}
-
 DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable UpdateGeometry"), STAT_UpdateGeometry, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
@@ -308,7 +299,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			}
 			OnUpdateGeometry(*(geometry.Get()), bTriangleChanged, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
 			ApplyGeometryModifier(bTriangleChanged, bUVChanged, bColorChanged, bLocalVertexPositionChanged);
-			drawcall->needToUpdateVertex = true;
+			drawcall->bNeedToUpdateVertex = true;
 			if (bLocalVertexPositionChanged)
 			{
 				CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
@@ -317,7 +308,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 		if (bLocalVertexPositionChanged || bTransformChanged)
 		{
 			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
-			drawcall->needToUpdateVertex = true;
+			drawcall->bNeedToUpdateVertex = true;
 		}
 	}
 	if (geometry->vertices.Num() >= LGUI_MAX_VERTEX_COUNT)
