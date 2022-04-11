@@ -53,9 +53,9 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 	{
 		if (drawcall.IsValid())
 		{
-			drawcall->texture = geometry->texture;
-			drawcall->textureChanged = true;
-			drawcall->needToUpdateVertex = true;
+			drawcall->Texture = geometry->texture;
+			drawcall->bTextureChanged = true;
+			drawcall->bNeedToUpdateVertex = true;
 		}
 	}
 	MarkVerticesDirty(false, true, true, false);
