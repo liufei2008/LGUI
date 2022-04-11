@@ -37,15 +37,14 @@ protected:
 	virtual void MarkAllDirty()override;
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
-
-	TWeakObjectPtr<ULGUIMeshComponent> UIMesh = nullptr;
-	TWeakPtr<FLGUIMeshSection> MeshSection = nullptr;
 public:
-	/** Canvas will create a UIDrawcallMesh for this UI element. */
-	virtual void SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InMeshSection);
+	/** Called by LGUICanvas when this UI element have valid mesh data. */
+	virtual void OnMeshDataReady();
 	virtual TWeakPtr<FLGUIMeshSection> GetMeshSection()const;
 	virtual TWeakObjectPtr<ULGUIMeshComponent> GetUIMesh()const;
 	virtual void ClearMeshData();
+	virtual bool HaveValidData()const PURE_VIRTUAL(UUIDirectMeshRenderable::HaveValidData, return true;);
+	virtual UMaterialInterface* GetMaterial()const PURE_VIRTUAL(UUIDirectMeshRenderable::GetMaterial, return nullptr;);
 
 	virtual void SetClipType(ELGUICanvasClipType clipType) {};
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather) {};

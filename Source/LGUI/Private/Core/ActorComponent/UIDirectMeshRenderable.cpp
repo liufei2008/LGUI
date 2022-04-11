@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Core/UIDrawcall.h"
 
 UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -68,21 +69,27 @@ void UUIDirectMeshRenderable::UpdateGeometry()
 
 TWeakPtr<FLGUIMeshSection> UUIDirectMeshRenderable::GetMeshSection()const
 {
-	return MeshSection;
+	if (drawcall.IsValid())
+	{
+		return drawcall->drawcallMeshSection;
+	}
+	return nullptr;
 }
 TWeakObjectPtr<ULGUIMeshComponent> UUIDirectMeshRenderable::GetUIMesh()const
 {
-	return UIMesh;
+	if (drawcall.IsValid())
+	{
+		return drawcall->drawcallMesh;
+	}
+	return nullptr;
 }
 void UUIDirectMeshRenderable::ClearMeshData()
 {
-	UIMesh.Reset();
-	MeshSection.Reset();
+	MarkCanvasUpdate(false, false, false, true);
 }
-void UUIDirectMeshRenderable::SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InMeshSection)
+void UUIDirectMeshRenderable::OnMeshDataReady()
 {
-	UIMesh = InUIMesh;
-	MeshSection = InMeshSection;
+
 }
 
 bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
@@ -93,7 +100,8 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 	}
 	else if (RaycastType == EUIRenderableRaycastType::Geometry)
 	{
-		if (!MeshSection.IsValid())return false;
+		if (!drawcall.IsValid())return false;
+		if (!drawcall->drawcallMeshSection.IsValid())return false;
 
 		auto inverseTf = GetComponentTransform().Inverse();
 		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
@@ -109,8 +117,8 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 			if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
 			{
 				//triangle hit test
-				auto& vertices = MeshSection.Pin()->vertices;
-				auto& triangleIndices = MeshSection.Pin()->triangles;
+				auto& vertices = drawcall->drawcallMeshSection.Pin()->vertices;
+				auto& triangleIndices = drawcall->drawcallMeshSection.Pin()->triangles;
 				int triangleCount = triangleIndices.Num() / 3;
 				int index = 0;
 				for (int i = 0; i < triangleCount; i++)

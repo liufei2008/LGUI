@@ -91,6 +91,7 @@ private:
 #if WITH_EDITORONLY_DATA
 	/** Does the actual work of converting mesh data into slate vector art */
 	void InitFromStaticMesh(const UStaticMesh& InSourceMesh);
+	void ClearMeshData();
 
 	/** The mesh data asset from which the vector art is sourced */
 	UPROPERTY(EditAnywhere, Category = "Vector Art")
@@ -141,27 +142,32 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::NotAffectByUIColor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UMaterialInterface* replaceMat;
+		UMaterialInterface* ReplaceMaterial;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
 	
-	virtual void SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InUIDrawcallMesh)override;
-	bool CanCreateGeometry();
+	virtual void OnMeshDataReady()override;
 	void CreateGeometry();
 	virtual void UpdateGeometry()override;
 	void UpdateMeshTransform();
 	void UpdateMeshColor();
+	virtual bool HaveValidData()const override;
+	virtual UMaterialInterface* GetMaterial()const override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		ULGUIStaticMeshCacheData* GetMesh()const { return meshCache; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UIStaticMeshVertexColorType GetVertexColorType()const { return vertexColorType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UMaterialInterface* GetReplaceMaterial()const { return ReplaceMaterial; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMesh(ULGUIStaticMeshCacheData* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetVertexColorType(UIStaticMeshVertexColorType value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetReplaceMaterial(UMaterialInterface* value);
 };
 
 UCLASS(ClassGroup = LGUI)
