@@ -12,10 +12,10 @@
 
 void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
 {
-	int count = renderObjectList.Num();
+	int count = RenderObjectList.Num();
 	if (count == 1)
 	{
-		auto uiGeo = renderObjectList[0]->GetGeometry();
+		auto uiGeo = RenderObjectList[0]->GetGeometry();
 		vertices = uiGeo->vertices;
 		triangles = uiGeo->triangles;
 	}
@@ -23,11 +23,11 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUI
 	{
 		int prevVertexCount = 0;
 		int triangleIndicesIndex = 0;
-		vertices.Reserve(this->verticesCount);
-		triangles.SetNumUninitialized(this->indicesCount);
+		vertices.Reserve(this->VerticesCount);
+		triangles.SetNumUninitialized(this->IndicesCount);
 		for (int geoIndex = 0; geoIndex < count; geoIndex++)
 		{
-			auto uiGeo = renderObjectList[geoIndex]->GetGeometry();
+			auto uiGeo = RenderObjectList[geoIndex]->GetGeometry();
 			auto& geomTriangles = uiGeo->triangles;
 			int triangleCount = geomTriangles.Num();
 			if (triangleCount <= 0)continue;
@@ -45,18 +45,17 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUI
 
 void UUIDrawcall::CopyUpdateState(UUIDrawcall* Target)
 {
-	if (materialChanged)Target->materialChanged = true;
-	if (textureChanged)Target->textureChanged = true;
-	if (needToUpdateVertex)Target->needToUpdateVertex = true;
-	if (vertexPositionChanged)Target->vertexPositionChanged = true;
-	if (needToAddPostProcessRenderProxyToRender)Target->needToAddPostProcessRenderProxyToRender = true;
-	if (shouldSortRenderObjectList)Target->shouldSortRenderObjectList = true;
+	if (bMaterialChanged)Target->bMaterialChanged = true;
+	if (bTextureChanged)Target->bTextureChanged = true;
+	if (bNeedToUpdateVertex)Target->bNeedToUpdateVertex = true;
+	if (bVertexPositionChanged)Target->bVertexPositionChanged = true;
+	if (bNeedToAddPostProcessRenderProxyToRender)Target->bNeedToAddPostProcessRenderProxyToRender = true;
 }
 
 bool UUIDrawcall::CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount)
 {
-	return this->type == EUIDrawcallType::BatchGeometry
-		&& this->material == geo->material
-		&& this->texture == geo->texture
-		&& this->verticesCount + itemVertCount < LGUI_MAX_VERTEX_COUNT;
+	return this->Type == EUIDrawcallType::BatchGeometry
+		&& this->Material == geo->material
+		&& this->Texture == geo->texture
+		&& this->VerticesCount + itemVertCount < LGUI_MAX_VERTEX_COUNT;
 }

@@ -170,7 +170,6 @@ protected:
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 	virtual void UpdateGeometry()override final;
-	virtual void MarkFlattenHierarchyIndexDirty()override;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const override;
 #if WITH_EDITOR
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
