@@ -1088,8 +1088,15 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 					ObjectGuid = KeyValue.Key;
 				}
 			}
-			FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
-			return SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
+			if (ObjectGuid.IsValid())
+			{
+				FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
+				return SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
+			}
+			else
+			{
+				return (UObject*)nullptr;
+			}
 		};
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
 		{
@@ -1103,26 +1110,37 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
 				}
 			}
-			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
-			TSet<FName> NamesToClear;
-			for (auto& PropertyName : DataItem.MemberPropertyName)
+			if (auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject))
 			{
-				if (FilterNameSet.Contains(PropertyName))continue;
-				NamesToClear.Add(PropertyName);
-				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+				TSet<FName> NamesToClear;
+				for (auto& PropertyName : DataItem.MemberPropertyName)
 				{
-					//set to default value
-					Property->CopyCompleteValue_InContainer(OriginObject, SourceObject);
-					//notify
-					LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
+					if (FilterNameSet.Contains(PropertyName))continue;
+					NamesToClear.Add(PropertyName);
+					if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+					{
+						//set to default value
+						Property->CopyCompleteValue_InContainer(OriginObject, SourceObject);
+						//notify
+						LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
+					}
+				}
+				//mark on sub prefab, because the object could belongs to subprefab's subprefab.
+				SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(OriginObject, DataItem.MemberPropertyName);
+
+				for (auto& PropertyName : NamesToClear)
+				{
+					DataItem.MemberPropertyName.Remove(PropertyName);
 				}
 			}
-			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
-			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(OriginObject, DataItem.MemberPropertyName);
-
-			for (auto& PropertyName : NamesToClear)
+			else//if not find OriginObject, means the SourceObject is newly created (added new component) @todo: automatic add component to origin prefab
 			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
+				if (SourceObject->IsA(UActorComponent::StaticClass()))
+				{
+					auto InfoText = FText::Format(LOCTEXT("NewComponentInPrefaInstance", "Detect none tracked component: '{0}' in PrefabInstance. Note children of a Prefab instance cannot add or remove component.\
+\n\nYou can open the prefab in prefab editor to add component to the prefab asset itself, or unpack the prefab instance to remove its prefab connection."), FText::FromString(SourceObject->GetName()));
+					FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+				}
 			}
 		}
 		RemoveAllMemberPropertyFromSubPrefab(Actor);
