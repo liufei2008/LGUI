@@ -32,6 +32,7 @@ void FLGUIPostProcessVertexDeclaration::InitRHI()
 	uint16 Stride = sizeof(FLGUIPostProcessVertex);
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIPostProcessVertex, Position), VET_Float3, 0, Stride));
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIPostProcessVertex, TextureCoordinate0), VET_Float2, 1, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIPostProcessVertex, TextureCoordinate1), VET_Float2, 2, Stride));
 	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
 }
 void FLGUIPostProcessVertexDeclaration::ReleaseRHI()

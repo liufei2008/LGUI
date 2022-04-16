@@ -5,13 +5,13 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIGeometry.h"
 #include "Core/UIPostProcessRenderProxy.h"
-#include "Core/LGUISpriteData_BaseObject.h"
 
 UUIPostProcessRenderable::UUIPostProcessRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	UIRenderableType = EUIRenderableType::UIPostProcessRenderable;
-	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
+	geometry_Simple = TSharedPtr<UIGeometry>(new UIGeometry);
+	geometry_Sliced = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -37,6 +37,26 @@ void UUIPostProcessRenderable::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	bUVChanged = true;
 	bLocalVertexPositionChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	CheckSpriteData();
+	SendMaskTextureToRenderProxy();
+}
+bool UUIPostProcessRenderable::CanEditChange(const FProperty* InProperty) const
+{
+	if (InProperty)
+	{
+		FString PropertyName = InProperty->GetName();
+
+		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(UUIPostProcessRenderable, MaskTextureType))
+		{
+			return IsValid(maskTexture);
+		}
+		else if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(UUIPostProcessRenderable, MaskTextureSpriteInfo))
+		{
+			return IsValid(maskTexture) && MaskTextureType == EUIPostProcessMaskTextureType::Sliced;
+		}
+	}
+	return Super::CanEditChange(InProperty);
 }
 #endif
 
@@ -83,21 +103,26 @@ void UUIPostProcessRenderable::UpdateGeometry()
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		geometry->Clear();
-		OnUpdateGeometry(geometry.Get(), true, true, true, true);
-		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
+		geometry_Simple->Clear();
+		geometry_Sliced->Clear();
+		OnUpdateGeometry(true, true, true, true);
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry_Simple.Get());
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry_Sliced.Get());
+
 		UpdateRegionVertex();
 	}
 	else//if geometry is created, update data
 	{
 		if (bLocalVertexPositionChanged || bUVChanged || bColorChanged)
 		{
-			geometry->Clear();
-			OnUpdateGeometry(geometry.Get(), false, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
+			geometry_Simple->Clear();
+			geometry_Sliced->Clear();
+			OnUpdateGeometry(false, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
 		}
 		if (bLocalVertexPositionChanged || bTransformChanged)
 		{
-			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry.Get());
+			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry_Simple.Get());
+			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry_Sliced.Get());
 		}
 		if (bLocalVertexPositionChanged || bUVChanged || bColorChanged || bTransformChanged)
 		{
@@ -110,16 +135,182 @@ void UUIPostProcessRenderable::UpdateGeometry()
 	bColorChanged = false;
 	bTransformChanged = false;
 }
-void UUIPostProcessRenderable::OnUpdateGeometry(UIGeometry* InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIPostProcessRenderable::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	UIGeometry::UpdateUIRectSimpleVertex(InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), RenderCanvas.Get(), this, this->GetFinalColor(), 
-		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
-		);
+	//simple rect geometry for render from screen image to mesh region and inverse
+	{
+		auto& vertices = geometry_Simple->vertices;
+		auto& originVertices = geometry_Simple->originVertices;
+		UIGeometry::LGUIGeometrySetArrayNum(vertices, 4);
+		UIGeometry::LGUIGeometrySetArrayNum(originVertices, 4);
+		if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+		{
+			if (InVertexPositionChanged)
+			{
+				//offset and size
+				float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+				UIGeometry::CalculateOffsetAndSize(this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), pivotOffsetX, pivotOffsetY, halfW, halfH);
+				//positions
+				float minX = -halfW + pivotOffsetX;
+				float minY = -halfH + pivotOffsetY;
+				float maxX = halfW + pivotOffsetX;
+				float maxY = halfH + pivotOffsetY;
+				originVertices[0].Position = FVector(0, minX, minY);
+				originVertices[1].Position = FVector(0, maxX, minY);
+				originVertices[2].Position = FVector(0, minX, maxY);
+				originVertices[3].Position = FVector(0, maxX, maxY);
+				//snap pixel
+				if (RenderCanvas->GetActualPixelPerfect())
+				{
+					UIGeometry::AdjustPixelPerfectPos(originVertices, 0, 4, RenderCanvas.Get(), this);
+				}
+			}
+
+			if (InVertexUVChanged)
+			{
+				vertices[0].TextureCoordinate[0] = FVector2D(0, 1);
+				vertices[1].TextureCoordinate[0] = FVector2D(1, 1);
+				vertices[2].TextureCoordinate[0] = FVector2D(0, 0);
+				vertices[3].TextureCoordinate[0] = FVector2D(1, 0);
+
+				vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+				vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+				vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+				vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+			}
+
+			if (InVertexColorChanged)
+			{
+				UIGeometry::UpdateUIColor(geometry_Simple.Get(), GetFinalColor());
+			}
+		}
+	}
+
+	auto TempMaskTextureType = EUIPostProcessMaskTextureType::Simple;
+	if (IsValid(maskTexture) && MaskTextureType == EUIPostProcessMaskTextureType::Sliced)
+	{
+		TempMaskTextureType = EUIPostProcessMaskTextureType::Sliced;
+	}
+	//sliced geometry
+	if (TempMaskTextureType == EUIPostProcessMaskTextureType::Sliced)
+	{
+		auto& vertices = geometry_Sliced->vertices;
+		auto& originVertices = geometry_Sliced->originVertices;
+		auto verticesCount = 16;
+		UIGeometry::LGUIGeometrySetArrayNum(vertices, verticesCount);
+		UIGeometry::LGUIGeometrySetArrayNum(originVertices, verticesCount);
+		if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+		{
+			if (InVertexPositionChanged)
+			{
+				//pivot offset
+				float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+				UIGeometry::CalculateOffsetAndSize(this->GetWidth(), this->GetHeight(), this->GetPivot(), MaskTextureSpriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
+				float geoWidth = halfW * 2;
+				float geoHeight = halfH * 2;
+				//vertices
+				float x0, x1, x2, x3, y0, y1, y2, y3;
+				int widthBorder = MaskTextureSpriteInfo.borderLeft + MaskTextureSpriteInfo.borderRight;
+				int heightBorder = MaskTextureSpriteInfo.borderTop + MaskTextureSpriteInfo.borderBottom;
+				float widthScale = geoWidth < widthBorder ? geoWidth / widthBorder : 1.0f;
+				float heightScale = geoHeight < heightBorder ? geoHeight / heightBorder : 1.0f;
+				x0 = (-halfW + pivotOffsetX);
+				x1 = (x0 + MaskTextureSpriteInfo.borderLeft * widthScale);
+				x3 = (halfW + pivotOffsetX);
+				x2 = (x3 - MaskTextureSpriteInfo.borderRight * widthScale);
+				y0 = (-halfH + pivotOffsetY);
+				y1 = (y0 + MaskTextureSpriteInfo.borderBottom * heightScale);
+				y3 = (halfH + pivotOffsetY);
+				y2 = (y3 - MaskTextureSpriteInfo.borderTop * heightScale);
+
+				originVertices[0].Position = FVector(0, x0, y0);
+				originVertices[1].Position = FVector(0, x1, y0);
+				originVertices[2].Position = FVector(0, x2, y0);
+				originVertices[3].Position = FVector(0, x3, y0);
+
+				originVertices[4].Position = FVector(0, x0, y1);
+				originVertices[5].Position = FVector(0, x1, y1);
+				originVertices[6].Position = FVector(0, x2, y1);
+				originVertices[7].Position = FVector(0, x3, y1);
+
+				originVertices[8].Position = FVector(0, x0, y2);
+				originVertices[9].Position = FVector(0, x1, y2);
+				originVertices[10].Position = FVector(0, x2, y2);
+				originVertices[11].Position = FVector(0, x3, y2);
+
+				originVertices[12].Position = FVector(0, x0, y3);
+				originVertices[13].Position = FVector(0, x1, y3);
+				originVertices[14].Position = FVector(0, x2, y3);
+				originVertices[15].Position = FVector(0, x3, y3);
+
+				//snap pixel
+				if (RenderCanvas->GetActualPixelPerfect())
+				{
+					UIGeometry::AdjustPixelPerfectPos(originVertices, 0, verticesCount, RenderCanvas.Get(), this);
+				}
+			}
+
+			if (InVertexUVChanged)
+			{
+				//uv0
+				vertices[0].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv0X, MaskTextureSpriteInfo.uv0Y);
+				vertices[1].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv0X, MaskTextureSpriteInfo.uv0Y);
+				vertices[2].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv3X, MaskTextureSpriteInfo.uv0Y);
+				vertices[3].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv3X, MaskTextureSpriteInfo.uv0Y);
+
+				vertices[4].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv0X, MaskTextureSpriteInfo.buv0Y);
+				vertices[5].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv0X, MaskTextureSpriteInfo.buv0Y);
+				vertices[6].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv3X, MaskTextureSpriteInfo.buv0Y);
+				vertices[7].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv3X, MaskTextureSpriteInfo.buv0Y);
+
+				vertices[8].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv0X, MaskTextureSpriteInfo.buv3Y);
+				vertices[9].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv0X, MaskTextureSpriteInfo.buv3Y);
+				vertices[10].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv3X, MaskTextureSpriteInfo.buv3Y);
+				vertices[11].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv3X, MaskTextureSpriteInfo.buv3Y);
+
+				vertices[12].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv0X, MaskTextureSpriteInfo.uv3Y);
+				vertices[13].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv0X, MaskTextureSpriteInfo.uv3Y);
+				vertices[14].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.buv3X, MaskTextureSpriteInfo.uv3Y);
+				vertices[15].TextureCoordinate[0] = FVector2D(MaskTextureSpriteInfo.uv3X, MaskTextureSpriteInfo.uv3Y);
+
+				//uv1
+				float widthReciprocal = 1.0f / this->GetWidth();
+				float heightReciprocal = 1.0f / this->GetHeight();
+				float buv0X = MaskTextureSpriteInfo.borderLeft * widthReciprocal;
+				float buv3X = 1.0f - MaskTextureSpriteInfo.borderRight * widthReciprocal;
+				float buv0Y = 1.0f - MaskTextureSpriteInfo.borderBottom * heightReciprocal;
+				float buv3Y = MaskTextureSpriteInfo.borderTop * heightReciprocal;
+
+				vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+				vertices[1].TextureCoordinate[1] = FVector2D(buv0X, 1);
+				vertices[2].TextureCoordinate[1] = FVector2D(buv3X, 1);
+				vertices[3].TextureCoordinate[1] = FVector2D(1, 1);
+
+				vertices[4].TextureCoordinate[1] = FVector2D(0, buv0Y);
+				vertices[5].TextureCoordinate[1] = FVector2D(buv0X, buv0Y);
+				vertices[6].TextureCoordinate[1] = FVector2D(buv3X, buv0Y);
+				vertices[7].TextureCoordinate[1] = FVector2D(1, buv0Y);
+
+				vertices[8].TextureCoordinate[1] = FVector2D(0, buv3Y);
+				vertices[9].TextureCoordinate[1] = FVector2D(buv0X, buv3Y);
+				vertices[10].TextureCoordinate[1] = FVector2D(buv3X, buv3Y);
+				vertices[11].TextureCoordinate[1] = FVector2D(1, buv3Y);
+
+				vertices[12].TextureCoordinate[1] = FVector2D(0, 0);
+				vertices[13].TextureCoordinate[1] = FVector2D(buv0X, 0);
+				vertices[14].TextureCoordinate[1] = FVector2D(buv3X, 0);
+				vertices[15].TextureCoordinate[1] = FVector2D(1, 0);
+			}
+
+			if (InVertexColorChanged)
+			{
+				UIGeometry::UpdateUIColor(geometry_Sliced.Get(), this->GetFinalColor());
+			}
+		}
+	}
 }
 void UUIPostProcessRenderable::UpdateRegionVertex()
 {
-	auto& vertices = geometry->vertices;
-	if (vertices.Num() <= 0)return;
 	if (renderScreenToMeshRegionVertexArray.Num() == 0)
 	{
 		//full screen vertex position
@@ -131,26 +322,71 @@ void UUIPostProcessRenderable::UpdateRegionVertex()
 			FLGUIPostProcessCopyMeshRegionVertex(FVector(1, 1, 0), FVector(0.0f, 0.0f, 0.0f))
 		};
 	}
-	if (renderMeshRegionToScreenVertexArray.Num() == 0)
+
+	auto& vertices_Simple = geometry_Simple->vertices;
+	for (int i = 0; i < 4; i++)
 	{
-		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
+		auto& copyVert = renderScreenToMeshRegionVertexArray[i];
+		copyVert.LocalPosition = vertices_Simple[i].Position;
 	}
 
+	auto TempMaskTextureType = EUIPostProcessMaskTextureType::Simple;
+	if (IsValid(maskTexture) && MaskTextureType == EUIPostProcessMaskTextureType::Sliced)
 	{
-		for (int i = 0; i < 4; i++)
+		TempMaskTextureType = EUIPostProcessMaskTextureType::Sliced;
+	}
+	switch (TempMaskTextureType)
+	{
+	default:
+	case EUIPostProcessMaskTextureType::Simple:
+	{
+		const int VertexBufferSize = 4;
+		if (renderMeshRegionToScreenVertexArray.Num() != VertexBufferSize)
 		{
-			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
-			copyVert.LocalPosition = vertices[i].Position;
+			renderMeshRegionToScreenVertexArray.SetNumZeroed(VertexBufferSize);
 		}
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < VertexBufferSize; i++)
 		{
 			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
-			copyVert.Position = vertices[i].Position;
-			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
+			copyVert.Position = vertices_Simple[i].Position;
+			copyVert.TextureCoordinate0 = vertices_Simple[i].TextureCoordinate[1];
+			copyVert.TextureCoordinate1 = vertices_Simple[i].TextureCoordinate[0];
 		}
 	}
+	break;
+	case EUIPostProcessMaskTextureType::Sliced:
+	{
+		auto& vertices_Sliced = geometry_Sliced->vertices;
+		const int VertexBufferSize = 16;
+		if (renderMeshRegionToScreenVertexArray.Num() != VertexBufferSize)
+		{
+			renderMeshRegionToScreenVertexArray.SetNumZeroed(VertexBufferSize);
+		}
+
+		for (int i = 0; i < VertexBufferSize; i++)
+		{
+			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
+			copyVert.Position = vertices_Sliced[i].Position;
+			copyVert.TextureCoordinate0 = vertices_Sliced[i].TextureCoordinate[1];
+			copyVert.TextureCoordinate1 = vertices_Sliced[i].TextureCoordinate[0];
+		}
+	}
+	break;
+	}
+
 	SendRegionVertexDataToRenderProxy();
+}
+
+void UUIPostProcessRenderable::CheckSpriteData()
+{
+	if (IsValid(maskTexture))
+	{
+		MaskTextureSpriteInfo.width = maskTexture->GetSurfaceWidth();
+		MaskTextureSpriteInfo.height = maskTexture->GetSurfaceHeight();
+		MaskTextureSpriteInfo.ApplyUV(0, 0, MaskTextureSpriteInfo.width, MaskTextureSpriteInfo.height, 1.0f / MaskTextureSpriteInfo.width, 1.0f / MaskTextureSpriteInfo.height);
+		MaskTextureSpriteInfo.ApplyBorderUV(1.0f / MaskTextureSpriteInfo.width, 1.0f / MaskTextureSpriteInfo.height);
+	}
 }
 
 void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
@@ -188,8 +424,39 @@ void UUIPostProcessRenderable::SetMaskTexture(UTexture2D* newValue)
 	{
 		maskTexture = newValue;
 		SendMaskTextureToRenderProxy();
+
+		bLocalVertexPositionChanged = true;
+		bUVChanged = true;
+		bColorChanged = true;
+		MarkCanvasUpdate(false, true, false);
 	}
 }
+void UUIPostProcessRenderable::SetMaskTextureType(EUIPostProcessMaskTextureType value)
+{
+	if (MaskTextureType != value)
+	{
+		MaskTextureType = value;
+		SendMaskTextureToRenderProxy();
+
+		bLocalVertexPositionChanged = true;
+		bUVChanged = true;
+		bColorChanged = true;
+		MarkCanvasUpdate(false, true, false);
+	}
+}
+void UUIPostProcessRenderable::SetMaskTextureSpriteInfo(const FLGUISpriteInfo& value)
+{
+	if (MaskTextureSpriteInfo != value)
+	{
+		MaskTextureSpriteInfo = value;
+
+		bLocalVertexPositionChanged = true;
+		bUVChanged = true;
+		bColorChanged = true;
+		MarkCanvasUpdate(false, true, false);
+	}
+}
+
 void UUIPostProcessRenderable::SendMaskTextureToRenderProxy()
 {
 	if (RenderProxy.IsValid())
@@ -201,9 +468,10 @@ void UUIPostProcessRenderable::SendMaskTextureToRenderProxy()
 			maskTextureResource = (FTexture2DResource*)this->maskTexture->Resource;
 		}
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateMaskTexture)
-			([TempRenderProxy, maskTextureResource](FRHICommandListImmediate& RHICmdList)
+			([TempRenderProxy, maskTextureResource, tempMaskTextureType = MaskTextureType](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->maskTexture = maskTextureResource;
+					TempRenderProxy->MaskTextureType = tempMaskTextureType;
 				});
 	}
 }
@@ -260,6 +528,11 @@ void UUIPostProcessRenderable::SetTextureClipParameter(UTexture* ClipTex, const 
 	}
 }
 
+bool UUIPostProcessRenderable::HaveValidData()const
+{
+	return geometry_Simple->vertices.Num() > 0 || geometry_Sliced->vertices.Num() > 0;
+}
+
 bool UUIPostProcessRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	if (RaycastType == EUIRenderableRaycastType::Rect)
@@ -268,7 +541,7 @@ bool UUIPostProcessRenderable::LineTraceUI(FHitResult& OutHit, const FVector& St
 	}
 	else if (RaycastType == EUIRenderableRaycastType::Geometry)
 	{
-		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
+		return LineTraceUIGeometry(geometry_Simple.Get(), OutHit, Start, End);
 	}
 	else
 	{
