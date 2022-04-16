@@ -30,11 +30,18 @@ struct LGUI_API FLGUIPostProcessVertex
 {
 	FVector Position;
 	FVector2D TextureCoordinate0;
+	FVector2D TextureCoordinate1;
 
 	FLGUIPostProcessVertex(FVector InPosition, FVector2D InTextureCoordinate0)
 	{
 		Position = InPosition;
 		TextureCoordinate0 = InTextureCoordinate0;
+	}
+	FLGUIPostProcessVertex(FVector InPosition, FVector2D InTextureCoordinate0, FVector2D InTextureCoordinate1)
+	{
+		Position = InPosition;
+		TextureCoordinate0 = InTextureCoordinate0;
+		TextureCoordinate1 = InTextureCoordinate1;
 	}
 };
 

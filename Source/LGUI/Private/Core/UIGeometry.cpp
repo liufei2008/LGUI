@@ -20,7 +20,7 @@ FORCEINLINE float RoundToFloat(float value)
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelPerfectVertices"), STAT_TransformPixelPerfectVertices, STATGROUP_LGUI);
 
-void AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();

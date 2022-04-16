@@ -23,6 +23,7 @@
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISpriteData.h"
+#include "Core/LGUISpriteInfo.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 
 #include "Core/Actor/UIBaseActor.h"

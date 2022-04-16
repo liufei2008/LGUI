@@ -153,5 +153,11 @@ class LGUI_API FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
 public:
 	void InitRHI()override;
 };
+class LGUI_API FLGUIFullScreenSlicedQuadIndexBuffer :public FIndexBuffer
+{
+public:
+	void InitRHI()override;
+};
 static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
+static TGlobalResource<FLGUIFullScreenSlicedQuadIndexBuffer> GLGUIFullScreenSlicedQuadIndexBuffer;
