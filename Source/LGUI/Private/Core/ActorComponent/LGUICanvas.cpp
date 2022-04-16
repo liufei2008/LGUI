@@ -1097,11 +1097,9 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			case EUIRenderableType::UIPostProcessRenderable:
 			{
 				auto UIPostProcessRenderableItem = (UUIPostProcessRenderable*)UIRenderableItem;
-				auto ItemGeo = UIPostProcessRenderableItem->GetGeometry();
-				check(ItemGeo);
-				if (ItemGeo->vertices.Num() == 0)continue;
+				if (!UIPostProcessRenderableItem->HaveValidData())continue;
 				//every postprocess is a drawcall
-				PushSingleDrawcall(UIRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess, UIItemToCanvasTf);
+				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::PostProcess, UIItemToCanvasTf);
 				//no need to copy drawcall's update data for UIPostProcessRenderable, because UIPostProcessRenderable's drawcall should be the same as previours one
 
 				RemoveDrawcallWhenBreakMeshSequence(MeshStartDrawcallIndex);

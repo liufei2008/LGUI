@@ -43,7 +43,7 @@ void RenderMeshPS(
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
     OutColor.a = 1.0;
 #if LGUI_MASK
-    OutColor.a *= _MaskTex.Sample(_MaskTexSampler, input.uv).r;
+    OutColor.a *= _MaskTex.Sample(_MaskTexSampler, input.uvMask).r;
 #endif
 #if LGUI_RECT_CLIP
     OutColor.a *= RectClip(input.localPosition, _RectClipOffsetAndSize.xy, _RectClipOffsetAndSize.zw, _RectClipFeather.xy);

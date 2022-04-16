@@ -9,7 +9,13 @@
 #include "Rendering/Texture2DResource.h"
 #include "PostProcess/SceneRenderTargets.h"
 #include "Core/HudRender/LGUIRenderer.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 
+FUIPostProcessRenderProxy::FUIPostProcessRenderProxy()
+{
+	clipType = ELGUICanvasClipType::None;
+	MaskTextureType = EUIPostProcessMaskTextureType::Simple;
+}
 void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
 {
 	this->bIsWorld = false;
@@ -132,7 +138,6 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
-	
 	FLGUIWorldRenderPSParameter* PSShaderParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
 	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Target;
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);
@@ -145,6 +150,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
+			FBufferRHIRef IndexBuffer = nullptr;
+			int32 TriangleCount = 2;
 			if (maskTexture != nullptr)
 			{
 				switch (clipType)
@@ -242,6 +249,21 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				}
 				break;
 				}
+				switch (MaskTextureType)
+				{
+				default:
+				case EUIPostProcessMaskTextureType::Simple:
+				{
+					IndexBuffer = GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI;
+				}
+				break;
+				case EUIPostProcessMaskTextureType::Sliced:
+				{
+					IndexBuffer = GLGUIFullScreenSlicedQuadIndexBuffer.IndexBufferRHI;
+					TriangleCount = 18;
+				}
+				break;
+				}
 			}
 			else
 			{
@@ -322,16 +344,17 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				}
 				break;
 				}
+				IndexBuffer = GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI;
 			}
 
-			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+			uint32 VertexBufferSize = renderMeshRegionToScreenVertexArray.Num() * sizeof(FLGUIPostProcessVertex);
 			FRHIResourceCreateInfo CreateInfo(TEXT("RenderMeshOnScreen"));
 			FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
 			void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
 			RHIUnlockBuffer(VertexBufferRHI);
 			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+			RHICmdList.DrawIndexedPrimitive(IndexBuffer, 0, 0, renderMeshRegionToScreenVertexArray.Num(), 0, TriangleCount, 1);
 			VertexBufferRHI.SafeRelease();
 		});
 }

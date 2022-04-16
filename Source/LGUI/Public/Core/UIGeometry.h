@@ -207,6 +207,10 @@ public:
 		const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo
 		, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
 	);
+	static void AdjustPixelPerfectPos(
+		TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp
+	);
 private:
 	static void OffsetVertices(TArray<FLGUIOriginVertexData>& vertices, int count, float offsetX, float offsetY);
 };

@@ -4,11 +4,20 @@
 
 #include "UIBaseRenderable.h"
 #include "Core/HudRender/LGUIHudVertex.h"
-#include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISpriteInfo.h"
 #include "UIPostProcessRenderable.generated.h"
 
 class FUIPostProcessRenderProxy;
 struct FLGUIPostProcessVertex;
+enum class ELGUICanvasClipType :uint8;
+
+UENUM(BlueprintType)
+enum class EUIPostProcessMaskTextureType :uint8
+{
+	Simple, 
+	Sliced,
+};
+
 /** 
  * UI element that can do post processing effect on screen space.
  * Only valid on ScreenSpaceUI.
@@ -26,9 +35,11 @@ protected:
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
 #endif
 	virtual void OnUnregister()override;
-	TSharedPtr<UIGeometry> geometry = nullptr;
+	TSharedPtr<UIGeometry> geometry_Simple = nullptr;
+	TSharedPtr<UIGeometry> geometry_Sliced = nullptr;
 	virtual void UpdateGeometry()override final;
 
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
@@ -36,25 +47,40 @@ protected:
 	virtual void MarkAllDirty()override;
 
 protected:
+	friend class FUIPostProcessRenderableCustomization;
 	/** Use maskTexture's red channel to mask out blur result. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* maskTexture;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIPostProcessMaskTextureType MaskTextureType = EUIPostProcessMaskTextureType::Simple;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FLGUISpriteInfo MaskTextureSpriteInfo;
 	void SendMaskTextureToRenderProxy();
+	void CheckSpriteData();
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UTexture2D* GetMaskTexture()const { return maskTexture; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIPostProcessMaskTextureType GetMaskTextureType()const { return MaskTextureType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FLGUISpriteInfo& GetMaskTextureSpriteInfo()const { return MaskTextureSpriteInfo; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaskTexture(UTexture2D* newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaskTextureType(EUIPostProcessMaskTextureType value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaskTextureSpriteInfo(const FLGUISpriteInfo& value);
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
-	UIGeometry* GetGeometry() { return geometry.Get(); }
 public:
 	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
 	virtual bool IsRenderProxyValid()const;
 	virtual void SetClipType(ELGUICanvasClipType clipType);
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
 	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
+	virtual bool HaveValidData()const;
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 private:
@@ -65,7 +91,7 @@ private:
 protected:
 	TSharedPtr<FUIPostProcessRenderProxy> RenderProxy = nullptr;
 	/** update ui geometry */
-	virtual void OnUpdateGeometry(UIGeometry* InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	virtual void OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/** update region vertex data */
 	virtual void UpdateRegionVertex();
 	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;

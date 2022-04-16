@@ -948,6 +948,36 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer"), &IndexBuffer);
 	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
+void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI()
+{
+	uint16 Indices[54];
+	int wSeg = 3, hSeg = 3;
+	int vStartIndex = 0;
+	int triangleArrayIndex = 0;
+	for (int h = 0; h < hSeg; h++)
+	{
+		for (int w = 0; w < wSeg; w++)
+		{
+			int vIndex = vStartIndex + w;
+			Indices[triangleArrayIndex++] = vIndex;
+			Indices[triangleArrayIndex++] = vIndex + wSeg + 2;
+			Indices[triangleArrayIndex++] = vIndex + wSeg + 1;
+
+			Indices[triangleArrayIndex++] = vIndex;
+			Indices[triangleArrayIndex++] = vIndex + 1;
+			Indices[triangleArrayIndex++] = vIndex + wSeg + 2;
+		}
+		vStartIndex += wSeg + 1;
+	}
+
+	TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
+	uint32 NumIndices = UE_ARRAY_COUNT(Indices);
+	IndexBuffer.AddUninitialized(NumIndices);
+	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
+
+	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenSlicedQuadIndexBuffer"), &IndexBuffer);
+	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+}
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION

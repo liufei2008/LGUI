@@ -154,9 +154,14 @@ class LGUI_API FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
 public:
 	void InitRHI()override;
 };
+class LGUI_API FLGUIFullScreenSlicedQuadIndexBuffer :public FIndexBuffer
+{
+public:
+	void InitRHI()override;
+};
 static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
-
+static TGlobalResource<FLGUIFullScreenSlicedQuadIndexBuffer> GLGUIFullScreenSlicedQuadIndexBuffer;
 BEGIN_SHADER_PARAMETER_STRUCT(FLGUIWorldRenderPSParameter, )
 	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
 	RENDER_TARGET_BINDING_SLOTS()

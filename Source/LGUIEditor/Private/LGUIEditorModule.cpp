@@ -64,6 +64,7 @@
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
+#include "DetailCustomization/UIPostProcessRenderableCustomization.h"
 
 #include "PrefabEditor/LGUIPrefabOverrideDataViewer.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
@@ -215,6 +216,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIText::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureBaseCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITexture::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPostProcessRenderableCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUISpriteDataCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFontDataCustomization::MakeInstance));
@@ -408,6 +410,7 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName());
 
 		PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName());

@@ -3,10 +3,12 @@
 #pragma once
 
 #include "UIGeometry.h"
-#include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 
 class UUIPostProcessRenderable;
+enum class ELGUICanvasClipType :uint8;
+enum class EUIPostProcessMaskTextureType :uint8;
 
 /**
  * UIPostProcessRenderProxy is an render agent for UIPostProcessRenderable in render thread, act as a SceneProxy.
@@ -14,10 +16,7 @@ class UUIPostProcessRenderable;
 class LGUI_API FUIPostProcessRenderProxy: public ILGUIHudPrimitive
 {
 public:
-	FUIPostProcessRenderProxy()
-	{
-		
-	}
+	FUIPostProcessRenderProxy();
 	virtual~FUIPostProcessRenderProxy()
 	{
 		
@@ -70,6 +69,7 @@ public:
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	FVector2f RectSize;
 	FTexture2DResource* maskTexture = nullptr;
+	EUIPostProcessMaskTextureType MaskTextureType;
 
 	/**
 	 * Use a mesh to render the MeshRegionTexture to ScreenTargetTexture
