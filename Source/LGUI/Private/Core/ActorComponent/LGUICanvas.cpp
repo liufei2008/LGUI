@@ -956,6 +956,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		InDrawcallItem->RenderObjectList.RemoveAt(index);
 		InUIBatchGeometryRenderable->drawcall = nullptr;
 	};
+	//if ChildCanvas or PostProcess break mesh sequence (continuous mesh section in same mesh), then next drawcalls should use new mesh, so we need to clear mesh and sections which use prev mesh
 	auto RemoveDrawcallWhenBreakMeshSequence = [&](int InStartIndex) {
 		for (int DrawcallIndex = InStartIndex; DrawcallIndex < InUIDrawcallList.Num(); DrawcallIndex++)
 		{
@@ -971,6 +972,8 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 						{
 							DrawcallItem->DrawcallMesh->DeleteMeshSection(CacheDrawcallItem->DrawcallMeshSection.Pin());
 						}
+						CacheDrawcallItem->bNeedToUpdateVertex = true;
+						CacheDrawcallItem->bMaterialNeedToReassign = true;
 						CacheDrawcallItem->DrawcallMesh = nullptr;
 						CacheDrawcallItem->DrawcallMeshSection = nullptr;
 					}
