@@ -957,10 +957,10 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		InUIBatchGeometryRenderable->drawcall = nullptr;
 	};
 	//if ChildCanvas or PostProcess break mesh sequence (continuous mesh section in same mesh), then next drawcalls should use new mesh, so we need to clear mesh and sections which use prev mesh
-	auto RemoveDrawcallWhenBreakMeshSequence = [&](int InStartIndex) {
-		for (int DrawcallIndex = InStartIndex; DrawcallIndex < InUIDrawcallList.Num(); DrawcallIndex++)
+	auto RemoveDrawcallWhenBreakMeshSequence = [&](int InStartDrawcallIndex) {
+		if (InStartDrawcallIndex < InUIDrawcallList.Num())
 		{
-			const auto& DrawcallItem = InUIDrawcallList[DrawcallIndex];
+			const auto& DrawcallItem = InUIDrawcallList[InStartDrawcallIndex];
 			if (DrawcallItem->DrawcallMesh.IsValid())
 			{
 				for (int CacheDrawcallIndex = 0; CacheDrawcallIndex < InCacheUIDrawcallList.Num(); CacheDrawcallIndex++)
