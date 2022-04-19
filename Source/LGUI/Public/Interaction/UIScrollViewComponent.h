@@ -67,8 +67,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool AllowEventBubbleUp = false;
 
-	uint8 AllowHorizontalScroll: 1, AllowVerticalScroll: 1;
-	uint8 CanUpdateAfterDrag: 1;
+	uint8 bAllowHorizontalScroll: 1, bAllowVerticalScroll: 1;
+	uint8 bCanUpdateAfterDrag: 1;
 	uint8 bRangeCalculated: 1;
 
 	virtual void CalculateHorizontalRange();
@@ -80,7 +80,7 @@ protected:
 	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical
 	virtual void UpdateProgress(bool InFireEvent = true);
 	FVector Position = FVector(0, 0, 0);//content position in parent space
-	FVector2D DragSpeed = FVector2D(0, 0);//drag speed
+	FVector2D Velocity = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
 	FVector2D VerticalRange;//vertical scroll range, x--min, y--max
 	FVector PrevWorldPoint;
@@ -126,6 +126,8 @@ public:
 		float GetScrollSensitivity()const { return ScrollSensitivity; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		bool GetCanScrollInSmallSize()const { return CanScrollInSmallSize; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		FVector2D GetVelocity()const { return Velocity; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollSensitivity(float value);
@@ -137,6 +139,8 @@ public:
 		void SetOnlyOneDirection(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetCanScrollInSmallSize(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetVelocity(const FVector2D& value);
 
 	/** Mannually scroll it with delta value. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
