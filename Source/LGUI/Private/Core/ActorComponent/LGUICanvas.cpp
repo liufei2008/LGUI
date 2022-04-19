@@ -947,7 +947,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			if (InDrawcallItem->DrawcallMeshSection.IsValid())
 			{
 				InDrawcallItem->DrawcallMesh->DeleteMeshSection(InDrawcallItem->DrawcallMeshSection.Pin());
-				InDrawcallItem->DrawcallMeshSection.Reset();
+				InDrawcallItem->DrawcallMeshSection = nullptr;
 			}
 		}
 		InDrawcallItem->bNeedToUpdateVertex = true;
@@ -1121,6 +1121,39 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			}
 			break;
 			}
+		}
+	}
+
+	if (
+		//MeshStartDrawcallIndex = 0 means there is action that break mesh sequence, but if UsingUIMeshList.Num() > 0 then means previours using multiple mesh, so we need to remove the mesh and clear drawcalls which use these mesh
+		MeshStartDrawcallIndex == 0
+		&& UsingUIMeshList.Num() > 0
+		)
+	{
+		TSet<TWeakObjectPtr<ULGUIMeshComponent>> MeshSetNeedToPool;
+		for (int i = 1//skip first, because we need a mesh to render
+			; i < UsingUIMeshList.Num(); i++)
+		{
+			auto& UIMeshItem = UsingUIMeshList[i];
+			for (auto& DrawcallItem : InUIDrawcallList)
+			{
+				if (DrawcallItem->DrawcallMesh == UIMeshItem)
+				{
+					if (DrawcallItem->DrawcallMeshSection.IsValid())
+					{
+						DrawcallItem->DrawcallMesh->DeleteMeshSection(DrawcallItem->DrawcallMeshSection.Pin());
+					}
+					DrawcallItem->DrawcallMesh = nullptr;
+					DrawcallItem->DrawcallMeshSection = nullptr;
+					DrawcallItem->bNeedToUpdateVertex = true;
+					DrawcallItem->bMaterialNeedToReassign = true;
+				}
+			}
+			MeshSetNeedToPool.Add(UIMeshItem);
+		}
+		for (auto& UIMeshItem : MeshSetNeedToPool)
+		{
+			this->AddUIMeshToPool(UIMeshItem);
 		}
 	}
 }
@@ -1314,7 +1347,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 					if (DrawcallInCache->DrawcallMeshSection.IsValid())
 					{
 						DrawcallInCache->DrawcallMesh->DeleteMeshSection(DrawcallInCache->DrawcallMeshSection.Pin());
-						DrawcallInCache->DrawcallMeshSection.Reset();
+						DrawcallInCache->DrawcallMeshSection = nullptr;
 					}
 					if (!IsUsingUIMesh(DrawcallInCache->DrawcallMesh))
 					{
@@ -1498,15 +1531,16 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		{
 			auto UIMesh = DrawcallItem->DrawcallMesh;
 			auto MeshSection = DrawcallItem->DrawcallMeshSection;
+			if (!MeshSection.IsValid())
+			{
+				MeshSection = UIMesh->GetMeshSection();
+				DrawcallItem->DrawcallMeshSection = MeshSection;
+				//create new mesh section, need to sort it
+				bNeedToSortRenderPriority = true;
+				DrawcallItem->bNeedToUpdateVertex = true;
+			}
 			if (DrawcallItem->bNeedToUpdateVertex)
 			{
-				if (!MeshSection.IsValid())
-				{
-					MeshSection = UIMesh->GetMeshSection();
-					DrawcallItem->DrawcallMeshSection = MeshSection;
-					//create new mesh section, need to sort it
-					bNeedToSortRenderPriority = true;
-				}
 				auto MeshSectionPtr = MeshSection.Pin();
 				MeshSectionPtr->vertices.Reset();
 				MeshSectionPtr->triangles.Reset();
@@ -1759,14 +1793,7 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 					prevUIMesh->SortMeshSectionRenderPriority();
 					drawcallIndex = 0;
 				}
-				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
-				{
-					DrawcallItem->DrawcallMesh->SetUITranslucentSortPriority(this->GetActualSortOrder());//WorldSpace UERenderer commonly use single mesh(with multi section) to render UI, it directly use SortOrder as TranslucentSortPriority
-				}
-				else
-				{
-					DrawcallItem->DrawcallMesh->SetUITranslucentSortPriority(InOutRenderPriority++);//LGUIRenderer use multiple mesh to render UI, it need to sort mesh
-				}
+				DrawcallItem->DrawcallMesh->SetUITranslucentSortPriority(InOutRenderPriority++);//LGUIRenderer use multiple mesh to render UI, it need to sort mesh
 				prevUIMesh = DrawcallItem->DrawcallMesh.Get();
 			}
 			DrawcallItem->DrawcallMesh->SetMeshSectionRenderPriority(DrawcallItem->DrawcallMeshSection.Pin(), drawcallIndex++);
