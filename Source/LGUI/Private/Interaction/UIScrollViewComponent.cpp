@@ -55,7 +55,7 @@ void UUIScrollViewComponent::Awake()
 void UUIScrollViewComponent::Update(float DeltaTime)
 {
     Super::Update(DeltaTime);
-    if (CanUpdateAfterDrag)
+    if (bCanUpdateAfterDrag)
         UpdateAfterDrag(DeltaTime);
 }
 
@@ -76,28 +76,28 @@ void UUIScrollViewComponent::RecalculateRange()
         if (Horizontal)
         {
             this->CalculateHorizontalRange();
-            AllowHorizontalScroll = true;
+            bAllowHorizontalScroll = true;
         }
         else
         {
-            AllowHorizontalScroll = false;
+            bAllowHorizontalScroll = false;
         }
         if (Vertical)
         {
             this->CalculateVerticalRange();
-            AllowVerticalScroll = true;
+            bAllowVerticalScroll = true;
         }
         else
         {
-            AllowVerticalScroll = false;
+            bAllowVerticalScroll = false;
         }
         Position = ContentUIItem->GetRelativeLocation();
         if (
-            (AllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))
-            || (AllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y))
+            (bAllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))
+            || (bAllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y))
             )
         {
-            CanUpdateAfterDrag = true;
+            bCanUpdateAfterDrag = true;
         }
         else
         {
@@ -171,37 +171,37 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEvent
         auto worldPoint = eventData->GetWorldPointInPlane();
         const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
         PrevWorldPoint = worldPoint;
-        AllowHorizontalScroll = false;
-        AllowVerticalScroll = false;
+        bAllowHorizontalScroll = false;
+        bAllowVerticalScroll = false;
         if (OnlyOneDirection && Horizontal && Vertical)
         {
             if (FMath::Abs(localMoveDelta.Y) > FMath::Abs(localMoveDelta.Z))
             {
-                AllowHorizontalScroll = true;
+                bAllowHorizontalScroll = true;
             }
             else
             {
-                AllowVerticalScroll = true;
+                bAllowVerticalScroll = true;
             }
         }
         else
         {
             if (Horizontal)
             {
-                AllowHorizontalScroll = true;
+                bAllowHorizontalScroll = true;
             }
             if (Vertical)
             {
-                AllowVerticalScroll = true;
+                bAllowVerticalScroll = true;
             }
         }
         Position = ContentUIItem->GetRelativeLocation();
-        CanUpdateAfterDrag = false;
+        bCanUpdateAfterDrag = false;
         OnPointerDrag_Implementation(eventData);
     }
     else
     {
-        AllowHorizontalScroll = AllowVerticalScroll = false;
+        bAllowHorizontalScroll = bAllowVerticalScroll = false;
     }
     return AllowEventBubbleUp;
 }
@@ -215,7 +215,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
     localMoveDelta.X = 0;
     PrevWorldPoint = worldPoint;
-    if (AllowHorizontalScroll)
+    if (bAllowHorizontalScroll)
     {
         auto predict = position.Y + localMoveDelta.Y;
         if (predict < HorizontalRange.X || predict > HorizontalRange.Y) //out-of-range, lower the sentitivity
@@ -226,11 +226,11 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
         {
             position.Y = predict;
         }
-        CanUpdateAfterDrag = false;
+        bCanUpdateAfterDrag = false;
         ContentUIItem->SetRelativeLocation(position);
         UpdateProgress();
     }
-    if (AllowVerticalScroll)
+    if (bAllowVerticalScroll)
     {
         auto predict = position.Z + localMoveDelta.Z;
         if (predict < VerticalRange.X || predict > VerticalRange.Y)
@@ -241,7 +241,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
         {
             position.Z = predict;
         }
-        CanUpdateAfterDrag = false;
+        bCanUpdateAfterDrag = false;
         ContentUIItem->SetRelativeLocation(position);
         UpdateProgress();
     }
@@ -253,17 +253,17 @@ bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventDa
     auto worldPoint = eventData->GetWorldPointInPlane();
     const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
     PrevWorldPoint = worldPoint;
-    if (AllowHorizontalScroll)
+    if (bAllowHorizontalScroll)
     {
-        CanUpdateAfterDrag = true;
+        bCanUpdateAfterDrag = true;
         Position = ContentUIItem->GetRelativeLocation();
-        DragSpeed.X = localMoveDelta.Y;
+        Velocity.X = localMoveDelta.Y;
     }
-    if (AllowVerticalScroll)
+    if (bAllowVerticalScroll)
     {
-        CanUpdateAfterDrag = true;
+        bCanUpdateAfterDrag = true;
         Position = ContentUIItem->GetRelativeLocation();
-        DragSpeed.Y = localMoveDelta.Z;
+        Velocity.Y = localMoveDelta.Z;
     }
     return AllowEventBubbleUp;
 }
@@ -273,66 +273,75 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
     {
         if (eventData->scrollAxisValue != FVector2D::ZeroVector)
         {
-            AllowHorizontalScroll = false;
-            AllowVerticalScroll = false;
+            bAllowHorizontalScroll = false;
+            bAllowVerticalScroll = false;
             if (OnlyOneDirection && Horizontal && Vertical)
             {
                 if (FMath::Abs(eventData->scrollAxisValue.X) > FMath::Abs(eventData->scrollAxisValue.Y))
                 {
-                    AllowHorizontalScroll = true;
+                    bAllowHorizontalScroll = true;
                 }
                 else
                 {
-                    AllowVerticalScroll = true;
+                    bAllowVerticalScroll = true;
                 }
             }
             else
             {
                 if (Horizontal)
                 {
-                    AllowHorizontalScroll = true;
+                    bAllowHorizontalScroll = true;
                 }
                 if (Vertical)
                 {
-                    AllowVerticalScroll = true;
+                    bAllowVerticalScroll = true;
                 }
             }
 
-            if (AllowHorizontalScroll)
+            if (bAllowHorizontalScroll)
             {
                 auto delta = eventData->scrollAxisValue.X * -ScrollSensitivity;
-                CanUpdateAfterDrag = true;
+                bCanUpdateAfterDrag = true;
                 if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
                 {
                     Position.Y += delta * 0.5f;
-                    DragSpeed.X = delta * 0.5f;
+                    Velocity.X = delta * 0.5f;
                 }
                 else
                 {
                     Position.Y += delta;
-                    DragSpeed.X = delta;
+                    Velocity.X = delta;
                 }
                 ContentUIItem->SetRelativeLocation(Position);
             }
-            if (AllowVerticalScroll)
+            if (bAllowVerticalScroll)
             {
                 auto delta = eventData->scrollAxisValue.Y * -ScrollSensitivity;
-                CanUpdateAfterDrag = true;
+                bCanUpdateAfterDrag = true;
                 if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)
                 {
                     Position.Z += delta * 0.5f;
-                    DragSpeed.Y = delta * 0.5f;
+                    Velocity.Y = delta * 0.5f;
                 }
                 else
                 {
                     Position.Z += delta;
-                    DragSpeed.Y = delta;
+                    Velocity.Y = delta;
                 }
                 ContentUIItem->SetRelativeLocation(Position);
             }
         }
     }
     return AllowEventBubbleUp;
+}
+
+void UUIScrollViewComponent::SetVelocity(const FVector2D& value)
+{
+    if (CheckParameters())
+    {
+        Velocity = value;
+        bCanUpdateAfterDrag = true;
+    }
 }
 
 void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
@@ -342,33 +351,33 @@ void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
         auto delta = value;
 		if (Horizontal)
 		{
-			AllowHorizontalScroll = true;
-			CanUpdateAfterDrag = true;
+			bAllowHorizontalScroll = true;
+			bCanUpdateAfterDrag = true;
 			if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
 			{
 				Position.Y += delta.X * 0.5f;
-				DragSpeed.X = delta.X * 0.5f;
+				Velocity.X = delta.X * 0.5f;
 			}
 			else
 			{
 				Position.Y += delta.X;
-				DragSpeed.X = delta.X;
+				Velocity.X = delta.X;
 			}
 			ContentUIItem->SetRelativeLocation(Position);
 		}
 		if (Vertical)
 		{
-			AllowVerticalScroll = true;
-			CanUpdateAfterDrag = true;
+			bAllowVerticalScroll = true;
+			bCanUpdateAfterDrag = true;
 			if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)
 			{
 				Position.Z += delta.Y * 0.5f;
-				DragSpeed.Y = delta.Y * 0.5f;
+				Velocity.Y = delta.Y * 0.5f;
 			}
 			else
 			{
 				Position.Z += delta.Y;
-				DragSpeed.Y = delta.Y;
+				Velocity.Y = delta.Y;
 			}
 			ContentUIItem->SetRelativeLocation(Position);
 		}
@@ -380,19 +389,19 @@ void UUIScrollViewComponent::SetScrollValue(FVector2D value)
     {
 		if (Horizontal)
 		{
-			AllowHorizontalScroll = true;
-			CanUpdateAfterDrag = true;
+			bAllowHorizontalScroll = true;
+			bCanUpdateAfterDrag = true;
 			Position.Y = value.X;
-			DragSpeed.X = 0;
+			Velocity.X = 0;
 			ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
         }
 		if (Vertical)
 		{
-			AllowVerticalScroll = true;
-			CanUpdateAfterDrag = true;
+			bAllowVerticalScroll = true;
+			bCanUpdateAfterDrag = true;
 			Position.Z = value.Y;
-			DragSpeed.Y = 0;
+			Velocity.Y = 0;
 			ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
 		}
@@ -405,8 +414,8 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
     {
         if (Horizontal)
         {
-            CanUpdateAfterDrag = true;
-            AllowHorizontalScroll = true;
+            bCanUpdateAfterDrag = true;
+            bAllowHorizontalScroll = true;
 
             RecalculateRange();
             value.X = FMath::Clamp(value.X, 0.0f, 1.0f);
@@ -416,8 +425,8 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
         }
         if (Vertical)
         {
-            CanUpdateAfterDrag = true;
-            AllowVerticalScroll = true;
+            bCanUpdateAfterDrag = true;
+            bAllowVerticalScroll = true;
 
             RecalculateRange();
             value.Y = FMath::Clamp(value.Y, 0.0f, 1.0f);
@@ -431,29 +440,29 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
 #define POSITION_THRESHOLD 0.001f
 void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 {
-    if (FMath::Abs(DragSpeed.X) > 0 || FMath::Abs(DragSpeed.Y) > 0                                       //speed large then threshold
-        || (AllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)) //horizontal out of range
-        || (AllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)))      //vertical out of range
+    if (FMath::Abs(Velocity.X) > 0 || FMath::Abs(Velocity.Y) > 0                                       //speed large then threshold
+        || (bAllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)) //horizontal out of range
+        || (bAllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)))      //vertical out of range
     {
         bool canMove = false;
         const float positionTimeMultiply = 50.0f;
         const float dragForceMulitply = 10.0f;
         const float positionLerpTimeMultiply = 10.0f;
-        if (AllowHorizontalScroll)
+        if (bAllowHorizontalScroll)
         {
             if (Position.Y - HorizontalRange.X < 0)
             {
-                if (DragSpeed.X < 0)
+                if (Velocity.X < 0)
                 {
                     float dragForce = (HorizontalRange.X - Position.Y) * dragForceMulitply;
-                    DragSpeed.X += -FMath::Sign(DragSpeed.X) * dragForce * deltaTime;
+                    Velocity.X += -FMath::Sign(Velocity.X) * dragForce * deltaTime;
 
-                    Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
+                    Position.Y += Velocity.X * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
-                    DragSpeed.X = 0;
+                    Velocity.X = 0;
                     if (FMath::Abs(HorizontalRange.X - Position.Y) < POSITION_THRESHOLD)
                     {
                         Position.Y = HorizontalRange.X;
@@ -468,17 +477,17 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
             }
             else if (Position.Y - HorizontalRange.Y > 0)
             {
-                if (DragSpeed.X > 0) //move right, use opposite force
+                if (Velocity.X > 0) //move right, use opposite force
                 {
                     float dragForce = (Position.Y - HorizontalRange.Y) * dragForceMulitply;
-                    DragSpeed.X += -FMath::Sign(DragSpeed.X) * dragForce * deltaTime;
+                    Velocity.X += -FMath::Sign(Velocity.X) * dragForce * deltaTime;
 
-                    Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
+                    Position.Y += Velocity.X * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
-                    DragSpeed.X = 0;
+                    Velocity.X = 0;
                     if (FMath::Abs(Position.Y - HorizontalRange.Y) < POSITION_THRESHOLD)
                     {
                         Position.Y = HorizontalRange.Y;
@@ -493,32 +502,32 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
             }
             else
             {
-                auto speedXDir = FMath::Sign(DragSpeed.X);
+                auto speedXDir = FMath::Sign(Velocity.X);
                 float dragForce = 10;
-                DragSpeed.X += -FMath::Sign(DragSpeed.X) * dragForce * deltaTime;
-                if (FMath::Sign(DragSpeed.X) != speedXDir) //accelerate speed change speed direction, set speed to 0
+                Velocity.X += -FMath::Sign(Velocity.X) * dragForce * deltaTime;
+                if (FMath::Sign(Velocity.X) != speedXDir) //accelerate speed change speed direction, set speed to 0
                 {
-                    DragSpeed.X = 0;
+                    Velocity.X = 0;
                 }
-                Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
+                Position.Y += Velocity.X * deltaTime * positionTimeMultiply;
                 canMove = true;
             }
         }
-        if (AllowVerticalScroll)
+        if (bAllowVerticalScroll)
         {
             if (Position.Z - VerticalRange.X < 0)
             {
-                if (DragSpeed.Y < 0)
+                if (Velocity.Y < 0)
                 {
                     float dragForce = (VerticalRange.X - Position.Z) * dragForceMulitply;
-                    DragSpeed.Y += -FMath::Sign(DragSpeed.Y) * dragForce * deltaTime;
+                    Velocity.Y += -FMath::Sign(Velocity.Y) * dragForce * deltaTime;
 
-                    Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                    Position.Z += Velocity.Y * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
-                    DragSpeed.Y = 0;
+                    Velocity.Y = 0;
                     if (FMath::Abs(VerticalRange.X - Position.Z) < POSITION_THRESHOLD)
                     {
                         Position.Z = VerticalRange.X;
@@ -533,17 +542,17 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
             }
             else if (Position.Z - VerticalRange.Y > 0)
             {
-                if (DragSpeed.Y > 0) //move up, use opposite force
+                if (Velocity.Y > 0) //move up, use opposite force
                 {
                     float dragForce = (Position.Z - VerticalRange.Y) * dragForceMulitply;
-                    DragSpeed.Y += -FMath::Sign(DragSpeed.Y) * dragForce * deltaTime;
+                    Velocity.Y += -FMath::Sign(Velocity.Y) * dragForce * deltaTime;
 
-                    Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                    Position.Z += Velocity.Y * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
-                    DragSpeed.Y = 0;
+                    Velocity.Y = 0;
                     if (FMath::Abs(Position.Z - VerticalRange.Y) < POSITION_THRESHOLD)
                     {
                         Position.Z = VerticalRange.Y;
@@ -558,14 +567,14 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
             }
             else
             {
-                auto speedYDir = FMath::Sign(DragSpeed.Y);
+                auto speedYDir = FMath::Sign(Velocity.Y);
                 float dragForce = 10;
-                DragSpeed.Y += -FMath::Sign(DragSpeed.Y) * dragForce * deltaTime;
-                if (FMath::Sign(DragSpeed.Y) != speedYDir) //accelerate speed change speed direction, set speed to 0
+                Velocity.Y += -FMath::Sign(Velocity.Y) * dragForce * deltaTime;
+                if (FMath::Sign(Velocity.Y) != speedYDir) //accelerate speed change speed direction, set speed to 0
                 {
-                    DragSpeed.Y = 0;
+                    Velocity.Y = 0;
                 }
-                Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                Position.Z += Velocity.Y * deltaTime * positionTimeMultiply;
                 canMove = true;
             }
         }
@@ -577,7 +586,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
     }
     else
     {
-        CanUpdateAfterDrag = false;
+        bCanUpdateAfterDrag = false;
     }
 }
 void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
@@ -585,11 +594,11 @@ void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
     if (!ContentUIItem.IsValid())
         return;
     auto relativeLocation = ContentUIItem->GetRelativeLocation();
-    if (AllowHorizontalScroll)
+    if (bAllowHorizontalScroll)
     {
         Progress.X = (relativeLocation.Y - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
     }
-    if (AllowVerticalScroll)
+    if (bAllowVerticalScroll)
     {
         Progress.Y = (relativeLocation.Z - VerticalRange.X) / (VerticalRange.Y - VerticalRange.X);
     }

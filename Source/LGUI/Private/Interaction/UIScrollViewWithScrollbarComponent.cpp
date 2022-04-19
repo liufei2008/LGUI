@@ -69,7 +69,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 	Super::UpdateProgress(InFireEvent);
 	if (CheckScrollbarParameter())
 	{
-		if (AllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
@@ -85,7 +85,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			}
 			bValueIsSetFromHorizontalScrollbar = false;
 		}
-		if (AllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.Y > 1.0f)
 			{
@@ -398,9 +398,9 @@ void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
 void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollValue)
 {
 	if (!ContentUIItem.IsValid())return;
-	CanUpdateAfterDrag = false;
+	bCanUpdateAfterDrag = false;
 	bValueIsSetFromHorizontalScrollbar = true;
-	AllowHorizontalScroll = true;
+	bAllowHorizontalScroll = true;
 
 	Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
@@ -409,9 +409,9 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValue)
 {
 	if (!ContentUIItem.IsValid())return;
-	CanUpdateAfterDrag = false;
+	bCanUpdateAfterDrag = false;
 	bValueIsSetFromVerticalScrollbar = true;
-	AllowVerticalScroll = true;
+	bAllowVerticalScroll = true;
 
 	Position.Z = FMath::Lerp(VerticalRange.X, VerticalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
