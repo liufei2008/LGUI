@@ -402,6 +402,7 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 	bValueIsSetFromHorizontalScrollbar = true;
 	bAllowHorizontalScroll = true;
 
+	auto Position = ContentUIItem->GetRelativeLocation();
 	Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
 	UpdateProgress();
@@ -413,6 +414,7 @@ void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValu
 	bValueIsSetFromVerticalScrollbar = true;
 	bAllowVerticalScroll = true;
 
+	auto Position = ContentUIItem->GetRelativeLocation();
 	Position.Z = FMath::Lerp(VerticalRange.X, VerticalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
 	UpdateProgress();

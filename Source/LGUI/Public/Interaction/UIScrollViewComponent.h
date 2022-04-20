@@ -62,6 +62,12 @@ protected:
 	/** When Content size is smaller than Content's parent size, can we still scroll? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool CanScrollInSmallSize = true;
+	/** Determines how quickly the contents stop moving. A value of 0 means the movement will never slow down, larger value will stop the movement faster. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0"))
+		float DecelerateRate = 0.135f;
+	/** Decrease movement value when drag content out of range. A value of 0 means not allowed out of range. A value of 1 means no damp effect. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float OutOfRangeDamper = 0.5f;
 
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
@@ -79,11 +85,12 @@ protected:
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentParentUIItem = nullptr;//Content's parent
 	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical
 	virtual void UpdateProgress(bool InFireEvent = true);
-	FVector Position = FVector(0, 0, 0);//content position in parent space
+	FVector PressContentPosition = FVector(0, 0, 0);//content position in parent space
 	FVector2D Velocity = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
 	FVector2D VerticalRange;//vertical scroll range, x--min, y--max
-	FVector PrevWorldPoint;
+	FVector PressPointerPosition;//pointer hit position in world, when press
+	FVector PrevPointerPosition;//prev frame pointer hit position in world
 private:
 	void UpdateAfterDrag(float deltaTime);
 
@@ -128,6 +135,10 @@ public:
 		bool GetCanScrollInSmallSize()const { return CanScrollInSmallSize; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		FVector2D GetVelocity()const { return Velocity; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		float GetDecelerateRate()const { return DecelerateRate; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		float GetOutOfRangeDamper()const { return OutOfRangeDamper; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollSensitivity(float value);
@@ -141,6 +152,10 @@ public:
 		void SetCanScrollInSmallSize(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetVelocity(const FVector2D& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetDecelerateRate(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetOutOfRangeDamper(float value);
 
 	/** Mannually scroll it with delta value. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
@@ -148,7 +163,7 @@ public:
 	/** Mannually scroll it with absolute value. The value will be applyed to Content's relative location. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollValue(FVector2D value);
-	/** Mannually scroll it with progress value (from 0 to 1). The value will be applyed to Content's relative location. */
+	/** Mannually scroll it with progress value (from 0 to 1). */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollProgress(FVector2D value);
 };
