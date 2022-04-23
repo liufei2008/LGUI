@@ -74,6 +74,7 @@ private:
 	}
 	TSharedRef<SWidget> MakeComponentSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
 	TSharedRef<SWidget> MakeFunctionSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
+	void OnActorParameterChange(TSharedRef<IPropertyHandle> PropertyHandle);
 	void OnSelectComponent(UActorComponent* Comp, int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
 	void OnSelectActorSelf(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
 	void OnSelectFunction(FName FuncName, int32 itemIndex, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> PropertyHandle);
