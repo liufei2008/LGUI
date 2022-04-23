@@ -365,25 +365,45 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 		auto ItemHandle = EventListHandle->GetElement(EventItemIndex);
 		//HelperActor
 		auto HelperActorHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
-		AActor* HelperActor = nullptr;
 		UObject* HelperActorObject = nullptr;
 		HelperActorHandle->GetValue(HelperActorObject);
-		if (HelperActorObject != nullptr)
-		{
-			HelperActor = (AActor*)HelperActorObject;
-		}
+		AActor* HelperActor = Cast<AActor>(HelperActorObject);
 
 		//TargetObject
 		auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 		UObject* TargetObject = nullptr;
 		TargetObjectHandle->GetValue(TargetObject);
 
-		if (!IsValid(HelperActor))
+		UObject* ClassObject = nullptr;
+		auto HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperClass));
+		HelperClassHandle->GetValue(ClassObject);
+		UClass* ClassValue = Cast<UClass>(ClassObject);
+		if (ClassValue == AActor::StaticClass())
 		{
-			TargetObjectHandle->SetValue((UObject*)nullptr);
+			TargetObjectHandle->SetValue(HelperActor);
+		}
+		else if (ClassValue->IsChildOf(UActorComponent::StaticClass()))
+		{
+			FName HelperComponentName = NAME_None;
+			auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
+			HelperComponentNameHandle->GetValue(HelperComponentName);
+			UActorComponent* FoundHelperComp = nullptr;
+			if (!HelperComponentName.IsNone())
+			{
+				auto Components = HelperActor->GetComponents();
+				for (auto Comp : Components)
+				{
+					if (Comp->GetFName() == HelperComponentName)
+					{
+						FoundHelperComp = Comp;
+						break;
+					}
+				}
+			}
+			TargetObjectHandle->SetValue(FoundHelperComp);
 		}
 
-		HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
+		HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnActorParameterChange, ItemHandle));
 			
 		//function
 		auto FunctionNameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
@@ -702,6 +722,47 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 			]
 		;
 	}
+}
+
+void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	UObject* HelperActorObject = nullptr;
+	auto HelperActorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
+	HelperActorHandle->GetValue(HelperActorObject);
+	AActor* HelperActor = Cast<AActor>(HelperActorObject);
+
+	auto TargetObjectHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
+
+	UObject* ClassObject = nullptr;
+	auto HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperClass));
+	HelperClassHandle->GetValue(ClassObject);
+	UClass* ClassValue = Cast<UClass>(ClassObject);
+	if (ClassValue == AActor::StaticClass())
+	{
+		TargetObjectHandle->SetValue(HelperActor);
+	}
+	else if (ClassValue->IsChildOf(UActorComponent::StaticClass()))
+	{
+		FName HelperComponentName = NAME_None;
+		auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
+		HelperComponentNameHandle->GetValue(HelperComponentName);
+		UActorComponent* FoundHelperComp = nullptr;
+		if (!HelperComponentName.IsNone())
+		{
+			auto Components = HelperActor->GetComponents();
+			for (auto Comp : Components)
+			{
+				if (Comp->GetFName() == HelperComponentName)
+				{
+					FoundHelperComp = Comp;
+					break;
+				}
+			}
+		}
+		TargetObjectHandle->SetValue(FoundHelperComp);
+	}
+
+	PropertyUtilites->ForceRefresh();
 }
 
 void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
