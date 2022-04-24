@@ -154,24 +154,14 @@ bool UUIScrollViewComponent::CheckValidHit(USceneComponent *InHitComp)
     return (InHitComp->IsAttachedTo(RootUIComp.Get()) || InHitComp == RootUIComp); //make sure hit component is child of this or is this
 }
 
-bool UUIScrollViewComponent::OnPointerDown_Implementation(ULGUIPointerEventData *eventData)
-{
-    PressPointerPosition = eventData->GetWorldPointInPlane();
-    PrevPointerPosition = PressPointerPosition;
-    return AllowEventBubbleUp;
-}
-bool UUIScrollViewComponent::OnPointerUp_Implementation(ULGUIPointerEventData *eventData)
-{
-    return AllowEventBubbleUp;
-}
-
 bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData *eventData)
 {
     if (CheckParameters() && CheckValidHit(eventData->dragComponent))
     {
+        PrevPointerPosition = eventData->pressWorldPoint;
         auto CurrentPointerPosition = eventData->GetWorldPointInPlane();
+        const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(CurrentPointerPosition - PrevPointerPosition);
         PrevPointerPosition = CurrentPointerPosition;
-        const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(CurrentPointerPosition - PressPointerPosition);
         bAllowHorizontalScroll = false;
         bAllowVerticalScroll = false;
         if (OnlyOneDirection && Horizontal && Vertical)
@@ -196,7 +186,6 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEvent
                 bAllowVerticalScroll = true;
             }
         }
-        PressContentPosition = ContentUIItem->GetRelativeLocation();
         bCanUpdateAfterDrag = false;
         OnPointerDrag_Implementation(eventData);
     }
@@ -211,20 +200,16 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
 {
     if (!ContentUIItem.IsValid())
         return AllowEventBubbleUp;
-    auto Position = PressContentPosition;
+    auto Position = ContentUIItem->GetRelativeLocation();
     auto CurrentPointerPosition = eventData->GetWorldPointInPlane();
+    auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(CurrentPointerPosition - PrevPointerPosition);
     PrevPointerPosition = CurrentPointerPosition;
-    auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(CurrentPointerPosition - PressPointerPosition);
     if (bAllowHorizontalScroll)
     {
         auto predict = Position.Y + localMoveDelta.Y;
-        if (predict < HorizontalRange.X)//out-of-range, lower the sentitivity
+        if (predict < HorizontalRange.X || predict > HorizontalRange.Y) //out-of-range, lower the sentitivity
         {
-            Position.Y = -(HorizontalRange.X - predict) * OutOfRangeDamper + HorizontalRange.X;
-        }
-        else if (predict > HorizontalRange.Y)//out-of-range, lower the sentitivity
-        {
-            Position.Y = (predict - HorizontalRange.Y) * OutOfRangeDamper + HorizontalRange.Y;
+            Position.Y += localMoveDelta.Y * OutOfRangeDamper;
         }
         else
         {
@@ -237,13 +222,9 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     if (bAllowVerticalScroll)
     {
         auto predict = Position.Z + localMoveDelta.Z;
-        if (predict < VerticalRange.X)//out-of-range, lower the sentitivity
+        if (predict < VerticalRange.X || predict > VerticalRange.Y)
         {
-            Position.Z = -(VerticalRange.X - predict) * OutOfRangeDamper + VerticalRange.X;
-        }
-        else if (predict > VerticalRange.Y)//out-of-range, lower the sentitivity
-        {
-            Position.Z = (predict - VerticalRange.Y) * OutOfRangeDamper + VerticalRange.Y;
+            Position.Z += localMoveDelta.Z * OutOfRangeDamper;
         }
         else
         {
