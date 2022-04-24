@@ -8,16 +8,6 @@
 void ULGUIPlayTweenSequenceComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if (playTweenArray.Num() > 0)
-	{
-		for (auto playTween : playTweenArray)
-		{
-			playTween->RegisterOnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
-				OnTweenComplete();
-				})
-			);
-		}
-	}
 	if (playOnStart)
 	{
 		Play();
@@ -25,6 +15,15 @@ void ULGUIPlayTweenSequenceComponent::BeginPlay()
 }
 void ULGUIPlayTweenSequenceComponent::OnTweenComplete()
 {
+	if (bPlayNextWhenCycleComplete)
+	{
+		playTweenArray[currentTweenPlayIndex]->UnregisterOnCycleComplete(onCompleteDelegateHandle);
+	}
+	else
+	{
+		playTweenArray[currentTweenPlayIndex]->UnregisterOnComplete(onCompleteDelegateHandle);
+	}
+
 	currentTweenPlayIndex++;
 	if (currentTweenPlayIndex >= playTweenArray.Num())
 	{
@@ -33,7 +32,18 @@ void ULGUIPlayTweenSequenceComponent::OnTweenComplete()
 	}
 	else
 	{
-		playTweenArray[currentTweenPlayIndex]->Start();
+		auto& tweenItem = playTweenArray[currentTweenPlayIndex];
+		if (bPlayNextWhenCycleComplete)
+		{
+			onCompleteDelegateHandle = tweenItem->RegisterOnCycleComplete(FLGUIInt32Delegate::CreateWeakLambda(this, [this](int count) {
+				OnTweenComplete();
+				}));
+		}
+		else
+		{
+			onCompleteDelegateHandle = tweenItem->RegisterOnComplete(FSimpleDelegate::CreateUObject(this, &ULGUIPlayTweenSequenceComponent::OnTweenComplete));
+		}
+		tweenItem->Start();
 	}
 }
 void ULGUIPlayTweenSequenceComponent::Play()
@@ -43,8 +53,19 @@ void ULGUIPlayTweenSequenceComponent::Play()
 		if (!isPlaying)
 		{
 			isPlaying = true;
-			currentTweenPlayIndex = -1;
-			OnTweenComplete();
+			currentTweenPlayIndex = 0;
+			auto& tweenItem = playTweenArray[currentTweenPlayIndex];
+			if (bPlayNextWhenCycleComplete)
+			{
+				onCompleteDelegateHandle = tweenItem->RegisterOnCycleComplete(FLGUIInt32Delegate::CreateWeakLambda(this, [this](int count) {
+					OnTweenComplete();
+					}));
+			}
+			else
+			{
+				onCompleteDelegateHandle = tweenItem->RegisterOnComplete(FSimpleDelegate::CreateUObject(this, &ULGUIPlayTweenSequenceComponent::OnTweenComplete));
+			}
+			tweenItem->Start();
 		}
 	}
 }
@@ -53,6 +74,8 @@ void ULGUIPlayTweenSequenceComponent::Stop()
 	if (isPlaying)
 	{
 		isPlaying = false;
-		ALTweenActor::KillIfIsTweening(this, playTweenArray[currentTweenPlayIndex]->GetTweener(), false);
+		auto& tweenItem = playTweenArray[currentTweenPlayIndex];
+		tweenItem->UnregisterOnComplete(onCompleteDelegateHandle);
+		ALTweenActor::KillIfIsTweening(this, tweenItem->GetTweener(), false);
 	}
 }
