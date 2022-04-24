@@ -471,7 +471,6 @@ private:
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
-	uint32 bHasAddToLGUIWorldSpaceRenderer : 1;//is this canvas added to LGUI world space renderer
 
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 

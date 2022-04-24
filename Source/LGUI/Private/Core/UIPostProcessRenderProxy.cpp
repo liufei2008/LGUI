@@ -54,7 +54,7 @@ void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(void* I
 	LGUIRenderer = InLGUIRenderer;
 	if (LGUIRenderer.IsValid())
 	{
-		LGUIRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, this);
+		LGUIRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, this);
 	}
 	else
 	{

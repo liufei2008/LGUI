@@ -107,7 +107,7 @@ public:
 					{
 						if (IsRenderToWorld)
 						{
-							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, HudPrimitive);
+							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, HudPrimitive);
 						}
 						else
 						{

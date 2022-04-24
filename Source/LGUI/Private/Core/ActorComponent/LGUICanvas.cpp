@@ -43,7 +43,6 @@ ULGUICanvas::ULGUICanvas()
 	bRectRangeCalculated = false;
 
 	bHasAddToLGUIScreenSpaceRenderer = false;
-	bHasAddToLGUIWorldSpaceRenderer = false;
 	bOverrideViewLocation = false;
 	bOverrideViewRotation = false;
 	bOverrideProjectionMatrix = false;
@@ -300,26 +299,6 @@ void ULGUICanvas::ClearDrawcall()
 
 void ULGUICanvas::RemoveFromViewExtension()
 {
-	if (bHasAddToLGUIWorldSpaceRenderer)
-	{
-		bHasAddToLGUIWorldSpaceRenderer = false;
-		TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-		if (!GetWorld()->IsGameWorld())
-		{
-			ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-		}
-		else
-#endif
-		{
-			ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-		}
-		if (ViewExtension.IsValid())
-		{
-			ViewExtension->RemoveWorldSpaceRenderCanvas(this);
-		}
-	}
-
 	if (bHasAddToLGUIScreenSpaceRenderer)
 	{
 		bHasAddToLGUIScreenSpaceRenderer = false;
@@ -1272,34 +1251,6 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	{
 		bCanTickUpdate = false;
 
-		//check if add to renderer
-		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-		{
-			if (!bHasAddToLGUIWorldSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
-			{
-				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())//editor world
-				{
-					if (GetWorld()->WorldType != EWorldType::EditorPreview)
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-					}
-				}
-				else
-#endif
-				{
-					ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-				}
-
-				if (ViewExtension.IsValid())//all WorldSpace_LGUI canvas should add to LGUIRenderer
-				{
-					ViewExtension->AddWorldSpaceRenderCanvas(this);
-					bHasAddToLGUIWorldSpaceRenderer = true;
-				}
-			}
-		}
-
 		UpdateGeometry_Implement();
 
 		if (bShouldRebuildDrawcall)
@@ -1776,8 +1727,16 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 {
 	InOutProcessedCanvasArray.Add(this);
 
-	ULGUIMeshComponent* prevUIMesh = nullptr;
-	int drawcallIndex = 0;
+	ULGUIMeshComponent* PrevUIMesh = nullptr;
+	int MeshSectionIndex = 0;
+	auto FinishPrevMesh = [&]() {
+		if (PrevUIMesh != nullptr)
+		{
+			PrevUIMesh->SortMeshSectionRenderPriority();
+			MeshSectionIndex = 0;
+			PrevUIMesh->SetUITranslucentSortPriority(InOutRenderPriority++);
+		}
+	};
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -1786,21 +1745,18 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 		case EUIDrawcallType::BatchGeometry:
 		case EUIDrawcallType::DirectMesh:
 		{
-			if (DrawcallItem->DrawcallMesh != prevUIMesh)
+			if (DrawcallItem->DrawcallMesh != PrevUIMesh)
 			{
-				if (prevUIMesh != nullptr)//when get difference mesh, we sort last mesh, because we need to wait until mesh's all section have set render proirity in "SetMeshSectionRenderPriority"
-				{
-					prevUIMesh->SortMeshSectionRenderPriority();
-					drawcallIndex = 0;
-				}
-				DrawcallItem->DrawcallMesh->SetUITranslucentSortPriority(InOutRenderPriority++);//LGUIRenderer use multiple mesh to render UI, it need to sort mesh
-				prevUIMesh = DrawcallItem->DrawcallMesh.Get();
+				FinishPrevMesh();
+				PrevUIMesh = DrawcallItem->DrawcallMesh.Get();
 			}
-			DrawcallItem->DrawcallMesh->SetMeshSectionRenderPriority(DrawcallItem->DrawcallMeshSection.Pin(), drawcallIndex++);
+			DrawcallItem->DrawcallMesh->SetMeshSectionRenderPriority(DrawcallItem->DrawcallMeshSection.Pin(), MeshSectionIndex++);
 		}
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
+			FinishPrevMesh();
+			PrevUIMesh = nullptr;
 			DrawcallItem->PostProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(InOutRenderPriority++);
 		}
 		break;
@@ -1808,16 +1764,15 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 		{
 			if (ensure(DrawcallItem->ChildCanvas.IsValid()))
 			{
+				FinishPrevMesh();
+				PrevUIMesh = nullptr;
 				DrawcallItem->ChildCanvas->SortDrawcall(InOutRenderPriority, InOutProcessedCanvasArray);
 			}
 		}
 		break;
 		}
 	}
-	if (prevUIMesh != nullptr)//since "SortMeshSectionRenderPriority" action is called when get different mesh, so the last one won't call, so do it here
-	{
-		prevUIMesh->SortMeshSectionRenderPriority();
-	}
+	FinishPrevMesh();
 }
 
 FName ULGUICanvas::LGUI_MainTextureMaterialParameterName = FName(TEXT("MainTexture"));
@@ -2316,27 +2271,6 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 				InSortOrder = FMath::Clamp(InSortOrder, (int32)MIN_int16, (int32)MAX_int16);
 			}
 			this->sortOrder = InSortOrder;
-		}
-		if (this == RootCanvas)
-		{
-			if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-			{
-				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())
-				{
-					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-				}
-				else
-#endif
-				{
-					ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-				}
-				if (ViewExtension.IsValid())
-				{
-					ViewExtension->SetRenderCanvasSortOrder(this, this->sortOrder);
-				}
-			}
 		}
 #if WITH_EDITOR
 		if (!GetWorld()->IsGameWorld())

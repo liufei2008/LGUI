@@ -38,6 +38,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Copy actor with hierarchy"), Category = LGUI)
 		static AActor* DuplicateActor(AActor* Target, USceneComponent* Parent);
+	template<class T>
+	static T* DuplicateActorT(T* Target, USceneComponent* Parent)
+	{
+		static_assert(TPointerIsConvertibleFromTo<T, const AActor>::Value, "'T' template parameter to DuplicateActor must be derived from AActor");
+		return (T*)ULGUIBPLibrary::DuplicateActor(Target, Parent);
+	}
 
 	/**
 	 * find the first component in parent and up parent hierarchy with type 
