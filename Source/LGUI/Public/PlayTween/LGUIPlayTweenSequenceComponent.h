@@ -13,7 +13,12 @@ class LGUI_API ULGUIPlayTweenSequenceComponent : public UActorComponent
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool playOnStart = true;
-	//play tween array sequentially, one after one.
+	/**
+	 * Play next tween when tween cycle complete, or wait until all loop complete (which could stuck at single tween if the tween's loop is infinite).
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bPlayNextWhenCycleComplete = false;
+	/** Play tween array sequentially, one after one. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<class ULGUIPlayTween*> playTweenArray;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -22,6 +27,7 @@ protected:
 	bool isPlaying = false;
 	int currentTweenPlayIndex = 0;
 	void OnTweenComplete();
+	FDelegateHandle onCompleteDelegateHandle;
 
 	virtual void BeginPlay()override;
 public:
