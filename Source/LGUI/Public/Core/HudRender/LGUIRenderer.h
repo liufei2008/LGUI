@@ -51,18 +51,14 @@ public:
 	//end ISceneViewExtension interfaces
 
 	//
-	void AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive);
+	void AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
 	void RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
 
 	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	void SetRenderCanvasSortOrder(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SortPrimitiveRenderPriority();
 	void SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth);
-
-	void AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
-	void RemoveWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRenderCanvas();
@@ -91,19 +87,17 @@ public:
 	);
 private:
 	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided);
-	struct FRenderCanvasParameter
+	struct FWorldSpaceRenderParameter
 	{
 		/*
 		 * CAUTION! use this uobject pointer only in game-thread!
 		 * I use it in render-thread just as a pointer or a key, so it is safe here.
 		 */
 		ULGUICanvas* RenderCanvas = nullptr;
-
-		int32 RenderCanvasSortOrder = 0;
 		//blend depth, 0-occlude by depth, 1-all visible
 		float BlendDepth = 0.0f;
 
-		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
+		ILGUIHudPrimitive* HudPrimitive;
 	};
 	struct FScreenSpaceRenderParameter
 	{
@@ -115,17 +109,14 @@ private:
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
-	TArray<FRenderCanvasParameter> WorldSpaceRenderCanvasParameterArray;
+	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
-	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
-	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
-	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	bool bIsRenderToRenderTarget = false;

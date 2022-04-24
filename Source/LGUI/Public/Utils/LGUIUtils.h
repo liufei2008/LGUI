@@ -19,7 +19,7 @@ public:
 	template<class T>
 	static T* GetComponentInParent(AActor* InActor, bool IncludeUnregisteredComponent = true)
 	{
-		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to FindComponentUpHierarchy must be derived from UActorComponent");
+		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponentInParent must be derived from UActorComponent");
 		T* resultComp = nullptr;
 		AActor* parentActor = InActor;
 		while (IsValid(parentActor))
