@@ -139,6 +139,8 @@ public:
 		float GetDecelerateRate()const { return DecelerateRate; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		float GetOutOfRangeDamper()const { return OutOfRangeDamper; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		FVector2D GetScrollProgress()const { return Progress; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollSensitivity(float value);
