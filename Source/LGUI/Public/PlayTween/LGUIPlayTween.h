@@ -6,6 +6,7 @@
 #include "LGUIPlayTween.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE(FLGUIPlayTweenCompleteDynamicDelegate);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPlayTweenCycleCompleteDynamicDelegate, int32, InCycleCompleteCount);
 
 UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULGUIPlayTween : public UObject
@@ -34,9 +35,13 @@ protected:
 		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
+	/** if LoopType is not Once, then this will be called every time when the cycle end, with parameter "cycle complete count". */
+	UPROPERTY(EditAnywhere, Category = "Event")
+		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
 	UPROPERTY(Transient)
 		ULTweener* tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;
+	FLGUIMulticastInt32Delegate onCycleComplete_Delegate;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void Start();
@@ -46,11 +51,21 @@ public:
 		ULTweener* GetTweener()const { return tweener; }
 	FDelegateHandle RegisterOnComplete(const FSimpleDelegate& InDelegate);
 	FDelegateHandle RegisterOnComplete(const TFunction<void()>& InFunction);
+	void UnregisterOnComplete(const FDelegateHandle& InDelegateHandle);
+
+	FDelegateHandle RegisterOnCycleComplete(const FLGUIInt32Delegate& InDelegate);
+	FDelegateHandle RegisterOnCycleComplete(const TFunction<void(int32)>& InFunction);
+	void UnregisterOnCycleComplete(const FDelegateHandle& InDelegateHandle);
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FLGUIDelegateHandleWrapper RegisterOnComplete(const FLGUIPlayTweenCompleteDynamicDelegate& InDelegate);
-	void UnregisterOnComplete(const FDelegateHandle& InDelegateHandle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void UnregisterOnComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FLGUIDelegateHandleWrapper RegisterOnCycleComplete(const FLGUIPlayTweenCycleCompleteDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void UnregisterOnCycleComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 protected:
 	virtual void OnUpdate(float progress)PURE_VIRTUAL(ULGUIPlayTween::OnUpdate, );
 };
