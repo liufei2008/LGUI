@@ -9,7 +9,6 @@
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
-#include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "UIScrollViewComponent.generated.h"
@@ -30,7 +29,7 @@ private:
 };
 //ScrollView
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIScrollViewComponent : public ULGUILifeCycleUIBehaviour, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface, public ILGUIPointerDownUpInterface
+class LGUI_API UUIScrollViewComponent : public ULGUILifeCycleUIBehaviour, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface
 {
 	GENERATED_BODY()
 	
@@ -85,11 +84,9 @@ protected:
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentParentUIItem = nullptr;//Content's parent
 	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical
 	virtual void UpdateProgress(bool InFireEvent = true);
-	FVector PressContentPosition = FVector(0, 0, 0);//content position in parent space
 	FVector2D Velocity = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
 	FVector2D VerticalRange;//vertical scroll range, x--min, y--max
-	FVector PressPointerPosition;//pointer hit position in world, when press
 	FVector PrevPointerPosition;//prev frame pointer hit position in world
 private:
 	void UpdateAfterDrag(float deltaTime);
@@ -111,9 +108,6 @@ public:
 		FLGUIDelegateHandleWrapper RegisterScrollEvent(const FLGUIScrollViewDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void UnregisterScrollEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-
-	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
 
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
