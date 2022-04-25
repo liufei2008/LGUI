@@ -101,7 +101,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			&& item->GetWorld()->WorldType != EWorldType::EditorPreview
 			)continue;
 
-		ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
+		ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
 	}
 
 	bool canUpdateLayout = true;
@@ -579,92 +579,6 @@ void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayout
 	}
 }
 
-void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
-{
-	auto RectExtends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
-	bool bCanDrawRect = false;
-	auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
-	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
-	{
-		RectDrawColor = FColor(0, 255, 0, 255);//green means selected object
-		RectExtends.X = 1;
-		bCanDrawRect = true;
-
-		if (auto UIRenderable = Cast<UUIBaseRenderable>(item))
-		{
-			FVector Min, Max;
-			UIRenderable->GetGeometryBounds3DInLocalSpace(Min, Max);
-			auto WorldTransform = item->GetComponentTransform();
-			FVector Center = (Max + Min) * 0.5f;
-			auto WorldLocation = WorldTransform.TransformPosition(Center);
-
-			auto GeometryBoundsDrawColor = FColor(255, 255, 0, 255);//yellow for geometry bounds
-			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
-			DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
-		}
-	}
-	else
-	{
-		//parent selected
-		if (IsValid(item->GetParentUIItem()))
-		{
-			if (ULGUIEditorManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
-			{
-				bCanDrawRect = true;
-			}
-		}
-		//child selected
-		auto& childrenCompArray = item->GetAttachUIChildren();
-		for (auto& uiComp : childrenCompArray)
-		{
-			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
-			{
-				bCanDrawRect = true;
-				break;
-			}
-		}
-		//other object of same hierarchy is selected
-		if (IsValid(item->GetParentUIItem()))
-		{
-			const auto& sameLevelCompArray = item->GetParentUIItem()->GetAttachUIChildren();
-			for (auto& uiComp : sameLevelCompArray)
-			{
-				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
-				{
-					bCanDrawRect = true;
-					break;
-				}
-			}
-		}
-	}
-	//canvas scaler
-	if (!bCanDrawRect)
-	{
-		if (item->IsCanvasUIItem())
-		{
-			if (auto canvasScaler = item->GetOwner()->FindComponentByClass<ULGUICanvasScaler>())
-			{
-				if (ULGUIEditorManagerObject::AnySelectedIsChildOf(item->GetOwner()))
-				{
-					bCanDrawRect = true;
-					RectDrawColor = FColor(255, 227, 124);
-				}
-			}
-		}
-	}
-
-	if (bCanDrawRect)
-	{
-		auto WorldTransform = item->GetComponentTransform();
-		FVector RelativeOffset(0, 0, 0);
-		RelativeOffset.Y = (0.5f - item->GetPivot().X) * item->GetWidth();
-		RelativeOffset.Z = (0.5f - item->GetPivot().Y) * item->GetHeight();
-		auto WorldLocation = WorldTransform.TransformPosition(RelativeOffset);
-
-		DrawDebugBox(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
-	}
-}
-
 
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 {
@@ -812,6 +726,172 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakO
 #endif
 
 
+
+#if WITH_EDITOR
+void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
+{
+	auto RectExtends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
+	bool bCanDrawRect = false;
+	auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
+	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
+	{
+		RectDrawColor = FColor(0, 255, 0, 255);//green means selected object
+		RectExtends.X = 1;
+		bCanDrawRect = true;
+
+		if (auto UIRenderable = Cast<UUIBaseRenderable>(item))
+		{
+			FVector Min, Max;
+			UIRenderable->GetGeometryBounds3DInLocalSpace(Min, Max);
+			auto WorldTransform = item->GetComponentTransform();
+			FVector Center = (Max + Min) * 0.5f;
+			auto WorldLocation = WorldTransform.TransformPosition(Center);
+
+			auto GeometryBoundsDrawColor = FColor(255, 255, 0, 255);//yellow for geometry bounds
+			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
+			DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+		}
+	}
+	else
+	{
+		//parent selected
+		if (IsValid(item->GetParentUIItem()))
+		{
+			if (ULGUIEditorManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
+			{
+				bCanDrawRect = true;
+			}
+		}
+		//child selected
+		auto& childrenCompArray = item->GetAttachUIChildren();
+		for (auto& uiComp : childrenCompArray)
+		{
+			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+			{
+				bCanDrawRect = true;
+				break;
+			}
+		}
+		//other object of same hierarchy is selected
+		if (IsValid(item->GetParentUIItem()))
+		{
+			const auto& sameLevelCompArray = item->GetParentUIItem()->GetAttachUIChildren();
+			for (auto& uiComp : sameLevelCompArray)
+			{
+				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+				{
+					bCanDrawRect = true;
+					break;
+				}
+			}
+		}
+	}
+	//canvas scaler
+	if (!bCanDrawRect)
+	{
+		if (item->IsCanvasUIItem())
+		{
+			if (auto canvasScaler = item->GetOwner()->FindComponentByClass<ULGUICanvasScaler>())
+			{
+				if (ULGUIEditorManagerObject::AnySelectedIsChildOf(item->GetOwner()))
+				{
+					bCanDrawRect = true;
+					RectDrawColor = FColor(255, 227, 124);
+				}
+			}
+		}
+	}
+
+	if (bCanDrawRect)
+	{
+		auto WorldTransform = item->GetComponentTransform();
+		FVector RelativeOffset(0, 0, 0);
+		RelativeOffset.Y = (0.5f - item->GetPivot().X) * item->GetWidth();
+		RelativeOffset.Z = (0.5f - item->GetPivot().Y) * item->GetHeight();
+		auto WorldLocation = WorldTransform.TransformPosition(RelativeOffset);
+
+		if (IsScreenSpace)
+		{
+			ALGUIManagerActor::DrawDebugBoxOnScreenSpace(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
+		}
+		else
+		{
+			DrawDebugBox(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
+		}
+	}
+}
+void ALGUIManagerActor::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
+{
+	auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+	if (ViewExtension.IsValid())
+	{
+		TArray<FLGUIHelperLineVertex> Lines;
+
+		FTransform const Transform(Rotation);
+		FVector Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
+		FVector End = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, -Box.Y, Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, -Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, Box.Y, Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, -Box.Y, -Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, Box.Y, -Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
+		new(Lines)FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines)FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, -Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		Start = Transform.TransformPosition(FVector(-Box.X, Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(-Box.X, Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
+		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
+
+		ViewExtension->AddLineRender(FHelperLineRenderParameter(Lines));
+	}
+}
+#endif
 
 TMap<UWorld*, ALGUIManagerActor*> ALGUIManagerActor::WorldToInstanceMap ;
 ALGUIManagerActor::ALGUIManagerActor()
@@ -969,8 +1049,8 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			{
 				if (!item.IsValid())continue;
 				if (!IsValid(item->GetWorld()))continue;
-				if (item->IsScreenSpaceOverlayUI())continue;
-				ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
+
+				ALGUIManagerActor::DrawFrameOnUIItem(item.Get(), item->IsScreenSpaceOverlayUI());
 			}
 		}
 	}
