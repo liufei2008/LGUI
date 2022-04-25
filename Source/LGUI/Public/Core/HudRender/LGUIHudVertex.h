@@ -78,3 +78,25 @@ public:
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration();
 
+
+/** Parameters for render editor helper line */
+struct LGUI_API FLGUIHelperLineVertex
+{
+public:
+	FVector Position = FVector::ZeroVector;
+	FColor Color = FColor::White;
+
+	FLGUIHelperLineVertex(FVector InPosition, FColor InColor)
+	{
+		Position = InPosition;
+		Color = InColor;
+	}
+};
+struct LGUI_API FLGUIHelperLineVertexDeclaration : public FRenderResource
+{
+public:
+	FVertexDeclarationRHIRef VertexDeclarationRHI;
+	virtual void InitRHI() override;
+	virtual void ReleaseRHI() override;
+};
+LGUI_API FVertexDeclarationRHIRef& GetLGUIHelperLineVertexDeclaration();

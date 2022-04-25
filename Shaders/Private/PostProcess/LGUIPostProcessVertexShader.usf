@@ -22,7 +22,6 @@ void SimplePostProcessVS(
 }
 
 
-float4x4 _MVP;
 struct CopyMeshRegionVSToPS
 {
     float4 position : SV_Position;

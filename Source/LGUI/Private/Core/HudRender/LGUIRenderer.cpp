@@ -25,6 +25,9 @@
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "ClearQuad.h"
+#if WITH_EDITOR
+#include "Core/HudRender/LGUIHelperLineShaders.h"
+#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -581,7 +584,54 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				}
 			}
 		}
+
+#if WITH_EDITOR
+		if (HelperLineRenderParameterArray.Num() > 0)
+		{
+			TShaderMapRef<FLGUIHelperLineShaderVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIHelperLineShaderPS> PixelShader(GlobalShaderMap);
+			FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, EBlendMode::BLEND_Opaque, false, true);
+
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHelperLineVertexDeclaration();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_LineList;
+			GraphicsPSOInit.NumSamples = NumSamples;
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+			VertexShader->SetParameters(RHICmdList, ScreenSpaceRenderParameter.ViewProjectionMatrix);
+
+			for (auto& LineRenderParameter : HelperLineRenderParameterArray)
+			{
+				FRHIResourceCreateInfo CreateInfo;
+				FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), BUF_Volatile, CreateInfo);
+				auto VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), RLM_WriteOnly);
+				FMemory::Memcpy(VoidPtr, LineRenderParameter.LinePoints.GetData(), sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num());
+				RHIUnlockVertexBuffer(VertexBufferRHI);
+
+				RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+
+				int32 MaxVerticesAllowed = ((GDrawUPVertexCheckCount / sizeof(FSimpleElementVertex)) / 2) * 2;
+				/*
+				hack to avoid a crash when trying to render large numbers of line segments.
+				*/
+				MaxVerticesAllowed = FMath::Min(MaxVerticesAllowed, 64 * 1024);
+
+				int32 MinVertex = 0;
+				int32 TotalVerts = (LineRenderParameter.LinePoints.Num() / 2) * 2;
+				while (MinVertex < TotalVerts)
+				{
+					int32 NumLinePrims = FMath::Min(MaxVerticesAllowed, TotalVerts - MinVertex) / 2;
+					RHICmdList.DrawPrimitive(MinVertex, NumLinePrims, 1);
+					MinVertex += NumLinePrims * 2;
+				}
+				VertexBufferRHI.SafeRelease();
+			}
+			HelperLineRenderParameterArray.Reset();
+		}
+#endif
 	}
+
 #if WITH_EDITOR
 	END_LGUI_RENDER :
 #endif
@@ -745,6 +795,21 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 		}
 	}
 }
+
+#if WITH_EDITOR
+void FLGUIHudRenderer::AddLineRender(const FHelperLineRenderParameter& InLineParameter)
+{
+	FHelperLineRenderParameter* Buffer = new FHelperLineRenderParameter(InLineParameter);
+	auto viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddLineRender)(
+		[viewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->HelperLineRenderParameterArray.Add(*Buffer);
+			delete Buffer;
+		}
+	);
+}
+#endif
 
 void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 {

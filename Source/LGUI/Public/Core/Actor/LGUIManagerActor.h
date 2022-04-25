@@ -104,8 +104,6 @@ public:
 	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 
-	static void DrawFrameOnUIItem(UUIItem* InItem);
-
 	static bool RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
 		, UUIBaseRenderable*& ResultSelectTarget
 	);
@@ -261,6 +259,9 @@ public:
 	static void MarkUpdateLayout(UWorld* InWorld);
 #if WITH_EDITOR
 	static bool GetIsPlaying(UWorld* InWorld);
+	static void DrawFrameOnUIItem(UUIItem* InItem, bool IsScreenSpace = false);
+private:
+	static void DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 #endif
 private:
 	/** Map actor to prefab's root actor */

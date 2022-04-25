@@ -65,3 +65,23 @@ FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration()
 {
 	return GLGUIPostProcessCopyMeshRegionVertexDeclaration.VertexDeclarationRHI;
 }
+
+
+
+void FLGUIHelperLineVertexDeclaration::InitRHI()
+{
+	FVertexDeclarationElementList Elements;
+	uint16 Stride = sizeof(FLGUIHelperLineVertex);
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHelperLineVertex, Position), VET_Float3, 0, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHelperLineVertex, Color), VET_Color, 1, Stride));
+	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
+}
+void FLGUIHelperLineVertexDeclaration::ReleaseRHI()
+{
+	VertexDeclarationRHI.SafeRelease();
+}
+TGlobalResource<FLGUIHelperLineVertexDeclaration> GLGUIHelperLineVertexDeclaration;
+FVertexDeclarationRHIRef& GetLGUIHelperLineVertexDeclaration()
+{
+	return GLGUIHelperLineVertexDeclaration.VertexDeclarationRHI;
+}
