@@ -7,6 +7,7 @@
 #include "RendererInterface.h"
 #include "RenderResource.h"
 #include "StaticMeshVertexData.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 
 class ULGUICanvas;
@@ -22,6 +23,19 @@ public:
 
 	}
 };
+
+#if WITH_EDITOR
+/** Parameters for render editor helper line */
+struct FHelperLineRenderParameter
+{
+public:
+	FHelperLineRenderParameter(const TArray<FLGUIHelperLineVertex>& InLinePoints)
+	{
+		LinePoints = InLinePoints;
+	}
+	TArray<FLGUIHelperLineVertex> LinePoints;
+};
+#endif
 
 class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
 {
@@ -132,6 +146,12 @@ private:
 	bool bIsEditorPreview = false;
 	mutable bool bCanRenderScreenSpace = true;
 	mutable bool bIsPlaying = false;
+#endif
+#if WITH_EDITOR
+private:
+	TArray<FHelperLineRenderParameter> HelperLineRenderParameterArray;
+public:
+	void AddLineRender(const FHelperLineRenderParameter& InLineParameter);
 #endif
 };
 

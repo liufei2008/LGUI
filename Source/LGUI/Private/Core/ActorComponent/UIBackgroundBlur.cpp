@@ -185,6 +185,7 @@ public:
 							PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
 							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
 							//render vertical
+							RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 							PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 							Renderer->DrawFullScreenQuad(RHICmdList);
@@ -270,6 +271,7 @@ public:
 							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
 							//render vertical
+							RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 							PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 							Renderer->DrawFullScreenQuad(RHICmdList);

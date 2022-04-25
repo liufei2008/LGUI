@@ -14,6 +14,7 @@ void SimpleCopyTargetPS(
 
 
 float4 _MainTextureScaleOffset;
+float4x4 _MVP;
 
 void CopyMeshRegionPS(
     CopyMeshRegionVSToPS input,
