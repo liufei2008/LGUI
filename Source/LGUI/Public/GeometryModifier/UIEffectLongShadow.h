@@ -18,7 +18,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor shadowColor = FColor::White;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FVector shadowSize = FVector(1, -1, 0);
+		FVector shadowSize = FVector(0, 1, -1);
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		uint8 shadowSegment = 5;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
