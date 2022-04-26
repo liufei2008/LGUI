@@ -13,6 +13,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "EngineUtils.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabHelperActor"
@@ -107,14 +108,22 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	}
 	if (auto ResultPtr = MapLevelToManagerActor.Find(InLevel))
 	{
-		if (auto World = ResultPtr->Get()->GetWorld())
+		if (ResultPtr->IsValid())
 		{
-			if (!World->IsGameWorld())
+			if (auto World = ResultPtr->Get()->GetWorld())
 			{
-				(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();//can only manage prefab in edit mode
+				if (!World->IsGameWorld())
+				{
+					(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();//can only manage prefab in edit mode
+				}
 			}
+			return ResultPtr->Get();
 		}
-		return ResultPtr->Get();
+		else
+		{
+			MapLevelToManagerActor.Remove(InLevel);
+			return nullptr;
+		}
 	}
 	else
 	{
@@ -144,39 +153,44 @@ void ALGUIPrefabManagerActor::PostInitProperties()
 	Super::PostInitProperties();
 	if (this != GetDefault<ALGUIPrefabManagerActor>())
 	{
-		if (auto Level = this->GetLevel())
-		{
-			if (!MapLevelToManagerActor.Contains(Level))
-			{
-				MapLevelToManagerActor.Add(Level, this);
-			}
-			PrefabHelperObject->OnSubPrefabNewVersionUpdated.AddLambda([Actor = MakeWeakObjectPtr(this)]() {
-				if (Actor.IsValid())
-				{
-					Actor->MarkPackageDirty();
-				}
-			});
-		}
-		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
-			if (Actor.IsValid())
-			{
-				if (auto World = Actor->GetWorld())
-				{
-					if (!World->IsGameWorld())
-					{
-						Actor->PrefabHelperObject->CheckPrefabVersion();
-					}
-				}
-			}
-			}, 1);
+		CollectWhenCreate();
+	}
+}
 
-		FEditorDelegates::BeginPIE.AddLambda([Actor = MakeWeakObjectPtr(this)](const bool isSimulating) {
+void ALGUIPrefabManagerActor::CollectWhenCreate()
+{
+	if (auto Level = this->GetLevel())
+	{
+		if (!MapLevelToManagerActor.Contains(Level))
+		{
+			MapLevelToManagerActor.Add(Level, this);
+		}
+		OnSubPrefabNewVersionUpdatedDelegateHandle = PrefabHelperObject->OnSubPrefabNewVersionUpdated.AddLambda([Actor = MakeWeakObjectPtr(this)]() {
 			if (Actor.IsValid())
 			{
-				Actor->PrefabHelperObject->DismissAllVersionNotifications();
+				Actor->MarkPackageDirty();
 			}
 		});
 	}
+	ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
+		if (Actor.IsValid())
+		{
+			if (auto World = Actor->GetWorld())
+			{
+				if (!World->IsGameWorld())
+				{
+					Actor->PrefabHelperObject->CheckPrefabVersion();
+				}
+			}
+		}
+		}, 1);
+
+	BeginPIEDelegateHandle = FEditorDelegates::BeginPIE.AddLambda([Actor = MakeWeakObjectPtr(this)](const bool isSimulating) {
+		if (Actor.IsValid())
+		{
+			Actor->PrefabHelperObject->DismissAllVersionNotifications();
+		}
+	});
 }
 
 void ALGUIPrefabManagerActor::PostActorCreated()
@@ -187,6 +201,55 @@ void ALGUIPrefabManagerActor::PostActorCreated()
 void ALGUIPrefabManagerActor::BeginDestroy()
 {
 	Super::BeginDestroy();
+	CleanupWhenDestroy();
+}
+void ALGUIPrefabManagerActor::Destroyed()
+{
+	Super::Destroyed();
+	CleanupWhenDestroy();
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = this, World = this->GetWorld()]() {
+			auto InfoText = LOCTEXT("DeleteLGUIPrefabManagerActor", "\
+LGUIPrefabManagerActor is being destroyed!\
+\nThis actor is responsible for managing LGUI-Prefabs in current level, if you delete it then all LGUI-Prefabs linked in the level will be lost!\
+\nCilck OK to confirm delete, or Cancel to undo it.");
+			auto Return = FMessageDialog::Open(EAppMsgType::OkCancel, InfoText);
+			if (Return == EAppReturnType::Cancel)
+			{
+				GEditor->UndoTransaction(false);
+				Actor->CollectWhenCreate();
+			}
+			else if (Return == EAppReturnType::Ok)
+			{
+				//cleanup LGUIPrefabHelperActor
+				for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(World); ActorItr; ++ActorItr)
+				{
+					auto PrefabActor = *ActorItr;
+					if (IsValid(PrefabActor))
+					{
+						PrefabActor->bAutoDestroyLoadedActors = false;
+						LGUIUtils::DestroyActorWithHierarchy(PrefabActor, false);
+					}
+				}
+				for (TObjectIterator<ULGUIPrefabHelperObject> Itr; Itr; ++Itr)
+				{
+					Itr->CleanupInvalidSubPrefab();
+				}
+			}
+			}, 1);
+	}
+}
+void ALGUIPrefabManagerActor::CleanupWhenDestroy()
+{
+	if (OnSubPrefabNewVersionUpdatedDelegateHandle.IsValid())
+	{
+		PrefabHelperObject->OnSubPrefabNewVersionUpdated.Remove(OnSubPrefabNewVersionUpdatedDelegateHandle);
+	}
+	if (BeginPIEDelegateHandle.IsValid())
+	{
+		FEditorDelegates::BeginPIE.Remove(BeginPIEDelegateHandle);
+	}
 	if (this != GetDefault<ALGUIPrefabManagerActor>())
 	{
 		if (this->GetWorld() != nullptr && !this->GetWorld()->IsGameWorld())
@@ -195,10 +258,6 @@ void ALGUIPrefabManagerActor::BeginDestroy()
 			if (MapLevelToManagerActor.Contains(Level))
 			{
 				MapLevelToManagerActor.Remove(Level);
-			}
-			else
-			{
-				check(0);
 			}
 		}
 	}

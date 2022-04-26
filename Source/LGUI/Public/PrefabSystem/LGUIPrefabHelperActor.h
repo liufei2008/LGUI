@@ -44,7 +44,6 @@ public:
 
 /**
  * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabManagerActor.
- * @todo: check if there are multiple LGUIPrefabManagerActor in one level
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotPlaceable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabManagerActor : public AActor
@@ -61,7 +60,12 @@ public:
 	virtual void PostInitProperties()override;
 	virtual void PostActorCreated()override;
 	virtual void BeginDestroy() override;
+	virtual void Destroyed()override;
 private:
+	FDelegateHandle OnSubPrefabNewVersionUpdatedDelegateHandle;
+	FDelegateHandle BeginPIEDelegateHandle;
+	void CollectWhenCreate();
+	void CleanupWhenDestroy();
 	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabManagerActor>> MapLevelToManagerActor;
 public:
 	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
