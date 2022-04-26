@@ -61,9 +61,10 @@ void UUIEffectLongShadow::ModifyUIGeometry(
 		}
 	}
 
-	vertexCount = singleChannelVerticesCount * (shadowSegment + 2);
-	originVertices.AddDefaulted(vertexCount);
-	vertices.AddDefaulted(vertexCount);
+	int additionalVertCount = singleChannelVerticesCount * (shadowSegment + 1);
+	vertexCount = singleChannelVerticesCount + additionalVertCount;
+	originVertices.AddDefaulted(additionalVertCount);
+	vertices.AddDefaulted(additionalVertCount);
 
 	//verticies
 	{

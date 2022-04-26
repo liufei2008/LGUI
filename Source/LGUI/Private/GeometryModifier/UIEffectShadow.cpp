@@ -33,8 +33,8 @@ void UUIEffectShadow::ModifyUIGeometry(
 	}
 	
 	vertexCount = singleChannelVerticesCount + singleChannelVerticesCount;
-	originVertices.AddDefaulted(vertexCount);
-	vertices.AddDefaulted(vertexCount);
+	originVertices.AddDefaulted(singleChannelVerticesCount);
+	vertices.AddDefaulted(singleChannelVerticesCount);
 
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{

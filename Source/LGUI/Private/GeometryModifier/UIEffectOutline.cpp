@@ -88,9 +88,10 @@ void UUIEffectOutline::ModifyUIGeometry(
 		}
 	}
 
-	vertexCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
-	originVertices.AddDefaulted(vertexCount);
-	vertices.AddDefaulted(vertexCount);
+	int additionalVertCount = singleChannelVerticesCount * (use8Direction ? 8 : 4);
+	vertexCount = singleChannelVerticesCount + additionalVertCount;
+	originVertices.AddDefaulted(additionalVertCount);
+	vertices.AddDefaulted(additionalVertCount);
 
 	//vertices
 	{
