@@ -262,12 +262,15 @@ void FLGUIFontDataCustomization::OnPackingTagTextCommited(const FText& InText, E
 {
 	FName packingTag = FName(InText.ToString());
 	InProperty->SetValue(packingTag);
-	TargetScriptPtr->ReloadFont();
 	DetailBuilder->ForceRefreshDetails();
 }
 
 FText FLGUIFontDataCustomization::FontFaceOptions_GetCurrentFace()const
 {
+	if (TargetScriptPtr->subFaces.Num() == 0 || TargetScriptPtr->fontFace >= TargetScriptPtr->subFaces.Num())
+	{
+		return FText();
+	}
 	return FText::FromString(TargetScriptPtr->subFaces[TargetScriptPtr->fontFace]);
 }
 
@@ -287,9 +290,12 @@ TSharedRef<ITableRow> FLGUIFontDataCustomization::FontFaceOptions_GenerateComboI
 
 void FLGUIFontDataCustomization::FontFaceOptions_OnComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
 {
-	InProperty->SetValue(*Item);
-	TargetScriptPtr->ReloadFont();
-	DetailBuilder->ForceRefreshDetails();
+	int FoundIndex = FontFaceOptions.IndexOfByKey(Item);
+	if (FoundIndex != INDEX_NONE)
+	{
+		InProperty->SetValue(FoundIndex);
+		DetailBuilder->ForceRefreshDetails();
+	}
 }
 
 TSharedRef<ITableRow> FLGUIFontDataCustomization::PackingTagOptions_GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable, IDetailLayoutBuilder* DetailBuilder)
@@ -309,7 +315,6 @@ TSharedRef<ITableRow> FLGUIFontDataCustomization::PackingTagOptions_GenerateComb
 void FLGUIFontDataCustomization::PackingTagOptions_OnComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
 {
 	InProperty->SetValue(*Item.Get());
-	TargetScriptPtr->ReloadFont();
 	DetailBuilder->ForceRefreshDetails();
 }
 
