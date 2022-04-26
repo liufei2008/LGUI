@@ -749,7 +749,14 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 
 			auto GeometryBoundsDrawColor = FColor(255, 255, 0, 255);//yellow for geometry bounds
 			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
-			DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+			if (IsScreenSpace)
+			{
+				ALGUIManagerActor::DrawDebugBoxOnScreenSpace(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+			}
+			else
+			{
+				DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+			}
 		}
 	}
 	else
