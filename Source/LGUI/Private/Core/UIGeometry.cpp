@@ -2416,12 +2416,12 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	};
 
 	//pre parse rich text
-	FString richTextContent;
-	richTextContent.Reserve(content.Len());
 	static TArray<RichTextParseResult> richTextPropertyArray;
 	richTextPropertyArray.Reset();
 	if (richText)
 	{
+		FString richTextContent;
+		richTextContent.Reserve(content.Len());
 		for (int charIndex = 0; charIndex < contentLength; charIndex++)
 		{
 			auto charCode = content[charIndex];
