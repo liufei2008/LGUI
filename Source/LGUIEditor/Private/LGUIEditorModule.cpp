@@ -181,6 +181,12 @@ void FLGUIEditorModule::StartupModule()
 			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::LGUIColumnInfoChecked)
 		);
 		PluginCommands->MapAction(
+			editorCommand.ToggleDrawHelperFrame,
+			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleDrawHelperFrame),
+			FCanExecuteAction(),
+			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::GetDrawHelperFrameChecked)
+		);
+		PluginCommands->MapAction(
 			editorCommand.ForceGC,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::ForceGC)
 		);
@@ -1004,6 +1010,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		{
 			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
 			MenuBuilder.AddMenuEntry(commandList.ToggleLGUIInfoColume);
+			MenuBuilder.AddMenuEntry(commandList.ToggleDrawHelperFrame);
 			MenuBuilder.AddMenuEntry(commandList.ForceGC);
 		}
 		MenuBuilder.EndSection();
@@ -1306,6 +1313,18 @@ bool FLGUIEditorModule::LGUIColumnInfoChecked()
 {
 	return GetDefault<ULGUIEditorSettings>()->ShowLGUIColumnInSceneOutliner;
 }
+
+void FLGUIEditorModule::ToggleDrawHelperFrame()
+{
+	auto LGUIEditorSettings = GetMutableDefault<ULGUIEditorSettings>();
+	LGUIEditorSettings->bDrawHelperFrame = !LGUIEditorSettings->bDrawHelperFrame;
+	LGUIEditorSettings->SaveConfig();
+}
+bool FLGUIEditorModule::GetDrawHelperFrameChecked()
+{
+	return GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame;
+}
+
 void FLGUIEditorModule::ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner)
 {
 	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
