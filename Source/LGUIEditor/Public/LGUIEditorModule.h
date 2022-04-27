@@ -62,6 +62,10 @@ private:
 
 	void ToggleLGUIColumnInfo();
 	bool LGUIColumnInfoChecked();
+
+	void ToggleDrawHelperFrame();
+	bool GetDrawHelperFrameChecked();
+
 	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
 	TWeakObjectPtr<class ULGUIPrefabHelperObject> CurrentPrefabHelperObject;
 private:

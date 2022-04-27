@@ -89,19 +89,22 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	}
 
 	//draw frame
-	for (auto& item : AllUIItemArray)
+	if (GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame)
 	{
-		if (!item.IsValid())continue;
-		if (!IsValid(item->GetWorld()))continue;
-		if (
-			item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
-															//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
-			&& item->GetWorld()->WorldType != EWorldType::Game
-			&& item->GetWorld()->WorldType != EWorldType::PIE
-			&& item->GetWorld()->WorldType != EWorldType::EditorPreview
-			)continue;
+		for (auto& item : AllUIItemArray)
+		{
+			if (!item.IsValid())continue;
+			if (!IsValid(item->GetWorld()))continue;
+			if (
+				item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
+																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
+				&& item->GetWorld()->WorldType != EWorldType::Game
+				&& item->GetWorld()->WorldType != EWorldType::PIE
+				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
+				)continue;
 
-		ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
+			ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
+		}
 	}
 
 	bool canUpdateLayout = true;
@@ -1048,16 +1051,19 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 #if WITH_EDITOR
 	if (this->GetWorld())
 	{
-		if (this->GetWorld()->WorldType == EWorldType::Game
-			|| this->GetWorld()->WorldType == EWorldType::PIE
-			)
+		if (GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame)
 		{
-			for (auto& item : AllUIItemArray)
+			if (this->GetWorld()->WorldType == EWorldType::Game
+				|| this->GetWorld()->WorldType == EWorldType::PIE
+				)
 			{
-				if (!item.IsValid())continue;
-				if (!IsValid(item->GetWorld()))continue;
+				for (auto& item : AllUIItemArray)
+				{
+					if (!item.IsValid())continue;
+					if (!IsValid(item->GetWorld()))continue;
 
-				ALGUIManagerActor::DrawFrameOnUIItem(item.Get(), item->IsScreenSpaceOverlayUI());
+					ALGUIManagerActor::DrawFrameOnUIItem(item.Get(), item->IsScreenSpaceOverlayUI());
+				}
 			}
 		}
 	}
