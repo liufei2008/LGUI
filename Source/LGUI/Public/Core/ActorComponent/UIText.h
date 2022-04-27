@@ -36,7 +36,6 @@ protected:
 #if WITH_EDITORONLY_DATA
 	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
-	static float CurrentFontSize;
 #endif
 
 protected:
