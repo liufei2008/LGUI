@@ -16,7 +16,6 @@ PRAGMA_DISABLE_OPTIMIZATION
 
 #if WITH_EDITORONLY_DATA
 TWeakObjectPtr<ULGUIFontData_BaseObject> UUIText::CurrentUsingFontData = nullptr;
-float UUIText::CurrentFontSize = 16;
 #endif
 UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -26,7 +25,6 @@ UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitia
 	{
 		font = CurrentUsingFontData.Get();
 	}
-	size = CurrentFontSize;
 #endif
 	CacheTextGeometryData = FTextGeometryCache(this);
 }
@@ -259,10 +257,6 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, font))
 		{
 			UUIText::CurrentUsingFontData = font;
-		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, size))
-		{
-			UUIText::CurrentFontSize = size;
 		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
