@@ -124,6 +124,11 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
 		float DelayRestoreHierarchyTime = 0.2f;
+	/**
+	 * Draw helper box on selected UI element.
+	 */
+	UPROPERTY(config)
+		bool bDrawHelperFrame = true;
 
 	UPROPERTY(config)
 		bool ShowLGUIColumnInSceneOutliner = true;
