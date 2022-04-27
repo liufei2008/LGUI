@@ -57,9 +57,13 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 	}
 
 	auto EventListHandle = GetEventListHandle(PropertyHandle);
-	OnEventArrayNumChangedDelegate = FSimpleDelegate::CreateLambda([&]() {
-		CustomizationUtils.GetPropertyUtilities()->ForceRefresh();
-		});
+	TWeakPtr<IPropertyUtilities> WeakUtilities = PropertyUtilites;
+	OnEventArrayNumChangedDelegate = FSimpleDelegate::CreateLambda([WeakUtilities]() {
+		if (WeakUtilities.IsValid())
+		{
+			WeakUtilities.Pin()->ForceRefresh();
+		}
+	});
 	EventListHandle->SetOnNumElementsChanged(OnEventArrayNumChangedDelegate);
 	UpdateEventsLayout(PropertyHandle);
 	ChildBuilder.AddCustomRow(LOCTEXT("EventDelegate", "EventDelegate"))
