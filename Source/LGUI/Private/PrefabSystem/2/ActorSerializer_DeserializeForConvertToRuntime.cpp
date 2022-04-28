@@ -21,8 +21,8 @@ void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIAc
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
+			UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Find class: '%s' at index: %d, but is not a Actor class, use default"), *(ActorClass->GetFName().ToString()), SaveData.ActorClass);
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		LoadPropertyForConvert(ActorClass, SaveData.ActorPropertyData, ResultSaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
@@ -36,8 +36,8 @@ void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIAc
 			{
 				if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 				{
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Find class: '%s' at index: %d, but is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()), RootCompSaveData.ComponentClass);
 					CompClass = USceneComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, RootCompSaveData.PropertyData, RootCompSaveDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(RootCompSaveDataForBuild);
@@ -54,8 +54,8 @@ void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIAc
 			{
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Find class: '%s' at index: %d, but is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()), CompData.ComponentClass);
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, CompData.PropertyData, CompDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(CompDataForBuild);

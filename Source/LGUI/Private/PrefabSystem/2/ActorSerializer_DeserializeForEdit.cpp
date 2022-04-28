@@ -20,8 +20,8 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
+			UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Find class: '%s' at index: %d, but is not a Actor class, use default"), *(ActorClass->GetFName().ToString()), SaveData.ActorClass);
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		auto ActorGuidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
@@ -67,8 +67,8 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 				{
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Find class: '%s' at index: %d, but is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()), RootCompSaveData.ComponentClass);
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
