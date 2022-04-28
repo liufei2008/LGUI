@@ -114,6 +114,9 @@ public:
 	virtual float GetBoldRatio() { return 0.015f; }
 	virtual float GetItalicAngle() { return 15.0f; }
 	virtual float GetFixedVerticalOffset() { return 0.0f; }
+	virtual bool HasKerning() { return false; }
+	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize) { return 0; }
+	virtual uint16 GetLineHeight(const uint16& fontSize) { return 0; }
 	virtual void InitFont() {};
 
 	virtual void AddUIText(UUIText* InText) {}

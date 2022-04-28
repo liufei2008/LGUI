@@ -22,6 +22,7 @@ bool FTextGeometryCache::SetInputParameters(
 	UITextOverflowType InOverflowType,
 	bool InAdjustWidth,
 	bool InAdjustHeight,
+	bool InUseKerning,
 	UITextFontStyle InFontStyle,
 	bool InRichText,
 	TWeakObjectPtr<ULGUIFontData_BaseObject> InFont
@@ -92,6 +93,11 @@ bool FTextGeometryCache::SetInputParameters(
 		this->adjustHeight = InAdjustHeight;
 		bIsDirty = true;
 	}
+	if (this->useKerning != InUseKerning)
+	{
+		this->useKerning = InUseKerning;
+		bIsDirty = true;
+	}
 	if (this->fontStyle != InFontStyle)
 	{
 		this->fontStyle = InFontStyle;
@@ -135,6 +141,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->overflowType
 			, this->adjustWidth
 			, this->adjustHeight
+			, this->useKerning
 			, this->fontStyle
 			, this->textRealSize
 			, this->UIText->GetRenderCanvas()

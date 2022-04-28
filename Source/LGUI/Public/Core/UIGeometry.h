@@ -186,7 +186,7 @@ public:
 	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
 		, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, const float& fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-		, bool adjustWidth, bool adjustHeight
+		, bool adjustWidth, bool adjustHeight, bool kerning
 		, UITextFontStyle fontStyle, FVector2f& textRealSize
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray

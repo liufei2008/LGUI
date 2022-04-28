@@ -2126,7 +2126,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 				}
 			}
 			//uv1
-			if (renderCanvas->GetRequireUV1())//@todo
+			if (renderCanvas->GetRequireUV1())
 			{
 				vertices[0].TextureCoordinate[1] = FVector2f(0, 1);
 				vertices[1].TextureCoordinate[1] = FVector2f(1, 1);
@@ -2157,7 +2157,7 @@ struct FUITextCharGeometry
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
 	, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, const float& fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-	, bool adjustWidth, bool adjustHeight
+	, bool adjustWidth, bool adjustHeight, bool kerning
 	, UITextFontStyle fontStyle, FVector2f& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
@@ -2171,8 +2171,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 	bool shouldScaleFontSizeWithRootCanvas = false;
-	bool isWorldSpace = renderCanvas->GetRootCanvas()->IsRenderToWorldSpace();
-	if (isWorldSpace)
+	if (renderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
 	{
 		pixelPerfect = false;
 		if (dynamicPixelsPerUnit != 1.0f)
@@ -2199,6 +2198,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float boldSize = fontSize * font->GetBoldRatio();
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->GetItalicAngle()));
+	bool useKerning = kerning && font->HasKerning();
 
 	//rich text
 	using namespace LGUIRichTextParser;
@@ -2221,14 +2221,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	cacheRichTextCustomTagArray.Reset();
 	int contentLength = content.Len();
 	FVector2f currentLineOffset(0, 0);
-	float currentLineWidth = 0, currentLineHeight = fontSize, paragraphHeight = 0;//single line width, height, all line height
+	float originLineHeight = font->GetLineHeight(fontSize);
+	float currentLineWidth = 0, currentLineHeight = originLineHeight, paragraphHeight = 0;//single line width, height, all line height
 	float firstLineHeight = fontSize;//first line height
 	float maxLineWidth = 0;//if have multiple line
 	int lineUIGeoVertStart = 0;//vertex index in originVertices of current line
-	int visibleCharIndex = 0;//visible char index, skip invisible char(\r,\n,\t)
+	int currentVisibleCharCount = 0;//visible char count, skip invisible char(\r,\n,\t)
 	FUITextLineProperty sentenceProperty;
 	FVector2f caretPosition(0, 0);
-	float halfFontSize = fontSize * 0.5f;
 	float halfFontSpaceX = fontSpace.X * 0.5f;
 	int linesCount = 0;//how many lines, default is 1
 
@@ -2286,8 +2286,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		currentLineWidth = 0;
 		currentLineOffset.X = 0;
-		currentLineOffset.Y -= (richText ? currentLineHeight : fontSize) + fontSpace.Y;
-		paragraphHeight += (richText ? currentLineHeight : fontSize) + fontSpace.Y;
+		currentLineOffset.Y -= (richText ? currentLineHeight : originLineHeight) + fontSpace.Y;
+		paragraphHeight += (richText ? currentLineHeight : originLineHeight) + fontSpace.Y;
 		linesCount++;
 
 		//set caret position for empty newline
@@ -2299,83 +2299,79 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		//store first line height for paragraph align
 		if (linesCount == 1)
 		{
-			firstLineHeight = richText ? currentLineHeight : fontSize;
+			firstLineHeight = richText ? currentLineHeight : originLineHeight;
 		}
 		//set line height to origin
-		currentLineHeight = fontSize;
+		currentLineHeight = originLineHeight;
 	};
 
-	auto GetCharGeo = [&](TCHAR charCode, int inFontSize)
+	auto GetCharGeo = [&](TCHAR prevCharCode, TCHAR charCode, int inFontSize)
 	{
 		FUITextCharGeometry charGeo;
-		if (charCode == ' ')
-		{
-			charGeo.xadvance = inFontSize * 0.5f;
-			charGeo.geoWidth = charGeo.geoHeight = 0;
-			charGeo.xoffset = charGeo.yoffset = 0;
-			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2f(1, 1);
-		}
-		else if (charCode == '\t')
-		{
-			charGeo.xadvance = inFontSize + inFontSize;
-			charGeo.geoWidth = charGeo.geoHeight = 0;
-			charGeo.xoffset = charGeo.yoffset = 0;
-			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2f(1, 1);
-		}
-		else
-		{
-			auto charData = font->GetCharData(charCode, (uint16)inFontSize);
-			float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
+		auto charData = font->GetCharData(charCode, (uint16)inFontSize);
+		float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
 
-			auto overrideCharData = charData;
-			if (shouldScaleFontSizeWithRootCanvas)
+		auto overrideCharData = charData;
+		if (shouldScaleFontSizeWithRootCanvas)
+		{
+			if (pixelPerfect)
 			{
-				if (pixelPerfect)
-				{
-					inFontSize = inFontSize * rootCanvasScale;
-					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
-					overrideCharData = font->GetCharData(charCode, inFontSize);
+				inFontSize = inFontSize * rootCanvasScale;
+				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
+				overrideCharData = font->GetCharData(charCode, inFontSize);
 
-					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
-					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
-					charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
-					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
-					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
-				}
-				else if (dynamicPixelsPerUnit != 1.0f)
-				{
-					inFontSize = inFontSize * dynamicPixelsPerUnit;
-					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
-					overrideCharData = font->GetCharData(charCode, inFontSize);
+				charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
+				charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
+				charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+				charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
+				charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+			}
+			else if (dynamicPixelsPerUnit != 1.0f)
+			{
+				inFontSize = inFontSize * dynamicPixelsPerUnit;
+				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
+				overrideCharData = font->GetCharData(charCode, inFontSize);
 
-					charGeo.geoWidth = overrideCharData.width * oneDivideDynamicPixelsPerUnit;
-					charGeo.geoHeight = overrideCharData.height * oneDivideDynamicPixelsPerUnit;
-					charGeo.xadvance = overrideCharData.xadvance * oneDivideDynamicPixelsPerUnit;
-					charGeo.xoffset = overrideCharData.xoffset * oneDivideDynamicPixelsPerUnit;
-					charGeo.yoffset = overrideCharData.yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
-				}
-				else
-				{
-					inFontSize = inFontSize * rootCanvasScale;
-					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
-					overrideCharData = font->GetCharData(charCode, inFontSize);
-
-					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
-					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
-					charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
-					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
-					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
-				}
+				charGeo.geoWidth = overrideCharData.width * oneDivideDynamicPixelsPerUnit;
+				charGeo.geoHeight = overrideCharData.height * oneDivideDynamicPixelsPerUnit;
+				charGeo.xadvance = overrideCharData.xadvance * oneDivideDynamicPixelsPerUnit;
+				charGeo.xoffset = overrideCharData.xoffset * oneDivideDynamicPixelsPerUnit;
+				charGeo.yoffset = overrideCharData.yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
 			}
 			else
 			{
-				charGeo.geoWidth = charData.width;
-				charGeo.geoHeight = charData.height;
-				charGeo.xadvance = charData.xadvance;
-				charGeo.xoffset = charData.xoffset;
-				charGeo.yoffset = charData.yoffset + calculatedCharFixedOffset;
-			}
+				inFontSize = inFontSize * rootCanvasScale;
+				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+				overrideCharData = font->GetCharData(charCode, inFontSize);
 
+				charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
+				charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
+				charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+				charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
+				charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+			}
+		}
+		else
+		{
+			charGeo.geoWidth = charData.width;
+			charGeo.geoHeight = charData.height;
+			charGeo.xadvance = charData.xadvance;
+			charGeo.xoffset = charData.xoffset;
+			charGeo.yoffset = charData.yoffset + calculatedCharFixedOffset;
+		}
+		if (useKerning && prevCharCode != charCode)
+		{
+			auto kerning = font->GetKerning(prevCharCode, charCode, inFontSize);
+			charGeo.xadvance += kerning;
+			charGeo.xoffset += kerning;
+		}
+
+		if (charCode == ' ' || charCode == '\t')
+		{
+			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
+		}
+		else
+		{
 			charGeo.uv0 = overrideCharData.GetUV0();
 			charGeo.uv1 = overrideCharData.GetUV1();
 			charGeo.uv2 = overrideCharData.GetUV2();
@@ -2383,19 +2379,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 		return charGeo;
 	};
-	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize)
+	auto GetCharGeoXAdv = [&](TCHAR prevCharCode, TCHAR charCode, int overrideFontSize)
 	{
-		if (charCode == ' ')
+		auto charData = font->GetCharData(charCode, overrideFontSize);
+		if (useKerning && prevCharCode != charCode)
 		{
-			return overrideFontSize * 0.5f;
-		}
-		else if (charCode == '\t')
-		{
-			return (float)(overrideFontSize + overrideFontSize);
+			auto kerning = font->GetKerning(prevCharCode, charCode, overrideFontSize);
+			return charData.xadvance + kerning;
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, overrideFontSize);
 			return charData.xadvance;
 		}
 	};
@@ -2457,10 +2450,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		contentLength = richTextContent.Len();
 	}
 
-	bool haveClampContent = false;
+	bool hasClampContent = false;
 	int clamp_RestVerticesCount = 0;
 	float clamp_CurrentLineWidth = 0;
 	float clamp_ParagraphHeight = 0;
+	TCHAR prevCharCode = '\0';//prev char code (not space or tab)
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
 		auto charCode = content[charIndex];
@@ -2500,9 +2494,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			}
 		}
 		
-		auto charGeo = richText 
-			? GetCharGeo(charCode, richTextParseResult.size)
-			: GetCharGeo(charCode, fontSize);
+		auto charGeo = GetCharGeo(charIndex == 0 ? charCode : prevCharCode, charCode, richText ? richTextParseResult.size : fontSize);
 		//caret property
 		if (!richText)
 		{
@@ -2518,11 +2510,12 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (charCode == ' ')//char is space
 		{
-			if (overflowType == UITextOverflowType::VerticalOverflow)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
+			if (overflowType == UITextOverflowType::VerticalOverflow)//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
 			{
-				float spaceNeeded = richText ? richTextParseResult.size * 0.5f : halfFontSize;//space
+				auto prevCharCodeOfForwardChar = prevCharCode;
+				float spaceNeeded = GetCharGeoXAdv(prevCharCodeOfForwardChar, charCode, richText ? richTextParseResult.size : fontSize);
 				spaceNeeded += fontSpace.X;
-				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = visibleCharIndex + 1; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
+				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = currentVisibleCharCount; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
 				{
 					auto charCodeOfForwardChar = content[forwardCharIndex];
 					if (charCodeOfForwardChar == ' ')//space
@@ -2533,13 +2526,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						break;
 					}
-					spaceNeeded += richText
-						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size)
-						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize);
+					spaceNeeded += GetCharGeoXAdv(prevCharCodeOfForwardChar, charCodeOfForwardChar, richText ? richTextParseResult.size : fontSize);
 					spaceNeeded += fontSpace.X;
 					forwardVisibleCharIndex++;
+					prevCharCodeOfForwardChar = charCodeOfForwardChar;
 				}
-
 				if (currentLineOffset.X + spaceNeeded > width)
 				{
 					NewLine(charIndex);
@@ -2553,6 +2544,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		//char geometry
 		if (charCode != ' ' && charCode != '\t')
 		{
+			prevCharCode = charCode;
 			if (richText)
 			{
 				currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
@@ -3116,7 +3108,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				verticesCount += additionalVerticesCount;
 				indicesCount += additionalIndicesCount;
 			}
-			visibleCharIndex++;
+			currentVisibleCharCount++;
 		}
 
 		//collect rich text custom tag. custom tag use start/end mark, so put these code outside of visible-char-check.
@@ -3128,7 +3120,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				FUIText_RichTextCustomTag customTag;
 				customTag.TagName = richTextParseResult.customTag;
-				customTag.CharIndexStart = visibleCharIndex - 1;//-1 because visibleCharIndex++
+				customTag.CharIndexStart = currentVisibleCharCount - 1;//-1 as index
 				customTag.CharIndexStart = FMath::Max(0, customTag.CharIndexStart);//incase first char is invisible char, that makes index == -1
 				customTag.CharIndexEnd = -1;
 				cacheRichTextCustomTagArray.Add(customTag);
@@ -3141,7 +3133,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					});
 				if (foundIndex != -1)
 				{
-					cacheRichTextCustomTagArray[foundIndex].CharIndexEnd = visibleCharIndex - 1;//-1 because visibleCharIndex++
+					cacheRichTextCustomTagArray[foundIndex].CharIndexEnd = currentVisibleCharCount - 1;//-1 as index
 				}
 			}
 			break;
@@ -3163,9 +3155,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::VerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				int nextCharXAdv = nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize);
+				int nextCharXAdv = nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -3185,14 +3175,12 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::ClampContent:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				if (haveClampContent)continue;
+				if (hasClampContent)continue;
 
-				int nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize);
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
 				{
-					haveClampContent = true;
+					hasClampContent = true;
 					clamp_RestVerticesCount = verticesCount;
 					clamp_CurrentLineWidth = currentLineWidth;
 					clamp_ParagraphHeight = paragraphHeight;
@@ -3211,13 +3199,13 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			auto& item = cacheRichTextCustomTagArray[i];
 			if (item.CharIndexEnd == -1)
 			{
-				item.CharIndexEnd = visibleCharIndex - 1;
+				item.CharIndexEnd = currentVisibleCharCount - 1;//-1 as index
 			}
 		}
 	}
 
 	//clamp content
-	if (haveClampContent)
+	if (hasClampContent)
 	{
 		//set rest char's position to invisible
 		int allVerticesCount = originVertices.Num();

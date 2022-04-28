@@ -258,6 +258,11 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		{
 			UUIText::CurrentUsingFontData = font;
 		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, useKerning))
+		{
+			MarkVertexPositionDirty();
+			CacheTextGeometryData.MarkDirty();
+		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -347,6 +352,14 @@ void UUIText::SetFontSize(float newSize) {
 	{
 		MarkVertexPositionDirty();
 		size = newSize;
+	}
+}
+void UUIText::SetUseKerning(bool value)
+{
+	if (useKerning != value)
+	{
+		useKerning = value;
+		MarkVertexPositionDirty();
 	}
 }
 void UUIText::SetFontSpace(FVector2D newSpace) {
@@ -478,6 +491,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetOverflowType()
 		, this->GetAdjustWidth()
 		, this->GetAdjustHeight()
+		, this->GetUseKerning()
 		, this->GetFontStyle()
 		, this->GetRichText()
 		, this->GetFont()
