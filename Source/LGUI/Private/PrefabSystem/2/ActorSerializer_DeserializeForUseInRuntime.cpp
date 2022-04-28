@@ -19,8 +19,8 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
+			UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Find class: '%s' at index: %d, but is not a Actor class, use default"), *(ActorClass->GetFName().ToString()), SaveData.ActorClass);
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
@@ -48,8 +48,8 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 				{
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Find class: '%s' at index: %d, but is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()), RootCompSaveData.ComponentClass);
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
@@ -83,7 +83,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadPropertyForRuntime(Comp, CompData.PropertyData, GetComponentExcludeProperties());

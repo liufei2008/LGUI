@@ -39,8 +39,8 @@ void ActorSerializer::DeserializeActorRecursiveForDuplicate(FLGUIActorSaveData& 
 			{
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForDuplicate]Find class: '%s' at index: %d, but is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()), CompData.ComponentClass);
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForDuplicate]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				RemapActorGuidPropertyForDuplicate(CompClass, CompData.PropertyData);
 			}

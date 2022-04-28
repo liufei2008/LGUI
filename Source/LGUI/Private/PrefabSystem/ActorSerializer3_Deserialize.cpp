@@ -336,7 +336,7 @@ namespace LGUIPrefabSystem3
 					if (!ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong component class: %s"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong component class: %s"), *(ObjectClass->GetFName().ToString()));
 						continue;
 					}
 
@@ -347,7 +347,7 @@ namespace LGUIPrefabSystem3
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Owner actor when creating component: %s"), *(ObjectData.ComponentName.ToString()));
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Owner actor when creating component: %s"), *(ObjectData.ComponentName.ToString()));
 						continue;
 					}
 				}
@@ -370,7 +370,7 @@ namespace LGUIPrefabSystem3
 						|| ObjectClass->IsChildOf(UActorComponent::StaticClass())
 						)
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong object class: %s"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateObjectArray]Wrong object class: %s"), *(ObjectClass->GetFName().ToString()));
 						continue;
 					}
 
@@ -381,7 +381,7 @@ namespace LGUIPrefabSystem3
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Outer object when creating object of type: %s"), *(ObjectClass->GetFName().ToString()));
+						UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateObjectArray]Missing Outer object when creating object of type: %s"), *(ObjectClass->GetFName().ToString()));
 						continue;
 					}
 				}
@@ -514,8 +514,8 @@ namespace LGUIPrefabSystem3
 			{
 				if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 				{
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateActorRecursive]Find class: '%s' at index: %d, but is not a Actor class, use default."), *(ActorClass->GetFName().ToString()), InActorData.ActorClass);
 					ActorClass = AActor::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 				}
 
 				AActor* NewActor = nullptr;
@@ -597,7 +597,7 @@ namespace LGUIPrefabSystem3
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (InActorData.ActorClass));
+				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (InActorData.ActorClass));
 			}
 		}
 	}
