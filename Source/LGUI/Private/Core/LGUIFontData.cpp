@@ -187,6 +187,7 @@ void ULGUIFontData::InitFreeType()
 		UE_LOG(LGUI, Log, TEXT("[InitFreeType]success, font:%s"), *(this->GetName()));
 		alreadyInitialized = true;
 		usePackingTag = !packingTag.IsNone();
+		hasKerning = FT_HAS_KERNING(face) != 0;
 		if (usePackingTag)
 		{
 			if (packingAtlasData == nullptr)
@@ -240,6 +241,7 @@ void ULGUIFontData::DeinitFreeType()
 			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]success, font:%s"), *(this->GetName()));
 		}
 	}
+	library = nullptr;
 	freeRects.Empty();
 	binPack = rbp::MaxRectsBinPack(256, 256);
 }
@@ -250,6 +252,36 @@ UTexture2D* ULGUIFontData::GetFontTexture()
 void ULGUIFontData::InitFont()
 {
 	InitFreeType();
+}
+int16 ULGUIFontData::GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize)
+{
+	if (face == nullptr)return 0;
+	if (!hasKerning)return 0;
+	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	FT_Vector kerning;
+	error = FT_Get_Kerning(face, FT_Get_Char_Index(face, leftCharIndex), FT_Get_Char_Index(face, rightCharIndex), FT_KERNING_DEFAULT, &kerning);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Get_Kerning error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	return kerning.x >> 6;
+}
+uint16 ULGUIFontData::GetLineHeight(const uint16& fontSize)
+{
+	if (face == nullptr)return fontSize;
+	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetLineHeight] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return fontSize;
+	}
+	return face->size->metrics.height >> 6;
 }
 void ULGUIFontData::AddUIText(UUIText* InText)
 {
@@ -267,7 +299,7 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		InitFreeType();
 		if (alreadyInitialized == false)
 		{
-			UE_LOG(LGUI, Error, TEXT("[PushCharIntoFont]Font is not initialized"));
+			UE_LOG(LGUI, Error, TEXT("[PushCharIntoFont] Font is not initialized"));
 			cacheCharData = FLGUICharData();
 			return &cacheCharData;
 		}
@@ -276,20 +308,20 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[PushCharIntoFont] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
 	FT_GlyphSlot slot = face->glyph;
 	error = FT_Load_Glyph(face, FT_Get_Char_Index(face, charIndex), FT_LOAD_DEFAULT);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[PushCharIntoFont] FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
 	error = FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[PushCharIntoFont] FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
 
@@ -392,6 +424,7 @@ bool ULGUIFontData::PackRectAndInsertChar(FT_GlyphSlotRec_* InSlot, rbp::MaxRect
 
 		cacheCharData.width = charBitmap.width + SPACE_NEED_EXPENDx2;
 		cacheCharData.height = charBitmap.rows + SPACE_NEED_EXPENDx2;
+		//InSlot->bitmap_left equals (InSlot->metrics.horiBearingX >> 6), InSlot->bitmap_top equals (InSlot->metrics.horiBearingY >> 6)
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
 		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
 		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;

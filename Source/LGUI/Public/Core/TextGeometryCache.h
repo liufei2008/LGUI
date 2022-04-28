@@ -117,6 +117,7 @@ public:
 		UITextOverflowType InOverflowType,
 		bool InAdjustWidth,
 		bool InAdjustHeight,
+		bool InUseKerning,
 		UITextFontStyle InFontStyle,
 		bool InRichText,
 		TWeakObjectPtr<ULGUIFontData_BaseObject> InFont
@@ -136,6 +137,7 @@ private:
 	UITextOverflowType overflowType = UITextOverflowType::HorizontalOverflow;
 	bool adjustWidth = false;
 	bool adjustHeight = false;
+	bool useKerning = false;
 	UITextFontStyle fontStyle = UITextFontStyle::None;
 	bool richText = false;
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;

@@ -46,6 +46,9 @@ protected:
 		FText text = FText::FromString(TEXT("New Text"));
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "2", ClampMax = "200"))
 		float size = 16;
+	/** use font kerning for better text layout. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool useKerning = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D space = FVector2D(0, 0);
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -125,6 +128,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetFontSize instead"))
 		float GetSize()const { return size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetFontSize()const { return size; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetUseKerning()const { return useKerning; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
@@ -145,6 +149,8 @@ public:
 		void SetText(const FText& newText);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontSize(float newSize);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUseKerning(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontSpace(FVector2D newSpace);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
