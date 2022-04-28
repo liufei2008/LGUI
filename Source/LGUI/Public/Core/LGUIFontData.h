@@ -54,6 +54,9 @@ private:
 		class UFontFace* unrealFont;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int fontFace = 0;
+	/** Current using font face has kerning? */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient)
+		bool hasKerning = false;
 	//UPROPERTY(EditAnywhere, Category = "LGUI")
 	//	TScriptInterface<class UFontFaceInterface> test;
 #if WITH_EDITORONLY_DATA
@@ -102,6 +105,9 @@ public:
 	virtual float GetBoldRatio() override{ return boldRatio; }
 	virtual float GetItalicAngle()override { return italicAngle; }
 	virtual float GetFixedVerticalOffset()override { return fixedVerticalOffset - 0.25f; }//-0.25 is a common number for most fonts
+	virtual bool HasKerning()override { return hasKerning; }
+	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize)override;
+	virtual uint16 GetLineHeight(const uint16& fontSize)override;
 	virtual void InitFont()override;
 	virtual void AddUIText(UUIText* InText)override;
 	virtual void RemoveUIText(UUIText* InText)override;
