@@ -9,23 +9,37 @@ void ULGUI_TouchInputModule::ProcessInput()
 {
 	if (!CheckEventSystem())return;
 
-	for (auto keyValue : eventSystem->pointerEventDataMap)
+	auto eventData = eventSystem->GetPointerEventData(0, true);
+	switch (eventData->inputType)
 	{
-		auto touchPointerEventData = keyValue.Value;
-		if (IsValid(touchPointerEventData))
+	default:
+	case ELGUIPointerInputType::Pointer:
+	{
+		for (auto keyValue : eventSystem->pointerEventDataMap)
 		{
-			if (touchPointerEventData->nowIsTriggerPressed || touchPointerEventData->prevIsTriggerPressed)
+			auto touchPointerEventData = keyValue.Value;
+			if (IsValid(touchPointerEventData))
 			{
-				FHitResultContainerStruct hitResultContainer;
-				bool lineTraceHitSomething = LineTrace(touchPointerEventData, hitResultContainer);
-				bool resultHitSomething = false;
-				FHitResult hitResult;
-				ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+				if (touchPointerEventData->nowIsTriggerPressed || touchPointerEventData->prevIsTriggerPressed)
+				{
+					FHitResultContainerStruct hitResultContainer;
+					bool lineTraceHitSomething = LineTrace(touchPointerEventData, hitResultContainer);
+					bool resultHitSomething = false;
+					FHitResult hitResult;
+					ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
-				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
-				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+					auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+					eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+				}
 			}
 		}
+	}
+	break;
+	case ELGUIPointerInputType::Navigation:
+	{
+		ProcessInputForNavigation();
+	}
+	break;
 	}
 }
 void ULGUI_TouchInputModule::InputScroll(const FVector2D& inAxisValue)
@@ -51,6 +65,14 @@ void ULGUI_TouchInputModule::InputTouchTrigger(bool inTouchPress, int inTouchID,
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
+	if (eventData->inputType != ELGUIPointerInputType::Pointer)
+	{
+		eventData->inputType = ELGUIPointerInputType::Pointer;
+		if (inputChangeDelegate.IsBound())
+		{
+			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
+		}
+	}
 	eventData->nowIsTriggerPressed = inTouchPress;
 	eventData->pointerPosition = inTouchPointPosition;
 	if (inTouchPress)
@@ -64,5 +86,13 @@ void ULGUI_TouchInputModule::InputTouchMoved(int inTouchID, const FVector& inTou
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
+	if (eventData->inputType != ELGUIPointerInputType::Pointer)
+	{
+		eventData->inputType = ELGUIPointerInputType::Pointer;
+		if (inputChangeDelegate.IsBound())
+		{
+			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
+		}
+	}
 	eventData->pointerPosition = inTouchPointPosition;
 }

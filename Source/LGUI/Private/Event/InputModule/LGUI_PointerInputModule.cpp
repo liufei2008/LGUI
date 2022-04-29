@@ -487,7 +487,7 @@ void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection directio
 			eventData->inputType = ELGUIPointerInputType::Navigation;
 			if (inputChangeDelegate.IsBound())
 			{
-				inputChangeDelegate.Broadcast(eventData->inputType);
+				inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
 			}
 		}
 		currentNavigationDirection = direction;
@@ -508,7 +508,7 @@ void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress)
 			eventData->inputType = ELGUIPointerInputType::Navigation;
 			if (inputChangeDelegate.IsBound())
 			{
-				inputChangeDelegate.Broadcast(eventData->inputType);
+				inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
 			}
 		}
 	}
@@ -663,8 +663,8 @@ void ULGUI_PointerInputModule::UnregisterInputChangeEvent(const FDelegateHandle&
 }
 FLGUIDelegateHandleWrapper ULGUI_PointerInputModule::RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange)
 {
-	auto delegateHandle = inputChangeDelegate.AddLambda([pointerInputChange](ELGUIPointerInputType pointerInputType) {
-		if (pointerInputChange.IsBound())pointerInputChange.Execute(pointerInputType);
+	auto delegateHandle = inputChangeDelegate.AddLambda([pointerInputChange](int pointerID, ELGUIPointerInputType pointerInputType) {
+		if (pointerInputChange.IsBound())pointerInputChange.Execute(pointerID, pointerInputType);
 		});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
