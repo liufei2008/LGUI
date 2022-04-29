@@ -10,9 +10,9 @@
 
 class ULGUIBaseRaycaster;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIPointerInputChange_MulticastDelegate, ELGUIPointerInputType);
-DECLARE_DELEGATE_OneParam(FLGUIPointerInputChange_Delegate, ELGUIPointerInputType);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerInputChange_DynamicDelegate, ELGUIPointerInputType, type);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIPointerInputChange_MulticastDelegate, int, ELGUIPointerInputType);
+DECLARE_DELEGATE_TwoParams(FLGUIPointerInputChange_Delegate, int, ELGUIPointerInputType);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FLGUIPointerInputChange_DynamicDelegate, int, pointerID, ELGUIPointerInputType, type);
 
 UCLASS(Abstract)
 class LGUI_API ULGUI_PointerInputModule : public ULGUIBaseInputModule

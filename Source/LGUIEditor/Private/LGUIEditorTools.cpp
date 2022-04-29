@@ -603,7 +603,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 			}
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
-			GEditor->SelectActor(copiedActor, true, true);
+			GEditor->SelectActor(copiedActor, true, true, true);
 		}
 		else
 		{
