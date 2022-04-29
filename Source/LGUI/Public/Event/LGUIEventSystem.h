@@ -73,13 +73,13 @@ public:
 		ULGUIBaseInputModule* GetCurrentInputModule();
 
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
+		mutable TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
 	/**
 	 * Get PointerEventData by given pointerID.
 	 * @param	pointerID	0 for mouse input, touch id for touch input
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIPointerEventData* GetPointerEventData(int pointerID = 0, bool createIfNotExist = false);
+		ULGUIPointerEventData* GetPointerEventData(int pointerID = 0, bool createIfNotExist = false)const;
 protected:
 	/** call back for hit event */
 	FLGUIMulticastHitDelegate hitEvent;
@@ -158,7 +158,7 @@ public:
 /*
  * This is a preset actor that contans a LGUIEventSystem component
  */
-UCLASS(ClassGroup = LGUI, NotPlaceable)
+UCLASS(ClassGroup = LGUI)
 class LGUI_API ALGUIEventSystemActor : public AActor
 {
 	GENERATED_BODY()

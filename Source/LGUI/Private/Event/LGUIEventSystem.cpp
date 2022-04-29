@@ -165,13 +165,13 @@ void ULGUIEventSystem::ClearEvent()
 	}
 }
 
-ULGUIPointerEventData* ULGUIEventSystem::GetPointerEventData(int pointerID, bool createIfNotExist)
+ULGUIPointerEventData* ULGUIEventSystem::GetPointerEventData(int pointerID, bool createIfNotExist)const
 {
 	if (auto foundPtr = pointerEventDataMap.Find(pointerID))
 	{
 		return *foundPtr;
 	}
-	auto newEventData = NewObject<ULGUIPointerEventData>(this);
+	auto newEventData = NewObject<ULGUIPointerEventData>(const_cast<ULGUIEventSystem*>(this));
 	newEventData->pointerID = pointerID;
 	newEventData->inputType = defaultInputType;
 	pointerEventDataMap.Add(pointerID, newEventData);

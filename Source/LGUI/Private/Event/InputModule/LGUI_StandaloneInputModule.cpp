@@ -96,7 +96,7 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 		standaloneInputDataArray.Reset();//input type change, clear cached input data
 		if (inputChangeDelegate.IsBound())
 		{
-			inputChangeDelegate.Broadcast(eventData->inputType);
+			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
 		}
 	}
 
