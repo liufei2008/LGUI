@@ -283,6 +283,18 @@ uint16 ULGUIFontData::GetLineHeight(const uint16& fontSize)
 	}
 	return face->size->metrics.height >> 6;
 }
+float ULGUIFontData::GetVerticalOffset(const uint16& fontSize)
+{
+	if (face == nullptr)return fontSize;
+	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetVerticalOffset] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	return -((face->size->metrics.ascender + face->size->metrics.descender) >> 6) * 0.5f;
+}
+
 void ULGUIFontData::AddUIText(UUIText* InText)
 {
 	renderTextArray.AddUnique(InText);
@@ -426,7 +438,7 @@ bool ULGUIFontData::PackRectAndInsertChar(FT_GlyphSlotRec_* InSlot, rbp::MaxRect
 		cacheCharData.height = charBitmap.rows + SPACE_NEED_EXPENDx2;
 		//InSlot->bitmap_left equals (InSlot->metrics.horiBearingX >> 6), InSlot->bitmap_top equals (InSlot->metrics.horiBearingY >> 6)
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
-		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
+		cacheCharData.yoffset = InSlot->bitmap_top + SPACE_NEED_EXPEND;
 		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (packedRect.x - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y - SPACE_NEED_EXPEND + cacheCharData.height);
@@ -574,8 +586,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			ReloadFont();
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, fixedVerticalOffset) 
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, italicAngle) 
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, italicAngle) 
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, boldRatio)
 			)
 		{

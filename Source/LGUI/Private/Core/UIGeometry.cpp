@@ -2210,11 +2210,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		richTextParser.Prepare(fontSize, color, bold, italic, richTextParseResult);
 	}
 
-	auto GetCharFixedOffset = [font](float inFontSize)
-	{
-		return inFontSize * (font->GetFixedVerticalOffset());
-	};
-	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+	float verticalOffset = font->GetVerticalOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 
 	cacheTextPropertyArray.Reset();
 	cacheCharPropertyArray.Reset();
@@ -2309,7 +2305,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	{
 		FUITextCharGeometry charGeo;
 		auto charData = font->GetCharData(charCode, (uint16)inFontSize);
-		float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
+		float calculatedCharFixedOffset = richText ? font->GetVerticalOffset(inFontSize) : verticalOffset;
 
 		auto overrideCharData = charData;
 		if (shouldScaleFontSizeWithRootCanvas)
@@ -2399,7 +2395,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
 			charGeo.geoHeight = charData.height;
 			charGeo.xoffset = charData.xoffset;
-			charGeo.yoffset = charData.yoffset + GetCharFixedOffset(overrideFontSize);
+			charGeo.yoffset = charData.yoffset + font->GetVerticalOffset(overrideFontSize);
 
 			float uvX = (charData.uv3X - charData.uv0X) * 0.5f + charData.uv0X;
 			charGeo.uv0 = charGeo.uv1 = FVector2f(uvX, charData.uv0Y);
@@ -3155,7 +3151,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::VerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				int nextCharXAdv = nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];

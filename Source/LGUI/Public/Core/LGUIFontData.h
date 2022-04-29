@@ -65,9 +65,6 @@ private:
 	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
 #endif
 
-	/** Some font text may not renderred at vertical center, use this to offset */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float fixedVerticalOffset = 0.0f;
 	/** angle of italic style in degree */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float italicAngle = 15.0f;
@@ -104,10 +101,10 @@ public:
 	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
 	virtual float GetBoldRatio() override{ return boldRatio; }
 	virtual float GetItalicAngle()override { return italicAngle; }
-	virtual float GetFixedVerticalOffset()override { return fixedVerticalOffset - 0.25f; }//-0.25 is a common number for most fonts
 	virtual bool HasKerning()override { return hasKerning; }
 	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize)override;
 	virtual uint16 GetLineHeight(const uint16& fontSize)override;
+	virtual float GetVerticalOffset(const uint16& fontSize)override;
 	virtual void InitFont()override;
 	virtual void AddUIText(UUIText* InText)override;
 	virtual void RemoveUIText(UUIText* InText)override;
