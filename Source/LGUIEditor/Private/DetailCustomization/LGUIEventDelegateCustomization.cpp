@@ -390,31 +390,38 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 			}
 			else if (ClassValue->IsChildOf(UActorComponent::StaticClass()))
 			{
-				UActorComponent* FoundHelperComp = nullptr;
-				TArray<UActorComponent*> CompArray;
-				HelperActor->GetComponents(ClassValue, CompArray);
-				if (CompArray.Num() == 1)
+				if (HelperActor != nullptr)
 				{
-					FoundHelperComp = CompArray[0];
-				}
-				else if (CompArray.Num() > 1)
-				{
-					FName HelperComponentName = NAME_None;
-					auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
-					HelperComponentNameHandle->GetValue(HelperComponentName);
-					if (!HelperComponentName.IsNone())
+					UActorComponent* FoundHelperComp = nullptr;
+					TArray<UActorComponent*> CompArray;
+					HelperActor->GetComponents(ClassValue, CompArray);
+					if (CompArray.Num() == 1)
 					{
-						for (auto& Comp : CompArray)
+						FoundHelperComp = CompArray[0];
+					}
+					else if (CompArray.Num() > 1)
+					{
+						FName HelperComponentName = NAME_None;
+						auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
+						HelperComponentNameHandle->GetValue(HelperComponentName);
+						if (!HelperComponentName.IsNone())
 						{
-							if (Comp->GetFName() == HelperComponentName)
+							for (auto& Comp : CompArray)
 							{
-								FoundHelperComp = Comp;
-								break;
+								if (Comp->GetFName() == HelperComponentName)
+								{
+									FoundHelperComp = Comp;
+									break;
+								}
 							}
 						}
 					}
+					TargetObjectHandle->SetValue(FoundHelperComp);
 				}
-				TargetObjectHandle->SetValue(FoundHelperComp);
+				else
+				{
+					TargetObjectHandle->SetValue((UObject*)nullptr);
+				}
 			}
 		}
 		else
@@ -764,31 +771,38 @@ void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropert
 		}
 		else if (ClassValue->IsChildOf(UActorComponent::StaticClass()))
 		{
-			UActorComponent* FoundHelperComp = nullptr;
-			TArray<UActorComponent*> CompArray;
-			HelperActor->GetComponents(ClassValue, CompArray);
-			if (CompArray.Num() == 1)
+			if (HelperActor != nullptr)
 			{
-				FoundHelperComp = CompArray[0];
-			}
-			else if (CompArray.Num() > 1)
-			{
-				FName HelperComponentName = NAME_None;
-				auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
-				HelperComponentNameHandle->GetValue(HelperComponentName);
-				if (!HelperComponentName.IsNone())
+				UActorComponent* FoundHelperComp = nullptr;
+				TArray<UActorComponent*> CompArray;
+				HelperActor->GetComponents(ClassValue, CompArray);
+				if (CompArray.Num() == 1)
 				{
-					for (auto& Comp : CompArray)
+					FoundHelperComp = CompArray[0];
+				}
+				else if (CompArray.Num() > 1)
+				{
+					FName HelperComponentName = NAME_None;
+					auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
+					HelperComponentNameHandle->GetValue(HelperComponentName);
+					if (!HelperComponentName.IsNone())
 					{
-						if (Comp->GetFName() == HelperComponentName)
+						for (auto& Comp : CompArray)
 						{
-							FoundHelperComp = Comp;
-							break;
+							if (Comp->GetFName() == HelperComponentName)
+							{
+								FoundHelperComp = Comp;
+								break;
+							}
 						}
 					}
 				}
+				TargetObjectHandle->SetValue(FoundHelperComp);
 			}
-			TargetObjectHandle->SetValue(FoundHelperComp);
+			else
+			{
+				TargetObjectHandle->SetValue((UObject*)nullptr);
+			}
 		}
 	}
 	else
