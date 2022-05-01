@@ -89,7 +89,8 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	}
 
 	//draw frame
-	if (GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame)
+	auto Settings = GetDefault<ULGUIEditorSettings>();
+	if (Settings->bDrawHelperFrame)
 	{
 		for (auto& item : AllUIItemArray)
 		{
@@ -100,10 +101,27 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
 				&& item->GetWorld()->WorldType != EWorldType::Game
 				&& item->GetWorld()->WorldType != EWorldType::PIE
-				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
 				)continue;
 
 			ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
+		}
+	}
+
+	//draw navigation visualizer
+	if (Settings->bDrawSelectableNavigationVisualizer)
+	{
+		for (auto& item : AllSelectableArray)
+		{
+			if (!item.IsValid())continue;
+			if (!IsValid(item->GetWorld()))continue;
+			if (
+				item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode object, so only this Editor condition will trigger.
+																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
+				&& item->GetWorld()->WorldType != EWorldType::Game
+				&& item->GetWorld()->WorldType != EWorldType::PIE
+				)continue;
+
+			ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get());
 		}
 	}
 
@@ -561,6 +579,27 @@ void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
 	}
 }
 
+void ULGUIEditorManagerObject::AddSelectable(UUISelectableComponent* InSelectable)
+{
+	if (GetInstance(InSelectable->GetWorld(), true))
+	{
+		auto& AllSelectableArray = Instance->AllSelectableArray;
+		if (AllSelectableArray.Contains(InSelectable))return;
+		AllSelectableArray.Add(InSelectable);
+	}
+}
+void ULGUIEditorManagerObject::RemoveSelectable(UUISelectableComponent* InSelectable)
+{
+	if (GetInstance(InSelectable->GetWorld()))
+	{
+		int32 index;
+		if (Instance->AllSelectableArray.Find(InSelectable, index))
+		{
+			Instance->AllSelectableArray.RemoveAt(index);
+		}
+	}
+}
+
 void ULGUIEditorManagerObject::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
 	if (InitCheck(InItem.GetObject()->GetWorld()))
@@ -830,6 +869,181 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 		}
 	}
 }
+
+void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace)
+{
+	if (InControlPoints.Num() != 4)return;
+	TArray<FVector> ResultPoints;
+	const int segment = FMath::Min(40, FMath::CeilToInt(FVector::Distance(InControlPoints[0], InControlPoints[3]) * 0.5f));
+
+	auto CalculateCubicBezierPoint = [](float t, FVector p0, FVector p1, FVector p2, FVector p3)
+	{
+		float u = 1 - t;
+		float tt = t * t;
+		float uu = u * u;
+		float uuu = uu * u;
+		float ttt = tt * t;
+
+		FVector p = uuu * p0;
+		p += 3 * uu * t * p1;
+		p += 3 * u * tt * p2;
+		p += ttt * p3;
+
+		return p;
+	};
+
+	ResultPoints.Add(InControlPoints[0]);
+	for (int i = 1; i <= segment; i++)
+	{
+		float t = i / (float)segment;
+		auto pixel = CalculateCubicBezierPoint(t, InControlPoints[0], InControlPoints[1], InControlPoints[2], InControlPoints[3]);
+		ResultPoints.Add(pixel);
+	}
+
+	if (IsScreenSpace)
+	{
+		auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+		if (ViewExtension.IsValid())
+		{
+			TArray<FLGUIHelperLineVertex> Lines;
+			//lines
+			FVector prevPoint = ResultPoints[0];
+			for (int i = 1; i < ResultPoints.Num(); i++)
+			{
+				new(Lines) FLGUIHelperLineVertex(prevPoint, InColor);
+				new(Lines) FLGUIHelperLineVertex(ResultPoints[i], InColor);
+				prevPoint = ResultPoints[i];
+			}
+			//arrow
+			new(Lines) FLGUIHelperLineVertex(InControlPoints[3], InColor);
+			new(Lines) FLGUIHelperLineVertex(InArrowPointA, InColor);
+			new(Lines) FLGUIHelperLineVertex(InControlPoints[3], InColor);
+			new(Lines) FLGUIHelperLineVertex(InArrowPointB, InColor);
+
+			ViewExtension->AddLineRender(FHelperLineRenderParameter(Lines));
+		}
+	}
+	else
+	{
+		//lines
+		FVector prevPoint = ResultPoints[0];
+		for (int i = 1; i < ResultPoints.Num(); i++)
+		{
+			DrawDebugLine(InWorld, prevPoint, ResultPoints[i], InColor);
+			prevPoint = ResultPoints[i];
+		}
+		//arrow
+		DrawDebugLine(InWorld, InControlPoints[3], InArrowPointA, InColor);
+		DrawDebugLine(InWorld, InControlPoints[3], InArrowPointB, InColor);
+	}
+}
+
+void ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace)
+{
+	auto SourceUIItem = InSelectable->GetRootUIComponent();
+	if (!IsValid(SourceUIItem))return;
+	const FColor Drawcall = ULGUIEditorManagerObject::IsSelected(SourceUIItem->GetOwner()) ? FColor(255, 255, 0, 255) : FColor(140, 140, 0, 255);
+	const float Offset = 2;
+	const float ArrowSize = 2;
+
+	if (auto ToLeftComp = InSelectable->FindSelectableOnLeft())
+	{
+		if (ToLeftComp != InSelectable)
+		{
+			auto SourceLeftPoint = FVector(0, SourceUIItem->GetLocalSpaceLeft(), 0.5f * (SourceUIItem->GetLocalSpaceTop() + SourceUIItem->GetLocalSpaceBottom()) + Offset);
+			SourceLeftPoint = SourceUIItem->GetComponentTransform().TransformPosition(SourceLeftPoint);
+			auto DestUIItem = ToLeftComp->GetRootUIComponent();
+			auto LocalDestRightPoint = FVector(0, DestUIItem->GetLocalSpaceRight(), 0.5f * (DestUIItem->GetLocalSpaceTop() + DestUIItem->GetLocalSpaceBottom()) + Offset);
+			auto DestRightPoint = DestUIItem->GetComponentTransform().TransformPosition(LocalDestRightPoint);
+			float Distance = FVector::Distance(SourceLeftPoint, DestRightPoint);
+			Distance *= 0.2f;
+			auto ArrowPointA = DestUIItem->GetComponentTransform().TransformPosition(LocalDestRightPoint + FVector(0, ArrowSize, ArrowSize));
+			auto ArrowPointB = DestUIItem->GetComponentTransform().TransformPosition(LocalDestRightPoint + FVector(0, ArrowSize, -ArrowSize));
+			DrawNavigationArrow(InWorld
+				, {
+					SourceLeftPoint,
+					SourceLeftPoint - SourceUIItem->GetRightVector() * Distance,
+					DestRightPoint + DestUIItem->GetRightVector() * Distance,
+					DestRightPoint,
+				}
+				, ArrowPointA, ArrowPointB
+				, Drawcall, IsScreenSpace);
+		}
+	}
+	if (auto ToRightComp = InSelectable->FindSelectableOnRight())
+	{
+		if (ToRightComp != InSelectable)
+		{
+			auto SourceRightPoint = FVector(0, SourceUIItem->GetLocalSpaceRight(), 0.5f * (SourceUIItem->GetLocalSpaceTop() + SourceUIItem->GetLocalSpaceBottom()) - Offset);
+			SourceRightPoint = SourceUIItem->GetComponentTransform().TransformPosition(SourceRightPoint);
+			auto DestUIItem = ToRightComp->GetRootUIComponent();
+			auto LocalDestLeftPoint = FVector(0, DestUIItem->GetLocalSpaceLeft(), 0.5f * (DestUIItem->GetLocalSpaceTop() + DestUIItem->GetLocalSpaceBottom()) - Offset);
+			auto DestLeftPoint = DestUIItem->GetComponentTransform().TransformPosition(LocalDestLeftPoint);
+			float Distance = FVector::Distance(SourceRightPoint, DestLeftPoint);
+			Distance *= 0.2f;
+			auto ArrowPointA = DestUIItem->GetComponentTransform().TransformPosition(LocalDestLeftPoint + FVector(0, -ArrowSize, ArrowSize));
+			auto ArrowPointB = DestUIItem->GetComponentTransform().TransformPosition(LocalDestLeftPoint + FVector(0, -ArrowSize, -ArrowSize));
+			DrawNavigationArrow(InWorld
+				, {
+					SourceRightPoint,
+					SourceRightPoint + SourceUIItem->GetRightVector() * Distance,
+					DestLeftPoint - DestUIItem->GetRightVector() * Distance,
+					DestLeftPoint,
+				}
+				, ArrowPointA, ArrowPointB
+				, Drawcall, IsScreenSpace);
+		}
+	}
+	if (auto ToDownComp = InSelectable->FindSelectableOnDown())
+	{
+		if (ToDownComp != InSelectable)
+		{
+			auto SourceDownPoint = FVector(0, 0.5f * (SourceUIItem->GetLocalSpaceLeft() + SourceUIItem->GetLocalSpaceRight()) - Offset, SourceUIItem->GetLocalSpaceBottom());
+			SourceDownPoint = SourceUIItem->GetComponentTransform().TransformPosition(SourceDownPoint);
+			auto DestUIItem = ToDownComp->GetRootUIComponent();
+			auto LocalDestUpPoint = FVector(0, 0.5f * (DestUIItem->GetLocalSpaceLeft() + DestUIItem->GetLocalSpaceRight()) - Offset, DestUIItem->GetLocalSpaceTop());
+			auto DestUpPoint = DestUIItem->GetComponentTransform().TransformPosition(LocalDestUpPoint);
+			float Distance = FVector::Distance(SourceDownPoint, DestUpPoint);
+			Distance *= 0.2f;
+			auto ArrowPointA = DestUIItem->GetComponentTransform().TransformPosition(LocalDestUpPoint + FVector(0, ArrowSize, ArrowSize));
+			auto ArrowPointB = DestUIItem->GetComponentTransform().TransformPosition(LocalDestUpPoint + FVector(0, -ArrowSize, ArrowSize));
+			DrawNavigationArrow(InWorld
+				, {
+					SourceDownPoint,
+					SourceDownPoint - SourceUIItem->GetUpVector() * Distance,
+					DestUpPoint + DestUIItem->GetUpVector() * Distance,
+					DestUpPoint,
+				}
+				, ArrowPointA, ArrowPointB
+				, Drawcall, IsScreenSpace);
+		}
+	}
+	if (auto ToUpComp = InSelectable->FindSelectableOnUp())
+	{
+		if (ToUpComp != InSelectable)
+		{
+			auto SourceUpPoint = FVector(0, 0.5f * (SourceUIItem->GetLocalSpaceLeft() + SourceUIItem->GetLocalSpaceRight()) + Offset, SourceUIItem->GetLocalSpaceTop());
+			SourceUpPoint = SourceUIItem->GetComponentTransform().TransformPosition(SourceUpPoint);
+			auto DestUIItem = ToUpComp->GetRootUIComponent();
+			auto LocalDestDownPoint = FVector(0, 0.5f * (DestUIItem->GetLocalSpaceLeft() + DestUIItem->GetLocalSpaceRight()) + Offset, DestUIItem->GetLocalSpaceBottom());
+			auto DestDownPoint = DestUIItem->GetComponentTransform().TransformPosition(LocalDestDownPoint);
+			float Distance = FVector::Distance(SourceUpPoint, DestDownPoint);
+			Distance *= 0.2f;
+			auto ArrowPointA = DestUIItem->GetComponentTransform().TransformPosition(LocalDestDownPoint + FVector(0, ArrowSize, -ArrowSize));
+			auto ArrowPointB = DestUIItem->GetComponentTransform().TransformPosition(LocalDestDownPoint + FVector(0, -ArrowSize, -ArrowSize));
+			DrawNavigationArrow(InWorld
+				, {
+					SourceUpPoint,
+					SourceUpPoint + SourceUIItem->GetUpVector() * Distance,
+					DestDownPoint - DestUIItem->GetUpVector() * Distance,
+					DestDownPoint,
+				}
+				, ArrowPointA, ArrowPointB
+				, Drawcall, IsScreenSpace);
+		}
+	}
+}
+
 void ALGUIManagerActor::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
 {
 	auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
@@ -1051,7 +1265,8 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 #if WITH_EDITOR
 	if (this->GetWorld())
 	{
-		if (GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame)
+		auto Settings = GetDefault<ULGUIEditorSettings>();
+		if (Settings->bDrawHelperFrame)
 		{
 			if (this->GetWorld()->WorldType == EWorldType::Game
 				|| this->GetWorld()->WorldType == EWorldType::PIE
@@ -1064,6 +1279,18 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 					ALGUIManagerActor::DrawFrameOnUIItem(item.Get(), item->IsScreenSpaceOverlayUI());
 				}
+			}
+		}
+
+		if (Settings->bDrawSelectableNavigationVisualizer)
+		{
+			for (auto& item : AllSelectableArray)
+			{
+				if (!item.IsValid())continue;
+				if (!IsValid(item->GetWorld()))continue;
+				if (!IsValid(item->GetRootUIComponent()))continue;
+
+				ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), item->GetRootUIComponent()->IsScreenSpaceOverlayUI());
 			}
 		}
 	}
