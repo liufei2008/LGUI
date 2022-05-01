@@ -416,17 +416,26 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							}
 						}
 					}
-					TargetObjectHandle->SetValue(FoundHelperComp);
+					if (FoundHelperComp != TargetObject)
+					{
+						TargetObjectHandle->SetValue(FoundHelperComp);
+					}
 				}
 				else
 				{
-					TargetObjectHandle->SetValue((UObject*)nullptr);
+					if (TargetObject != nullptr)
+					{
+						TargetObjectHandle->SetValue((UObject*)nullptr);
+					}
 				}
 			}
 		}
 		else
 		{
-			TargetObjectHandle->SetValue((UObject*)nullptr);
+			if (TargetObject != nullptr)
+			{
+				TargetObjectHandle->SetValue((UObject*)nullptr);
+			}
 		}
 
 		HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnActorParameterChange, ItemHandle));
@@ -758,6 +767,8 @@ void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropert
 	AActor* HelperActor = Cast<AActor>(HelperActorObject);
 
 	auto TargetObjectHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
+	UObject* TargetObject = nullptr;
+	TargetObjectHandle->GetValue(TargetObject);
 
 	UObject* ClassObject = nullptr;
 	auto HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperClass));
@@ -797,17 +808,26 @@ void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropert
 						}
 					}
 				}
-				TargetObjectHandle->SetValue(FoundHelperComp);
+				if (FoundHelperComp != TargetObject)
+				{
+					TargetObjectHandle->SetValue(FoundHelperComp);
+				}
 			}
 			else
 			{
-				TargetObjectHandle->SetValue((UObject*)nullptr);
+				if (TargetObject != nullptr)
+				{
+					TargetObjectHandle->SetValue((UObject*)nullptr);
+				}
 			}
 		}
 	}
 	else
 	{
-		TargetObjectHandle->SetValue((UObject*)nullptr);
+		if (TargetObject != nullptr)
+		{
+			TargetObjectHandle->SetValue((UObject*)nullptr);
+		}
 	}
 
 	PropertyUtilites->ForceRefresh();
