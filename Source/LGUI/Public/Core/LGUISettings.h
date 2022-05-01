@@ -129,6 +129,11 @@ public:
 	 */
 	UPROPERTY(config)
 		bool bDrawHelperFrame = true;
+	/**
+	 * Draw navigation visulaizer
+	 */
+	UPROPERTY(Transient)
+		bool bDrawSelectableNavigationVisualizer = false;
 
 	UPROPERTY(config)
 		bool ShowLGUIColumnInSceneOutliner = true;
