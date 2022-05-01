@@ -11,6 +11,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "Core/LGUISettings.h"
 
 #define LOCTEXT_NAMESPACE "UISelectableCustomization"
 
@@ -161,6 +162,8 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, DisabledSprite));
 	}
 
+	IDetailCategoryBuilder& NavigationCategory = DetailBuilder.EditCategory("LGUI-Selectable-Navigation");
+
 	auto navigationLeftHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationLeft));
 	auto navigationRightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationRight));
 	auto navigationUpHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationUp));
@@ -181,12 +184,43 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	navigationDownHandle->GetValue(tempEnumValue);
 	navigationDownHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
 	auto navigationDownValue = (EUISelectableNavigationMode)tempEnumValue;
+
+	NavigationCategory.AddProperty(navigationLeftHandle);
+	NavigationCategory.AddProperty(navigationRightHandle);
+	NavigationCategory.AddProperty(navigationUpHandle);
+	NavigationCategory.AddProperty(navigationDownHandle);
+
 	navigationNextHandle->GetValue(tempEnumValue);
 	navigationNextHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
 	auto navigationNextValue = (EUISelectableNavigationMode)tempEnumValue;
 	navigationPrevHandle->GetValue(tempEnumValue);
 	navigationPrevHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
 	auto navigationPrevValue = (EUISelectableNavigationMode)tempEnumValue;
+	NavigationCategory.AddProperty(navigationPrevHandle);
+	NavigationCategory.AddProperty(navigationNextHandle);
+	NavigationCategory.AddCustomRow(LOCTEXT("VisualizeNavigation", "VisualizeNavigation"))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("Visualize", "Visualize"))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		.ValueContent()
+		[
+			SNew(SCheckBox)
+			.IsChecked_Lambda([]() {
+				return GetDefault<ULGUIEditorSettings>()->bDrawSelectableNavigationVisualizer ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+				})
+			.OnCheckStateChanged_Lambda([=](ECheckBoxState State)
+			{
+				GEditor->BeginTransaction(LOCTEXT("ToggleNavigationVisualizer", "Toggle Navigation Visualizer"));
+				auto LGUIEditorSetting = GetMutableDefault<ULGUIEditorSettings>();
+				LGUIEditorSetting->Modify();
+				LGUIEditorSetting->bDrawSelectableNavigationVisualizer = State == ECheckBoxState::Checked;
+				GEditor->EndTransaction();
+			})
+		]
+	;
 	
 	if (navigationLeftValue != EUISelectableNavigationMode::Explicit)
 	{

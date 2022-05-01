@@ -58,6 +58,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<UUISelectableComponent>> AllSelectableArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
 
 	bool bShouldSortLGUIRenderer = true;
@@ -89,6 +91,10 @@ public:
 
 	static void AddRootUIItem(UUIItem* InItem);
 	static void RemoveRootUIItem(UUIItem* InItem);
+
+	const TArray<TWeakObjectPtr<UUISelectableComponent>>& GetAllSelectableArray() { return AllSelectableArray; }
+	static void AddSelectable(UUISelectableComponent* InSelectable);
+	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
@@ -260,6 +266,8 @@ public:
 #if WITH_EDITOR
 	static bool GetIsPlaying(UWorld* InWorld);
 	static void DrawFrameOnUIItem(UUIItem* InItem, bool IsScreenSpace = false);
+	static void DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace = false);
+	static void DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace = false);
 private:
 	static void DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 #endif

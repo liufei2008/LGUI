@@ -43,6 +43,27 @@ void UUISelectableComponent::OnDestroy()
 	Super::OnDestroy();
 }
 
+void UUISelectableComponent::OnRegister()
+{
+	Super::OnRegister();
+#if WITH_EDITOR
+	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::AddSelectable(this);
+	}
+#endif
+}
+void UUISelectableComponent::OnUnregister()
+{
+	Super::OnUnregister();
+#if WITH_EDITOR
+	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::RemoveSelectable(this);
+	}
+#endif
+}
+
 #if WITH_EDITOR
 void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -488,46 +509,89 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+#if WITH_EDITOR
+	TArray<TWeakObjectPtr<UUISelectableComponent>> SelectableArray;
+	if (!this->GetWorld()->IsGameWorld())
 	{
-		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
-		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-		pos = GetRootUIComponent()->GetComponentTransform().TransformPosition(pos);
-		float maxScore = MIN_flt;
-		UUISelectableComponent* bestPick = this;
-		for (int i = 0; i < SelectableArray.Num(); ++i)
+		if (ULGUIEditorManagerObject::Instance != nullptr)
 		{
-			auto sel = SelectableArray[i];
-
-			if (sel == this || !sel.IsValid())
-				continue;
-
-			if (IsValid(InParent) && !sel->GetRootUIComponent()->IsAttachedTo(InParent))
-				continue;
-
-			if (!sel->IsInteractable())
-				continue;
-
-			if(!sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
-				continue;
-
-			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootUIComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-			FVector myVector = sel->GetRootUIComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
-
-			float dot = FVector::DotProduct(InDirection, myVector);
-			if (dot <= 0.1f)
-				continue;
-
-			float score = dot / myVector.SizeSquared();
-			if (score > maxScore)
-			{
-				maxScore = score;
-				bestPick = sel.Get();
-			}
+			SelectableArray = ULGUIEditorManagerObject::Instance->GetAllSelectableArray();
 		}
-		return bestPick;
+		else
+		{
+			return nullptr;
+		}
 	}
-	return nullptr;
+	else
+	{
+		if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+		{
+			SelectableArray = LGUIManagerActor->GetAllSelectableArray();
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+#else
+	auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld());
+	if (LGUIManagerActor == nullptr)return nullptr;
+	const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
+#endif
+
+	auto GetPointOnRectEdge = [](UUIItem* rect, FVector2D dir)
+	{
+		if (dir != FVector2D::ZeroVector)
+			dir /= FMath::Max(FMath::Abs(dir.X), FMath::Abs(dir.Y));
+		auto center = rect->GetLocalSpaceCenter();
+		dir = center + FVector2D(rect->GetWidth() * dir.X * 0.5f, rect->GetHeight() * dir.Y * 0.5f);
+		return FVector(0, dir.X, dir.Y);
+	};
+
+	auto LocalPos = FVector::ZeroVector;
+	if (CheckRootUIComponent())
+	{
+		auto localDir = RootUIComp->GetComponentTransform().InverseTransformVectorNoScale(InDirection);
+		LocalPos = GetPointOnRectEdge(RootUIComp.Get(), FVector2D(localDir.Y, localDir.Z));
+	}
+	auto pos = RootUIComp->GetComponentTransform().TransformPosition(LocalPos);
+	float maxScore = -MAX_flt;
+	UUISelectableComponent* bestPick = this;
+	for (int i = 0; i < SelectableArray.Num(); ++i)
+	{
+		auto sel = SelectableArray[i];
+
+		if (sel == this || !sel.IsValid())
+			continue;
+
+		if (!sel->CheckRootUIComponent())
+			continue;
+
+		if (IsValid(InParent) && !sel->GetRootUIComponent()->IsAttachedTo(InParent))
+			continue;
+
+		if (!sel->IsInteractable())
+			continue;
+
+		if (!sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
+			continue;
+
+		auto LocalCenter = sel->GetRootUIComponent()->GetLocalSpaceCenter();
+		FVector selCenter = FVector(0, LocalCenter.X, LocalCenter.Y);
+		FVector myVector = sel->GetRootUIComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+
+		float dot = FVector::DotProduct(InDirection, myVector);
+		if (dot <= 0.0f)
+			continue;
+
+		float score = dot / myVector.SizeSquared();
+		if (score > maxScore)
+		{
+			maxScore = score;
+			bestPick = sel.Get();
+		}
+	}
+	return bestPick;
 }
 UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* WorldContextObject)
 {

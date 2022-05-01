@@ -65,6 +65,9 @@ protected:
 	virtual void OnDisable()override;
 	virtual void OnDestroy()override;
 
+	virtual void OnRegister()override;
+	virtual void OnUnregister()override;
+
 	friend class FUISelectableCustomization;
 	/** If not assigned, then use self. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
