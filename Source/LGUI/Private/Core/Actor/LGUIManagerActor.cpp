@@ -114,6 +114,8 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		{
 			if (!item.IsValid())continue;
 			if (!IsValid(item->GetWorld()))continue;
+			if (!IsValid(item->GetRootUIComponent()))continue;
+			if (!item->GetRootUIComponent()->GetIsUIActiveInHierarchy())continue;
 			if (
 				item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode object, so only this Editor condition will trigger.
 																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
@@ -1289,6 +1291,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				if (!item.IsValid())continue;
 				if (!IsValid(item->GetWorld()))continue;
 				if (!IsValid(item->GetRootUIComponent()))continue;
+				if (!item->GetRootUIComponent()->GetIsUIActiveInHierarchy())continue;
 
 				ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), item->GetRootUIComponent()->IsScreenSpaceOverlayUI());
 			}
