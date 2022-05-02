@@ -74,12 +74,12 @@ private:
 	}
 	TSharedRef<SWidget> MakeComponentSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
 	TSharedRef<SWidget> MakeFunctionSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnActorParameterChange(TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnSelectComponent(UActorComponent* Comp, int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnSelectActorSelf(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnSelectFunction(FName FuncName, int32 itemIndex, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> PropertyHandle);
-	bool IsComponentSelectorMenuEnabled(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)const;
-	bool IsFunctionSelectorMenuEnabled(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)const;
+	void OnActorParameterChange(TSharedRef<IPropertyHandle> ItemPropertyHandle);
+	void OnSelectComponent(UActorComponent* Comp, TSharedRef<IPropertyHandle> ItemPropertyHandle);
+	void OnSelectActorSelf(TSharedRef<IPropertyHandle> ItemPropertyHandle);
+	void OnSelectFunction(FName FuncName, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> ItemPropertyHandle);
+	bool IsComponentSelectorMenuEnabled(TSharedRef<IPropertyHandle> ItemPropertyHandle)const;
+	bool IsFunctionSelectorMenuEnabled(TSharedRef<IPropertyHandle> ItemPropertyHandle)const;
 	void OnClickListAdd(TSharedRef<IPropertyHandle> PropertyHandle);
 	void OnClickListEmpty(TSharedRef<IPropertyHandle> PropertyHandle);
 	FReply OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count, TSharedRef<IPropertyHandle> PropertyHandle);
