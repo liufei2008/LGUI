@@ -910,15 +910,15 @@ void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVecto
 			FVector prevPoint = ResultPoints[0];
 			for (int i = 1; i < ResultPoints.Num(); i++)
 			{
-				new(Lines) FLGUIHelperLineVertex(prevPoint, InColor);
-				new(Lines) FLGUIHelperLineVertex(ResultPoints[i], InColor);
+				new(Lines) FLGUIHelperLineVertex((FVector3f)prevPoint, InColor);
+				new(Lines) FLGUIHelperLineVertex((FVector3f)ResultPoints[i], InColor);
 				prevPoint = ResultPoints[i];
 			}
 			//arrow
-			new(Lines) FLGUIHelperLineVertex(InControlPoints[3], InColor);
-			new(Lines) FLGUIHelperLineVertex(InArrowPointA, InColor);
-			new(Lines) FLGUIHelperLineVertex(InControlPoints[3], InColor);
-			new(Lines) FLGUIHelperLineVertex(InArrowPointB, InColor);
+			new(Lines) FLGUIHelperLineVertex((FVector3f)InControlPoints[3], InColor);
+			new(Lines) FLGUIHelperLineVertex((FVector3f)InArrowPointA, InColor);
+			new(Lines) FLGUIHelperLineVertex((FVector3f)InControlPoints[3], InColor);
+			new(Lines) FLGUIHelperLineVertex((FVector3f)InArrowPointB, InColor);
 
 			ViewExtension->AddLineRender(FHelperLineRenderParameter(Lines));
 		}
