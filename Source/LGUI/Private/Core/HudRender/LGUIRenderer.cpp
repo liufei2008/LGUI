@@ -304,11 +304,13 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	uint8 NumSamples = 1;
 	auto ViewRect = RenderView->UnscaledViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
+	FVector4f DepthTextureScaleOffset;
+	FVector4f ViewTextureScaleOffset;
 	if (bIsRenderToRenderTarget)
 	{
-		if (CustomRenderTarget.IsValid())
+		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
 			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 			//clear render target
 #if WITH_EDITOR
@@ -327,14 +329,21 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					}
 				);
 			}
+			RenderTargetResource = nullptr;
 
 			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
 		}
+		else
+		{
+			return;
+		}
+
+		ViewTextureScaleOffset = DepthTextureScaleOffset = FVector4f(1, 1, 0, 0);
 	}
 	else
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView->Family->RenderTarget->GetRenderTargetTexture();
-		NumSamples = RenderView->Family->RenderTarget->GetRenderTargetTexture()->GetNumSamples();
+		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 
 		if (bNeedOriginScreenColorTextureOnPostProcess)
 		{
@@ -346,52 +355,51 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			OriginScreenColorTexture = OriginScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
 			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
 		}
-	}
-	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 
-	//auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
-	const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
-	FVector4f DepthTextureScaleOffset;
-	FVector4f ViewTextureScaleOffset;
-	switch (RenderView->StereoPass)
-	{
-	case EStereoscopicPass::eSSP_FULL:
-	{
-		DepthTextureScaleOffset = FVector4f(
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
-			0, 0
-		);
-		ViewTextureScaleOffset = FVector4f(1, 1, 0, 0);
+		const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
+		switch (RenderView->StereoPass)
+		{
+		case EStereoscopicPass::eSSP_FULL:
+		{
+			DepthTextureScaleOffset = FVector4f(
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
+				0, 0
+			);
+			ViewTextureScaleOffset = FVector4f(1, 1, 0, 0);
+		}
+		break;
+		case EStereoscopicPass::eSSP_PRIMARY:
+		{
+			DepthTextureScaleOffset = FVector4f(
+				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0.5f, 1.0f,
+				0, 0
+			);
+			ViewTextureScaleOffset = DepthTextureScaleOffset;
+		}
+		break;
+		case EStereoscopicPass::eSSP_SECONDARY:
+		{
+			DepthTextureScaleOffset = FVector4f(
+				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0.5f, 1.0f,
+				0.5f, 0
+			);
+			ViewTextureScaleOffset = DepthTextureScaleOffset;
+		}
+		break;
+		}
 	}
-	break;
-	case EStereoscopicPass::eSSP_PRIMARY:
-	{
-		DepthTextureScaleOffset = FVector4f(
-			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-			0.5f, 1.0f,
-			0, 0
-		);
-		ViewTextureScaleOffset = DepthTextureScaleOffset;
-	}
-	break;
-	case EStereoscopicPass::eSSP_SECONDARY:
-	{
-		DepthTextureScaleOffset = FVector4f(
-			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-			0.5f, 1.0f,
-			0.5f, 0
-		);
-		ViewTextureScaleOffset = DepthTextureScaleOffset;
-	}
-	break;
-	}
+
+	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
+		const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 		auto ViewLocation = RenderView->ViewLocation;
 		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView->ViewRotation) * FMatrix(
 			FPlane(0, 0, 1, 0),
@@ -881,10 +889,29 @@ void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
 	ScreenSpaceRenderParameter.RenderCanvas = nullptr;
 }
 
-void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue, UTextureRenderTarget2D* InRenderTarget)
+void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue)
 {
-	bIsRenderToRenderTarget = InValue;
-	CustomRenderTarget = InRenderTarget;
+	auto ViewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SetRenderToRenderTarget)(
+		[ViewExtension, InValue](FRHICommandListImmediate& RHICmdList)
+		{
+			ViewExtension->bIsRenderToRenderTarget = InValue;
+		}
+	);
+}
+void FLGUIHudRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget)
+{
+	auto Resource = InRenderTarget->GameThread_GetRenderTargetResource();
+	if (Resource)
+	{
+		auto ViewExtension = this;
+		ENQUEUE_RENDER_COMMAND(FLGUIRender_UpdateRenderTargetRenderer)(
+			[ViewExtension, Resource](FRHICommandListImmediate& RHICmdList)
+			{
+				ViewExtension->RenderTargetResource = Resource;
+			}
+		);
+	}
 }
 
 void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
@@ -916,11 +943,11 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 void FLGUIHudRenderer::AddLineRender(const FHelperLineRenderParameter& InLineParameter)
 {
 	FHelperLineRenderParameter* Buffer = new FHelperLineRenderParameter(InLineParameter);
-	auto viewExtension = this;
+	auto ViewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddLineRender)(
-		[viewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
+		[ViewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->HelperLineRenderParameterArray.Add(*Buffer);
+			ViewExtension->HelperLineRenderParameterArray.Add(*Buffer);
 			delete Buffer;
 		}
 	);

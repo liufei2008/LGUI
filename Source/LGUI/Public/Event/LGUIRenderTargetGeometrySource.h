@@ -18,7 +18,7 @@ enum class ELGUIRenderTargetGeometryMode : uint8
 
 	/**
 	 * RenderTarget mapped onto a static mesh. This component must attach to target StaticMeshComponent so we can find and use it.
-	 * And in order to interact by LGUIRenderTargetRaycaster, the 'Support UV From Hit Results' must be enabled in project settings.
+	 * And in order to interact by LGUIRenderTargetInteraction, the 'Support UV From Hit Results' must be enabled in project settings.
 	 */
 	StaticMesh = 100,
 };

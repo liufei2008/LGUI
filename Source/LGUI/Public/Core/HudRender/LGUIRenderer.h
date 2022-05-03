@@ -78,7 +78,8 @@ public:
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRenderCanvas();
 
-	void SetRenderToRenderTarget(bool InValue, UTextureRenderTarget2D* InRenderTarget);
+	void SetRenderToRenderTarget(bool InValue);
+	void UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget);
 
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
@@ -128,12 +129,12 @@ private:
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
+	FTextureRenderTargetResource* RenderTargetResource = nullptr;
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
-	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	bool bIsRenderToRenderTarget = false;
 
 	void RenderLGUI_RenderThread(

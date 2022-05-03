@@ -52,6 +52,7 @@ ULGUICanvas::ULGUICanvas()
 	bCanTickUpdate = true;
 	bShouldRebuildDrawcall = true;
 	bShouldSortRenderableOrder = true;
+	bAnythingChangedForRenderTarget = true;
 
 	bIsViewProjectionMatrixDirty = true;
 
@@ -102,6 +103,7 @@ void ULGUICanvas::UpdateRootCanvas()
 {
 	if (ensure(this == RootCanvas))
 	{
+		bool bIsRenderTargetRenderer = false;
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
 			switch (GetActualRenderMode())
@@ -138,10 +140,11 @@ void ULGUICanvas::UpdateRootCanvas()
 					{
 						GetRenderTargetViewExtension();
 						RenderTargetViewExtension->SetScreenSpaceRenderCanvas(this);
-						RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
+						RenderTargetViewExtension->SetRenderToRenderTarget(true);
 						bHasAddToLGUIScreenSpaceRenderer = true;
 					}
 				}
+				bIsRenderTargetRenderer = true;
 			}
 			break;
 			}
@@ -161,6 +164,17 @@ void ULGUICanvas::UpdateRootCanvas()
 
 				UpdateCanvasDrawcallRecursive();
 				MarkFinishRenderFrameRecursive();
+			}
+		}
+
+		if (bIsRenderTargetRenderer
+			&& bAnythingChangedForRenderTarget
+			)
+		{
+			bAnythingChangedForRenderTarget = false;
+			if (RenderTargetViewExtension.IsValid() && IsValid(renderTarget))
+			{
+				RenderTargetViewExtension->UpdateRenderTargetRenderer(renderTarget);
 			}
 		}
 	}
@@ -321,7 +335,7 @@ void ULGUICanvas::RemoveFromViewExtension()
 
 	if (RenderTargetViewExtension.IsValid())
 	{
-		RenderTargetViewExtension->SetRenderToRenderTarget(false, nullptr);
+		RenderTargetViewExtension->SetRenderToRenderTarget(false);
 	}
 }
 
@@ -1250,6 +1264,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	if (bCanTickUpdate)
 	{
 		bCanTickUpdate = false;
+		RootCanvas->bAnythingChangedForRenderTarget = true;
 
 		UpdateGeometry_Implement();
 
@@ -2761,7 +2776,7 @@ void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 		{
 			if (RenderTargetViewExtension.IsValid())
 			{
-				RenderTargetViewExtension->SetRenderToRenderTarget(true, renderTarget);
+				RenderTargetViewExtension->SetRenderToRenderTarget(true);
 			}
 		}
 	}
