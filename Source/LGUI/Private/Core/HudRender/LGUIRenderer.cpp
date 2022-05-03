@@ -286,11 +286,13 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	uint8 NumSamples = 1;
 	auto ViewRect = RenderView.UnscaledViewRect;
+	FVector4 DepthTextureScaleOffset;
+	FVector4 ViewTextureScaleOffset;
 	if (bIsRenderToRenderTarget)
 	{
-		if (CustomRenderTarget.IsValid())
+		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
 			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 			//clear render target
 #if WITH_EDITOR
@@ -303,9 +305,16 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				DrawClearQuad(RHICmdList, FLinearColor(0, 0, 0, 0));
 				RHICmdList.EndRenderPass();
 			}
+			RenderTargetResource = nullptr;
 
 			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
 		}
+		else
+		{
+			return;
+		}
+
+		ViewTextureScaleOffset = DepthTextureScaleOffset = FVector4(1, 1, 0, 0);
 	}
 	else
 	{
@@ -322,54 +331,53 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			OriginScreenColorTexture = OriginScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
 			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
 		}
+
+		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
+		switch (RenderView.StereoPass)
+		{
+		case EStereoscopicPass::eSSP_FULL:
+		{
+			DepthTextureScaleOffset = FVector4(
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0, 0
+			);
+			ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
+		}
+		break;
+		case EStereoscopicPass::eSSP_LEFT_EYE:
+		{
+			DepthTextureScaleOffset = FVector4(
+				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0.5f, 1.0f,
+				0, 0
+			);
+			ViewTextureScaleOffset = DepthTextureScaleOffset;
+		}
+		break;
+		case EStereoscopicPass::eSSP_RIGHT_EYE:
+		{
+			DepthTextureScaleOffset = FVector4(
+				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0.5f, 1.0f,
+				0.5f, 0
+			);
+			ViewTextureScaleOffset = DepthTextureScaleOffset;
+		}
+		break;
+		}
 	}
 
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_Store);
-	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-	FVector4 DepthTextureScaleOffset;
-	FVector4 ViewTextureScaleOffset;
-	switch (RenderView.StereoPass)
-	{
-	case EStereoscopicPass::eSSP_FULL:
-	{
-		DepthTextureScaleOffset = FVector4(
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-			0, 0
-		);
-		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
-	}
-	break;
-	case EStereoscopicPass::eSSP_LEFT_EYE:
-	{
-		DepthTextureScaleOffset = FVector4(
-			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-			0.5f, 1.0f,
-			0, 0
-		);
-		ViewTextureScaleOffset = DepthTextureScaleOffset;
-	}
-	break;
-	case EStereoscopicPass::eSSP_RIGHT_EYE:
-	{
-		DepthTextureScaleOffset = FVector4(
-			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-			0.5f, 1.0f,
-			0.5f, 0
-		);
-		ViewTextureScaleOffset = DepthTextureScaleOffset;
-	}
-	break;
-	}
-
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 	RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
+		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		auto ViewLocation = RenderView.ViewLocation;
 		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView.ViewRotation) * FMatrix(
 			FPlane(0, 0, 1, 0),
@@ -759,10 +767,29 @@ void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
 	ScreenSpaceRenderParameter.RenderCanvas = nullptr;
 }
 
-void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue, UTextureRenderTarget2D* InRenderTarget)
+void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue)
 {
-	bIsRenderToRenderTarget = InValue;
-	CustomRenderTarget = InRenderTarget;
+	auto ViewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SetRenderToRenderTarget)(
+		[ViewExtension, InValue](FRHICommandListImmediate& RHICmdList)
+		{
+			ViewExtension->bIsRenderToRenderTarget = InValue;
+		}
+	);
+}
+void FLGUIHudRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget)
+{
+	auto Resource = InRenderTarget->GameThread_GetRenderTargetResource();
+	if (Resource)
+	{
+		auto ViewExtension = this;
+		ENQUEUE_RENDER_COMMAND(FLGUIRender_UpdateRenderTargetRenderer)(
+			[ViewExtension, Resource](FRHICommandListImmediate& RHICmdList)
+			{
+				ViewExtension->RenderTargetResource = Resource;
+			}
+		);
+	}
 }
 
 void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
@@ -794,11 +821,11 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 void FLGUIHudRenderer::AddLineRender(const FHelperLineRenderParameter& InLineParameter)
 {
 	FHelperLineRenderParameter* Buffer = new FHelperLineRenderParameter(InLineParameter);
-	auto viewExtension = this;
+	auto ViewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddLineRender)(
-		[viewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
+		[ViewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->HelperLineRenderParameterArray.Add(*Buffer);
+			ViewExtension->HelperLineRenderParameterArray.Add(*Buffer);
 			delete Buffer;
 		}
 	);
