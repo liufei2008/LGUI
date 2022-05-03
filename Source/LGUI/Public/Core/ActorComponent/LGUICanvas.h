@@ -471,6 +471,7 @@ private:
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
+	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
 
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 
