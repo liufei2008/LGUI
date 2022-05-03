@@ -624,6 +624,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 
 void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 {
+	if (!bCanNotifyAttachment)return;
 	if (this->IsInsidePrefabEditor())return;
 
 	auto ActorBelongsToPrefab = false;
