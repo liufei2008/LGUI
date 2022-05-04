@@ -424,7 +424,7 @@ void ULGUILifeCycleBehaviour::Call_OnDisable()
 
 USceneComponent* ULGUILifeCycleBehaviour::GetRootSceneComponent()const
 {
-	if (RootComp == nullptr)
+	if (!RootComp.IsValid())
 	{
 		if (auto Owner = GetOwner())
 		{
