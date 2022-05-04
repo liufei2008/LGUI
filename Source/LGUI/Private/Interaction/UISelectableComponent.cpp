@@ -489,8 +489,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		{
 			return nullptr;//not active render
 		}
-		bool isScreenSpaceUI = RootUIComp->IsScreenSpaceOverlayUI();
-		if (isScreenSpaceUI)
+		if (RootUIComp->IsScreenSpaceOverlayUI() || RootUIComp->IsRenderTargetUI())
 		{
 			auto rootCanvasUIItem = RootUIComp->GetRootCanvas()->GetUIItem();
 			return FindSelectable(InDirection, rootCanvasUIItem);
@@ -554,7 +553,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		auto localDir = RootUIComp->GetComponentTransform().InverseTransformVectorNoScale(InDirection);
 		LocalPos = GetPointOnRectEdge(RootUIComp.Get(), FVector2D(localDir.Y, localDir.Z));
 	}
-	auto pos = RootUIComp->GetComponentTransform().TransformPosition(LocalPos);
+	auto pos = GetRootSceneComponent()->GetComponentTransform().TransformPosition(LocalPos);
 	float maxScore = -MAX_flt;
 	UUISelectableComponent* bestPick = this;
 	for (int i = 0; i < SelectableArray.Num(); ++i)
