@@ -101,6 +101,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
 				&& item->GetWorld()->WorldType != EWorldType::Game
 				&& item->GetWorld()->WorldType != EWorldType::PIE
+				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
 				)continue;
 
 			ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
@@ -121,6 +122,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
 				&& item->GetWorld()->WorldType != EWorldType::Game
 				&& item->GetWorld()->WorldType != EWorldType::PIE
+				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
 				)continue;
 
 			ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get());
