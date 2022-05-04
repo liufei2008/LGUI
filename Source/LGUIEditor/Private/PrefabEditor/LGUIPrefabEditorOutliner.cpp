@@ -23,26 +23,7 @@ FLGUIPrefabEditorOutliner::~FLGUIPrefabEditorOutliner()
 {
 	USelection::SelectionChangedEvent.RemoveAll(this);
 }
-#include "ActorMode.h"
-#include "SceneOutlinerPublicTypes.h"
-class FLGUIPrefabEditorOutlinerMode : public FActorMode
-{
-public:
-	FLGUIPrefabEditorOutlinerMode(SSceneOutliner* InSceneOutliner, FLGUIPrefabEditorOutliner* InPrefabEditorOutlinerPtr, TWeakObjectPtr<UWorld> InSpecifiedWorldToDisplay)
-		: FActorMode(FActorModeParams(InSceneOutliner, InSpecifiedWorldToDisplay, true, true))
-		, PrefabEditorOutlinerPtr(InPrefabEditorOutlinerPtr)
-	{}
 
-	virtual bool CanRenameItem(const ISceneOutlinerTreeItem& Item) const override { return true; }
-	virtual ESelectionMode::Type GetSelectionMode() const override { return ESelectionMode::Multi; }
-
-	virtual void OnItemSelectionChanged(FSceneOutlinerTreeItemPtr Item, ESelectInfo::Type SelectionType, const FSceneOutlinerItemSelection& Selection) override
-	{
-		PrefabEditorOutlinerPtr->OnSceneOutlinerSelectionChanged(Item, SelectionType);
-	}
-private:
-	FLGUIPrefabEditorOutliner* PrefabEditorOutlinerPtr;
-};
 void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr)
 {
 	CurrentWorld = World;
@@ -56,9 +37,6 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	FSceneOutlinerInitializationOptions InitOptions;
 	InitOptions.bShowTransient = false;
-	InitOptions.ModeFactory = FCreateSceneOutlinerMode::CreateLambda([SpecifiedWorld = TWeakObjectPtr<UWorld>(World), PrefabEditorOutliner = this](SSceneOutliner* SceneOutliner) {
-		return new FLGUIPrefabEditorOutlinerMode(SceneOutliner, PrefabEditorOutliner, SpecifiedWorld);
-		});
 	InitOptions.bFocusSearchBoxWhenOpened = false;
 	InitOptions.bShowCreateNewFolder = false;
 	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 2));
@@ -69,12 +47,13 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	{
 		InitOptions.Filters->AddFilterPredicate<FActorTreeItem>(ActorFilter);
 	}
+	InitOptions.OutlinerIdentifier = "LGUIPrefabEditorOutliner";
 	InitOptions.CustomDelete = FCustomSceneOutlinerDeleteDelegate::CreateRaw(this, &FLGUIPrefabEditorOutliner::OnDelete);
 
-	TSharedRef<ISceneOutliner> SceneOutlinerRef = SceneOutlinerModule.CreateSceneOutliner(InitOptions);
+	TSharedRef<ISceneOutliner> SceneOutlinerRef = SceneOutlinerModule.CreateActorBrowser(InitOptions, World);
 	SceneOutlinerPtr = StaticCastSharedRef<SSceneOutliner>(SceneOutlinerRef->AsShared());
 
-	SceneOutlinerPtr->GetOnItemSelectionChanged().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged);
+	//SceneOutlinerPtr->GetOnItemSelectionChanged().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged);
 	SceneOutlinerPtr->GetDoubleClickEvent().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick);
 	GEditor->OnLevelActorListChanged().AddLambda([SceneOutlinerWeak = TWeakPtr<SSceneOutliner>(SceneOutlinerPtr)]() {//UE5 not auto refresh the actor label display, so manually refresh it
 		if (SceneOutlinerWeak.IsValid())
@@ -133,47 +112,6 @@ AActor* FLGUIPrefabEditorOutliner::GetActorFromTreeItem(FSceneOutlinerTreeItemPt
 	return nullptr;
 }
 
-void FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged(FSceneOutlinerTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode)
-{
-	if (bIsReentrant)return;
-	TGuardValue<bool> ReentrantGuard(bIsReentrant, true);
-
-	CachedItemPtr = ItemPtr;
-	auto SelectedTreeItems = SceneOutlinerPtr->GetTree().GetSelectedItems();
-
-	const FScopedTransaction Transaction(NSLOCTEXT("UnrealEd", "ClickingOnActors", "Clicking on Actors"));
-	GEditor->GetSelectedActors()->Modify();
-
-	if (SelectedTreeItems.Num() > 0)
-	{
-		// Clear the selection.
-		GEditor->SelectNone(false, true, true);
-
-		if (auto ActorTree = CachedItemPtr->CastTo<FActorTreeItem>())
-		{
-			SelectedActor = ActorTree->Actor;
-			OnActorPickedDelegate.ExecuteIfBound(SelectedActor.Get());
-		}
-
-		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
-		for (auto& Item : SelectedTreeItems)
-		{
-			auto ActorTreeItem = Item->CastTo<FActorTreeItem>();
-
-			GEditor->SelectActor(ActorTreeItem->Actor.Get(), true, false);
-		}
-
-		// Commit selection changes
-		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
-		// Fire selection changed event
-		GEditor->NoteSelectionChange();
-	}
-	else
-	{
-		GEditor->SelectNone(false, true, true);
-	}
-}
-
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick(FSceneOutlinerTreeItemPtr ItemPtr)
 {
 	if (OnActorDoubleClickDelegate.IsBound())
@@ -186,23 +124,8 @@ void FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick(FSceneOutlinerTreeIte
 	}
 }
 
-void FLGUIPrefabEditorOutliner::RenameSelectedActor()
-{
-	if (CachedItemPtr.IsValid())
-	{
-		CachedItemPtr->RenameRequestEvent.ExecuteIfBound();
-	}
-	else
-	{
-	}
-}
-
 void FLGUIPrefabEditorOutliner::OnEditorSelectionChanged(UObject* Object)
 {
-	if (bIsReentrant)
-	{
-		return;
-	}
 	if (!SceneOutlinerPtr.IsValid())
 	{
 		return;

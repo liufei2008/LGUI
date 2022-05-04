@@ -37,9 +37,7 @@ public:
 
 	AActor* GetSelectedActor() const { return SelectedActor.Get(); }
 	void ClearSelectedActor();
-	void RenameSelectedActor();
 private:
-	void OnSceneOutlinerSelectionChanged(FSceneOutlinerTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode);
 	void OnSceneOutlinerDoubleClick(FSceneOutlinerTreeItemPtr ItemPtr);
 	void OnEditorSelectionChanged(UObject* Object);
 	void OnDelete(const TArray<TWeakPtr<ISceneOutlinerTreeItem>>& InSelectedTreeItemArray);
@@ -49,8 +47,6 @@ private:
 	TSharedPtr<SSceneOutliner> SceneOutlinerPtr;
 	TWeakObjectPtr<AActor> SelectedActor;
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
-	/** Reentrancy guard */
-	bool bIsReentrant = false;
 
 	TWeakObjectPtr<UWorld> CurrentWorld;
 
