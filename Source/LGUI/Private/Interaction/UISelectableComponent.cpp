@@ -575,6 +575,11 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		if (!sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
 			continue;
 
+#if WITH_EDITOR
+		if (this->GetWorld() != sel->GetWorld())//get selectables from ULGUIEditorManagerObject, could be different world (thumbnail preview)
+			continue;
+#endif
+
 		auto LocalCenter = sel->GetRootUIComponent()->GetLocalSpaceCenter();
 		FVector selCenter = FVector(0, LocalCenter.X, LocalCenter.Y);
 		FVector myVector = sel->GetRootUIComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
