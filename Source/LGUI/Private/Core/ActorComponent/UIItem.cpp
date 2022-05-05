@@ -48,8 +48,6 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bAnchorTopCached = false;
 
 	bIsCanvasUIItem = false;
-
-	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
 }
 
 void UUIItem::BeginPlay()

@@ -53,11 +53,6 @@ public:
 	/** override atlasSettings for your packingTag, otherwise use defaultAtlasSettings */
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		TMap<FName, FLGUIAtlasSettings> atlasSettingForSpecificPackingTag;
-	/**
-	 * For new created UIItem: if parent is a UIItem then it will inherit parent's trace channel; otherwise it will use this trace channel.
-	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI")
-		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
 
 	/**
 	 * LGUI renderer use ISceneViewExtension to render, so this value can sort with other view extensions, higher comes first.
