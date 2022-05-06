@@ -114,9 +114,9 @@ void ULGUICanvas::UpdateRootCanvas()
 				{
 					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
+					if (!GetWorld()->IsGameWorld())
 					{
-
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
 					}
 					else
 #endif
@@ -1529,31 +1529,14 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
+			//only LGUI renderer can render post process
+			if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
 			{
-				//editor world, post process not work with WorldSpace-UERenderer and ScreenSpace, ignore it
-				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace || this->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-				{
-					continue;
-				}
-				else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
-				{
-					CurrentUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
-				}
+				continue;
 			}
-			else
-#endif
+			else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
 			{
-				//game world, only LGUI renderer can render post process
-				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
-				{
-					continue;
-				}
-				else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
-				{
-					CurrentUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
-				}
+				CurrentUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
 			}
 
 			if (!DrawcallItem->PostProcessRenderableObject->IsRenderProxyValid())
