@@ -475,9 +475,8 @@ FReply SLGUIPrefabSequenceEditor::OnNewAnimationClicked()
 		auto Sequence = WeakSequenceComponent->AddNewAnimation();
 		bool bRequestRename = true;
 		bool bNewAnimation = true;
-		auto ListItem = MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation));
-		Animations.Add(ListItem);
-		AnimationListView->RequestScrollIntoView(ListItem);
+		int32 NewIndex = Animations.Add(MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation)));
+		AnimationListView->RequestScrollIntoView(Animations[NewIndex]);
 	}
 	return FReply::Handled();
 }
