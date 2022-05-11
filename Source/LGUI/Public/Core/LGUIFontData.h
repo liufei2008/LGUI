@@ -117,6 +117,21 @@ public:
 	virtual uint16 GetLineHeight(const uint16& fontSize)override;
 	virtual float GetVerticalOffset(const uint16& fontSize)override;
 	virtual void InitFont()override;
+	virtual void PushCharData(
+		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
+		bool bold, float boldSize, bool italic, float italicSlop, const FColor& color,
+		int verticesStartIndex, int indicesStartIndex,
+		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
+		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+	)override;
+	virtual void PushCharData(
+		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
+		float boldSize, float italicSlop, const LGUIRichTextParser::RichTextParseResult& richTextProperty,
+		int verticesStartIndex, int indicesStartIndex,
+		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
+		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+	)override;
+
 	virtual void AddUIText(UUIText* InText)override;
 	virtual void RemoveUIText(UUIText* InText)override;
 	//End ULGUIFontData_BaseObject interface
