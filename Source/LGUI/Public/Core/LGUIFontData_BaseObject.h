@@ -3,10 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
-#include "RHI.h"
-#include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
-#include "Core/LGUISettings.h"
+#include "Core/UIGeometry.h"
+#include "Core/RichTextParser.h"
 #include "LGUIFontData_BaseObject.generated.h"
 
 
@@ -101,6 +99,20 @@ struct FLGUICharData_HighPrecision
 class UTexture2D;
 class UUIText;
 
+struct FUITextCharGeometry
+{
+	float geoWidth = 0;
+	float geoHeight = 0;
+	float xadvance = 0;
+	float xoffset = 0;
+	float yoffset = 0;
+
+	FVector2D uv0 = FVector2D(0, 0);
+	FVector2D uv1 = FVector2D(0, 0);
+	FVector2D uv2 = FVector2D(0, 0);
+	FVector2D uv3 = FVector2D(0, 0);
+};
+
 /**
  * font asset for UIText to render
  */
@@ -118,6 +130,22 @@ public:
 	virtual uint16 GetLineHeight(const uint16& fontSize) { return 0; }
 	virtual float GetVerticalOffset(const uint16& fontSize) { return 0; }
 	virtual void InitFont() {};
+	/** create char geometry and push to vertices & triangleIndices array */
+	virtual void PushCharData(
+		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
+		bool bold, float boldSize, bool italic, float italicSlop, const FColor& color,
+		int verticesStartIndex, int indicesStartIndex, 
+		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
+		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+	) {};
+	/** for rich text */
+	virtual void PushCharData(
+		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
+		float boldSize, float italicSlop, const LGUIRichTextParser::RichTextParseResult& richTextProperty,
+		int verticesStartIndex, int indicesStartIndex,
+		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
+		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+	) {};
 
 	virtual void AddUIText(UUIText* InText) {}
 	virtual void RemoveUIText(UUIText* InText) {}
