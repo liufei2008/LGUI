@@ -29,6 +29,15 @@ enum class ELGUIDynamicFontDataType :uint8
 	UnrealFont,
 };
 
+UENUM(BlueprintType)
+enum class ELGUIDynamicFontLineHeightType :uint8
+{
+	/** Get line height from font face data */
+	FromFontFace,
+	/** Use font size as line height */
+	FontSizeAsLineHeight,
+};
+
 /**
  * Font asset for UIText to render
  */
@@ -54,6 +63,8 @@ private:
 		class UFontFace* unrealFont;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int fontFace = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUIDynamicFontLineHeightType lineHeightType = ELGUIDynamicFontLineHeightType::FontSizeAsLineHeight;
 	/** Current using font face has kerning? */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient)
 		bool hasKerning = false;

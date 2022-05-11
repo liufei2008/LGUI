@@ -281,7 +281,7 @@ uint16 ULGUIFontData::GetLineHeight(const uint16& fontSize)
 		UE_LOG(LGUI, Error, TEXT("[GetLineHeight] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return fontSize;
 	}
-	return face->size->metrics.height >> 6;
+	return lineHeightType == ELGUIDynamicFontLineHeightType::FromFontFace ? (face->size->metrics.height >> 6) : fontSize;
 }
 float ULGUIFontData::GetVerticalOffset(const uint16& fontSize)
 {
@@ -582,6 +582,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, fontFace)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, fontType)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, packingTag)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, lineHeightType)
 			)
 		{
 			ReloadFont();
