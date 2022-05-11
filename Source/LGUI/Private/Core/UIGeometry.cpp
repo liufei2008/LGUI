@@ -2511,6 +2511,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				auto prevCharCodeOfForwardChar = prevCharCode;
 				float spaceNeeded = GetCharGeoXAdv(prevCharCodeOfForwardChar, charCode, richText ? richTextParseResult.size : fontSize);
+				prevCharCodeOfForwardChar = charCode;
 				spaceNeeded += fontSpace.X;
 				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = currentVisibleCharCount; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
 				{
@@ -2537,11 +2538,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			}
 		}
 
+		prevCharCode = charCode;
 		float charWidth = charGeo.xadvance + fontSpace.X;
 		//char geometry
 		if (charCode != ' ' && charCode != '\t')
 		{
-			prevCharCode = charCode;
 			if (richText)
 			{
 				currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
