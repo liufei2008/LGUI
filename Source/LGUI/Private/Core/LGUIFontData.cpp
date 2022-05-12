@@ -255,7 +255,7 @@ void ULGUIFontData::InitFont()
 }
 void ULGUIFontData::PushCharData(
 	TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-	bool bold, float boldSize, bool italic, float italicSlop, const FColor& color,
+	const FColor& color,
 	int verticesStartIndex, int indicesStartIndex,
 	int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 	TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
@@ -462,7 +462,7 @@ void ULGUIFontData::PushCharData(
 }
 void ULGUIFontData::PushCharData(
 	TCHAR charCode, const FVector2D& inLineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-	float boldSize, float italicSlop, const LGUIRichTextParser::RichTextParseResult& richTextProperty,
+	const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 	int verticesStartIndex, int indicesStartIndex,
 	int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 	TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
@@ -869,6 +869,14 @@ float ULGUIFontData::GetVerticalOffset(const uint16& fontSize)
 		return 0;
 	}
 	return -((face->size->metrics.ascender + face->size->metrics.descender) >> 6) * 0.5f;
+}
+void ULGUIFontData::PrepareForPushCharData(UUIText* InText)
+{
+	auto fontStyle = InText->GetFontStyle();
+	bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+	boldSize = InText->GetFontSize() * boldRatio;
+	italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+	italicSlop = FMath::Tan(FMath::DegreesToRadians(italicAngle));
 }
 
 void ULGUIFontData::AddUIText(UUIText* InText)

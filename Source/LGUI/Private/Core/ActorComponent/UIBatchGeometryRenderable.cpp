@@ -110,7 +110,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 	{
 		if (drawcall.IsValid())
 		{
-			geometry->material = CustomUIMaterial;
+			geometry->material = GetMaterialToCreateGeometry();
 			drawcall->bMaterialChanged = true;
 		}
 		MarkCanvasUpdate(true, false, false);
@@ -151,7 +151,7 @@ void UUIBatchGeometryRenderable::MarkAllDirty()
 			geometry->texture = GetTextureToCreateGeometry();
 			drawcall->bTextureChanged = true;
 
-			geometry->material = CustomUIMaterial;
+			geometry->material = GetMaterialToCreateGeometry();
 			drawcall->bMaterialChanged = true;
 		}
 		MarkCanvasUpdate(true, false, false);
@@ -277,7 +277,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	{
 		geometry->Clear();
 		geometry->texture = GetTextureToCreateGeometry();
-		geometry->material = CustomUIMaterial;
+		geometry->material = GetMaterialToCreateGeometry();
 		OnUpdateGeometry(*(geometry.Get()), true, true, true, true);
 		ApplyGeometryModifier(true, true, true, true);
 		CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
@@ -425,6 +425,22 @@ UTexture* UUIBatchGeometryRenderable::GetTextureToCreateGeometry()
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		return ReceiveGetTextureToCreateGeometry();
+	}
+	return nullptr;
+}
+
+UMaterialInterface* UUIBatchGeometryRenderable::GetMaterialToCreateGeometry()
+{
+	if (IsValid(CustomUIMaterial))
+	{
+		return CustomUIMaterial;
+	}
+	else
+	{
+		if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+		{
+			return ReceiveGetMaterialToCreateGeometry();
+		}
 	}
 	return nullptr;
 }

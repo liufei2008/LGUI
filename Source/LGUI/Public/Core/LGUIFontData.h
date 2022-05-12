@@ -108,25 +108,25 @@ private:
 
 public:
 	//Begin ULGUIFontData_BaseObject interface
+	virtual void InitFont()override;
+	virtual UMaterialInterface* GetFontMaterial()override { return nullptr; }
 	virtual UTexture2D* GetFontTexture()override;
 	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
-	virtual float GetBoldRatio() override{ return boldRatio; }
-	virtual float GetItalicAngle()override { return italicAngle; }
 	virtual bool HasKerning()override { return hasKerning; }
 	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize)override;
 	virtual uint16 GetLineHeight(const uint16& fontSize)override;
 	virtual float GetVerticalOffset(const uint16& fontSize)override;
-	virtual void InitFont()override;
+	virtual void PrepareForPushCharData(UUIText* InText)override;
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-		bool bold, float boldSize, bool italic, float italicSlop, const FColor& color,
+		const FColor& color,
 		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 	)override;
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-		float boldSize, float italicSlop, const LGUIRichTextParser::RichTextParseResult& richTextProperty,
+		const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
@@ -165,6 +165,7 @@ private:
 	FT_FaceRec_* face = nullptr;
 	bool alreadyInitialized = false;
 	bool usePackingTag = false;
+	bool bold; float boldSize; bool italic; float italicSlop;
 	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize);
 	/**
 	 * Insert rect into area, assign pixel if succeed

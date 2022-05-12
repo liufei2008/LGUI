@@ -185,6 +185,23 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 	return font->GetFontTexture();
 }
 
+UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
+{
+	if (IsValid(CustomUIMaterial))
+	{
+		return CustomUIMaterial;
+	}
+	else
+	{
+		if (!IsValid(font))
+		{
+			font = ULGUIFontData::GetDefaultFont();
+		}
+		font->InitFont();
+		return font->GetFontMaterial();
+	}
+}
+
 void UUIText::OnBeforeCreateOrUpdateGeometry()
 {
 	if (!bHasAddToFont)
