@@ -188,7 +188,7 @@ public:
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 		, bool adjustWidth, bool adjustHeight, bool kerning
 		, UITextFontStyle fontStyle, FVector2f& textRealSize
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp
+		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, ULGUIFontData_BaseObject* font, bool richText);
 private:

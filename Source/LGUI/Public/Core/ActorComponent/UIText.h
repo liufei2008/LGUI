@@ -103,6 +103,7 @@ public:
 	virtual void MarkAllDirty()override;
 protected:
 	virtual UTexture* GetTextureToCreateGeometry()override;
+	virtual UMaterialInterface* GetMaterialToCreateGeometry()override;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;

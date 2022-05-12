@@ -2139,14 +2139,13 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 #pragma endregion
 
 #pragma region UIText
-//single char geometry
-
+#include "Core/ActorComponent/UIText.h"
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
 	, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, const float& fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, bool kerning
 	, UITextFontStyle fontStyle, FVector2f& textRealSize
-	, ULGUICanvas* renderCanvas, UUIItem* uiComp
+	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 	, ULGUIFontData_BaseObject* font, bool richText)
 {
@@ -2181,10 +2180,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 	}
 
-	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-	float boldSize = fontSize * font->GetBoldRatio();
-	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
-	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->GetItalicAngle()));
+	font->PrepareForPushCharData(uiComp);
 	bool useKerning = kerning && font->HasKerning();
 
 	//rich text
@@ -2194,6 +2190,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	if (richText)
 	{
 		richTextParser.Clear();
+		bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+		bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 		richTextParser.Prepare(fontSize, color, bold, italic, richTextParseResult);
 	}
 
@@ -2520,11 +2518,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				int additionalVerticesCount, additionalIndicesCount;
 				font->PushCharData(
 					charCode, currentLineOffset, fontSpace, charGeo,
-					boldSize, italicSlop, richTextParseResult,
-						vert0 = FVector(0, x, y);
-						vert1 = FVector(0, x, y);
-						vert2 = FVector(0, x, y);
-						vert3 = FVector(0, x, y);
+					richTextParseResult,
 					verticesCount, indicesCount,
 					additionalVerticesCount, additionalIndicesCount,
 					originVertices, vertices, triangles
@@ -2549,7 +2543,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				int additionalVerticesCount, additionalIndicesCount;
 				font->PushCharData(
 					charCode, currentLineOffset, fontSpace, charGeo,
-					bold, boldSize, italic, italicSlop, color,
+					color,
 					verticesCount, indicesCount,
 					additionalVerticesCount, additionalIndicesCount,
 					originVertices, vertices, triangles

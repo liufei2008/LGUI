@@ -161,8 +161,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
 
-	/** if NeedTextureToCreateGeometry() is true, then we should provide this texture */
+	/** texture for render this UI element */
 	virtual UTexture* GetTextureToCreateGeometry();
+	/** material to render this UI element. if CustomUIMaterial is not valid, then use this material. */
+	virtual UMaterialInterface* GetMaterialToCreateGeometry();
 
 	/** do anything before acturally create or update geometry */
 	virtual void OnBeforeCreateOrUpdateGeometry();
@@ -175,11 +177,16 @@ protected:
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
 #endif
 
+	/** texture for render this UI element */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
 		UTexture* ReceiveGetTextureToCreateGeometry();
+	/** material to render this UI element. if CustomUIMaterial is not valid, then use this material. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetMaterialToCreateGeometry"))
+		UMaterialInterface* ReceiveGetMaterialToCreateGeometry();
+	/** do anything before acturally create or update geometry */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void ReceiveOnBeforeCreateOrUpdateGeometry();
-	/** create or update geometry data */
+	/** fill and update ui geometry */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void ReceiveOnUpdateGeometry(ULGUIGeometryHelper* InGeometryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 

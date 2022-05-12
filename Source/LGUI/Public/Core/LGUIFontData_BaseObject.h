@@ -121,27 +121,30 @@ class LGUI_API ULGUIFontData_BaseObject : public UObject
 {
 	GENERATED_BODY()
 public:
+	virtual void InitFont()PURE_VIRTUAL(ULGUISpriteData_BaseObject::InitFont, );
+
+	virtual UMaterialInterface* GetFontMaterial()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontMaterial, return nullptr;);
 	virtual UTexture2D* GetFontTexture()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontTexture, return nullptr;);
 	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize) PURE_VIRTUAL(ULGUIFontData_BaseObject::GetCharData, return FLGUICharData_HighPrecision(););
-	virtual float GetBoldRatio() { return 0.015f; }
-	virtual float GetItalicAngle() { return 15.0f; }
 	virtual bool HasKerning() { return false; }
 	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize) { return 0; }
-	virtual uint16 GetLineHeight(const uint16& fontSize) { return 0; }
+	virtual uint16 GetLineHeight(const uint16& fontSize) { return fontSize; }
 	virtual float GetVerticalOffset(const uint16& fontSize) { return 0; }
-	virtual void InitFont() {};
+
+	/** this is called once every time before create any char geometry */
+	virtual void PrepareForPushCharData(UUIText* InText) {};
 	/** create char geometry and push to vertices & triangleIndices array */
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-		bool bold, float boldSize, bool italic, float italicSlop, const FColor& color,
-		int verticesStartIndex, int indicesStartIndex, 
+		const FColor& color,
+		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 	) {};
 	/** for rich text */
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-		float boldSize, float italicSlop, const LGUIRichTextParser::RichTextParseResult& richTextProperty,
+		const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
 		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
