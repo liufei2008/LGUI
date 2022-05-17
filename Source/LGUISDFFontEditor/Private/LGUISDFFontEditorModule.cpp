@@ -1,4 +1,4 @@
-// Copyright 2021-present LexLiu. All Rights Reserved.
+// Copyright 2019-present LexLiu. All Rights Reserved.
 
 #include "LGUISDFFontEditorModule.h"
 #include "LGUISDFFontDataTypeAction.h"

@@ -1,4 +1,4 @@
-// Copyright 2021-present LexLiu. All Rights Reserved.
+// Copyright 2019-present LexLiu. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -26,19 +26,9 @@ public class LGUISDFFontEditor : ModuleRules
 			{
 				"Core",
                 "CoreUObject",
-                "Slate",
-                "SlateCore",
                 "Engine",
                 "UnrealEd",
-                "PropertyEditor",
                 "LGUISDFFont",
-                "LevelEditor",
-                "Projects",
-                "EditorWidgets",
-                "DesktopPlatform",
-                "ImageWrapper",
-                "AssetTools",//Asset editor
-				"SharedSettingsWidgets",
 				// ... add other public dependencies that you statically link with here ...
                 
             }
