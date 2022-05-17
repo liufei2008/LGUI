@@ -107,17 +107,20 @@ void UUIEffectOutline::ModifyUIGeometry(
 
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
-			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
-			vertices[channelVertIndex1].TextureCoordinate[0] = originUV;
-			vertices[channelVertIndex2].TextureCoordinate[0] = originUV;
-			vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
-			vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
-			if (use8Direction)
+			for (int i = 0; i < MAX_STATIC_TEXCOORDS; i++)
 			{
-				vertices[channelVertIndex5].TextureCoordinate[0] = originUV;
-				vertices[channelVertIndex6].TextureCoordinate[0] = originUV;
-				vertices[channelVertIndex7].TextureCoordinate[0] = originUV;
-				vertices[channelVertIndex8].TextureCoordinate[0] = originUV;
+				auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[i];
+				vertices[channelVertIndex1].TextureCoordinate[i] = originUV;
+				vertices[channelVertIndex2].TextureCoordinate[i] = originUV;
+				vertices[channelVertIndex3].TextureCoordinate[i] = originUV;
+				vertices[channelVertIndex4].TextureCoordinate[i] = originUV;
+				if (use8Direction)
+				{
+					vertices[channelVertIndex5].TextureCoordinate[i] = originUV;
+					vertices[channelVertIndex6].TextureCoordinate[i] = originUV;
+					vertices[channelVertIndex7].TextureCoordinate[i] = originUV;
+					vertices[channelVertIndex8].TextureCoordinate[i] = originUV;
+				}
 			}
 
 			auto originAlpha = vertices[channelOriginVertIndex].Color.A;

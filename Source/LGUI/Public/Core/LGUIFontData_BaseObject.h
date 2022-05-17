@@ -110,7 +110,8 @@ public:
 	virtual float GetLineHeight(const float& fontSize) { return fontSize; }
 	virtual float GetVerticalOffset(const float& fontSize) { return 0; }
 	virtual float GetFontSizeLimit() { return MAX_FLT; }
-	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; };
+	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; }
+	virtual bool GetCanAdjustPixelPerfect() { return true; }
 
 	/** this is called once every time before create any char geometry */
 	virtual void PrepareForPushCharData(UUIText* InText) {};
