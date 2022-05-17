@@ -1,4 +1,4 @@
-﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-present LexLiu. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -15,8 +15,6 @@ public class LGUISDFFont : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "LGUI",
-				"FreeType2",
-				"zlib",
 			}
 			);
 			
