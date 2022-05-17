@@ -72,12 +72,18 @@ void UUIEffectLongShadow::ModifyUIGeometry(
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
 			auto originVert = originVertices[channelOriginVertIndex].Position;
-			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
+			auto originUV0 = vertices[channelOriginVertIndex].TextureCoordinate[0];
+			auto originUV1 = vertices[channelOriginVertIndex].TextureCoordinate[1];
+			auto originUV2 = vertices[channelOriginVertIndex].TextureCoordinate[2];
+			auto originUV3 = vertices[channelOriginVertIndex].TextureCoordinate[3];
 			auto originAlpha = vertices[channelOriginVertIndex].Color.A;
 			for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
 			{
 				int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
-				vertices[channelVertIndex].TextureCoordinate[0] = originUV;
+				vertices[channelVertIndex].TextureCoordinate[0] = originUV0;
+				vertices[channelVertIndex].TextureCoordinate[1] = originUV1;
+				vertices[channelVertIndex].TextureCoordinate[2] = originUV2;
+				vertices[channelVertIndex].TextureCoordinate[3] = originUV3;
 				auto& vert = originVertices[channelVertIndex].Position;
 				vert = originVert;
 				vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
