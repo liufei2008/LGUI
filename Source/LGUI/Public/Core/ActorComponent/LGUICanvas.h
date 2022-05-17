@@ -42,6 +42,8 @@ enum class ELGUICanvasClipType :uint8
 	Rect,
 	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
 	Texture,
+
+	COUNT		UMETA(Hidden),
 };
 
 UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
@@ -98,8 +100,6 @@ class ULGUIMeshComponent;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
 class UTextureRenderTarget2D;
-
-#define LGUI_DEFAULT_MATERIAL_COUNT 3
 
 /**
  * Canvas is for render and update all UI elements.
@@ -273,7 +273,7 @@ protected:
 
 	/** Default materials, for render default UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UMaterialInterface* DefaultMaterials[LGUI_DEFAULT_MATERIAL_COUNT];
+		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
 
 	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
@@ -445,6 +445,10 @@ public:
 
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
+
+	/** Walk up to find the Canvas which is manage for AdditionalShaderChannel, and set it. */
+	void SetActualRequireAdditionalShaderChannels(uint8 InFlags);
+	void SetRequireAdditionalShaderChannels(uint8 InFlags);
 public:
 	static FName LGUI_MainTextureMaterialParameterName;
 	static FName LGUI_RectClipOffsetAndSize_MaterialParameterName;

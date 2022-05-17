@@ -107,10 +107,14 @@ protected:
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void UpdateMaterialClipType()override;
 	virtual void OnCultureChanged_Implementation()override;
+
+	void CheckFontAdditionalShaderChannels();
 public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
+	void ApplyFontMaterialChange();
 	void ApplyRecreateText();
 
 	virtual void MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)override;

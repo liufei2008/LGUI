@@ -25,11 +25,11 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 
-#define LOCTEXT_NAMESPACE "LGUICanvas"
-
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
+
+#define LOCTEXT_NAMESPACE "LGUICanvas"
 
 ULGUICanvas::ULGUICanvas()
 {
@@ -550,7 +550,7 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 {
 	auto CheckDefaultMaterialsFunction = [=] 
 	{
-		for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+		for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 		{
 			if (DefaultMaterials[i] == nullptr)
 			{
@@ -673,6 +673,34 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 	}
 }
 
+void ULGUICanvas::SetRequireAdditionalShaderChannels(uint8 InFlags)
+{
+	this->additionalShaderChannels |= InFlags;
+}
+void ULGUICanvas::SetActualRequireAdditionalShaderChannels(uint8 InFlags)
+{	
+	ULGUICanvas* TargetCanvas = this;
+	while (true)
+	{
+		if (TargetCanvas == RootCanvas || TargetCanvas->GetOverrideAddionalShaderChannel())
+		{
+			break;
+		}
+		else
+		{
+			if (TargetCanvas->GetParentCanvas().IsValid())
+			{
+				TargetCanvas = TargetCanvas->GetParentCanvas().Get();
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	TargetCanvas->SetRequireAdditionalShaderChannels(InFlags);
+}
+
 bool ULGUICanvas::Is2DUITransform(const FTransform& Transform)
 {
 #if WITH_EDITOR
@@ -718,6 +746,10 @@ void ULGUICanvas::UpdateGeometry_Implement()
 		{
 			const auto UIRenderableItem = (UUIBaseRenderable*)(Item);
 			UIRenderableItem->UpdateGeometry();
+			if (bClipTypeChanged)
+			{
+				UIRenderableItem->UpdateMaterialClipType();
+			}
 		}
 	}
 }
@@ -1967,7 +1999,7 @@ UMaterialInstanceDynamic* ULGUICanvas::GetUIMaterialFromPool(ELGUICanvasClipType
 {
 	if (PooledUIMaterialList.Num() == 0)
 	{
-		for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+		for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 		{
 			PooledUIMaterialList.Add({});
 		}
@@ -1991,7 +2023,7 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* UIMat)
 {
 	int CacheMatTypeIndex = -1;
 	auto TempDefaultMaterials = GetMaterials();
-	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+	for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 	{
 		if (UIMat->Parent == TempDefaultMaterials[i])
 		{
@@ -2003,7 +2035,7 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* UIMat)
 	{
 		if (PooledUIMaterialList.Num() == 0)//PooledUIMaterialList could be cleared when hierarchy change, but we still willing to pool the material, so check it again
 		{
-			for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+			for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 			{
 				PooledUIMaterialList.Add({});
 			}
@@ -2348,8 +2380,8 @@ void ULGUICanvas::GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax)
 TArray<UMaterialInterface*> ULGUICanvas::GetDefaultMaterials()const
 {
 	TArray<UMaterialInterface*> ResultArray;
-	ResultArray.AddUninitialized(LGUI_DEFAULT_MATERIAL_COUNT);
-	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+	ResultArray.AddUninitialized((int)ELGUICanvasClipType::COUNT);
+	for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 	{
 		ResultArray[i] = DefaultMaterials[i];
 	}
@@ -2358,9 +2390,9 @@ TArray<UMaterialInterface*> ULGUICanvas::GetDefaultMaterials()const
 
 void ULGUICanvas::SetDefaultMaterials(const TArray<UMaterialInterface*>& InMaterialArray)
 {
-	if (InMaterialArray.Num() < LGUI_DEFAULT_MATERIAL_COUNT)
+	if (InMaterialArray.Num() < (int)ELGUICanvasClipType::COUNT)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::SetDefaultMaterials] InMaterialArray's count must be %d"), LGUI_DEFAULT_MATERIAL_COUNT);
+		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::SetDefaultMaterials] InMaterialArray's count must be %d"), (int)ELGUICanvasClipType::COUNT);
 		return;
 	}
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
@@ -2374,7 +2406,7 @@ void ULGUICanvas::SetDefaultMaterials(const TArray<UMaterialInterface*>& InMater
 			}
 		}
 	}
-	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+	for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
 	{
 		if (IsValid(InMaterialArray[i]))
 		{

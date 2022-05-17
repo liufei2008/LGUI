@@ -184,7 +184,7 @@ public:
 #pragma region UIText
 public:
 	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
-		, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, const float& fontSize
+		, const FColor& color, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 		, bool adjustWidth, bool adjustHeight, bool kerning
 		, UITextFontStyle fontStyle, FVector2f& textRealSize
