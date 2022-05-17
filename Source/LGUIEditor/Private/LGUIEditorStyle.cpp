@@ -115,8 +115,6 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassIcon.LGUIPrefab", new IMAGE_BRUSH(TEXT("Prefab_16x"), Icon16x16));
 	Style->Set("ClassThumbnail.LGUIPrefabActor", new IMAGE_BRUSH(TEXT("Prefab_40x"), Icon40x40));
 	Style->Set("ClassIcon.LGUIPrefabActor", new IMAGE_BRUSH(TEXT("Prefab_16x"), Icon16x16));
-	Style->Set("ClassThumbnail.LGUIFontData", new IMAGE_BRUSH(TEXT("Font_40x"), Icon40x40));
-	Style->Set("ClassIcon.LGUIFontData", new IMAGE_BRUSH(TEXT("Font_16x"), Icon16x16));
 	Style->Set("ClassThumbnail.LGUISpriteData", new IMAGE_BRUSH(TEXT("Sprite_40x"), Icon40x40));
 	Style->Set("ClassIcon.LGUISpriteData", new IMAGE_BRUSH(TEXT("Sprite_16x"), Icon16x16));
 
