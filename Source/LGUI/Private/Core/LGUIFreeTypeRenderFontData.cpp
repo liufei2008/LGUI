@@ -198,7 +198,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			packingAtlasData->EnsureAtlasTexture(packingTag);
 			texture = packingAtlasData->atlasTexture;
 			textureSize = texture->GetSizeX();
-			fullTextureSizeReciprocal = 1.0f / textureSize;
+			oneDiviceTextureSize = 1.0f / textureSize;
 		}
 		else
 		{
@@ -212,7 +212,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, false);
 			}
 			CreateFontTexture(0, textureSize);
-			fullTextureSizeReciprocal = 1.0f / textureSize;
+			oneDiviceTextureSize = 1.0f / textureSize;
 		}
 		ClearCharDataCache();
 	}
@@ -339,7 +339,8 @@ FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& cha
 
 FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR& charCode, const float& charSize)
 {
-	FLGUICharData_HighPrecision Result;
+	auto Result = FLGUICharData_HighPrecision();
+	if (charSize <= 0.0f)return Result;
 	if (GetCharDataFromCache(charCode, charSize, Result))
 	{
 		return Result;
@@ -349,7 +350,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 		FGlyphBitmap glyphBitmap;
 		if (!RenderGlyph(charCode, charSize, glyphBitmap))
 		{
-			return FLGUICharData();
+			return Result;
 		}
 
 		auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
@@ -369,7 +370,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 				UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
 				texture = packingAtlasData->atlasTexture;
 				textureSize = newTextureSize;
-				fullTextureSizeReciprocal = 1.0f / textureSize;
+				oneDiviceTextureSize = 1.0f / textureSize;
 			}
 			else
 			{
@@ -389,7 +390,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 
 					CreateFontTexture(textureSize, newTextureSize);
 					textureSize = newTextureSize;
-					fullTextureSizeReciprocal = 1.0f / textureSize;
+					oneDiviceTextureSize = 1.0f / textureSize;
 
 					//scale down uv of prev chars
 					ScaleDownUVofCachedChars();
@@ -410,7 +411,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 		AddCharDataToCache(charCode, charSize, resultCharData);
 		return resultCharData;
 	}
-	return FLGUICharData();
+	return Result;
 }
 
 bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult)
@@ -449,10 +450,10 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGl
 		OutResult.xoffset = InGlyphBitmap.hOffset - SPACE_NEED_EXPEND;
 		OutResult.yoffset = InGlyphBitmap.vOffset + SPACE_NEED_EXPEND;
 		OutResult.xadvance = InGlyphBitmap.hAdvance;
-		OutResult.uv0X = fullTextureSizeReciprocal * (packedRect.x - SPACE_NEED_EXPEND);
-		OutResult.uv0Y = fullTextureSizeReciprocal * (packedRect.y - SPACE_NEED_EXPEND + OutResult.height);
-		OutResult.uv3X = fullTextureSizeReciprocal * (packedRect.x - SPACE_NEED_EXPEND + OutResult.width);
-		OutResult.uv3Y = fullTextureSizeReciprocal * (packedRect.y - SPACE_NEED_EXPEND);
+		OutResult.uv0X = oneDiviceTextureSize * (packedRect.x - SPACE_NEED_EXPEND);
+		OutResult.uv0Y = oneDiviceTextureSize * (packedRect.y - SPACE_NEED_EXPEND + OutResult.height);
+		OutResult.uv3X = oneDiviceTextureSize * (packedRect.x - SPACE_NEED_EXPEND + OutResult.width);
+		OutResult.uv3Y = oneDiviceTextureSize * (packedRect.y - SPACE_NEED_EXPEND);
 		return true;
 	}
 	return false;
@@ -461,7 +462,7 @@ void ULGUIFreeTypeRenderFontData::ApplyPackingAtlasTextureExpand(UTexture2D* new
 {
 	this->texture = newTexture;
 	textureSize = newTextureSize;
-	fullTextureSizeReciprocal = 1.0f / textureSize;
+	oneDiviceTextureSize = 1.0f / textureSize;
 	//tell UIText to scale down uv
 	for (auto textItem : renderTextArray)
 	{
@@ -575,18 +576,6 @@ void ULGUIFreeTypeRenderFontData::PostEditChangeProperty(FPropertyChangedEvent& 
 			)
 		{
 			ReloadFont();
-		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, italicAngle) 
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, boldRatio)
-			)
-		{
-			for (auto& textItem : renderTextArray)
-			{
-				if (textItem.IsValid())
-				{
-					textItem->ApplyRecreateText();
-				}
-			}
 		}
 	}
 }

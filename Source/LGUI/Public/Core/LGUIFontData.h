@@ -36,7 +36,12 @@ class LGUI_API ULGUIFontData : public ULGUIFreeTypeRenderFontData
 {
 	GENERATED_BODY()
 protected:
-
+	/** angle of italic style in degree */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float italicAngle = 15.0f;
+	/** bold size radio for bold style, large number create more bold effect */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float boldRatio = 0.015f;
 public:
 	//Begin ULGUIFreeTypeRenderFontData interface
 	virtual void PushCharData(

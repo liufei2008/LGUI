@@ -48,18 +48,6 @@ struct FLGUICharData_HighPrecision
 		uv3X = charData.uv3X;
 		uv3Y = charData.uv3Y;
 	}
-	FLGUICharData_HighPrecision(const FLGUICharData& charData, const float& scale)
-	{
-		width = charData.width * scale;
-		height = charData.height * scale;
-		xoffset = charData.xoffset * scale;
-		yoffset = charData.yoffset * scale;
-		xadvance = charData.xadvance * scale;
-		uv0X = charData.uv0X;
-		uv0Y = charData.uv0Y;
-		uv3X = charData.uv3X;
-		uv3Y = charData.uv3Y;
-	}
 	float width = 0;
 	float height = 0;
 	float xoffset = 0;

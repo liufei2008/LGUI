@@ -38,10 +38,21 @@ private:
 	/** Use these material to render UIText, include clip material. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
 		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
-	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "2", UIMax = "100"))
+	/** Font size when render glyph. */
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "16", UIMax = "100"))
 		int FontSize = 32;
+	/** The radius of the distance field in pixels */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "2", UIMax = "30"))
 		int SDFRadius = 6;
+	/** Angle of italic style in degree */
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
+		float ItalicAngle = 15.0f;
+	/**
+	 * bold size radio for bold style, large number create more bold effect.
+	 * this parameter is related with SDFRadius & FontSize, smaller SDFRadius & FontSize will need larger BoldRatio to render.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
+		float BoldRatio = 0.15f;
 	/** -1 means not set yet. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI SDF Font", Transient)
 		int LineHeight = -1;
@@ -67,7 +78,7 @@ public:
 	virtual bool GetCanAdjustPixelPerfect() { return false; }
 	//End ULGUIFontDataBaseObject interface
 protected:
-	float boldSize; float italicSlop; float oneDivideFontSize;
+	float italicSlop; float oneDivideFontSize; float objectScale;
 	TMap<TCHAR, FLGUICharData> charDataMap;
 	TMap<FLGUISDFFontKerningPair, int16> KerningPairsMap;
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)override;
