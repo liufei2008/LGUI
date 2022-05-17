@@ -294,7 +294,6 @@ namespace LGUIRichTextParser
 				parseResult.underline = underlineCount > 0;
 				parseResult.strikethrough = strikethroughCount > 0;
 				parseResult.size = sizeArray.Num() > 0 ? sizeArray[sizeArray.Num() - 1] : originSize;
-				parseResult.size = FMath::Clamp(parseResult.size, 2.0f, 200.0f);
 				parseResult.color = colorArray.Num() > 0 ? colorArray[colorArray.Num() - 1] : originColor;
 				parseResult.supOrSubMode = supOrSubArray.Num() > 0 ? supOrSubArray[supOrSubArray.Num() - 1] : SupOrSubMode::None;
 				if (parseResult.supOrSubMode != SupOrSubMode::None)

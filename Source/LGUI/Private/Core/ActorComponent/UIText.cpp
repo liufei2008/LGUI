@@ -9,10 +9,13 @@
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
+
+#define LOCTEXT_NAMESPACE "UIText"
 
 #if WITH_EDITORONLY_DATA
 TWeakObjectPtr<ULGUIFontData_BaseObject> UUIText::CurrentUsingFontData = nullptr;
@@ -39,7 +42,7 @@ void UUIText::ApplyFontTextureScaleUp()
 			uv *= 0.5f;
 		}
 	}
-	geometry->texture = font->GetFontTexture();
+	geometry->texture = GetTextureToCreateGeometry();
 	if (RenderCanvas.IsValid())
 	{
 		if (drawcall.IsValid())
@@ -59,13 +62,33 @@ void UUIText::ApplyFontTextureChange()
 	{
 		MarkVerticesDirty(true, true, true, true);
 		MarkTextureDirty();
-		geometry->texture = font->GetFontTexture();
+		geometry->texture = GetTextureToCreateGeometry();
 		if (RenderCanvas.IsValid())
 		{
 			if (drawcall.IsValid())
 			{
 				drawcall->Texture = geometry->texture;
 				drawcall->bTextureChanged = true;
+				drawcall->bNeedToUpdateVertex = true;
+			}
+		}
+	}
+}
+
+void UUIText::ApplyFontMaterialChange()
+{
+	if (IsValid(font))
+	{
+		MarkVerticesDirty(true, true, true, true);
+		MarkMaterialDirty();
+		geometry->material = GetMaterialToCreateGeometry();
+		if (RenderCanvas.IsValid())
+		{
+			if (drawcall.IsValid())
+			{
+				drawcall->Material = geometry->material;
+				drawcall->bMaterialChanged = true;
+				drawcall->bMaterialNeedToReassign = true;
 				drawcall->bNeedToUpdateVertex = true;
 			}
 		}
@@ -87,6 +110,7 @@ void UUIText::BeginPlay()
 	if (IsValid(font))
 	{
 		font->InitFont();
+		CheckFontAdditionalShaderChannels();
 		if (!bHasAddToFont)
 		{
 			font->AddUIText(this);
@@ -182,6 +206,7 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 		font = ULGUIFontData::GetDefaultFont();
 	}
 	font->InitFont();
+	CheckFontAdditionalShaderChannels();
 	return font->GetFontTexture();
 }
 
@@ -198,7 +223,28 @@ UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
 			font = ULGUIFontData::GetDefaultFont();
 		}
 		font->InitFont();
-		return font->GetFontMaterial();
+		CheckFontAdditionalShaderChannels();
+		return font->GetFontMaterial(this->GetRenderCanvas() != nullptr ? this->GetRenderCanvas()->GetActualClipType() : ELGUICanvasClipType::None);
+	}
+}
+
+void UUIText::CheckFontAdditionalShaderChannels()
+{
+	if (RenderCanvas.IsValid())
+	{
+		auto flags = font->GetRequireAdditionalShaderChannels();
+#if WITH_EDITOR
+		auto originFlags = RenderCanvas->GetActualAdditionalShaderChannelFlags();
+		if (flags != 0 && (originFlags & flags) == 0)
+		{
+			auto MsgText = FText::Format(LOCTEXT("FontChangeAddtionalShaderChannels"
+				, "Automatically change 'AdditionalShaderChannels' property for LGUICanvas because font need it, font object: '{0}'")
+				, FText::FromString(font->GetPathName()));
+			LGUIUtils::EditorNotification(MsgText);
+			UE_LOG(LGUI, Warning, TEXT("%s"), *MsgText.ToString());
+		}
+#endif
+		RenderCanvas->SetRequireAdditionalShaderChannels(flags);
 	}
 }
 
@@ -221,37 +267,19 @@ void UUIText::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool I
 	{
 		UpdateCacheTextGeometry();
 	}
+}
 
-	if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
+void UUIText::UpdateMaterialClipType()
+{
+	geometry->material = GetMaterialToCreateGeometry();
+	if (drawcall.IsValid())
 	{
-		//additional data
-		{
-			//normal & tangent
-			if (RenderCanvas->GetRequireNormal() || RenderCanvas->GetRequireTangent())
-			{
-				auto& originVertices = InGeo.originVertices;
-				for (int i = 0; i < originVertices.Num(); i++)
-				{
-					originVertices[i].Normal = FVector(-1, 0, 0);
-					originVertices[i].Tangent = FVector(0, 1, 0);
-				}
-			}
-			//uv1
-			if (RenderCanvas->GetRequireUV1())
-			{
-				auto& vertices = InGeo.vertices;
-				int32 vertexCount = vertices.Num();
-				for (int i = 0; i < vertexCount; i += 4)
-				{
-					vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-					vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
-					vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 0);
-					vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 0);
-				}
-			}
-		}
+		drawcall->bMaterialChanged = true;
+		drawcall->bMaterialNeedToReassign = true;
+		drawcall->bNeedToUpdateVertex = true;
 	}
 }
+
 void UUIText::OnCultureChanged_Implementation()
 {
 	static auto emptyText = FText();
@@ -364,7 +392,6 @@ void UUIText::SetText(const FText& newText) {
 
 
 void UUIText::SetFontSize(float newSize) {
-	newSize = FMath::Clamp(newSize, 0.0f, 200.0f);
 	if (size != newSize)
 	{
 		MarkVertexPositionDirty();
@@ -856,6 +883,8 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 		OutSelectionProeprtyArray.Add(selectionProperty);
 	}
 }
+
+#undef LOCTEXT_NAMESPACE
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
