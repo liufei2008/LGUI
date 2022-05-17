@@ -25,9 +25,9 @@ void ULGUIFontData::PushCharData(
 	TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 )
 {
-	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, int overrideFontSize)
+	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, float overrideFontSize)
 	{
-		auto charData = this->GetCharData(charCode, (uint16)overrideFontSize);
+		auto charData = this->GetCharData(charCode, overrideFontSize);
 		charData.yoffset += this->GetVerticalOffset(overrideFontSize);
 
 		float uvX = (charData.uv3X - charData.uv0X) * 0.5f + charData.uv0X;
@@ -454,7 +454,19 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-
+		auto PropertyName = Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, italicAngle)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, boldRatio)
+			)
+		{
+			for (auto& textItem : renderTextArray)
+			{
+				if (textItem.IsValid())
+				{
+					textItem->ApplyRecreateText();
+				}
+			}
+		}
 	}
 }
 #endif
