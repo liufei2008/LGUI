@@ -79,6 +79,7 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 void ULGUISDFFontData::ClearCharDataCache()
 {
 	charDataMap.Empty();
+	LineHeight = VerticalOffset = -1;
 }
 
 void ULGUISDFFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)
@@ -108,6 +109,37 @@ uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
 		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)
 		| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
 		;
+}
+
+float ULGUISDFFontData::GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize)
+{
+	auto KerningPair = FLGUISDFFontKerningPair(leftCharIndex, rightCharIndex);
+	if (auto KerningValuePtr = KerningPairsMap.Find(KerningPair))
+	{
+		return (*KerningValuePtr) * charSize * oneDivideFontSize;
+	}
+	else
+	{
+		auto KerningValue = Super::GetKerning(leftCharIndex, rightCharIndex, FontSize);
+		KerningPairsMap.Add(KerningPair, KerningValue);
+		return KerningValue * charSize * oneDivideFontSize;
+	}
+}
+float ULGUISDFFontData::GetLineHeight(const float& fontSize)
+{
+	if (LineHeight == -1)
+	{
+		LineHeight = Super::GetLineHeight(FontSize);
+	}
+	return LineHeight * fontSize * oneDivideFontSize;
+}
+float ULGUISDFFontData::GetVerticalOffset(const float& fontSize)
+{
+	if (VerticalOffset == -1)
+	{
+		VerticalOffset = Super::GetVerticalOffset(FontSize);
+	}
+	return VerticalOffset * fontSize * oneDivideFontSize;
 }
 
 void ULGUISDFFontData::PushCharData(

@@ -244,7 +244,7 @@ void UUIText::CheckFontAdditionalShaderChannels()
 			UE_LOG(LGUI, Warning, TEXT("%s"), *MsgText.ToString());
 		}
 #endif
-		RenderCanvas->SetRequireAdditionalShaderChannels(flags);
+		RenderCanvas->SetActualRequireAdditionalShaderChannels(flags);
 	}
 }
 

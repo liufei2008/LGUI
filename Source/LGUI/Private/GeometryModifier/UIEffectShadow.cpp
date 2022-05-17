@@ -56,7 +56,10 @@ void UUIEffectShadow::ModifyUIGeometry(
 			vertices[channelIndex1].Color = shadowColor;
 		}
 
-		vertices[channelIndex1].TextureCoordinate[0] = vertices[channelIndexOrigin].TextureCoordinate[0];
+		for (int i = 0; i < MAX_STATIC_TEXCOORDS; i++)
+		{
+			vertices[channelIndex1].TextureCoordinate[i] = vertices[channelIndexOrigin].TextureCoordinate[i];
+		}
 	}
 }
 
