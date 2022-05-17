@@ -240,8 +240,8 @@ void UUIText::CheckFontAdditionalShaderChannels()
 			auto MsgText = FText::Format(LOCTEXT("FontChangeAddtionalShaderChannels"
 				, "Automatically change 'AdditionalShaderChannels' property for LGUICanvas because font need it, font object: '{0}'")
 				, FText::FromString(font->GetPathName()));
-			LGUIUtils::EditorNotification(MsgText);
-			UE_LOG(LGUI, Warning, TEXT("%s"), *MsgText.ToString());
+			//LGUIUtils::EditorNotification(MsgText);
+			UE_LOG(LGUI, Log, TEXT("%s"), *MsgText.ToString());
 		}
 #endif
 		RenderCanvas->SetActualRequireAdditionalShaderChannels(flags);

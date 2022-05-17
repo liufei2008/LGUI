@@ -76,11 +76,13 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 	sdfTemp.SetNumUninitialized(sourceBuffer.Num() * sizeof(float) * 3);
 	FMemory::Memzero(sourceBuffer.GetData(), sourceBuffer.Num());
 	FMemory::Memzero(sdfResult.GetData(), sdfResult.Num());
+	int sourceBitmapBufferIndex = 0;
 	for (int h = 0, maxH = slot->bitmap.rows; h < maxH; h++)
 	{
+		int wOffset = (h + SDFRadius) * glyphWidth + SDFRadius;
 		for (int w = 0, maxW = slot->bitmap.width; w < maxW; w++)
 		{
-			sourceBuffer[(h + SDFRadius) * glyphWidth + w + SDFRadius] = slot->bitmap.buffer[h * maxW + w];
+			sourceBuffer[wOffset + w] = slot->bitmap.buffer[sourceBitmapBufferIndex++];
 		}
 	}
 	sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
@@ -123,8 +125,8 @@ void ULGUISDFFontData::PrepareForPushCharData(UUIText* InText)
 uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
 {
 	return
-		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)
-		| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
+		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = charSize * objectScale
+		//| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
 		;
 }
 
