@@ -75,13 +75,6 @@ protected:
 		TArray<FString> subFaces;
 	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
 #endif
-
-	/** angle of italic style in degree */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float italicAngle = 15.0f;
-	/** bold size radio for bold style, large number create more bold effect */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float boldRatio = 0.015f;
 	
 	/**
 	 * Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
@@ -142,7 +135,7 @@ protected:
 	/** current texture size */
 	int32 textureSize;
 	/** 1.0 / textureSize */
-	float fullTextureSizeReciprocal;
+	float oneDiviceTextureSize;
 
 	FT_LibraryRec_* library = nullptr;
 	FT_FaceRec_* face = nullptr;
