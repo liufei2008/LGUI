@@ -302,7 +302,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	TRefCountPtr<IPooledRenderTarget> OriginScreenColorRenderTarget = nullptr;
 
 	uint8 NumSamples = 1;
-	auto ViewRect = RenderView->UnscaledViewRect;
+	FIntRect ViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ViewTextureScaleOffset;
@@ -311,6 +311,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
 			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
+			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 			//clear render target
 #if WITH_EDITOR
@@ -343,6 +344,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	else
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView->Family->RenderTarget->GetRenderTargetTexture();
+		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 
 		if (bNeedOriginScreenColorTextureOnPostProcess)
@@ -356,6 +358,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
 		}
 
+		ViewRect = RenderView->UnscaledViewRect;
 		const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 		switch (RenderView->StereoPass)
 		{
