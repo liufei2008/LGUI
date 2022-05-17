@@ -5,29 +5,9 @@
 #include "CoreMinimal.h"
 #include "Core/UIGeometry.h"
 #include "Core/RichTextParser.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIFontData_BaseObject.generated.h"
 
-
-struct FLGUIFontKeyData
-{
-public:
-	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize)
-	{
-		this->charIndex = inCharIndex;
-		this->charSize = inCharSize;
-	}
-	TCHAR charIndex = 0;
-	uint16 charSize = 0;
-	bool operator==(const FLGUIFontKeyData& other)const
-	{
-		return this->charIndex == other.charIndex && this->charSize == other.charSize;
-	}
-	friend FORCEINLINE uint32 GetTypeHash(const FLGUIFontKeyData& other)
-	{
-		return HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize));
-	}
-};
 
 USTRUCT(BlueprintType)
 struct FLGUICharData
@@ -56,7 +36,7 @@ public:
 struct FLGUICharData_HighPrecision
 {
 	FLGUICharData_HighPrecision() {}
-	FLGUICharData_HighPrecision(FLGUICharData charData)
+	FLGUICharData_HighPrecision(const FLGUICharData& charData)
 	{
 		width = charData.width;
 		height = charData.height;
@@ -68,29 +48,42 @@ struct FLGUICharData_HighPrecision
 		uv3X = charData.uv3X;
 		uv3Y = charData.uv3Y;
 	}
+	FLGUICharData_HighPrecision(const FLGUICharData& charData, const float& scale)
+	{
+		width = charData.width * scale;
+		height = charData.height * scale;
+		xoffset = charData.xoffset * scale;
+		yoffset = charData.yoffset * scale;
+		xadvance = charData.xadvance * scale;
+		uv0X = charData.uv0X;
+		uv0Y = charData.uv0Y;
+		uv3X = charData.uv3X;
+		uv3Y = charData.uv3Y;
+	}
 	float width = 0;
 	float height = 0;
 	float xoffset = 0;
 	float yoffset = 0;
 	float xadvance = 0;
+
 	float uv0X = 0;
 	float uv0Y = 0;
 	float uv3X = 0;
 	float uv3Y = 0;
 
-	FVector2D GetUV0()
+	FVector2D GetUV0()const
 	{
 		return FVector2D(uv0X, uv0Y);
 	}
-	FVector2D GetUV3()
+	FVector2D GetUV3()const
 	{
 		return FVector2D(uv3X, uv3Y);
 	}
-	FVector2D GetUV2()
+	FVector2D GetUV2()const
 	{
 		return FVector2D(uv0X, uv3Y);
 	}
-	FVector2D GetUV1()
+	FVector2D GetUV1()const
 	{
 		return FVector2D(uv3X, uv0Y);
 	}
@@ -98,20 +91,6 @@ struct FLGUICharData_HighPrecision
 
 class UTexture2D;
 class UUIText;
-
-struct FUITextCharGeometry
-{
-	float geoWidth = 0;
-	float geoHeight = 0;
-	float xadvance = 0;
-	float xoffset = 0;
-	float yoffset = 0;
-
-	FVector2D uv0 = FVector2D(0, 0);
-	FVector2D uv1 = FVector2D(0, 0);
-	FVector2D uv2 = FVector2D(0, 0);
-	FVector2D uv3 = FVector2D(0, 0);
-};
 
 /**
  * font asset for UIText to render
@@ -123,27 +102,21 @@ class LGUI_API ULGUIFontData_BaseObject : public UObject
 public:
 	virtual void InitFont()PURE_VIRTUAL(ULGUISpriteData_BaseObject::InitFont, );
 
-	virtual UMaterialInterface* GetFontMaterial()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontMaterial, return nullptr;);
+	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontMaterial, return nullptr;);
 	virtual UTexture2D* GetFontTexture()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontTexture, return nullptr;);
-	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize) PURE_VIRTUAL(ULGUIFontData_BaseObject::GetCharData, return FLGUICharData_HighPrecision(););
+	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charCode, const float& charSize) PURE_VIRTUAL(ULGUIFontData_BaseObject::GetCharData, return FLGUICharData_HighPrecision(););
 	virtual bool HasKerning() { return false; }
-	virtual int16 GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const uint16& charSize) { return 0; }
-	virtual uint16 GetLineHeight(const uint16& fontSize) { return fontSize; }
-	virtual float GetVerticalOffset(const uint16& fontSize) { return 0; }
+	virtual float GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize) { return 0; }
+	virtual float GetLineHeight(const float& fontSize) { return fontSize; }
+	virtual float GetVerticalOffset(const float& fontSize) { return 0; }
+	virtual float GetFontSizeLimit() { return MAX_FLT; }
+	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; };
 
 	/** this is called once every time before create any char geometry */
 	virtual void PrepareForPushCharData(UUIText* InText) {};
 	/** create char geometry and push to vertices & triangleIndices array */
 	virtual void PushCharData(
-		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
-		const FColor& color,
-		int verticesStartIndex, int indicesStartIndex,
-		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
-		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
-	) {};
-	/** for rich text */
-	virtual void PushCharData(
-		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FUITextCharGeometry& charGeo,
+		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FLGUICharData_HighPrecision& charData,
 		const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,

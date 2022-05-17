@@ -142,6 +142,8 @@ public:
 	virtual void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false) override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
+	/** Called by LGUICanvas when clip type changed */
+	virtual void UpdateMaterialClipType() {};
 
 	/** return bounds min max point in self local space, for LGUICanvas to tell if geometry overlap with each other. */
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const;

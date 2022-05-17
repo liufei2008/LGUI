@@ -33,6 +33,16 @@
 			"Name": "LTween",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "LGUISDFFont",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "LGUISDFFontEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	]
 }

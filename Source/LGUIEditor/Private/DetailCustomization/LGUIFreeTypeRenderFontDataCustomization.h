@@ -7,7 +7,7 @@
 /**
  * 
  */
-class FLGUIFontDataCustomization : public IDetailCustomization
+class FLGUIFreeTypeRenderFontDataCustomization : public IDetailCustomization
 {
 public:
 
@@ -15,7 +15,7 @@ public:
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class ULGUIFontData> TargetScriptPtr;
+	TWeakObjectPtr<class ULGUIFreeTypeRenderFontData> TargetScriptPtr;
 	FReply OnReloadButtonClicked(IDetailLayoutBuilder* DetailBuilderPtr);
 	FText OnGetFontFilePath()const;
 	void OnPathTextChanged(const FString& InText, TSharedRef<IPropertyHandle> InPathProperty);

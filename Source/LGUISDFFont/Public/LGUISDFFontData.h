@@ -1,44 +1,30 @@
-﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
+// Copyright 2021-present LexLiu. All Rights Reserved.
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
+#include "Engine.h"
 #include "Core/LGUIFreeTypeRenderFontData.h"
-#include "LGUIFontData.generated.h"
+#include "LGUISDFFontData.generated.h"
 
-struct FLGUIFontKeyData
-{
-public:
-	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const TCHAR& inCharCode, const uint16& inCharSize)
-	{
-		this->charCode = inCharCode;
-		this->charSize = inCharSize;
-	}
-	TCHAR charCode = 0;
-	uint16 charSize = 0;
-	bool operator==(const FLGUIFontKeyData& other)const
-	{
-		return this->charCode == other.charCode && this->charSize == other.charSize;
-	}
-	friend FORCEINLINE uint32 GetTypeHash(const FLGUIFontKeyData& other)
-	{
-		return HashCombine(GetTypeHash(other.charCode), GetTypeHash(other.charSize));
-	}
-};
-
-/**
- * Font asset for UIText to render
- */
+/** Font asset for UIText to render. Import font asset generated from "Bitmap Font Generator". */
 UCLASS(BlueprintType)
-class LGUI_API ULGUIFontData : public ULGUIFreeTypeRenderFontData
+class LGUISDFFONT_API ULGUISDFFontData : public ULGUIFreeTypeRenderFontData
 {
 	GENERATED_BODY()
-protected:
+public:
+	ULGUISDFFontData();
+private:
+
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
+		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "2", UIMax = "120"))
+		int FontSize = 32;
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "0", UIMax = "30"))
+		uint8 SDFRadius = 6;
 
 public:
-	//Begin ULGUIFreeTypeRenderFontData interface
+	//Begin ULGUIFontDataBaseObject interface
+	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override { return DefaultMaterials[(int)clipType]; }
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FLGUICharData_HighPrecision& charData,
 		const LGUIRichTextParser::RichTextParseResult& richTextProperty,
@@ -47,10 +33,11 @@ public:
 		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 	)override;
 	virtual void PrepareForPushCharData(UUIText* InText)override;
-	//End ULGUIFreeTypeRenderFontData interface
+	virtual uint8 GetRequireAdditionalShaderChannels()override;
+	//End ULGUIFontDataBaseObject interface
 protected:
-	float boldSize; float italicSlop;
-	TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
+	float boldSize; float italicSlop; float oneDivideFontSize;
+	TMap<TCHAR, FLGUICharData> charDataMap;
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)override;
 
 	virtual bool GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult)override;
@@ -58,9 +45,7 @@ protected:
 	virtual void ScaleDownUVofCachedChars()override;
 	virtual bool RenderGlyph(const TCHAR& charCode, const float& charSize, FGlyphBitmap& OutResult)override;
 	virtual void ClearCharDataCache()override;
-public:
 #if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent);
 #endif
-	static ULGUIFontData* GetDefaultFont();
 };

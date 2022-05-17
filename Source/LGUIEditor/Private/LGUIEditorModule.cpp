@@ -46,7 +46,7 @@
 #include "DetailCustomization/UITextCustomization.h"
 #include "DetailCustomization/UITextureBaseCustomization.h"
 #include "DetailCustomization/LGUISpriteDataCustomization.h"
-#include "DetailCustomization/LGUIFontDataCustomization.h"
+#include "DetailCustomization/LGUIFreeTypeRenderFontDataCustomization.h"
 #include "DetailCustomization/UISelectableCustomization.h"
 #include "DetailCustomization/UIToggleCustomization.h"
 #include "DetailCustomization/UITextInputCustomization.h"
@@ -225,7 +225,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPostProcessRenderableCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUISpriteDataCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFontDataCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(ULGUIFreeTypeRenderFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFreeTypeRenderFontDataCustomization::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISelectableCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIToggleComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIToggleCustomization::MakeInstance));
