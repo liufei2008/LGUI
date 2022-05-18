@@ -76,17 +76,16 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 	sdfTemp.SetNumUninitialized(sourceBuffer.Num() * sizeof(float) * 3);
 	FMemory::Memzero(sourceBuffer.GetData(), sourceBuffer.Num());
 	FMemory::Memzero(sdfResult.GetData(), sdfResult.Num());
-	int sourceBitmapBufferIndex = 0;
-	for (int h = 0, maxH = slot->bitmap.rows; h < maxH; h++)
+	int sourceBufferOffset = SDFRadius * glyphWidth + SDFRadius;
+	int freetypeBufferOffset = 0;
+	for (int h = 0, maxH = slot->bitmap.rows, maxW = slot->bitmap.width; h < maxH; h++)
 	{
-		int wOffset = (h + SDFRadius) * glyphWidth + SDFRadius;
-		for (int w = 0, maxW = slot->bitmap.width; w < maxW; w++)
-		{
-			sourceBuffer[wOffset + w] = slot->bitmap.buffer[sourceBitmapBufferIndex++];
-		}
+		FMemory::Memcpy(sourceBuffer.GetData() + sourceBufferOffset, slot->bitmap.buffer + freetypeBufferOffset, maxW);
+		sourceBufferOffset += glyphWidth;
+		freetypeBufferOffset += maxW;
 	}
 	sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
-	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f"), (FDateTime::Now() - time).GetTotalMilliseconds());
+	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f(ms)"), (FDateTime::Now() - time).GetTotalMilliseconds());
 	OutResult.width = glyphWidth;
 	OutResult.height = glyphHeight;
 	OutResult.hOffset = slot->bitmap_left - SDFRadius;
