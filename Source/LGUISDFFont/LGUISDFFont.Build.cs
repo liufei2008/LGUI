@@ -14,7 +14,8 @@ public class LGUISDFFont : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
-                "LGUI",
+                "RHI",
+				"LGUI",
 			}
 			);
 			

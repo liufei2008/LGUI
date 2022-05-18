@@ -69,13 +69,12 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 	int glyphWidth = slot->bitmap.width + SDFRadius + SDFRadius;
 	int glyphHeight = slot->bitmap.rows + SDFRadius + SDFRadius;
 	static TArray<unsigned char> sourceBuffer;
-	static TArray<unsigned char> sdfResult;
 	static TArray<unsigned char> sdfTemp;
 	sourceBuffer.SetNumUninitialized(glyphWidth * glyphHeight);
-	sdfResult.SetNumUninitialized(sourceBuffer.Num());
 	sdfTemp.SetNumUninitialized(sourceBuffer.Num() * sizeof(float) * 3);
+	unsigned char* sdfResult = new unsigned char[sourceBuffer.Num()];
 	FMemory::Memzero(sourceBuffer.GetData(), sourceBuffer.Num());
-	FMemory::Memzero(sdfResult.GetData(), sdfResult.Num());
+	FMemory::Memzero(sdfResult, sourceBuffer.Num());
 	int sourceBufferOffset = SDFRadius * glyphWidth + SDFRadius;
 	int freetypeBufferOffset = 0;
 	for (int h = 0, maxH = slot->bitmap.rows, maxW = slot->bitmap.width; h < maxH; h++)
@@ -84,20 +83,47 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 		sourceBufferOffset += glyphWidth;
 		freetypeBufferOffset += maxW;
 	}
-	sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
+	sdfBuildDistanceFieldNoAlloc(sdfResult, glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
 	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f(ms)"), (FDateTime::Now() - time).GetTotalMilliseconds());
 	OutResult.width = glyphWidth;
 	OutResult.height = glyphHeight;
 	OutResult.hOffset = slot->bitmap_left - SDFRadius;
 	OutResult.vOffset = slot->bitmap_top + SDFRadius;
 	OutResult.hAdvance = slot->metrics.horiAdvance >> 6;
-	OutResult.buffer = sdfResult.GetData();
+	OutResult.buffer = sdfResult;
+	OutResult.pixelSize = 1;
 	return true;
 }
 void ULGUISDFFontData::ClearCharDataCache()
 {
 	charDataMap.Empty();
 	LineHeight = VerticalOffset = -1;
+}
+
+UTexture2D* ULGUISDFFontData::CreateTexture(int InTextureSize)
+{
+	auto ResultTexture = NewObject<UTexture2D>(
+		GetTransientPackage(),
+		NAME_None,
+		RF_Transient
+		);
+	ResultTexture->PlatformData = new FTexturePlatformData();
+	ResultTexture->PlatformData->SizeX = InTextureSize;
+	ResultTexture->PlatformData->SizeY = InTextureSize;
+	ResultTexture->PlatformData->PixelFormat = PF_R8;
+	// Allocate first mipmap.
+	int32 NumBlocksX = InTextureSize / GPixelFormats[PF_R8].BlockSizeX;
+	int32 NumBlocksY = InTextureSize / GPixelFormats[PF_R8].BlockSizeY;
+	FTexture2DMipMap* Mip = new FTexture2DMipMap();
+	ResultTexture->PlatformData->Mips.Add(Mip);
+	Mip->SizeX = InTextureSize;
+	Mip->SizeY = InTextureSize;
+	int DataSize = NumBlocksX * NumBlocksY * GPixelFormats[PF_R8].BlockBytes;
+	Mip->BulkData.Lock(LOCK_READ_WRITE);
+	void* dataPtr = Mip->BulkData.Realloc(DataSize);
+	FMemory::Memzero(dataPtr, DataSize);
+	Mip->BulkData.Unlock();
+	return ResultTexture;
 }
 
 void ULGUISDFFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)

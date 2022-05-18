@@ -145,7 +145,10 @@ protected:
 	struct FGlyphBitmap
 	{
 		int width, height, hOffset, vOffset, hAdvance;
+		/** memory will passed to render thread and delete there too */
 		unsigned char* buffer;
+		/** single pixel data size in byte, eg RGBA8-4 A8-1 */
+		int pixelSize;
 	};
 	/**
 	 * Insert rect into area, assign pixel if succeed
@@ -153,8 +156,9 @@ protected:
 	 */
 	bool PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
-
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
+
+	virtual UTexture2D* CreateTexture(int InTextureSize);
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 
 	virtual bool GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult) { return false; };

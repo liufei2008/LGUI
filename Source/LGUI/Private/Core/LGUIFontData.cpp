@@ -420,7 +420,17 @@ bool ULGUIFontData::RenderGlyph(const TCHAR& charCode, const float& charSize, FG
 	OutResult.hOffset = slot->bitmap_left;
 	OutResult.vOffset = slot->bitmap_top;
 	OutResult.hAdvance = slot->metrics.horiAdvance >> 6;
-	OutResult.buffer = slot->bitmap.buffer;
+	OutResult.pixelSize = 4;
+	//pixel color
+	int pixelCount = OutResult.width * OutResult.height;
+	FColor* regionColor = new FColor[pixelCount];
+	for (int i = 0; i < pixelCount; i++)
+	{
+		auto& pixelColor = regionColor[i];
+		pixelColor.R = pixelColor.G = pixelColor.B = 255;
+		pixelColor.A = slot->bitmap.buffer[i];
+	}
+	OutResult.buffer = (unsigned char*)regionColor;
 	return true;
 }
 void ULGUIFontData::ClearCharDataCache()

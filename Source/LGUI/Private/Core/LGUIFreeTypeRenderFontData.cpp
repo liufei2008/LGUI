@@ -433,17 +433,8 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGl
 		packedRect.width -= SPACE_BETWEEN_GLYPHx2;
 		packedRect.height -= SPACE_BETWEEN_GLYPHx2;
 
-		//pixel color
-		int pixelCount = InGlyphBitmap.width * InGlyphBitmap.height;
-		FColor* regionColor = new FColor[pixelCount];
-		for (int i = 0; i < pixelCount; i++)
-		{
-			auto& pixelColor = regionColor[i];
-			pixelColor.R = pixelColor.G = pixelColor.B = 255;
-			pixelColor.A = InGlyphBitmap.buffer[i];
-		}
 		auto region = new FUpdateTextureRegion2D(packedRect.x, packedRect.y, 0, 0, InGlyphBitmap.width, InGlyphBitmap.height);
-		UpdateFontTextureRegion(InTexture, region, packedRect.width * 4, 4, (uint8*)regionColor);
+		UpdateFontTextureRegion(InTexture, region, packedRect.width * InGlyphBitmap.pixelSize, InGlyphBitmap.pixelSize, (uint8*)InGlyphBitmap.buffer);
 
 		OutResult.width = InGlyphBitmap.width + SPACE_NEED_EXPENDx2;
 		OutResult.height = InGlyphBitmap.height + SPACE_NEED_EXPENDx2;
@@ -515,7 +506,7 @@ void ULGUIFreeTypeRenderFontData::CreateFontTexture(int oldTextureSize, int newT
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0));
+	texture = CreateTexture(newTextureSize);
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 	texture->SRGB = true;
@@ -545,6 +536,11 @@ void ULGUIFreeTypeRenderFontData::CreateFontTexture(int oldTextureSize, int newT
 			});
 		}
 	}
+}
+
+UTexture2D* ULGUIFreeTypeRenderFontData::CreateTexture(int InTextureSize)
+{
+	return LGUIUtils::CreateTexture(InTextureSize, FColor(255, 255, 255, 0));
 }
 
 #if WITH_EDITOR
