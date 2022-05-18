@@ -99,7 +99,7 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 	Mip->BulkData.Lock(LOCK_READ_WRITE);
 	void* dataPtr = Mip->BulkData.Realloc(NumBlocksX * NumBlocksY * GPixelFormats[PF_B8G8R8A8].BlockBytes);
 	FColor* pixelPtr = static_cast<FColor*>(dataPtr);
-	for (int i = 0, count = InSize * InSize, pixelSize = sizeof(FColor); i < count; i++)
+	for (int i = 0, count = InSize * InSize; i < count; i++)
 	{
 		pixelPtr[i] = InDefaultColor;
 	}
