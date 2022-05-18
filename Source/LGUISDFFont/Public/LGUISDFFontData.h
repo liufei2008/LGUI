@@ -35,9 +35,9 @@ class LGUISDFFONT_API ULGUISDFFontData : public ULGUIFreeTypeRenderFontData
 public:
 	ULGUISDFFontData();
 private:
-	/** Use these material to render UIText, include clip material. */
+	/** Use these material to render SDF font for UIText, include clip material. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
-		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
+		UMaterialInterface* SDFDefaultMaterials[(int)ELGUICanvasClipType::COUNT];
 	/** Font size when render glyph. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "16", UIMax = "100"))
 		int FontSize = 32;
@@ -62,7 +62,7 @@ private:
 
 public:
 	//Begin ULGUIFontDataBaseObject interface
-	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override { return DefaultMaterials[(int)clipType]; }
+	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override { return SDFDefaultMaterials[(int)clipType]; }
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2f& lineOffset, const FVector2f& fontSpace, const FLGUICharData_HighPrecision& charData,
 		const LGUIRichTextParser::RichTextParseResult& richTextProperty,

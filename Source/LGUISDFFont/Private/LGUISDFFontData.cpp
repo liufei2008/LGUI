@@ -454,7 +454,7 @@ void ULGUISDFFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 			ReloadFont();
 		}
 		if (
-			PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISDFFontData, DefaultMaterials)
+			PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISDFFontData, SDFDefaultMaterials)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISDFFontData, ItalicAngle)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISDFFontData, BoldRatio)
 			)
