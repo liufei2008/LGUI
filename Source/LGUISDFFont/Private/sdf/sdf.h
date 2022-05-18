@@ -253,7 +253,7 @@ void sdfBuildDistanceFieldNoAlloc(unsigned char* out, int outstride, float radiu
 		for (y = 1; y < height-1; y++) {
 			for (x = 1; x < width-1; x++) {
 				int k = x+y*width, kn, ch = 0;
-				struct SDFpoint c = { (float)x, (float)y }, pt;
+				struct SDFpoint c = { (float)x, (float)y }, pt = { 0, 0 };
 				float pd = tdist[k], d;
 				// (-1,-1)
 				kn = k - 1 - width;
@@ -307,7 +307,7 @@ void sdfBuildDistanceFieldNoAlloc(unsigned char* out, int outstride, float radiu
 		for (y = height-2; y > 0 ; y--) {
 			for (x = width-2; x > 0; x--) {
 				int k = x+y*width, kn, ch = 0;
-				struct SDFpoint c = { (float)x, (float)y }, pt;
+				struct SDFpoint c = { (float)x, (float)y }, pt = { 0, 0 };
 				float pd = tdist[k], d;
 				// (1,0)
 				kn = k + 1;
