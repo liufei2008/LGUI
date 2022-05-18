@@ -18,7 +18,7 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	{
 		if (standaloneInputDataArray.Num() == 0)
 		{
-			FVector2D mousePos = FVector2D::ZeroVector;
+			FVector2D mousePos = FVector2D(eventData->pointerPosition);
 			GetMousePosition(mousePos);
 			eventData->pointerPosition = FVector(mousePos, 0);
 
