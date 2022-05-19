@@ -271,7 +271,11 @@ ULGUIRenderTargetGeometrySource::ULGUIRenderTargetGeometrySource()
 void ULGUIRenderTargetGeometrySource::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
+bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
+{
+	if (StaticMeshComp.IsValid())return true;
 	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)
 	{
 		if (auto ParentComp = this->GetAttachParent())
@@ -286,6 +290,7 @@ void ULGUIRenderTargetGeometrySource::BeginPlay()
 						StaticMeshComp->SetMaterial(0, MaterialInstance);
 					}
 				}
+				return true;
 			}
 			else
 			{
@@ -297,6 +302,7 @@ void ULGUIRenderTargetGeometrySource::BeginPlay()
 			}
 		}
 	}
+	return false;
 }
 
 FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
@@ -648,7 +654,7 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 			MaterialInstance = UMaterialInstanceDynamic::Create(SourceMat, this);
 			if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh && bOverrideStaticMeshMaterial)
 			{
-				if (StaticMeshComp.IsValid())
+				if (CheckStaticMesh())
 				{
 					StaticMeshComp->SetMaterial(0, MaterialInstance);
 				}
@@ -889,7 +895,7 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 		break;
 	case ELGUIRenderTargetGeometryMode::StaticMesh:
 	{
-		if (StaticMeshComp.IsValid())
+		if (CheckStaticMesh())
 		{
 			FHitResult HitResult;
 			FCollisionQueryParams QueryParams;

@@ -27,11 +27,6 @@ ULGUIRenderTargetInteraction::ULGUIRenderTargetInteraction()
 void ULGUIRenderTargetInteraction::BeginPlay()
 {
 	Super::BeginPlay();
-	GeometrySource = GetOwner()->FindComponentByClass<ULGUIRenderTargetGeometrySource>();
-	if (GeometrySource.IsValid())
-	{
-		TargetCanvas = GeometrySource->GetCanvas();
-	}
 	PointerEventData = NewObject<ULGUIPointerEventData>(this);
 }
 
@@ -44,15 +39,32 @@ void ULGUIRenderTargetInteraction::TickComponent(float DeltaTime, ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (TargetCanvas.IsValid()
-		&& GeometrySource.IsValid()
-		&& InputPointerEventData.IsValid()
-		)
+	if (!GeometrySource.IsValid())
 	{
-		FHitResultContainerStruct hitResultContainer;
-		bool lineTraceHitSomething = LineTrace(hitResultContainer);
-		ProcessPointerEvent(PointerEventData, lineTraceHitSomething, hitResultContainer);
+		GeometrySource = GetOwner()->FindComponentByClass<ULGUIRenderTargetGeometrySource>();
+		if (!GeometrySource.IsValid())
+		{
+			auto ErrorMsg = LOCTEXT("GeometrySourceNotValid", "[ULGUIRenderTargetInteraction::TickComponent] GeometrySource is not valid! LGUIRenderTargetInteraction need a valid LGUIRenderTargetGeometrySource component on the same actor!");
+			UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
+			return;
+		}
 	}
+	if (!TargetCanvas.IsValid())
+	{
+		TargetCanvas = GeometrySource->GetCanvas();
+		if (!TargetCanvas.IsValid())
+		{
+			auto ErrorMsg = LOCTEXT("TargetCanvasNotValid", "[ULGUIRenderTargetInteraction::TickComponent] TargetCanvas is not valid! LGUIRenderTargetInteraction need to get a vaild LGUICanvas from GeometrySource!");
+			UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
+			return;
+		}
+	}
+	if (!InputPointerEventData.IsValid())
+		return;
+
+	FHitResultContainerStruct hitResultContainer;
+	bool lineTraceHitSomething = LineTrace(hitResultContainer);
+	ProcessPointerEvent(PointerEventData, lineTraceHitSomething, hitResultContainer);
 }
 
 void ULGUIRenderTargetInteraction::ActivateRaycaster()
