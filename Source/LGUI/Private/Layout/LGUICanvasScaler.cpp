@@ -19,9 +19,9 @@ ULGUICanvasScaler::ULGUICanvasScaler()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void ULGUICanvasScaler::BeginPlay()
+void ULGUICanvasScaler::OnEnable()
 {
-	Super::BeginPlay();
+	Super::OnEnable();
 	CheckCanvas();
 	SetCanvasProperties();
 	if (CheckCanvas())
@@ -52,16 +52,9 @@ void ULGUICanvasScaler::BeginPlay()
 	}
 }
 
-
-
-void ULGUICanvasScaler::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void ULGUICanvasScaler::OnDisable()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
-void ULGUICanvasScaler::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
+	Super::OnDisable();
 	if (_ViewportResizeDelegateHandle.IsValid())
 	{
 		if (auto world = GetWorld())

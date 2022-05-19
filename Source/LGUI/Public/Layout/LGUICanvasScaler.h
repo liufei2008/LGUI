@@ -3,9 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Camera/PlayerCameraManager.h"
-#include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/LGUILifeCycleBehaviour.h"
 #include "LGUICanvasScaler.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
@@ -31,7 +30,7 @@ enum class LGUIScreenMatchMode :uint8
  * One hierarchy should only have one UICanvasScalar.
  */
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUICanvasScaler :public UActorComponent
+class LGUI_API ULGUICanvasScaler :public ULGUILifeCycleBehaviour
 {
 	GENERATED_BODY()
 
@@ -39,9 +38,8 @@ public:
 	ULGUICanvasScaler();
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+	virtual void OnEnable() override;
+	virtual void OnDisable()override;
 
 	void OnRegister();
 	void OnUnregister();

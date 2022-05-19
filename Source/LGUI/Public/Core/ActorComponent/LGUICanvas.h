@@ -37,11 +37,11 @@ enum class ELGUIRenderMode :uint8
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
-	None,
+	None		UMETA(DisplayName = "No Clip"),
 	/** Clip content by a rectange area, with edge feather. Support nested rect clip. */
-	Rect,
+	Rect		UMETA(DisplayName = "Rect Clip"),
 	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
-	Texture,
+	Texture		UMETA(DisplayName = "Texture Clip"),
 
 	COUNT		UMETA(Hidden),
 };
