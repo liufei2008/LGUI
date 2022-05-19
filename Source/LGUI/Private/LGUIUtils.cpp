@@ -88,12 +88,11 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 	PlatformData->SizeX = InSize;
 	PlatformData->SizeY = InSize;
 	PlatformData->PixelFormat = PF_B8G8R8A8;
-	texture->SetPlatformData(PlatformData);
 	// Allocate first mipmap.
 	int32 NumBlocksX = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeX;
 	int32 NumBlocksY = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeY;
 	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	texture->GetPlatformData()->Mips.Add(Mip);
+	PlatformData->Mips.Add(Mip);
 	Mip->SizeX = InSize;
 	Mip->SizeY = InSize;
 	Mip->BulkData.Lock(LOCK_READ_WRITE);
@@ -104,6 +103,7 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 		pixelPtr[i] = InDefaultColor;
 	}
 	Mip->BulkData.Unlock();
+	texture->SetPlatformData(PlatformData);
 	return texture;
 }
 

@@ -107,15 +107,15 @@ UTexture2D* ULGUISDFFontData::CreateTexture(int InTextureSize)
 		NAME_None,
 		RF_Transient
 		);
-	ResultTexture->PlatformData = new FTexturePlatformData();
-	ResultTexture->PlatformData->SizeX = InTextureSize;
-	ResultTexture->PlatformData->SizeY = InTextureSize;
-	ResultTexture->PlatformData->PixelFormat = PF_R8;
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = InTextureSize;
+	PlatformData->SizeY = InTextureSize;
+	PlatformData->PixelFormat = PF_R8;
 	// Allocate first mipmap.
 	int32 NumBlocksX = InTextureSize / GPixelFormats[PF_R8].BlockSizeX;
 	int32 NumBlocksY = InTextureSize / GPixelFormats[PF_R8].BlockSizeY;
 	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	ResultTexture->PlatformData->Mips.Add(Mip);
+	PlatformData->Mips.Add(Mip);
 	Mip->SizeX = InTextureSize;
 	Mip->SizeY = InTextureSize;
 	int DataSize = NumBlocksX * NumBlocksY * GPixelFormats[PF_R8].BlockBytes;
@@ -123,6 +123,7 @@ UTexture2D* ULGUISDFFontData::CreateTexture(int InTextureSize)
 	void* dataPtr = Mip->BulkData.Realloc(DataSize);
 	FMemory::Memzero(dataPtr, DataSize);
 	Mip->BulkData.Unlock();
+	ResultTexture->SetPlatformData(PlatformData);
 	return ResultTexture;
 }
 
