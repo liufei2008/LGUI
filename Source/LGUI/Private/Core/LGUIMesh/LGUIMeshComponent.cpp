@@ -124,8 +124,7 @@ public:
 		Sections.SetNumZeroed(SrcSections.Num());
 		for (int SectionIndex = 0; SectionIndex < SrcSections.Num(); SectionIndex++)
 		{
-			auto SrcSection = SrcSections[SectionIndex];
-			Sections[SectionIndex] = CreateSectionData(SrcSection);
+			Sections[SectionIndex] = CreateSectionData(SrcSections[SectionIndex].Get());
 		}
 
 		auto LGUIMeshSceneProxy = this;
@@ -135,7 +134,7 @@ public:
 			});
 	}
 
-	void AddSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	void AddSectionData(FLGUIMeshSection* SrcSection)
 	{
 		auto Section = CreateSectionData(SrcSection);
 		if (Section != nullptr)
@@ -155,7 +154,7 @@ public:
 		Sections.Add(Section);
 	}
 
-	FLGUIMeshProxySection* CreateSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	FLGUIMeshProxySection* CreateSectionData(FLGUIMeshSection* SrcSection)
 	{
 		if (SrcSection->vertices.Num() == 0 || SrcSection->triangles.Num() == 0)
 		{
@@ -237,7 +236,7 @@ public:
 		delete Section;
 	}
 
-	void RecreateSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	void RecreateSectionData(FLGUIMeshSection* SrcSection)
 	{
 		auto OldSection = SrcSection->renderProxy;
 		auto NewSection = CreateSectionData(SrcSection);
@@ -330,9 +329,9 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts
-		, FLGUIIndexType* MeshIndexData, uint32 IndexDataLength
-		, int8 AdditionalChannelFlags
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, const int32& NumVerts
+		, FLGUIIndexType* MeshIndexData, const uint32& IndexDataLength
+		, const int8& AdditionalChannelFlags
 		, FLGUIMeshProxySection* Section)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionRT);
@@ -379,12 +378,6 @@ public:
 			}
 			if(IsSupportUERenderer)
 			{
-				int meshNumVert = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
-				if (meshNumVert != NumVerts)//for some unknown reason, in mobile platform, VertexBuffers.PositionVertexBuffer/StaticMeshVertexBuffer/ColorVertexBuffer 's vertex count changed
-				{
-					UE_LOG(LGUI, Warning, TEXT("Vert count not equal, NewData NumVerts:%d, VertBuffer NumVert:%d"), NumVerts, meshNumVert);
-					NumVerts = FMath::Min(NumVerts, meshNumVert);
-				}
 				if (AdditionalChannelFlags == 0)
 				{
 					for (int i = 0; i < NumVerts; i++)
@@ -455,8 +448,6 @@ public:
 			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
 			RHIUnlockIndexBuffer(Section->IndexBuffer.IndexBufferRHI);
 		}
-		delete[]MeshVertexData;
-		delete[]MeshIndexData;
 	}
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
@@ -674,11 +665,11 @@ void ULGUIMeshComponent::CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		if (InMeshSection->renderProxy != nullptr)
 		{
-			LGUIMeshSceneProxy->RecreateSectionData(InMeshSection);
+			LGUIMeshSceneProxy->RecreateSectionData(InMeshSection.Get());
 		}
 		else
 		{
-			LGUIMeshSceneProxy->AddSectionData(InMeshSection);
+			LGUIMeshSceneProxy->AddSectionData(InMeshSection.Get());
 		}
 	}
 	else
@@ -697,21 +688,43 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 	}
 	if (SceneProxy)
 	{
-		auto Section = InMeshSection->renderProxy;
+		struct UpdateMeshSectionDataStruct
+		{
+			TArray<FDynamicMeshVertex> VertexBufferData;
+			int32 NumVerts;
+			TArray<FLGUIIndexType> IndexBufferData;
+			uint32 IndexBufferDataLength;
+			int8 AdditionalShaderChannelFlags;
+			FLGUIMeshProxySection* Section;
+			FLGUIMeshSceneProxy* SceneProxy;
+		};
+		UpdateMeshSectionDataStruct* UpdateData = new UpdateMeshSectionDataStruct();
+		UpdateData->Section = InMeshSection->renderProxy;
 		//vertex data
 		const int32 NumVerts = InMeshSection->vertices.Num();
-		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		FMemory::Memcpy(VertexBufferData, InMeshSection->vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
-		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		UpdateData->VertexBufferData.AddUninitialized(NumVerts);
+		FMemory::Memcpy(UpdateData->VertexBufferData.GetData(), InMeshSection->vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
+		UpdateData->NumVerts = NumVerts;
+		UpdateData->SceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		const int32 NumIndices = InMeshSection->triangles.Num();
-		const uint32 IndexDataLength = NumIndices * sizeof(FLGUIIndexType);
-		FLGUIIndexType* IndexBufferData = new FLGUIIndexType[NumIndices];
-		FMemory::Memcpy(IndexBufferData, InMeshSection->triangles.GetData(), IndexDataLength);
+		const uint32 IndexBufferDataLength = NumIndices * sizeof(FLGUIIndexType);
+		UpdateData->IndexBufferData.AddUninitialized(NumIndices);
+		FMemory::Memcpy(UpdateData->IndexBufferData.GetData(), InMeshSection->triangles.GetData(), IndexBufferDataLength);
+		UpdateData->IndexBufferDataLength = IndexBufferDataLength;
+		UpdateData->AdditionalShaderChannelFlags = AdditionalShaderChannelFlags;
 		//update data
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags, Section](FRHICommandListImmediate& RHICmdList)
+			[UpdateData](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags, Section);
+				UpdateData->SceneProxy->UpdateSection_RenderThread(
+					UpdateData->VertexBufferData.GetData()
+					, UpdateData->NumVerts
+					, UpdateData->IndexBufferData.GetData()
+					, UpdateData->IndexBufferDataLength
+					, UpdateData->AdditionalShaderChannelFlags
+					, UpdateData->Section
+				);
+				delete UpdateData;
 			});
 	}
 }
