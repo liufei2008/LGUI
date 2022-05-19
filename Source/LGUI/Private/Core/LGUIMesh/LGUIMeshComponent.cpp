@@ -157,7 +157,11 @@ public:
 
 	FLGUIMeshProxySection* CreateSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
 	{
-		if (SrcSection->vertices.Num() == 0 || SrcSection->triangles.Num() == 0)return nullptr;
+		if (SrcSection->vertices.Num() == 0 || SrcSection->triangles.Num() == 0)
+		{
+			SrcSection->renderProxy = nullptr;
+			return nullptr;
+		}
 		FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
 		// vertex and index buffer
 		const auto& SrcVertices = SrcSection->vertices;
@@ -896,6 +900,7 @@ TSharedPtr<FLGUIMeshSection> ULGUIMeshComponent::GetMeshSection()
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
+	//screen space UI no need to update bounds
 	if (IsSupportUERenderer)
 	{
 		if (MeshSections.Num() <= 0)
