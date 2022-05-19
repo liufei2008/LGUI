@@ -56,7 +56,7 @@ private:
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bFlipVerticalOnGLES = true;
-	TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
+	mutable TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
 	mutable TWeakObjectPtr<class ULGUICanvas> TargetCanvasObject = nullptr;
 
 
@@ -73,6 +73,7 @@ private:
 	float ComputeComponentWidth() const;
 	float ComputeComponentHeight() const;
 	float ComputeComponentThickness() const;
+	bool CheckStaticMesh()const;
 public:
 	/* UPrimitiveComponent Interface */
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;

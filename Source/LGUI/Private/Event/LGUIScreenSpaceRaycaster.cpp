@@ -16,19 +16,6 @@ ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 void ULGUIScreenSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
-	auto Canvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
-	if (!IsValid(Canvas) || !Canvas->IsRootCanvas())
-	{
-		auto ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceRaycaster::BeginPlay]Canvas is not valid! LGUIScreenSpaceRaycaster can only attach to ScreenSpaceUIRoot!");
-		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
-#if WITH_EDITOR
-		LGUIUtils::EditorNotification(ErrorMsg);
-#endif
-	}
-	else
-	{
-		RootCanvas = Canvas;
-	}
 }
 
 bool ULGUIScreenSpaceRaycaster::ShouldSkipUIItem(UUIItem* UIItem)
@@ -46,8 +33,20 @@ bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointer
 bool ULGUIScreenSpaceRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (!RootCanvas.IsValid())
-		return false;
-	if (RootCanvas->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
+	{
+		auto Canvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+		if (!IsValid(Canvas) || !Canvas->IsRootCanvas())
+		{
+			auto ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceRaycaster::GenerateRay]Canvas is not valid! LGUIScreenSpaceRaycaster can only attach to ScreenSpaceUIRoot!");
+			UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
+			return false;
+		}
+		else
+		{
+			RootCanvas = Canvas;
+		}
+	}
+	if (RootCanvas->GetActualRenderMode() != ELGUIRenderMode::ScreenSpaceOverlay)
 		return false;
 
 	auto ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
