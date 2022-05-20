@@ -5,7 +5,6 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
-#include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -203,7 +202,7 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 {
 	if (!IsValid(font))
 	{
-		font = ULGUIFontData::GetDefaultFont();
+		font = ULGUIFontData_BaseObject::GetDefaultFont();
 	}
 	font->InitFont();
 	CheckFontAdditionalShaderChannels();
@@ -220,7 +219,7 @@ UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
 	{
 		if (!IsValid(font))
 		{
-			font = ULGUIFontData::GetDefaultFont();
+			font = ULGUIFontData_BaseObject::GetDefaultFont();
 		}
 		font->InitFont();
 		CheckFontAdditionalShaderChannels();
@@ -318,7 +317,7 @@ void UUIText::EditorForceUpdate()
 	visibleCharCount = VisibleCharCountInString(text.ToString());
 	if (!IsValid(font))
 	{
-		font = ULGUIFontData::GetDefaultFont();
+		font = ULGUIFontData_BaseObject::GetDefaultFont();
 		if (IsValid(font))
 		{
 			font->AddUIText(this);

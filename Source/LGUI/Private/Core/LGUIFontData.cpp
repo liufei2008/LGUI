@@ -518,13 +518,3 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	}
 }
 #endif
-ULGUIFontData* ULGUIFontData::GetDefaultFont()
-{
-	static auto defaultFont = LoadObject<ULGUIFontData>(NULL, TEXT("/LGUI/DefaultFont"));
-	if (defaultFont == nullptr)
-	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIFontData::GetDefaultFont]Load default font error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
-		return nullptr;
-	}
-	return defaultFont;
-}
