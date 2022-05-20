@@ -89,6 +89,10 @@ protected:
 	virtual void ScaleDownUVofCachedChars()override;
 	virtual bool RenderGlyph(const TCHAR& charCode, const float& charSize, FGlyphBitmap& OutResult)override;
 	virtual void ClearCharDataCache()override;
+
+	//SDF font already have space between glyphs
+	virtual int32 Get_SPACE_NEED_EXPEND()const override { return 0; };
+	virtual int32 Get_SPACE_BETWEEN_GLYPH()const override { return 0; };
 #if WITH_EDITOR
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent);
 #endif
