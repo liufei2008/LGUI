@@ -649,6 +649,13 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 			GEditor->UndoTransaction(false);
 			}, 1);
 	}
+
+	ULGUIEditorManagerObject::AddOneShotTickFunction([this]() {
+		if (CleanupInvalidLinkToSubPrefabObject())
+		{
+			this->Modify();
+		}
+		}, 1);
 }
 
 void ULGUIPrefabHelperObject::CheckAttachment()
@@ -725,6 +732,35 @@ UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const
 	{
 		return Super::GetWorld();
 	}
+}
+
+bool ULGUIPrefabHelperObject::CleanupInvalidLinkToSubPrefabObject()
+{
+	auto IsValidParentLinkedGuid = [&](const FGuid& InCheckGuid) {
+		for (auto& SubPrefabKeyValue : SubPrefabMap)
+		{
+			auto& SubPrefabData = SubPrefabKeyValue.Value;
+			if (SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Contains(InCheckGuid))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
+	TSet<FGuid> GuidsToRemove;
+	for (auto& KeyValue : MapGuidToObject)
+	{
+		if (!IsValidParentLinkedGuid(KeyValue.Key))
+		{
+			GuidsToRemove.Add(KeyValue.Key);
+		}
+	}
+	for (auto& Item : GuidsToRemove)
+	{
+		MapGuidToObject.Remove(Item);
+	}
+	return GuidsToRemove.Num() > 0;
 }
 
 #pragma region RevertAndApply
@@ -1248,27 +1284,33 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetPrefabAssetBySubPrefabObject(UObject* I
 
 bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 {
-	TSet<AActor*> KeysToRemove;
-	for (auto& KeyValue : SubPrefabMap)
+	bool bAnythingChanged = false;
+
+	//invalid object
 	{
-		if (!IsValid(KeyValue.Key) || !IsValid(KeyValue.Value.PrefabAsset))
+		TSet<AActor*> KeysToRemove;
+		for (auto& KeyValue : SubPrefabMap)
 		{
-			KeysToRemove.Add(KeyValue.Key);
+			if (!IsValid(KeyValue.Key) || !IsValid(KeyValue.Value.PrefabAsset))
+			{
+				KeysToRemove.Add(KeyValue.Key);
+			}
 		}
-	}
-	for (auto& Item : KeysToRemove)
-	{
-		SubPrefabMap.Remove(Item);
-	}
-	if (KeysToRemove.Num() > 0)
-	{
-		bAnythingDirty = true;
-		if (OnSubPrefabNewVersionUpdated.IsBound())
+		for (auto& Item : KeysToRemove)
 		{
-			OnSubPrefabNewVersionUpdated.Broadcast();
+			SubPrefabMap.Remove(Item);
 		}
+		if (KeysToRemove.Num() > 0)
+		{
+			bAnythingDirty = true;
+			if (OnSubPrefabNewVersionUpdated.IsBound())
+			{
+				OnSubPrefabNewVersionUpdated.Broadcast();
+			}
+		}
+		bAnythingChanged = bAnythingChanged || KeysToRemove.Num() > 0;
 	}
-	return KeysToRemove.Num() > 0;
+	return bAnythingChanged;
 }
 
 #if WITH_EDITOR

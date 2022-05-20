@@ -20,12 +20,16 @@ class LGUI_API ULGUIPrefabHelperObject : public UObject
 public:	
 	ULGUIPrefabHelperObject();
 
+	/** Prefab object asset, null means this is a level prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset = nullptr;
+	/** Root actor of this prefab, null means this is a level prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
+	/** Map from guid to object, include all subprefab's object. Note object guid is not equals to subprefab's same object's guid. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<FGuid, UObject*> MapGuidToObject;
+	/** Map to sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 
@@ -110,6 +114,12 @@ private:
 	FAttachmentActorStruct AttachmentActor;
 	void CheckAttachment();
 	UWorld* GetPrefabWorld()const;
+
+	/**
+	 * For Level prefab only. Object link could still exist if delete subprefab's root actor by UE's delete function.
+	 * @return true if anything change
+	 */
+	bool CleanupInvalidLinkToSubPrefabObject();
 
 	struct FNotificationContainer
 	{
