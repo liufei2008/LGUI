@@ -5,7 +5,8 @@
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIEditorModule.h"
-
+#include "Core/Actor/UIContainerActor.h"
+#include "Core/ActorComponent/UIItem.h"
 
 
 FLGUIPrefabInstanceThumbnailScene::FLGUIPrefabInstanceThumbnailScene()
@@ -72,6 +73,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			{
 				bIsUI = false;
 			}
+
 			bool isFirstBounds = true;
 			GetBoundsRecursive(rootActor->GetRootComponent(), PreviewActorsBound, isFirstBounds);
 			if (isFirstBounds)
@@ -88,21 +90,34 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FBoxSphereBounds& OutBounds, bool& IsFirstPrimitive)const
 {
 	if (!IsValid(RootComp))return;
-	bool canCalculate = true;
-	if (auto UIItem = Cast<UUIItem>(RootComp))
+	FBoxSphereBounds Bounds;
+	bool bIsValidBounds = true;
+	if (RootComp->IsRegistered())
 	{
-		canCalculate = UIItem->GetIsUIActiveInHierarchy();
-	}
-	if (canCalculate)
-	{
-		if (IsFirstPrimitive)
+		if (auto UIItem = Cast<UUIItem>(RootComp))
 		{
-			OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
-			IsFirstPrimitive = false;
+			if (UIItem->GetIsUIActiveInHierarchy())
+			{
+				Bounds = UIItem->Bounds;
+				bIsValidBounds = true;
+			}
 		}
-		else
+		else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(RootComp))
 		{
-			OutBounds = OutBounds + RootComp->CalcBounds(RootComp->GetComponentTransform());
+			Bounds = PrimitiveComp->Bounds;
+			bIsValidBounds = true;
+		}
+		if (bIsValidBounds)
+		{
+			if (IsFirstPrimitive)
+			{
+				OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
+				IsFirstPrimitive = false;
+			}
+			else
+			{
+				OutBounds = OutBounds + RootComp->CalcBounds(RootComp->GetComponentTransform());
+			}
 		}
 	}
 

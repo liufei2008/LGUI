@@ -144,9 +144,28 @@ FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
 	bool IsFirstBounds = true;
 	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
-		if (auto Actor = Cast<AActor>(KeyValue.Value))
+		FBox Box; bool bIsValidBox = false;
+		if (auto SceneComp = Cast<USceneComponent>(KeyValue.Value))
 		{
-			auto Box = Actor->GetComponentsBoundingBox();
+			if (SceneComp->IsRegistered())
+			{
+				if (auto UIItem = Cast<UUIItem>(SceneComp))
+				{
+					if (UIItem->GetIsUIActiveInHierarchy())
+					{
+						Box = UIItem->Bounds.GetBox();
+						bIsValidBox = true;
+					}
+				}
+				else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(SceneComp))
+				{
+					Box = UIItem->Bounds.GetBox();
+					bIsValidBox = true;
+				}
+			}
+		}
+		if (bIsValidBox)
+		{
 			if (IsFirstBounds)
 			{
 				IsFirstBounds = false;
