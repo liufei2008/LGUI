@@ -15,6 +15,7 @@
 ULGUISDFFontData::ULGUISDFFontData()
 {
 	initialSize = ELGUIAtlasTextureSizeType::SIZE_1024x1024;
+	rectPackCellSize = 1024;
 }
 
 bool ULGUISDFFontData::GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult)
@@ -28,7 +29,7 @@ bool ULGUISDFFontData::GetCharDataFromCache(const TCHAR& charCode, const float& 
 		OutResult.height -= vertexOffset + vertexOffset;
 		OutResult.xoffset += vertexOffset;
 		OutResult.yoffset -= vertexOffset;
-		float uvOffset = vertexOffset * oneDiviceTextureSize;
+		float uvOffset = vertexOffset * oneDivideTextureSize;
 		OutResult.uv0X += uvOffset;
 		OutResult.uv0Y -= uvOffset;
 		OutResult.uv3X -= uvOffset;

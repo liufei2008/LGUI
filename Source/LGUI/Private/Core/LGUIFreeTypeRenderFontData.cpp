@@ -198,21 +198,20 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			packingAtlasData->EnsureAtlasTexture(packingTag);
 			texture = packingAtlasData->atlasTexture;
 			textureSize = texture->GetSizeX();
-			oneDiviceTextureSize = 1.0f / textureSize;
+			oneDivideTextureSize = 1.0f / textureSize;
 		}
 		else
 		{
 			texture = nullptr;
 
-			textureSize = 256;//default font texture size is 256
-			binPack = rbp::MaxRectsBinPack(textureSize, textureSize);
+			textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
+			binPack = rbp::MaxRectsBinPack(rectPackCellSize, rectPackCellSize);
 			if (initialSize != ELGUIAtlasTextureSizeType::SIZE_256x256)
 			{
-				textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
-				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, false);
+				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, rectPackCellSize, false);
 			}
 			RenewFontTexture(0, textureSize);
-			oneDiviceTextureSize = 1.0f / textureSize;
+			oneDivideTextureSize = 1.0f / textureSize;
 		}
 		ClearCharDataCache();
 	}
@@ -370,7 +369,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 				UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
 				texture = packingAtlasData->atlasTexture;
 				textureSize = newTextureSize;
-				oneDiviceTextureSize = 1.0f / textureSize;
+				oneDivideTextureSize = 1.0f / textureSize;
 			}
 			else
 			{
@@ -384,13 +383,13 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 					newTextureSize = textureSize + textureSize;
 					UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
 					//expend by multiply 2
-					calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects);
+					calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects, rectPackCellSize);
 					calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
 					freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
 
 					RenewFontTexture(textureSize, newTextureSize);
 					textureSize = newTextureSize;
-					oneDiviceTextureSize = 1.0f / textureSize;
+					oneDivideTextureSize = 1.0f / textureSize;
 
 					//scale down uv of prev chars
 					ScaleDownUVofCachedChars();
@@ -416,8 +415,23 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 
 bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult)
 {
-	int charRectWidth = InGlyphBitmap.width + SPACE_BETWEEN_GLYPHx2;
-	int charRectHeight = InGlyphBitmap.height + SPACE_BETWEEN_GLYPHx2;
+	if (InGlyphBitmap.width <= 0 || InGlyphBitmap.height <= 0)//glyph no need to display, could be space
+	{
+		OutResult.width = InGlyphBitmap.width;
+		OutResult.height = InGlyphBitmap.height;
+		OutResult.xoffset = InGlyphBitmap.hOffset;
+		OutResult.yoffset = InGlyphBitmap.vOffset;
+		OutResult.xadvance = InGlyphBitmap.hAdvance;
+		OutResult.uv0X = OutResult.uv0Y = OutResult.uv3X = OutResult.uv3Y = 0.0f;//(0,0) point is transparent
+		return true;
+	}
+	const auto SPACE_NEED_EXPEND = this->Get_SPACE_NEED_EXPEND();
+	const auto SPACE_NEED_EXPENDx2 = SPACE_NEED_EXPEND + SPACE_NEED_EXPEND;
+	const auto SPACE_BETWEEN_GLYPH_RECT = this->Get_SPACE_BETWEEN_GLYPH() + SPACE_NEED_EXPEND;
+	const auto SPACE_BETWEEN_GLYPH_RECTx2 = SPACE_BETWEEN_GLYPH_RECT + SPACE_BETWEEN_GLYPH_RECT;
+
+	int charRectWidth = InGlyphBitmap.width + SPACE_BETWEEN_GLYPH_RECTx2;
+	int charRectHeight = InGlyphBitmap.height + SPACE_BETWEEN_GLYPH_RECTx2;
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
 
 	auto packedRect = InOutBinpack.Insert(charRectWidth, charRectHeight, method);
@@ -428,10 +442,10 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGl
 	else//this area can fit the char, so copy pixel color into texture
 	{
 		//remove space
-		packedRect.x += SPACE_BETWEEN_GLYPH;
-		packedRect.y += SPACE_BETWEEN_GLYPH;
-		packedRect.width -= SPACE_BETWEEN_GLYPHx2;
-		packedRect.height -= SPACE_BETWEEN_GLYPHx2;
+		packedRect.x += SPACE_BETWEEN_GLYPH_RECT;
+		packedRect.y += SPACE_BETWEEN_GLYPH_RECT;
+		packedRect.width -= SPACE_BETWEEN_GLYPH_RECTx2;
+		packedRect.height -= SPACE_BETWEEN_GLYPH_RECTx2;
 
 		auto region = new FUpdateTextureRegion2D(packedRect.x, packedRect.y, 0, 0, InGlyphBitmap.width, InGlyphBitmap.height);
 		UpdateFontTextureRegion(InTexture, region, packedRect.width * InGlyphBitmap.pixelSize, InGlyphBitmap.pixelSize, (uint8*)InGlyphBitmap.buffer);
@@ -441,10 +455,10 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGl
 		OutResult.xoffset = InGlyphBitmap.hOffset - SPACE_NEED_EXPEND;
 		OutResult.yoffset = InGlyphBitmap.vOffset + SPACE_NEED_EXPEND;
 		OutResult.xadvance = InGlyphBitmap.hAdvance;
-		OutResult.uv0X = oneDiviceTextureSize * (packedRect.x - SPACE_NEED_EXPEND);
-		OutResult.uv0Y = oneDiviceTextureSize * (packedRect.y - SPACE_NEED_EXPEND + OutResult.height);
-		OutResult.uv3X = oneDiviceTextureSize * (packedRect.x - SPACE_NEED_EXPEND + OutResult.width);
-		OutResult.uv3Y = oneDiviceTextureSize * (packedRect.y - SPACE_NEED_EXPEND);
+		OutResult.uv0X = oneDivideTextureSize * (packedRect.x - SPACE_NEED_EXPEND);
+		OutResult.uv0Y = oneDivideTextureSize * (packedRect.y - SPACE_NEED_EXPEND + OutResult.height);
+		OutResult.uv3X = oneDivideTextureSize * (packedRect.x - SPACE_NEED_EXPEND + OutResult.width);
+		OutResult.uv3Y = oneDivideTextureSize * (packedRect.y - SPACE_NEED_EXPEND);
 		return true;
 	}
 	return false;
@@ -453,7 +467,7 @@ void ULGUIFreeTypeRenderFontData::ApplyPackingAtlasTextureExpand(UTexture2D* new
 {
 	this->texture = newTexture;
 	textureSize = newTextureSize;
-	oneDiviceTextureSize = 1.0f / textureSize;
+	oneDivideTextureSize = 1.0f / textureSize;
 	//tell UIText to scale down uv
 	for (auto textItem : renderTextArray)
 	{
@@ -562,6 +576,23 @@ void ULGUIFreeTypeRenderFontData::PostEditChangeProperty(FPropertyChangedEvent& 
 			)
 		{
 			ReloadFont();
+		}
+
+		{
+			int powerValue = 0;
+			while (rectPackCellSize > 0)
+			{
+				rectPackCellSize = rectPackCellSize >> 1;
+				powerValue++;
+			}
+			rectPackCellSize = 1;
+			while (powerValue > 0)
+			{
+				rectPackCellSize = rectPackCellSize << 1;
+				powerValue--;
+			}
+			
+			rectPackCellSize = FMath::Clamp(rectPackCellSize, 64, ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize));
 		}
 	}
 }
