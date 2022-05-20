@@ -114,4 +114,6 @@ public:
 
 	virtual void AddUIText(UUIText* InText) {}
 	virtual void RemoveUIText(UUIText* InText) {}
+
+	static ULGUIFontData_BaseObject* GetDefaultFont();
 };
