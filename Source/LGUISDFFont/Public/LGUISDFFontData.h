@@ -81,7 +81,7 @@ protected:
 	float italicSlop; float oneDivideFontSize; float objectScale;
 	TMap<TCHAR, FLGUICharData> charDataMap;
 	TMap<FLGUISDFFontKerningPair, int16> KerningPairsMap;
-	virtual UTexture2D* CreateTexture(int InTextureSize)override;
+	virtual UTexture2D* CreateFontTexture(int InTextureSize)override;
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)override;
 
 	virtual bool GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult)override;

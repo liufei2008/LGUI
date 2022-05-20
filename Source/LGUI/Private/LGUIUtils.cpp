@@ -79,7 +79,7 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 }
 UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObject* InOuter, FName InDefaultName)
 {
-	auto texture = NewObject<UTexture2D>(
+	auto ResultTexture = NewObject<UTexture2D>(
 		InOuter,
 		InDefaultName,
 		RF_Transient
@@ -103,8 +103,8 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 		pixelPtr[i] = InDefaultColor;
 	}
 	Mip->BulkData.Unlock();
-	texture->SetPlatformData(PlatformData);
-	return texture;
+	ResultTexture->SetPlatformData(PlatformData);
+	return ResultTexture;
 }
 
 

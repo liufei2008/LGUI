@@ -41,7 +41,7 @@ enum class ELGUIDynamicFontLineHeightType :uint8
 /**
  * Font asset for UIText to render
  */
-UCLASS(BlueprintType)
+UCLASS(Abstract, BlueprintType)
 class LGUI_API ULGUIFreeTypeRenderFontData : public ULGUIFontData_BaseObject
 {
 	GENERATED_BODY()
@@ -156,9 +156,9 @@ protected:
 	 */
 	bool PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
-	void CreateFontTexture(int oldTextureSize, int newTextureSize);
+	void RenewFontTexture(int oldTextureSize, int newTextureSize);
 
-	virtual UTexture2D* CreateTexture(int InTextureSize);
+	virtual UTexture2D* CreateFontTexture(int InTextureSize)PURE_VIRTUAL(ULGUIFreeTypeRenderFontData::CreateFontTexture, return nullptr;);
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 
 	virtual bool GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult) { return false; };

@@ -438,6 +438,44 @@ void ULGUIFontData::ClearCharDataCache()
 	charDataMap.Empty();
 }
 
+UTexture2D* ULGUIFontData::CreateFontTexture(int InTextureSize)
+{
+	auto ResultTexture = NewObject<UTexture2D>(
+		GetTransientPackage(),
+		NAME_None,
+		RF_Transient
+		);
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = InTextureSize;
+	PlatformData->SizeY = InTextureSize;
+	PlatformData->PixelFormat = PF_B8G8R8A8;
+	// Allocate first mipmap.
+	int32 NumBlocksX = InTextureSize / GPixelFormats[PF_B8G8R8A8].BlockSizeX;
+	int32 NumBlocksY = InTextureSize / GPixelFormats[PF_B8G8R8A8].BlockSizeY;
+	FTexture2DMipMap* Mip = new FTexture2DMipMap();
+	PlatformData->Mips.Add(Mip);
+	Mip->SizeX = InTextureSize;
+	Mip->SizeY = InTextureSize;
+	Mip->BulkData.Lock(LOCK_READ_WRITE);
+	void* dataPtr = Mip->BulkData.Realloc(NumBlocksX * NumBlocksY * GPixelFormats[PF_B8G8R8A8].BlockBytes);
+	FColor* pixelPtr = static_cast<FColor*>(dataPtr);
+	const FColor DefaultColor = FColor(255, 255, 255, 0);
+	for (int i = 0, count = InTextureSize * InTextureSize; i < count; i++)
+	{
+		pixelPtr[i] = DefaultColor;
+	}
+	Mip->BulkData.Unlock();
+	ResultTexture->PlatformData = PlatformData;
+
+	ResultTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+	ResultTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+	ResultTexture->SRGB = false;
+	ResultTexture->Filter = TextureFilter::TF_Trilinear;
+	ResultTexture->UpdateResource();
+
+	return ResultTexture;
+}
+
 void ULGUIFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)
 {
 	Super::ApplyPackingAtlasTextureExpand(newTexture, newTextureSize);

@@ -211,7 +211,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 				textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
 				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, false);
 			}
-			CreateFontTexture(0, textureSize);
+			RenewFontTexture(0, textureSize);
 			oneDiviceTextureSize = 1.0f / textureSize;
 		}
 		ClearCharDataCache();
@@ -388,7 +388,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 					calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
 					freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
 
-					CreateFontTexture(textureSize, newTextureSize);
+					RenewFontTexture(textureSize, newTextureSize);
 					textureSize = newTextureSize;
 					oneDiviceTextureSize = 1.0f / textureSize;
 
@@ -501,17 +501,12 @@ void ULGUIFreeTypeRenderFontData::UpdateFontTextureRegion(UTexture2D* Texture, F
 			});
 	}
 }
-void ULGUIFreeTypeRenderFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
+void ULGUIFreeTypeRenderFontData::RenewFontTexture(int oldTextureSize, int newTextureSize)
 {
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = CreateTexture(newTextureSize);
-	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-	texture->SRGB = true;
-	texture->Filter = TextureFilter::TF_Trilinear;
-	texture->UpdateResource();
+	texture = CreateFontTexture(newTextureSize);
 	texture->AddToRoot();//@todo: is this really need to AddToRoot?
 
 	//copy old texture to new one
@@ -536,11 +531,6 @@ void ULGUIFreeTypeRenderFontData::CreateFontTexture(int oldTextureSize, int newT
 			});
 		}
 	}
-}
-
-UTexture2D* ULGUIFreeTypeRenderFontData::CreateTexture(int InTextureSize)
-{
-	return LGUIUtils::CreateTexture(InTextureSize, FColor(255, 255, 255, 0));
 }
 
 #if WITH_EDITOR

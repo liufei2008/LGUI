@@ -56,6 +56,7 @@ public:
 protected:
 	float boldSize; float italicSlop;
 	TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
+	virtual UTexture2D* CreateFontTexture(int InTextureSize)override;
 	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)override;
 
 	virtual bool GetCharDataFromCache(const TCHAR& charCode, const float& charSize, FLGUICharData_HighPrecision& OutResult)override;

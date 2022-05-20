@@ -100,7 +100,7 @@ void ULGUISDFFontData::ClearCharDataCache()
 	LineHeight = VerticalOffset = -1;
 }
 
-UTexture2D* ULGUISDFFontData::CreateTexture(int InTextureSize)
+UTexture2D* ULGUISDFFontData::CreateFontTexture(int InTextureSize)
 {
 	auto ResultTexture = NewObject<UTexture2D>(
 		GetTransientPackage(),
@@ -124,6 +124,13 @@ UTexture2D* ULGUISDFFontData::CreateTexture(int InTextureSize)
 	FMemory::Memzero(dataPtr, DataSize);
 	Mip->BulkData.Unlock();
 	ResultTexture->SetPlatformData(PlatformData);
+
+	ResultTexture->CompressionSettings = TextureCompressionSettings::TC_DistanceFieldFont;
+	ResultTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+	ResultTexture->SRGB = false;
+	ResultTexture->Filter = TextureFilter::TF_Trilinear;
+	ResultTexture->UpdateResource();
+
 	return ResultTexture;
 }
 
