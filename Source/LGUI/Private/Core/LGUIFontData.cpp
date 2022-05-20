@@ -465,7 +465,7 @@ UTexture2D* ULGUIFontData::CreateFontTexture(int InTextureSize)
 		pixelPtr[i] = DefaultColor;
 	}
 	Mip->BulkData.Unlock();
-	ResultTexture->PlatformData = PlatformData;
+	ResultTexture->SetPlatformData(PlatformData);
 
 	ResultTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	ResultTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
