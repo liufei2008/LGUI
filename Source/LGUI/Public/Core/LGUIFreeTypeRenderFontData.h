@@ -87,19 +87,22 @@ protected:
 		UTexture2D* texture;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIAtlasTextureSizeType initialSize = ELGUIAtlasTextureSizeType::SIZE_1024x1024;
+	/**
+	 * rect pack use small cells to pack glyph in, and move to next cell if current cell is full. smaller value get better performance, but leave more garbage area.
+	 * this value defines the cell size. must not larger then InitialSize and only allow pow of 2.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int32 rectPackCellSize = 256;
 
 	void InitFreeType();
 	void DeinitFreeType();
 	FT_GlyphSlotRec_* RenderGlyphOnFreeType(const TCHAR& charCode, const float& charSize);
 	virtual void FinishDestroy()override;
 
-	/** when draw a rectangle, need to expend 1 pixel to avoid too sharp edge */
-	const int32 SPACE_NEED_EXPEND = 1;
-	const int32 SPACE_NEED_EXPENDx2 = SPACE_NEED_EXPEND * 2;
-	/** space between char in texture */
-	const int32 SPACE_BETWEEN_GLYPH = SPACE_NEED_EXPEND + 1;
-	const int32 SPACE_BETWEEN_GLYPHx2 = SPACE_BETWEEN_GLYPH * 2;
-
+	/** when draw a rectangle, need to expend 1 pixel to avoid too sharp pixel at edge */
+	virtual int32 Get_SPACE_NEED_EXPEND()const { return 1; };
+	/** space between glyph in texture */
+	virtual int32 Get_SPACE_BETWEEN_GLYPH()const { return 1; };
 public:
 	//Begin ULGUIFontData_BaseObject interface
 	virtual void InitFont()override;
@@ -135,7 +138,7 @@ protected:
 	/** current texture size */
 	int32 textureSize;
 	/** 1.0 / textureSize */
-	float oneDiviceTextureSize;
+	float oneDivideTextureSize;
 
 	FT_LibraryRec_* library = nullptr;
 	FT_FaceRec_* face = nullptr;
