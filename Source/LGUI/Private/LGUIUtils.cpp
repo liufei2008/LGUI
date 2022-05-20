@@ -79,20 +79,20 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 }
 UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObject* InOuter, FName InDefaultName)
 {
-	auto texture = NewObject<UTexture2D>(
+	auto ResultTexture = NewObject<UTexture2D>(
 		InOuter,
 		InDefaultName,
 		RF_Transient
 		);
-	texture->PlatformData = new FTexturePlatformData();
-	texture->PlatformData->SizeX = InSize;
-	texture->PlatformData->SizeY = InSize;
-	texture->PlatformData->PixelFormat = PF_B8G8R8A8;
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = InSize;
+	PlatformData->SizeY = InSize;
+	PlatformData->PixelFormat = PF_B8G8R8A8;
 	// Allocate first mipmap.
 	int32 NumBlocksX = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeX;
 	int32 NumBlocksY = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeY;
 	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	texture->PlatformData->Mips.Add(Mip);
+	PlatformData->Mips.Add(Mip);
 	Mip->SizeX = InSize;
 	Mip->SizeY = InSize;
 	Mip->BulkData.Lock(LOCK_READ_WRITE);
@@ -103,7 +103,8 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 		pixelPtr[i] = InDefaultColor;
 	}
 	Mip->BulkData.Unlock();
-	return texture;
+	ResultTexture->PlatformData = PlatformData;
+	return ResultTexture;
 }
 
 
