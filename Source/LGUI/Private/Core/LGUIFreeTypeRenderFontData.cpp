@@ -170,7 +170,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			}
 			else
 			{
-				error = FT_New_Memory_Face(library, fontBinaryArray.GetData(), fontBinaryArray.Num(), fontFace, &face);
+				NewFontFace(fontBinaryArray);
 			}
 		}
 	}
@@ -225,9 +225,8 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 		packingAtlasData->OnTextureSizeExpanded.Remove(packingAtlasTextureExpandDelegateHandle);
 		packingAtlasData = nullptr;
 	}
-	if (face != nullptr)
+	if (library != nullptr)
 	{
-		face = nullptr;
 		auto error = FT_Done_FreeType(library);
 		if (error)
 		{
@@ -238,6 +237,7 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]success, font:%s"), *(this->GetName()));
 		}
 	}
+	face = nullptr;
 	library = nullptr;
 	freeRects.Empty();
 	binPack = rbp::MaxRectsBinPack(256, 256);
