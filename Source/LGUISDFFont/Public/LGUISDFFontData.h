@@ -96,4 +96,7 @@ protected:
 #if WITH_EDITOR
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent);
 #endif
+	virtual void PostInitProperties()override;
+
+	void CheckMaterials();
 };
