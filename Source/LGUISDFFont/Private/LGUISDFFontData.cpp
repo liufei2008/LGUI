@@ -7,10 +7,13 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUIAtlasData.h"
+#include "Utils/LGUIUtils.h"
 #define SDF_IMPLEMENTATION
 #include "sdf/sdf.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+#define LOCTEXT_NAMESPACE "LGUISDFFontData"
 
 ULGUISDFFontData::ULGUISDFFontData()
 {
@@ -479,3 +482,40 @@ void ULGUISDFFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	}
 }
 #endif
+
+void ULGUISDFFontData::PostInitProperties()
+{
+	Super::PostInitProperties();
+	CheckMaterials();
+}
+
+void ULGUISDFFontData::CheckMaterials()
+{
+	for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
+	{
+		if (SDFDefaultMaterials[i] == nullptr)
+		{
+			FString matPath;
+			switch (i)
+			{
+			default:
+			case 0: matPath = TEXT("/LGUI/Materials/LGUI_SDF_Font_NoClip"); break;
+			case 1: matPath = TEXT("/LGUI/Materials/LGUI_SDF_Font_RectClip"); break;
+			case 2: matPath = TEXT("/LGUI/Materials/LGUI_SDF_Font_TextureClip"); break;
+			}
+			auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
+			if (mat == nullptr)
+			{
+				auto errMsg = LOCTEXT("AssignMaterialError_MissingSourceMaterial", "[ULGUISDFFontData::CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure.");
+				UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+				continue;
+			}
+			SDFDefaultMaterials[i] = mat;
+		}
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
