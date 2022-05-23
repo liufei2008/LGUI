@@ -27,7 +27,7 @@ public:
 	}
 };
 
-/** Font asset for UIText to render. Import font asset generated from "Bitmap Font Generator". */
+/** SDF(Signed Distance Field) Font asset for UIText to render smooth scaled sdf font. */
 UCLASS(BlueprintType)
 class LGUISDFFONT_API ULGUISDFFontData : public ULGUIFreeTypeRenderFontData
 {
