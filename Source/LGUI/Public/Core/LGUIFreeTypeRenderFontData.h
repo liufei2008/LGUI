@@ -82,9 +82,11 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName packingTag;
-	/** Texture of this font */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		UTexture2D* texture;
+	/**
+	 * when packing char pixel into one single atlas texture, we will use this size to create a blank texture, then insert char pixel. if texture is full(cannot insert anymore), a new larger texture will be created.
+	 * if initialSize is too small, some lag or freeze may happen when creating new texture.
+	 * if initialSize is too big, it is not much efficient to sample very big texture on GPU.
+	*/
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIAtlasTextureSizeType initialSize = ELGUIAtlasTextureSizeType::SIZE_1024x1024;
 	/**
@@ -93,6 +95,10 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 rectPackCellSize = 256;
+
+	/** Texture of this font */
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+		UTexture2D* texture;
 
 	void InitFreeType();
 	void DeinitFreeType();
@@ -124,11 +130,11 @@ protected:
 		TArray<TWeakObjectPtr<UUIText>> renderTextArray;
 
 	friend class FLGUIFreeTypeRenderFontDataCustomization;
+	/** save data when useExternalFileOrEmbedInToUAsset=false */
 	UPROPERTY()
 		TArray<uint8> fontBinaryArray;
-	/** temp array for storing data, because freetype need to load font to memory and keep alive */
-	UPROPERTY(Transient)
-		TArray<uint8> tempFontBinaryArray;
+	/** temp array for storing font binary data, because freetype need to load font from it so we need keep it alive */
+	TArray<uint8> tempFontBinaryArray;
 	struct FLGUIAtlasData* packingAtlasData = nullptr;
 	FDelegateHandle packingAtlasTextureExpandDelegateHandle;
 

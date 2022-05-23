@@ -39,6 +39,7 @@ public:
 				[
 					SAssignNew(FolderPathTextBox, SEditableTextBox)
 					.Text(InArgs._FolderPath)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.Padding(FMargin(5,3,25,3))
 					.OnTextCommitted(this, &SLGUIFileBrowser::OnPathTextCommited)
 					.OnTextChanged(this, &SLGUIFileBrowser::OnPathTextChanged)
