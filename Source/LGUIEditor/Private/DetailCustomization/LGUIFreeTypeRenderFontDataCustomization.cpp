@@ -99,7 +99,12 @@ void FLGUIFreeTypeRenderFontDataCustomization::CustomizeDetails(IDetailLayoutBui
 			[
 				SNew(SCheckBox)
 				.IsChecked_Lambda([&]() {return TargetScriptPtr->useRelativeFilePath ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
-				.OnCheckStateChanged_Lambda([&](ECheckBoxState State) {TargetScriptPtr->useRelativeFilePath = State == ECheckBoxState::Checked ? true : false; })
+				.OnCheckStateChanged_Lambda([&](ECheckBoxState State) 
+					{
+						TargetScriptPtr->useRelativeFilePath = State == ECheckBoxState::Checked ? true : false; 
+						TargetScriptPtr->ReloadFont();
+						DetailBuilder.ForceRefreshDetails();
+					})
 				[
 					SNew(STextBlock)
 					.Text(LOCTEXT("UseRelativePath","Relative To \"ProjectDir\""))
@@ -122,7 +127,7 @@ void FLGUIFreeTypeRenderFontDataCustomization::CustomizeDetails(IDetailLayoutBui
 			]
 			;
 		}
-		lguiCategory.AddProperty("useExternalFileOrEmbedInToUAsset");
+		lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, useExternalFileOrEmbedInToUAsset));
 	}
 
 	//faces
@@ -273,7 +278,7 @@ FText FLGUIFreeTypeRenderFontDataCustomization::FontFaceOptions_GetCurrentFace()
 {
 	if (TargetScriptPtr->subFaces.Num() == 0 || TargetScriptPtr->fontFace >= TargetScriptPtr->subFaces.Num())
 	{
-		return FText();
+		return LOCTEXT("NoFontFace", "(No Valid Face)");
 	}
 	return FText::FromString(TargetScriptPtr->subFaces[TargetScriptPtr->fontFace]);
 }
@@ -387,6 +392,8 @@ void FLGUIFreeTypeRenderFontDataCustomization::OnPathTextCommitted(const FString
 		}
 	}
 	InPathProperty->SetValue(InString);
+	TargetScriptPtr->ReloadFont();
+	DetailBuilderPtr->ForceRefreshDetails();
 }
 FReply FLGUIFreeTypeRenderFontDataCustomization::OnReloadButtonClicked(IDetailLayoutBuilder* DetailBuilderPtr)
 {
