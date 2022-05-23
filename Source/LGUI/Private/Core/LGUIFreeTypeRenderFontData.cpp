@@ -108,10 +108,6 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 					NewFontFace(tempFontBinaryArray);
 				}
 			}
-			if (error == 0)
-			{
-				fontBinaryArray.Empty();
-			}
 		}
 		else
 		{
@@ -122,58 +118,61 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 	else
 	{
 #if WITH_EDITOR
-		FString FontFilePathStr = fontFilePath;
-		FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
-		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-		if (!PlatformFile.FileExists(*FontFilePathStr))
+		if (true)
 		{
-			if (fontBinaryArray.Num() > 0 && !useExternalFileOrEmbedInToUAsset)
-			{
-				UE_LOG(LGUI, Log, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist! Will use cache data"), *(this->GetName()), *FontFilePathStr);
-			}
-			else
-			{
-				UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
-				return;
-			}
-		}
-
-		if (useExternalFileOrEmbedInToUAsset)
-		{
-			tempFontBinaryArray.Empty();
-			FFileHelper::LoadFileToArray(tempFontBinaryArray, *FontFilePathStr);
-			NewFontFace(tempFontBinaryArray);
-			if (error == 0)
-			{
-				fontBinaryArray.Empty();
-			}
-		}
-		else
-		{
-			FFileHelper::LoadFileToArray(fontBinaryArray, *FontFilePathStr);
-			NewFontFace(fontBinaryArray);
-		}
-#else
-		if (useExternalFileOrEmbedInToUAsset)
-		{
-			auto FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
+			FString FontFilePathStr = fontFilePath;
+			FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
 			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 			if (!PlatformFile.FileExists(*FontFilePathStr))
 			{
-				UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
-				return;
+				if (fontBinaryArray.Num() > 0 && !useExternalFileOrEmbedInToUAsset)
+				{
+					UE_LOG(LGUI, Warning, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist! Will use cache data"), *(this->GetName()), *FontFilePathStr);
+				}
+				else
+				{
+					UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
+					return;
+				}
 			}
 
-			tempFontBinaryArray.Empty();
-			fontBinaryArray.Empty();
-			FFileHelper::LoadFileToArray(tempFontBinaryArray, *FontFilePathStr);
-			error = FT_New_Memory_Face(library, tempFontBinaryArray.GetData(), tempFontBinaryArray.Num(), fontFace, &face);
+			if (useExternalFileOrEmbedInToUAsset)
+			{
+				FFileHelper::LoadFileToArray(tempFontBinaryArray, *FontFilePathStr);
+				NewFontFace(tempFontBinaryArray);
+				if (error == 0)
+				{
+					fontBinaryArray.Empty();
+				}
+			}
+			else
+			{
+				FFileHelper::LoadFileToArray(fontBinaryArray, *FontFilePathStr);
+				NewFontFace(fontBinaryArray);
+			}
 		}
 		else
-		{
-			error = FT_New_Memory_Face(library, fontBinaryArray.GetData(), fontBinaryArray.Num(), fontFace, &face);
-		}
 #endif	
+		{
+			if (useExternalFileOrEmbedInToUAsset)
+			{
+				auto FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
+				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+				if (!PlatformFile.FileExists(*FontFilePathStr))
+				{
+					UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
+					return;
+				}
+
+				fontBinaryArray.Empty();
+				FFileHelper::LoadFileToArray(tempFontBinaryArray, *FontFilePathStr);
+				NewFontFace(tempFontBinaryArray);
+			}
+			else
+			{
+				error = FT_New_Memory_Face(library, fontBinaryArray.GetData(), fontBinaryArray.Num(), fontFace, &face);
+			}
+		}
 	}
 	
 	if (error)
@@ -242,6 +241,11 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 	library = nullptr;
 	freeRects.Empty();
 	binPack = rbp::MaxRectsBinPack(256, 256);
+#if WITH_EDITORONLY_DATA
+	subFaces.Reset();
+#endif
+	fontFace = 0;
+	hasKerning = false;
 	ClearCharDataCache();
 }
 UTexture2D* ULGUIFreeTypeRenderFontData::GetFontTexture()
@@ -575,6 +579,13 @@ void ULGUIFreeTypeRenderFontData::PostEditChangeProperty(FPropertyChangedEvent& 
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, unrealFont)
 			)
 		{
+			if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontType))
+			{
+				if (fontType == ELGUIDynamicFontDataType::UnrealFont)
+				{
+					fontBinaryArray.Empty();//clear cache font data when swich to UnrealFont
+				}
+			}
 			ReloadFont();
 		}
 
