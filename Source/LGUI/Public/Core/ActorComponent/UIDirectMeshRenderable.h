@@ -3,7 +3,6 @@
 #pragma once
 
 #include "UIBaseRenderable.h"
-#include "Core/HudRender/LGUIHudVertex.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "UIDirectMeshRenderable.generated.h"
 

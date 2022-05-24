@@ -10,7 +10,7 @@
 #include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/LGUISettings.h"
 
-void UUIDrawcall::GetCombined(TArray<FLGUIHudVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
+void UUIDrawcall::GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
 {
 	int count = RenderObjectList.Num();
 	if (count == 1)

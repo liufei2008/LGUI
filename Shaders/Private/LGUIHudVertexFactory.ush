@@ -84,18 +84,16 @@ half3x3 CalcTangentToLocal(half3 TangentInputX, half4 TangentInputZ, out float T
     return Result;
 }
 
-half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal)
+half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal, half3x3 LocalToWorld, half3 InvScale)
 {
-    half3x3 LocalToWorld = GetLocalToWorld3x3();
-    half3 InvScale = Primitive.InvNonUniformScaleAndDeterminantSign.xyz;
     LocalToWorld[0] *= InvScale.x;
     LocalToWorld[1] *= InvScale.y;
     LocalToWorld[2] *= InvScale.z;
     return mul(TangentToLocal, LocalToWorld);
 }
 
-half3x3 CalcTangentToWorld(half3x3 TangentToLocal)
+half3x3 CalcTangentToWorld(half3x3 TangentToLocal, half3x3 LocalToWorld, half3 InvScale)
 {
-    half3x3 TangentToWorld = CalcTangentToWorldNoScale(TangentToLocal);
+    half3x3 TangentToWorld = CalcTangentToWorldNoScale(TangentToLocal, LocalToWorld, InvScale);
     return TangentToWorld;
 }

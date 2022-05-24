@@ -77,10 +77,8 @@ FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 
     return Result;
 }
 
-float4 TransformLocalToTranslatedWorld(float3 LocalPosition)
-{
-    FPrimitiveSceneData Primitive = GetPrimitiveDataFromUniformBuffer();
-    FLWCMatrix LocalToWorld = Primitive.LocalToWorld;	
+float4 TransformLocalToTranslatedWorld(float3 LocalPosition, FLWCMatrix LocalToWorld)
+{	
     FLWCVector3 WorldPosition = LWCMultiply(LocalPosition, LocalToWorld);
     FLWCVector3 TranslatedWorldPosition = LWCAdd(WorldPosition, ResolvedView.PreViewTranslation);
     return float4(LWCToFloat(TranslatedWorldPosition), 1.0f);
@@ -101,14 +99,15 @@ void MainVS(
 {
 	ResolvedView = ResolveView();
 
+    FPrimitiveSceneData Primitive = GetPrimitiveDataFromUniformBuffer();
 	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
-    float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
+    float4 WorldPosition = TransformLocalToTranslatedWorld(Position, Primitive.LocalToWorld);
 	//float4 WorldPosition = float4(Position.xyz + ResolvedView.PreViewTranslation.xyz, 1.0);
 	
     float TangentSign;
     half3x3 TangentToLocal = CalcTangentToLocal(TangentX, TangentZ, TangentSign);
-    half3x3 TangentToWorld = CalcTangentToWorld(TangentToLocal);
-    float TangentToWorldSign = TangentSign * Primitive.InvNonUniformScaleAndDeterminantSign.w;
+    half3x3 TangentToWorld = CalcTangentToWorld(TangentToLocal, LWCToFloat3x3(Primitive.LocalToWorld), Primitive.InvNonUniformScale);
+    float TangentToWorldSign = TangentSign * GetPrimitive_DeterminantSign_FromFlags(Primitive.Flags);
 
     float2 UVs[4];
     UVs[0] = TextureCoord0;
