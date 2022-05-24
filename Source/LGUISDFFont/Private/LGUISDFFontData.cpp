@@ -203,7 +203,7 @@ void ULGUISDFFontData::PushCharData(
 	const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 	int verticesStartIndex, int indicesStartIndex,
 	int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
-	TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+	TArray<FLGUIOriginVertexData>& originVertices, TArray<FLGUIHudVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 )
 {
 	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, float overrideFontSize)

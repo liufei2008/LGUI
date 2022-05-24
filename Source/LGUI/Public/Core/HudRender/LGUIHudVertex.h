@@ -6,17 +6,36 @@
 #include "RenderResource.h"
 #include "PackedNormal.h"
 
+#define LGUI_VERTEX_TEXCOORDINATE_COUNT 4
+
 struct LGUI_API FLGUIHudVertex
 {
+	FLGUIHudVertex(){}
+	FLGUIHudVertex(const FVector3f& InPosition):
+		Position(InPosition),
+		Color(FColor(255, 255, 255)),
+		TangentX(FVector3f(1, 0, 0)),
+		TangentZ(FVector3f(0, 0, 1))
+	{
+		// basis determinant default to +1.0
+		TangentZ.Vector.W = 127;
+
+		for (int i = 0; i < LGUI_VERTEX_TEXCOORDINATE_COUNT; i++)
+		{
+			TextureCoordinate[i] = FVector2f::ZeroVector;
+		}
+	}
+
 	FVector3f Position;
 	FColor Color;
-	FVector2f TextureCoordinate0;
-	FVector2f TextureCoordinate1;
-	FVector2f TextureCoordinate2;
-	FVector2f TextureCoordinate3;
-
+	FVector2f TextureCoordinate[LGUI_VERTEX_TEXCOORDINATE_COUNT];
 	FPackedNormal TangentX;
 	FPackedNormal TangentZ;
+
+	FVector3f GetTangentY() const
+	{
+		return FVector3f(GenerateYAxis(TangentX, TangentZ));
+	};
 };
 
 class LGUI_API FLGUIHudVertexDeclaration : public FRenderResource
