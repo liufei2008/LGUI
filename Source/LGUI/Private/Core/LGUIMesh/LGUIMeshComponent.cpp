@@ -73,6 +73,76 @@ public:
 	FLGUIMeshProxySection(ERHIFeatureLevel::Type InFeatureLevel)
 		: VertexFactory(InFeatureLevel, "FLGUIMeshProxySection")
 	{}
+
+	static inline void InitOrUpdateResource(FRenderResource* Resource)
+	{
+		if (!Resource->IsInitialized())
+		{
+			Resource->InitResource();
+		}
+		else
+		{
+			Resource->UpdateRHI();
+		}
+	}
+
+	void InitFromLGUIHudVertexData(TArray<FLGUIHudVertex>& Vertices)
+	{
+		auto NumTexCoords = LGUI_VERTEX_TEXCOORDINATE_COUNT;
+		auto LightMapIndex = 0;
+		if (Vertices.Num())
+		{
+			VertexBuffers.PositionVertexBuffer.Init(Vertices.Num());
+			VertexBuffers.StaticMeshVertexBuffer.Init(Vertices.Num(), LGUI_VERTEX_TEXCOORDINATE_COUNT);
+			VertexBuffers.ColorVertexBuffer.Init(Vertices.Num());
+
+			for (int32 i = 0; i < Vertices.Num(); i++)
+			{
+				const auto& Vertex = Vertices[i];
+
+				VertexBuffers.PositionVertexBuffer.VertexPosition(i) = Vertex.Position;
+				VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i, Vertex.TangentX.ToFVector(), Vertex.GetTangentY(), Vertex.TangentZ.ToFVector());
+				for (uint32 j = 0; j < LGUI_VERTEX_TEXCOORDINATE_COUNT; j++)
+				{
+					VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, j, Vertex.TextureCoordinate[j]);
+				}
+				VertexBuffers.ColorVertexBuffer.VertexColor(i) = Vertex.Color;
+			}
+		}
+		else
+		{
+			VertexBuffers.PositionVertexBuffer.Init(1);
+			VertexBuffers.StaticMeshVertexBuffer.Init(1, 1);
+			VertexBuffers.ColorVertexBuffer.Init(1);
+
+			VertexBuffers.PositionVertexBuffer.VertexPosition(0) = FVector(0, 0, 0);
+			VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(0, FVector(1, 0, 0), FVector(0, 1, 0), FVector(0, 0, 1));
+			VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(0, 0, FVector2D(0, 0));
+			VertexBuffers.ColorVertexBuffer.VertexColor(0) = FColor(1, 1, 1, 1);
+			NumTexCoords = 1;
+			LightMapIndex = 0;
+		}
+
+		FStaticMeshVertexBuffers* Self = &VertexBuffers;
+		FLocalVertexFactory* VertexFactoryPtr = &VertexFactory;
+		ENQUEUE_RENDER_COMMAND(StaticMeshVertexBuffersLegacyInit)(
+			[VertexFactoryPtr, Self, LightMapIndex](FRHICommandListImmediate& RHICmdList)
+			{
+				InitOrUpdateResource(&Self->PositionVertexBuffer);
+				InitOrUpdateResource(&Self->StaticMeshVertexBuffer);
+				InitOrUpdateResource(&Self->ColorVertexBuffer);
+
+				FLocalVertexFactory::FDataType Data;
+				Self->PositionVertexBuffer.BindPositionVertexBuffer(VertexFactoryPtr, Data);
+				Self->StaticMeshVertexBuffer.BindTangentVertexBuffer(VertexFactoryPtr, Data);
+				Self->StaticMeshVertexBuffer.BindPackedTexCoordVertexBuffer(VertexFactoryPtr, Data);
+				Self->StaticMeshVertexBuffer.BindLightMapVertexBuffer(VertexFactoryPtr, Data, LightMapIndex);
+				Self->ColorVertexBuffer.BindColorVertexBuffer(VertexFactoryPtr, Data);
+				VertexFactoryPtr->SetData(Data);
+
+				InitOrUpdateResource(VertexFactoryPtr);
+			});
+	}
 };
 
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateMeshSection"), STAT_CreateMeshSection, STATGROUP_LGUI);
@@ -169,19 +239,7 @@ public:
 		{
 			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
 			HudVertices.SetNumUninitialized(NumVerts);
-			for (int i = 0; i < NumVerts; i++)
-			{
-				FLGUIHudVertex& HudVert = HudVertices[i];
-				auto& Vert = SrcVertices[i];
-				HudVert.Position = Vert.Position;
-				HudVert.Color = Vert.Color;
-				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
-				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
-				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
-				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
-				HudVert.TangentX = Vert.TangentX;
-				HudVert.TangentZ = Vert.TangentZ;
-			}
+			FMemory::Memcpy(HudVertices.GetData(), SrcVertices.GetData(), NumVerts * sizeof(FLGUIHudVertex));
 			NewSection->IndexBuffer.Indices = SrcSection->triangles;
 
 			// Enqueue initialization of render resource
@@ -191,7 +249,7 @@ public:
 		if (IsSupportUERenderer)
 		{
 			NewSection->IndexBuffer.Indices = SrcSection->triangles;
-			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection->vertices, 4);
+			NewSection->InitFromLGUIHudVertexData(SrcSection->vertices);
 
 			// Enqueue initialization of render resource
 			BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
@@ -331,7 +389,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, const int32& NumVerts
+	void UpdateSection_RenderThread(FLGUIHudVertex* MeshVertexData, const int32& NumVerts
 		, FLGUIIndexType* MeshIndexData, const uint32& IndexDataLength
 		, const int8& AdditionalChannelFlags
 		, FLGUIMeshProxySection* Section)
@@ -346,38 +404,9 @@ public:
 			//vertex buffer
 			if (IsSupportLGUIRenderer)
 			{
-				HudVertexUpdateData.SetNumUninitialized(NumVerts, false);
-				if (AdditionalChannelFlags == 0)
-				{
-					for (int i = 0; i < NumVerts; i++)
-					{
-						FLGUIHudVertex& HudVert = HudVertexUpdateData[i];
-						auto& Vert = MeshVertexData[i];
-						HudVert.Position = Vert.Position;
-						HudVert.Color = Vert.Color;
-						HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
-					}
-				}
-				else
-				{
-					for (int i = 0; i < NumVerts; i++)
-					{
-						FLGUIHudVertex& HudVert = HudVertexUpdateData[i];
-						auto& Vert = MeshVertexData[i];
-						HudVert.Position = Vert.Position;
-						HudVert.Color = Vert.Color;
-						HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
-						HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
-						HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
-						HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
-						HudVert.TangentX = Vert.TangentX;
-						HudVert.TangentZ = Vert.TangentZ;
-					}
-				}
-
-				uint32 vertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
-				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, HudVertexUpdateData.GetData(), vertexDataLength);
+				uint32 VertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
+				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
+				FMemory::Memcpy(VertexBufferData, MeshVertexData, VertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
 			}
 			if(IsSupportUERenderer)
@@ -386,7 +415,7 @@ public:
 				{
 					for (int i = 0; i < NumVerts; i++)
 					{
-						const FDynamicMeshVertex& LGUIVert = MeshVertexData[i];
+						const FLGUIHudVertex& LGUIVert = MeshVertexData[i];
 						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
 						Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, LGUIVert.TextureCoordinate[0]);
 						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
@@ -402,7 +431,7 @@ public:
 					bool requireUV3 = (AdditionalChannelFlags & (1 << 4)) != 0;
 					for (int i = 0; i < NumVerts; i++)
 					{
-						const FDynamicMeshVertex& LGUIVert = MeshVertexData[i];
+						const FLGUIHudVertex& LGUIVert = MeshVertexData[i];
 						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
 						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
 						if (requireNormalOrTangent)
@@ -638,7 +667,6 @@ private:
 	bool IsSupportLGUIRenderer = false;
 	bool IsLGUIRenderToWorld = false;
 	bool IsSupportUERenderer = true;
-	TArray<FLGUIHudVertex> HudVertexUpdateData;
 	void* RenderCanvasPtr = nullptr;
 };
 
@@ -694,7 +722,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 	{
 		struct UpdateMeshSectionDataStruct
 		{
-			TArray<FDynamicMeshVertex> VertexBufferData;
+			TArray<FLGUIHudVertex> VertexBufferData;
 			int32 NumVerts;
 			TArray<FLGUIIndexType> IndexBufferData;
 			uint32 IndexBufferDataLength;
@@ -707,7 +735,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 		//vertex data
 		const int32 NumVerts = InMeshSection->vertices.Num();
 		UpdateData->VertexBufferData.AddUninitialized(NumVerts);
-		FMemory::Memcpy(UpdateData->VertexBufferData.GetData(), InMeshSection->vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
+		FMemory::Memcpy(UpdateData->VertexBufferData.GetData(), InMeshSection->vertices.GetData(), NumVerts * sizeof(FLGUIHudVertex));
 		UpdateData->NumVerts = NumVerts;
 		UpdateData->SceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		const int32 NumIndices = InMeshSection->triangles.Num();
