@@ -81,6 +81,7 @@ public:
 		, FTextureRHIRef MeshRegionTexture
 		, const FMatrix44f & ModelViewProjectionMatrix
 		, bool IsWorldSpace
+		, ELGUICanvasDepthMode WorldSpaceDepthMode
 		, float BlendDepthForWorld
 		, const FVector4f& DepthTextureScaleOffset
 		, const FIntRect& ViewRect

@@ -11,6 +11,7 @@
 class FLGUIHudRenderer;
 class UUIPostProcessRenderable;
 class FSceneViewFamily;
+enum class ELGUICanvasDepthMode :uint8;
 
 struct FLGUIMeshBatchContainer
 {
@@ -56,6 +57,7 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
+		ELGUICanvasDepthMode WorldSpaceDepthMode,
 		float BlendDepthForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset, 

@@ -226,7 +226,7 @@ void FLGUIHudRenderer::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
 }
-void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bReverseCulling)
+void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bDisableDepthTest, bool bReverseCulling)
 {
 	switch (BlendMode)
 	{
@@ -259,7 +259,21 @@ void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer
 		break;
 	};
 
-	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+	if (BlendMode == BLEND_Opaque || BlendMode == BLEND_Masked)
+	{
+		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<true, ECompareFunction::CF_GreaterEqual>::GetRHI();
+	}
+	else
+	{
+		if (bDisableDepthTest)
+		{
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+		}
+		else
+		{
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_GreaterEqual>::GetRHI();
+		}
+	}
 	
 	if (!bIsWireFrame)
 	{
@@ -498,6 +512,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						GlobalShaderMap,
 						FMatrix44f(ViewProjectionMatrix),
 						true,
+						WorldSpaceDepthMode,
 						Primitive.BlendDepth,
 						ViewRect,
 						DepthTextureScaleOffset,
@@ -510,6 +525,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				FLGUIWorldRenderPSParameter* PSShaderParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
 				PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Target;
 				PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
+				if (WorldSpaceDepthMode == ELGUICanvasDepthMode::DirectDepthTest)
+				{
+					PSShaderParameters->RenderTargets.DepthStencil = FDepthStencilBinding(SceneTextures.Depth.Target, ERenderTargetLoadAction::ELoad, ERenderTargetLoadAction::ELoad, FExclusiveDepthStencil::DepthWrite_StencilWrite);
+				}
 
 				GraphBuilder.AddPass(
 					RDG_EVENT_NAME("LGUI_RenderWorld"),
@@ -517,6 +536,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					ERDGPassFlags::Raster,
 					[this, RenderSequenceItem, RenderView, ViewRect, PSShaderParameters, SceneDepthTexST = DepthTextureScaleOffset, NumSamples](FRHICommandListImmediate& RHICmdList)
 				{
+					FGraphicsPipelineStateInitializer GraphicsPSOInit;
+					RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+					RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
+
 					for (auto& Primitive : RenderSequenceItem)
 					{
 						MeshBatchArray.Reset();
@@ -527,32 +550,47 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView->GetFeatureLevel());
+							
+							FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), Mesh.ReverseCulling);
 							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-							auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-
-							if (VertexShader.IsValid() && PixelShader.IsValid())
+							if (VertexShader.IsValid())
 							{
-								RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-
-								FGraphicsPipelineStateInitializer GraphicsPSOInit;
-								RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-
-								FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Mesh.ReverseCulling);
-
 								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 								GraphicsPSOInit.NumSamples = NumSamples;
-								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+								if (WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture)
+								{
+									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
+									if (PixelShader.IsValid())
+									{
+										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-								VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetDepthBlendParameter(RHICmdList, Primitive.BlendDepth, SceneDepthTexST, PSShaderParameters->SceneDepthTex->GetRHI());
+										VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetDepthBlendParameter(RHICmdList, Primitive.BlendDepth, SceneDepthTexST, PSShaderParameters->SceneDepthTex->GetRHI());
 
-								RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+									}
+								}
+								else
+								{
+									auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+									if (PixelShader.IsValid())
+									{
+										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+
+										VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+
+										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+									}
+								}
 							}
 						}
 					}
@@ -646,8 +684,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						ScreenColorRenderTargetTexture,
 						GlobalShaderMap,
 						FMatrix44f(ScreenSpaceRenderParameter.ViewProjectionMatrix),
-						false,
-						0.0f,
+						/*IsWorldSpace*/false,
+						/*WorldSpaceDepthMode*/ELGUICanvasDepthMode::DirectDepthTest,//actually this value will no work because 'IsWorldSpace' is false
+						/*BlendDepthForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
 						ViewRect,
 						DepthTextureScaleOffset,
 						ViewTextureScaleOffset
@@ -685,7 +724,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 									FGraphicsPipelineStateInitializer GraphicsPSOInit;
 									RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 
-									FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Mesh.ReverseCulling);
+									FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), Mesh.ReverseCulling);
 
 									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -732,7 +771,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 					FGraphicsPipelineStateInitializer GraphicsPSOInit;
 					RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-					FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, EBlendMode::BLEND_Opaque, false, true, false);
+					FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, EBlendMode::BLEND_Opaque, false, true, true, false);
 
 					GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHelperLineVertexDeclaration();
 					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -886,6 +925,18 @@ void FLGUIHudRenderer::SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, fl
 		}
 	);
 }
+
+void FLGUIHudRenderer::SetWorldSpaceRendererDepthMode(ELGUICanvasDepthMode InDepthMode)
+{
+	auto viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[viewExtension, InDepthMode](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->SetWorldSpaceDepthMode_RenderThread(InDepthMode);
+		}
+	);
+}
+
 void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth)
 {
 	for (auto& RenderParameter : WorldSpaceRenderCanvasParameterArray)
@@ -895,6 +946,11 @@ void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRen
 			RenderParameter.BlendDepth = InBlendDepth;
 		}
 	}
+}
+
+void FLGUIHudRenderer::SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode)
+{
+	WorldSpaceDepthMode = InDepthMode;
 }
 
 void FLGUIHudRenderer::SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas)
