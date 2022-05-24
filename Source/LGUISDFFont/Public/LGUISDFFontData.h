@@ -68,7 +68,7 @@ public:
 		const LGUIRichTextParser::RichTextParseResult& richTextProperty,
 		int verticesStartIndex, int indicesStartIndex,
 		int& outAdditionalVerticesCount, int& outAdditionalIndicesCount,
-		TArray<FLGUIOriginVertexData>& originVertices, TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
+		TArray<FLGUIOriginVertexData>& originVertices, TArray<FLGUIHudVertex>& vertices, TArray<FLGUIIndexType>& triangleIndices
 	)override;
 	virtual void PrepareForPushCharData(UUIText* InText)override;
 	virtual uint8 GetRequireAdditionalShaderChannels()override;

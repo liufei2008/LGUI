@@ -107,7 +107,7 @@ void UUIEffectOutline::ModifyUIGeometry(
 
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
-			for (int i = 0; i < MAX_STATIC_TEXCOORDS; i++)
+			for (int i = 0; i < LGUI_VERTEX_TEXCOORDINATE_COUNT; i++)
 			{
 				auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[i];
 				vertices[channelVertIndex1].TextureCoordinate[i] = originUV;
