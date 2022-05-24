@@ -479,7 +479,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							{
 								FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Mesh.ReverseCulling);
 
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
@@ -586,7 +586,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							{
 								FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Mesh.ReverseCulling);
 
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;

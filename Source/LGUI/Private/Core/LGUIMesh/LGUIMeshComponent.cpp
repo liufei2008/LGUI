@@ -40,10 +40,10 @@ private:
 class FLGUIHudVertexBuffer : public FVertexBuffer
 {
 public:
-	TArray<FLGUIHudVertex> Vertices;
+	TArray<FLGUIMeshVertex> Vertices;
 	virtual void InitRHI()override
 	{
-		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIHudVertex);
+		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIMeshVertex);
 
 		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
 		FRHIResourceCreateInfo CreateInfo(&ResourceArray);
@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	void InitFromLGUIHudVertexData(TArray<FLGUIHudVertex>& Vertices)
+	void InitFromLGUIHudVertexData(TArray<FLGUIMeshVertex>& Vertices)
 	{
 		auto NumTexCoords = LGUI_VERTEX_TEXCOORDINATE_COUNT;
 		auto LightMapIndex = 0;
@@ -239,7 +239,7 @@ public:
 		{
 			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
 			HudVertices.SetNumUninitialized(NumVerts);
-			FMemory::Memcpy(HudVertices.GetData(), SrcVertices.GetData(), NumVerts * sizeof(FLGUIHudVertex));
+			FMemory::Memcpy(HudVertices.GetData(), SrcVertices.GetData(), NumVerts * sizeof(FLGUIMeshVertex));
 			NewSection->IndexBuffer.Indices = SrcSection->triangles;
 
 			// Enqueue initialization of render resource
@@ -389,7 +389,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FLGUIHudVertex* MeshVertexData, const int32& NumVerts
+	void UpdateSection_RenderThread(FLGUIMeshVertex* MeshVertexData, const int32& NumVerts
 		, FLGUIIndexType* MeshIndexData, const uint32& IndexDataLength
 		, const int8& AdditionalChannelFlags
 		, FLGUIMeshProxySection* Section)
@@ -404,7 +404,7 @@ public:
 			//vertex buffer
 			if (IsSupportLGUIRenderer)
 			{
-				uint32 VertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
+				uint32 VertexDataLength = NumVerts * sizeof(FLGUIMeshVertex);
 				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
 				FMemory::Memcpy(VertexBufferData, MeshVertexData, VertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
@@ -415,7 +415,7 @@ public:
 				{
 					for (int i = 0; i < NumVerts; i++)
 					{
-						const FLGUIHudVertex& LGUIVert = MeshVertexData[i];
+						const FLGUIMeshVertex& LGUIVert = MeshVertexData[i];
 						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
 						Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, LGUIVert.TextureCoordinate[0]);
 						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
@@ -431,7 +431,7 @@ public:
 					bool requireUV3 = (AdditionalChannelFlags & (1 << 4)) != 0;
 					for (int i = 0; i < NumVerts; i++)
 					{
-						const FLGUIHudVertex& LGUIVert = MeshVertexData[i];
+						const FLGUIMeshVertex& LGUIVert = MeshVertexData[i];
 						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
 						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
 						if (requireNormalOrTangent)
@@ -722,7 +722,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 	{
 		struct UpdateMeshSectionDataStruct
 		{
-			TArray<FLGUIHudVertex> VertexBufferData;
+			TArray<FLGUIMeshVertex> VertexBufferData;
 			int32 NumVerts;
 			TArray<FLGUIIndexType> IndexBufferData;
 			uint32 IndexBufferDataLength;
@@ -735,7 +735,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 		//vertex data
 		const int32 NumVerts = InMeshSection->vertices.Num();
 		UpdateData->VertexBufferData.AddUninitialized(NumVerts);
-		FMemory::Memcpy(UpdateData->VertexBufferData.GetData(), InMeshSection->vertices.GetData(), NumVerts * sizeof(FLGUIHudVertex));
+		FMemory::Memcpy(UpdateData->VertexBufferData.GetData(), InMeshSection->vertices.GetData(), NumVerts * sizeof(FLGUIMeshVertex));
 		UpdateData->NumVerts = NumVerts;
 		UpdateData->SceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		const int32 NumIndices = InMeshSection->triangles.Num();
