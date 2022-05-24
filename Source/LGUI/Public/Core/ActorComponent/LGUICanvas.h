@@ -46,6 +46,15 @@ enum class ELGUICanvasClipType :uint8
 	COUNT		UMETA(Hidden),
 };
 
+UENUM(BlueprintType, Category = LGUI)
+enum class ELGUICanvasDepthMode :uint8
+{
+	/** Test depth directly by gpu, which is much faster then 'SampleDepthTexture' mode, but not support 'BlendDepth' parameter, so pixel will stay visible or not-visible, can't do half-transparent. */
+	DirectDepthTest,
+	/** Use depth buffer as a texture, sample it to get scene depth, then calculate current rendered pixel's depth and compare. Can use 'BlendDepth' parameter. */
+	SampleDepthTexture,
+};
+
 UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
 enum class ELGUICanvasAdditionalChannelType :uint8
 {
@@ -117,6 +126,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 #if WITH_EDITOR
 public:
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostLoad()override;
 #endif
@@ -275,7 +285,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
 
-	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible. */
+	/** For "World Space - LGUI Renderer" only, DepthMode define how dealing with scene depth. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		ELGUICanvasDepthMode depthMode = ELGUICanvasDepthMode::DirectDepthTest;
+	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. Valid when 'DepthMode' is 'SampleDepthTexture' */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float blendDepth = 0.0f;
 
@@ -363,6 +376,14 @@ public:
 	/** Get render target of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
+
+	/** Get DepthMode value of canvas. Actually this property is only valid for root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasDepthMode GetActualDepthMode()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasDepthMode GetDepthMode()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDepthMode(ELGUICanvasDepthMode value);
 
 	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -476,6 +497,7 @@ private:
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
 	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
+	uint32 bHasSetIntialStateforLGUIWorldSpaceRenderer : 1;//is LGUI world space renderer's initial state set
 
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 

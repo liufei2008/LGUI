@@ -14,6 +14,7 @@ class ULGUICanvas;
 struct FLGUIPostProcessVertex;
 struct FLGUIPostProcessCopyMeshRegionVertex;
 class FGlobalShaderMap;
+enum class ELGUICanvasDepthMode :uint8;
 
 class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
 {
@@ -73,6 +74,7 @@ public:
 
 	void SortPrimitiveRenderPriority();
 	void SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth);
+	void SetWorldSpaceRendererDepthMode(ELGUICanvasDepthMode InDepthMode);
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRenderCanvas();
@@ -101,7 +103,7 @@ public:
 		FRHICommandListImmediate& RHICmdList
 	);
 private:
-	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bReverseCulling);
+	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bDisableDepthTest, bool bReverseCulling);
 	struct FWorldSpaceRenderParameter
 	{
 		/*
@@ -125,6 +127,8 @@ private:
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
+	//how dealing with scene depth
+	ELGUICanvasDepthMode WorldSpaceDepthMode = (ELGUICanvasDepthMode)0;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
@@ -134,6 +138,7 @@ private:
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
+	void SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode);
 	bool bIsRenderToRenderTarget = false;
 
 	void RenderLGUI_RenderThread(
