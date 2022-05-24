@@ -313,69 +313,72 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 		return new FLGUIRenderTargetGeometrySource_Sceneproxy(this);
 	}
 
+	MarkRenderStateDirty();
 #if WITH_EDITOR
-	// make something so we can see this component in the editor
-	class FWidgetBoxProxy final : public FPrimitiveSceneProxy
+	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
-	public:
-		SIZE_T GetTypeHash() const override
+		// make something so we can see this component in the editor
+		class FWidgetBoxProxy final : public FPrimitiveSceneProxy
 		{
-			static size_t UniquePointer;
-			return reinterpret_cast<size_t>(&UniquePointer);
-		}
-
-		FWidgetBoxProxy(const ULGUIRenderTargetGeometrySource* InComponent)
-			: FPrimitiveSceneProxy(InComponent)
-			, BoxExtents(1.f, InComponent->GetRenderTargetSize().X / 2.0f, InComponent->GetRenderTargetSize().Y / 2.0f)
-		{
-			bWillEverBeLit = false;
-		}
-
-		virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
-		{
-			QUICK_SCOPE_CYCLE_COUNTER(STAT_BoxSceneProxy_GetDynamicMeshElements);
-
-			const FMatrix& LocalToWorld = GetLocalToWorld();
-
-			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+		public:
+			SIZE_T GetTypeHash() const override
 			{
-				if (VisibilityMap & (1 << ViewIndex))
+				static size_t UniquePointer;
+				return reinterpret_cast<size_t>(&UniquePointer);
+			}
+
+			FWidgetBoxProxy(const ULGUIRenderTargetGeometrySource* InComponent)
+				: FPrimitiveSceneProxy(InComponent)
+				, BoxExtents(1.f, InComponent->GetRenderTargetSize().X / 2.0f, InComponent->GetRenderTargetSize().Y / 2.0f)
+			{
+				bWillEverBeLit = false;
+			}
+
+			virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
+			{
+				QUICK_SCOPE_CYCLE_COUNTER(STAT_BoxSceneProxy_GetDynamicMeshElements);
+
+				const FMatrix& LocalToWorld = GetLocalToWorld();
+
+				for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 				{
-					const FSceneView* View = Views[ViewIndex];
+					if (VisibilityMap & (1 << ViewIndex))
+					{
+						const FSceneView* View = Views[ViewIndex];
 
-					const FLinearColor DrawColor = GetViewSelectionColor(FColor::White, *View, IsSelected(), IsHovered(), false, IsIndividuallySelected());
+						const FLinearColor DrawColor = GetViewSelectionColor(FColor::White, *View, IsSelected(), IsHovered(), false, IsIndividuallySelected());
 
-					FPrimitiveDrawInterface* PDI = Collector.GetPDI(ViewIndex);
-					DrawOrientedWireBox(PDI, LocalToWorld.GetOrigin(), LocalToWorld.GetScaledAxis(EAxis::X), LocalToWorld.GetScaledAxis(EAxis::Y), LocalToWorld.GetScaledAxis(EAxis::Z), BoxExtents, DrawColor, SDPG_World);
+						FPrimitiveDrawInterface* PDI = Collector.GetPDI(ViewIndex);
+						DrawOrientedWireBox(PDI, LocalToWorld.GetOrigin(), LocalToWorld.GetScaledAxis(EAxis::X), LocalToWorld.GetScaledAxis(EAxis::Y), LocalToWorld.GetScaledAxis(EAxis::Z), BoxExtents, DrawColor, SDPG_World);
+					}
 				}
 			}
-		}
 
-		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
-		{
-			FPrimitiveViewRelevance Result;
-			if (!View->bIsGameView)
+			virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 			{
-				// Should we draw this because collision drawing is enabled, and we have collision
-				const bool bShowForCollision = View->Family->EngineShowFlags.Collision && IsCollisionEnabled();
-				Result.bDrawRelevance = IsShown(View) || bShowForCollision;
-				Result.bDynamicRelevance = true;
-				Result.bShadowRelevance = IsShadowCast(View);
-				Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);
+				FPrimitiveViewRelevance Result;
+				if (!View->bIsGameView)
+				{
+					// Should we draw this because collision drawing is enabled, and we have collision
+					const bool bShowForCollision = View->Family->EngineShowFlags.Collision && IsCollisionEnabled();
+					Result.bDrawRelevance = IsShown(View) || bShowForCollision;
+					Result.bDynamicRelevance = true;
+					Result.bShadowRelevance = IsShadowCast(View);
+					Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);
+				}
+				return Result;
 			}
-			return Result;
-		}
-		virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
-		uint32 GetAllocatedSize(void) const { return(FPrimitiveSceneProxy::GetAllocatedSize()); }
+			virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
+			uint32 GetAllocatedSize(void) const { return(FPrimitiveSceneProxy::GetAllocatedSize()); }
 
-	private:
-		const FVector	BoxExtents;
-	};
+		private:
+			const FVector	BoxExtents;
+		};
 
-	return new FWidgetBoxProxy(this);
-#else
-	return nullptr;
+		return new FWidgetBoxProxy(this);
+	}
 #endif
+	return nullptr;
 }
 FBoxSphereBounds ULGUIRenderTargetGeometrySource::CalcBounds(const FTransform& LocalToWorld) const
 {
