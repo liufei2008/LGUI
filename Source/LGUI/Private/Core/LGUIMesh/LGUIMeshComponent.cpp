@@ -179,6 +179,8 @@ public:
 				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
 				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
 				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+				HudVert.TangentX = Vert.TangentX;
+				HudVert.TangentZ = Vert.TangentZ;
 			}
 			NewSection->IndexBuffer.Indices = SrcSection->triangles;
 
@@ -368,6 +370,8 @@ public:
 						HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
 						HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
 						HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+						HudVert.TangentX = Vert.TangentX;
+						HudVert.TangentZ = Vert.TangentZ;
 					}
 				}
 

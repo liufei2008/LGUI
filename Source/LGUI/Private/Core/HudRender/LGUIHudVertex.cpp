@@ -13,6 +13,8 @@ void FLGUIHudVertexDeclaration::InitRHI()
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate1), VET_Float2, 3, Stride));
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate2), VET_Float2, 4, Stride));
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate3), VET_Float2, 5, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TangentX), VET_PackedNormal, 6, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TangentZ), VET_PackedNormal, 7, Stride));
 	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
 }
 void FLGUIHudVertexDeclaration::ReleaseRHI()

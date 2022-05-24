@@ -21,7 +21,12 @@ struct FLGUIBasePassVSToPS
 	float4 Position : SV_POSITION;
 };
 
-FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 TexCoord0, float2 TexCoord1, FMaterialVertexParameters VertexParameters, half4 VertexColor)
+FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 TexCoord0, float2 TexCoord1
+, FMaterialVertexParameters VertexParameters
+, half4 VertexColor
+, half3x3 TangentToWorld
+, float TangentToWorldSign
+)
 {
     FLGUIVertexFactoryInterpolantsVSToPS Interpolants;
 
@@ -39,27 +44,26 @@ FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 T
 	{
 		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
 	}
-#elif USE_PARTICLE_SUBUVS
-	Interpolants.TexCoords[0].xy = TexCoord0;
-	Interpolants.TexCoords[0].zw = TexCoord1;
 #endif
 
-	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
 #if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
 	VertexColor.rgba = VertexColor.bgra;
 #endif
+	
+    SetTangents(Interpolants, TangentToWorld[0], TangentToWorld[2], TangentToWorldSign);
 	SetColor(Interpolants, VertexColor);
 
 	return Interpolants;
 }
 
 /** Converts from vertex factory specific input to a FMaterialVertexParameters, which is used by vertex shader material inputs. */
-FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 WorldPosition, float2 UVs[4])
+FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 WorldPosition, float2 UVs[4], half3x3 TangentToWorld)
 {
     FMaterialVertexParameters Result = (FMaterialVertexParameters) 0;
     Result.WorldPosition = WorldPosition;
     Result.VertexColor = VertexColor;
-    Result.Particle.Color = VertexColor;
+	
+    Result.TangentToWorld = TangentToWorld;
 	
 #if NUM_MATERIAL_TEXCOORDS_VERTEX
 	int MaxCount = min(NUM_MATERIAL_TEXCOORDS_VERTEX, 4);
@@ -68,11 +72,6 @@ FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 
     {
         Result.TexCoords[CoordinateIndex] = UVs[CoordinateIndex].xy;
     }
-#endif
-	
-#if USE_PARTICLE_SUBUVS
-	Result.Particle.SubUVCoords[0] = UVs[0].xy;
-	Result.Particle.SubUVCoords[1] = UVs[1].xy;
 #endif
 	
     return Result;
@@ -94,6 +93,9 @@ void MainVS(
     in float2 TextureCoord1 : ATTRIBUTE3,
     in float2 TextureCoord2 : ATTRIBUTE4,
     in float2 TextureCoord3 : ATTRIBUTE5,
+	in half3 TangentX : ATTRIBUTE6,
+	// TangentZ.w contains sign of tangent basis determinant
+	in half4 TangentZ : ATTRIBUTE7,
 	out FLGUIBasePassVSToPS Output
 )
 {
@@ -102,13 +104,19 @@ void MainVS(
 	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
     float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
 	//float4 WorldPosition = float4(Position.xyz + ResolvedView.PreViewTranslation.xyz, 1.0);
+	
+    float TangentSign;
+    half3x3 TangentToLocal = CalcTangentToLocal(TangentX, TangentZ, TangentSign);
+    half3x3 TangentToWorld = CalcTangentToWorld(TangentToLocal);
+    float TangentToWorldSign = TangentSign * Primitive.InvNonUniformScaleAndDeterminantSign.w;
 
     float2 UVs[4];
     UVs[0] = TextureCoord0;
     UVs[1] = TextureCoord1;
     UVs[2] = TextureCoord2;
     UVs[3] = TextureCoord3;
-    FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz, UVs);
+
+    FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz, UVs, TangentToWorld);
     half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
     WorldPosition.xyz += WorldPositionOffset;
 
@@ -119,7 +127,11 @@ void MainVS(
 	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(TextureCoord0, TextureCoord1, VertexParameters, Color);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(TextureCoord0, TextureCoord1
+	, VertexParameters
+	, Color
+	, TangentToWorld, TangentToWorldSign
+	);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
@@ -143,15 +155,15 @@ FMaterialPixelParameters GetMaterialPixelParameters(FLGUIVertexFactoryInterpolan
 	}
 #endif
 	
-#if USE_PARTICLE_SUBUVS
-	// Output TexCoord0 for when previewing materials that use ParticleSubUV.
-	Result.Particle.SubUVCoords[0] = GetUV(Interpolants, 0);
-	Result.Particle.SubUVCoords[1] = GetUV(Interpolants, 1);
-#endif	// USE_PARTICLE_SUBUVS
-	
+    half3 TangentToWorld0 = GetTangentToWorld0(Interpolants).xyz;
+    half4 TangentToWorld2 = GetTangentToWorld2(Interpolants);
+    Result.UnMirrored = TangentToWorld2.w;
+
 	Result.VertexColor = GetColor(Interpolants);
-    Result.Particle.Color = Interpolants.Color;
-	return Result;
+
+    Result.TangentToWorld = AssembleTangentToWorld(TangentToWorld0, TangentToWorld2);
+	
+    return Result;
 }
 
 void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters MaterialParameters, FPixelMaterialInputs PixelMaterialInputs, out float OutDepth)
