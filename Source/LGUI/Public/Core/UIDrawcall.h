@@ -8,7 +8,7 @@
 
 class UUIPostProcessRenderable;
 class UIGeometry;
-struct FLGUIHudVertex;
+struct FLGUIMeshVertex;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UUIItem;
@@ -75,7 +75,7 @@ public:
 
 	TWeakObjectPtr<ULGUICanvas> ChildCanvas;//insert point to sort child canvas
 public:
-	void GetCombined(TArray<FLGUIHudVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
+	void GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
 	bool CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount);
 };

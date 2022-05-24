@@ -4,7 +4,7 @@
 
 #include "Components/MeshComponent.h"
 #include "Core/LGUIIndexBuffer.h"
-#include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/LGUIMeshVertex.h"
 #include "DynamicMeshBuilder.h"
 #include "LGUIMeshComponent.generated.h"
 
@@ -12,7 +12,7 @@ class FLGUIMeshProxySection;
 struct FLGUIMeshSection
 {
 	TArray<FLGUIIndexType> triangles;
-	TArray<FLGUIHudVertex> vertices;
+	TArray<FLGUIMeshVertex> vertices;
 
 	int prevVertexCount = 0;
 	int prevIndexCount = 0;

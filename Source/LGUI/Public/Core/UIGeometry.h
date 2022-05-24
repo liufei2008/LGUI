@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Extensions/UIPolygon.h"
 #include "Core/LGUIIndexBuffer.h"
-#include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/LGUIMeshVertex.h"
 
 struct FLGUISpriteInfo;
 struct FUITextLineProperty;
@@ -48,7 +48,7 @@ public:
 	//local space vertex position/ normal/ tangent
 	TArray<FLGUIOriginVertexData> originVertices;
 	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originVertices/originNormals/originTangents
-	TArray<FLGUIHudVertex> vertices;
+	TArray<FLGUIMeshVertex> vertices;
 	//triangle indices
 	TArray<FLGUIIndexType> triangles;
 
@@ -91,7 +91,7 @@ public:
 			verticesCountChanged = true;
 		}
 		FMemory::Memcpy(Target->originVertices.GetData(), originVertices.GetData(), originVertices.Num() * sizeof(FLGUIOriginVertexData));
-		FMemory::Memcpy(Target->vertices.GetData(), vertices.GetData(), vertices.Num() * sizeof(FLGUIHudVertex));
+		FMemory::Memcpy(Target->vertices.GetData(), vertices.GetData(), vertices.Num() * sizeof(FLGUIMeshVertex));
 
 		bool triangleCountChanged = false;
 		if (triangles.Num() != Target->triangles.Num())
