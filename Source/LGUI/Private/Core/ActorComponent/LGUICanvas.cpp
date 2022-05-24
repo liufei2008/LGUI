@@ -43,6 +43,7 @@ ULGUICanvas::ULGUICanvas()
 	bRectRangeCalculated = false;
 
 	bHasAddToLGUIScreenSpaceRenderer = false;
+	bHasSetIntialStateforLGUIWorldSpaceRenderer = false;
 	bOverrideViewLocation = false;
 	bOverrideViewRotation = false;
 	bOverrideProjectionMatrix = false;
@@ -145,6 +146,30 @@ void ULGUICanvas::UpdateRootCanvas()
 					}
 				}
 				bIsRenderTargetRenderer = true;
+			}
+			break;
+			case ELGUIRenderMode::WorldSpace_LGUI:
+			{
+				if (!bHasSetIntialStateforLGUIWorldSpaceRenderer)
+				{
+					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())
+					{
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+					}
+					else
+#endif
+					{
+						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+					}
+
+					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
+					{
+						ViewExtension->SetWorldSpaceRendererDepthMode(this->GetDepthMode());
+						bHasSetIntialStateforLGUIWorldSpaceRenderer = true;
+					}
+				}
 			}
 			break;
 			}
@@ -331,6 +356,10 @@ void ULGUICanvas::RemoveFromViewExtension()
 		{
 			ViewExtension->ClearScreenSpaceRenderCanvas();
 		}
+	}
+	if (bHasSetIntialStateforLGUIWorldSpaceRenderer)
+	{
+		bHasSetIntialStateforLGUIWorldSpaceRenderer = false;
 	}
 
 	if (RenderTargetViewExtension.IsValid())
@@ -523,6 +552,20 @@ void ULGUICanvas::MarkItemTransformOrVertexPositionChanged(UUIBaseRenderable* In
 }
 
 #if WITH_EDITOR
+bool ULGUICanvas::CanEditChange(const FProperty* InProperty) const
+{
+	if (InProperty)
+	{
+		FString PropertyName = InProperty->GetName();
+
+		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUICanvas, blendDepth))
+		{
+			return depthMode == ELGUICanvasDepthMode::SampleDepthTexture;
+		}
+	}
+
+	return Super::CanEditChange(InProperty);
+}
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	bClipTypeChanged = true;
@@ -2451,6 +2494,51 @@ float ULGUICanvas::GetActualDynamicPixelsPerUnit()const
 		}
 	}
 	return dynamicPixelsPerUnit;
+}
+
+ELGUICanvasDepthMode ULGUICanvas::GetActualDepthMode()const
+{
+	if (RootCanvas.IsValid())
+	{
+		return RootCanvas->depthMode;
+	}
+	return depthMode;
+}
+ELGUICanvasDepthMode ULGUICanvas::GetDepthMode()const
+{
+	return depthMode;
+}
+void ULGUICanvas::SetDepthMode(ELGUICanvasDepthMode value)
+{
+	if (depthMode != value)
+	{
+		depthMode = value;
+
+		if (RootCanvas.IsValid())
+		{
+			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
+			{
+				if (RootCanvas->IsRenderToWorldSpace())
+				{
+					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())
+					{
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
+					}
+					else
+#endif
+					{
+						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
+					}
+					if (ViewExtension.IsValid())
+					{
+						ViewExtension->SetWorldSpaceRendererDepthMode(RootCanvas->GetDepthMode());
+					}
+				}
+			}
+		}
+	}
 }
 
 float ULGUICanvas::GetActualBlendDepth()const
