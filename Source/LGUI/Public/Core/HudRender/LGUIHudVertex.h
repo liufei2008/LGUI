@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "RenderResource.h"
+#include "PackedNormal.h"
 
 struct LGUI_API FLGUIHudVertex
 {
@@ -13,6 +14,9 @@ struct LGUI_API FLGUIHudVertex
 	FVector2D TextureCoordinate1;
 	FVector2D TextureCoordinate2;
 	FVector2D TextureCoordinate3;
+
+	FPackedNormal TangentX;
+	FPackedNormal TangentZ;
 };
 
 class LGUI_API FLGUIHudVertexDeclaration : public FRenderResource

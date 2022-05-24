@@ -1,39 +1,21 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
-
+#include "/Engine/Private/Common.ush"
 
 struct FLGUIVertexFactoryInterpolantsVSToPS
 {
+    //TangentToWorld0 && TangentToWorld2
+	TANGENTTOWORLD_INTERPOLATOR_BLOCK
+    //float4 TangentToWorld0 : TEXCOORD3;
+    //float4 TangentToWorld2 : TEXCOORD4;
+	
     float4 Color : COLOR0;
 
 #if NUM_TEX_COORD_INTERPOLATORS
 	float4	TexCoords[(NUM_TEX_COORD_INTERPOLATORS + 1) / 2]	: TEXCOORD0;
-#elif USE_PARTICLE_SUBUVS
-	float4	TexCoords[1] : TEXCOORD0;
-#endif
-
-#if USE_PARTICLE_POSITION
-	/** Cam-relative (translated) particle center and radius */
-	float4 ParticleTranslatedWorldPositionAndSize	: PARTICLE_POSITION;
-#endif
-
-#if USE_PARTICLE_VELOCITY
-	float4 ParticleVelocity : PARTICLE_VELOCITY;
-#endif
-
-#if USE_PARTICLE_TIME
-	float ParticleTime : PARTICLE_TIME;
-#endif
-
-#if USE_PARTICLE_LIGHTING_OFFSET
-	float3 LightingPositionOffset : PARTICLE_LIGHTING_OFFSET;
-#endif
-
-#if USE_PARTICLE_SIZE
-	float2 ParticleSize : PARTICLE_SIZE;
 #endif
 };
 
-#if NUM_TEX_COORD_INTERPOLATORS || USE_PARTICLE_SUBUVS
+#if NUM_TEX_COORD_INTERPOLATORS
 float2 GetUV(FLGUIVertexFactoryInterpolantsVSToPS Interpolants, int UVIndex)
 {
 	float4 UVVector = Interpolants.TexCoords[UVIndex / 2];
@@ -62,4 +44,58 @@ float4 GetColor(FLGUIVertexFactoryInterpolantsVSToPS Interpolants)
 void SetColor(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float4 InValue)
 {
 	Interpolants.Color = InValue;
+}
+
+float4 GetTangentToWorld2(FLGUIVertexFactoryInterpolantsVSToPS Interpolants)
+{
+    return Interpolants.TangentToWorld2;
+}
+
+float4 GetTangentToWorld0(FLGUIVertexFactoryInterpolantsVSToPS Interpolants)
+{
+    return Interpolants.TangentToWorld0;
+}
+
+void SetTangents(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float3 InTangentToWorld0, float3 InTangentToWorld2, float InTangentToWorldSign)
+{
+    Interpolants.TangentToWorld0 = float4(InTangentToWorld0, 0);
+    Interpolants.TangentToWorld2 = float4(InTangentToWorld2, InTangentToWorldSign);
+}
+
+half3x3 CalcTangentToLocal(half3 TangentInputX, half4 TangentInputZ, out float TangentSign)
+{
+    half3x3 Result;
+
+    half3 TangentX = TangentBias(TangentInputX);
+    half4 TangentZ = TangentBias(TangentInputZ);
+
+    TangentSign = TangentZ.w;
+
+	// derive the binormal by getting the cross product of the normal and tangent
+    half3 TangentY = cross(TangentZ.xyz, TangentX) * TangentZ.w;
+	
+	// Recalculate TangentX off of the other two vectors
+	// This corrects quantization error since TangentX was passed in as a quantized vertex input
+	// The error shows up most in specular off of a mesh with a smoothed UV seam (normal is smooth, but tangents vary across the seam)
+    Result[0] = cross(TangentY, TangentZ.xyz) * TangentZ.w;
+    Result[1] = TangentY;
+    Result[2] = TangentZ.xyz;
+
+    return Result;
+}
+
+half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal)
+{
+    half3x3 LocalToWorld = GetLocalToWorld3x3();
+    half3 InvScale = Primitive.InvNonUniformScaleAndDeterminantSign.xyz;
+    LocalToWorld[0] *= InvScale.x;
+    LocalToWorld[1] *= InvScale.y;
+    LocalToWorld[2] *= InvScale.z;
+    return mul(TangentToLocal, LocalToWorld);
+}
+
+half3x3 CalcTangentToWorld(half3x3 TangentToLocal)
+{
+    half3x3 TangentToWorld = CalcTangentToWorldNoScale(TangentToLocal);
+    return TangentToWorld;
 }
