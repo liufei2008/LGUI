@@ -101,7 +101,7 @@ public:
 		FRHICommandListImmediate& RHICmdList
 	);
 private:
-	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided);
+	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bReverseCulling);
 	struct FWorldSpaceRenderParameter
 	{
 		/*
