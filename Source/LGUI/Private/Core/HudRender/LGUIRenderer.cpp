@@ -502,7 +502,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 							if (VertexShader.IsValid())
 							{
-								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
@@ -515,6 +514,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
+										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
 
@@ -530,6 +530,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
+										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 
 										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
