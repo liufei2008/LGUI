@@ -211,7 +211,7 @@ void FLGUIHudRenderer::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
 }
-void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bDisableDepthTest, bool bReverseCulling)
+void FLGUIHudRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel, FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided, bool bDisableDepthTest, bool bReverseCulling)
 {
 	switch (BlendMode)
 	{
@@ -260,6 +260,13 @@ void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer
 		}
 	}
 	
+#if PLATFORM_ANDROID
+	auto ShaderPlatform = GShaderPlatformForFeatureLevel[FeatureLevel];
+	if (ShaderPlatform == EShaderPlatform::SP_OPENGL_ES3_1_ANDROID)
+	{
+		bReverseCulling = !bReverseCulling;//android gles is flipped
+	}
+#endif
 	if (!bIsWireFrame)
 	{
 		if (bIsTwoSided)
@@ -492,7 +499,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #else
 							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
 #endif
-							FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), Mesh.ReverseCulling);
+							FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), Mesh.ReverseCulling);
 							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 							if (VertexShader.IsValid())
@@ -628,7 +635,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
 							if (VertexShader.IsValid() && PixelShader.IsValid())
 							{
-								FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), true, Mesh.ReverseCulling);
+								FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided(), true, Mesh.ReverseCulling);
 
 								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -655,7 +662,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		{
 			TShaderMapRef<FLGUIHelperLineShaderVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIHelperLineShaderPS> PixelShader(GlobalShaderMap);
-			FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, EBlendMode::BLEND_Opaque, false, true, true, false);
+			FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, EBlendMode::BLEND_Opaque, false, true, true, false);
 
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHelperLineVertexDeclaration();
 			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
