@@ -516,23 +516,23 @@ ULGUICanvas* ULGUIRenderTargetGeometrySource::GetCanvas()const
 	}
 	if (!TargetCanvas.IsValidComponentReference())
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas not valid!"));
+		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas not valid!"));
 		return nullptr;
 	}
 	auto Canvas = TargetCanvas.GetComponent<ULGUICanvas>();
 	if (Canvas == nullptr)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas not valid!"));
+		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas not valid!"));
 		return nullptr;
 	}
 	if (!Canvas->IsRootCanvas())
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas must be a root canvas!"));
+		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas must be a root canvas!"));
 		return nullptr;
 	}
 	if (Canvas->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Canvas->GetRenderTarget()))
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
+		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
 		return nullptr;
 	}
 	TargetCanvasObject = Canvas;
