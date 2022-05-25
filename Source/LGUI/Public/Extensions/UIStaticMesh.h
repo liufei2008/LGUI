@@ -63,6 +63,7 @@ struct FLGUIStaticMeshVertex
 		FVector2D UV3;
 };
 
+/** Cache StaticMesh for use in LGUI's UIStaticMesh. Since we cannot read StaticMesh data in runtime, we must create this object and assign 'MeshAsset' property in editor. */
 UCLASS()
 class LGUI_API ULGUIStaticMeshCacheData : public UObject
 {
@@ -81,18 +82,22 @@ public:
 	/** Convert the static mesh data into slate vector art on demand. Does nothing in a cooked build. */
 	void EnsureValidData();
 
+#if WITH_EDITORONLY_DATA
+	DECLARE_EVENT(ULGUIStaticMeshCacheData, FLGUIStaticMeshDataChangeEvent);
+	FLGUIStaticMeshDataChangeEvent OnMeshDataChange;
+#endif
 private:
 	// ~ UObject Interface
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform) override;
 	// ~ UObject Interface
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
-#endif
-#if WITH_EDITORONLY_DATA
 	/** Does the actual work of converting mesh data into slate vector art */
 	void InitFromStaticMesh(const UStaticMesh& InSourceMesh);
 	void ClearMeshData();
+#endif
 
+#if WITH_EDITORONLY_DATA
 	/** The mesh data asset from which the vector art is sourced */
 	UPROPERTY(EditAnywhere, Category = "Vector Art")
 		UStaticMesh* MeshAsset;
@@ -144,7 +149,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UMaterialInterface* ReplaceMaterial;
 #if WITH_EDITOR
+	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+	void OnStaticMeshDataChange();
+#endif
+#if WITH_EDITORONLY_DATA
+	FDelegateHandle OnMeshDataChangeDelegateHandle;
 #endif
 	
 	virtual void OnMeshDataReady()override;

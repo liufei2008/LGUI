@@ -157,9 +157,7 @@ void ULGUIStaticMeshCacheData::PostEditChangeProperty(FPropertyChangedEvent& Pro
 		}
 	}
 }
-#endif
 
-#if WITH_EDITORONLY_DATA
 void ULGUIStaticMeshCacheData::InitFromStaticMesh(const UStaticMesh& InSourceMesh)
 {
 	if (SourceMaterial != InSourceMesh.GetMaterial(0))
@@ -171,6 +169,7 @@ void ULGUIStaticMeshCacheData::InitFromStaticMesh(const UStaticMesh& InSourceMes
 	ensureMsgf(Material != nullptr, TEXT("ULGUIStaticMeshCacheData::InitFromStaticMesh() expected %s to have a material assigned."), *InSourceMesh.GetFullName());
 
 	StaticMeshToLGUIMeshRenderData(InSourceMesh, VertexData, IndexData);
+	OnMeshDataChange.Broadcast();
 }
 void ULGUIStaticMeshCacheData::ClearMeshData()
 {
@@ -197,6 +196,12 @@ void UUIStaticMesh::UpdateGeometry()
 
 	Super::UpdateGeometry();
 
+#if WITH_EDITOR
+	if (!OnMeshDataChangeDelegateHandle.IsValid())
+	{
+		OnMeshDataChangeDelegateHandle = meshCache->OnMeshDataChange.AddUObject(this, &UUIStaticMesh::OnStaticMeshDataChange);
+	}
+#endif
 	if (GetMeshSection() != nullptr)
 	{
 		if (bColorChanged)
@@ -405,6 +410,19 @@ void UUIStaticMesh::UpdateMeshTransform()
 }
 
 #if WITH_EDITOR
+void UUIStaticMesh::PreEditChange(FProperty* PropertyAboutToChange)
+{
+	Super::PreEditChange(PropertyAboutToChange);
+	auto PropName = PropertyAboutToChange->GetFName();
+	if (PropName == GET_MEMBER_NAME_CHECKED(UUIStaticMesh, meshCache))
+	{
+		if (IsValid(meshCache) && OnMeshDataChangeDelegateHandle.IsValid())
+		{
+			meshCache->OnMeshDataChange.Remove(OnMeshDataChangeDelegateHandle);
+			OnMeshDataChangeDelegateHandle.Reset();
+		}
+	}
+}
 void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -418,6 +436,7 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			if (IsValid(meshCache))
 			{
+				OnMeshDataChangeDelegateHandle = meshCache->OnMeshDataChange.AddUObject(this, &UUIStaticMesh::OnStaticMeshDataChange);
 				if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
 				{
 					if (HaveValidData())
@@ -439,6 +458,19 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 				{
 					CreateGeometry();
 				}
+			}
+		}
+	}
+}
+void UUIStaticMesh::OnStaticMeshDataChange()
+{
+	if (IsValid(meshCache))
+	{
+		if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+		{
+			if (HaveValidData())
+			{
+				CreateGeometry();
 			}
 		}
 	}
