@@ -208,18 +208,22 @@ void UUIStaticMesh::UpdateGeometry()
 		if (bColorChanged)
 		{
             bColorChanged = false;
-			UpdateMeshColor();
+			UpdateMeshColor(false);
 		}
 		if (bLocalVertexPositionChanged || bTransformChanged)
 		{
             bLocalVertexPositionChanged = false;
             bTransformChanged = false;
-			UpdateMeshTransform();
+			UpdateMeshTransform(false);
+		}
+		if (bColorChanged || bLocalVertexPositionChanged || bTransformChanged)
+		{
+			drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), bLocalVertexPositionChanged || bTransformChanged, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 		}
 	}
 }
 
-void UUIStaticMesh::UpdateMeshColor()
+void UUIStaticMesh::UpdateMeshColor(bool updateToDrawcallMesh)
 {
 	if (vertexColorType == UIStaticMeshVertexColorType::NotAffectByUIColor)return;
 	const auto& sourceVertexData = meshCache->GetVertexData();
@@ -263,7 +267,11 @@ void UUIStaticMesh::UpdateMeshColor()
 			}
 		}
 	}
-	drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), true, this->GetRenderCanvas()->GetActualAdditionalShaderChannelFlags());
+
+	if (updateToDrawcallMesh)
+	{
+		drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), false, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+	}
 }
 void UUIStaticMesh::CreateGeometry()
 {
@@ -347,12 +355,12 @@ void UUIStaticMesh::CreateGeometry()
 	drawcall->bMaterialNeedToReassign = true;
 	drawcall->bMaterialChanged = true;
 
-	UpdateMeshTransform();
+	UpdateMeshTransform(true);
 
 	MarkCanvasUpdate(true, false, false);
 }
 
-void UUIStaticMesh::UpdateMeshTransform()
+void UUIStaticMesh::UpdateMeshTransform(bool updateToDrawcallMesh)
 {
 	FTransform itemToCanvasTf;
 	auto canvasUIItem = RenderCanvas->GetUIItem();
@@ -406,8 +414,10 @@ void UUIStaticMesh::UpdateMeshTransform()
 		}
 	}
 
-
-	drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+	if (updateToDrawcallMesh)
+	{
+		drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+	}
 }
 
 #if WITH_EDITOR

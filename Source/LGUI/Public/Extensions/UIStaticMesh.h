@@ -160,8 +160,8 @@ protected:
 	virtual void OnMeshDataReady()override;
 	void CreateGeometry();
 	virtual void UpdateGeometry()override;
-	void UpdateMeshTransform();
-	void UpdateMeshColor();
+	void UpdateMeshTransform(bool updateToDrawcallMesh);
+	void UpdateMeshColor(bool updateToDrawcallMesh);
 	virtual bool HaveValidData()const override;
 	virtual UMaterialInterface* GetMaterial()const override;
 public:
