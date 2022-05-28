@@ -573,7 +573,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 									if (PixelShader.IsValid())
 									{
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
 										VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
