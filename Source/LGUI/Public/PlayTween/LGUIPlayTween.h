@@ -32,7 +32,7 @@ protected:
 		FLGUIEventDelegate onStart = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 	/** parameter float is the progress in range 0-1, not affected by ease type (linear on time) */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
+		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 	/** if LoopType is not Once, then this will be called every time when the cycle end, with parameter "cycle complete count". */

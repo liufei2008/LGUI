@@ -17,7 +17,7 @@ protected:
 		float to = 1.0f;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
 
 	virtual void OnUpdate(float progress)override
 	{
