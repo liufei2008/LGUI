@@ -463,7 +463,7 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 {
 	if (ParamType == LGUIEventDelegateParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate]Not valid event"));
+		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Not valid event"));
 		return;
 	}
 
@@ -497,6 +497,29 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		}
 	}
 }
+
+#if WITH_EDITOR
+bool FLGUIEventDelegateData::CheckFunctionParameter()const
+{
+	if (ParamType == LGUIEventDelegateParameterType::None)
+	{
+		return false;
+	}
+
+	auto TargetFunction = TargetObject->FindFunction(functionName);
+	if (!TargetFunction)
+	{
+		return false;
+	}
+	if (!ULGUIEventDelegateParameterHelper::IsStillSupported(TargetFunction, ParamType))
+	{
+		return false;
+	}
+
+	return true;
+}
+#endif
+
 void FLGUIEventDelegateData::FindAndExecute(UObject* Target, void* ParamData)
 {
 	CacheTarget = Target;
@@ -589,7 +612,7 @@ void FLGUIEventDelegate::FireEvent()const
 	if (eventList.Num() == 0)return;
 	if (supportParameterType == LGUIEventDelegateParameterType::Empty)
 	{
-		for (auto item : eventList)
+		for (auto& item : eventList)
 		{
 			item.Execute();
 		}
@@ -604,7 +627,7 @@ void FLGUIEventDelegate::LogParameterError()const
 }
 void FLGUIEventDelegate::FireEvent(void* InParam)const
 {
-	for (auto item : eventList)
+	for (auto& item : eventList)
 	{
 		item.Execute(InParam, supportParameterType);
 	}
@@ -826,6 +849,20 @@ void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 	}
 	else LogParameterError();
 }
+
+#if WITH_EDITOR
+bool FLGUIEventDelegate::CheckFunctionParameter()const
+{
+	for (auto& item : eventList)
+	{
+		if (!item.CheckFunctionParameter())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
