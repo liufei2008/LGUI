@@ -16,7 +16,7 @@ enum class LGUIEventDelegateParameterType :uint8
 	Empty,
 	Bool		UMETA(DisplayName = "Boolean"),
 	Float,
-	Double		UMETA(Hidden),
+	Double,
 	Int8		UMETA(Hidden),
 	UInt8		UMETA(DisplayName = "UInt8\Enum\Byte"),
 	Int16		UMETA(Hidden),
@@ -144,6 +144,13 @@ private:
 public:
 	void Execute();
 	void Execute(void* InParam, LGUIEventDelegateParameterType InParameterType);
+#if WITH_EDITOR
+	/**
+	 * Check if function parameter compatible with target function
+	 * @return	true- is compatible, false- not
+	 */
+	bool CheckFunctionParameter()const;
+#endif
 private:
 	void FindAndExecute(UObject* Target, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
@@ -193,7 +200,7 @@ private:
 	friend class FLGUIEventDelegateCustomization;
 	/** event list */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIEventDelegateData> eventList;
+		mutable TArray<FLGUIEventDelegateData> eventList;
 	/** supported parameter type of this event */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
 		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
@@ -228,4 +235,12 @@ public:
 	void FireEvent(FRotator InParam)const;
 	void FireEvent(const FName& InParam)const;
 	void FireEvent(const FText& InParam)const;
+
+#if WITH_EDITOR
+	/**
+	 * Check if function parameter compatible with target function
+	 * @return	true- is compatible, false- not
+	 */
+	bool CheckFunctionParameter()const;
+#endif
 };

@@ -1506,7 +1506,7 @@ void UUIItem::SetHorizontalAndVerticalAnchorMinMax(FVector2D MinValue, FVector2D
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorMax]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetHorizontalAndVerticalAnchorMinMax]This function only valid if UIItem have parent!"))
 	}
 }
 
