@@ -282,6 +282,11 @@ namespace LGUIPrefabSystem4
 			this->ReferenceAssetList = InPrefab->ReferenceAssetList;
 			this->ReferenceClassList = InPrefab->ReferenceClassList;
 			this->ReferenceNameList = InPrefab->ReferenceNameList;
+
+			this->ArchiveVersion = InPrefab->ArchiveVersion;
+			this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer;
+			this->ArEngineNetVer = InPrefab->ArEngineNetVer;
+			this->ArGameNetVer = InPrefab->ArGameNetVer;
 		}
 		else
 #endif
@@ -290,13 +295,14 @@ namespace LGUIPrefabSystem4
 			this->ReferenceAssetList = InPrefab->ReferenceAssetListForBuild;
 			this->ReferenceClassList = InPrefab->ReferenceClassListForBuild;
 			this->ReferenceNameList = InPrefab->ReferenceNameListForBuild;
+
+			this->ArchiveVersion = InPrefab->ArchiveVersion_ForBuild;
+			this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer_ForBuild;
+			this->ArEngineNetVer = InPrefab->ArEngineNetVer_ForBuild;
+			this->ArGameNetVer = InPrefab->ArGameNetVer_ForBuild;
 		}
 		this->PrefabVersion = InPrefab->PrefabVersion;
-		this->ArchiveVersion = InPrefab->ArchiveVersion;
-		this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer;
 		this->ArEngineVer = FEngineVersionBase(InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, InPrefab->EnginePatchVersion);
-		this->ArEngineNetVer = InPrefab->ArEngineNetVer;
-		this->ArGameNetVer = InPrefab->ArGameNetVer;
 
 		FLGUIPrefabSaveData SaveData;
 		{

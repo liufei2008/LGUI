@@ -192,6 +192,11 @@ namespace LGUIPrefabSystem5
 			InPrefab->ReferenceClassList = this->ReferenceClassList;
 			InPrefab->ReferenceNameList = this->ReferenceNameList;
 
+			InPrefab->ArchiveVersion = GPackageFileUE4Version;
+			InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUE4Version;
+			InPrefab->ArEngineNetVer = FNetworkVersion::GetEngineNetworkProtocolVersion();
+			InPrefab->ArGameNetVer = FNetworkVersion::GetGameNetworkProtocolVersion();
+
 			InPrefab->MarkPackageDirty();
 		}
 		else
@@ -203,15 +208,16 @@ namespace LGUIPrefabSystem5
 			InPrefab->ReferenceAssetListForBuild = this->ReferenceAssetList;
 			InPrefab->ReferenceClassListForBuild = this->ReferenceClassList;
 			InPrefab->ReferenceNameListForBuild = this->ReferenceNameList;
+
+			InPrefab->ArchiveVersion_ForBuild = GPackageFileUE4Version;
+			InPrefab->ArchiveLicenseeVer_ForBuild = GPackageFileLicenseeUE4Version;
+			InPrefab->ArEngineNetVer_ForBuild = FNetworkVersion::GetEngineNetworkProtocolVersion();
+			InPrefab->ArGameNetVer_ForBuild = FNetworkVersion::GetGameNetworkProtocolVersion();
 		}
 
 		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 		InPrefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
-		InPrefab->ArchiveVersion = GPackageFileUE4Version;
-		InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUE4Version;
-		InPrefab->ArEngineNetVer = FNetworkVersion::GetEngineNetworkProtocolVersion();
-		InPrefab->ArGameNetVer = FNetworkVersion::GetGameNetworkProtocolVersion();
 
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());

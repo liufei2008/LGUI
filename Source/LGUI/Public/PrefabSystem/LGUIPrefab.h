@@ -143,10 +143,16 @@ public:
 		uint16 EngineMinorVersion;
 	UPROPERTY()
 		uint16 EnginePatchVersion;
+#if WITH_EDITORONLY_DATA
 	UPROPERTY()int32 ArchiveVersion = (int32)EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
 	UPROPERTY()int32 ArchiveLicenseeVer = (int32)EUnrealEngineObjectLicenseeUE4Version::VER_LIC_NONE;
 	UPROPERTY()uint32 ArEngineNetVer = (uint32)EEngineNetworkVersionHistory::HISTORY_REPLAY_DORMANCY;
 	UPROPERTY()uint32 ArGameNetVer = 0;
+#endif
+	UPROPERTY()int32 ArchiveVersion_ForBuild = (int32)EUnrealEngineObjectUE4Version::VER_UE4_CORRECT_LICENSEE_FLAG;//this default version is the time when LGUIPrefab support FArchive version
+	UPROPERTY()int32 ArchiveLicenseeVer_ForBuild = (int32)EUnrealEngineObjectLicenseeUE4Version::VER_LIC_NONE;
+	UPROPERTY()uint32 ArEngineNetVer_ForBuild = (uint32)EEngineNetworkVersionHistory::HISTORY_REPLAY_DORMANCY;
+	UPROPERTY()uint32 ArGameNetVer_ForBuild = 0;
 
 	/** build version for ReferenceAssetList */
 	UPROPERTY()
