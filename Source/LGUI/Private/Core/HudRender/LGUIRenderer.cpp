@@ -419,6 +419,16 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 	}
 
+#if 0
+	//These lines can allow LGUI-renderer-material access SceneTexture node. But since I can't get is work on UE5, so I disabled it.
+#if PLATFORM_ANDROID || PLATFORM_IOS//mobile scene texture
+	TUniformBufferRef<FMobileSceneTextureUniformParameters> SceneTextureUniformBuffer = CreateMobileSceneTextureUniformBuffer(RHICmdList, EMobileSceneTextureSetupMode::All);
+#else
+	TUniformBufferRef<FSceneTextureUniformParameters> SceneTextureUniformBuffer = CreateSceneTextureUniformBuffer(RHICmdList, RenderView.GetFeatureLevel(), ESceneTextureSetupMode::All);
+#endif
+	RHICmdList.SetGlobalUniformBuffers(SceneTextureUniformBuffer);
+#endif
+
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
