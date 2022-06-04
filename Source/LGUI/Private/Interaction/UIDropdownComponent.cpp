@@ -431,7 +431,7 @@ void UUIDropdownComponent::OnSelectItem(int index)
 }
 void UUIDropdownComponent::ApplyValueToUI()
 {
-	if (Value >= Options.Num())return;
+	if (!Options.IsValidIndex(Value))return;
 
 	if (CaptionText.IsValid())
 	{
