@@ -22,7 +22,7 @@ void ULGUIPlayTween::Start()
 			onStart.FireEvent();
 		})
 		->OnUpdate([&](float progress) {
-			onUpdateProgress.FireEvent(progress);
+			onUpdateProgress.FireEvent((double)progress);
 		})
 		->OnCycleComplete([&] {
 			onCycleComplete.FireEvent();

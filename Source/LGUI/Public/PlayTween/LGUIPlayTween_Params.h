@@ -21,7 +21,7 @@ protected:
 
 	virtual void OnUpdate(float progress)override
 	{
-		onUpdateValue.FireEvent(FMath::Lerp(from, to, progress));
+		onUpdateValue.FireEvent((double)FMath::Lerp(from, to, progress));
 	}
 };
 
