@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Engine.h"
+#include "CoreMinimal.h"
 #include "Core/LGUIFreeTypeRenderFontData.h"
 #include "LGUISDFFontData.generated.h"
 

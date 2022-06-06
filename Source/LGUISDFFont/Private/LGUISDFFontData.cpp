@@ -8,6 +8,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUIAtlasData.h"
 #include "Utils/LGUIUtils.h"
+#include "Materials/MaterialInterface.h"
 #define SDF_IMPLEMENTATION
 #include "sdf/sdf.h"
 #include <ft2build.h>
