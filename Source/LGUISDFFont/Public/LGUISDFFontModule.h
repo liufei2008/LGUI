@@ -6,7 +6,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LGUISDFFont, Log, All);
 
-class LGUISDFFontModule : public IModuleInterface
+class FLGUISDFFontModule : public IModuleInterface
 {
 public:
 	/** IModuleInterface implementation */
