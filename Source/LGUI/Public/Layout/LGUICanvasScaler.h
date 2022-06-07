@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/LGUILifeCycleBehaviour.h"
+#include "Camera/CameraTypes.h"
 #include "LGUICanvasScaler.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)

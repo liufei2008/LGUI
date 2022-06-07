@@ -1,19 +1,18 @@
 ﻿// Copyright 2019-present LexLiu. All Rights Reserved.
 
 #include "LGUISDFFontModule.h"
+#include "Modules/ModuleManager.h"
 
-#define LOCTEXT_NAMESPACE "LGUISDFFontModule"
 DEFINE_LOG_CATEGORY(LGUISDFFont);
 
-void LGUISDFFontModule::StartupModule()
+void FLGUISDFFontModule::StartupModule()
 {
 
 }
 
-void LGUISDFFontModule::ShutdownModule()
+void FLGUISDFFontModule::ShutdownModule()
 {
 	
 }
-IMPLEMENT_MODULE(LGUISDFFontModule, LGUISDFFont)
+IMPLEMENT_MODULE(FLGUISDFFontModule, LGUISDFFont)
 
-#undef LOCTEXT_NAMESPACE
