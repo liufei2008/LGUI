@@ -319,7 +319,10 @@ namespace LGUIPrefabSystem3
 		UE_LOG(LGUI, Log, TEXT("Take %fs loading prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
 
 #if WITH_EDITOR
-		GEditor->BroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		if (IsValid(GEditor))
+		{
+			GEditor->BroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		}
 #endif
 
 		return CreatedRootActor;
