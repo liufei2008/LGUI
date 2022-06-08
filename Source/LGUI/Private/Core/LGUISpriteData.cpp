@@ -11,6 +11,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "RHI.h"
 #include "Rendering/Texture2DResource.h"
+#include "TextureCompiler.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -367,8 +368,11 @@ void ULGUISpriteData::InitSpriteData()
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
 			return;
 		}
-		if (!packingTag.IsNone())
+		if (!packingTag.IsNone())//need to pack to atlas
 		{
+#if WITH_EDITOR
+			FTextureCompilingManager::Get().FinishCompilation({ spriteTexture });
+#endif
 			if (PackageSprite())
 			{
 				isInitialized = true;
@@ -381,8 +385,7 @@ void ULGUISpriteData::InitSpriteData()
 				isInitialized = false;
 			}
 		}
-
-		if (packingTag.IsNone())
+		else//no need to pack to atlas, so spriteTextire self is the atlas
 		{
 			atlasTexture = spriteTexture;
 			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
