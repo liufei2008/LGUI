@@ -8,6 +8,10 @@
 #include "CanvasItem.h"
 #include "CanvasTypes.h"
 
+#include "ImageUtils.h"
+#include "IImageWrapper.h"
+#include "IImageWrapperModule.h"
+
 ULGUIPrefabThumbnailRenderer::ULGUIPrefabThumbnailRenderer()
 {
 
@@ -40,7 +44,54 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 	}
 	//draw prefab icon
 	{
-		auto PrefabIconTexture = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/PrefabThumbnailOverlay"));
+		auto LoadPrefabIconTextureFromFile = []()
+		{
+			UTexture2D* Texture = nullptr;
+
+			auto PrefabIconPath = TEXT("LGUI/Resources/Icons/Prefab_40x.png");
+			auto PrefabIconFullPath = FPaths::Combine(FPaths::ProjectPluginsDir(), PrefabIconPath);
+			if (!FPaths::FileExists(PrefabIconFullPath))
+			{
+				PrefabIconFullPath = FPaths::Combine(FPaths::EnginePluginsDir(), PrefabIconPath);
+			}
+
+			if (!FPaths::FileExists(*PrefabIconFullPath))
+			{
+				return Texture;
+			}
+
+			TArray<uint8> CompressedData;
+			if (!FFileHelper::LoadFileToArray(CompressedData, *PrefabIconFullPath))
+			{
+				return Texture;
+			}
+
+			IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
+			TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+
+			if (ImageWrapper.IsValid() && ImageWrapper->SetCompressed(CompressedData.GetData(), CompressedData.Num()))
+			{
+				TArray<uint8> UncompressedRGBA;
+
+				if (ImageWrapper->GetRaw(ERGBFormat::RGBA, 8, UncompressedRGBA))
+				{
+					Texture = UTexture2D::CreateTransient(ImageWrapper->GetWidth(), ImageWrapper->GetHeight(), PF_R8G8B8A8);
+
+					if (Texture != nullptr)
+					{
+						void* TextureData = Texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+						FMemory::Memcpy(TextureData, UncompressedRGBA.GetData(), UncompressedRGBA.Num());
+						Texture->GetPlatformData()->Mips[0].BulkData.Unlock();
+						Texture->UpdateResource();
+						Texture->AddToRoot();
+					}
+				}
+			}
+
+			return Texture;
+		};
+		
+		static auto PrefabIconTexture = LoadPrefabIconTextureFromFile();
 		if (PrefabIconTexture != nullptr && PrefabIconTexture->GetResource() != nullptr)
 		{
 			const float Scale = 0.3f;
