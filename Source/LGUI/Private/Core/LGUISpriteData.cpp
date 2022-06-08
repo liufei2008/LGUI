@@ -367,7 +367,7 @@ void ULGUISpriteData::InitSpriteData()
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
 			return;
 		}
-		if (!packingTag.IsNone())
+		if (!packingTag.IsNone())//need to pack to atlas
 		{
 			if (PackageSprite())
 			{
@@ -381,8 +381,7 @@ void ULGUISpriteData::InitSpriteData()
 				isInitialized = false;
 			}
 		}
-
-		if (packingTag.IsNone())
+		else//no need to pack to atlas, so spriteTexture self is the atlas
 		{
 			atlasTexture = spriteTexture;
 			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
