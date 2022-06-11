@@ -75,6 +75,7 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = ViewProjectionMatrix;
+		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RenderCanvas->GetEnableDepthTest();
 	}
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
@@ -583,7 +584,34 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			if (InView.GetViewKey() != EditorPreview_ViewKey)goto END_LGUI_RENDER;//only preview in specific viewport in editor
 		}
 #endif
+		TRefCountPtr<IPooledRenderTarget> LGUIScreenSpaceDepthTexture = nullptr;
+		if (ScreenSpaceRenderParameter.bEnableDepthTest)
+		{
+			// Allow UAV depth?
+			const ETextureCreateFlags textureUAVCreateFlags = GRHISupportsDepthUAV ? TexCreate_UAV : TexCreate_None;
+
+			// Create a texture to store the resolved scene depth, and a render-targetable surface to hold the unresolved scene depth.
+			FPooledRenderTargetDesc Desc(FPooledRenderTargetDesc::Create2DDesc(
+				RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY()
+				, EPixelFormat::PF_DepthStencil
+				, FClearValueBinding::DepthFar
+				, TexCreate_None, TexCreate_DepthStencilTargetable | TexCreate_ShaderResource | TexCreate_InputAttachmentRead | textureUAVCreateFlags
+				, false
+			));
+			Desc.NumSamples = NumSamples;
+			Desc.ArraySize = 1;
+			Desc.TargetableFlags |= TexCreate_Memoryless;
+
+			GRenderTargetPool.FindFreeElement(RHICmdList, Desc, LGUIScreenSpaceDepthTexture, TEXT("LGUIScreenSpaceDepthTexture"), ERenderTargetTransience::Transient);
+		}
+
 		auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_Store);
+		if (LGUIScreenSpaceDepthTexture.IsValid())
+		{
+			RPInfo.DepthStencilRenderTarget.Action = EDepthStencilTargetActions::ClearDepthStencil_StoreDepthStencil;
+			RPInfo.DepthStencilRenderTarget.DepthStencilTarget = LGUIScreenSpaceDepthTexture->GetRenderTargetItem().TargetableTexture;
+			RPInfo.DepthStencilRenderTarget.ExclusiveDepthStencil = FExclusiveDepthStencil::DepthWrite_StencilWrite;
+		}
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender_ScreenSpace"));
 		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -658,7 +686,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							if (VertexShader.IsValid() && PixelShader.IsValid())
 							{
 								FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
-									, Material->IsWireframe(), Material->IsTwoSided(), true, false, Mesh.ReverseCulling
+									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), LGUIScreenSpaceDepthTexture.IsValid(), Mesh.ReverseCulling
 								);
 
 								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
@@ -727,6 +755,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 #endif
 		RHICmdList.EndRenderPass();
+
+		if (LGUIScreenSpaceDepthTexture.IsValid())
+		{
+			LGUIScreenSpaceDepthTexture.SafeRelease();
+		}
 	}
 
 #if WITH_EDITOR

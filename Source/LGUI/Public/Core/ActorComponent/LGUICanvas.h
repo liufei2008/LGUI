@@ -291,7 +291,12 @@ protected:
 	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. Valid when 'DepthMode' is 'SampleDepthTexture' */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float blendDepth = 0.0f;
-
+	/**
+	 * Create a depth texture so we can do depth test. This is very useful for UIStaticMesh which use Opaque material.
+	 * Only valid for ScreenSpaceOverlay and RenderTarget mode.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bEnableDepthTest = false;
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
@@ -393,6 +398,11 @@ public:
 		float GetBlendDepth()const { return blendDepth; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetBlendDepth(float value);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetEnableDepthTest()const { return bEnableDepthTest; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetEnableDepthTest(bool value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetOverrideSorting()const { return bOverrideSorting; }

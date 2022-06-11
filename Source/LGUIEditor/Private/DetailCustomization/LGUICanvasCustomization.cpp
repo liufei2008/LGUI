@@ -174,10 +174,12 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, depthMode));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
 			break;
 		case ELGUIRenderMode::WorldSpace_LGUI:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
 			break;
 		case ELGUIRenderMode::RenderTarget:
 			break;
@@ -208,6 +210,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, depthMode));
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
 		if (TargetScriptArray[0]->GetRootCanvas() != nullptr)
 		{
 			if (
