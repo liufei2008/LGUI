@@ -207,18 +207,18 @@ void UUIStaticMesh::UpdateGeometry()
 	{
 		if (bColorChanged)
 		{
-            bColorChanged = false;
 			UpdateMeshColor(false);
 		}
 		if (bLocalVertexPositionChanged || bTransformChanged)
 		{
-            bLocalVertexPositionChanged = false;
-            bTransformChanged = false;
 			UpdateMeshTransform(false);
 		}
 		if (bColorChanged || bLocalVertexPositionChanged || bTransformChanged)
 		{
 			drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), bLocalVertexPositionChanged || bTransformChanged, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+			bColorChanged = false;
+			bLocalVertexPositionChanged = false;
+			bTransformChanged = false;
 		}
 	}
 }
