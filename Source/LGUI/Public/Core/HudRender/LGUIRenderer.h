@@ -124,6 +124,7 @@ private:
 		FMatrix ViewRotationMatrix = FMatrix::Identity;
 		FMatrix ProjectionMatrix = FMatrix::Identity;
 		FMatrix ViewProjectionMatrix = FMatrix::Identity;
+		bool bEnableDepthTest = false;
 
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
@@ -134,13 +135,16 @@ private:
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
+	//if 'bIsRenderToRenderTarget' is true then we need a render target
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;
+	//some post process component need to blend origin screen image without UI element
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
 	void SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode);
+	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
 
 	void RenderLGUI_RenderThread(
