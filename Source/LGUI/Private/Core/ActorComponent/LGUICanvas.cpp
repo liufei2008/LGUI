@@ -2962,6 +2962,13 @@ void ULGUICanvas::SetBlendDepth(float value)
 	}
 }
 
+void ULGUICanvas::SetEnableDepthTest(bool value)
+{
+	if (bEnableDepthTest != value)
+	{
+		bEnableDepthTest = value;
+	}
+}
 
 UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 {

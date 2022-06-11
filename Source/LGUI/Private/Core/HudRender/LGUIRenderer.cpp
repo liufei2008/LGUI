@@ -75,6 +75,7 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = ViewProjectionMatrix;
+		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RenderCanvas->GetEnableDepthTest();
 	}
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
@@ -682,6 +683,29 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			if (InView.GetViewKey() != EditorPreview_ViewKey)goto END_LGUI_RENDER;//only preview in specific viewport in editor
 		}
 #endif
+		TRefCountPtr<IPooledRenderTarget> LGUIScreenSpaceDepthTexture = nullptr;
+		FRDGTextureRef LGUIScreenSpaceDepthRDGTexture = nullptr;
+		if (ScreenSpaceRenderParameter.bEnableDepthTest)
+		{
+			// Allow UAV depth?
+			const ETextureCreateFlags textureUAVCreateFlags = GRHISupportsDepthUAV ? TexCreate_UAV : TexCreate_None;
+
+			// Create a texture to store the resolved scene depth, and a render-targetable surface to hold the unresolved scene depth.
+			FPooledRenderTargetDesc Desc(FPooledRenderTargetDesc::Create2DDesc(
+				InView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY()
+				, EPixelFormat::PF_DepthStencil
+				, FClearValueBinding::DepthFar
+				, TexCreate_None, TexCreate_DepthStencilTargetable | TexCreate_ShaderResource | TexCreate_InputAttachmentRead | textureUAVCreateFlags
+				, false
+			));
+			Desc.NumSamples = NumSamples;
+			Desc.ArraySize = 1;
+			Desc.TargetableFlags |= TexCreate_Memoryless;
+
+			GRenderTargetPool.FindFreeElement(RHICmdList, Desc, LGUIScreenSpaceDepthTexture, TEXT("LGUIScreenSpaceDepthTexture"));
+			LGUIScreenSpaceDepthRDGTexture = RegisterExternalTexture(GraphBuilder, LGUIScreenSpaceDepthTexture->GetRenderTargetItem().TargetableTexture, TEXT("LGUIRendererTargetTexture"));
+		}
+
 		//use a copied view. 
 		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
 		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
@@ -771,11 +795,15 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			{
 				auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
 				PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
+				if (LGUIScreenSpaceDepthRDGTexture != nullptr)
+				{
+					PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(LGUIScreenSpaceDepthRDGTexture, ERenderTargetLoadAction::ENoAction, ERenderTargetLoadAction::ENoAction, FExclusiveDepthStencil::DepthWrite_StencilWrite);
+				}
 				GraphBuilder.AddPass(
 					RDG_EVENT_NAME("LGUIHudRender_ScreenSpace"),
 					PassParameters,
 					ERDGPassFlags::Raster,
-					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples](FRHICommandListImmediate& RHICmdList)
+					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, ValidDepth = LGUIScreenSpaceDepthRDGTexture != nullptr](FRHICommandListImmediate& RHICmdList)
 					{
 						for (auto& Primitive : RenderSequenceItem)
 						{
@@ -799,7 +827,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 									RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 
 									FLGUIHudRenderer::SetGraphicPipelineState(RenderView->GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
-										, Material->IsWireframe(), Material->IsTwoSided(), true, false, Mesh.ReverseCulling
+										, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), ValidDepth, Mesh.ReverseCulling
 									);
 
 									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
@@ -889,6 +917,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			{
 				delete RenderView;
 			});
+
+		if (LGUIScreenSpaceDepthTexture.IsValid())
+		{
+			LGUIScreenSpaceDepthTexture.SafeRelease();
+		}
 	}
 
 #if WITH_EDITOR
