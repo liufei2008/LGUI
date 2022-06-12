@@ -595,7 +595,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY()
 				, EPixelFormat::PF_DepthStencil
 				, FClearValueBinding::DepthFar
-				, TexCreate_None, TexCreate_DepthStencilTargetable | TexCreate_ShaderResource | TexCreate_InputAttachmentRead | textureUAVCreateFlags
+				, TexCreate_None, TexCreate_DepthStencilTargetable | textureUAVCreateFlags
 				, false
 			));
 			Desc.NumSamples = NumSamples;
