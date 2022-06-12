@@ -169,8 +169,15 @@ public:
 		ULGUIStaticMeshCacheData* GetMesh()const { return meshCache; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UIStaticMeshVertexColorType GetVertexColorType()const { return vertexColorType; }
+	/** Get the 'ReplaceMaterial' property */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UMaterialInterface* GetReplaceMaterial()const { return ReplaceMaterial; }
+		class UMaterialInterface* GetReplaceMaterial()const { return ReplaceMaterial; }
+	/** Get actual rendering material. If 'ReplaceMaterial' is valid then return 'ReplaceMaterial', or return the mesh's default material. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		class UMaterialInterface* GetRenderMaterial()const { return GetMaterial(); }
+	/** return current rendering DynamicMaterialInstance, or create one if not valid. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		class UMaterialInstanceDynamic* GetOrCreateDynamicMaterialInstance();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMesh(ULGUIStaticMeshCacheData* value);

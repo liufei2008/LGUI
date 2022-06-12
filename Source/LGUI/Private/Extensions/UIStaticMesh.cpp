@@ -10,6 +10,8 @@
 #include "LGUI.h"
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Core/UIDrawcall.h"
+#include "Materials/MaterialInterface.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 
 static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray<FLGUIStaticMeshVertex>& OutVerts, TArray<uint32>& OutIndexes)
@@ -126,7 +128,10 @@ UMaterialInterface* ULGUIStaticMeshCacheData::GetMaterial() const
 void ULGUIStaticMeshCacheData::EnsureValidData()
 {
 #if WITH_EDITORONLY_DATA
-	InitFromStaticMesh(*MeshAsset);
+	if (IsValid(MeshAsset))
+	{
+		InitFromStaticMesh(*MeshAsset);
+	}
 #endif
 }
 
@@ -319,18 +324,18 @@ void UUIStaticMesh::CreateGeometry()
 			break;
 			}
 
-				vert.TextureCoordinate[0] = sourceVert.UV0;
+			vert.TextureCoordinate[0] = sourceVert.UV0;
 			if (needUV1)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV1;
+				vert.TextureCoordinate[1] = sourceVert.UV1;
 			}
 			if (needUV2)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV2;
+				vert.TextureCoordinate[2] = sourceVert.UV2;
 			}
 			if (needUV3)
 			{
-				vert.TextureCoordinate[0] = sourceVert.UV3;
+				vert.TextureCoordinate[3] = sourceVert.UV3;
 			}
 
 			if (needNormal)
@@ -518,6 +523,25 @@ UMaterialInterface* UUIStaticMesh::GetMaterial()const
 	{
 		return meshCache->GetMaterial();
 	}
+}
+
+UMaterialInstanceDynamic* UUIStaticMesh::GetOrCreateDynamicMaterialInstance()
+{
+	UMaterialInterface* MaterialInstance = GetMaterial();
+	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(MaterialInstance);
+
+	if (MaterialInstance && !MID)
+	{
+		// Create and set the dynamic material instance.
+		MID = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+		SetReplaceMaterial(MID);
+	}
+	else if (!MaterialInstance)
+	{
+		UE_LOG(LGUI, Warning, TEXT("[UUIStaticMesh::GetOrCreateDynamicMaterialInstance]Material is invalid on %s."), *GetPathName());
+	}
+
+	return MID;
 }
 
 void UUIStaticMesh::SetMesh(ULGUIStaticMeshCacheData* value)
