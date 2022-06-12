@@ -208,7 +208,7 @@ void UUIStaticMesh::UpdateGeometry()
 		OnMeshDataChangeDelegateHandle = meshCache->OnMeshDataChange.AddUObject(this, &UUIStaticMesh::OnStaticMeshDataChange);
 	}
 #endif
-	if (GetMeshSection() != nullptr)
+	if (GetUIMesh() != nullptr && GetMeshSection() != nullptr)
 	{
 		if (bColorChanged)
 		{
