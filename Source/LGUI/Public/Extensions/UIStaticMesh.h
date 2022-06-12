@@ -165,8 +165,9 @@ protected:
 	virtual bool HaveValidData()const override;
 	virtual UMaterialInterface* GetMaterial()const override;
 public:
+	/** return 'MeshCache' property */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
-		ULGUIStaticMeshCacheData* GetMesh()const { return meshCache; }
+		ULGUIStaticMeshCacheData* GetMeshCache()const { return meshCache; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UIStaticMeshVertexColorType GetVertexColorType()const { return vertexColorType; }
 	/** Get the 'ReplaceMaterial' property */
