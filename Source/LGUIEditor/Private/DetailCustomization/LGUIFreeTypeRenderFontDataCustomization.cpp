@@ -391,7 +391,7 @@ void FLGUIFreeTypeRenderFontDataCustomization::OnPathTextCommitted(const FString
 			pathString.RemoveFromStart(FPaths::ProjectDir(), ESearchCase::CaseSensitive);
 		}
 	}
-	InPathProperty->SetValue(InString);
+	InPathProperty->SetValue(pathString);
 	TargetScriptPtr->ReloadFont();
 	DetailBuilderPtr->ForceRefreshDetails();
 }
