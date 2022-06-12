@@ -547,8 +547,13 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo_Sweep(USceneComponent* target, FRota
 
 
 
-ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UMaterialInstanceDynamic* target, FName parameterName, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UObject* WorldContextObject, UMaterialInstanceDynamic* target, FName parameterName, float endValue, float duration, float delay, LTweenEase ease)
 {
+	if (!IsValid(WorldContextObject))
+	{
+		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MaterialScalarParameterTo] WorldContextObject is not valid!"));
+		return nullptr;
+	}
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MaterialScalarParameterTo] target is not valid:%s"), *(target->GetPathName()));
@@ -565,13 +570,18 @@ ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UMaterialInstanceDynamic*
 		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialScalarParameterTo]GetScalarParameterValue:%s error!"), *(parameterName.ToString()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenMaterialScalarGetterFunction::CreateWeakLambda(target, [target, parameterName](float& result)
+	return ALTweenActor::To(WorldContextObject, FLTweenMaterialScalarGetterFunction::CreateWeakLambda(target, [target, parameterName](float& result)
 	{
 		return target->GetScalarParameterValue(parameterName, result);
 	}), FLTweenMaterialScalarSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetScalarParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UObject* WorldContextObject, UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
 {
+	if (!IsValid(WorldContextObject))
+	{
+		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MaterialVectorParameterTo] WorldContextObject is not valid!"));
+		return nullptr;
+	}
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MaterialVectorParameterTo] target is not valid:%s"), *(target->GetPathName()));
@@ -588,7 +598,7 @@ ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic*
 		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialVectorParameterTo]GetVectorParameterValue:%s error!"), *(parameterName.ToString()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenMaterialVectorGetterFunction::CreateWeakLambda(target, [target, parameterName](FLinearColor& result)
+	return ALTweenActor::To(WorldContextObject, FLTweenMaterialVectorGetterFunction::CreateWeakLambda(target, [target, parameterName](FLinearColor& result)
 	{
 		return target->GetVectorParameterValue(parameterName, result);
 	}), FLTweenMaterialVectorSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
