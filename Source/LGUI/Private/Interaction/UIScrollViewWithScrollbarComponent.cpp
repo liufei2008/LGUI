@@ -69,7 +69,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 	Super::UpdateProgress(InFireEvent);
 	if (CheckScrollbarParameter())
 	{
-		if (bAllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbarComp->GetRootUIComponent()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
@@ -85,7 +85,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			}
 			bValueIsSetFromHorizontalScrollbar = false;
 		}
-		if (bAllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbarComp->GetRootUIComponent()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.Y > 1.0f)
 			{
@@ -216,9 +216,18 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 	{
 		if (InUIItem == Viewport->GetUIItem())
 		{
-			OutResult.bCanControlHorizontalAnchor = OutResult.bCanControlVerticalAnchor = true;
-			OutResult.bCanControlHorizontalAnchoredPosition = OutResult.bCanControlVerticalAnchoredPosition = true;
-			OutResult.bCanControlHorizontalSizeDelta = OutResult.bCanControlVerticalSizeDelta = true;
+			if (VerticalScrollbar.IsValid())
+			{
+				OutResult.bCanControlHorizontalAnchor = true;
+				OutResult.bCanControlHorizontalAnchoredPosition = true;
+				OutResult.bCanControlHorizontalSizeDelta = true;
+			}
+			if (HorizontalScrollbar.IsValid())
+			{
+				OutResult.bCanControlVerticalAnchor = true;
+				OutResult.bCanControlVerticalAnchoredPosition = true;
+				OutResult.bCanControlVerticalSizeDelta = true;
+			}
 			return true;
 		}
 	}

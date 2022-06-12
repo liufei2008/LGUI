@@ -571,7 +571,6 @@ void ULGUIFreeTypeRenderFontData::PostEditChangeProperty(FPropertyChangedEvent& 
 	{
 		auto PropertyName = Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, useExternalFileOrEmbedInToUAsset)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontFilePath)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontFace)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontType)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, packingTag)
