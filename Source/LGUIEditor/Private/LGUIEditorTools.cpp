@@ -1299,9 +1299,9 @@ int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 	{
 		if (auto rootUIItem = Cast<UUIItem>(rootComp))
 		{
-			if (rootUIItem->IsCanvasUIItem() && rootUIItem->GetRenderCanvas() != nullptr)
+			if (auto canvas = InActor->FindComponentByClass<ULGUICanvas>())
 			{
-				return rootUIItem->GetRenderCanvas()->GetDrawcallCount();
+				return canvas->GetDrawcallCount();
 			}
 		}
 	}
