@@ -11,6 +11,8 @@
 #include "ImageUtils.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include "Misc/Paths.h"
+#include "Misc/FileHelper.h"
 
 ULGUIPrefabThumbnailRenderer::ULGUIPrefabThumbnailRenderer()
 {
