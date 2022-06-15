@@ -700,7 +700,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			));
 			Desc.NumSamples = NumSamples;
 			Desc.ArraySize = 1;
-			Desc.TargetableFlags |= TexCreate_Memoryless;
+			Desc.Flags |= TexCreate_Memoryless;
 
 			GRenderTargetPool.FindFreeElement(RHICmdList, Desc, LGUIScreenSpaceDepthTexture, TEXT("LGUIScreenSpaceDepthTexture"));
 			LGUIScreenSpaceDepthRDGTexture = RegisterExternalTexture(GraphBuilder, LGUIScreenSpaceDepthTexture->GetRenderTargetItem().TargetableTexture, TEXT("LGUIRendererTargetTexture"));
