@@ -569,6 +569,27 @@ bool ULGUIPrefab::IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InR
 	return false;
 }
 
+#if WITH_EDITOR
+void ULGUIPrefab::CopyDataTo(ULGUIPrefab* TargetPrefab)
+{
+	TargetPrefab->ReferenceAssetList = this->ReferenceAssetList;
+	TargetPrefab->ReferenceClassList = this->ReferenceClassList;
+	TargetPrefab->ReferenceNameList = this->ReferenceNameList;
+	TargetPrefab->ReferenceStringList = this->ReferenceStringList;
+	TargetPrefab->ReferenceTextList = this->ReferenceTextList;
+	TargetPrefab->BinaryData = this->BinaryData;
+	TargetPrefab->PrefabVersion = this->PrefabVersion;
+	TargetPrefab->EngineMajorVersion = this->EngineMajorVersion;
+	TargetPrefab->EngineMinorVersion = this->EngineMinorVersion;
+	TargetPrefab->EnginePatchVersion = this->EnginePatchVersion;
+	TargetPrefab->ArchiveVersion = this->ArchiveVersion;
+	TargetPrefab->ArchiveLicenseeVer = this->ArchiveLicenseeVer;
+	TargetPrefab->ArEngineNetVer = this->ArEngineNetVer;
+	TargetPrefab->ArGameNetVer = this->ArGameNetVer;
+	TargetPrefab->PrefabDataForPrefabEditor = this->PrefabDataForPrefabEditor;
+}
+#endif
+
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse

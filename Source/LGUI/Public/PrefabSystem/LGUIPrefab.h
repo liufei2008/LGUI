@@ -194,6 +194,9 @@ public:
 		, bool InSetHierarchyIndexForRootComponent = true
 	);
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
+#if WITH_EDITOR
+	void CopyDataTo(ULGUIPrefab* TargetPrefab);
+#endif
 private:
 #if WITH_EDITOR
 	TWeakObjectPtr<AActor> ContainerActor;//container actor for UI or common actor
