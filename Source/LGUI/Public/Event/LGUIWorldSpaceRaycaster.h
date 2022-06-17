@@ -99,4 +99,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIWorldSpaceRaycasterSource* GetRaycasterSourceObject()const { return RaycasterSourceObject; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRaycasterSourceObject(ULGUIWorldSpaceRaycasterSource* NewSource);
 };
