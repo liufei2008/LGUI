@@ -407,6 +407,10 @@ public:
 		bool IsWorldSpaceUI()const;
 
 	bool IsCanvasUIItem() { return bIsCanvasUIItem; }
+
+	/** return root UIItem in hierarchy, could be null if not initialized yet. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIItem* GetRootUIItemInHierarchy()const { return RootUIItem.Get(); }
 protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
