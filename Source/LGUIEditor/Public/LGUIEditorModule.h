@@ -48,7 +48,9 @@ private:
 	void ToggleActiveViewportAsPreview();
 	bool CanUnpackActorForPrefab();
 	bool CanDuplicateActor();
+	bool CanCopyActor();
 	bool CanPasteActor();
+	bool CanCutActor();
 	bool CanBrowsePrefab();
 	bool CanUpdateLevelPrefab();
 	bool CanCreatePrefab();

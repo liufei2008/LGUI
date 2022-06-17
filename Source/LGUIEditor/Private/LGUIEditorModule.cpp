@@ -125,7 +125,16 @@ void FLGUIEditorModule::StartupModule()
 		PluginCommands->MapAction(
 			editorCommand.CopyActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::CopySelectedActors_Impl),
-			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
+			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCopyActor),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCopyActor)
+		);
+		PluginCommands->MapAction(
+			editorCommand.PasteActor,
+			FExecuteAction::CreateStatic(&LGUIEditorTools::CutSelectedActors_Impl),
+			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCutActor),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCutActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteActor,
@@ -153,13 +162,18 @@ void FLGUIEditorModule::StartupModule()
 		PluginCommands->MapAction(
 			editorCommand.CopyComponentValues,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::CopyComponentValues_Impl),
-			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedComponentCount() > 0; })
+			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedComponentCount() > 0; }),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateLambda([] {return GEditor->GetSelectedComponentCount() > 0; })
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteComponentValues,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteComponentValues_Impl),
-			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); })
+			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); }),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); })
 		);
+		//view
 		PluginCommands->MapAction(
 			editorCommand.FocusToScreenSpaceUI,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToScreenSpaceUI)
@@ -174,6 +188,7 @@ void FLGUIEditorModule::StartupModule()
 			FCanExecuteAction(),
 			FIsActionChecked::CreateLambda([this] {return this->bActiveViewportAsPreview; })
 		);
+		//settings
 		PluginCommands->MapAction(
 			editorCommand.ToggleLGUIInfoColume,
 			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleLGUIColumnInfo),
@@ -186,6 +201,7 @@ void FLGUIEditorModule::StartupModule()
 			FCanExecuteAction(),
 			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::GetDrawHelperFrameChecked)
 		);
+		//gc
 		PluginCommands->MapAction(
 			editorCommand.ForceGC,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::ForceGC)
@@ -628,6 +644,11 @@ bool FLGUIEditorModule::CanDuplicateActor()
 	}
 }
 
+bool FLGUIEditorModule::CanCopyActor()
+{
+	return GEditor->GetSelectedActorCount() > 0;
+}
+
 bool FLGUIEditorModule::CanPasteActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -667,6 +688,11 @@ bool FLGUIEditorModule::CanCreateActor()
 		}
 	}
 	return true;
+}
+
+bool FLGUIEditorModule::CanCutActor()
+{
+	return CanDeleteActor();
 }
 
 bool FLGUIEditorModule::CanDeleteActor()
@@ -966,6 +992,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 	{
 		MenuBuilder.AddMenuEntry(commandList.CopyActor);
 		MenuBuilder.AddMenuEntry(commandList.PasteActor);
+		MenuBuilder.AddMenuEntry(commandList.CutActor);
 		MenuBuilder.AddMenuEntry(commandList.DuplicateActor);
 		MenuBuilder.AddMenuEntry(commandList.DestroyActor);
 		MenuBuilder.AddSubMenu(
