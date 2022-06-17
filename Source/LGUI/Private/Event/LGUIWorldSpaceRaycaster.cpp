@@ -136,3 +136,7 @@ bool ULGUIWorldSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerE
 	return RaycasterSourceObject->ShouldStartDrag(InPointerEventData);
 }
 
+void ULGUIWorldSpaceRaycaster::SetRaycasterSourceObject(ULGUIWorldSpaceRaycasterSource* NewSource)
+{
+	RaycasterSourceObject = NewSource;
+}
