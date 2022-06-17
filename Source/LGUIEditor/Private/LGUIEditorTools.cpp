@@ -619,6 +619,11 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	DeleteActors_Impl(selectedActors);
 }
+void LGUIEditorTools::CutSelectedActors_Impl()
+{
+	CopySelectedActors_Impl();
+	DeleteSelectedActors_Impl();
+}
 
 void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 {

@@ -15,6 +15,7 @@ public:
 public:
 	TSharedPtr<FUICommandInfo> CopyActor;
 	TSharedPtr<FUICommandInfo> PasteActor;
+	TSharedPtr<FUICommandInfo> CutActor;
 	TSharedPtr<FUICommandInfo> DuplicateActor;
 	TSharedPtr<FUICommandInfo> DestroyActor;
 
