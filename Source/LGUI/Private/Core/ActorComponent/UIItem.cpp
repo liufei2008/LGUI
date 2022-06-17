@@ -2156,7 +2156,7 @@ void UUIItem::CheckUIActiveState()
 
 void UUIItem::CheckChildrenUIActiveRecursive(bool InUpParentUIActive)
 {
-	for (auto uiChild : UIChildren)
+	for (auto& uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{		//state is changed
@@ -2214,7 +2214,9 @@ void UUIItem::ApplyUIActiveState(bool InStateChange)
 	auto Actor = GetOwner();
 	if (Actor != nullptr && this == Actor->GetRootComponent())
 	{
-		Actor->SetIsTemporarilyHiddenInEditor(!GetIsUIActiveInHierarchy());
+		auto bHiddenEdTemporary_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bHiddenEdTemporary"));
+		bHiddenEdTemporary_Property->SetPropertyValue_InContainer(Actor, !GetIsUIActiveInHierarchy());
+		//Actor->SetIsTemporarilyHiddenInEditor(!GetIsUIActiveInHierarchy());
 	}
 #endif
 	if (InStateChange)
