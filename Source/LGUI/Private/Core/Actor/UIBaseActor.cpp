@@ -3,6 +3,8 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 
 
 AUIBaseActor::AUIBaseActor()
@@ -45,6 +47,10 @@ AUIBaseRenderableActor::AUIBaseRenderableActor()
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
+UUIItem* AUIBaseRenderableActor::GetUIItem()const 
+{
+	return GetUIRenderable(); 
+}
 
 AUIBasePostProcessActor::AUIBasePostProcessActor()
 {
@@ -53,3 +59,8 @@ AUIBasePostProcessActor::AUIBasePostProcessActor()
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
+UUIBaseRenderable* AUIBasePostProcessActor::GetUIRenderable()const 
+{
+	return GetUIPostProcessRenderable(); 
+}
+
