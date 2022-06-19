@@ -125,37 +125,37 @@ void FLGUIEditorModule::StartupModule()
 		PluginCommands->MapAction(
 			editorCommand.CopyActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::CopySelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCopyActor),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCopyActor),
 			FGetActionCheckState(),
-			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCopyActor)
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCopyActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::CutSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCutActor),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCutActor),
 			FGetActionCheckState(),
-			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCutActor)
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCutActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanPasteActor),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanPasteActor),
 			FGetActionCheckState(),
-			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanPasteActor)
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanPasteActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.DuplicateActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::DuplicateSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanDuplicateActor),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanDuplicateActor),
 			FGetActionCheckState(),
-			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanDuplicateActor)
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanDuplicateActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.DestroyActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::DeleteSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanDeleteActor),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanDeleteActor),
 			FGetActionCheckState(),
-			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanDeleteActor)
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanDeleteActor)
 		);
 
 		//component action
@@ -618,64 +618,6 @@ bool FLGUIEditorModule::CanUpdateLevelPrefab()
 	}
 }
 
-bool FLGUIEditorModule::CanDuplicateActor()
-{
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor == nullptr)return false;
-
-	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-	{
-		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))//sub prefab's root actor can duplicate
-		{
-			return true;
-		}
-		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's other actor cannot duplicate
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	else
-	{
-		return true;
-	}
-}
-
-bool FLGUIEditorModule::CanCopyActor()
-{
-	return GEditor->GetSelectedActorCount() > 0;
-}
-
-bool FLGUIEditorModule::CanPasteActor()
-{
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-		{
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			return true;
-		}
-	}
-	else
-	{
-		return false;
-	}
-}
-
 bool FLGUIEditorModule::CanCreateActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -685,29 +627,6 @@ bool FLGUIEditorModule::CanCreateActor()
 		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
 		{
 			return false;
-		}
-	}
-	return true;
-}
-
-bool FLGUIEditorModule::CanCutActor()
-{
-	return CanDeleteActor();
-}
-
-bool FLGUIEditorModule::CanDeleteActor()
-{
-	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
-	if (SelectedActors.Num() == 0)return false;
-	for (auto Actor : SelectedActors)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
-		{
-			if (!PrefabHelperObject->ActorIsSubPrefabRootActor(Actor)//allowed to delete sub prefab's root actor
-				&& PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))//not allowed to delete sub prefab's actor
-			{
-				return false;
-			}
 		}
 	}
 	return true;
