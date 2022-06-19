@@ -35,6 +35,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIRenderable"))
 		UUIBaseRenderable* GetUIRenderable_BP()const;
 	virtual UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
+	virtual UUIItem* GetUIItem()const override;
 private:
 	UUIBaseRenderable* GetUIRenderable_BP_Implementation()const { return GetUIRenderable(); }
 };
@@ -50,6 +51,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIPostProcessRenderable"))
 		UUIPostProcessRenderable* GetUIPostProcessRenderable_BP()const;
 	virtual UUIPostProcessRenderable* GetUIPostProcessRenderable()const PURE_VIRTUAL(AUIBasePostProcessActor::GetUIPostProcessRenderable, return nullptr;);
+	virtual UUIBaseRenderable* GetUIRenderable()const override;
 private:
 	UUIPostProcessRenderable* GetUIPostProcessRenderable_BP_Implementation()const { return GetUIPostProcessRenderable(); }
 };
