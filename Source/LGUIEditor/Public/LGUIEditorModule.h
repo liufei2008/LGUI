@@ -47,10 +47,6 @@ private:
 	void ClearViewportPreview();
 	void ToggleActiveViewportAsPreview();
 	bool CanUnpackActorForPrefab();
-	bool CanDuplicateActor();
-	bool CanCopyActor();
-	bool CanPasteActor();
-	bool CanCutActor();
 	bool CanBrowsePrefab();
 	bool CanUpdateLevelPrefab();
 	bool CanCreatePrefab();
@@ -58,7 +54,6 @@ private:
 	bool CanReplaceUIElement();
 	bool CanAttachLayout();
 	bool CanCreateActor();
-	bool CanDeleteActor();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 

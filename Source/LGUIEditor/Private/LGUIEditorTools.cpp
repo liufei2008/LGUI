@@ -591,7 +591,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 		{
 			TMap<FGuid, UObject*> OutMapGuidToObject;
 			TMap<AActor*, FLGUISubPrefabData> LoadedSubPrefabMap;
-			auto copiedActor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
+			auto copiedActor = prefab->LoadPrefabInEditor(parentComp->GetWorld(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
 			for (auto& KeyValue : LoadedSubPrefabMap)
 			{
 				TMap<FGuid, UObject*> SubMapGuidToObject;
@@ -657,6 +657,83 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 	}
 	GEditor->EndTransaction();
 	CleanupPrefabsInWorld(RootActorList[0]->GetWorld());
+}
+
+bool LGUIEditorTools::CanDuplicateActor()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))//sub prefab's root actor can duplicate
+		{
+			return true;
+		}
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's other actor cannot duplicate
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return true;
+	}
+}
+bool LGUIEditorTools::CanCopyActor()
+{
+	return GEditor->GetSelectedActorCount() > 0;
+}
+bool LGUIEditorTools::CanPasteActor()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor)
+	{
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+		{
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+bool LGUIEditorTools::CanCutActor()
+{
+	return CanDeleteActor();
+}
+bool LGUIEditorTools::CanDeleteActor()
+{
+	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
+	if (SelectedActors.Num() == 0)return false;
+	for (auto Actor : SelectedActors)
+	{
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
+		{
+			if (!PrefabHelperObject->ActorIsSubPrefabRootActor(Actor)//allowed to delete sub prefab's root actor
+				&& PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))//not allowed to delete sub prefab's actor
+			{
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 void LGUIEditorTools::CopyComponentValues_Impl()

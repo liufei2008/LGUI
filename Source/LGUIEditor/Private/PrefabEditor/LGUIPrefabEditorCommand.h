@@ -27,4 +27,9 @@ public:
 public:
 	TSharedPtr<FUICommandInfo> Apply;
 	TSharedPtr<FUICommandInfo> RawDataViewer;
+	TSharedPtr<FUICommandInfo> CopyActor;
+	TSharedPtr<FUICommandInfo> PasteActor;
+	TSharedPtr<FUICommandInfo> CutActor;
+	TSharedPtr<FUICommandInfo> DuplicateActor;
+	TSharedPtr<FUICommandInfo> DestroyActor;
 };
