@@ -556,6 +556,42 @@ void FLGUIPrefabEditor::BindCommands()
 		FCanExecuteAction(),
 		FIsActionChecked()
 	);
+
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.CopyActor,
+		FExecuteAction::CreateStatic(&LGUIEditorTools::CopySelectedActors_Impl),
+		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCopyActor),
+		FGetActionCheckState(),
+		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCopyActor)
+	);
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.PasteActor,
+		FExecuteAction::CreateStatic(&LGUIEditorTools::CutSelectedActors_Impl),
+		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCutActor),
+		FGetActionCheckState(),
+		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCutActor)
+	);
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.PasteActor,
+		FExecuteAction::CreateStatic(&LGUIEditorTools::PasteSelectedActors_Impl),
+		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanPasteActor),
+		FGetActionCheckState(),
+		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanPasteActor)
+	);
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.DuplicateActor,
+		FExecuteAction::CreateStatic(&LGUIEditorTools::DuplicateSelectedActors_Impl),
+		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanDuplicateActor),
+		FGetActionCheckState(),
+		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanDuplicateActor)
+	);
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.DestroyActor,
+		FExecuteAction::CreateStatic(&LGUIEditorTools::DeleteSelectedActors_Impl),
+		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanDeleteActor),
+		FGetActionCheckState(),
+		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanDeleteActor)
+	);
 }
 void FLGUIPrefabEditor::ExtendToolbar()
 {
