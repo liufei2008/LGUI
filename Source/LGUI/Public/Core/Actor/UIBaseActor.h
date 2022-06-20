@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -17,9 +17,10 @@ public:
 #if WITH_EDITOR
 	virtual void SetIsTemporarilyHiddenInEditor(bool bIsHidden) override;
 #endif
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName="GetUIItem"))
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
 		UUIItem* GetUIItem_BP()const;
-	virtual UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		virtual UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
 private:
 	UUIItem* GetUIItem_BP_Implementation()const { return GetUIItem(); }
 };
@@ -32,9 +33,10 @@ class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 
 public:
 	AUIBaseRenderableActor();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIRenderable"))
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
 		UUIBaseRenderable* GetUIRenderable_BP()const;
-	virtual UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		virtual UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
 	virtual UUIItem* GetUIItem()const override;
 private:
 	UUIBaseRenderable* GetUIRenderable_BP_Implementation()const { return GetUIRenderable(); }
@@ -48,9 +50,10 @@ class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 
 public:
 	AUIBasePostProcessActor();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIPostProcessRenderable"))
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
 		UUIPostProcessRenderable* GetUIPostProcessRenderable_BP()const;
-	virtual UUIPostProcessRenderable* GetUIPostProcessRenderable()const PURE_VIRTUAL(AUIBasePostProcessActor::GetUIPostProcessRenderable, return nullptr;);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		virtual UUIPostProcessRenderable* GetUIPostProcessRenderable()const PURE_VIRTUAL(AUIBasePostProcessActor::GetUIPostProcessRenderable, return nullptr;);
 	virtual UUIBaseRenderable* GetUIRenderable()const override;
 private:
 	UUIPostProcessRenderable* GetUIPostProcessRenderable_BP_Implementation()const { return GetUIPostProcessRenderable(); }
