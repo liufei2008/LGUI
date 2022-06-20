@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
@@ -507,7 +507,7 @@ bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
 	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
 	{
 		auto itrActor = Cast<AActor>(*itr);
-		if (itrActor->IsAttachedTo(InObject))
+		if (IsValid(itrActor) && itrActor->IsAttachedTo(InObject))
 		{
 			return true;
 		}
