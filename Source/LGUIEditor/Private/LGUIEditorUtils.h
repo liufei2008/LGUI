@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #pragma once
 #include "IDetailCustomization.h"
@@ -6,7 +6,6 @@
 #include "IDetailPropertyRow.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorUtils"
-DECLARE_DELEGATE_RetVal(FText, FLGUIArrowButtonDelegate);
 class LGUIEditorUtils
 {
 #define ErrorInfoCategory TEXT("Error")
@@ -112,5 +111,6 @@ public:
 	{
 		return PropertyHandle->IsEditable();
 	}
+	static void DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
 };
 #undef LOCTEXT_NAMESPACE

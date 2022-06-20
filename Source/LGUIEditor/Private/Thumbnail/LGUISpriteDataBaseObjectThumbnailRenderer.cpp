@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Thumbnail/LGUISpriteDataBaseObjectThumbnailRenderer.h"
 #include "EngineModule.h"
@@ -9,6 +9,7 @@
 #include "CanvasItem.h"
 #include "EditorStyleSet.h"
 #include "CanvasTypes.h"
+#include "LGUIEditorUtils.h"
 
 ULGUISpriteDataBaseObjectThumbnailRenderer::ULGUISpriteDataBaseObjectThumbnailRenderer()
 {
@@ -72,6 +73,8 @@ void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawFrame(class ULGUISpriteData
 		// Fallback for a bogus sprite
 		DrawGrid(X, Y, Width, Height, Canvas);
 	}
+	//draw sprite icon
+	LGUIEditorUtils::DrawThumbnailIcon(TEXT("LGUI/Resources/Icons/UISprite_40x.png"), X, Y, Width, Height, Canvas);
 }
 void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawGrid(int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
 {
