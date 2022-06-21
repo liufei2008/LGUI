@@ -60,7 +60,7 @@ void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 
 	};
 
 	static auto SpriteIconTexture = LoadSpriteIconTextureFromFile();
-	if (SpriteIconTexture != nullptr && SpriteIconTexture->GetResource() != nullptr)
+	if (SpriteIconTexture != nullptr && SpriteIconTexture->Resource != nullptr)
 	{
 		const float Scale = 0.3f;
 		float triangleWidth = Width * Scale, triangleHeight = Height * Scale;
@@ -90,7 +90,7 @@ void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 
 		Triangle2->V1_Pos = FVector2D(X + xOffset, Y + triangleHeight + yOffset); Triangle2->V1_UV = FVector2D(0, 1.0f); Triangle2->V1_Color = SpriteColor;
 		Triangle2->V2_Pos = FVector2D(X + triangleWidth + xOffset, Y + triangleHeight + yOffset); Triangle2->V2_UV = FVector2D(1.0f, 1.0f); Triangle2->V2_Color = SpriteColor;
 
-		FCanvasTriangleItem CanvasTriangle(Triangles, SpriteIconTexture->GetResource());
+		FCanvasTriangleItem CanvasTriangle(Triangles, SpriteIconTexture->Resource);
 		CanvasTriangle.BlendMode = ESimpleElementBlendMode::SE_BLEND_Translucent;
 		Canvas->DrawItem(CanvasTriangle);
 	}
