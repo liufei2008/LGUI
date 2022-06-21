@@ -18,25 +18,16 @@ AUIBaseActor::AUIBaseActor()
 #if WITH_EDITOR
 void AUIBaseActor::SetIsTemporarilyHiddenInEditor(bool bIsHidden)
 {
-	//if (IsTemporarilyHiddenInEditor() != bIsHidden)
-	//{
-	//	TArray<UUIItem*> UIItems;
-	//	GetComponents<UUIItem>(UIItems);
-
-	//	for (UUIItem* Item : UIItems)
-	//	{
-	//		if (bIsHidden)
-	//		{
-	//			Item->SetIsUIActive(false);
-	//		}
-	//		else
-	//		{
-	//			Item->SetIsUIActive(true);
-	//		}
-	//	}
-	//}
-
 	Super::SetIsTemporarilyHiddenInEditor(bIsHidden);
+
+	TArray<UUIItem*> UIItems;
+	GetComponents<UUIItem>(UIItems);
+
+	for (UUIItem* Item : UIItems)
+	{
+		// notify UIItem to refresh render state
+		Item->ActorTemporaryHiddenChanged();
+	}
 }
 #endif
 

@@ -2202,7 +2202,7 @@ void UUIItem::SetIsUIActive(bool active)
 		{
 			ApplyUIActiveState(true);
 			//affect children
-			CheckChildrenUIActiveRecursive(bIsUIActive);
+			CheckChildrenUIActiveRecursive(GetIsUIActiveInHierarchy());
 			//callback for parent
 			if (ParentUIItem.IsValid())
 			{
@@ -2216,17 +2216,43 @@ void UUIItem::SetIsUIActive(bool active)
 	}
 }
 
+bool UUIItem::GetIsUIActiveInHierarchy() const
+{
+	return bIsUIActive && bAllUpParentUIActive && !IsOwnerActorTemporaryHiddenInEd();
+}
+
+void UUIItem::ActorTemporaryHiddenChanged()
+{
+	ApplyUIActiveState(true);
+	//affect children
+	CheckChildrenUIActiveRecursive(GetIsUIActiveInHierarchy());
+	//callback for parent
+	if (ParentUIItem.IsValid())
+	{
+		ParentUIItem->OnChildActiveStateChanged(this);
+	}
+}
+
+bool UUIItem::IsOwnerActorTemporaryHiddenInEd() const
+{
+#if WITH_EDITOR
+	return GetOwner()->IsTemporarilyHiddenInEditor(true);
+#elif
+	return false;
+#endif
+}
+
 void UUIItem::ApplyUIActiveState(bool InStateChange)
 {
 #if WITH_EDITOR
 	//modify inactive actor's name
-	auto Actor = GetOwner();
-	if (Actor != nullptr && this == Actor->GetRootComponent())
-	{
-		auto bHiddenEdTemporary_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bHiddenEdTemporary"));
-		bHiddenEdTemporary_Property->SetPropertyValue_InContainer(Actor, !GetIsUIActiveInHierarchy());
-		//Actor->SetIsTemporarilyHiddenInEditor(!GetIsUIActiveInHierarchy());
-	}
+	//auto Actor = GetOwner();
+	//if (Actor != nullptr && this == Actor->GetRootComponent())
+	//{
+	//	auto bHiddenEdTemporary_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bHiddenEdTemporary"));
+	//	bHiddenEdTemporary_Property->SetPropertyValue_InContainer(Actor, !GetIsUIActiveInHierarchy());
+	//	//Actor->SetIsTemporarilyHiddenInEditor(!GetIsUIActiveInHierarchy());
+	//}
 #endif
 	if (InStateChange)
 	{
@@ -2319,6 +2345,8 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 		SetHeight(inWidget.height);
 	}
 }
+
+
 void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
 {
 	switch (align)
