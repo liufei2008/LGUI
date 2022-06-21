@@ -293,7 +293,7 @@ protected:
 	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState(bool InStateChange);
 	void OnChildActiveStateChanged(UUIItem* child);
-
+	bool IsOwnerActorTemporaryHiddenInEd() const;
 	FSimpleMulticastDelegate UIActiveStateChangedDelegate;
 public:
 	FDelegateHandle RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback);
@@ -307,7 +307,8 @@ public:
 		bool GetIsUIActiveSelf()const { return bIsUIActive; }
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && bAllUpParentUIActive; };
+		bool GetIsUIActiveInHierarchy()const;
+	void ActorTemporaryHiddenChanged();
 #pragma endregion UIActive
 
 #pragma region HierarchyIndex
