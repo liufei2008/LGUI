@@ -619,7 +619,10 @@ namespace LGUIPrefabSystem3
 		if (auto ObjectPtr = MapGuidToObject.Find(InActorData.ActorGuid))
 		{
 			auto NewActor = (AActor*)(*ObjectPtr);
-			WriterOrReaderFunction(NewActor, InActorData.ActorPropertyData, false);
+			if (!InActorData.bIsPrefab)//prefab data is stored in sub prefab and override
+			{
+				WriterOrReaderFunction(NewActor, InActorData.ActorPropertyData, false);
+			}
 
 			for (auto& ChildSaveData : InActorData.ChildActorData)
 			{
