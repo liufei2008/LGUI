@@ -17,12 +17,13 @@ public:
 #if WITH_EDITOR
 	virtual void SetIsTemporarilyHiddenInEditor(bool bIsHidden) override;
 #endif
+	/** This is for blueprint actor which inherit UIBaseActor, Implement it and return UIItem. */
 	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
-		UUIItem* GetUIItem_BP()const;
+		UUIItem* GetUIItem_Impl()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		virtual UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
 private:
-	UUIItem* GetUIItem_BP_Implementation()const { return GetUIItem(); }
+	UUIItem* GetUIItem_Impl_Implementation()const { return GetUIItem(); }
 };
 
 class UUIBaseRenderable;
@@ -33,13 +34,14 @@ class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 
 public:
 	AUIBaseRenderableActor();
+	/** This is for blueprint actor which inherit UIBaseRenderableActor, Implement it and return UIBaseRenderable. */
 	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
-		UUIBaseRenderable* GetUIRenderable_BP()const;
+		UUIBaseRenderable* GetUIRenderable_Impl()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		virtual UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
 	virtual UUIItem* GetUIItem()const override;
 private:
-	UUIBaseRenderable* GetUIRenderable_BP_Implementation()const { return GetUIRenderable(); }
+	UUIBaseRenderable* GetUIRenderable_Impl_Implementation()const { return GetUIRenderable(); }
 };
 
 class UUIPostProcessRenderable;
@@ -50,11 +52,12 @@ class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 
 public:
 	AUIBasePostProcessActor();
+	/** This is for blueprint actor which inherit UIBasePostProcessActor, Implement it and return UIPostProcessRenderable. */
 	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
-		UUIPostProcessRenderable* GetUIPostProcessRenderable_BP()const;
+		UUIPostProcessRenderable* GetUIPostProcessRenderable_Impl()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		virtual UUIPostProcessRenderable* GetUIPostProcessRenderable()const PURE_VIRTUAL(AUIBasePostProcessActor::GetUIPostProcessRenderable, return nullptr;);
 	virtual UUIBaseRenderable* GetUIRenderable()const override;
 private:
-	UUIPostProcessRenderable* GetUIPostProcessRenderable_BP_Implementation()const { return GetUIPostProcessRenderable(); }
+	UUIPostProcessRenderable* GetUIPostProcessRenderable_Impl_Implementation()const { return GetUIPostProcessRenderable(); }
 };
