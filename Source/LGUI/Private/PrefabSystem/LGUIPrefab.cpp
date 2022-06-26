@@ -224,7 +224,7 @@ public:
 
 ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
 {
-	if (PrefabHelperObject == nullptr)
+	if (!IsValid(PrefabHelperObject))
 	{
 		PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
 		PrefabHelperObject->PrefabAsset = this;
