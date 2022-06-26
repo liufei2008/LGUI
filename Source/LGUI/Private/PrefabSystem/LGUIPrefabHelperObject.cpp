@@ -66,19 +66,6 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 		);
 
 		if (LoadedRootActor == nullptr)return;
-		//remove extra objects
-		TSet<FGuid> ObjectsToIgnore;
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (!PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
-			{
-				ObjectsToIgnore.Add(KeyValue.Key);
-			}
-		}
-		for (auto& ObjectGuid : ObjectsToIgnore)
-		{
-			MapGuidToObject.Remove(ObjectGuid);
-		}
 
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
@@ -476,7 +463,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 	}
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(InSubPrefabRootActor);
+	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
 	return AnythingChange;
 }
@@ -842,7 +829,8 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -891,7 +879,8 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
 
 void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
@@ -968,7 +957,8 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 
 		bAnythingDirty = true;
 		GEditor->EndTransaction();
-		CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+		//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+		RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
@@ -1032,7 +1022,8 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -1089,7 +1080,8 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 {
@@ -1192,11 +1184,12 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
+	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
+	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
 #pragma endregion RevertAndApply
 
-void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActor)
+void ULGUIPrefabHelperObject::RefreshSubPrefabVersion(AActor* InSubPrefabRootActor)
 {
 	if (IsInsidePrefabEditor())return;
 	auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];

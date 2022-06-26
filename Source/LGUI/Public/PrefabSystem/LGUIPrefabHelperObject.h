@@ -25,7 +25,7 @@ public:
 		ULGUIPrefab* PrefabAsset = nullptr;
 	/** Root actor of this prefab, null means this is a level prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		AActor* LoadedRootActor;
+		AActor* LoadedRootActor = nullptr;
 	/** Map from guid to object, include all subprefab's object. Note object guid is not equals to subprefab's same object's guid. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<FGuid, UObject*> MapGuidToObject;
@@ -63,6 +63,7 @@ public:
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
 
+	/** If sub prefab changed, then update parent prefab */
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor = nullptr);
 
 	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
@@ -74,7 +75,7 @@ public:
 	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
 	void ApplyAllOverrideToPrefab(UObject* InObject);
 
-	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor);
+	void RefreshSubPrefabVersion(AActor* InSubPrefabRootActor);
 
 	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
