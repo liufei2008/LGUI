@@ -656,12 +656,13 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	{
 		//hierarchy index
 		CheckCacheUIChildren();//check
+		bool bNeedSortChildren = true;
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
 			if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
-
+				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
 			}
 			else
 			{
@@ -687,7 +688,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		{
 			if (ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
-
+				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
 			}
 			else
 			{
@@ -723,12 +724,15 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			}
 		}
 
-		UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
-			{
-				if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-					return true;
-				return false;
-			});
+		if (bNeedSortChildren)
+		{
+			UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
+				{
+					if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+						return true;
+					return false;
+				});
+		}
 		MarkCanvasUpdate(false, false, false);
 	}
 }
