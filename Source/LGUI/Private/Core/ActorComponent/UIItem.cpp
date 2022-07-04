@@ -229,7 +229,7 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& index)const
 	{
 		this->flattenHierarchyIndex = index;
 	}
-	for (auto child : UIChildren)
+	for (auto& child : UIChildren)
 	{
 		if (IsValid(child))
 		{
@@ -342,7 +342,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 	if (InName.FindChar('/', indexOfFirstSlash))
 	{
 		auto firstLayerName = InName.Left(indexOfFirstSlash);
-		for (auto childItem : this->UIChildren)
+		for (auto& childItem : UIChildren)
 		{
 			if (childItem->displayName.Equals(firstLayerName, ESearchCase::CaseSensitive))
 			{
@@ -359,7 +359,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 		}
 		else
 		{
-			for (auto childItem : this->UIChildren)
+			for (auto& childItem : UIChildren)
 			{
 				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 				{
@@ -372,7 +372,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 }
 UUIItem* UUIItem::FindChildByDisplayNameWithChildren_Internal(const FString& InName)const
 {
-	for (auto childItem : this->UIChildren)
+	for (auto& childItem : UIChildren)
 	{
 		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 		{
@@ -411,7 +411,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 		}
 		else
 		{
-			for (auto childItem : this->UIChildren)
+			for (auto& childItem : UIChildren)
 			{
 				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 				{
@@ -424,7 +424,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 }
 void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
 {
-	for (auto childItem : this->UIChildren)
+	for (auto& childItem : UIChildren)
 	{
 		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 		{
@@ -441,7 +441,7 @@ void UUIItem::MarkAllDirtyRecursive()
 {
 	MarkAllDirty();
 	
-	for (auto uiChild : UIChildren)
+	for (auto& uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{
@@ -466,7 +466,7 @@ void UUIItem::MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode
 	if (this->RenderCanvas == Canvas)
 	{
 		MarkAllDirty();
-		for (auto uiChild : UIChildren)
+		for (auto& uiChild : UIChildren)
 		{
 			if (IsValid(uiChild))
 			{
@@ -483,7 +483,7 @@ void UUIItem::ForceRefreshRenderCanvasRecursive()
 		OnRenderCanvasChanged(RenderCanvas.Get(), RenderCanvas.Get());
 	}
 
-	for (auto uiChild : UIChildren)
+	for (auto& uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{
@@ -539,6 +539,7 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 
 void UUIItem::PostEditUndo()
 {
+	CheckCacheUIChildren();
 	Super::PostEditUndo();
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
@@ -978,7 +979,7 @@ void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
 		SetRenderCanvas(InRenderCanvas);
 	}
 	InRenderCanvas->SetParentCanvas(ParentCanvas);
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -1007,7 +1008,7 @@ void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
 		SetRenderCanvas(InParentRenderCanvas);
 	}
 
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -1024,7 +1025,7 @@ void UUIItem::UnregisterRenderCanvas()
 	{
 		SetRenderCanvas(ParentCanvas);
 	}
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -1045,7 +1046,7 @@ void UUIItem::RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup)
 	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
 	InCanvasGroup->SetParentCanvasGroup(ParentCanvasGroup);
 	SetCanvasGroup(InCanvasGroup);
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -1087,7 +1088,7 @@ void UUIItem::RenewCanvasGroupRecursive(UUICanvasGroup* InParentCanvasGroup)
 		SetCanvasGroup(InParentCanvasGroup);
 	}
 
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -1161,7 +1162,7 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 		UIHierarchyChangedDelegate.Broadcast();
 	}
 
-	for (auto uiItem : UIChildren)
+	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -2013,7 +2014,10 @@ void UUIItem::SetOnTransformChange()
 
 	for (auto& UIChild : UIChildren)
 	{
-		UIChild->SetOnTransformChange();
+		if (IsValid(UIChild))
+		{
+			UIChild->SetOnTransformChange();
+		}
 	}
 }
 
@@ -2047,15 +2051,18 @@ void UUIItem::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDisca
 
 	for (auto& UIChild : UIChildren)
 	{
-		bool ChildSizeChange = false;
-		if (InSizeChange)
+		if (IsValid(UIChild))
 		{
-			if (UIChild->AnchorData.IsHorizontalStretched() || UIChild->AnchorData.IsVerticalStretched())
+			bool ChildSizeChange = false;
+			if (InSizeChange)
 			{
-				ChildSizeChange = true;
+				if (UIChild->AnchorData.IsHorizontalStretched() || UIChild->AnchorData.IsVerticalStretched())
+				{
+					ChildSizeChange = true;
+				}
 			}
+			UIChild->OnAnchorChange(false, ChildSizeChange);
 		}
-		UIChild->OnAnchorChange(false, ChildSizeChange);
 	}
 }
 
