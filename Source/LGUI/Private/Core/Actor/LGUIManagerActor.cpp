@@ -448,6 +448,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 	{
 		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
 		{
+			if (!IsValid(UIItem))return;
 			UIItem->CalculateTransformFromAnchor();
 			UIItem->UpdateComponentToWorld();
 			auto& Children = UIItem->GetAttachUIChildren();
