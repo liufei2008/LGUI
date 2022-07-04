@@ -49,7 +49,7 @@ bool ULGUILifeCycleUIBehaviour::CheckRootUIComponent() const
 
 UUIItem* ULGUILifeCycleUIBehaviour::GetRootUIComponent() const
 {
-	if (RootUIComp.IsValid())
+	if (CheckRootUIComponent())
 	{
 		return RootUIComp.Get();
 	}
