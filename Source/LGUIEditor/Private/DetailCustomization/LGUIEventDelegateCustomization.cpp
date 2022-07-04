@@ -568,6 +568,25 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							SNew(SButton)
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("D", "D"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickDuplicate, EventItemIndex, PropertyHandle)
+							.ToolTipText(LOCTEXT("Duplicate", "Duplicate this function"))
+						]
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("+", "+"))
 							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount, PropertyHandle)
 							.ToolTipText(LOCTEXT("Add", "Add new one"))
@@ -590,6 +609,44 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.Text(LOCTEXT("-", "-"))
 							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount, PropertyHandle)
 							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
+						]
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("▲", "▲"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, true, EventItemIndex, PropertyHandle)
+							.ToolTipText(LOCTEXT("MoveUp", "Move up"))
+						]
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
+						[
+							SNew(SButton)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Text(LOCTEXT("▼", "▼"))
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, false, EventItemIndex, PropertyHandle)
+							.ToolTipText(LOCTEXT("MoveDown", "Move down"))
 						]
 					]
 				]
@@ -1033,16 +1090,45 @@ FReply FLGUIEventDelegateCustomization::OnClickAddRemove(bool AddOrRemove, int32
 FReply FLGUIEventDelegateCustomization::OnClickCopyPaste(bool CopyOrPaste, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
 {
 	auto EventListHandle = GetEventListHandle(PropertyHandle);
-	auto eventDataHandle = EventListHandle->GetElement(Index);
+	auto EventDataHandle = EventListHandle->GetElement(Index);
 	if (CopyOrPaste)
 	{
 		CopySourceData.Reset();
-		eventDataHandle->GetPerObjectValues(CopySourceData);
+		EventDataHandle->GetPerObjectValues(CopySourceData);
 	}
 	else
 	{
-		eventDataHandle->SetPerObjectValues(CopySourceData);
+		EventDataHandle->SetPerObjectValues(CopySourceData);
 		PropertyUtilites->ForceRefresh();
+	}
+	return FReply::Handled();
+}
+
+FReply FLGUIEventDelegateCustomization::OnClickDuplicate(int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventDataHandle = EventListHandle->GetElement(Index);
+	EventListHandle->DuplicateItem(Index);
+	return FReply::Handled();
+}
+FReply FLGUIEventDelegateCustomization::OnClickMoveUpDown(bool UpOrDown, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	if (UpOrDown)
+	{
+		if (Index <= 0)
+			return FReply::Handled();
+
+		EventListHandle->SwapItems(Index, Index - 1);
+	}
+	else
+	{
+		uint32 arrayCount;
+		EventListHandle->GetNumElements(arrayCount);
+		if (Index + 1 >= (int32)arrayCount)
+			return FReply::Handled();
+
+		EventListHandle->SwapItems(Index, Index + 1);
 	}
 	return FReply::Handled();
 }

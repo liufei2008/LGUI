@@ -84,6 +84,8 @@ private:
 	void OnClickListEmpty(TSharedRef<IPropertyHandle> PropertyHandle);
 	FReply OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count, TSharedRef<IPropertyHandle> PropertyHandle);
 	FReply OnClickCopyPaste(bool CopyOrPaste, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
+	FReply OnClickDuplicate(int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
+	FReply OnClickMoveUpDown(bool UpOrDown, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
 
 	TSharedRef<SWidget> DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, LGUIEventDelegateParameterType InFunctionParameterType, UFunction* InFunction);
 	//function's parameter editor
