@@ -41,7 +41,8 @@ protected:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 public:
-	void RebuildChildrenList();
+	/** Mark layout children changed, so we need RebuildChildrenList when we need to. */
+	void MarkNeedRebuildChildrenList();
 	/**
 	 * Rebuild layout immediately
 	 */
@@ -49,7 +50,7 @@ public:
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
-	virtual void MarkRebuildLayout_Implementation()override { MarkNeedRebuildLayout(); RebuildChildrenList(); }
+	virtual void MarkRebuildLayout_Implementation()override { MarkNeedRebuildLayout(); MarkNeedRebuildChildrenList(); }
 	// End LGUILayout interface
 
 	/**
@@ -67,7 +68,6 @@ protected:
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;
 
-	UActorComponent* GetLayoutElement(AActor* Target)const;
 	struct FAvaliableChild
 	{
 		TWeakObjectPtr<UUIItem> uiItem;
@@ -77,10 +77,13 @@ protected:
 			return uiItem.Get() == Other.uiItem.Get();
 		}
 	};
-	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const { return LayoutUIItemChildrenArray; }
+	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const;
 	void EnsureChildValid();
+	void RebuildChildrenList()const;
+	virtual void GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
 	bool bNeedRebuildLayout = false;
+	mutable bool bNeedRebuildChildrenList = false;
 private:
-	TArray<FAvaliableChild> LayoutUIItemChildrenArray;
+	mutable TArray<FAvaliableChild> LayoutUIItemChildrenArray;
 };

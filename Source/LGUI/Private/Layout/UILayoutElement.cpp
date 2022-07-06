@@ -10,7 +10,7 @@ void UUILayoutElement::Awake()
 	Super::Awake();
 	if (CheckParentLayout())
 	{
-		ParentLayout->RebuildChildrenList();
+		ParentLayout->MarkNeedRebuildChildrenList();
 		ParentLayout->MarkNeedRebuildLayout();
 	}
 	this->SetCanExecuteUpdate(false);
@@ -24,7 +24,7 @@ void UUILayoutElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	ParentLayout = nullptr;
 	if (CheckParentLayout())
 	{
-		ParentLayout->RebuildChildrenList();
+		ParentLayout->MarkNeedRebuildChildrenList();
 		ParentLayout->MarkNeedRebuildLayout();
 	}
 	if (auto owner = this->GetOwner())
@@ -39,13 +39,13 @@ void UUILayoutElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 
 bool UUILayoutElement::CheckParentLayout()
 {
-	if (ParentLayout != nullptr)return true;
+	if (IsValid(ParentLayout))return true;
 	if (auto owner = this->GetOwner())
 	{
 		if (auto parentActor = owner->GetAttachParentActor())
 		{
 			ParentLayout = parentActor->FindComponentByClass<UUILayoutBase>();
-			if (ParentLayout)
+			if (IsValid(ParentLayout))
 				return true;
 		}
 	}
@@ -59,7 +59,7 @@ void UUILayoutElement::SetLayoutType(ELayoutElementType InType)
 		LayoutElementType = InType;
 		if (CheckParentLayout())
 		{
-			ParentLayout->RebuildChildrenList();
+			ParentLayout->MarkNeedRebuildChildrenList();
 			ParentLayout->MarkNeedRebuildLayout();
 		}
 	}
@@ -72,7 +72,7 @@ void UUILayoutElement::SetConstantSize(float value)
 		ConstantSize = value;
 		if (CheckParentLayout())
 		{
-			ParentLayout->RebuildChildrenList();
+			ParentLayout->MarkNeedRebuildChildrenList();
 			ParentLayout->MarkNeedRebuildLayout();
 		}
 	}
@@ -85,7 +85,7 @@ void UUILayoutElement::SetRatioSize(float value)
 		RatioSize = value;
 		if (CheckParentLayout())
 		{
-			ParentLayout->RebuildChildrenList();
+			ParentLayout->MarkNeedRebuildChildrenList();
 			ParentLayout->MarkNeedRebuildLayout();
 		}
 	}
