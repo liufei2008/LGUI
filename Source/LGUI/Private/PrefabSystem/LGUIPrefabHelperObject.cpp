@@ -37,13 +37,13 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 {
 	if (bIsMarkedAsManagerObject)return;
 	bIsMarkedAsManagerObject = true;
-	ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
-		if (Actor.IsValid())
+	ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]{
+		if (Object.IsValid())
 		{
-			GEditor->OnLevelActorAttached().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorAttached);
-			GEditor->OnLevelActorDetached().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorDetached);
-			GEditor->OnLevelActorDeleted().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorDeleted);
-			Actor->bCanNotifyAttachment = true;
+			GEditor->OnLevelActorAttached().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorAttached);
+			GEditor->OnLevelActorDetached().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorDetached);
+			GEditor->OnLevelActorDeleted().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorDeleted);
+			Object->bCanNotifyAttachment = true;
 		}
 		}, 1);
 
