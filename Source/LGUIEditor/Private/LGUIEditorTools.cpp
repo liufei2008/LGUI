@@ -352,11 +352,25 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 
 	GEditor->BeginTransaction(LOCTEXT("ReplaceUIElement", "LGUI Replace UI Element"));
 	GEditor->SelectNone(true, true);
-	for (auto item : RootActorList)
+	for (auto& Actor : RootActorList)
 	{
-		MakeCurrentLevel(item);
-		auto newActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(item, ActorClass);//@todo: use buildin replace tool
-		GEditor->SelectActor(newActor, true, true);
+		MakeCurrentLevel(Actor);
+		AActor* NewActor = nullptr;
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
+		{
+			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
+			{
+				PrefabHelperObject->Modify();
+			}
+			PrefabHelperObject->SetCanNotifyAttachment(false);
+			NewActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(Actor, ActorClass);//@todo: use buildin replace tool, if there is any
+			PrefabHelperObject->SetCanNotifyAttachment(true);
+		}
+		else
+		{
+			NewActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(Actor, ActorClass);//@todo: use buildin replace tool, if there is any
+		}
+		GEditor->SelectActor(NewActor, true, true);
 	}
 	GEditor->EndTransaction();
 }
