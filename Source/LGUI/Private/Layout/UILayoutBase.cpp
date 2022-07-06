@@ -10,9 +10,7 @@ void UUILayoutBase::Awake()
 {
     Super::Awake();
 
-    //recreate list at start
-    RebuildChildrenList();
-
+    MarkNeedRebuildChildrenList();
     MarkNeedRebuildLayout();
 
     this->SetCanExecuteUpdate(false);
@@ -50,7 +48,7 @@ void UUILayoutBase::OnRegister()
 #if WITH_EDITOR
     if (!GetWorld()->IsGameWorld())
     {
-        RebuildChildrenList();
+        MarkNeedRebuildChildrenList();
         ULGUIEditorManagerObject::RegisterLGUILayout(this);
     }
     else
@@ -95,7 +93,7 @@ void UUILayoutBase::EnsureChildValid()
     }
 }
 
-void UUILayoutBase::RebuildChildrenList()
+void UUILayoutBase::RebuildChildrenList()const
 {
     if (CheckRootUIComponent())
     {
@@ -107,14 +105,14 @@ void UUILayoutBase::RebuildChildrenList()
             if (uiItem->GetIsUIActiveInHierarchy())
             {
                 if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
-                auto layoutElement = GetLayoutElement(uiItem->GetOwner());
-                if (layoutElement)
+                UActorComponent* layoutElement = nullptr;
+                bool ignoreLayout = false;
+                GetLayoutElement(uiItem->GetOwner(), layoutElement, ignoreLayout);
+                if (ignoreLayout)
                 {
-                    if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
+
                 FAvaliableChild child;
                 child.uiItem = uiItem;
                 child.layoutElement = layoutElement;
@@ -130,6 +128,29 @@ void UUILayoutBase::RebuildChildrenList()
     }
 }
 
+void UUILayoutBase::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
+{
+    OutLayoutElement = InActor->FindComponentByClass<UUILayoutElement>();
+    if (OutLayoutElement)
+    {
+        OutIgnoreLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(OutLayoutElement);
+    }
+}
+
+const TArray<UUILayoutBase::FAvaliableChild>& UUILayoutBase::GetLayoutUIItemChildren()const
+{
+    if(bNeedRebuildChildrenList)
+    {
+        bNeedRebuildChildrenList = false;
+        RebuildChildrenList();
+    }
+    return LayoutUIItemChildrenArray;
+}
+
+void UUILayoutBase::MarkNeedRebuildChildrenList()
+{
+    bNeedRebuildChildrenList = true;
+}
 void UUILayoutBase::MarkNeedRebuildLayout()
 {
     bNeedRebuildLayout = true; 
@@ -174,13 +195,12 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
         EnsureChildValid();
         if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
-            auto layoutElement = GetLayoutElement(InChild->GetOwner());
-            if (layoutElement)
+            UActorComponent* layoutElement = nullptr;
+            bool ignoreLayout = false;
+            GetLayoutElement(InChild->GetOwner(), layoutElement, ignoreLayout);
+            if (ignoreLayout)
             {
-                if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
-                {
-                    return;
-                }
+                return;
             }
             childData.layoutElement = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
@@ -215,13 +235,12 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
         EnsureChildValid();
         if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
-            auto layoutElement = GetLayoutElement(InChild->GetOwner());
-            if (layoutElement)
+            UActorComponent* layoutElement = nullptr;
+            bool ignoreLayout = false;
+            GetLayoutElement(InChild->GetOwner(), layoutElement, ignoreLayout);
+            if (ignoreLayout)
             {
-                if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
-                {
-                    return;
-                }
+                return;
             }
             childData.layoutElement = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
@@ -261,20 +280,4 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     }
 
     MarkNeedRebuildLayout();
-}
-
-UActorComponent* UUILayoutBase::GetLayoutElement(AActor* Target)const
-{
-    Target->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
-    return Target->FindComponentByClass<UUILayoutElement>();
-
-    auto& Comps = Target->GetComponents();
-    for (auto& Comp : Comps)
-    {
-        if (Comp->GetClass()->ImplementsInterface(ULGUILayoutElementInterface::StaticClass()))
-        {
-            return Comp;
-        }
-    }
-    return nullptr;
 }

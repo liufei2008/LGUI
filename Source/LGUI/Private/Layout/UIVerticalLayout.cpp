@@ -274,12 +274,12 @@ bool UUIVerticalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* 
     else
     {
         if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-        if (auto LayoutElement = GetLayoutElement(InUIItem->GetOwner()))
+        UActorComponent* layoutElement = nullptr;
+        bool ignoreLayout = false;
+        GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
+        if (ignoreLayout)
         {
-            if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElement))
-            {
-                return true;
-            }
+            return true;
         }
         OutResult.bCanControlHorizontalAnchor = this->GetEnable();
         OutResult.bCanControlVerticalAnchor = this->GetEnable();
