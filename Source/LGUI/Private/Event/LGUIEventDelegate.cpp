@@ -467,9 +467,30 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		return;
 	}
 
-	if (ParamType == InParameterType//function's supported parameter is equal to event's parameter
-		&& UseNativeParameter)//and use native parameter
+	if (UseNativeParameter)//should use native parameter (pass in param)
 	{
+		if (ParamType != InParameterType)//function's supported parameter is equal to event's parameter
+		{
+			if (InParameterType == LGUIEventDelegateParameterType::Double && ParamType == LGUIEventDelegateParameterType::Float)
+			{
+				auto InValue = *((double*)InParam);
+				auto ConvertValue = (float)InValue;
+				InParam = &ConvertValue;
+				UE_LOG(LGUI, Warning, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal, LGUI will automatic convert it from double to float."));
+			}
+			else if (InParameterType == LGUIEventDelegateParameterType::Float && ParamType == LGUIEventDelegateParameterType::Double)
+			{
+				auto InValue = *((float*)InParam);
+				auto ConvertValue = (double)InValue;
+				InParam = &ConvertValue;
+				UE_LOG(LGUI, Warning, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal, LGUI will automatic convert it from float to double."));
+			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal!"));
+				return;
+			}
+		}
 		if (CacheTarget != nullptr && CacheFunction != nullptr)
 		{
 			ExecuteTargetFunction(CacheTarget, CacheFunction, InParam);
