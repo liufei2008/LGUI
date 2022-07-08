@@ -102,6 +102,8 @@
 #include "Layout/UISizeControlByOther.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "Layout/ILGUILayoutInterface.h"
+#include "Layout/UIFlexibleGridLayout.h"
+#include "Layout/UIFlexibleGridLayoutElement.h"
 
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"

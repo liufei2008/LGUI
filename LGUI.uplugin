@@ -22,7 +22,7 @@
 		{
 			"Name": "LGUIEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PostEngineInit"
 		},
 		{
 			"Name": "LGUIK2Nodes",
