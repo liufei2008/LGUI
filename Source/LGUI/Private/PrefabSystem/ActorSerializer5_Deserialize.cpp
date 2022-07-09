@@ -138,12 +138,26 @@ namespace LGUIPrefabSystem5
 		return rootActor;
 	}
 
+#if !UE_BUILD_SHIPPING
+#define LGUIPREFAB_LOG_DETAIL_TIME 1
+#endif
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		auto Time = FDateTime::Now();
+#endif
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr, FGuid());
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
+		Time = FDateTime::Now();
+#endif
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
+		Time = FDateTime::Now();
+#endif
 
 		//register component
 		for (auto CompData : CreatedComponents)
@@ -226,6 +240,9 @@ namespace LGUIPrefabSystem5
 			CallbackBeforeAwake(CreatedRootActor);
 		}
 
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		Time = FDateTime::Now();
+#endif
 #if WITH_EDITOR
 		if (!TargetWorld->IsGameWorld())
 		{
@@ -256,6 +273,9 @@ namespace LGUIPrefabSystem5
 				}
 			}
 		}
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
+#endif
 
 		return CreatedRootActor;
 	}
@@ -272,6 +292,7 @@ namespace LGUIPrefabSystem5
 			return nullptr;
 		}
 
+		UE_LOG(LGUI, Log, TEXT("Begin load prefab: '%s'"), *InPrefab->GetName());
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
 
@@ -331,7 +352,7 @@ namespace LGUIPrefabSystem5
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
 		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("Take %fs loading prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
+		UE_LOG(LGUI, Log, TEXT("End load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
 
 #if WITH_EDITOR
 		if (IsValid(GEditor))
@@ -583,7 +604,7 @@ namespace LGUIPrefabSystem5
 					break;
 					default:
 					{
-						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer4", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
+						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
 						LGUIUtils::EditorNotification(MsgText, 1.0f);
 					}
 					break;
