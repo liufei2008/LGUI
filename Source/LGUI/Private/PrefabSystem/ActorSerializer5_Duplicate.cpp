@@ -59,6 +59,13 @@ namespace LGUIPrefabSystem5
 			return nullptr;
 		}
 
+		auto Name =
+#if WITH_EDITOR
+			OriginRootActor->GetActorLabel();
+#else
+			OriginRootActor->GetPathName();
+#endif
+		UE_LOG(LGUI, Log, TEXT("Begin duplicate actor: '%s'"), *Name);
 		auto StartTime = FDateTime::Now();
 
 		ActorSerializer serializer;
@@ -95,22 +102,23 @@ namespace LGUIPrefabSystem5
 		};
 		auto CreatedRootActor = serializer.DeserializeActorFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		auto Name =
-#if WITH_EDITOR
-			OriginRootActor->GetActorLabel();
-#else
-			OriginRootActor->GetPathName();
-#endif
 		OutDuplicatedSubPrefabMap = serializer.SubPrefabMap;
 		OutMapGuidToObject = serializer.MapGuidToObject;
-		UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
+		auto TimeSpan = FDateTime::Now() - StartTime;
+		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
 
 		return CreatedRootActor;
 	}
 
 	AActor* ActorSerializer::SerializeActor_ForDuplicate(AActor* OriginRootActor, USceneComponent* Parent)
 	{
+		auto Name =
+#if WITH_EDITOR
+			OriginRootActor->GetActorLabel();
+#else
+			OriginRootActor->GetPathName();
+#endif
+		UE_LOG(LGUI, Log, TEXT("Begin duplicate actor: %s"), *Name);
 		auto StartTime = FDateTime::Now();
 
 		//serialize
@@ -131,13 +139,7 @@ namespace LGUIPrefabSystem5
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 
 		auto TimeSpan = FDateTime::Now() - StartTime;
-		auto Name =
-#if WITH_EDITOR
-			OriginRootActor->GetActorLabel();
-#else
-			OriginRootActor->GetPathName();
-#endif
-		UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
+		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
 		return CreatedRootActor;
 	}
 }
