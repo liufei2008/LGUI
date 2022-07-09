@@ -8,6 +8,7 @@ ULGUILifeCycleUIBehaviour::ULGUILifeCycleUIBehaviour()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	CallbacksBeforeAwake.SetNumZeroed((int)ECallbackFunctionType::COUNT);
 }
 
 void ULGUILifeCycleUIBehaviour::OnRegister()
@@ -83,12 +84,15 @@ void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 
 void ULGUILifeCycleUIBehaviour::Call_Awake()
 {
-	Super::Call_Awake();
-	for (auto CallbackFunc : CallbacksBeforeAwake)
+	for (auto& CallbackFunc : CallbacksBeforeAwake)
 	{
-		CallbackFunc();
+		if (CallbackFunc != nullptr)
+		{
+			CallbackFunc();
+		}
 	}
 	CallbacksBeforeAwake.Empty();
+	Super::Call_Awake();
 }
 
 void ULGUILifeCycleUIBehaviour::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
@@ -159,11 +163,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIDimensionsChanged(bool positionChanged,
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIDimensionsChanged] = [=]() {
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->OnUIDimensionsChanged(positionChanged, sizeChanged);
-				}});
+				}};
 		}
 	}
 }
@@ -185,11 +189,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildDimensionsChanged(UUIItem* child, 
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
 			auto ChildPtr = MakeWeakObjectPtr(child);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIChildDimensionsChanged] = [=]() {
 				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
 					ThisPtr->OnUIChildDimensionsChanged(ChildPtr.Get(), positionChanged, sizeChanged);
-				}});
+				}};
 		}
 	}
 }
@@ -211,11 +215,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildAcitveInHierarchy(UUIItem* child, 
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
 			auto ChildPtr = MakeWeakObjectPtr(child);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIChildAcitveInHierarchy] = [=]() {
 				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
 					ThisPtr->OnUIChildAcitveInHierarchy(ChildPtr.Get(), ativeOrInactive);
-				}});
+				}};
 		}
 	}
 }
@@ -236,11 +240,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIAttachmentChanged()
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIAttachmentChanged] = [=]() {
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->OnUIAttachmentChanged();
-				}});
+				}};
 		}
 	}
 }
@@ -262,11 +266,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildAttachmentChanged(UUIItem* child, 
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
 			auto ChildPtr = MakeWeakObjectPtr(child);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIChildAttachmentChanged] = [=]() {
 				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
 					ThisPtr->OnUIChildAttachmentChanged(ChildPtr.Get(), attachOrDetach);
-				}});
+				}};
 		}
 	}
 }
@@ -287,11 +291,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIInteractionStateChanged(bool interactab
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIInteractionStateChanged] = [=]() {
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->OnUIInteractionStateChanged(interactableOrNot);
-				}});
+				}};
 		}
 	}
 }
@@ -313,11 +317,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildHierarchyIndexChanged(UUIItem* chi
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
 			auto ChildPtr = MakeWeakObjectPtr(child);
-			CallbacksBeforeAwake.Add([=]() {
+			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIChildHierarchyIndexChanged] = [=]() {
 				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
 					ThisPtr->OnUIChildHierarchyIndexChanged(ChildPtr.Get());
-				}});
+				}};
 		}
 	}
 }
