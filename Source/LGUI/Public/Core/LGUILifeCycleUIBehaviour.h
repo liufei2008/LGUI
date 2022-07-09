@@ -31,6 +31,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DisplayName="Get Root UI Component"))
 		UUIItem* GetRootUIComponent() const;
 private:
+	enum class ECallbackFunctionType :int32
+	{
+		Call_OnUIDimensionsChanged,
+		Call_OnUIChildDimensionsChanged,
+		Call_OnUIChildAcitveInHierarchy,
+		Call_OnUIAttachmentChanged,
+		Call_OnUIChildAttachmentChanged,
+		Call_OnUIInteractionStateChanged,
+		Call_OnUIChildHierarchyIndexChanged,
+		COUNT,
+	};
 	/** Some UI callback functions want execute before Awake, but most behaviours should executed inside or after Awake. So use this array to cache these callbacks and execute when Awake called. */
 	TArray<TFunction<void()>> CallbacksBeforeAwake;
 protected:
