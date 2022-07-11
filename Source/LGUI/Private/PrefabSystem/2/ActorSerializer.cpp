@@ -140,7 +140,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	else
 #endif
 	{
-		LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld.Get());
+		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld.Get(), true);
 	}
 
 #if WITH_EDITORONLY_DATA
