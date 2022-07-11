@@ -250,6 +250,9 @@ namespace LGUIPrefabSystem5
 		 * Duplicate actor with hierarchy
 		 */
 		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
+		/** Prepare one data and duplicate multiple times */
+		static bool PrepareDataForDuplicate(AActor* RootActor, FLGUIPrefabSaveData& OutData, ActorSerializer& OutSerializer);
+		static AActor* DuplicateActorWithPreparedData(FLGUIPrefabSaveData& InData, ActorSerializer& OutSerializer, USceneComponent* InParent);
 		/**
 		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
 		 */
@@ -329,7 +332,5 @@ namespace LGUIPrefabSystem5
 		 * @param	TSet<FName>&	Member properties to filter
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
-		/** Duplicate actor */
-		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 	};
 }
