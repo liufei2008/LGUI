@@ -327,7 +327,10 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 		else
 #endif
 		{
-			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+			if (auto Instance = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld.Get()))
+			{
+				Instance->BeginPrefabSystemProcessingActor(CopiedRootActor);
+			}
 		}
 	}
 #if WITH_EDITORONLY_DATA
@@ -338,7 +341,10 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	else
 #endif
 	{
-		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor, CopiedRootActor, 0);
+		if (auto Instance = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld.Get()))
+		{
+			Instance->AddActorForPrefabSystem(CopiedActor, CopiedRootActor, 0);
+		}
 	}
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();
@@ -485,13 +491,16 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 	else
 #endif
 	{
-		for (auto item : DuplicatingActorCollection)
+		if (auto Instance = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld.Get()))
 		{
-			ALGUIManagerActor::RemoveActorForPrefabSystem(item, CopiedRootActor);
-		}
-		if (CopiedRootActor != nullptr)//if any error hanppens then CopiedRootActor could be nullptr, so check it
-		{
-			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+			for (auto item : DuplicatingActorCollection)
+			{
+				Instance->RemoveActorForPrefabSystem(item, CopiedRootActor);
+			}
+			if (CopiedRootActor != nullptr)//if any error hanppens then CopiedRootActor could be nullptr, so check it
+			{
+				Instance->EndPrefabSystemProcessingActor(CopiedRootActor);
+			}
 		}
 	}
 

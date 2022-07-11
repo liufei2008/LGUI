@@ -132,6 +132,17 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	auto StartTime = FDateTime::Now();
 
+#if WITH_EDITOR
+	if (!TargetWorld->IsGameWorld())
+	{
+
+	}
+	else
+#endif
+	{
+		LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld.Get());
+	}
+
 #if WITH_EDITORONLY_DATA
 	FLGUIPrefabSaveData SaveData;
 	{
@@ -292,11 +303,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		for (auto item : CreatedActors)
 		{
-			ALGUIManagerActor::RemoveActorForPrefabSystem(item, LoadedRootActor);
+			LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
 		}
 		if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 		{
-			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
+			LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 		}
 	}
 

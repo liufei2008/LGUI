@@ -241,13 +241,13 @@ namespace LGUIPrefabSystem3
 		{
 			for (auto item : CreatedActors)
 			{
-				ALGUIManagerActor::RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
 			}
 			if (!bIsSubPrefab)
 			{
 				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 				{
-					ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+					LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 				}
 			}
 		}
@@ -268,6 +268,17 @@ namespace LGUIPrefabSystem3
 		}
 
 		auto StartTime = FDateTime::Now();
+
+#if WITH_EDITOR
+		if (!TargetWorld->IsGameWorld())
+		{
+
+		}
+		else
+#endif
+		{
+			LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld);
+		}
 
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
@@ -552,7 +563,7 @@ namespace LGUIPrefabSystem3
 					else
 #endif
 					{
-						ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+						LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
 					}
 				}
 
@@ -564,7 +575,7 @@ namespace LGUIPrefabSystem3
 				else
 #endif
 				{
-					ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+					LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
 				}
 				if (bNeedFinishSpawn)
 				{

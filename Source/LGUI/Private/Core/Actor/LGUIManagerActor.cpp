@@ -1657,27 +1657,6 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
-void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
-{
-	if (auto Instance = GetInstance(InItem->GetWorld(), true))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllRootUIItemArray.Contains(InItem));
-#endif
-		Instance->AllRootUIItemArray.AddUnique(InItem);
-	}
-}
-void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
-{
-	if (auto Instance = GetInstance(InItem->GetWorld()))
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllRootUIItemArray.Contains(InItem));
-#endif
-		Instance->AllRootUIItemArray.RemoveSingle(InItem);
-	}
-}
-
 void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
@@ -1885,7 +1864,32 @@ bool ALGUIManagerActor::GetIsPlaying(UWorld* InWorld)
 #endif
 
 
-void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement(AActor* InRootActor)
+void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
+{
+	if (InComp)
+	{
+		if (InComp->IsAllowedToCallAwake())
+		{
+			if (!InComp->bIsAwakeCalled)
+			{
+				InComp->Call_Awake();
+			}
+			if (InComp->IsAllowedToCallOnEnable() && InComp->GetEnable())
+			{
+				if (!InComp->bIsEnableCalled)
+				{
+					InComp->Call_OnEnable();
+				}
+			}
+		}
+	}
+}
+void ALGUIManagerActor::BeginPrefabSystemProcessingActor(AActor* InRootActor)
+{
+	FLGUILifeCycleBehaviourArrayContainer Container;
+	LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InRootActor, Container);
+}
+void ALGUIManagerActor::EndPrefabSystemProcessingActor(AActor* InRootActor)
 {
 	if (auto ArrayPtr = LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(InRootActor))
 	{
@@ -1912,79 +1916,31 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement(AActor* InRootA
 			check(LGUILifeCycleBehaviourArray.Num() == Count);
 #endif
 		}
-		
+
 		LGUILifeCycleBehaviours_PrefabSystemProcessing.Remove(InRootActor);
-	}
-}
-void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
-{
-	if (InComp)
-	{
-		if (InComp->IsAllowedToCallAwake())
-		{
-			if (!InComp->bIsAwakeCalled)
-			{
-				InComp->Call_Awake();
-			}
-			if (InComp->IsAllowedToCallOnEnable() && InComp->GetEnable())
-			{
-				if (!InComp->bIsEnableCalled)
-				{
-					InComp->Call_OnEnable();
-				}
-			}
-		}
-	}
-}
-void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
-{
-	if (auto Instance = GetInstance(InWorld, true))
-	{
-		FLGUILifeCycleBehaviourArrayContainer Container;
-		Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InRootActor, Container);
-	}
-}
-void ALGUIManagerActor::EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
-{
-	if (auto Instance = GetInstance(InWorld, false))
-	{
-		Instance->EndPrefabSystemProcessingActor_Implement(InRootActor);
 	}
 }
 void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex)
 {
-	if (auto Instance = GetInstance(InActor->GetWorld(), true))
-	{
-		TTuple<AActor*, int32> Item;
-		Item.Key = InRootActor;
-		Item.Value = InActorIndex;
-		Instance->AllActors_PrefabSystemProcessing.Add(InActor, Item);
-	}
+	TTuple<AActor*, int32> Item;
+	Item.Key = InRootActor;
+	Item.Value = InActorIndex;
+	AllActors_PrefabSystemProcessing.Add(InActor, Item);
 }
 void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
 {
-	if (auto Instance = GetInstance(InActor->GetWorld()))
-	{
-		Instance->AllActors_PrefabSystemProcessing.Remove(InActor);
-	}
+	AllActors_PrefabSystemProcessing.Remove(InActor);
 }
 bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 {
-	if (auto Instance = GetInstance(InActor->GetWorld()))
-	{
-		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
-	}
-	return false;
+	return AllActors_PrefabSystemProcessing.Contains(InActor);
 }
 void ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
 {
-	if (auto Instance = GetInstance(InPrefabActor->GetWorld()))
+	if (auto RootActorDataPtr = AllActors_PrefabSystemProcessing.Find(InPrefabActor))
 	{
-		if (auto RootActorDataPtr = Instance->AllActors_PrefabSystemProcessing.Find(InPrefabActor))
-		{
-			auto& Container = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[RootActorDataPtr->Key];
-			Container.Functions.Add(InFunction);
-		}
+		auto& Container = LGUILifeCycleBehaviours_PrefabSystemProcessing[RootActorDataPtr->Key];
+		Container.Functions.Add(InFunction);
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
