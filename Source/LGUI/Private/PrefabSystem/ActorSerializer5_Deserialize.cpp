@@ -139,7 +139,7 @@ namespace LGUIPrefabSystem5
 	}
 
 #if !UE_BUILD_SHIPPING
-#define LGUIPREFAB_LOG_DETAIL_TIME 1
+#define LGUIPREFAB_LOG_DETAIL_TIME 0
 #endif
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
@@ -303,7 +303,7 @@ namespace LGUIPrefabSystem5
 		else
 #endif
 		{
-			LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld);
+			LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 		}
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)

@@ -282,7 +282,7 @@ namespace LGUIPrefabSystem4
 		else
 #endif
 		{
-			LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld);
+			LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 		}
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
