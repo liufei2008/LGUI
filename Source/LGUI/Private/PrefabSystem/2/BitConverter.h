@@ -10,7 +10,7 @@
 #define BITCONVERTER_ERRORCHECK(func, bytes, byteCountNeeded, returnValueIfError)\
 if(bytes.Num() < byteCountNeeded)\
 {\
-	auto ErrorMsg = FString::Printf(ErrorMsgFormat, TEXT(#func), bytes.Num());\
+	auto ErrorMsg = FString::Printf(TEXT("[BitConvert/%s]bytes.Num %d not enough!"), TEXT(#func), bytes.Num());\
 	UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);\
 	outSucceed = false;\
 	return returnValueIfError; \
@@ -257,9 +257,6 @@ private:
 		FMemory::Memcpy(result.GetData(), InData, count);
 		return result;
 	}
-	static const TCHAR ErrorMsgFormat[];
 };
-
-const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");
 
 #endif
