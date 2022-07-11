@@ -263,13 +263,13 @@ namespace LGUIPrefabSystem5
 		{
 			for (auto item : CreatedActors)
 			{
-				ALGUIManagerActor::RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
 			}
 			if (!bIsSubPrefab)
 			{
 				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 				{
-					ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+					LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 				}
 			}
 		}
@@ -295,7 +295,16 @@ namespace LGUIPrefabSystem5
 		UE_LOG(LGUI, Log, TEXT("Begin load prefab: '%s'"), *InPrefab->GetName());
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
+#if WITH_EDITOR
+		if (!TargetWorld->IsGameWorld())
+		{
 
+		}
+		else
+#endif
+		{
+			LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(TargetWorld);
+		}
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -349,6 +358,7 @@ namespace LGUIPrefabSystem5
 				FromBinary << SaveData;
 			}
 		}
+
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
 		auto TimeSpan = FDateTime::Now() - StartTime;
@@ -661,7 +671,7 @@ namespace LGUIPrefabSystem5
 					else
 #endif
 					{
-						ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+						LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
 					}
 				}
 
@@ -673,7 +683,7 @@ namespace LGUIPrefabSystem5
 				else
 #endif
 				{
-					ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+					LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
 				}
 				if (bNeedFinishSpawn)
 				{

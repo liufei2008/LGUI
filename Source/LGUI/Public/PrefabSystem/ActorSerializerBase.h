@@ -10,6 +10,8 @@
 #include "Serialization/ObjectReader.h"
 #include "UObject/ObjectVersion.h"
 
+class ALGUIManagerActor;
+
 namespace LGUIPrefabSystem
 {
 	/*
@@ -55,6 +57,7 @@ namespace LGUIPrefabSystem
 		TArray<UObject*> ReferenceAssetList;
 		TArray<UClass*> ReferenceClassList;
 		TArray<FName> ReferenceNameList;
+		ALGUIManagerActor* LGUIManagerActor = nullptr;
 
 		bool bOverrideVersions = false;
 		uint16 PrefabVersion = 0;

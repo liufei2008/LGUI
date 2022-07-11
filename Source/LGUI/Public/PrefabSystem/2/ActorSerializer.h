@@ -8,6 +8,7 @@
 
 #if WITH_EDITOR
 
+class ALGUIManagerActor;
 namespace LGUIPrefabSystem
 {
 	enum class ELGUIPropertyType : uint8
@@ -424,6 +425,7 @@ namespace LGUIPrefabSystem
 
 		/** Prefab's loaded root actor */
 		AActor* LoadedRootActor = nullptr;
+		ALGUIManagerActor* LGUIManagerActor = nullptr;
 #if WITH_EDITOR
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);

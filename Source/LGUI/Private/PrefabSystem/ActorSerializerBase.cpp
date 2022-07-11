@@ -204,32 +204,17 @@ namespace LGUIPrefabSystem
 	}
 	FName ActorSerializerBase::FindNameFromListByIndex(int32 Id)
 	{
-		int32 count = ReferenceNameList.Num();
-		if (Id >= count || Id < 0)
-		{
-			return NAME_None;
-		}
-		return ReferenceNameList[Id];
+		return ReferenceNameList.IsValidIndex(Id) ? ReferenceNameList.GetData()[Id] : NAME_None;
 	}
 
 	UObject* ActorSerializerBase::FindAssetFromListByIndex(int32 Id)
 	{
-		int32 count = ReferenceAssetList.Num();
-		if (Id >= count || Id < 0)
-		{
-			return nullptr;
-		}
-		return ReferenceAssetList[Id];
+		return ReferenceAssetList.IsValidIndex(Id) ? ReferenceAssetList.GetData()[Id] : nullptr;
 	}
 
 	UClass* ActorSerializerBase::FindClassFromListByIndex(int32 Id)
 	{
-		int32 count = ReferenceClassList.Num();
-		if (Id >= count || Id < 0)
-		{
-			return nullptr;
-		}
-		return ReferenceClassList[Id];
+		return ReferenceClassList.IsValidIndex(Id) ? ReferenceClassList.GetData()[Id] : nullptr;
 	}
 
 	const TSet<FName>& ActorSerializerBase::GetSceneComponentExcludeProperties()

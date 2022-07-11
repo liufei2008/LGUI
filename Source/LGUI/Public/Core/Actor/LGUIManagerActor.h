@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -223,9 +223,6 @@ public:
 	static void RemoveUIItem(UUIItem* InItem);
 	const TArray<TWeakObjectPtr<UUIItem>>& GetAllUIItemArray(){ return AllUIItemArray; }
 
-	static void AddRootUIItem(UUIItem* InItem);
-	static void RemoveRootUIItem(UUIItem* InItem);
-
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -276,19 +273,18 @@ private:
 	TMap<AActor*, TTuple<AActor*, int32>> AllActors_PrefabSystemProcessing;
 	/** Map root actor to LGUILifeCycleBehaviour array */
 	TMap<AActor*, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
-	void EndPrefabSystemProcessingActor_Implement(AActor* InRootActor);
 public:
-	static void BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
-	static void EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
-	static void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex);
-	static void RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
-	static bool IsPrefabSystemProcessingActor(AActor* InActor);
+	void BeginPrefabSystemProcessingActor(AActor* InRootActor);
+	void EndPrefabSystemProcessingActor(AActor* InRootActor);
+	void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex);
+	void RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
+	bool IsPrefabSystemProcessingActor(AActor* InActor);
 	/**
 	 * Add a function that execute after prefab system serialization and before Awake called
 	 * @param	InPrefabActor	Current prefab system processing actor
 	 * @param	InFunction		Function to call after prefab system serialization complete and before Awake called
 	 */
-	static void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
+	void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
 
 	static void AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp);
 	static void AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp);
