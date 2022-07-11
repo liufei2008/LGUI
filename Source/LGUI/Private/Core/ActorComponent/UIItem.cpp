@@ -53,8 +53,6 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
-
-	CheckRootUIItem();
 }
 
 void UUIItem::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -687,7 +685,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		else
 #endif
 		{
-			if (ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
+			auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
+			if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
 				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
 			}
@@ -811,11 +810,12 @@ void UUIItem::OnAttachmentChanged()
 	else
 #endif
 	{
-		if (ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
+		if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
 		{
 			if (ParentUIItem.IsValid())//tell old parent
 			{
-				ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
 					if (Child.IsValid() && Parent.IsValid())
 					{
 						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
@@ -824,7 +824,7 @@ void UUIItem::OnAttachmentChanged()
 			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
 			if (ParentUIItem.IsValid())
 			{
-				ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
 					if (Child.IsValid() && Parent.IsValid())
 					{
 						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
@@ -1215,20 +1215,16 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 
 void UUIItem::CheckRootUIItem()
 {
-	auto oldRootUIItem = RootUIItem;
-	if (oldRootUIItem == this && oldRootUIItem != nullptr)
-	{
 #if WITH_EDITOR
-		if (!this->GetWorld()->IsGameWorld())
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		auto oldRootUIItem = RootUIItem;
+		if (oldRootUIItem == this && oldRootUIItem != nullptr)
 		{
 			ULGUIEditorManagerObject::RemoveRootUIItem(this);
 		}
-		else
-#endif
-		{
-			ALGUIManagerActor::RemoveRootUIItem(this);
-		}
 	}
+#endif
 
 	UUIItem* topUIItem = this;
 	UUIItem* tempRootUIItem = nullptr;
@@ -1239,19 +1235,15 @@ void UUIItem::CheckRootUIItem()
 	}
 	RootUIItem = tempRootUIItem;
 
-	if (RootUIItem == this && RootUIItem != nullptr)
-	{
 #if WITH_EDITOR
-		if (!this->GetWorld()->IsGameWorld())
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		if (RootUIItem == this && RootUIItem != nullptr)
 		{
 			ULGUIEditorManagerObject::AddRootUIItem(this);
 		}
-		else
-#endif
-		{
-			ALGUIManagerActor::AddRootUIItem(this);
-		}
 	}
+#endif
 }
 
 FDelegateHandle UUIItem::RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback)

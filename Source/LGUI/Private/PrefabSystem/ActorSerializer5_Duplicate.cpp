@@ -38,6 +38,7 @@ namespace LGUIPrefabSystem5
 		serializer.bIsEditorOrRuntime = false;
 #endif
 		serializer.bOverrideVersions = false;
+		serializer.LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(serializer.TargetWorld);
 		return serializer.SerializeActor_ForDuplicate(OriginRootActor, Parent);
 	}
 
