@@ -292,7 +292,9 @@ namespace LGUIPrefabSystem5
 			return nullptr;
 		}
 
+#if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("Begin load prefab: '%s'"), *InPrefab->GetName());
+#endif
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
 #if WITH_EDITOR
