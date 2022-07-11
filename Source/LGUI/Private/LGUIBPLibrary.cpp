@@ -27,10 +27,27 @@ AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULG
 {
 	return InPrefab->LoadPrefabWithTransform(WorldContextObject, InParent, Location, Rotation, Scale);
 }
+
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
 	return LGUIPrefabSystem5::ActorSerializer::DuplicateActor(Target, Parent);
 }
+void ULGUIBPLibrary::PrepareDuplicateData(AActor* Target, FLGUIDuplicateDataContainer& DataContainer)
+{
+	DataContainer.bIsValid = LGUIPrefabSystem5::ActorSerializer::PrepareDataForDuplicate(Target, DataContainer.SerializedData, DataContainer.ActorSerializer);
+}
+AActor* ULGUIBPLibrary::DuplicateActorWithPreparedData(FLGUIDuplicateDataContainer& Data, USceneComponent* Parent)
+{
+	if (Data.bIsValid)
+	{
+		return LGUIPrefabSystem5::ActorSerializer::DuplicateActorWithPreparedData(Data.SerializedData, Data.ActorSerializer, Parent);
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {
 	if (!IsValid(InActor))
