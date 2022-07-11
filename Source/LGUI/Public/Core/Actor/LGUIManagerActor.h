@@ -170,6 +170,7 @@ private:
 #endif
 public:	
 	static ALGUIManagerActor* GetLGUIManagerActorInstance(UObject* WorldContextObject);
+	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	ALGUIManagerActor();
 	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
@@ -212,7 +213,6 @@ private:
 	bool bShouldUpdateOnCultureChanged = false;
 	FDelegateHandle onCultureChangedDelegateHandle;
 
-	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 
