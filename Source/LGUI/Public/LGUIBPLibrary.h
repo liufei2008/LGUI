@@ -9,12 +9,29 @@
 #include "Event/LGUIEventDelegate_PresetParameter.h"
 #include "LTweener.h"
 #include "Core/LGUISpriteData_BaseObject.h"
+#include "PrefabSystem/ActorSerializer5.h"
 #include "LGUIBPLibrary.generated.h"
 
 class UUIItem;
 class UUIBaseRenderable;
 class UUISector;
 class ULGUIPrefab;
+
+namespace LGUIPrefabSystem5
+{
+	class ActorSerializer;
+	struct FLGUIPrefabSaveData;
+}
+
+USTRUCT(BlueprintType)
+struct FLGUIDuplicateDataContainer
+{
+	GENERATED_BODY()
+public:
+	bool bIsValid = false;
+	LGUIPrefabSystem5::ActorSerializer ActorSerializer;
+	LGUIPrefabSystem5::FLGUIPrefabSaveData SerializedData;
+};
 
 UCLASS()
 class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
@@ -34,10 +51,20 @@ public:
 
 	/**
 	 * Duplicate actor and all it's children actors
-	 * @todo: If duplicate a same actor for multiple times, there is a way to optimize: Prepare a serialize data before any duplicate operation, then pass the same data to duplicate multiple.
+	 * If duplicate same actor for multiple times, then use PrepareDuplicateData node to get data, and pass the data to DuplicateActorWithPreparedData.
 	 */
-	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Copy actor with hierarchy"), Category = LGUI)
+	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Duplicate actor with hierarchy"), Category = LGUI)
 		static AActor* DuplicateActor(AActor* Target, USceneComponent* Parent);
+	/**
+	 * Optimized version of DuplicateActor node when you need to duplicate same actor for multiple times. Use the result data in DuplicateActorWithPreparedData node.
+	 */
+	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true"), Category = LGUI)
+		static void PrepareDuplicateData(AActor* Target, FLGUIDuplicateDataContainer& Data);
+	/**
+	 * Use this with PrepareDuplicateData node.
+	 */
+	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true"), Category = LGUI)
+		static AActor* DuplicateActorWithPreparedData(UPARAM(Ref) FLGUIDuplicateDataContainer& Data, USceneComponent* Parent);
 	template<class T>
 	static T* DuplicateActorT(T* Target, USceneComponent* Parent)
 	{
