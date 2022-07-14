@@ -2,6 +2,7 @@
 
 #include "GeometryModifier/UIEffectShadow.h"
 #include "LGUI.h"
+#include "Utils/LGUIUtils.h"
 
 
 UUIEffectShadow::UUIEffectShadow()
@@ -46,7 +47,7 @@ void UUIEffectShadow::ModifyUIGeometry(
 		if (multiplySourceAlpha)
 		{
 			auto& vertColor = vertices[channelIndex1].Color;
-			vertColor.A = (uint8)(UUIBaseRenderable::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * shadowColor.A);
+			vertColor.A = (uint8)(LGUIUtils::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * shadowColor.A);
 			vertColor.R = shadowColor.R;
 			vertColor.G = shadowColor.G;
 			vertColor.B = shadowColor.B;

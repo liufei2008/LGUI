@@ -2,6 +2,7 @@
 
 #include "GeometryModifier/UIEffectOutline.h"
 #include "LGUI.h"
+#include "Utils/LGUIUtils.h"
 
 
 UUIEffectOutline::UUIEffectOutline()
@@ -13,7 +14,7 @@ void UUIEffectOutline::ApplyColorAndAlpha(FColor& InOutColor, uint8 InSourceAlph
 {
 	if (multiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(UUIBaseRenderable::Color255To1_Table[InSourceAlpha] * outlineColor.A);
+		InOutColor.A = (uint8)(LGUIUtils::Color255To1_Table[InSourceAlpha] * outlineColor.A);
 		InOutColor.R = outlineColor.R;
 		InOutColor.G = outlineColor.G;
 		InOutColor.B = outlineColor.B;

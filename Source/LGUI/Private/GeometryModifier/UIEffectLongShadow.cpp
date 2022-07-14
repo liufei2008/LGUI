@@ -2,6 +2,7 @@
 
 #include "GeometryModifier/UIEffectLongShadow.h"
 #include "LGUI.h"
+#include "Utils/LGUIUtils.h"
 
 
 UUIEffectLongShadow::UUIEffectLongShadow()
@@ -13,7 +14,7 @@ void UUIEffectLongShadow::ApplyColorAndAlpha(FColor& InOutColor, FColor InTintCo
 {
 	if (multiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(UUIBaseRenderable::Color255To1_Table[InOriginAlpha] * InTintColor.A);
+		InOutColor.A = (uint8)(LGUIUtils::Color255To1_Table[InOriginAlpha] * InTintColor.A);
 		InOutColor.R = InTintColor.R;
 		InOutColor.G = InTintColor.G;
 		InOutColor.B = InTintColor.B;

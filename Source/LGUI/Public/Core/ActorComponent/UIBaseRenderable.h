@@ -133,7 +133,6 @@ public:
 	/** get final color, calculated with CanvasGroup's alpha */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetFinalColor()const;
-	static float Color255To1_Table[256];
 
 	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI.
 
