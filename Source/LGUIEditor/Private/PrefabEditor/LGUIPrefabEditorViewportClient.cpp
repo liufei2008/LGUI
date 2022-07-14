@@ -1,6 +1,7 @@
 // Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "LGUIPrefabEditorViewportClient.h"
+#include "LGUIPrefabEditorViewport.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/SphereReflectionCaptureComponent.h"
 #include "SceneInterface.h"
