@@ -13,6 +13,7 @@
 #include "Event/LGUIPointerEventData.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Utils/LGUIUtils.h"
+#include "LGUI.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEventSystemActor"
 

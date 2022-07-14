@@ -384,8 +384,11 @@ void FLGUIEditorModule::StartupModule()
 	//component visualizer
 	{
 		TSharedPtr<FUIFlexibleGridLayoutComponentVisualizer> Visualizer = MakeShareable(new FUIFlexibleGridLayoutComponentVisualizer);
-		GUnrealEd->RegisterComponentVisualizer(UUIFlexibleGridLayout::StaticClass()->GetFName(), Visualizer);
-		Visualizer->OnRegister();
+		if (GUnrealEd)
+		{
+			GUnrealEd->RegisterComponentVisualizer(UUIFlexibleGridLayout::StaticClass()->GetFName(), Visualizer);
+			Visualizer->OnRegister();
+		}
 	}
 
 	CheckPrefabOverrideDataViewerEntry();
