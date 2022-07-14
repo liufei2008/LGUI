@@ -20,7 +20,6 @@
 #include "Editor/EditorEngine.h"
 #endif
 #include "Slate/SceneViewport.h"
-#include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"

@@ -42,7 +42,7 @@ protected:
 	UPROPERTY(Transient) ULGUIPointerEventData* PointerEventData = nullptr;
 	TWeakObjectPtr<ULGUIPointerEventData> InputPointerEventData = nullptr;
 
-	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
+	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override { return true; }
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)override;

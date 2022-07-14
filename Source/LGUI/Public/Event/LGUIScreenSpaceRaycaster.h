@@ -24,7 +24,7 @@ protected:
 	
 	TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 
-	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
+	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 public:
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;

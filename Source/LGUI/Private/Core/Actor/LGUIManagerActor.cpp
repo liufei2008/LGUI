@@ -92,19 +92,23 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	auto Settings = GetDefault<ULGUIEditorSettings>();
 	if (Settings->bDrawHelperFrame)
 	{
-		for (auto& item : AllUIItemArray)
+		for (auto& CanvasItem : AllCanvasArray)
 		{
-			if (!item.IsValid())continue;
-			if (!IsValid(item->GetWorld()))continue;
-			if (
-				item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
-																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
-				&& item->GetWorld()->WorldType != EWorldType::Game
-				&& item->GetWorld()->WorldType != EWorldType::PIE
-				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
-				)continue;
+			auto& UIItemArray = CanvasItem->GetUIItemArray();
+			for (auto& UIItem : UIItemArray)
+			{
+				if (!IsValid(UIItem))continue;
+				if (!IsValid(UIItem->GetWorld()))continue;
+				if (
+					UIItem->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
+																	//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
+					&& UIItem->GetWorld()->WorldType != EWorldType::Game
+					&& UIItem->GetWorld()->WorldType != EWorldType::PIE
+					&& UIItem->GetWorld()->WorldType != EWorldType::EditorPreview
+					)continue;
 
-			ALGUIManagerActor::DrawFrameOnUIItem(item.Get());
+				ALGUIManagerActor::DrawFrameOnUIItem(UIItem);
+			}
 		}
 	}
 
@@ -516,27 +520,6 @@ bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
 	return false;
 }
 
-void ULGUIEditorManagerObject::AddUIItem(UUIItem* InItem)
-{
-	if (InitCheck(InItem->GetWorld()))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllUIItemArray.Contains(InItem));
-#endif
-		Instance->AllUIItemArray.Add(InItem);
-	}
-}
-void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
-{
-	if (Instance != nullptr)
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllUIItemArray.Contains(InItem));
-#endif
-		Instance->AllUIItemArray.RemoveSingle(InItem);
-	}
-}
-
 const TArray<TWeakObjectPtr<UUIItem>>& ULGUIEditorManagerObject::GetAllRootUIItemArray()
 {
 	return Instance->AllRootUIItemArray;
@@ -718,7 +701,7 @@ void ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(AA
 	}
 }
 
-bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
 	, UUIBaseRenderable*& ResultSelectTarget
 )
 {
@@ -1277,12 +1260,16 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				|| this->GetWorld()->WorldType == EWorldType::PIE
 				)
 			{
-				for (auto& item : AllUIItemArray)
+				for (auto& CanvasItem : AllCanvasArray)
 				{
-					if (!item.IsValid())continue;
-					if (!IsValid(item->GetWorld()))continue;
+					auto& UIItemArray = CanvasItem->GetUIItemArray();
+					for (auto& UIItem : UIItemArray)
+					{
+						if (!IsValid(UIItem))continue;
+						if (!IsValid(UIItem->GetWorld()))continue;
 
-					ALGUIManagerActor::DrawFrameOnUIItem(item.Get(), item->IsScreenSpaceOverlayUI());
+						ALGUIManagerActor::DrawFrameOnUIItem(UIItem, UIItem->IsScreenSpaceOverlayUI());
+					}
 				}
 			}
 		}
@@ -1631,29 +1618,6 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBeh
 				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
 			}
 		}
-	}
-}
-
-
-
-void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
-{
-	if (auto Instance = GetInstance(InItem->GetWorld(), true))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllUIItemArray.Contains(InItem));
-#endif
-		Instance->AllUIItemArray.AddUnique(InItem);
-	}
-}
-void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
-{
-	if (auto Instance = GetInstance(InItem->GetWorld()))
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllUIItemArray.Contains(InItem));
-#endif
-		Instance->AllUIItemArray.RemoveSingle(InItem);
 	}
 }
 

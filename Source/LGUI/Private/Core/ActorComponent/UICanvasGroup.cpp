@@ -2,7 +2,6 @@
 
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "LGUI.h"
-#include "Event/LGUIEventSystem.h"
 #include "Utils/LGUIUtils.h"
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
