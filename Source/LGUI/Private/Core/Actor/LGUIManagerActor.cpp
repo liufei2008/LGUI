@@ -430,6 +430,7 @@ UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 
 void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 {
+	if (actor->GetWorld()->IsGameWorld())return;
 	if (auto rootComp = actor->GetRootComponent())
 	{
 		if (auto rootUIComp = Cast<UUIItem>(rootComp))
