@@ -128,10 +128,14 @@ namespace LGUIPrefabSystem5
 		copiedSerializer.bIsEditorOrRuntime = InSerializer.bIsEditorOrRuntime;
 		copiedSerializer.bOverrideVersions = InSerializer.bOverrideVersions;
 		copiedSerializer.LGUIManagerActor = InSerializer.LGUIManagerActor;
-		copiedSerializer.WriterOrReaderFunction = InSerializer.WriterOrReaderFunction;
 		copiedSerializer.ReferenceAssetList = InSerializer.ReferenceAssetList;
 		copiedSerializer.ReferenceClassList = InSerializer.ReferenceClassList;
 		copiedSerializer.ReferenceNameList = InSerializer.ReferenceNameList;
+		copiedSerializer.WriterOrReaderFunction = [&copiedSerializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
+			auto ExcludeProperties = InIsSceneComponent ? copiedSerializer.GetSceneComponentExcludeProperties() : TSet<FName>();
+			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, copiedSerializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
+		};
 		auto CreatedRootActor = copiedSerializer.DeserializeActorFromData(InData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("DuplicateActorWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
