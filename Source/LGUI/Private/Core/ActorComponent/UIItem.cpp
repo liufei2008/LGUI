@@ -866,7 +866,6 @@ void UUIItem::OnRegister()
 #if WITH_EDITOR
 		if (!world->IsGameWorld() && GetOwner())
 		{
-			ULGUIEditorManagerObject::AddUIItem(this);
 			//create helper for root component
 			if (this->GetOwner()->GetRootComponent() == this 
 				&& this->GetOwner()->GetWorld() != nullptr
@@ -893,11 +892,7 @@ void UUIItem::OnRegister()
 				this->displayName = this->GetName();
 			}
 		}
-		else
 #endif
-		{
-			ALGUIManagerActor::AddUIItem(this);
-		}
 	}
 #if WITH_EDITOR
 	else
@@ -928,7 +923,6 @@ void UUIItem::OnUnregister()
 #if WITH_EDITOR
 		if (!world->IsGameWorld())
 		{
-			ULGUIEditorManagerObject::RemoveUIItem(this);
 			if (this->GetName().StartsWith(TEXT("REINST_")))//when recompile a blueprint object, the old one will become REINST_XXX and not valid
 			{
 				if (RenderCanvas.IsValid())
@@ -938,11 +932,7 @@ void UUIItem::OnUnregister()
 				}
 			}
 		}
-		else
 #endif
-		{
-			ALGUIManagerActor::RemoveUIItem(this);
-		}
 	}
 #if WITH_EDITORONLY_DATA
 	if (HelperComp)
@@ -1202,14 +1192,13 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 
 void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
-	//mark canvas update drawcall
 	if (IsValid(OldCanvas))
 	{
-		OldCanvas->MarkCanvasUpdate(false, false, false);
+		OldCanvas->RemoveUIItem(this);
 	}
 	if (IsValid(NewCanvas))
 	{
-		NewCanvas->MarkCanvasUpdate(false, false, false);
+		NewCanvas->AddUIItem(this);
 	}
 }
 

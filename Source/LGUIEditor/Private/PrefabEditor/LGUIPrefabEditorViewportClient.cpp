@@ -130,9 +130,15 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		//find hit UIBatchGeometryRenderable
 		auto LineStart = RayOrigin;
 		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
-		auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItemArray();
+		auto& AllCanvasArray = ULGUIEditorManagerObject::Instance->GetCanvasArray();
 		UUIBaseRenderable* ClickHitUI = nullptr;
-		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, ClickHitUI))
+		static TArray<UUIItem*> AllUIItemArray;
+		AllUIItemArray.Reset();
+		for (auto& CanvasItem : AllCanvasArray)
+		{
+			AllUIItemArray.Append(CanvasItem->GetUIItemArray());
+		}
+		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI))
 		{
 			ClickHitActor = ClickHitUI->GetOwner();
 		}

@@ -4,7 +4,6 @@
 #include "CoreMinimal.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UISprite.h"
-#include "Extensions/UIPolygon.h"
 #include "Core/LGUIIndexBuffer.h"
 #include "Core/LGUIMeshVertex.h"
 

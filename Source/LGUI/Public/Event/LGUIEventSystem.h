@@ -10,7 +10,6 @@
 #include "LGUIEventSystem.generated.h"
 
 class ULGUIPointerEventData;
-class UUISelectableComponent;
 class ULGUIBaseInputModule;
 
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);

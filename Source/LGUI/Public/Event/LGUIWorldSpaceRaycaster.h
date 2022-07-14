@@ -91,7 +91,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI")
 		ULGUIWorldSpaceRaycasterSource* RaycasterSourceObject = nullptr;
-	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
+	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 public:
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) override;
 	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)override;
