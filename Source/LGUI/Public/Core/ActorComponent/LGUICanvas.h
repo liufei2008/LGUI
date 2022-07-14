@@ -477,6 +477,11 @@ public:
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 
+	void AddUIItem(UUIItem* InUIItem);
+	void RemoveUIItem(UUIItem* InUIItem);
+	/** return all UIItem that belongs to this canvas. */
+	const TArray<UUIItem*>& GetUIItemArray()const { return UIItemList; }
+
 	/** Walk up to find the Canvas which is manage for AdditionalShaderChannel, and set it. */
 	void SetActualRequireAdditionalShaderChannels(uint8 InFlags);
 	void SetRequireAdditionalShaderChannels(uint8 InFlags);
@@ -534,15 +539,17 @@ private:
 	FMatrix OverrideProjectionMatrix;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool. PooledUIMeshList is managed by actual render canvas.
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list. UsingUIMeshList is managed by actual render canvas.
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool. PooledMaterialList is managed by self canvas, not the actual render canvas.
-	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas. UIDrawcallList is managed by actual render canvas.
-	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection. CacheUIDrawcallList is managed by actual render canvas.
+	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool.
+	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas.
+	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<UUIItem*> UIRenderableList;//UIRenderableList is managed by self canvas, not the actual render canvas.
+	TArray<UUIItem*> UIRenderableList;//Use UIItem instead of UIBaseRenderable, because we need UIItem to get sub-canvas.
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	TArray<UUIItem*> UIItemList;//All UIItem that belongs to this canvas
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);

@@ -50,9 +50,6 @@ public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
 private:
-	//collection of all UIItem from current level
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> AllUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -85,10 +82,6 @@ public:
 
 	const TArray<TWeakObjectPtr<UUIItem>>& GetAllRootUIItemArray();
 public:
-	static void AddUIItem(UUIItem* InItem);
-	static void RemoveUIItem(UUIItem* InItem);
-	const TArray<TWeakObjectPtr<UUIItem>>& GetAllUIItemArray() { return AllUIItemArray; }
-
 	static void AddRootUIItem(UUIItem* InItem);
 	static void RemoveRootUIItem(UUIItem* InItem);
 
@@ -110,7 +103,7 @@ public:
 	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 
-	static bool RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
 		, UUIBaseRenderable*& ResultSelectTarget
 	);
 private:
@@ -176,9 +169,6 @@ public:
 	virtual void BeginDestroy()override;
 	virtual void Tick(float DeltaTime)override;
 private:
-	//collection of all UIItem from current level
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> AllUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -219,9 +209,6 @@ private:
 	void UpdateLayout();
 	bool bNeedUpdateLayout = false;
 public:
-	static void AddUIItem(UUIItem* InItem);
-	static void RemoveUIItem(UUIItem* InItem);
-	const TArray<TWeakObjectPtr<UUIItem>>& GetAllUIItemArray(){ return AllUIItemArray; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);

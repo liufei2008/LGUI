@@ -117,12 +117,11 @@ bool ULGUIRenderTargetInteraction::LineTrace(FHitResultContainerStruct& hitResul
 	return false;
 }
 
-bool ULGUIRenderTargetInteraction::ShouldSkipUIItem(UUIItem* UIItem)
+bool ULGUIRenderTargetInteraction::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
-	auto UIItemCanvas = UIItem->GetRenderCanvas();
-	if (TargetCanvas.IsValid() && UIItemCanvas != nullptr)
+	if (TargetCanvas.IsValid())
 	{
-		return !UIItemCanvas->IsRenderToRenderTarget() || TargetCanvas->GetRenderTarget() != UIItemCanvas->GetActualRenderTarget();
+		return !UICanvas->IsRenderToRenderTarget() || TargetCanvas->GetRenderTarget() != UICanvas->GetActualRenderTarget();
 	}
 	return true;
 }

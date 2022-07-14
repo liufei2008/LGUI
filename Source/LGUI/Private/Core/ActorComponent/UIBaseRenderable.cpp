@@ -98,14 +98,18 @@ void UUIBaseRenderable::ApplyUIActiveState(bool InStateChange)
 }
 void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
-	//@todo: only do this when UI is active
 	if (IsValid(OldCanvas))
 	{
+		OldCanvas->RemoveUIItem(this);
 		OldCanvas->RemoveUIRenderable(this);
 	}
-	if (IsValid(NewCanvas) && GetIsUIActiveInHierarchy())
+	if (IsValid(NewCanvas))
 	{
-		NewCanvas->AddUIRenderable(this);
+		NewCanvas->AddUIItem(this);
+		if (GetIsUIActiveInHierarchy())
+		{
+			NewCanvas->AddUIRenderable(this);
+		}
 	}
 }
 

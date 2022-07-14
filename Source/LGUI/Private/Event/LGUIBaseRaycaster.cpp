@@ -71,25 +71,29 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 
 		if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 		{
-			const auto& AllUIItemArray = LGUIManagerActor->GetAllUIItemArray();
-			for (auto& uiItem : AllUIItemArray)
+			auto& AllCanvasArray = LGUIManagerActor->GetCanvasArray();
+			for (auto& CanvasItem : AllCanvasArray)
 			{
-				if (!uiItem.IsValid())continue;
-				if (ShouldSkipUIItem(uiItem.Get()))continue;
-
-				FHitResult thisHit;
-				if (
-					uiItem->IsRaycastTarget()
-					&& uiItem->IsGroupAllowInteraction()
-					&& uiItem->GetTraceChannel() == traceChannel
-					&& uiItem->GetIsUIActiveInHierarchy()
-					&& uiItem->GetRenderCanvas() != nullptr
-					&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
-					)
+				if (ShouldSkipCanvas(CanvasItem.Get()))continue;
+				auto& AllUIItemArray = CanvasItem->GetUIItemArray();
+				for (auto& uiItem : AllUIItemArray)
 				{
-					if (uiItem->GetRenderCanvas()->CalculatePointVisibilityOnClip(thisHit.Location))
+					if (!IsValid(uiItem))continue;
+
+					FHitResult thisHit;
+					if (
+						uiItem->IsRaycastTarget()
+						&& uiItem->IsGroupAllowInteraction()
+						&& uiItem->GetTraceChannel() == traceChannel
+						&& uiItem->GetIsUIActiveInHierarchy()
+						&& uiItem->GetRenderCanvas() != nullptr
+						&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
+						)
 					{
-						multiHitResult.Add(thisHit);
+						if (uiItem->GetRenderCanvas()->CalculatePointVisibilityOnClip(thisHit.Location))
+						{
+							multiHitResult.Add(thisHit);
+						}
 					}
 				}
 			}

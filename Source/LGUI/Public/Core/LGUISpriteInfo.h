@@ -38,21 +38,29 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int16 paddingBottom = 0;
 
+	/** left point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float uv0X = 0;
+	/** bottom point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float uv0Y = 1;
+	/** right point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float uv3X = 1;
+	/** top point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float uv3Y = 0;
 
+	/** border left point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float buv0X = 0;
+	/** border bottom point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float buv0Y = 1;
+	/** border right point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float buv3X = 1;
+	/** border top point uv */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float buv3Y = 0;
 

@@ -2,7 +2,7 @@
 
 #include "Event/LGUIWorldSpaceRaycaster.h"
 #include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_Mouse.h"
-#include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 
 ULGUIBaseRaycaster* ULGUIWorldSpaceRaycasterSource::GetRaycasterObject()const
@@ -56,9 +56,9 @@ void ULGUIWorldSpaceRaycaster::OnRegister()
 	RaycasterSourceObject->Init(this);
 }
 
-bool ULGUIWorldSpaceRaycaster::ShouldSkipUIItem(class UUIItem* UIItem)
+bool ULGUIWorldSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
-	return !UIItem->IsWorldSpaceUI();
+	return !UICanvas->IsRenderToWorldSpace();
 }
 
 bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)

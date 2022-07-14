@@ -100,7 +100,7 @@ public:
 		void SetHoldToDragTime(float value);
 protected:
 	bool ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPointerEventData);
-	virtual bool ShouldSkipUIItem(class UUIItem* UIItem) { return false; }
+	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas) { return false; }
 	TArray<FHitResult> multiUIHitResult;
 	bool IsHitVisibleUI(class UUIItem* HitUI, const FVector& HitPoint);
 

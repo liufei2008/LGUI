@@ -11,7 +11,6 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIPointerEventData.h"
-#include "Interaction/UISelectableComponent.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Utils/LGUIUtils.h"
 

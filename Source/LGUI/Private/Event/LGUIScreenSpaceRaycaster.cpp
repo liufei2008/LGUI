@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIScreenSpaceRaycaster.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
@@ -18,9 +17,9 @@ void ULGUIScreenSpaceRaycaster::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool ULGUIScreenSpaceRaycaster::ShouldSkipUIItem(UUIItem* UIItem)
+bool ULGUIScreenSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
-	return !UIItem->IsScreenSpaceOverlayUI();
+	return !UICanvas->IsRenderToScreenSpace();
 }
 
 bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
