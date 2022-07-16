@@ -316,7 +316,6 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 		return new FLGUIRenderTargetGeometrySource_Sceneproxy(this);
 	}
 
-	MarkRenderStateDirty();
 #if WITH_EDITOR
 	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
