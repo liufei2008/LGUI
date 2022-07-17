@@ -376,50 +376,26 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 
 	eventData->prevIsTriggerPressed = eventData->nowIsTriggerPressed;
 }
-bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult, bool firstPressTime)
+bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult)
 {
 	if (!CheckEventSystem())return false;
 
 	auto currentHover = InPointerEventData->highlightComponentForNavigation.Get();
-	if (!IsValid(currentHover))
-	{
-		if (auto selectable = UUISelectableComponent::FindDefaultSelectable(this))
-		{
-			currentHover = selectable->GetRootUIComponent();
-		}
-	}
-	if (!IsValid(currentHover))
-	{
-		if (firstPressTime)
-		{
-			FString errMsg = FString::Printf(TEXT("[ULGUI_PointerInputModule::Navigate]Current selected component is not valid! Navigation will not work."));
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
-		}
-		return false;
-	}
-	if (direction == ELGUINavigationDirection::None)
-	{
-		hitResult.hitResult.Component = (UPrimitiveComponent*)currentHover;//this convert is incorrect, but I need this pointer
-		hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
-		hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
-		hitResult.hitResult.Normal.Normalize();
-		hitResult.eventFireType = eventSystem->eventFireTypeForNavigation;
-		hitResult.raycaster = nullptr;
-		hitResult.hoverArray.Reset();
-
-		return true;
-	}
 	UUISelectableComponent* currentSelectable = nullptr;
-	AActor* searchActor = currentHover->GetOwner();
-	while (IsValid(searchActor))
+	if (IsValid(currentHover))
 	{
-		currentSelectable = searchActor->FindComponentByClass<UUISelectableComponent>();
-		if (IsValid(currentSelectable))
+		AActor* searchActor = currentHover->GetOwner();
+		while (IsValid(searchActor))
 		{
-			break;
+			currentSelectable = searchActor->FindComponentByClass<UUISelectableComponent>();
+			if (IsValid(currentSelectable))
+			{
+				break;
+			}
+			searchActor = searchActor->GetAttachParentActor();
 		}
-		searchActor = searchActor->GetAttachParentActor();
 	}
+	
 	if (!IsValid(currentSelectable))//not find valid selectable object, use default one
 	{
 		currentSelectable = UUISelectableComponent::FindDefaultSelectable(this);
@@ -489,7 +465,7 @@ void ULGUI_PointerInputModule::ProcessInputForNavigation()
 				eventData->navigateTickTime += timeInterval;
 			}
 			FHitResultContainerStruct hitResultContainer;
-			bool selectValid = Navigate(eventData->navigateDirection, eventData, hitResultContainer, isFirstPressInSequence);
+			bool selectValid = Navigate(eventData->navigateDirection, eventData, hitResultContainer);
 			bool resultHitSomething = false;
 			FHitResult hitResult;
 			ProcessPointerEvent(eventData, selectValid, hitResultContainer, resultHitSomething, hitResult);

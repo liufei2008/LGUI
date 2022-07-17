@@ -41,7 +41,7 @@ protected:
 	/** find a commont root actor of two actors. return nullptr if no common root */
 	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
 
-	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult, bool firstPressTime);
+	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
 	FLGUIPointerInputChange_MulticastDelegate inputChangeDelegate;
 	void ProcessInputForNavigation();
 	void ClearEventByID(int pointerID);
