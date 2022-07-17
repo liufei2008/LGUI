@@ -604,7 +604,40 @@ UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* W
 		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
 		if (SelectableArray.Num() > 0)
 		{
-			return SelectableArray[0].Get();
+			auto Selectable = SelectableArray[0].Get();
+			//default selectable is the most "prev" one, so we need to find it
+			TSet<UUISelectableComponent*> FoundSelectables;
+			FoundSelectables.Add(Selectable);
+			while (true)
+			{
+				//change navigation mode to auto, so we can find selectable only by position (exclude explicit)
+				auto OriginNavigationLeftMode = Selectable->NavigationLeft;
+				auto OriginNavigationUpMode = Selectable->NavigationUp;
+				auto OriginNavigationPrevMode = Selectable->NavigationPrev;
+				Selectable->NavigationLeft = EUISelectableNavigationMode::Auto;
+				Selectable->NavigationUp = EUISelectableNavigationMode::Auto;
+				Selectable->NavigationPrev = EUISelectableNavigationMode::Auto;
+
+				auto PrevSelectable = Selectable->FindSelectableOnPrev();
+
+				//restore navigation mode
+				Selectable->NavigationLeft = OriginNavigationLeftMode;
+				Selectable->NavigationUp = OriginNavigationUpMode;
+				Selectable->NavigationPrev = OriginNavigationPrevMode;
+
+				if (!IsValid(PrevSelectable) 
+					|| PrevSelectable == Selectable
+					|| FoundSelectables.Contains(PrevSelectable)//incase cycle loop, eg: A is left and B is top, A's top return B, and B's left return A
+					)
+				{
+					break;
+				}
+				else
+				{
+					Selectable = PrevSelectable;
+				}
+			}
+			return Selectable;
 		}
 	}
 	return nullptr;
@@ -659,21 +692,37 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 }
 UUISelectableComponent* UUISelectableComponent::FindSelectableOnNext()
 {
-	auto rightComp = FindSelectableOnRight();
-	if (rightComp != this)
+	if (NavigationNext == EUISelectableNavigationMode::Explicit)
 	{
-		return rightComp;
+		return NavigationNextSpecific.GetComponent<UUISelectableComponent>();
 	}
-	return FindSelectableOnDown();
+	if (NavigationNext == EUISelectableNavigationMode::Auto)
+	{
+		auto rightComp = FindSelectableOnRight();
+		if (rightComp != this)
+		{
+			return rightComp;
+		}
+		return FindSelectableOnDown();
+	}
+	return nullptr;
 }
 UUISelectableComponent* UUISelectableComponent::FindSelectableOnPrev()
 {
-	auto leftComp = FindSelectableOnLeft();
-	if (leftComp != this)
+	if (NavigationPrev == EUISelectableNavigationMode::Explicit)
 	{
-		return leftComp;
+		return NavigationPrevSpecific.GetComponent<UUISelectableComponent>();
 	}
-	return FindSelectableOnUp();
+	if (NavigationPrev == EUISelectableNavigationMode::Auto)
+	{
+		auto leftComp = FindSelectableOnLeft();
+		if (leftComp != this)
+		{
+			return leftComp;
+		}
+		return FindSelectableOnUp();
+	}
+	return nullptr;
 }
 
 void UUISelectableComponent::SetNavigationLeft(EUISelectableNavigationMode value)

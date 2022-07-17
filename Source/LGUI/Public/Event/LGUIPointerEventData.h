@@ -125,6 +125,10 @@ public:
 	bool nowIsTriggerPressed = false;
 	bool prevIsTriggerPressed = false;
 
+	TWeakObjectPtr<USceneComponent> highlightComponentForNavigation = nullptr;
+	float navigateTickTime = 0;
+	ELGUINavigationDirection navigateDirection = ELGUINavigationDirection::None;
+
 	virtual FString ToString()const override;
 	/** Use a line-plane intersection to get world point. The plane is pressComponent's x-axis plane. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 

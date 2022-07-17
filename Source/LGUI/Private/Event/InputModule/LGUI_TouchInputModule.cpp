@@ -15,7 +15,7 @@ void ULGUI_TouchInputModule::ProcessInput()
 	default:
 	case ELGUIPointerInputType::Pointer:
 	{
-		for (auto keyValue : eventSystem->pointerEventDataMap)
+		for (auto& keyValue : eventSystem->pointerEventDataMap)
 		{
 			auto touchPointerEventData = keyValue.Value;
 			if (IsValid(touchPointerEventData))

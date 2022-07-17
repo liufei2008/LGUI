@@ -237,6 +237,9 @@ public:
 	 * Find UISelectable component inside InParent on specific direction.
 	 */
 	virtual UUISelectableComponent* FindSelectable(FVector InDirection, USceneComponent* InParent);
+	/**
+     * Default selectable is the most "Prev" one (left top most).
+	 */
 	static UUISelectableComponent* FindDefaultSelectable(UObject* WorldContextObject);
 	virtual UUISelectableComponent* FindSelectableOnLeft();
 	virtual UUISelectableComponent* FindSelectableOnRight();

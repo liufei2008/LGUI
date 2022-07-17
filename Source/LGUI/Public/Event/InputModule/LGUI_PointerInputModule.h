@@ -41,9 +41,6 @@ protected:
 	/** find a commont root actor of two actors. return nullptr if no common root */
 	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
 
-	ELGUINavigationDirection currentNavigationDirection = ELGUINavigationDirection::None;
-
-	float navigatePressTime = 0.0f;
 	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult, bool firstPressTime);
 	FLGUIPointerInputChange_MulticastDelegate inputChangeDelegate;
 	void ProcessInputForNavigation();
@@ -56,10 +53,10 @@ public:
 
 	/** input for gamepad or keyboard navigation */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigation(ELGUINavigationDirection direction, bool pressOrRelease);
+		void InputNavigation(ELGUINavigationDirection direction, bool pressOrRelease, int pointerID);
 	/** input for gamepad or keyboard press and release */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputTriggerForNavigation(bool triggerPress);
+		void InputTriggerForNavigation(bool triggerPress, int pointerID);
 
 	void RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange);
 	void UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle);

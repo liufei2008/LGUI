@@ -67,7 +67,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSelectComponentWithDefault(USceneComponent* InSelectComp);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
+		USceneComponent* GetCurrentSelectedComponent(int InPointerID)const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIBaseInputModule* GetCurrentInputModule();
 
@@ -109,21 +109,26 @@ public:
 	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetHighlightedComponentForNavigation(USceneComponent* InComp);
+		void SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		USceneComponent* GetHighlightedComponentForNavigation()const { return highlightedComponent; }
+		USceneComponent* GetHighlightedComponentForNavigation(int InPointerID)const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUIPointerInputType defaultInputType = ELGUIPointerInputType::Pointer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUIEventFireType eventFireTypeForNavigation = ELGUIEventFireType::TargetActorAndAllItsComponents;
+	/**
+	 * If keep pressing the navigate button for a while, then will trigger the process of continuous navigation.
+	 * This is the interval trigger time of continuous navigation
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		float navigateInputInterval = 0.2f;
+	/**
+	 * If keep pressing the navigate button for a while, then will trigger the process of continuous navigation.
+	 * This is the time to trigger the process.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		float navigateInputIntervalForFirstTime = 0.5f;
-protected:
-	UPROPERTY(Transient)USceneComponent* selectedComponent = nullptr;
-	UPROPERTY(Transient)USceneComponent* highlightedComponent = nullptr;
 public:
 	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
