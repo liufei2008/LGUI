@@ -227,33 +227,50 @@ void ULGUIEventSystem::RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult,
 	}
 }
 
-void ULGUIEventSystem::SetHighlightedComponentForNavigation(USceneComponent* InComp)
+void ULGUIEventSystem::SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID)
 {
-	highlightedComponent = InComp;
+	if (auto eventData = GetPointerEventData(InPointerID, true))
+	{
+		eventData->highlightComponentForNavigation = InComp;
+	}
 }
+USceneComponent* ULGUIEventSystem::GetHighlightedComponentForNavigation(int InPointerID)const
+{
+	if (auto eventData = GetPointerEventData(InPointerID, false))
+	{
+		return eventData->highlightComponentForNavigation.Get();
+	}
+	return nullptr;
+}
+
 
 void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType)
 {
-	if (selectedComponent != InSelectComp)//select new object
+	if (eventData->selectedComponent != InSelectComp)//select new object
 	{
-		auto oldSelectedComp = selectedComponent;
-		selectedComponent = InSelectComp;
-		if (oldSelectedComp != nullptr)
+		auto oldSelectedComp = eventData->selectedComponent;
+		eventData->selectedComponent = InSelectComp;
+		if (IsValid(oldSelectedComp))
 		{
-			if (IsValid(oldSelectedComp))
-			{
-				eventData->selectedComponent = selectedComponent;
-				CallOnPointerDeselect(oldSelectedComp, eventData, eventFireType);
-			}
+			CallOnPointerDeselect(oldSelectedComp, eventData, eventFireType);
 		}
-		if (selectedComponent != nullptr)
+		if (IsValid(eventData->selectedComponent))
 		{
-			eventData->selectedComponent = selectedComponent;
-			CallOnPointerSelect(selectedComponent, eventData, eventFireType);
+			CallOnPointerSelect(eventData->selectedComponent, eventData, eventFireType);
 		}
 		eventData->selectedComponentEventFireType = eventFireType;
 	}
 }
+
+USceneComponent* ULGUIEventSystem::GetCurrentSelectedComponent(int InPointerID)const
+{
+	if (auto eventData = GetPointerEventData(InPointerID, false))
+	{
+		return eventData->selectedComponent;
+	}
+	return nullptr;
+}
+
 void ULGUIEventSystem::SetSelectComponentWithDefault(USceneComponent* InSelectComp)
 {
 	auto eventData = GetPointerEventData(0, true);

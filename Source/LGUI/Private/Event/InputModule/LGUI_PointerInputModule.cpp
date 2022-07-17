@@ -9,6 +9,10 @@
 #include "Interaction/UISelectableComponent.h"
 #include "Utils/LGUIUtils.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 bool ULGUI_PointerInputModule::CheckEventSystem()
 {
 	if (IsValid(eventSystem))
@@ -136,7 +140,7 @@ void ULGUI_PointerInputModule::ProcessPointerEnterExit(ULGUIPointerEventData* ev
 #endif
 			int insertIndex = eventData->enterComponentStack.Num();
 			eventSystem->CallOnPointerEnter(newObj, eventData, eventData->enterComponentEventFireType);
-			eventSystem->SetHighlightedComponentForNavigation(newObj);
+			eventData->highlightComponentForNavigation = newObj;
 			eventData->enterComponentStack.Add(newObj);
 #if LOG_ENTER_EXIT
 			UE_LOG(LGUI, Error, TEXT("	:%s"), *(enterObjectActor->GetActorLabel()));
@@ -203,7 +207,7 @@ void ULGUI_PointerInputModule::ProcessPointerEnterExit(ULGUIPointerEventData* ev
 				UE_LOG(LGUI, Error, TEXT("	%s"), *(enterObjectActor->GetActorLabel()));
 #endif
 				eventSystem->CallOnPointerEnter(newObj, eventData, eventData->enterComponentEventFireType);
-				eventSystem->SetHighlightedComponentForNavigation(newObj);
+				eventData->highlightComponentForNavigation = newObj;
 				eventData->enterComponentStack.Add(newObj);
 				enterObjectActor = enterObjectActor->GetAttachParentActor();
 				while (enterObjectActor != nullptr)
@@ -376,7 +380,7 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 {
 	if (!CheckEventSystem())return false;
 
-	auto currentHover = eventSystem->GetHighlightedComponentForNavigation();
+	auto currentHover = InPointerEventData->highlightComponentForNavigation.Get();
 	if (!IsValid(currentHover))
 	{
 		if (auto selectable = UUISelectableComponent::FindDefaultSelectable(this))
@@ -405,81 +409,105 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 
 		return true;
 	}
-	if (auto currentSelectable = currentHover->GetOwner()->FindComponentByClass<UUISelectableComponent>())
+	UUISelectableComponent* currentSelectable = nullptr;
+	AActor* searchActor = currentHover->GetOwner();
+	while (IsValid(searchActor))
 	{
-		UUISelectableComponent* newSelectable = currentSelectable;
+		currentSelectable = searchActor->FindComponentByClass<UUISelectableComponent>();
+		if (IsValid(currentSelectable))
+		{
+			break;
+		}
+		searchActor = searchActor->GetAttachParentActor();
+	}
+	if (!IsValid(currentSelectable))//not find valid selectable object, use default one
+	{
+		currentSelectable = UUISelectableComponent::FindDefaultSelectable(this);
+	}
+	else//find valid selectable, do navigation
+	{
 		if (currentSelectable->OnNavigate(direction))
 		{
 			switch (direction)
 			{
 			default:
 			case ELGUINavigationDirection::None:
-				newSelectable = currentSelectable;
 				break;
 			case ELGUINavigationDirection::Left:
-				newSelectable = currentSelectable->FindSelectableOnLeft();
+				currentSelectable = currentSelectable->FindSelectableOnLeft();
 				break;
 			case ELGUINavigationDirection::Right:
-				newSelectable = currentSelectable->FindSelectableOnRight();
+				currentSelectable = currentSelectable->FindSelectableOnRight();
 				break;
 			case ELGUINavigationDirection::Up:
-				newSelectable = currentSelectable->FindSelectableOnUp();
+				currentSelectable = currentSelectable->FindSelectableOnUp();
 				break;
 			case ELGUINavigationDirection::Down:
-				newSelectable = currentSelectable->FindSelectableOnDown();
+				currentSelectable = currentSelectable->FindSelectableOnDown();
 				break;
 			case ELGUINavigationDirection::Prev:
-				newSelectable = currentSelectable->FindSelectableOnPrev();
+				currentSelectable = currentSelectable->FindSelectableOnPrev();
 				break;
 			case ELGUINavigationDirection::Next:
-				newSelectable = currentSelectable->FindSelectableOnNext();
+				currentSelectable = currentSelectable->FindSelectableOnNext();
 				break;
 			}
 		}
-		if (IsValid(newSelectable))
-		{
-			hitResult.hitResult.Component = (UPrimitiveComponent*)newSelectable->GetRootUIComponent();//this convert is incorrect, but I need this pointer
-			hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
-			hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
-			hitResult.hitResult.Normal.Normalize();
-			hitResult.eventFireType = eventSystem->eventFireTypeForNavigation;
-			hitResult.raycaster = nullptr;
-			hitResult.hoverArray.Reset();
+	}
+	if (IsValid(currentSelectable))
+	{
+		hitResult.hitResult.Component = (UPrimitiveComponent*)currentSelectable->GetRootUIComponent();//this convert is incorrect, but I need this pointer
+		hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
+		hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
+		hitResult.hitResult.Normal.Normalize();
+		hitResult.eventFireType = eventSystem->eventFireTypeForNavigation;
+		hitResult.raycaster = nullptr;
+		hitResult.hoverArray.Reset();
 
-			eventSystem->SetHighlightedComponentForNavigation(newSelectable->GetRootUIComponent());
-			return true;
-		}
+		InPointerEventData->highlightComponentForNavigation = currentSelectable->GetRootUIComponent();
+		return true;
 	}
 	return false;
 }
 
 void ULGUI_PointerInputModule::ProcessInputForNavigation()
 {
-	if (this->GetWorld()->GetTimeSeconds() > navigatePressTime)
+	auto timeSeconds = this->GetWorld()->GetTimeSeconds();
+	for (auto& keyValue : eventSystem->pointerEventDataMap)
 	{
-		bool firstPressTime = navigatePressTime == 0.0f;
-		navigatePressTime = this->GetWorld()->GetTimeSeconds() + (navigatePressTime == 0.0f ? eventSystem->navigateInputIntervalForFirstTime : eventSystem->navigateInputInterval);
-
-		auto eventData = eventSystem->GetPointerEventData(0, true);
-		FHitResultContainerStruct hitResultContainer;
-		bool selectValid = Navigate(currentNavigationDirection, eventData, hitResultContainer, firstPressTime);
-		bool resultHitSomething = false;
-		FHitResult hitResult;
-		ProcessPointerEvent(eventData, selectValid, hitResultContainer, resultHitSomething, hitResult);
-		if (resultHitSomething)
+		auto& eventData = keyValue.Value;
+		while (timeSeconds > eventData->navigateTickTime)
 		{
-			eventSystem->SetSelectComponent((USceneComponent*)hitResult.Component.Get(), eventData, eventSystem->eventFireTypeForNavigation);
-		}
+			bool isFirstPressInSequence = eventData->navigateTickTime == 0.0f;
+			auto timeInterval = isFirstPressInSequence ? eventSystem->navigateInputIntervalForFirstTime : eventSystem->navigateInputInterval;
+			if (isFirstPressInSequence)
+			{
+				eventData->navigateTickTime = timeSeconds + timeInterval;
+			}
+			else
+			{
+				eventData->navigateTickTime += timeInterval;
+			}
+			FHitResultContainerStruct hitResultContainer;
+			bool selectValid = Navigate(eventData->navigateDirection, eventData, hitResultContainer, isFirstPressInSequence);
+			bool resultHitSomething = false;
+			FHitResult hitResult;
+			ProcessPointerEvent(eventData, selectValid, hitResultContainer, resultHitSomething, hitResult);
+			if (resultHitSomething)
+			{
+				eventSystem->SetSelectComponent((USceneComponent*)hitResult.Component.Get(), eventData, eventSystem->eventFireTypeForNavigation);
+			}
 
-		auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
-		eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+			auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+			eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+		}
 	}
 }
-void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection direction, bool pressOrRelease)
+void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection direction, bool pressOrRelease, int pointerID)
 {
+	auto eventData = eventSystem->GetPointerEventData(pointerID, true);
 	if (pressOrRelease)
 	{
-		auto eventData = eventSystem->GetPointerEventData(0, true);
 		if (eventData->inputType != ELGUIPointerInputType::Navigation)
 		{
 			eventData->inputType = ELGUIPointerInputType::Navigation;
@@ -488,19 +516,19 @@ void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection directio
 				inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
 			}
 		}
-		currentNavigationDirection = direction;
+		eventData->navigateDirection = direction;
 	}
 	else
 	{
-		currentNavigationDirection = ELGUINavigationDirection::None;
+		eventData->navigateDirection = ELGUINavigationDirection::None;
 	}
-	navigatePressTime = 0.0f;
+	eventData->navigateTickTime = 0;
 }
-void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress)
+void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress, int pointerID)
 {
+	auto eventData = eventSystem->GetPointerEventData(pointerID, true);
 	if (inTriggerPress)
 	{
-		auto eventData = eventSystem->GetPointerEventData(0, true);
 		if (eventData->inputType != ELGUIPointerInputType::Navigation)
 		{
 			eventData->inputType = ELGUIPointerInputType::Navigation;
@@ -510,9 +538,8 @@ void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress)
 			}
 		}
 	}
-	auto eventData = eventSystem->GetPointerEventData(0, true);
+	eventData->navigateTickTime = 0;
 	eventData->nowIsTriggerPressed = inTriggerPress;
-	navigatePressTime = 0.0f;
 }
 
 void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
@@ -637,7 +664,7 @@ USceneComponent* ULGUI_PointerInputModule::GetEventHandle(USceneComponent* targe
 void ULGUI_PointerInputModule::DeselectIfSelectionChanged(USceneComponent* currentPressed, ULGUIBaseEventData* eventData)
 {
 	auto selectHandleComp = GetEventHandle(currentPressed, ULGUIPointerSelectDeselectInterface::StaticClass(), eventData->selectedComponentEventFireType);
-	if (selectHandleComp != eventSystem->GetCurrentSelectedComponent())
+	if (selectHandleComp != eventData->selectedComponent)
 	{
 		eventSystem->SetSelectComponent(nullptr, eventData, eventData->selectedComponentEventFireType);
 	}
@@ -645,7 +672,7 @@ void ULGUI_PointerInputModule::DeselectIfSelectionChanged(USceneComponent* curre
 
 void ULGUI_PointerInputModule::ClearEvent()
 {
-	for (auto keyValue : eventSystem->pointerEventDataMap)
+	for (auto& keyValue : eventSystem->pointerEventDataMap)
 	{
 		ClearEventByID(keyValue.Key);
 	}
@@ -670,3 +697,7 @@ void ULGUI_PointerInputModule::UnregisterInputChangeEvent(FLGUIDelegateHandleWra
 {
 	inputChangeDelegate.Remove(delegateHandle.DelegateHandle);
 }
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
