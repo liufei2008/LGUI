@@ -37,7 +37,7 @@ struct HUIFlexibleGridLayoutFrameLineVisProxy : public HComponentVisProxy
 };
 
 UCLASS(Transient)
-class LGUIEDITOR_API UUIFlexibleGridLayoutVisualizerSelectionState : public UObject
+class LGUICOMPONENTVISUALIZER_API UUIFlexibleGridLayoutVisualizerSelectionState : public UObject
 {
 	GENERATED_BODY()
 public:

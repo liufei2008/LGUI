@@ -2,7 +2,7 @@
 
 #include "ComponentVisualizer/UIFlexibleGridLayoutComponentVisualizer.h"
 #include "Layout/UIFlexibleGridLayout.h"
-#include "LGUIEditorModule.h"
+#include "LGUIComponentVisualizerModule.h"
 #include "LGUI.h"
 
 PRAGMA_DISABLE_OPTIMIZATION

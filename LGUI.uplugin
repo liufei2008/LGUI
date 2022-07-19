@@ -22,6 +22,11 @@
 		{
 			"Name": "LGUIEditor",
 			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "LGUIComponentVisualizer",
+			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit"
 		},
 		{
