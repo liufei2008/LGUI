@@ -1,10 +1,10 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "LGUIEditorCommands.h"
 #include "LGUIEditorModule.h"
 #include "LGUIEditorStyle.h"
 
-#define LOCTEXT_NAMESPACE "FLGUIEditorModule"
+#define LOCTEXT_NAMESPACE "FLGUIEditorCommands"
 
 FLGUIEditorCommands::FLGUIEditorCommands()
 	: TCommands<FLGUIEditorCommands>(TEXT("LGUIEditor"), NSLOCTEXT("Contexts", "LGUIEditor", "LGUIEditor Plugin"), NAME_None, FLGUIEditorStyle::GetStyleSetName())
