@@ -56,7 +56,7 @@ bool FTextGeometryCache::SetInputParameters(
 	if (this->color != InColor)
 	{
 		this->color = InColor;
-		bIsDirty = true;
+		bIsColorDirty = true;
 	}
 	if (this->fontSpace != InFontSpace)
 	{
@@ -123,9 +123,15 @@ void FTextGeometryCache::MarkDirty()
 
 void FTextGeometryCache::ConditaionalCalculateGeometry()
 {
-	if (bIsDirty)
+	if (bIsColorDirty && !bIsDirty)
+	{
+		bIsColorDirty = false;
+		UIGeometry::UpdateUIColor(this->UIText->GetGeometry(), this->color);
+	}
+	else if (bIsDirty)
 	{
 		bIsDirty = false;
+		bIsColorDirty = false;
 		UIGeometry::UpdateUIText(
 			this->content
 			, this->visibleCharCount
