@@ -236,11 +236,11 @@ void ULGUISDFFontData::PushCharData(
 		strikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('-', richTextProperty.size);
 	}
 	int32 newVerticesCount = verticesStartIndex + outAdditionalVerticesCount;
-	UIGeometry::LGUIGeometrySetArrayNum(originVertices, newVerticesCount);
-	UIGeometry::LGUIGeometrySetArrayNum(vertices, newVerticesCount);
+	UIGeometry::LGUIGeometrySetArrayNum(originVertices, newVerticesCount, false);
+	UIGeometry::LGUIGeometrySetArrayNum(vertices, newVerticesCount, false);
 
 	int32 newIndicesCount = indicesStartIndex + outAdditionalIndicesCount;
-	UIGeometry::LGUIGeometrySetArrayNum(triangleIndices, newIndicesCount);
+	UIGeometry::LGUIGeometrySetArrayNum(triangleIndices, newIndicesCount, false);
 
 	auto lineOffset = inLineOffset;
 	if (richTextProperty.supOrSubMode == LGUIRichTextParser::SupOrSubMode::Sup)

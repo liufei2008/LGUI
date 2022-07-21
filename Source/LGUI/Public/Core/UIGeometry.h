@@ -109,17 +109,17 @@ public:
 	 * What I want is, use default value only on new memory, so new item will not contains NaN value.
 	 */
 	template<class T>
-	static void LGUIGeometrySetArrayNum(TArray<T>& InArray, int32 NewNum)
+	static void LGUIGeometrySetArrayNum(TArray<T>& InArray, int32 NewNum, bool bAllowShrinking = true)
 	{
 		auto PrevMax = InArray.Max();
 		if (NewNum > InArray.Max())
 		{
 			InArray.AddUninitialized(InArray.Max() - InArray.Num());//Set Num to Max and can keep existing memory.
-			InArray.SetNumZeroed(NewNum);//New memory will be Zeroed.
+			InArray.SetNumZeroed(NewNum, bAllowShrinking);//New memory will be Zeroed.
 		}
 		else
 		{
-			InArray.SetNumUninitialized(NewNum);
+			InArray.SetNumUninitialized(NewNum, bAllowShrinking);
 		}
 		//SetNum could change array max, so memzero the additional memory
 		if (InArray.Max() > PrevMax)

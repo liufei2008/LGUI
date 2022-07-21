@@ -143,7 +143,8 @@ private:
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;
 #pragma endregion InputParameters
 
-	bool bIsDirty = true;
+	bool bIsDirty = true;//vertex or triangle data is dirty
+	bool bIsColorDirty = true;//only color data is dirty (no include rich text's color)
 	TWeakObjectPtr<UUIText> UIText = nullptr;
 
 public:
