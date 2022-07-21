@@ -2227,19 +2227,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	auto& vertices = uiGeo->vertices;
 	int indicesCount = 0;
 	auto& triangles = uiGeo->triangles;
-
-	auto CheckVertices = [&](int additionalVerticesCount)
-	{
-		int32 newCount = verticesCount + additionalVerticesCount;
-		LGUIGeometrySetArrayNum(originVertices, newCount);
-		LGUIGeometrySetArrayNum(vertices, newCount);
-	};
-
-	auto CheckIndices = [&](int additionalIndicesCount)
-	{
-		int32 newCount = indicesCount + additionalIndicesCount;
-		LGUIGeometrySetArrayNum(triangles, newCount);
-	};
 	 
 	enum class NewLineMode
 	{
