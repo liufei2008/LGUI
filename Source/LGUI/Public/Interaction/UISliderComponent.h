@@ -119,7 +119,7 @@ public:
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnNavigate(ELGUINavigationDirection InDirection)override;
+	virtual bool OnNavigate_Implementation(ELGUINavigationDirection direction, TScriptInterface<ILGUINavigationInterface>& result)override;
 private:
 	bool CheckFill();
 	bool CheckHandle();

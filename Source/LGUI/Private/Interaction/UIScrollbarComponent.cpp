@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Interaction/UIScrollbarComponent.h"
 #include "LGUI.h"
@@ -239,22 +239,22 @@ bool UUIScrollbarComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventDat
     CalculateInputValue(eventData);
     return AllowEventBubbleUp;
 }
-bool UUIScrollbarComponent::OnNavigate(ELGUINavigationDirection InDirection)
+bool UUIScrollbarComponent::OnNavigate_Implementation(ELGUINavigationDirection direction, TScriptInterface<ILGUINavigationInterface>& result)
 {
     float valueIntervalMultiply = 0.0f;
     if (
-        (DirectionType == UIScrollbarDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Down) || (DirectionType == UIScrollbarDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Up))
+        (DirectionType == UIScrollbarDirectionType::LeftToRight && direction == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::RightToLeft && direction == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::BottomToTop && direction == ELGUINavigationDirection::Down) || (DirectionType == UIScrollbarDirectionType::TopToBottom && direction == ELGUINavigationDirection::Up))
     {
         valueIntervalMultiply = -0.1f;
     }
     else if (
-        (DirectionType == UIScrollbarDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Up) || (DirectionType == UIScrollbarDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Down))
+        (DirectionType == UIScrollbarDirectionType::LeftToRight && direction == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::RightToLeft && direction == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::BottomToTop && direction == ELGUINavigationDirection::Up) || (DirectionType == UIScrollbarDirectionType::TopToBottom && direction == ELGUINavigationDirection::Down))
     {
         valueIntervalMultiply = 0.1f;
     }
     if (valueIntervalMultiply == 0.0f)
     {
-        return true;
+        return Super::OnNavigate_Implementation(direction, result);
     }
     else
     {

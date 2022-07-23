@@ -5,6 +5,7 @@
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
+#include "Event/Interface/LGUINavigationInterface.h"
 #include "Components/ActorComponent.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "LGUIComponentReference.h"
@@ -48,7 +49,11 @@ enum class EUISelectableNavigationMode:uint8
 class ULGUISpriteData_BaseObject;
 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUISelectableComponent : public ULGUILifeCycleUIBehaviour, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
+class LGUI_API UUISelectableComponent : public ULGUILifeCycleUIBehaviour
+	, public ILGUIPointerEnterExitInterface
+	, public ILGUIPointerDownUpInterface
+	, public ILGUIPointerSelectDeselectInterface
+	, public ILGUINavigationInterface
 {
 	GENERATED_BODY()
 	
@@ -224,11 +229,7 @@ public:
 		void SetNavigationPrevExplicit(UUISelectableComponent* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
 		void SetNavigationNextExplicit(UUISelectableComponent* value);
-	/**
-	 * Called by input module to navigate on selectables.
-	 * @return true if can navigate to other selectable.
-	 */
-	virtual bool OnNavigate(ELGUINavigationDirection InDirection);
+
 	/**
 	 * Find UISelectable component on specific direction.
 	 */
@@ -255,4 +256,5 @@ protected:
 	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;
 	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)override;
+	virtual bool OnNavigate_Implementation(ELGUINavigationDirection direction, TScriptInterface<ILGUINavigationInterface>& result)override;
 };

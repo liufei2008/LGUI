@@ -476,8 +476,35 @@ bool UUISelectableComponent::IsInteractable()const
 }
 
 #pragma region Navigation
-bool UUISelectableComponent::OnNavigate(ELGUINavigationDirection InDirection)
+bool UUISelectableComponent::OnNavigate_Implementation(ELGUINavigationDirection direction, TScriptInterface<ILGUINavigationInterface>& result)
 {
+	UUISelectableComponent* Selectable = nullptr;
+	switch (direction)
+	{
+	default:
+	case ELGUINavigationDirection::None:
+		return false;
+		break;
+	case ELGUINavigationDirection::Left:
+		Selectable = FindSelectableOnLeft();
+		break;
+	case ELGUINavigationDirection::Right:
+		Selectable = FindSelectableOnRight();
+		break;
+	case ELGUINavigationDirection::Up:
+		Selectable = FindSelectableOnUp();
+		break;
+	case ELGUINavigationDirection::Down:
+		Selectable = FindSelectableOnDown();
+		break;
+	case ELGUINavigationDirection::Prev:
+		Selectable = FindSelectableOnPrev();
+		break;
+	case ELGUINavigationDirection::Next:
+		Selectable = FindSelectableOnNext();
+		break;
+	}
+	result = Selectable;
 	return true;
 }
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection)
