@@ -200,22 +200,22 @@ bool UUISliderComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData *
     CalculateInputValue(eventData);
     return AllowEventBubbleUp;
 }
-bool UUISliderComponent::OnNavigate(ELGUINavigationDirection InDirection)
+bool UUISliderComponent::OnNavigate_Implementation(ELGUINavigationDirection direction, TScriptInterface<ILGUINavigationInterface>& result)
 {
     float valueIntervalMultiply = 0.0f;
     if (
-        (DirectionType == UISliderDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Down) || (DirectionType == UISliderDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Up))
+        (DirectionType == UISliderDirectionType::LeftToRight && direction == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::RightToLeft && direction == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::BottomToTop && direction == ELGUINavigationDirection::Down) || (DirectionType == UISliderDirectionType::TopToBottom && direction == ELGUINavigationDirection::Up))
     {
         valueIntervalMultiply = -0.1f;
     }
     else if (
-        (DirectionType == UISliderDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Up) || (DirectionType == UISliderDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Down))
+        (DirectionType == UISliderDirectionType::LeftToRight && direction == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::RightToLeft && direction == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::BottomToTop && direction == ELGUINavigationDirection::Up) || (DirectionType == UISliderDirectionType::TopToBottom && direction == ELGUINavigationDirection::Down))
     {
         valueIntervalMultiply = 0.1f;
     }
     if (valueIntervalMultiply == 0.0f)
     {
-        return true;
+        return Super::OnNavigate_Implementation(direction, result);
     }
     else
     {

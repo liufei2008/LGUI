@@ -6,6 +6,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/LGUIEventSystem.h"
 #include "Event/LGUIBaseRaycaster.h"
+#include "Event/Interface/LGUINavigationInterface.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Utils/LGUIUtils.h"
 
@@ -381,14 +382,25 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 	if (!CheckEventSystem())return false;
 
 	auto currentHover = InPointerEventData->highlightComponentForNavigation.Get();
-	UUISelectableComponent* currentSelectable = nullptr;
+	UActorComponent* currentNavigateObject = nullptr;
 	if (IsValid(currentHover))
 	{
 		AActor* searchActor = currentHover->GetOwner();
+		auto FindNavigationInterface = [](AActor* InActor) {
+			auto& Components = InActor->GetComponents();
+			for (auto& Comp : Components)
+			{
+				if (IsValid(Comp) && Comp->GetClass()->ImplementsInterface(ULGUINavigationInterface::StaticClass()))
+				{
+					return Comp;
+				}
+			}
+			return (UActorComponent*)nullptr;
+		};
 		while (IsValid(searchActor))
 		{
-			currentSelectable = searchActor->FindComponentByClass<UUISelectableComponent>();
-			if (IsValid(currentSelectable))
+			currentNavigateObject = FindNavigationInterface(searchActor);
+			if (currentNavigateObject != nullptr)
 			{
 				break;
 			}
@@ -396,43 +408,25 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 		}
 	}
 	
-	if (!IsValid(currentSelectable))//not find valid selectable object, use default one
+	if (currentNavigateObject == nullptr)//not find valid selectable object, use default one
 	{
-		currentSelectable = UUISelectableComponent::FindDefaultSelectable(this);
+		currentNavigateObject = UUISelectableComponent::FindDefaultSelectable(this);//@todo: don't reference UISelectableComponent directly
 	}
 	else//find valid selectable, do navigation
 	{
-		if (currentSelectable->OnNavigate(direction))
+		TScriptInterface<ILGUINavigationInterface> nextNavigateInterface = nullptr;
+		if (ILGUINavigationInterface::Execute_OnNavigate(currentNavigateObject, direction, nextNavigateInterface))
 		{
-			switch (direction)
+			auto nextNavigateObject = Cast<UActorComponent>(nextNavigateInterface.GetObject());
+			if (nextNavigateObject)
 			{
-			default:
-			case ELGUINavigationDirection::None:
-				break;
-			case ELGUINavigationDirection::Left:
-				currentSelectable = currentSelectable->FindSelectableOnLeft();
-				break;
-			case ELGUINavigationDirection::Right:
-				currentSelectable = currentSelectable->FindSelectableOnRight();
-				break;
-			case ELGUINavigationDirection::Up:
-				currentSelectable = currentSelectable->FindSelectableOnUp();
-				break;
-			case ELGUINavigationDirection::Down:
-				currentSelectable = currentSelectable->FindSelectableOnDown();
-				break;
-			case ELGUINavigationDirection::Prev:
-				currentSelectable = currentSelectable->FindSelectableOnPrev();
-				break;
-			case ELGUINavigationDirection::Next:
-				currentSelectable = currentSelectable->FindSelectableOnNext();
-				break;
+				currentNavigateObject = nextNavigateObject;
 			}
 		}
 	}
-	if (IsValid(currentSelectable))
+	if (currentNavigateObject != nullptr)
 	{
-		hitResult.hitResult.Component = (UPrimitiveComponent*)currentSelectable->GetRootUIComponent();//this convert is incorrect, but I need this pointer
+		hitResult.hitResult.Component = (UPrimitiveComponent*)currentNavigateObject->GetOwner()->GetRootComponent();//this convert is incorrect, but I need this pointer
 		hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
 		hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
 		hitResult.hitResult.Normal.Normalize();
@@ -440,7 +434,7 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 		hitResult.raycaster = nullptr;
 		hitResult.hoverArray.Reset();
 
-		InPointerEventData->highlightComponentForNavigation = currentSelectable->GetRootUIComponent();
+		InPointerEventData->highlightComponentForNavigation = currentNavigateObject->GetOwner()->GetRootComponent();
 		return true;
 	}
 	return false;
