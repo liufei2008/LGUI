@@ -30,10 +30,11 @@ UObject* ULGUISpriteDataFactory::FactoryCreateNew(UClass* Class, UObject* InPare
 	{
 		int32 atlasPadding = 0;
 		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
-		if (SpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || SpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
+		if (SpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || SpriteTexture->GetSurfaceHeight() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
-			UE_LOG(LGUIEditor, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
-			FNotificationInfo Info(LOCTEXT("TextureSizeError", "Target texture width or height is too large! Consider use UITexture to render this texture."));
+			auto LogMsg = LOCTEXT("TextureSizeError", "Target texture width or height is too large! Consider use UITexture to render this texture.");
+			UE_LOG(LGUIEditor, Error, TEXT("%s"), *(LogMsg.ToString()));
+			FNotificationInfo Info(LogMsg);
 			Info.Image = FEditorStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
 			Info.FadeInDuration = 0.1f;
 			Info.FadeOutDuration = 0.5f;
