@@ -718,17 +718,11 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 
 void ULGUICanvas::AddUIItem(UUIItem* InUIItem)
 {
-#if !UE_BUILD_SHIPPING
-	check(!UIItemList.Contains(InUIItem));
-#endif
 	UIItemList.AddUnique(InUIItem);
 	MarkCanvasUpdate(false, false, false);
 }
 void ULGUICanvas::RemoveUIItem(UUIItem* InUIItem)
 {
-#if !UE_BUILD_SHIPPING
-	check(UIItemList.Contains(InUIItem));
-#endif
 	UIItemList.Remove(InUIItem);
 	MarkCanvasUpdate(false, false, false);
 }
