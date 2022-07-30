@@ -15,6 +15,10 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #endif
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
 	if (!Target->IsValidLowLevelFast())
@@ -143,6 +147,19 @@ void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 #if WITH_EDITOR
 void LGUIUtils::NotifyPropertyChanged(UObject* Object, FProperty* Property)
 {
+	if (!IsValid(Object))
+	{
+		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::NotifyPropertyChanged]InValid object!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
+	if (Property == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::NotifyPropertyChanged]InValid property!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
+
 	TArray<UObject*> ModifiedObjects;
 	ModifiedObjects.Add(Object);
 	FPropertyChangedEvent PropertyChangedEvent(Property, EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
@@ -290,3 +307,6 @@ float LGUIUtils::Color255To1_Table[256] =
 	,0.9686275,0.972549,0.9764706,0.9803922,0.9843137,0.9882353,0.9921569,0.9960784,1
 };
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

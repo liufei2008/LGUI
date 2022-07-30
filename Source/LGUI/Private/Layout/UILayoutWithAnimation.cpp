@@ -43,7 +43,7 @@ void UUILayoutWithAnimation::ApplyAnchorOffsetWithAnimation(EUILayoutChangePosit
 	default:
 	case EUILayoutChangePositionAnimationType::Immediately:
 	{
-		target->SetAnchoredPosition(offset);
+		ApplyUIItemAnchoredPosition(target, offset);
 	}
 	break;
 	case EUILayoutChangePositionAnimationType::EaseAnimation:
@@ -65,7 +65,7 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutChangePositionAnim
 	default:
 	case EUILayoutChangePositionAnimationType::Immediately:
 	{
-		target->SetWidth(width);
+		ApplyUIItemWidth(target, width);
 	}
 	break;
 	case EUILayoutChangePositionAnimationType::EaseAnimation:
@@ -87,7 +87,7 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAni
 	default:
 	case EUILayoutChangePositionAnimationType::Immediately:
 	{
-		target->SetHeight(height);
+		ApplyUIItemHeight(target, height);
 	}
 	break;
 	case EUILayoutChangePositionAnimationType::EaseAnimation:

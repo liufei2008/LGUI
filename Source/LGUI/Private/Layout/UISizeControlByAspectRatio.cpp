@@ -32,12 +32,12 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		{
 		case EUISizeControlByAspectRatioMode::HeightControlWidth:
 		{
-			RootUIComp->SetWidth(RootUIComp->GetHeight() * AspectRatio);
+			ApplyUIItemWidth(RootUIComp.Get(), RootUIComp->GetHeight() * AspectRatio);
 		}
 		break;
 		case EUISizeControlByAspectRatioMode::WidthControlHeight:
 		{
-			RootUIComp->SetHeight(RootUIComp->GetWidth() / AspectRatio);
+			ApplyUIItemHeight(RootUIComp.Get(), RootUIComp->GetWidth() / AspectRatio);
 		}
 		break;
 		case EUISizeControlByAspectRatioMode::FitInParent:
@@ -55,14 +55,14 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 					auto SizeDelta = RootUIComp->GetSizeDelta();
 					SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
 					SizeDelta.Y = 0;
-					RootUIComp->SetSizeDelta(SizeDelta);
+					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
 				else
 				{
 					auto SizeDelta = RootUIComp->GetSizeDelta();
 					SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
 					SizeDelta.X = 0;
-					RootUIComp->SetSizeDelta(SizeDelta);
+					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
 			}
 		}
@@ -82,14 +82,14 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 					auto SizeDelta = RootUIComp->GetSizeDelta();
 					SizeDelta.Y = parentHeight - parentWidth / AspectRatio;
 					SizeDelta.X = 0;
-					RootUIComp->SetSizeDelta(SizeDelta);
+					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
 				else
 				{
 					auto SizeDelta = RootUIComp->GetSizeDelta();
 					SizeDelta.X = parentWidth - parentHeight * AspectRatio;
 					SizeDelta.Y = 0;
-					RootUIComp->SetSizeDelta(SizeDelta);
+					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
 			}
 		}
