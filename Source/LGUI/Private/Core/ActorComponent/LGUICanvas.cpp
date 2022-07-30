@@ -1122,7 +1122,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			{
 				auto UIBatchGeometryRenderableItem = (UUIBatchGeometryRenderable*)UIRenderableItem;
 				auto ItemGeo = UIBatchGeometryRenderableItem->GetGeometry();
-				check(ItemGeo);
+				if (ItemGeo == nullptr)continue;
 				if (ItemGeo->vertices.Num() == 0)continue;
 				if (ItemGeo->vertices.Num() > LGUI_MAX_VERTEX_COUNT)continue;
 

@@ -337,11 +337,18 @@ void ULGUILifeCycleBehaviour::Call_Awake()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		check(0);
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Awake] Should never reach this point!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
 	}
 #endif
 #if !UE_BUILD_SHIPPING
-	check(!bIsAwakeCalled);
+	if (bIsAwakeCalled)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Awake] Awake already executed!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
 #endif
 	bIsAwakeCalled = true;
 	Awake();
@@ -356,11 +363,18 @@ void ULGUILifeCycleBehaviour::Call_Start()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		check(0);
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Start] Should never reach this point!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
 	}
 #endif
 #if !UE_BUILD_SHIPPING
-	check(!bIsStartCalled);
+	if (bIsStartCalled)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Start] Start already executed!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
 #endif
 	bIsStartCalled = true;
 	Start();
@@ -371,11 +385,18 @@ void ULGUILifeCycleBehaviour::Call_OnEnable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		check(0);
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnEnable] Should never reach this point!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
 	}
 #endif
 #if !UE_BUILD_SHIPPING
-	check(!bIsEnableCalled);
+	if (bIsEnableCalled)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnEnable] OnEnable already executed!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
 #endif
 	bIsEnableCalled = true;
 
@@ -399,11 +420,18 @@ void ULGUILifeCycleBehaviour::Call_OnDisable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		check(0);
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnDisable] Should never reach this point!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
 	}
 #endif
 #if !UE_BUILD_SHIPPING
-	check(bIsEnableCalled);
+	if (!bIsEnableCalled)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnDisable] OnEnable not executed!"));
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
 #endif
 	bIsEnableCalled = false;
 

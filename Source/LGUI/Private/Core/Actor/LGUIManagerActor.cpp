@@ -150,7 +150,6 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto& item : AllCanvasArray)
 	{
-		check(item.IsValid());
 		if (item.IsValid())
 		{
 			if (item->IsRootCanvas())
@@ -248,11 +247,13 @@ TArray<TTuple<int, TFunction<void()>>> ULGUIEditorManagerObject::OneShotFunction
 
 void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
 {
-	check(InDelayFrameCount >= 0);
-	TTuple<int, TFunction<void()>> Item;
-	Item.Key = InDelayFrameCount;
-	Item.Value = InFunction;
-	OneShotFunctionsToExecuteInTick.Add(Item);
+	if (ensure(InDelayFrameCount >= 0))
+	{
+		TTuple<int, TFunction<void()>> Item;
+		Item.Key = InDelayFrameCount;
+		Item.Value = InFunction;
+		OneShotFunctionsToExecuteInTick.Add(Item);
+	}
 }
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
@@ -1478,8 +1479,8 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 						});
 					if (FoundIndex != INDEX_NONE)
 					{
-						check(0);
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
+						FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 						return;
 					}
 					TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32> Item;

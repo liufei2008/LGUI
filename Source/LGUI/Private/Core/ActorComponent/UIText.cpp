@@ -182,10 +182,6 @@ void UUIText::OnUnregister()
 			ALGUIManagerActor::UnregisterLGUILayout(this);
 		}
 	}
-	else
-	{
-		check(0);
-	}
 }
 
 void UUIText::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
