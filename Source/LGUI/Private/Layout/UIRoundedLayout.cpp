@@ -26,7 +26,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 		cos = FMath::Cos(angle);
 		x = cos * Radius;
 		y = sin * Radius;
-		uiItem->SetAnchoredPosition(FVector2D(x, y));
+		ApplyUIItemAnchoredPosition(uiItem.Get(), FVector2D(x, y));
 		if (bSetChildAngle)
 		{
 			uiItem->SetRelativeRotation(FQuat::MakeFromEuler(FVector(FMath::RadiansToDegrees(angle), 0, 0)));

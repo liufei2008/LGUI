@@ -501,7 +501,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 	if (!bCanCollectProperty)return;
 	if (InObject->GetWorld() == this->GetPrefabWorld())
 	{
-		bAnythingDirty = true;
+		SetAnythingDirty();
 
 		auto PropertyName = InMemberProperty->GetFName();
 		AActor* PropertyActor = nullptr;
@@ -823,7 +823,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 				//notify
 				LGUIUtils::NotifyPropertyChanged(InObject, Property);
 
-				bAnythingDirty = true;
+				SetAnythingDirty();
 			}
 		}
 	}
@@ -873,7 +873,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
 			LGUIUtils::NotifyPropertyChanged(InObject, Property);
-			bAnythingDirty = true;
+			SetAnythingDirty();
 		}
 
 		GEditor->EndTransaction();
@@ -956,7 +956,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		}
 		RemoveAllMemberPropertyFromSubPrefab(Actor);
 
-		bAnythingDirty = true;
+		SetAnythingDirty();
 		GEditor->EndTransaction();
 		//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 		RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
@@ -1007,7 +1007,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 				//notify
 				LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
 
-				bAnythingDirty = true;
+				SetAnythingDirty();
 			}
 		}
 		//save origin prefab
@@ -1065,7 +1065,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
 			LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
-			bAnythingDirty = true;
+			SetAnythingDirty();
 		}
 		//save origin prefab
 		if (bAnythingDirty)
@@ -1180,7 +1180,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 		}
 
-		bAnythingDirty = true;
+		SetAnythingDirty();
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
@@ -1229,17 +1229,15 @@ void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActo
 		}
 	}
 	SubPrefabMap.Add(InActor, SubPrefabData);
-	//mark AnchorData, RelativeLocation to default override parameter
+	//mark HierarchyIndex as default override parameter
 	auto RootComp = InActor->GetRootComponent();
 	auto RootUIComp = Cast<UUIItem>(RootComp);
-	AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeLocationPropertyName());
 	if (RootUIComp)
 	{
 		AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetHierarchyIndexPropertyName());
-		AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetAnchorDataPropertyName());
 	}
 
-	bAnythingDirty = true;
+	SetAnythingDirty();
 }
 
 void ULGUIPrefabHelperObject::RemoveSubPrefabByRootActor(AActor* InPrefabRootActor)
@@ -1296,7 +1294,7 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 		}
 		if (KeysToRemove.Num() > 0)
 		{
-			bAnythingDirty = true;
+			SetAnythingDirty();
 			if (OnSubPrefabNewVersionUpdated.IsBound())
 			{
 				OnSubPrefabNewVersionUpdated.Broadcast();

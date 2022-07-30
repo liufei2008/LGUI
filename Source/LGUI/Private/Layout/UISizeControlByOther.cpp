@@ -132,11 +132,11 @@ void UUISizeControlByOther::OnRebuildLayout()
     {
         if (ControlWidth)
         {
-            RootUIComp->SetWidth(TargetUIItem->GetWidth() + AdditionalWidth);
+            ApplyUIItemWidth(RootUIComp.Get(), TargetUIItem->GetWidth() + AdditionalWidth);
         }
         if (ControlHeight)
         {
-            RootUIComp->SetHeight(TargetUIItem->GetHeight() + AdditionalHeight);
+            ApplyUIItemHeight(RootUIComp.Get(), TargetUIItem->GetHeight() + AdditionalHeight);
         }
     }
 }
