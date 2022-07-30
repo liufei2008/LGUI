@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 
 void UUILayoutBase::Awake()
 {
@@ -280,4 +281,57 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     }
 
     MarkNeedRebuildLayout();
+}
+
+void UUILayoutBase::ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth)
+{
+#if WITH_EDITOR
+    auto bIsValueDirty = InUIItem->GetWidth() != InWidth;
+#endif
+    InUIItem->SetWidth(InWidth);
+#if WITH_EDITOR
+    if (!this->GetWorld()->IsGameWorld() && bIsValueDirty)
+    {
+        LGUIUtils::NotifyPropertyChanged(InUIItem, UUIItem::GetAnchorDataPropertyName());
+    }
+#endif
+}
+void UUILayoutBase::ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight)
+{
+#if WITH_EDITOR
+    auto bIsValueDirty = InUIItem->GetHeight() != InHeight;
+#endif
+    InUIItem->SetHeight(InHeight);
+#if WITH_EDITOR
+    if (!this->GetWorld()->IsGameWorld() && bIsValueDirty)
+    {
+        LGUIUtils::NotifyPropertyChanged(InUIItem, UUIItem::GetAnchorDataPropertyName());
+    }
+#endif
+}
+void UUILayoutBase::ApplyUIItemAnchoredPosition(UUIItem* InUIItem, const FVector2D& InAnchoredPosition)
+{
+#if WITH_EDITOR
+    auto bIsValueDirty = InUIItem->GetAnchoredPosition() != InAnchoredPosition;
+#endif
+    InUIItem->SetAnchoredPosition(InAnchoredPosition);
+#if WITH_EDITOR
+    if (!this->GetWorld()->IsGameWorld() && bIsValueDirty)
+    {
+        LGUIUtils::NotifyPropertyChanged(InUIItem, UUIItem::GetAnchorDataPropertyName());
+    }
+#endif
+}
+void UUILayoutBase::ApplyUIItemSizeDelta(UUIItem* InUIItem, const FVector2D& InSizedDelta)
+{
+#if WITH_EDITOR
+    auto bIsValueDirty = InUIItem->GetSizeDelta() != InSizedDelta;
+#endif
+    InUIItem->SetSizeDelta(InSizedDelta);
+#if WITH_EDITOR
+    if (!this->GetWorld()->IsGameWorld() && bIsValueDirty)
+    {
+        LGUIUtils::NotifyPropertyChanged(InUIItem, UUIItem::GetAnchorDataPropertyName());
+    }
+#endif
 }
