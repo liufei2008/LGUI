@@ -441,7 +441,8 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 								return KeyValue.Key;
 							}
 						}
-						check(0);
+						UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorTools::DuplicateSelectedActors_Impl] Should never reach this point!"));
+						FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 						return FGuid::NewGuid();
 					};
 					for (auto& MapGuidToObjectKeyValue : SubPrefabData.MapGuidToObject)
@@ -538,7 +539,8 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 								return KeyValue.Key;
 							}
 						}
-						check(0);
+						UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorTools::CopySelectedActors_Impl] Should never reach this point!"));
+						FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 						return FGuid::NewGuid();
 					};
 					for (auto& MapGuidToObjectKeyValue : SubPrefabData.MapGuidToObject)

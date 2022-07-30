@@ -587,7 +587,8 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 		}
 		else
 		{
-			check(0);//why this happen?
+			UE_LOG(LGUI, Error, TEXT("[ULGUIPrefabHelperObject::OnLevelActorAttached] Should never reach this point!"));
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 	}
 }
