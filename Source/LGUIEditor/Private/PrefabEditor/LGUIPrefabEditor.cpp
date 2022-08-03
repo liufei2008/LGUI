@@ -11,6 +11,8 @@
 #include "EditorModeManager.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/GameModeBase.h"
+#include "Engine/StaticMeshActor.h"
 #include "AssetSelection.h"
 #include "DragAndDrop/AssetDragDropOp.h"
 #include "Misc/FeedbackContext.h"
@@ -159,7 +161,7 @@ FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
 				}
 				else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(SceneComp))
 				{
-					Box = UIItem->Bounds.GetBox();
+					Box = PrimitiveComp->Bounds.GetBox();
 					bIsValidBox = true;
 				}
 			}
@@ -776,6 +778,14 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 		if (NumAssets > 0)
 		{
 			TArray<ULGUIPrefab*> PrefabsToLoad;
+			TArray<UClass*> PotentialActorClassesToLoad;
+			TArray<UStaticMesh*> PotentialStaticMeshesToLoad;
+			auto IsSupportedActorClass = [](UClass* ActorClass) {
+				if (ActorClass->HasAnyClassFlags(EClassFlags::CLASS_NotPlaceable | EClassFlags::CLASS_Abstract))
+					return false;
+				if (!ActorClass->IsChildOf(AActor::StaticClass()))return false;
+				return true;
+			};
 			for (int32 DroppedAssetIdx = 0; DroppedAssetIdx < NumAssets; ++DroppedAssetIdx)
 			{
 				const FAssetData& AssetData = DroppedAssetData[DroppedAssetIdx];
@@ -785,9 +795,26 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					GWarn->StatusUpdate(DroppedAssetIdx, NumAssets, FText::Format(LOCTEXT("LoadingAsset", "Loading Asset {0}"), FText::FromName(AssetData.AssetName)));
 				}
 
+				UClass* AssetClass = AssetData.GetClass();
 				UObject* Asset = AssetData.GetAsset();
-				auto PrefabAsset = Cast<ULGUIPrefab>(Asset);
-				if (PrefabAsset)
+				UBlueprint* BPClass = Cast<UBlueprint>(Asset);
+				UClass* PotentialActorClass = nullptr;
+				if ((BPClass != nullptr) && (BPClass->GeneratedClass != nullptr))
+				{
+					if (IsSupportedActorClass(BPClass->GeneratedClass))
+					{
+						PotentialActorClass = BPClass->GeneratedClass;
+					}
+				}
+				else if (AssetClass->IsChildOf(UClass::StaticClass()))
+				{
+					UClass* AssetAsClass = CastChecked<UClass>(Asset);
+					if (IsSupportedActorClass(AssetAsClass))
+					{
+						PotentialActorClass = AssetAsClass;
+					}
+				}
+				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
 				{
 					if (PrefabAsset->IsPrefabBelongsToThisSubPrefab(this->PrefabBeingEdited, true))
 					{
@@ -810,9 +837,17 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 					PrefabsToLoad.Add(PrefabAsset);
 				}
+				else if (auto StaticMeshAsset = Cast<UStaticMesh>(Asset))
+				{
+					PotentialStaticMeshesToLoad.Add(StaticMeshAsset);
+				}
+				else if (PotentialActorClass != nullptr)
+				{
+					PotentialActorClassesToLoad.Add(PotentialActorClass);
+				}
 			}
 
-			if (PrefabsToLoad.Num() > 0)
+			if (PrefabsToLoad.Num() > 0 || PotentialActorClassesToLoad.Num() > 0 || PotentialStaticMeshesToLoad.Num() > 0)
 			{
 				if (CurrentSelectedActor == nullptr)
 				{
@@ -826,13 +861,24 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 					return FReply::Unhandled();
 				}
-				if (PrefabHelperObject->IsActorBelongsToSubPrefab(CurrentSelectedActor.Get()))
+				if (PrefabsToLoad.Num() > 0)
 				{
-					auto MsgText = FText::Format(LOCTEXT("Error_SubPrefabCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
-					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-					return FReply::Unhandled();
+					if (PrefabHelperObject->IsActorBelongsToSubPrefab(CurrentSelectedActor.Get()))
+					{
+						auto MsgText = FText::Format(LOCTEXT("Error_SubPrefabCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
+						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+						return FReply::Unhandled();
+					}
 				}
+			}
+			else
+			{
+				return FReply::Unhandled();
+			}
 
+			GEditor->BeginTransaction(LOCTEXT("LGUI_CreateFromAssetDrop", "LGUI Create from asset drop"));
+			if (PrefabsToLoad.Num() > 0)
+			{
 				PrefabHelperObject->SetCanNotifyAttachment(false);
 				for (auto& PrefabAsset : PrefabsToLoad)
 				{
@@ -853,6 +899,35 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					OutlinerPtr->FullRefresh();
 				}
 			}
+			if (PotentialActorClassesToLoad.Num() > 0)
+			{
+				for (auto& ActorClass : PotentialActorClassesToLoad)
+				{
+					if (auto Actor = this->GetWorld()->SpawnActor<AActor>(ActorClass, FActorSpawnParameters()))
+					{
+						if (auto RootComp = Actor->GetRootComponent())
+						{
+							RootComp->AttachToComponent(CurrentSelectedActor->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+						}
+						else
+						{
+							Actor->ConditionalBeginDestroy();
+						}
+					}
+				}
+			}
+			if (PotentialStaticMeshesToLoad.Num() > 0)
+			{
+				for (auto& Mesh : PotentialStaticMeshesToLoad)
+				{
+					auto MeshActor = this->GetWorld()->SpawnActor<AStaticMeshActor>();
+					MeshActor->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+					MeshActor->GetStaticMeshComponent()->SetStaticMesh(Mesh);
+					MeshActor->GetStaticMeshComponent()->AttachToComponent(CurrentSelectedActor->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+					MeshActor->SetActorLabel(Mesh->GetName());
+				}
+			}
+			GEditor->EndTransaction();
 		}
 
 		return FReply::Handled();

@@ -1436,7 +1436,7 @@ void LGUIEditorTools::SetTraceChannelToParent(AActor* InActor)
 			{
 				TArray<UUIItem*> components;
 				InActor->GetComponents<UUIItem>(components);
-				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI SelectPrefabAsset")));
+				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI SetTraceChannelToParent")));
 				for (auto compItem : components)
 				{
 					compItem->Modify();
