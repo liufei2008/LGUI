@@ -181,7 +181,7 @@ private:
 	void OnUIHierarchyChanged();
 
 	FDelegateHandle UIActiveStateChangedDelegateHandle;
-	void OnUIActiveStateChanged();
+	void OnUIActiveStateChanged(bool value);
 public:
 	/** get root LGUICanvas on hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)

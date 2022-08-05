@@ -262,9 +262,14 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
     }
 
     //create more cells
+    FLGUIDuplicateDataContainer DuplicateData;
+    if (CacheCellList.Num() < VisibleCellCount)
+    {
+        ULGUIBPLibrary::PrepareDuplicateData(CellTemplate.Get(), DuplicateData);
+    }
     while (CacheCellList.Num() < VisibleCellCount)
     {
-        auto CopiedCell = ULGUIBPLibrary::DuplicateActorT(CellTemplate.Get(), ContentUIItem.Get());
+        auto CopiedCell = (AUIBaseActor*)ULGUIBPLibrary::DuplicateActorWithPreparedData(DuplicateData, ContentUIItem.Get());
         auto CellInterfaceClass = UUIRecyclableScrollViewCell::StaticClass();
         auto CellInterfaceComponent = GetComponentByInterface(CopiedCell, CellInterfaceClass);
         FUIRecyclableScrollViewCellContainer CellContainer;

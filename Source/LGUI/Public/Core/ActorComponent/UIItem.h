@@ -13,6 +13,9 @@ class ULGUICanvas;
 class UUICanvasGroup;
 enum class ELGUIRenderMode : uint8;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FUIItemActiveInHierarchyStateChangedMulticastDelegate, bool);
+DECLARE_DELEGATE_OneParam(FUIItemActiveInHierarchyStateChangedDelegate, bool);
+
 /**
  * Base class for almost all UI related things.
  */
@@ -294,9 +297,10 @@ protected:
 	virtual void ApplyUIActiveState(bool InStateChange);
 	void OnChildActiveStateChanged(UUIItem* child);
 
-	FSimpleMulticastDelegate UIActiveStateChangedDelegate;
+	FUIItemActiveInHierarchyStateChangedMulticastDelegate UIActiveInHierarchyStateChangedDelegate;
 public:
-	FDelegateHandle RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback);
+	FDelegateHandle RegisterUIActiveStateChanged(const FUIItemActiveInHierarchyStateChangedDelegate& InCallback);
+	FDelegateHandle RegisterUIActiveStateChanged(const TFunction<void(bool)>& InCallback);
 	void UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle);
 
 	/** Set this UI element's bIsUIActive */
