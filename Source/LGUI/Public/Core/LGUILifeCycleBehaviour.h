@@ -36,8 +36,13 @@ private:
 		bool executeInEditMode = false;
 	FDelegateHandle EditorTickDelegateHandle;
 #endif
-	FDelegateHandle ComponentRenderStateDirtyDelegateHandle;
+protected:
+	//for UI object
+	virtual void OnUIActiveInHierarchyStateChanged(bool InState);
+	FDelegateHandle UIActiveInHierarchyStateChangedDelegateHandle;
+	//for not UI object
 	void OnComponentRenderStateDirty(UActorComponent& InComp);
+	FDelegateHandle ComponentRenderStateDirtyDelegateHandle;
 protected:
 	uint8 bIsAwakeCalled : 1;
 	uint8 bIsStartCalled : 1;
