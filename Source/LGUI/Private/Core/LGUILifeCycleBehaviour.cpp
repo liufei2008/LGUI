@@ -28,7 +28,7 @@ void ULGUILifeCycleBehaviour::BeginPlay()
 	{
 		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
 		{
-			//nothing for UI
+			UIActiveInHierarchyStateChangedDelegateHandle = RootUIComp->RegisterUIActiveStateChanged(FUIItemActiveInHierarchyStateChangedDelegate::CreateUObject(this, &ULGUILifeCycleBehaviour::OnUIActiveInHierarchyStateChanged));
 		}
 		else
 		{
@@ -51,7 +51,20 @@ void ULGUILifeCycleBehaviour::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		OnDestroy();
 	}
-	UActorComponent::MarkRenderStateDirtyEvent.Remove(ComponentRenderStateDirtyDelegateHandle);
+	if (UIActiveInHierarchyStateChangedDelegateHandle.IsValid())
+	{
+		if (RootComp.IsValid())
+		{
+			if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
+			{
+				RootUIComp->UnregisterUIActiveStateChanged(UIActiveInHierarchyStateChangedDelegateHandle);
+			}
+		}
+	}
+	if (ComponentRenderStateDirtyDelegateHandle.IsValid())
+	{
+		UActorComponent::MarkRenderStateDirtyEvent.Remove(ComponentRenderStateDirtyDelegateHandle);
+	}
 	Super::EndPlay(EndPlayReason);
 }
 void ULGUILifeCycleBehaviour::OnRegister()
@@ -100,6 +113,11 @@ void ULGUILifeCycleBehaviour::OnUnregister()
 		}
 	}
 #endif
+}
+
+void ULGUILifeCycleBehaviour::OnUIActiveInHierarchyStateChanged(bool InState)
+{
+	SetActiveStateForEnableAndDisable(InState);
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Callback_OnComponentRenderStateDirty"), STAT_OnComponentRenderStateDirty, STATGROUP_LGUI);

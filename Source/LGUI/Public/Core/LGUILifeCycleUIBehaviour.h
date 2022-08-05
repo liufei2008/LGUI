@@ -54,6 +54,7 @@ protected:
 	/** Check and get RootUIItem */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
+	virtual void OnUIActiveInHierarchyStateChanged(bool InState)override final { OnUIActiveInHierachy(InState); }
 
 	virtual void Call_Awake()override;
 	

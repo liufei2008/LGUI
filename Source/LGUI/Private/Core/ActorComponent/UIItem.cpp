@@ -73,17 +73,7 @@ void UUIItem::CallUILifeCycleBehavioursActiveInHierarchyStateChanged()
 	bool TempIsUIActive = GetIsUIActiveInHierarchy();
 	OnUIActiveInHierachy(TempIsUIActive);
 	if (this->GetOwner()->GetRootComponent() != this)return;
-#if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
-	{
-		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
-	}
-#endif
-	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
-	{
-		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		CompItem->OnUIActiveInHierachy(TempIsUIActive);
-	}
+	if (UIActiveInHierarchyStateChangedDelegate.IsBound())UIActiveInHierarchyStateChangedDelegate.Broadcast(TempIsUIActive);
 }
 void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
@@ -2214,21 +2204,24 @@ void UUIItem::ApplyUIActiveState(bool InStateChange)
 #endif
 	if (InStateChange)
 	{
-		if (UIActiveStateChangedDelegate.IsBound())UIActiveStateChangedDelegate.Broadcast();
-		//canvas update
-		MarkCanvasUpdate(false, false, false, true);
 		//callback
 		CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
+		//canvas update
+		MarkCanvasUpdate(false, false, false, true);
 	}
 }
 
-FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback)\
+FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const FUIItemActiveInHierarchyStateChangedDelegate& InCallback)\
 {
-	return UIActiveStateChangedDelegate.Add(InCallback);
+	return UIActiveInHierarchyStateChangedDelegate.Add(InCallback);
+}
+FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const TFunction<void(bool)>& InCallback)
+{
+	return UIActiveInHierarchyStateChangedDelegate.AddLambda(InCallback);
 }
 void UUIItem::UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle)
 {
-	UIActiveStateChangedDelegate.Remove(InHandle);
+	UIActiveInHierarchyStateChangedDelegate.Remove(InHandle);
 }
 
 #pragma endregion UIActive

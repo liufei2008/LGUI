@@ -261,7 +261,7 @@ void ULGUICanvas::OnRegister()
 		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
 		UIHierarchyChangedDelegateHandle = UIItem->RegisterUIHierarchyChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIHierarchyChanged));
-		UIActiveStateChangedDelegateHandle = UIItem->RegisterUIActiveStateChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIActiveStateChanged));
+		UIActiveStateChangedDelegateHandle = UIItem->RegisterUIActiveStateChanged(FUIItemActiveInHierarchyStateChangedDelegate::CreateUObject(this, &ULGUICanvas::OnUIActiveStateChanged));
 
 		OnUIHierarchyChanged();
 	}
@@ -474,9 +474,9 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	SetParentCanvas(NewParentCanvas);
 }
 
-void ULGUICanvas::OnUIActiveStateChanged()
+void ULGUICanvas::OnUIActiveStateChanged(bool value)
 {
-	if (this->UIItem->GetIsUIActiveInHierarchy())
+	if (value)
 	{
 		if (ParentCanvas.IsValid())
 		{
