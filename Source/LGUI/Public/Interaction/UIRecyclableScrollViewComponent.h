@@ -100,6 +100,11 @@ protected:
 	/** When use vertical scroll, this can set the column count in every cell. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Vertical"))
 		uint16 Columns = 1;
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+		FMargin Padding = FMargin(0);
+	/** Space between cells */
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+		FVector2D Space = FVector2D::ZeroVector;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		TScriptInterface<IUIRecyclableScrollViewDataSource> GetDataSource()const { return DataSource; }
@@ -110,6 +115,11 @@ public:
 	/** Get all created cell object array. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const TArray<FUIRecyclableScrollViewCellContainer>& GetCacheCellList()const { return CacheCellList; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		const FMargin& GetPadding()const { return Padding; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		const FVector2D& GetSpace()const { return Space; }
+
 	/**
 	 * Delete all created cell objects.
 	 * Call "UpdateWithDataSource" to recreate cells.
@@ -126,6 +136,10 @@ public:
 	/** Set vertical column count, will automatically recreate cells if current is vertical scroll. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetColumns(int value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void SetPadding(const FMargin& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void SetSpace(const FVector2D& value);
 
 	/** Recreate cells. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
