@@ -43,12 +43,19 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void InitOnCreate(UActorComponent* Component);
+
+	// Called before calling any "SetCell" function for all children
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void BeforeSetCell();
 	/**
 	 * @param	Component		ActorComponent which implement UIRecyclableScrollViewCell interface. Cast this component to your own type and set cell UI's data.
 	 * @param	Index			Cell's data index.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetCell(UActorComponent* Component, int Index);
+	// Called after calling "SetCell" function for all children
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void AfterSetCell();
 };
 
 USTRUCT(BlueprintType)
@@ -57,20 +64,20 @@ struct FUIRecyclableScrollViewCellContainer
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UActorComponent* CellComponent;
+		UActorComponent* CellComponent = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UUIItem* UIItem;
+		UUIItem* UIItem = nullptr;
 };
 
 /**
  * RecyclableScrollView can reuse cell's ui element.
- * Assign your own 
+ * Assign your own
  */
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIRecyclableScrollViewComponent : public UUIScrollViewWithScrollbarComponent
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void Awake() override;
 	virtual void Start() override;
@@ -100,6 +107,15 @@ public:
 		int GetRows()const { return Rows; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		int GetColumns()const { return Columns; }
+	/** Get all created cell object array. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		const TArray<FUIRecyclableScrollViewCellContainer>& GetCacheCellList()const { return CacheCellList; }
+	/**
+	 * Delete all created cell objects.
+	 * Call "UpdateWithDataSource" to recreate cells.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void ClearAllCells();
 
 	/** Set DataSource object, will automatically recreate cells. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
@@ -114,6 +130,14 @@ public:
 	/** Recreate cells. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void UpdateWithDataSource() { InitializeOnDataSource(); }
+
+	/**
+	 * RecyclableScrollView will create a cache list to store cell object, use data-index to get the cell that represent the data.
+	 * @param Index		data index
+	 * @return			The cell object which represent the data. could be null if there is no cell represent the data (not in render range)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		FUIRecyclableScrollViewCellContainer GetCellItemByDataIndex(int Index)const;
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-RecyclableScrollView", AdvancedDisplay)
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;
@@ -127,7 +151,8 @@ private:
 	int MinCellIndexInCacheCellList = 0;
 	int MaxCellIndexInCacheCellList = 0;
 	float MinCellPosition = 0;//horizontal left cell position.y, or vertical top cell position.z
-	int MinCellIndexInData = 0;//horizontal left cell data index, or vertical top cell data index.
+	int MinCellIndexInData = 0;//horizontal left-top cell data index, or vertical left-top cell data index.
+	int MaxCellIndexInData = 0;//horizontal right-bottom cell data index, or vertical right-bottom cell data index.
 	void IncreaseMinMaxCellIndexInCacheCellList(int Count);
 	void DecreaseMinMaxCellIndexInCacheCellList(int Count);
 };
