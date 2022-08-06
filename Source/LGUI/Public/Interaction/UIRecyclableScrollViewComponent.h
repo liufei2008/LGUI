@@ -71,7 +71,7 @@ public:
 
 /**
  * RecyclableScrollView can reuse cell's ui element.
- * Assign your own
+ * Assign your own DataSource object (IUIRecyclableScrollViewDataSource) and create recyclable scroll view on that data.
  */
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIRecyclableScrollViewComponent : public UUIScrollViewWithScrollbarComponent
