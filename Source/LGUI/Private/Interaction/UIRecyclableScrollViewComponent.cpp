@@ -70,7 +70,6 @@ void UUIRecyclableScrollViewComponent::ClearAllCells()
     MaxCellIndexInCacheCellList = 0;
     MinCellPosition = 0;
     MinCellIndexInData = 0;
-    MaxCellIndexInData = 0;
 }
 
 void UUIRecyclableScrollViewComponent::SetDataSource(TScriptInterface<IUIRecyclableScrollViewDataSource> InDataSource)
@@ -130,6 +129,7 @@ void UUIRecyclableScrollViewComponent::SetSpace(const FVector2D& value)
 
 FUIRecyclableScrollViewCellContainer UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index)const
 {
+    auto MaxCellIndexInData = FMath::Min(Index + CacheCellList.Num() - 1, DataItemCount - 1);
     if (Index < MinCellIndexInData || Index > MaxCellIndexInData)
     {
         return FUIRecyclableScrollViewCellContainer();
@@ -346,7 +346,6 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         MinCellPosition = -Padding.Top;
     }
     MinCellIndexInData = 0;
-    MaxCellIndexInData = CacheCellList.Num();
 
     PrevContentPosition = FVector2D(ContentUIItem->GetRelativeLocation().Y, ContentUIItem->GetRelativeLocation().Z);
     OnScrollEventDelegateHandle = this->RegisterScrollEvent(FLGUIVector2Delegate::CreateUObject(this, &UUIRecyclableScrollViewComponent::OnScrollCallback));
@@ -386,7 +385,6 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         {
                             CellItem.UIItem->SetIsUIActive(true);
                             IUIRecyclableScrollViewDataSource::Execute_SetCell(DataSource, CellItem.CellComponent, CellDataIndex + i);
-                            MaxCellIndexInData = CellDataIndex + i;
                         }
                         else
                         {
@@ -427,7 +425,6 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         {
                             CellItem.UIItem->SetIsUIActive(true);
                             IUIRecyclableScrollViewDataSource::Execute_SetCell(DataSource, CellItem.CellComponent, RightCellIndexInData);
-                            MaxCellIndexInData = RightCellIndexInData;
                         }
                         else
                         {
@@ -473,7 +470,6 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         {
                             CellItem.UIItem->SetIsUIActive(true);
                             IUIRecyclableScrollViewDataSource::Execute_SetCell(DataSource, CellItem.CellComponent, CellDataIndex + i);
-                            MaxCellIndexInData = CellDataIndex + i;
                         }
                         else
                         {
@@ -491,7 +487,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                 }
             }
         }
-        else//scroll from bottom to top
+        else if (ContentPosition.Y > PrevContentPosition.Y)//scroll from bottom to top
         {
             int BottomCellIndexInData = MinCellIndexInData + CacheCellList.Num() - 1;
             while (BottomCellIndexInData + 1 < DataItemCount)//check if bottom cell reach end data
@@ -514,7 +510,6 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         {
                             CellItem.UIItem->SetIsUIActive(true);
                             IUIRecyclableScrollViewDataSource::Execute_SetCell(DataSource, CellItem.CellComponent, BottomCellIndexInData);
-                            MaxCellIndexInData = BottomCellIndexInData;
                         }
                         else
                         {
