@@ -243,8 +243,11 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 	{
 		if (InUIItem == HorizontalScrollbar->GetUIItem())
 		{
-			OutResult.bCanControlVerticalAnchor = true;
-			OutResult.bCanControlVerticalAnchoredPosition = true;
+			if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+			{
+				OutResult.bCanControlVerticalAnchor = true;
+				OutResult.bCanControlVerticalAnchoredPosition = true;
+			}
 			return true;
 		}
 	}
@@ -252,8 +255,11 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 	{
 		if (InUIItem == VerticalScrollbar->GetUIItem())
 		{
-			OutResult.bCanControlHorizontalAnchor = true;
-			OutResult.bCanControlHorizontalAnchoredPosition = true;
+			if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+			{
+				OutResult.bCanControlHorizontalAnchor = true;
+				OutResult.bCanControlHorizontalAnchoredPosition = true;
+			}
 			return true;
 		}
 	}
