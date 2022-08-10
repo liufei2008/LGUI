@@ -166,7 +166,6 @@ private:
 	int MaxCellIndexInCacheCellList = 0;
 	float MinCellPosition = 0;//horizontal left cell position.y, or vertical top cell position.z
 	int MinCellIndexInData = 0;//horizontal left-top cell data index, or vertical left-top cell data index.
-	int MaxCellIndexInData = 0;//horizontal right-bottom cell data index, or vertical right-bottom cell data index.
 	void IncreaseMinMaxCellIndexInCacheCellList(int Count);
 	void DecreaseMinMaxCellIndexInCacheCellList(int Count);
 };
