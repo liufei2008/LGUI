@@ -196,7 +196,7 @@ void UUIFlexibleGridLayout::OnRebuildLayout()
 		auto uiItem = Item.uiItem;
 		uiItem->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0, 1), FVector2D(0, 1), true, true);
 
-		ApplyAnchorOffsetWithAnimation(tempAnimationType
+		ApplyAnchoredPositionWithAnimation(tempAnimationType
 			, FVector2D(columnSize * (uiItem->GetPivot().X), -rowSize * (1.0f - uiItem->GetPivot().Y))
 			+ GetOffset(FMath::Min(LayoutElement->GetColumnIndex(), Columns.Num() - 1), FMath::Min(LayoutElement->GetRowIndex(), Rows.Num() - 1))
 			, uiItem.Get());

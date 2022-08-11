@@ -36,7 +36,7 @@ void UUILayoutWithAnimation::SetOnCompleteTween()
 	TweenerArray.Add(tweener);
 }
 
-void UUILayoutWithAnimation::ApplyAnchorOffsetWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, FVector2D offset, UUIItem* target)
+void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, FVector2D offset, UUIItem* target)
 {
 	switch (tempAnimationType)
 	{
