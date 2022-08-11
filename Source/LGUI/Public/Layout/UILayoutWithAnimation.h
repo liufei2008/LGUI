@@ -37,7 +37,7 @@ protected:
 	/** This function can be override. */
 	virtual void SetOnCompleteTween();
 	/** This function can be override to achive your own animation effect. */
-	virtual void ApplyAnchorOffsetWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D offset, UUIItem* target);
+	virtual void ApplyAnchoredPositionWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D offset, UUIItem* target);
 	/** This function can be override to achive your own animation effect. */
 	virtual void ApplyWidthWithAnimation(EUILayoutChangePositionAnimationType animationType, float width, UUIItem* target);
 	/** This function can be override to achive your own animation effect. */

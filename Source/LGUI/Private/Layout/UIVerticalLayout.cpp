@@ -242,7 +242,7 @@ void UUIVerticalLayout::OnRebuildLayout()
 
         float anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
         float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
-        ApplyAnchorOffsetWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
+        ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 
         posY -= childHeight + Spacing;
         tempActuralRange += childHeight;
