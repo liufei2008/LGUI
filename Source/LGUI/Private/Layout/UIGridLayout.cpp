@@ -450,7 +450,7 @@ void UUIGridLayout::OnRebuildLayout()
 			posY -= childHeight + Spacing.Y;
 		}
 
-		ApplyAnchorOffsetWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
+		ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 		ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
 		ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
 	}
