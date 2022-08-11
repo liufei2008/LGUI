@@ -212,7 +212,6 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         float ContentSize = HorizontalCellCount * CellWidth + (HorizontalCellCount - 1) * Space.X + Padding.Left + Padding.Right;
         ContentUIItem->SetWidth(ContentSize);
         CellTemplate->GetUIItem()->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f), true, true);
-        CellTemplate->GetUIItem()->SetPivot(FVector2D(0.0f, 1.0f));
     }
     else
     {
@@ -238,7 +237,6 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         float ContentSize = VerticalCellCount * CellHeight + (VerticalCellCount - 1) * Space.Y + Padding.Bottom + Padding.Top;
         ContentUIItem->SetHeight(ContentSize);
         CellTemplate->GetUIItem()->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0.0f, 1.0f), FVector2D(0.0f, 1.0f), true, true);
-        CellTemplate->GetUIItem()->SetPivot(FVector2D(0.0f, 1.0f));
     }
 
     CellTemplate->GetUIItem()->SetIsUIActive(true);
@@ -302,7 +300,10 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         if (Horizontal)
         {
             CellItem.UIItem->SetHeight(CellHeight);
-            CellItem.UIItem->SetAnchoredPosition(FVector2D(PosX, PosY));
+            auto AnchoredPosition = FVector2D(
+                PosX + CellItem.UIItem->GetPivot().X * CellWidth
+                , PosY - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight);
+            CellItem.UIItem->SetAnchoredPosition(AnchoredPosition);
             RowOrColumnIndex++;
             if (RowOrColumnIndex >= Rows)
             {
@@ -318,7 +319,10 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         else
         {
             CellItem.UIItem->SetWidth(CellWidth);
-            CellItem.UIItem->SetAnchoredPosition(FVector2D(PosX, PosY));
+            auto AnchoredPosition = FVector2D(
+                PosX + CellItem.UIItem->GetPivot().X * CellWidth
+                , PosY - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight);
+            CellItem.UIItem->SetAnchoredPosition(AnchoredPosition);
             RowOrColumnIndex++;
             if (RowOrColumnIndex >= Columns)
             {
@@ -377,6 +381,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         auto& CellItem = CacheCellList[MaxCellIndexInCacheCellList + i];
                         auto Pos = CellItem.UIItem->GetAnchoredPosition();
                         Pos.X = MinCellPosition - (CellWidth + Space.X);
+                        Pos.X = Pos.X + CellItem.UIItem->GetPivot().X * CellWidth;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
                         MinCellIndexInData--;
@@ -416,6 +421,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         auto& CellItem = CacheCellList[MinCellIndexInCacheCellList + i];
                         auto Pos = CellItem.UIItem->GetAnchoredPosition();
                         Pos.X = MinCellPosition + (CellWidth + Space.X) * (CacheCellList.Num() / Rows);
+                        Pos.X = Pos.X + CellItem.UIItem->GetPivot().X * CellWidth;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
                         MinCellIndexInData++;
@@ -462,6 +468,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         auto& CellItem = CacheCellList[MaxCellIndexInCacheCellList + i];
                         auto Pos = CellItem.UIItem->GetAnchoredPosition();
                         Pos.Y = MinCellPosition + (CellHeight + Space.Y);
+                        Pos.Y = Pos.Y - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
                         MinCellIndexInData--;
@@ -501,6 +508,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         auto& CellItem = CacheCellList[MinCellIndexInCacheCellList + i];
                         auto Pos = CellItem.UIItem->GetAnchoredPosition();
                         Pos.Y = MinCellPosition - (CellHeight + Space.Y) * (CacheCellList.Num() / Columns);
+                        Pos.Y = Pos.Y - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
                         MinCellIndexInData++;
