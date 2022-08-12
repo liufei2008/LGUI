@@ -766,6 +766,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 
 
+		bool bIsDepthStencilCleared = false;
 		for (auto& RenderSequenceItem : RenderSequenceArray)
 		{
 			switch (RenderSequenceItem[0]->GetPrimitiveType())
@@ -796,7 +797,15 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
 				if (LGUIScreenSpaceDepthRDGTexture != nullptr)
 				{
-					PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(LGUIScreenSpaceDepthRDGTexture, ERenderTargetLoadAction::ENoAction, ERenderTargetLoadAction::ENoAction, FExclusiveDepthStencil::DepthWrite_StencilWrite);
+					if (bIsDepthStencilCleared)
+					{
+						PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(LGUIScreenSpaceDepthRDGTexture, ERenderTargetLoadAction::ENoAction, ERenderTargetLoadAction::ENoAction, FExclusiveDepthStencil::DepthWrite_StencilWrite);
+					}
+					else
+					{
+						bIsDepthStencilCleared = true;//only clear depth stencil when first use depth texture
+						PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(LGUIScreenSpaceDepthRDGTexture, ERenderTargetLoadAction::EClear, ERenderTargetLoadAction::EClear, FExclusiveDepthStencil::DepthWrite_StencilWrite);
+					}
 				}
 				GraphBuilder.AddPass(
 					RDG_EVENT_NAME("LGUIHudRender_ScreenSpace"),
