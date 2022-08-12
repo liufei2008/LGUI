@@ -15,8 +15,6 @@
 #include "EditorViewportClient.h"
 #include "Engine/Selection.h"
 #include "EngineUtils.h"
-#include "PrefabSystem/ActorCopier.h"
-#include "PrefabSystem/ActorReplaceTool.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/ActorSerializer5.h"
@@ -24,9 +22,210 @@
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "LGUIHeaders.h"
 
+#include "Settings/LevelEditorMiscSettings.h"
+#include "Layers/LayersSubsystem.h"
+#include "ActorEditorUtils.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "Serialization/ArchiveReplaceObjectRef.h"
+
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
 PRAGMA_DISABLE_OPTIMIZATION
+
+namespace ReattachActorsHelper
+{
+	/** Holds the actor and socket name for attaching. */
+	struct FActorAttachmentInfo
+	{
+		AActor* Actor;
+
+		FName SocketName;
+	};
+
+	/** Used to cache the attachment info for an actor. */
+	struct FActorAttachmentCache
+	{
+	public:
+		/** The post-conversion actor. */
+		AActor* NewActor;
+
+		/** The parent actor and socket. */
+		FActorAttachmentInfo ParentActor;
+
+		/** Children actors and the sockets they were attached to. */
+		TArray<FActorAttachmentInfo> AttachedActors;
+	};
+
+	/**
+	 * Caches the attachment info for the actors being converted.
+	 *
+	 * @param InActorsToReattach			List of actors to reattach.
+	 * @param InOutAttachmentInfo			List of attachment info for the list of actors.
+	 */
+	void CacheAttachments(const TArray<AActor*>& InActorsToReattach, TArray<FActorAttachmentCache>& InOutAttachmentInfo)
+	{
+		for (int32 ActorIdx = 0; ActorIdx < InActorsToReattach.Num(); ++ActorIdx)
+		{
+			AActor* ActorToReattach = InActorsToReattach[ActorIdx];
+
+			InOutAttachmentInfo.AddZeroed();
+
+			FActorAttachmentCache& CurrentAttachmentInfo = InOutAttachmentInfo[ActorIdx];
+
+			// Retrieve the list of attached actors.
+			TArray<AActor*> AttachedActors;
+			ActorToReattach->GetAttachedActors(AttachedActors);
+
+			// Cache the parent actor and socket name.
+			CurrentAttachmentInfo.ParentActor.Actor = ActorToReattach->GetAttachParentActor();
+			CurrentAttachmentInfo.ParentActor.SocketName = ActorToReattach->GetAttachParentSocketName();
+
+			// Required to restore attachments properly.
+			for (int32 AttachedActorIdx = 0; AttachedActorIdx < AttachedActors.Num(); ++AttachedActorIdx)
+			{
+				// Store the attached actor and socket name in the cache.
+				CurrentAttachmentInfo.AttachedActors.AddZeroed();
+				CurrentAttachmentInfo.AttachedActors[AttachedActorIdx].Actor = AttachedActors[AttachedActorIdx];
+				CurrentAttachmentInfo.AttachedActors[AttachedActorIdx].SocketName = AttachedActors[AttachedActorIdx]->GetAttachParentSocketName();
+
+				AActor* ChildActor = CurrentAttachmentInfo.AttachedActors[AttachedActorIdx].Actor;
+				ChildActor->Modify();
+				ChildActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			}
+
+			// Modify the actor so undo will reattach it.
+			ActorToReattach->Modify();
+			ActorToReattach->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		}
+	}
+
+	/**
+	 * Caches the actor old/new information, mapping the old actor to the new version for easy look-up and matching.
+	 *
+	 * @param InOldActor			The old version of the actor.
+	 * @param InNewActor			The new version of the actor.
+	 * @param InOutReattachmentMap	Map object for placing these in.
+	 * @param InOutAttachmentInfo	Update the required attachment info to hold the Converted Actor.
+	 */
+	void CacheActorConvert(AActor* InOldActor, AActor* InNewActor, TMap<AActor*, AActor*>& InOutReattachmentMap, FActorAttachmentCache& InOutAttachmentInfo)
+	{
+		// Add mapping data for the old actor to the new actor.
+		InOutReattachmentMap.Add(InOldActor, InNewActor);
+
+		// Set the converted actor so re-attachment can occur.
+		InOutAttachmentInfo.NewActor = InNewActor;
+	}
+
+	/**
+	 * Checks if two actors can be attached, creates Message Log messages if there are issues.
+	 *
+	 * @param InParentActor			The parent actor.
+	 * @param InChildActor			The child actor.
+	 * @param InOutErrorMessages	Errors with attaching the two actors are stored in this array.
+	 *
+	 * @return Returns true if the actors can be attached, false if they cannot.
+	 */
+	bool CanParentActors(AActor* InParentActor, AActor* InChildActor)
+	{
+		FText ReasonText;
+		if (GEditor->CanParentActors(InParentActor, InChildActor, &ReasonText))
+		{
+			return true;
+		}
+		else
+		{
+			FMessageLog("EditorErrors").Error(ReasonText);
+			return false;
+		}
+	}
+
+	/**
+	 * Reattaches actors to maintain the hierarchy they had previously using a conversion map and an array of attachment info. All errors displayed in Message Log along with notifications.
+	 *
+	 * @param InReattachmentMap			Used to find the corresponding new versions of actors using an old actor pointer.
+	 * @param InAttachmentInfo			Holds parent and child attachment data.
+	 */
+	void ReattachActors(TMap<AActor*, AActor*>& InReattachmentMap, TArray<FActorAttachmentCache>& InAttachmentInfo)
+	{
+		// Holds the errors for the message log.
+		FMessageLog EditorErrors("EditorErrors");
+		EditorErrors.NewPage(LOCTEXT("AttachmentLogPage", "Actor Reattachment"));
+
+		for (int32 ActorIdx = 0; ActorIdx < InAttachmentInfo.Num(); ++ActorIdx)
+		{
+			FActorAttachmentCache& CurrentAttachment = InAttachmentInfo[ActorIdx];
+
+			// Need to reattach all of the actors that were previously attached.
+			for (int32 AttachedIdx = 0; AttachedIdx < CurrentAttachment.AttachedActors.Num(); ++AttachedIdx)
+			{
+				// Check if the attached actor was converted. If it was it will be in the TMap.
+				AActor** CheckIfConverted = InReattachmentMap.Find(CurrentAttachment.AttachedActors[AttachedIdx].Actor);
+				if (CheckIfConverted)
+				{
+					// This should always be valid.
+					if (*CheckIfConverted)
+					{
+						AActor* ParentActor = CurrentAttachment.NewActor;
+						AActor* ChildActor = *CheckIfConverted;
+
+						if (CanParentActors(ParentActor, ChildActor))
+						{
+							// Attach the previously attached and newly converted actor to the current converted actor.
+							ChildActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepWorldTransform, CurrentAttachment.AttachedActors[AttachedIdx].SocketName);
+						}
+					}
+
+				}
+				else
+				{
+					AActor* ParentActor = CurrentAttachment.NewActor;
+					AActor* ChildActor = CurrentAttachment.AttachedActors[AttachedIdx].Actor;
+
+					if (CanParentActors(ParentActor, ChildActor))
+					{
+						// Since the actor was not converted, reattach the unconverted actor.
+						ChildActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepWorldTransform, CurrentAttachment.AttachedActors[AttachedIdx].SocketName);
+					}
+				}
+
+			}
+
+			// Check if the parent was converted.
+			AActor** CheckIfNewActor = InReattachmentMap.Find(CurrentAttachment.ParentActor.Actor);
+			if (CheckIfNewActor)
+			{
+				// Since the actor was converted, attach the current actor to it.
+				if (*CheckIfNewActor)
+				{
+					AActor* ParentActor = *CheckIfNewActor;
+					AActor* ChildActor = CurrentAttachment.NewActor;
+
+					if (CanParentActors(ParentActor, ChildActor))
+					{
+						ChildActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepWorldTransform, CurrentAttachment.ParentActor.SocketName);
+					}
+				}
+
+			}
+			else
+			{
+				AActor* ParentActor = CurrentAttachment.ParentActor.Actor;
+				AActor* ChildActor = CurrentAttachment.NewActor;
+
+				// Verify the parent is valid, the actor may not have actually been attached before.
+				if (ParentActor && CanParentActors(ParentActor, ChildActor))
+				{
+					// The parent was not converted, attach to the unconverted parent.
+					ChildActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepWorldTransform, CurrentAttachment.ParentActor.SocketName);
+				}
+			}
+		}
+
+		// Add the errors to the message log, notifications will also be displayed as needed.
+		EditorErrors.Notify(NSLOCTEXT("ActorAttachmentError", "AttachmentsFailed", "Attachments Failed!"));
+	}
+}
+
 struct LGUIEditorToolsHelperFunctionHolder
 {
 public:
@@ -137,6 +336,195 @@ public:
 			}
 		}
 		return result;
+	}
+
+	//this function mostly copied from UnrealED/Private/EditorEngine.cpp::ReplaceActors
+	static void ReplaceActor(const TArray<AActor*>& ActorsToReplace, TSubclassOf<AActor> NewActorClass)
+	{
+		// Cache for attachment info of all actors being converted.
+		TArray<ReattachActorsHelper::FActorAttachmentCache> AttachmentInfo;
+
+		// Maps actors from old to new for quick look-up.
+		TMap<AActor*, AActor*> ConvertedMap;
+
+		// Cache the current attachment states.
+		ReattachActorsHelper::CacheAttachments(ActorsToReplace, AttachmentInfo);
+
+		USelection* SelectedActors = GEditor->GetSelectedActors();
+		SelectedActors->BeginBatchSelectOperation();
+		SelectedActors->Modify();
+
+		for (int32 ActorIdx = 0; ActorIdx < ActorsToReplace.Num(); ++ActorIdx)
+		{
+			AActor* OldActor = ActorsToReplace[ActorIdx];//.Pop();
+			check(OldActor);
+			UWorld* World = OldActor->GetWorld();
+			ULevel* Level = OldActor->GetLevel();
+			AActor* NewActor = NULL;
+
+			// Unregister this actors components because we are effectively replacing it with an actor sharing the same ActorGuid.
+			// This allows it to be unregistered before a new actor with the same guid gets registered avoiding conflicts.
+			OldActor->UnregisterAllComponents();
+
+			const FName OldActorName = OldActor->GetFName();
+			const FName OldActorReplacedNamed = MakeUniqueObjectName(OldActor->GetOuter(), OldActor->GetClass(), *FString::Printf(TEXT("%s_REPLACED"), *OldActorName.ToString()));
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Name = OldActorName;
+			SpawnParams.bCreateActorPackage = false;
+			SpawnParams.OverridePackage = OldActor->GetExternalPackage();
+			SpawnParams.OverrideActorGuid = OldActor->GetActorGuid();
+
+			// Don't go through AActor::Rename here because we aren't changing outers (the actor's level) and we also don't want to reset loaders
+			// if the actor is using an external package. We really just want to rename that actor out of the way so we can spawn the new one in
+			// the exact same package, keeping the package name intact.
+			OldActor->UObject::Rename(*OldActorReplacedNamed.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+
+			const FTransform OldTransform = OldActor->ActorToWorld();
+
+			// create the actor
+			NewActor = OldActor->GetWorld()->SpawnActor(NewActorClass, &OldTransform, SpawnParams);
+			// try to copy over properties
+			NewActor->UnregisterAllComponents();
+			UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
+			Options.bNotifyObjectReplacement = true;
+			UEditorEngine::CopyPropertiesForUnrelatedObjects(OldActor, NewActor, Options);
+			NewActor->RegisterAllComponents();
+
+			if (NewActor)
+			{
+				// The new actor might not have a root component
+				USceneComponent* const NewActorRootComponent = NewActor->GetRootComponent();
+				if (NewActorRootComponent)
+				{
+					if (!GetDefault<ULevelEditorMiscSettings>()->bReplaceRespectsScale || OldActor->GetRootComponent() == NULL)
+					{
+						NewActorRootComponent->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+					}
+					else
+					{
+						NewActorRootComponent->SetRelativeScale3D(OldActor->GetRootComponent()->GetRelativeScale3D());
+					}
+
+					if (OldActor->GetRootComponent() != NULL)
+					{
+						NewActorRootComponent->SetMobility(OldActor->GetRootComponent()->Mobility);
+					}
+				}
+
+				NewActor->Layers.Empty();
+				ULayersSubsystem* LayersSubsystem = GEditor->GetEditorSubsystem<ULayersSubsystem>();
+				LayersSubsystem->AddActorToLayers(NewActor, OldActor->Layers);
+
+				// Preserve the label and tags from the old actor
+				NewActor->SetActorLabel(OldActor->GetActorLabel());
+				NewActor->Tags = OldActor->Tags;
+
+				// Allow actor derived classes a chance to replace properties.
+				NewActor->EditorReplacedActor(OldActor);
+
+				// Caches information for finding the new actor using the pre-converted actor.
+				ReattachActorsHelper::CacheActorConvert(OldActor, NewActor, ConvertedMap, AttachmentInfo[ActorIdx]);
+
+				if (SelectedActors->IsSelected(OldActor))
+				{
+					GEditor->SelectActor(OldActor, false, true);
+					GEditor->SelectActor(NewActor, true, true);
+				}
+
+				// Find compatible static mesh components and copy instance colors between them.
+				UStaticMeshComponent* NewActorStaticMeshComponent = NewActor->FindComponentByClass<UStaticMeshComponent>();
+				UStaticMeshComponent* OldActorStaticMeshComponent = OldActor->FindComponentByClass<UStaticMeshComponent>();
+				if (NewActorStaticMeshComponent != NULL && OldActorStaticMeshComponent != NULL)
+				{
+					NewActorStaticMeshComponent->CopyInstanceVertexColorsIfCompatible(OldActorStaticMeshComponent);
+				}
+
+				NewActor->InvalidateLightingCache();
+				NewActor->PostEditMove(true);
+				NewActor->MarkPackageDirty();
+
+				TSet<ULevel*> LevelsToRebuildBSP;
+				ABrush* Brush = Cast<ABrush>(OldActor);
+				if (Brush && !FActorEditorUtils::IsABuilderBrush(Brush)) // Track whether or not a brush actor was deleted.
+				{
+					ULevel* BrushLevel = OldActor->GetLevel();
+					if (BrushLevel && !Brush->IsVolumeBrush())
+					{
+						BrushLevel->Model->Modify();
+						LevelsToRebuildBSP.Add(BrushLevel);
+					}
+				}
+
+				// Replace references in the level script Blueprint with the new Actor
+				const bool bDontCreate = true;
+				ULevelScriptBlueprint* LSB = NewActor->GetLevel()->GetLevelScriptBlueprint(bDontCreate);
+				if (LSB)
+				{
+					// Only if the level script blueprint exists would there be references.  
+					FBlueprintEditorUtils::ReplaceAllActorRefrences(LSB, OldActor, NewActor);
+				}
+
+				LayersSubsystem->DisassociateActorFromLayers(OldActor);
+				World->EditorDestroyActor(OldActor, true);
+
+				// If any brush actors were modified, update the BSP in the appropriate levels
+				if (LevelsToRebuildBSP.Num())
+				{
+					FlushRenderingCommands();
+
+					for (ULevel* LevelToRebuild : LevelsToRebuildBSP)
+					{
+						GEditor->RebuildLevel(*LevelToRebuild);
+					}
+				}
+			}
+			else
+			{
+				// If creating the new Actor failed, put the old Actor's name back
+				OldActor->UObject::Rename(*OldActorName.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+				OldActor->RegisterAllComponents();
+			}
+		}
+
+		SelectedActors->EndBatchSelectOperation();
+
+		// Reattaches actors based on their previous parent child relationship.
+		ReattachActorsHelper::ReattachActors(ConvertedMap, AttachmentInfo);
+
+		// Perform reference replacement on all Actors referenced by World
+		TArray<UObject*> ReferencedLevels;
+
+		for (const TPair<AActor*, AActor*>& ReplacedObj : ConvertedMap)
+		{
+			ReferencedLevels.AddUnique(ReplacedObj.Value->GetLevel());
+		}
+
+		for (UObject* Referencer : ReferencedLevels)
+		{
+			constexpr EArchiveReplaceObjectFlags ArFlags = (EArchiveReplaceObjectFlags::IgnoreOuterRef | EArchiveReplaceObjectFlags::TrackReplacedReferences);
+			FArchiveReplaceObjectRef<AActor> Ar(Referencer, ConvertedMap, ArFlags);
+
+			for (const TPair<UObject*, TArray<FProperty*>>& MapItem : Ar.GetReplacedReferences())
+			{
+				UObject* ModifiedObject = MapItem.Key;
+
+				if (!ModifiedObject->HasAnyFlags(RF_Transient) && ModifiedObject->GetOutermost() != GetTransientPackage() && !ModifiedObject->RootPackageHasAnyFlags(PKG_CompiledIn))
+				{
+					ModifiedObject->MarkPackageDirty();
+				}
+
+				for (FProperty* Property : MapItem.Value)
+				{
+					FPropertyChangedEvent PropertyEvent(Property);
+					ModifiedObject->PostEditChangeProperty(PropertyEvent);
+				}
+			}
+		}
+
+		GEditor->RedrawLevelEditingViewports();
+
+		ULevel::LevelDirtiedEvent.Broadcast();
 	}
 };
 
@@ -351,11 +739,9 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
 
 	GEditor->BeginTransaction(LOCTEXT("ReplaceUIElement", "LGUI Replace UI Element"));
-	GEditor->SelectNone(true, true);
 	for (auto& Actor : RootActorList)
 	{
 		MakeCurrentLevel(Actor);
-		AActor* NewActor = nullptr;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
 			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
@@ -363,14 +749,13 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 				PrefabHelperObject->Modify();
 			}
 			PrefabHelperObject->SetCanNotifyAttachment(false);
-			NewActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(Actor, ActorClass);//@todo: use buildin replace tool, if there is any
+			LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass);
 			PrefabHelperObject->SetCanNotifyAttachment(true);
 		}
 		else
 		{
-			NewActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(Actor, ActorClass);//@todo: use buildin replace tool, if there is any
+			LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass);
 		}
-		GEditor->SelectActor(NewActor, true, true);
 	}
 	GEditor->EndTransaction();
 }
@@ -780,9 +1165,19 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 	if (copiedComponent.IsValid())
 	{
 		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
-		for (UActorComponent* item : selectedComponents)
+		UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
+		Options.bNotifyObjectReplacement = true;
+		for (UActorComponent* SelectedComp : selectedComponents)
 		{
-			LGUIPrefabSystem::ActorCopier::CopyComponentValue(copiedComponent.Get(), item);//@todo: use buildin copy tool
+			if (SelectedComp->IsRegistered() && SelectedComp->AllowReregistration())
+			{
+				SelectedComp->UnregisterComponent();
+			}
+			UEditorEngine::CopyPropertiesForUnrelatedObjects(copiedComponent.Get(), SelectedComp, Options);
+			if (!SelectedComp->IsRegistered())
+			{
+				SelectedComp->RegisterComponent();
+			}
 		}
 		GEditor->EndTransaction();
 		ULGUIEditorManagerObject::RefreshAllUI();
