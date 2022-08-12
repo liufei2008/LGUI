@@ -1007,18 +1007,27 @@ FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
 void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter as override parameter(eg: Actor parameter reference other actor that is not belongs to prefab hierarchy)
 {
 	auto selectedActor = GetFirstSelectedActor();
-	if (selectedActor == nullptr)return;
+	if (!IsValid(selectedActor))
+	{
+		return;
+	}
+	if (selectedActor->IsPackageExternal())
+	{
+		auto Message = LOCTEXT("CreatePrefabError_ExternalPackage", "This actor is IsPackageExternal (maybe created in open world), which is not compatible with LGUIPrefab!");
+		FMessageDialog::Open(EAppMsgType::Ok, Message);
+		return;
+	}
 	if (Cast<ALGUIPrefabHelperActor>(selectedActor) != nullptr || Cast<ALGUIPrefabManagerActor>(selectedActor) != nullptr)
 	{
-		FMessageDialog::Open(EAppMsgType::Ok
-			, FText::FromString(FString::Printf(TEXT("Cannot create prefab on a PrefabActor!"))));
+		auto Message = LOCTEXT("CreatePrefabError_PrefabActor", "Cannot create prefab on a LGUIPrefabHelperActor or LGUIPrefabManagerActor!");
+		FMessageDialog::Open(EAppMsgType::Ok, Message);
 		return;
 	}
 	auto oldPrefabActor = GetPrefabHelperObject_WhichManageThisActor(selectedActor);
 	if (IsValid(oldPrefabActor) && oldPrefabActor->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
 	{
-		FMessageDialog::Open(EAppMsgType::Ok
-			, FText::FromString(FString::Printf(TEXT("This actor is a root actor of another prefab, this is not allowed! Instead you can duplicate the prefab asset."))));
+		auto Message = LOCTEXT("CreatePrefabError_BelongToOtherPrefab", "This actor is a root actor of another prefab, this is not allowed! Instead you can duplicate the prefab asset.");
+		FMessageDialog::Open(EAppMsgType::Ok, Message);
 		return;
 	}
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
