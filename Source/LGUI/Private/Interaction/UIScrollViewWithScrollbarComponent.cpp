@@ -224,19 +224,26 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 	{
 		if (InUIItem == Viewport->GetUIItem())
 		{
-			if (VerticalScrollbar.IsValid())
-			{
-				OutResult.bCanControlHorizontalAnchor = true;
-				OutResult.bCanControlHorizontalAnchoredPosition = true;
-				OutResult.bCanControlHorizontalSizeDelta = true;
-			}
 			if (HorizontalScrollbar.IsValid())
 			{
-				OutResult.bCanControlVerticalAnchor = true;
-				OutResult.bCanControlVerticalAnchoredPosition = true;
-				OutResult.bCanControlVerticalSizeDelta = true;
+				if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+				{
+					OutResult.bCanControlVerticalAnchor = true;
+					OutResult.bCanControlVerticalAnchoredPosition = true;
+					OutResult.bCanControlVerticalSizeDelta = true;
+					return true;
+				}
 			}
-			return true;
+			if (VerticalScrollbar.IsValid())
+			{
+				if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+				{
+					OutResult.bCanControlHorizontalAnchor = true;
+					OutResult.bCanControlHorizontalAnchoredPosition = true;
+					OutResult.bCanControlHorizontalSizeDelta = true;
+					return true;
+				}
+			}
 		}
 	}
 	if (HorizontalScrollbar.IsValid())
@@ -247,8 +254,8 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 			{
 				OutResult.bCanControlVerticalAnchor = true;
 				OutResult.bCanControlVerticalAnchoredPosition = true;
+				return true;
 			}
-			return true;
 		}
 	}
 	if (VerticalScrollbar.IsValid())
@@ -259,8 +266,8 @@ bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementati
 			{
 				OutResult.bCanControlHorizontalAnchor = true;
 				OutResult.bCanControlHorizontalAnchoredPosition = true;
+				return true;
 			}
-			return true;
 		}
 	}
 	return false;
