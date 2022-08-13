@@ -125,7 +125,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	if (auto spriteTexture = Cast<UTexture2D>(spriteTextureObject))
 	{
 		int32 atlasPadding = ULGUISettings::GetAtlasTexturePadding(TargetScriptPtr->packingTag);
-		if (TargetScriptPtr->spriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || TargetScriptPtr->spriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
+		if (TargetScriptPtr->spriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || TargetScriptPtr->spriteTexture->GetSurfaceHeight() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
 			UE_LOG(LGUIEditor, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
 			FNotificationInfo Info(LOCTEXT("TextureSizeError", "Target texture width or height is too large! Consider use UITexture to render this texture."));
