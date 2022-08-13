@@ -430,7 +430,7 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 	{
 		int32 atlasPadding = 0;
 		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
-		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
+		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceHeight() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
 			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::CreateLGUISpriteData]Target texture width or height is too large! Consider use UITexture to render this texture."));
 			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
