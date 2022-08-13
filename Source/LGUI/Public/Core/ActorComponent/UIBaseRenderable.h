@@ -21,29 +21,36 @@ class LGUI_API UUIRenderableCustomRaycast :public UObject
 	GENERATED_BODY()
 
 protected:
-	/** Called by owner UIRenderable object when register, use it as initialize */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Init"))
-		void ReceiveInit(UUIBaseRenderable* InUIRenderable);
 	/**
 	 * Called by UIBaseRenderable when do raycast hit test.
+	 * @param	InUIRenderable			The UIBaseRenderable object which call this Raycast function
 	 * @param	InLocalSpaceRayStart	Ray start point in this UI's local space
 	 * @param	InLocalSpaceRayEnd		Ray end point in this UI's local space
-	 * @param	InHitPointOnPlane		Ray-Plane hit point in this UI's local space, relative to UI's pivot point
+	 * @param	OutHitPoint				Hit point position in this UI's local space
+	 * @param	OutHitNormal			Hit point normal in this UI's local space
 	 * @return	true if hit this UI object
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Raycast"))
-		bool ReceiveRaycast(const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, const FVector2D& InHitPointOnPlane);
+		bool ReceiveRaycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal);
+	/**
+	 * Get hit point pixel value. Only support UI element type which can read pixel value from texture:
+	 *			1. UITexture that use a Texture2D can work perfectly.
+	 *			2. UISprite which use dynamic atlas packing can not work.
+	 *			3. UIText which use dynamic font can not work.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		static bool GetRaycastPixelFromUIBatchGeometryRenderable(class UUIBatchGeometryRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal);
 public:
-	/** Called by owner UIRenderable object when register, use it as initialize */
-	virtual void Init(UUIBaseRenderable* InUIRenderable);
 	/**
 	 * Called by UIBaseRenderable when do raycast hit test.
+	 * @param	InUIRenderable			The UIBaseRenderable object which call this Raycast function
 	 * @param	InLocalSpaceRayStart	Ray start point in this UI's local space
 	 * @param	InLocalSpaceRayEnd		Ray end point in this UI's local space
-	 * @param	InHitPointOnPlane		Ray-Plane hit point in this UI's local space, relative to UI's pivot point
+	 * @param	OutHitPoint				Hit point position in this UI's local space
+	 * @param	OutHitNormal			Hit point normal in this UI's local space
 	 * @return	true if hit this UI object
 	 */
-	virtual bool Raycast(const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, const FVector2D& InHitPointOnPlane);
+	virtual bool Raycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal);
 };
 
 UENUM(BlueprintType, Category = LGUI)
@@ -95,7 +102,7 @@ protected:
 	/** Only valid if RaycastTarget is true. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true"))
 		EUIRenderableRaycastType RaycastType = EUIRenderableRaycastType::Rect;
-	/** Custom raycast object to handle raycast behaviour when LGUI do raycast hit test, Only valid if RaycastTarget is true and RaycastType is Custom. */
+	/** Custom raycast object to handle raycast behaviour when LGUI do raycast hit test. Only valid if RaycastTarget is true and RaycastType is Custom. */
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Custom"))
 		UUIRenderableCustomRaycast* CustomRaycastObject;
 
@@ -115,6 +122,8 @@ public:
 		float GetAlpha() const { return ((float)Color.A) / 255; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIRenderableRaycastType GetRaycastType()const { return RaycastType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIRenderableCustomRaycast* GetCustomRaycastObject()const { return CustomRaycastObject; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetColor(FColor value);
