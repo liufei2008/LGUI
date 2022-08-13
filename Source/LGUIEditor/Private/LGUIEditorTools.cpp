@@ -389,6 +389,10 @@ public:
 			UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
 			Options.bNotifyObjectReplacement = true;
 			UEditorEngine::CopyPropertiesForUnrelatedObjects(OldActor, NewActor, Options);
+			if (OldActor->GetRootComponent() != nullptr && NewActor->GetRootComponent() != nullptr)
+			{
+				UEditorEngine::CopyPropertiesForUnrelatedObjects(OldActor->GetRootComponent(), NewActor->GetRootComponent(), Options);
+			}
 			NewActor->RegisterAllComponents();
 
 			if (NewActor)
