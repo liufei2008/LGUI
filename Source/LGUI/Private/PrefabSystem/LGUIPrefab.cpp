@@ -13,6 +13,7 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
+#include "Engine/Engine.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
