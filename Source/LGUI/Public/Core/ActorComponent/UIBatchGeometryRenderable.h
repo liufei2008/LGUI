@@ -117,17 +117,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
-#if 0//@todo: get this done
-	/**
-	 * Get pixel color at given 2d point.
-	 * NOTE!!! This method will convert InPoint to uv coordinate, and get main texture's color at that uv coordinate, so main texture is required (main texture: UISprite's atlas texture, UITexture's texture, UIText's font texture).
-	 * If you use custom material, then the result could be incorrect.
-	 * @param	InPoint		Input 2d point in UI's local space
-	 * @return	Pixel color value
-	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FColor GetPixelAtPoint(const FVector2D& InPoint)const PURE_VIRTUAL(UUIBatchGeometryRenderable::GetPixelAtPoint, return FColor::White;);
-#endif
 protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 public:
