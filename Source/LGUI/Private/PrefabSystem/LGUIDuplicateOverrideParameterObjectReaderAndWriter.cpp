@@ -15,7 +15,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIDuplicateOverrideParameterObjectWriter::SerializeObject(UObject* Object)
 	{
-		if (Object->IsAsset())
+		if (Object->IsAsset() && !Object->GetClass()->IsChildOf(AActor::StaticClass()))
 		{
 			auto id = Serializer.FindOrAddAssetIdFromList(Object);
 			auto type = (uint8)EObjectType::Asset;

@@ -24,10 +24,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIOverrideParameterObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -155,10 +152,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIOverrideParameterObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -271,10 +265,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIImmediateOverrideParameterObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -312,10 +303,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIImmediateOverrideParameterObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
