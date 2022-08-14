@@ -39,6 +39,7 @@ namespace LGUIPrefabSystem
 		}
 		return false;
 	}
+	bool LGUIPrefab_ShouldSkipProperty(const FProperty* InProperty);
 
 	class LGUI_API FLGUIObjectWriter : public FObjectWriter
 	{

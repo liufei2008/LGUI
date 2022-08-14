@@ -8,6 +8,15 @@
 
 namespace LGUIPrefabSystem
 {
+	bool LGUIPrefab_ShouldSkipProperty(const FProperty* InProperty)
+	{
+		return
+			InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient)
+			|| InProperty->IsA<FMulticastDelegateProperty>()
+			|| InProperty->IsA<FDelegateProperty>()
+			;
+	}
+
 	FLGUIObjectWriter::FLGUIObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
@@ -24,10 +33,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -49,7 +55,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIObjectWriter::SerializeObject(UObject* Object)
 	{
-		if (Object->IsAsset())
+		if (Object->IsAsset() && !Object->GetClass()->IsChildOf(AActor::StaticClass()))
 		{
 			auto id = Serializer.FindOrAddAssetIdFromList(Object);
 			auto type = (uint8)EObjectType::Asset;
@@ -195,10 +201,7 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (InProperty->HasAnyPropertyFlags(CPF_Transient)
-			|| InProperty->IsA<FMulticastDelegateProperty>()
-			|| InProperty->IsA<FDelegateProperty>()
-			)
+		if (LGUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
