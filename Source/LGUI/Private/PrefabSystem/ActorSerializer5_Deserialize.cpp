@@ -645,6 +645,7 @@ namespace LGUIPrefabSystem5
 					Spawnparameters.ObjectFlags = (EObjectFlags)InActorData.ObjectFlags;
 					Spawnparameters.bDeferConstruction = true;
 					Spawnparameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+#if WITH_EDITOR
 					//ref: LevelActor.cpp::SpawnActor 
 					//LGUI's editor preview world (or other simple world (not UE5's open world)) don't need external actor, so we need to remove the flag, or game will crash when check external package.
 					if ((Spawnparameters.ObjectFlags & EObjectFlags::RF_HasExternalPackage) != 0
@@ -653,6 +654,7 @@ namespace LGUIPrefabSystem5
 					{
 						Spawnparameters.ObjectFlags = Spawnparameters.ObjectFlags & (~EObjectFlags::RF_HasExternalPackage);
 					}
+#endif
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 					bNeedFinishSpawn = true;
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);

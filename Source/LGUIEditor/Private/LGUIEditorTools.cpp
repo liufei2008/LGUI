@@ -1410,12 +1410,6 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 	{
 		return;
 	}
-	if (selectedActor->IsPackageExternal())
-	{
-		auto Message = LOCTEXT("CreatePrefabError_ExternalPackage", "This actor is IsPackageExternal (maybe created in open world), which is not compatible with LGUIPrefab!");
-		FMessageDialog::Open(EAppMsgType::Ok, Message);
-		return;
-	}
 	if (Cast<ALGUIPrefabHelperActor>(selectedActor) != nullptr || Cast<ALGUIPrefabManagerActor>(selectedActor) != nullptr)
 	{
 		auto Message = LOCTEXT("CreatePrefabError_PrefabActor", "Cannot create prefab on a LGUIPrefabHelperActor or LGUIPrefabManagerActor!");
