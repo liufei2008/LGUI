@@ -67,6 +67,7 @@ public:
 	TWeakObjectPtr<UUIDirectMeshRenderable> DirectMeshRenderableObject;
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> RenderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
+	bool bNeedToSortRenderObjectList = false;//need to sort RenderObjectList?
 	UIQuadTree::Node* RenderObjectListTreeRootNode = nullptr;
 	int32 VerticesCount = 0;//vertices count of all renderObjectList
 	int32 IndicesCount = 0;//triangle indices count of all renderObjectList
