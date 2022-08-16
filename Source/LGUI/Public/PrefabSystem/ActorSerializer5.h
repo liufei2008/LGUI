@@ -277,15 +277,17 @@ namespace LGUIPrefabSystem5
 
 		struct ComponentDataStruct
 		{
-			UActorComponent* Component;
+			UActorComponent* Component = nullptr;
 			FGuid SceneComponentParentGuid;
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
-		/**
-		 * Array of sub-prefab's root component and it's parent component's guid.
-		 * Because sometimes the parent of sub-prefab is nullptr when loading sub prefab, so we get the parent's guid and attach it after it is created.
-		 */
-		TArray<ComponentDataStruct> SubPrefabRootComponents;
+
+		struct ActorReparentDataStruct
+		{
+			AActor* Actor = nullptr;
+			AActor* ParentActor = nullptr;
+		};
+		TArray<ActorReparentDataStruct> ActorReparentArray;
 
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 
@@ -303,7 +305,7 @@ namespace LGUIPrefabSystem5
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
-		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent, const FGuid& ParentComponentGuid);
+		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, AActor* ParentActor);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 		void DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 

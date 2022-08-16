@@ -146,7 +146,7 @@ namespace LGUIPrefabSystem5
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
-		PreGenerateActorRecursive(SaveData.SavedActor, nullptr, FGuid());
+		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
@@ -158,6 +158,15 @@ namespace LGUIPrefabSystem5
 		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
 		Time = FDateTime::Now();
 #endif
+
+		//reparent actor
+		for (auto ActorData : ActorReparentArray)
+		{
+			if (ActorData.Actor != nullptr && ActorData.ParentActor != nullptr)
+			{
+				ActorData.Actor->AttachToActor(ActorData.ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
+			}
+		}
 
 		//register component
 		for (auto CompData : CreatedComponents)
@@ -184,18 +193,6 @@ namespace LGUIPrefabSystem5
 							SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
 						}
 					}
-				}
-			}
-		}
-		//sub prefab root component
-		for (auto CompData : SubPrefabRootComponents)
-		{
-			auto SceneComp = (USceneComponent*)CompData.Component;
-			if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.SceneComponentParentGuid))
-			{
-				if (auto ParentComp = Cast<USceneComponent>(*ParentObjectPtr))
-				{
-					SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
 				}
 			}
 		}
@@ -511,7 +508,7 @@ namespace LGUIPrefabSystem5
 		}
 	}
 
-	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent, const FGuid& ParentComponentGuid)
+	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, AActor* ParentActor)
 	{
 		if (InActorData.bIsPrefab)
 		{
@@ -586,14 +583,14 @@ namespace LGUIPrefabSystem5
 					{
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -601,7 +598,7 @@ namespace LGUIPrefabSystem5
 					case ELGUIPrefabVersion::ObjectName:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -618,13 +615,11 @@ namespace LGUIPrefabSystem5
 					
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
-					if (Parent == nullptr && ParentComponentGuid.IsValid())
-					{
-						ComponentDataStruct CompData;
-						CompData.Component = SubPrefabRootActor->GetRootComponent();
-						CompData.SceneComponentParentGuid = ParentComponentGuid;
-						SubPrefabRootComponents.Add(CompData);
-					}
+
+					ActorReparentDataStruct DataStruct;
+					DataStruct.Actor = SubPrefabRootActor;
+					DataStruct.ParentActor = ParentActor;
+					ActorReparentArray.Add(DataStruct);
 				}
 			}
 		}
@@ -719,9 +714,14 @@ namespace LGUIPrefabSystem5
 				CreatedActorsGuid.Add(InActorData.ObjectGuid);
 				ActorIndexInPrefab++;
 
+				ActorReparentDataStruct DataStruct;
+				DataStruct.Actor = NewActor;
+				DataStruct.ParentActor = ParentActor;
+				ActorReparentArray.Add(DataStruct);
+
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent(), InActorData.RootComponentGuid);
+					PreGenerateActorRecursive(ChildSaveData, NewActor);
 				}
 			}
 			else
