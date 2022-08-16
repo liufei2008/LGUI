@@ -808,6 +808,8 @@ void ULGUICanvas::UpdateGeometry_Implement()
 	}
 }
 
+#define LGUI_Test_ResetRenderObjectList 0
+
 DECLARE_CYCLE_STAT(TEXT("Canvas BatchDrawcall"), STAT_BatchDrawcall, STATGROUP_LGUI);
 void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, const FVector2D& InCanvasRightTop, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
 {
@@ -949,7 +951,10 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			{
 				DrawcallItem->Texture = InItemGeo->texture;
 				DrawcallItem->Material = InItemGeo->material.Get();
-
+#if LGUI_Test_ResetRenderObjectList
+				DrawcallItem->RenderObjectList.Reset();
+				DrawcallItem->RenderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
+#endif
 				if (DrawcallItem->RenderObjectListTreeRootNode != nullptr)
 				{
 					delete DrawcallItem->RenderObjectListTreeRootNode;
@@ -1133,7 +1138,13 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
 					if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
 					{
-						//need to update tree
+#if LGUI_Test_ResetRenderObjectList
+						DrawcallItem->RenderObjectList.Add(UIBatchGeometryRenderableItem);
+#else
+						//mark sort list
+						DrawcallItem->bNeedToSortRenderObjectList = true;
+#endif
+						//update tree
 						DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
 						DrawcallItem->VerticesCount += ItemGeo->vertices.Num();
 						DrawcallItem->IndicesCount += ItemGeo->triangles.Num();
@@ -1235,6 +1246,21 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			this->AddUIMeshToPool(UIMeshItem);
 		}
 	}
+
+	//@todo: the UIRenderableList is already sorted, so actually we better not to sort the RenderObjectList. But when I try to do it (LGUI_Test_ResetRenderObjectList), a RenderObjectList become "Invalid", that is very strange, a TArray can't just become "Invalid".
+	//check if we need to sort RenderObjectList
+#if !LGUI_Test_ResetRenderObjectList
+	for (auto& DrawcallItem : InUIDrawcallList)
+	{
+		if (DrawcallItem->bNeedToSortRenderObjectList)
+		{
+			DrawcallItem->bNeedToSortRenderObjectList = false;
+			DrawcallItem->RenderObjectList.Sort([](const TWeakObjectPtr<UUIBatchGeometryRenderable>& A, const TWeakObjectPtr<UUIBatchGeometryRenderable>& B) {
+				return A->GetFlattenHierarchyIndex() < B->GetFlattenHierarchyIndex();
+				});
+		}
+	}
+#endif
 }
 
 void ULGUICanvas::SetOverrideViewLoation(bool InOverride, FVector InValue)
