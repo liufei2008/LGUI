@@ -81,15 +81,19 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		EUIDropdownHorizontalPosition HorizontalPosition = EUIDropdownHorizontalPosition::Center;
 	
+	/** Current selected option index */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
-		int Value;
+		int Value = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TArray<FUIDropdownOptionData> Options;
 
-	bool IsShow = false;
-	bool NeedRecreate = true;
-	float MaxHeight = 150;
-	TWeakObjectPtr<ULTweener> ShowOrHideTweener;
+	/** ListRoot's max height */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", AdvancedDisplay)
+		float MaxHeight = 150;
+
+	bool bIsShow = false;
+	bool bNeedRecreate = true;
+	TWeakObjectPtr<class ULTweener> ShowOrHideTweener;
 	TWeakObjectPtr<class AUIContainerActor> BlockerActor;
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<class UUIDropdownItemComponent>> CreatedItemArray;
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
@@ -124,6 +128,8 @@ public:
 		FUIDropdownOptionData GetCurrentOption()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		float GetMaxHeight()const { return MaxHeight; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		class AUIBaseActor* GetListRoot()const { return ListRoot.Get(); }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void SetValue(int newValue, bool fireEvent = true);
@@ -142,7 +148,7 @@ public:
 
 	//list items will be created at next time when show the list
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
-		void MarkRecreateList() { NeedRecreate = true; }
+		void MarkRecreateList() { bNeedRecreate = true; }
 
 	FDelegateHandle RegisterSelectionChangeEvent(const FLGUIInt32Delegate& InDelegate);
 	FDelegateHandle RegisterSelectionChangeEvent(const TFunction<void(int)>& InFunction);
@@ -171,9 +177,16 @@ protected:
 		TWeakObjectPtr<class AUISpriteActor> SpriteActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		FLGUIComponentReference Toggle;
-	int32 Index;
+
 public:
-	void Init(const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelect);
-	void SetSelectionState(const bool& InSelect);
+	virtual void Init(int32 Index, const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelect);
+	virtual void SetSelectionState(const bool& InSelect);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		class AUITextActor* GetTextActor()const { return TextActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		class AUISpriteActor* GetSpriteActor()const { return SpriteActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		class UUIToggleComponent* GetToggle()const;
 };

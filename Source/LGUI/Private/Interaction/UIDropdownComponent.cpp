@@ -67,8 +67,8 @@ void UUIDropdownComponent::Show()
 	}
 	if (!IsValid(this->GetRootUIComponent()))return;
 	if (!IsValid(this->GetRootUIComponent()->GetRootCanvas()))return;
-	if (IsShow)return;
-	IsShow = true;
+	if (bIsShow)return;
+	bIsShow = true;
 	if (ShowOrHideTweener.IsValid())
 	{
 		ShowOrHideTweener->Kill();
@@ -110,9 +110,9 @@ void UUIDropdownComponent::Show()
 		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ItemTemplate is not valid!"));
 		return;
 	}
-	if (NeedRecreate)
+	if (bNeedRecreate)
 	{
-		NeedRecreate = false;
+		bNeedRecreate = false;
 		for (auto item : CreatedItemArray)
 		{
 			auto itemActor = item->GetOwner();
@@ -262,8 +262,8 @@ void UUIDropdownComponent::Hide()
 		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ListRoot is not valid!"));
 		return;
 	}
-	if (!IsShow)return;
-	IsShow = false;
+	if (!bIsShow)return;
+	bIsShow = false;
 	if (ShowOrHideTweener.IsValid())
 	{
 		ShowOrHideTweener->Kill();
@@ -329,7 +329,7 @@ void UUIDropdownComponent::CreateListItems()
 #endif
 		auto script = copiedItemActor->FindComponentByClass<UUIDropdownItemComponent>();
 		int index = i;
-		script->Init(Options[i], [=]() {
+		script->Init(i, Options[i], [=]() {
 			this->OnSelectItem(index);
 			});
 		script->SetSelectionState(i == Value);
@@ -345,9 +345,15 @@ void UUIDropdownComponent::CreateListItems()
 	{
 		heightOffset = ListRoot->GetUIItem()->GetHeight() - viewportUIItem->GetHeight();
 	}
+	//if content is larger smaller than MaxHeight, then make the ListRoot smaller too
 	if (contentUIItem->GetHeight() + heightOffset < MaxHeight)
 	{
 		ListRoot->GetUIItem()->SetHeight(contentUIItem->GetHeight() + heightOffset);
+	}
+	//if content is bigger than MaxHeight, then make the ListRoot as MaxHeight, so the scollview will work
+	else if (contentUIItem->GetHeight() + heightOffset > MaxHeight)
+	{
+		ListRoot->GetUIItem()->SetHeight(MaxHeight + heightOffset);
 	}
 }
 FUIDropdownOptionData UUIDropdownComponent::GetOption(int index)const
@@ -409,13 +415,13 @@ void UUIDropdownComponent::SetVerticalOverlap(bool newValue)
 }
 void UUIDropdownComponent::SetOptions(const TArray<FUIDropdownOptionData>& InOptions)
 {
-	NeedRecreate = true;
+	bNeedRecreate = true;
 	Options = InOptions;
 	ApplyValueToUI();
 }
 void UUIDropdownComponent::AddOptions(const TArray<FUIDropdownOptionData>& InOptions)
 {
-	NeedRecreate = true;
+	bNeedRecreate = true;
 	Options.SetNumUninitialized(Options.Num() + InOptions.Num());
 	for (int i = 0; i < InOptions.Num(); i++)
 	{
@@ -512,7 +518,7 @@ UUIDropdownItemComponent::UUIDropdownItemComponent()
 	Toggle = FLGUIComponentReference(UUIToggleComponent::StaticClass());
 }
 
-void UUIDropdownItemComponent::Init(const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelect)
+void UUIDropdownItemComponent::Init(int32 Index, const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelect)
 {
 	if (TextActor.IsValid())
 	{
@@ -539,9 +545,17 @@ void UUIDropdownItemComponent::SetSelectionState(const bool& InSelect)
 }
 bool UUIDropdownItemComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
-	
 	return false;
 }
+UUIToggleComponent* UUIDropdownItemComponent::GetToggle()const
+{
+	if (Toggle.IsValidComponentReference())
+	{
+		return Toggle.GetComponent<UUIToggleComponent>();
+	}
+	return nullptr;
+}
+
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
 #endif
