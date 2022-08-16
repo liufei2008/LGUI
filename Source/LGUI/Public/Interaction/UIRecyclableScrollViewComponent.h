@@ -148,10 +148,11 @@ public:
 	/**
 	 * RecyclableScrollView will create a cache list to store cell object, use data-index to get the cell that represent the data.
 	 * @param Index		data index
-	 * @return			The cell object which represent the data. could be null if there is no cell represent the data (not in render range)
+	 * @param OutResult			The cell object which represent the data. could be null if there is no cell represent the data (not in render range)
+	 * @return true if have valid result, false otherwise
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		FUIRecyclableScrollViewCellContainer GetCellItemByDataIndex(int Index)const;
+		bool GetCellItemByDataIndex(int Index, FUIRecyclableScrollViewCellContainer& OutResult)const;
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-RecyclableScrollView", AdvancedDisplay)
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;

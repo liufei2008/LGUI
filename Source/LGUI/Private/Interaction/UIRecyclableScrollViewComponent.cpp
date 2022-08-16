@@ -127,16 +127,20 @@ void UUIRecyclableScrollViewComponent::SetSpace(const FVector2D& value)
     }
 }
 
-FUIRecyclableScrollViewCellContainer UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index)const
+bool UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index, FUIRecyclableScrollViewCellContainer& OutResult)const
 {
     auto MaxCellIndexInData = FMath::Min(Index + CacheCellList.Num() - 1, DataItemCount - 1);
     if (Index < MinCellIndexInData || Index > MaxCellIndexInData)
     {
-        return FUIRecyclableScrollViewCellContainer();
+        return false;
     }
     else
     {
         auto CellIndexOffset = Index - MinCellIndexInData;
+        if (CellIndexOffset >= CacheCellList.Num())
+        {
+            return false;
+        }
         auto CellIndex = MinCellIndexInCacheCellList + CellIndexOffset;
         if (CellIndex >= CacheCellList.Num())
         {
@@ -144,13 +148,14 @@ FUIRecyclableScrollViewCellContainer UUIRecyclableScrollViewComponent::GetCellIt
         }
         if (CacheCellList.IsValidIndex(CellIndex))
         {
-            return CacheCellList[CellIndex];
+            OutResult = CacheCellList[CellIndex];
+            return true;
         }
         else
         {
-            UE_LOG(LGUI, Error, TEXT("[UUIRecyclableScrollViewComponent::GetCellItemByDataIndex] Wrong cell index"));
+            UE_LOG(LGUI, Error, TEXT("[UUIRecyclableScrollViewComponent::GetCellItemByDataIndex] Wrong cell index. Index:%d, CellIndexOffset:%d, CellIndex:%d"), Index, CellIndexOffset, CellIndex);
             ensure(false);
-            return FUIRecyclableScrollViewCellContainer();
+            return false;
         }
     }
 }
