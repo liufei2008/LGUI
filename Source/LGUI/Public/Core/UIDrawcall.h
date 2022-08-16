@@ -74,7 +74,7 @@ public:
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 
-	TWeakObjectPtr<ULGUICanvas> ChildCanvas;//insert point to sort child canvas
+	TWeakObjectPtr<class ULGUICanvas> ChildCanvas;//insert point to sort child canvas
 public:
 	void GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
