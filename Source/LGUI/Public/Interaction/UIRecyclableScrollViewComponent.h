@@ -119,6 +119,8 @@ public:
 		const FMargin& GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const FVector2D& GetSpace()const { return Space; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		AUIBaseActor* GetCellTemplate()const { return CellTemplate.Get(); }
 
 	/**
 	 * Delete all created cell objects.
@@ -140,6 +142,12 @@ public:
 		void SetPadding(const FMargin& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetSpace(const FVector2D& value);
+	/**
+	 * CellTemplate must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
+	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void SetCellTemplate(AUIBaseActor* value) { CellTemplate = value; }
 
 	/** Recreate cells. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
