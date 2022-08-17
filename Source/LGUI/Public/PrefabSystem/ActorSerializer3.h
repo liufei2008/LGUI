@@ -188,13 +188,6 @@ namespace LGUIPrefabSystem3
 			FGuid SceneComponentParentGuid;
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
-		
-		struct ActorReparentDataStruct
-		{
-			AActor* Actor = nullptr;
-			AActor* ParentActor = nullptr;
-		};
-		TArray<ActorReparentDataStruct> ActorReparentArray;
 
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 

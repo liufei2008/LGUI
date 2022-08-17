@@ -159,15 +159,6 @@ namespace LGUIPrefabSystem5
 		Time = FDateTime::Now();
 #endif
 
-		//reparent actor
-		for (auto ActorData : ActorReparentArray)
-		{
-			if (ActorData.Actor != nullptr && ActorData.ParentActor != nullptr)
-			{
-				ActorData.Actor->AttachToActor(ActorData.ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
-			}
-		}
-
 		//register component
 		for (auto CompData : CreatedComponents)
 		{
@@ -590,14 +581,14 @@ namespace LGUIPrefabSystem5
 					{
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -605,7 +596,7 @@ namespace LGUIPrefabSystem5
 					case ELGUIPrefabVersion::ObjectName:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, OnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -622,11 +613,6 @@ namespace LGUIPrefabSystem5
 					
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
-
-					ActorReparentDataStruct DataStruct;
-					DataStruct.Actor = SubPrefabRootActor;
-					DataStruct.ParentActor = ParentActor;
-					ActorReparentArray.Add(DataStruct);
 				}
 			}
 		}
@@ -723,10 +709,7 @@ namespace LGUIPrefabSystem5
 				CreatedActorsGuid.Add(InActorData.ObjectGuid);
 				ActorIndexInPrefab++;
 
-				ActorReparentDataStruct DataStruct;
-				DataStruct.Actor = NewActor;
-				DataStruct.ParentActor = ParentActor;
-				ActorReparentArray.Add(DataStruct);
+				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{

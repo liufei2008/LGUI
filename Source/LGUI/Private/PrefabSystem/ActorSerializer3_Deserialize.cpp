@@ -140,15 +140,6 @@ namespace LGUIPrefabSystem3
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
 
-		//reparent actor
-		for (auto ActorData : ActorReparentArray)
-		{
-			if (ActorData.Actor != nullptr && ActorData.ParentActor != nullptr)
-			{
-				ActorData.Actor->AttachToActor(ActorData.ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
-			}
-		}
-
 		//register component
 		for (auto CompData : CreatedComponents)
 		{
@@ -472,7 +463,7 @@ namespace LGUIPrefabSystem3
 							SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
 						}
 					}
-					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr
+					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
 						, LoadedRootActor
 						, this->ActorIndexInPrefab
 						, SubMapGuidToObject
@@ -519,11 +510,6 @@ namespace LGUIPrefabSystem3
 					);
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
-					
-					ActorReparentDataStruct DataStruct;
-					DataStruct.Actor = SubPrefabRootActor;
-					DataStruct.ParentActor = ParentActor;
-					ActorReparentArray.Add(DataStruct);
 				}
 			}
 		}
@@ -609,10 +595,7 @@ namespace LGUIPrefabSystem3
 				CreatedActorsGuid.Add(InActorData.ActorGuid);
 				ActorIndexInPrefab++;
 
-				ActorReparentDataStruct DataStruct;
-				DataStruct.Actor = NewActor;
-				DataStruct.ParentActor = ParentActor;
-				ActorReparentArray.Add(DataStruct);
+				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
