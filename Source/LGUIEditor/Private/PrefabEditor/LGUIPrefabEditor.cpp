@@ -471,7 +471,12 @@ void FLGUIPrefabEditor::OnApply()
 			}
 			if (auto Canvas = RootAgentActor->FindComponentByClass<ULGUICanvas>())
 			{
+				PrefabBeingEdited->PrefabDataForPrefabEditor.bNeedCanvas = true;
 				PrefabBeingEdited->PrefabDataForPrefabEditor.CanvasRenderMode = (uint8)Canvas->GetRenderMode();
+			}
+			else
+			{
+				PrefabBeingEdited->PrefabDataForPrefabEditor.bNeedCanvas = false;
 			}
 		}
 
