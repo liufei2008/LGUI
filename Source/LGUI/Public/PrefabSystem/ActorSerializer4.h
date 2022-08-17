@@ -188,13 +188,6 @@ namespace LGUIPrefabSystem4
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		struct ActorReparentDataStruct
-		{
-			AActor* Actor = nullptr;
-			AActor* ParentActor = nullptr;
-		};
-		TArray<ActorReparentDataStruct> ActorReparentArray;
-
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 
 		TArray<AActor*> CreatedActors;//collect for created actors
