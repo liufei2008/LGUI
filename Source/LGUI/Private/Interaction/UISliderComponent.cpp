@@ -92,8 +92,7 @@ void UUISliderComponent::SetValue(float InValue, bool FireEvent)
         ApplyValueToUI();
         if (FireEvent)
         {
-            if (OnValueChangeCPP.IsBound())
-                OnValueChangeCPP.Broadcast(Value);
+            OnValueChangeCPP.Broadcast(Value);
             OnValueChange.FireEvent(Value);
         }
     }
@@ -115,8 +114,7 @@ void UUISliderComponent::SetMinValue(float InMinValue, bool KeepRelativeValue, b
         ApplyValueToUI();
 		if (FireEvent)
 		{
-			if (OnValueChangeCPP.IsBound())
-				OnValueChangeCPP.Broadcast(Value);
+			OnValueChangeCPP.Broadcast(Value);
 			OnValueChange.FireEvent(Value);
 		}
     }
@@ -138,8 +136,7 @@ void UUISliderComponent::SetMaxValue(float InMaxValue, bool KeepRelativeValue, b
 		ApplyValueToUI();
 		if (FireEvent)
 		{
-			if (OnValueChangeCPP.IsBound())
-				OnValueChangeCPP.Broadcast(Value);
+			OnValueChangeCPP.Broadcast(Value);
 			OnValueChange.FireEvent(Value);
 		}
 	}
@@ -161,8 +158,7 @@ void UUISliderComponent::UnregisterSlideEvent(const FDelegateHandle &InHandle)
 FLGUIDelegateHandleWrapper UUISliderComponent::RegisterSlideEvent(const FLGUISliderDynamicDelegate &InDelegate)
 {
     auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float InValue) {
-        if (InDelegate.IsBound())
-            InDelegate.Execute(InValue);
+        InDelegate.ExecuteIfBound(InValue);
     });
     return FLGUIDelegateHandleWrapper(delegateHandle);
 }
