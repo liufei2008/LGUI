@@ -54,6 +54,21 @@ void UUIRecyclableScrollViewComponent::PostEditChangeProperty(FPropertyChangedEv
 }
 #endif
 
+void UUIRecyclableScrollViewComponent::GetUserFriendlyCacheCellList(TArray<FUIRecyclableScrollViewCellContainer>& OutResult)const
+{
+    OutResult.SetNumUninitialized(CacheCellList.Num());
+    int IndexInSource = MinCellIndexInCacheCellList;
+    for (int i = 0; i < CacheCellList.Num(); i++)
+    {
+        if (IndexInSource >= CacheCellList.Num())
+        {
+            IndexInSource -= CacheCellList.Num();
+        }
+        OutResult[i] = CacheCellList[IndexInSource];
+        IndexInSource++;
+    }
+}
+
 void UUIRecyclableScrollViewComponent::ClearAllCells()
 {
     for (auto& Item : CacheCellList)
