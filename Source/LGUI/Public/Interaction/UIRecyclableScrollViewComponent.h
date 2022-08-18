@@ -112,9 +112,15 @@ public:
 		int GetRows()const { return Rows; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		int GetColumns()const { return Columns; }
-	/** Get all created cell object array. */
+	/**
+	 * Get all created cell object array. Note this just directly return cell list, which is not in user-friendly order (first one may not at the left-top position).
+	 * Use "GetUserFriendlyCacheCellList" can get the cell list in good order.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const TArray<FUIRecyclableScrollViewCellContainer>& GetCacheCellList()const { return CacheCellList; }
+	/** Get all created cell object array, with user-friendly order (left-top is the first one, and right-bottom is last). */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void GetUserFriendlyCacheCellList(TArray<FUIRecyclableScrollViewCellContainer>& OutResult)const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const FMargin& GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
