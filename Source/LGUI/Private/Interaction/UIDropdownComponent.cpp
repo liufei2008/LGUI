@@ -386,7 +386,7 @@ void UUIDropdownComponent::SetValue(int newValue, bool fireEvent)
 		Value = newValue;
 		if (fireEvent)
 		{
-			if (OnSelectionChangeCPP.IsBound())OnSelectionChangeCPP.Broadcast(Value);
+			OnSelectionChangeCPP.Broadcast(Value);
 			OnSelectionChange.FireEvent(Value);
 		}
 		ApplyValueToUI();
@@ -490,7 +490,7 @@ void UUIDropdownComponent::UnregisterSelectionChangeEvent(const FDelegateHandle&
 FLGUIDelegateHandleWrapper UUIDropdownComponent::RegisterSelectionChangeEvent(const FUIDropdownComponentDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnSelectionChangeCPP.AddLambda([InDelegate](int InSelection) {
-		if (InDelegate.IsBound()) InDelegate.Execute(InSelection);
+		InDelegate.ExecuteIfBound(InSelection);
 		});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
@@ -531,9 +531,15 @@ void UUIDropdownItemComponent::Init(int32 Index, const FUIDropdownOptionData& Da
 	if (Toggle.IsValidComponentReference())
 	{
 		auto toggleComp = Toggle.GetComponent<UUIToggleComponent>();
-		toggleComp->RegisterToggleEvent([OnSelect, toggleComp](bool select){
+		toggleComp->RegisterToggleEvent([OnSelect](bool select){
 			OnSelect();
 		});
+	}
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		OnSelectDynamic.BindDynamic(this, &UUIDropdownItemComponent::DynamicDelegate_OnSelect);
+		OnSelectCPP.BindLambda(OnSelect);
+		ReceiveInit(Index, Data, OnSelectDynamic);
 	}
 }
 void UUIDropdownItemComponent::SetSelectionState(const bool& InSelect)
@@ -541,6 +547,10 @@ void UUIDropdownItemComponent::SetSelectionState(const bool& InSelect)
 	if (Toggle.IsValidComponentReference())
 	{
 		Toggle.GetComponent<UUIToggleComponent>()->SetValue(InSelect, false);
+	}
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveSetSelectionState(InSelect);
 	}
 }
 bool UUIDropdownItemComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)

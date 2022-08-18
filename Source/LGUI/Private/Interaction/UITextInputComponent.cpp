@@ -231,7 +231,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 		else//single line mode, enter means submit
 		{
-			if (OnSubmitCPP.IsBound())OnSubmitCPP.Broadcast(Text);
+			OnSubmitCPP.Broadcast(Text);
 			OnSubmit.FireEvent(Text);
 			DeactivateInput();
 			return;
@@ -1059,7 +1059,7 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 
 void UUITextInputComponent::FireOnValueChangeEvent()
 {
-	if (OnValueChangeCPP.IsBound())OnValueChangeCPP.Broadcast(Text);
+	OnValueChangeCPP.Broadcast(Text);
 	OnValueChange.FireEvent(Text);
 }
 void UUITextInputComponent::UpdateUITextComponent()
@@ -1587,7 +1587,7 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 		}
 	}
 	//fire event
-	if (OnInputActivateCPP.IsBound())OnInputActivateCPP.Broadcast(bInputActive);
+	OnInputActivateCPP.Broadcast(bInputActive);
 	OnInputActivate.FireEvent(bInputActive);
 }
 
@@ -1760,7 +1760,7 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 	//fire event
 	if (InFireEvent)
 	{
-		if (OnInputActivateCPP.IsBound())OnInputActivateCPP.Broadcast(bInputActive);
+		OnInputActivateCPP.Broadcast(bInputActive);
 		OnInputActivate.FireEvent(bInputActive);
 	}
 }
@@ -1816,7 +1816,7 @@ void UUITextInputComponent::UnregisterValueChangeEvent(const FDelegateHandle& In
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterValueChangeEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString InText) {
-		if (InDelegate.IsBound())InDelegate.Execute(InText);
+		InDelegate.ExecuteIfBound(InText);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
@@ -1840,7 +1840,7 @@ void UUITextInputComponent::UnregisterSubmitEvent(const FDelegateHandle& InHandl
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnSubmitCPP.AddLambda([InDelegate](FString InText) {
-		if (InDelegate.IsBound())InDelegate.Execute(InText);
+		InDelegate.ExecuteIfBound(InText);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
@@ -1864,7 +1864,7 @@ void UUITextInputComponent::UnregisterInputActivateEvent(const FDelegateHandle& 
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterInputActivateEvent(const FLGUIInputActivateDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnInputActivateCPP.AddLambda([InDelegate](bool activate) {
-		if (InDelegate.IsBound())InDelegate.Execute(activate);
+		InDelegate.ExecuteIfBound(activate);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }

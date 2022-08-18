@@ -153,73 +153,73 @@ void UUIEventTriggerComponent::UnregisterOnPointerDeselect(const FDelegateHandle
 bool UUIEventTriggerComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerEnter.FireEvent(eventData);
-	if (OnPointerEnterCPP.IsBound())OnPointerEnterCPP.Broadcast(eventData);
+	OnPointerEnterCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerExit.FireEvent(eventData);
-	if (OnPointerExitCPP.IsBound())OnPointerExitCPP.Broadcast(eventData);
+	OnPointerExitCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerDown.FireEvent(eventData);
-	if (OnPointerDownCPP.IsBound())OnPointerDownCPP.Broadcast(eventData);
+	OnPointerDownCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerUp.FireEvent(eventData);
-	if (OnPointerUpCPP.IsBound())OnPointerUpCPP.Broadcast(eventData);
+	OnPointerUpCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerClick.FireEvent(eventData);
-	if (OnPointerClickCPP.IsBound())OnPointerClickCPP.Broadcast(eventData);
+	OnPointerClickCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerBeginDrag.FireEvent(eventData);
-	if (OnPointerBeginDragCPP.IsBound())OnPointerBeginDragCPP.Broadcast(eventData);
+	OnPointerBeginDragCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerDrag.FireEvent(eventData);
-	if (OnPointerDragCPP.IsBound())OnPointerDragCPP.Broadcast(eventData);
+	OnPointerDragCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerEndDrag.FireEvent(eventData);
-	if (OnPointerEndDragCPP.IsBound())OnPointerEndDragCPP.Broadcast(eventData);
+	OnPointerEndDragCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerDragDrop.FireEvent(eventData);
-	if (OnPointerDragDropCPP.IsBound())OnPointerDragDropCPP.Broadcast(eventData);
+	OnPointerDragDropCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
 	OnPointerScroll.FireEvent(eventData);
-	if (OnPointerScrollCPP.IsBound())OnPointerScrollCPP.Broadcast(eventData);
+	OnPointerScrollCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
 	OnPointerSelect.FireEvent(eventData);
-	if (OnPointerSelectCPP.IsBound())OnPointerSelectCPP.Broadcast(eventData);
+	OnPointerSelectCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
 	OnPointerDeselect.FireEvent(eventData);
-	if (OnPointerDeselectCPP.IsBound())OnPointerDeselectCPP.Broadcast(eventData);
+	OnPointerDeselectCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 
