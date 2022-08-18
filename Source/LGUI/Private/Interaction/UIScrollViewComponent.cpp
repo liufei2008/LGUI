@@ -606,8 +606,7 @@ void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
     }
     if (InFireEvent)
     {
-        if (OnScrollCPP.IsBound())
-            OnScrollCPP.Broadcast(Progress);
+        OnScrollCPP.Broadcast(Progress);
         OnScroll.FireEvent(Progress);
     }
 }
@@ -704,8 +703,7 @@ void UUIScrollViewComponent::UnregisterScrollEvent(const FDelegateHandle &InHand
 FLGUIDelegateHandleWrapper UUIScrollViewComponent::RegisterScrollEvent(const FLGUIScrollViewDynamicDelegate &InDelegate)
 {
     auto delegateHandle = OnScrollCPP.AddLambda([InDelegate](FVector2D InProgress) {
-        if (InDelegate.IsBound())
-            InDelegate.Execute(InProgress);
+        InDelegate.ExecuteIfBound(InProgress);
     });
     return FLGUIDelegateHandleWrapper(delegateHandle);
 }

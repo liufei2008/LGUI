@@ -70,8 +70,7 @@ void UUIScrollbarComponent::SetValue(float InValue, bool FireEvent)
         ApplyValueToUI();
         if (FireEvent)
         {
-            if (OnValueChangeCPP.IsBound())
-                OnValueChangeCPP.Broadcast(Value);
+            OnValueChangeCPP.Broadcast(Value);
             OnValueChange.FireEvent((double)Value);
         }
     }
@@ -105,8 +104,7 @@ void UUIScrollbarComponent::SetValueAndSize(float InValue, float InSize, bool Fi
         ApplyValueToUI();
         if (FireEvent)
         {
-            if (OnValueChangeCPP.IsBound())
-                OnValueChangeCPP.Broadcast(Value);
+            OnValueChangeCPP.Broadcast(Value);
             OnValueChange.FireEvent((double)Value);
         }
     }
@@ -127,8 +125,7 @@ void UUIScrollbarComponent::UnregisterSlideEvent(const FDelegateHandle &InHandle
 FLGUIDelegateHandleWrapper UUIScrollbarComponent::RegisterSlideEvent(const FLGUIScrollbarDynamicDelegate &InDelegate)
 {
     auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float InValue) {
-        if (InDelegate.IsBound())
-            InDelegate.Execute(InValue);
+        InDelegate.ExecuteIfBound(InValue);
     });
     return FLGUIDelegateHandleWrapper(delegateHandle);
 }

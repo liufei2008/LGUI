@@ -161,9 +161,10 @@ public:
 };
 
 
+DECLARE_DYNAMIC_DELEGATE(FUIDropdownItem_OnSelect);
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIDropdownItemComponent : public UActorComponent, public ILGUIPointerClickInterface
+class LGUI_API UUIDropdownItemComponent : public ULGUILifeCycleBehaviour, public ILGUIPointerClickInterface
 {
 	GENERATED_BODY()
 
@@ -178,8 +179,35 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		FLGUIComponentReference Toggle;
 
+private:
+	FSimpleDelegate OnSelectCPP;
+	UPROPERTY()FUIDropdownItem_OnSelect OnSelectDynamic;
+	UFUNCTION()void DynamicDelegate_OnSelect() { OnSelectCPP.ExecuteIfBound(); }
+protected:
+	/**
+	 * Called by UIDropdownComponent when create a item. Use this to initialize.
+	 * @param Index Item's index.
+	 * @param Data Item's data.
+	 * @param OnSelectCallback Callback function that need to be executed by user, when select this item.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI-Dropdown")void ReceiveInit(int32 Index, const FUIDropdownOptionData& Data, const FUIDropdownItem_OnSelect& OnSelectCallback);
+	/**
+	 * Set this item's selection state.
+	 * When select other item, then need to de-select this one.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SetSelectionState"), Category = "LGUI-Dropdown")void ReceiveSetSelectionState(bool InSelect);
 public:
-	virtual void Init(int32 Index, const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelect);
+	/**
+	 * Called by UIDropdownComponent when create a item. Use this to initialize.
+	 * @param Index Item's index.
+	 * @param Data Item's data.
+	 * @param OnSelectCallback Callback function that need to be executed by user, when select this item.
+	 */
+	virtual void Init(int32 Index, const FUIDropdownOptionData& Data, const TFunction<void()>& OnSelectCallback);
+	/**
+	 * Set this item's selection state.
+	 * When select other item, then need to de-select this one.
+	 */
 	virtual void SetSelectionState(const bool& InSelect);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 

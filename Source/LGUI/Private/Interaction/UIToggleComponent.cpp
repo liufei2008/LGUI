@@ -85,7 +85,7 @@ void UUIToggleComponent::SetValue(bool newValue, bool fireEvent)
 		}
 		if (fireEvent)
 		{
-			if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(IsOn);
+			OnToggleCPP.Broadcast(IsOn);
 			OnToggle.FireEvent(IsOn);
 		}
 
@@ -179,7 +179,7 @@ void UUIToggleComponent::UnregisterToggleEvent(const FDelegateHandle& InHandle)
 FLGUIDelegateHandleWrapper UUIToggleComponent::RegisterToggleEvent(const FLGUIToggleDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnToggleCPP.AddLambda([InDelegate](bool InIsOn) {
-		if (InDelegate.IsBound())InDelegate.Execute(InIsOn);
+		InDelegate.ExecuteIfBound(InIsOn);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }

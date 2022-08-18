@@ -53,7 +53,7 @@ void UUIToggleGroupComponent::SetSelection(UUIToggleComponent* Target)
 			TempSelected->SetValue(false);
 		}
 		int index = GetToggleIndex(Target);
-		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(index);
+		OnToggleCPP.Broadcast(index);
 		OnToggle.FireEvent(index);
 	}
 }
@@ -64,7 +64,7 @@ void UUIToggleGroupComponent::ClearSelection()
 		LastSelect->SetValue(false);
 		LastSelect.Reset();
 
-		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(-1);
+		OnToggleCPP.Broadcast(-1);
 		OnToggle.FireEvent(-1);
 	}
 }
@@ -89,7 +89,7 @@ void UUIToggleGroupComponent::UnregisterToggleEvent(const FDelegateHandle& InHan
 FLGUIDelegateHandleWrapper UUIToggleGroupComponent::RegisterToggleEvent(const FLGUIToggleGroupDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnToggleCPP.AddLambda([InDelegate, this](int32 Value) {
-		if (InDelegate.IsBound())InDelegate.Execute(Value);
+		InDelegate.ExecuteIfBound(Value);
 		});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
