@@ -135,7 +135,7 @@ namespace LGUIPrefabSystem3
 
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
+		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
@@ -435,7 +435,7 @@ namespace LGUIPrefabSystem3
 		}
 	}
 
-	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, AActor* ParentActor)
+	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent)
 	{
 		if (InActorData.bIsPrefab)
 		{
@@ -463,7 +463,7 @@ namespace LGUIPrefabSystem3
 							SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
 						}
 					}
-					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
+					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent
 						, LoadedRootActor
 						, this->ActorIndexInPrefab
 						, SubMapGuidToObject
@@ -582,11 +582,11 @@ namespace LGUIPrefabSystem3
 				CreatedActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
-				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
+				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor);
+					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent());
 				}
 			}
 			else

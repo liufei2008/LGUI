@@ -146,7 +146,7 @@ namespace LGUIPrefabSystem5
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
-		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
+		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
@@ -506,7 +506,7 @@ namespace LGUIPrefabSystem5
 		}
 	}
 
-	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, AActor* ParentActor)
+	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent)
 	{
 		if (InActorData.bIsPrefab)
 		{
@@ -569,14 +569,14 @@ namespace LGUIPrefabSystem5
 					{
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -584,7 +584,7 @@ namespace LGUIPrefabSystem5
 					case ELGUIPrefabVersion::ObjectName:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -696,11 +696,11 @@ namespace LGUIPrefabSystem5
 				CreatedActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
-				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
+				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor);
+					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent());
 				}
 			}
 			else
