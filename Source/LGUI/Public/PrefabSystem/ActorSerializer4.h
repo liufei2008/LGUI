@@ -215,7 +215,7 @@ namespace LGUIPrefabSystem4
 
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 
-		TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> CallbackBeforeAwakeForSubPrefab = nullptr;
+		TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
 
 		/**
 		 * Writer and Reader for serialize or deserialize
