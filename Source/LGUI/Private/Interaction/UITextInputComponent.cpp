@@ -104,7 +104,7 @@ bool UUITextInputComponent::CheckPlayerController()
 	if (PlayerController != nullptr)return true;
 	return false;
 }
-void UUITextInputComponent::AnyKeyPressed()
+void UUITextInputComponent::AnyKeyPressed(FKey Key)
 {
 	if (bInputActive == false)return;
 	if (!CheckPlayerController())return;
@@ -118,7 +118,7 @@ void UUITextInputComponent::AnyKeyPressed()
 	bool shiftOnly = !ctrl && !alt && shift;
 
 	//Function key
-	if (PlayerController->IsInputKeyDown(EKeys::BackSpace))
+	if (Key == EKeys::BackSpace)
 	{
 		if (IsValidString(BackSpaceResultString()))
 		{
@@ -126,7 +126,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Delete))
+	else if (Key == EKeys::Delete)
 	{
 		if (IsValidString(ForwardSpaceResultString()))
 		{
@@ -134,18 +134,18 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Home))
+	else if (Key == EKeys::Home)
 	{
 		MoveToStart();
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::End))
+	else if (Key == EKeys::End)
 	{
 		MoveToEnd();
 		return;
 	}
 	//Select all
-	else if (PlayerController->IsInputKeyDown(EKeys::A))
+	else if (Key == EKeys::A)
 	{
 		if (ctrlOnly)
 		{
@@ -154,7 +154,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//Copy
-	else if (PlayerController->IsInputKeyDown(EKeys::C))
+	else if (Key == EKeys::C)
 	{
 		if (ctrlOnly)
 		{
@@ -163,7 +163,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//Paste
-	else if (PlayerController->IsInputKeyDown(EKeys::V))
+	else if (Key == EKeys::V)
 	{
 		if (ctrlOnly)
 		{
@@ -175,7 +175,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//Cut
-	else if (PlayerController->IsInputKeyDown(EKeys::X))
+	else if (Key == EKeys::X)
 	{
 		if (ctrlOnly)
 		{
@@ -190,7 +190,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//Arrows
-	else if (PlayerController->IsInputKeyDown(EKeys::Left))
+	else if (Key == EKeys::Left)
 	{
 		if (shiftOnly)
 			MoveLeft(true);
@@ -198,7 +198,7 @@ void UUITextInputComponent::AnyKeyPressed()
 			MoveLeft(false);
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Right))
+	else if (Key == EKeys::Right)
 	{
 		if (shiftOnly)
 			MoveRight(true);
@@ -206,7 +206,7 @@ void UUITextInputComponent::AnyKeyPressed()
 			MoveRight(false);
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Up))
+	else if (Key == EKeys::Up)
 	{
 		if (shiftOnly)
 			MoveUp(true);
@@ -214,7 +214,7 @@ void UUITextInputComponent::AnyKeyPressed()
 			MoveUp(false);
 		return;
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Down))
+	else if (Key == EKeys::Down)
 	{
 		if (shiftOnly)
 			MoveDown(true);
@@ -223,7 +223,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		return;
 	}
 	//Submit
-	else if (PlayerController->IsInputKeyDown(EKeys::Enter))
+	else if (Key == EKeys::Enter)
 	{
 		if (bAllowMultiLine)//if multiline mode, enter means new line
 		{
@@ -238,13 +238,13 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//Cancel
-	else if (PlayerController->IsInputKeyDown(EKeys::Escape))
+	else if (Key == EKeys::Escape)
 	{
 		return;
 	}
 
 	//space
-	else if (PlayerController->IsInputKeyDown(EKeys::SpaceBar))
+	else if (Key == EKeys::SpaceBar)
 	{
 		inputChar = ' ';
 	}
@@ -266,144 +266,144 @@ void UUITextInputComponent::AnyKeyPressed()
 		}
 	}
 	//input char
-	if (PlayerController->IsInputKeyDown(EKeys::A))
+	if (Key == EKeys::A)
 		inputChar = upperCase ? 'A' : 'a';
-	else if (PlayerController->IsInputKeyDown(EKeys::B))
+	else if (Key == EKeys::B)
 		inputChar = upperCase ? 'B' : 'b';
-	else if (PlayerController->IsInputKeyDown(EKeys::C))
+	else if (Key == EKeys::C)
 		inputChar = upperCase ? 'C' : 'c';
-	else if (PlayerController->IsInputKeyDown(EKeys::D))
+	else if (Key == EKeys::D)
 		inputChar = upperCase ? 'D' : 'd';
-	else if (PlayerController->IsInputKeyDown(EKeys::E))
+	else if (Key == EKeys::E)
 		inputChar = upperCase ? 'E' : 'e';
-	else if (PlayerController->IsInputKeyDown(EKeys::F))
+	else if (Key == EKeys::F)
 		inputChar = upperCase ? 'F' : 'f';
-	else if (PlayerController->IsInputKeyDown(EKeys::G))
+	else if (Key == EKeys::G)
 		inputChar = upperCase ? 'G' : 'g';
-	else if (PlayerController->IsInputKeyDown(EKeys::H))
+	else if (Key == EKeys::H)
 		inputChar = upperCase ? 'H' : 'h';
-	else if (PlayerController->IsInputKeyDown(EKeys::I))
+	else if (Key == EKeys::I)
 		inputChar = upperCase ? 'I' : 'i';
-	else if (PlayerController->IsInputKeyDown(EKeys::J))
+	else if (Key == EKeys::J)
 		inputChar = upperCase ? 'J' : 'j';
-	else if (PlayerController->IsInputKeyDown(EKeys::K))
+	else if (Key == EKeys::K)
 		inputChar = upperCase ? 'K' : 'k';
-	else if (PlayerController->IsInputKeyDown(EKeys::L))
+	else if (Key == EKeys::L)
 		inputChar = upperCase ? 'L' : 'l';
-	else if (PlayerController->IsInputKeyDown(EKeys::M))
+	else if (Key == EKeys::M)
 		inputChar = upperCase ? 'M' : 'm';
-	else if (PlayerController->IsInputKeyDown(EKeys::N))
+	else if (Key == EKeys::N)
 		inputChar = upperCase ? 'N' : 'n';
-	else if (PlayerController->IsInputKeyDown(EKeys::O))
+	else if (Key == EKeys::O)
 		inputChar = upperCase ? 'O' : 'o';
-	else if (PlayerController->IsInputKeyDown(EKeys::P))
+	else if (Key == EKeys::P)
 		inputChar = upperCase ? 'P' : 'p';
-	else if (PlayerController->IsInputKeyDown(EKeys::Q))
+	else if (Key == EKeys::Q)
 		inputChar = upperCase ? 'Q' : 'q';
-	else if (PlayerController->IsInputKeyDown(EKeys::R))
+	else if (Key == EKeys::R)
 		inputChar = upperCase ? 'R' : 'r';
-	else if (PlayerController->IsInputKeyDown(EKeys::S))
+	else if (Key == EKeys::S)
 		inputChar = upperCase ? 'S' : 's';
-	else if (PlayerController->IsInputKeyDown(EKeys::T))
+	else if (Key == EKeys::T)
 		inputChar = upperCase ? 'T' : 't';
-	else if (PlayerController->IsInputKeyDown(EKeys::U))
+	else if (Key == EKeys::U)
 		inputChar = upperCase ? 'U' : 'u';
-	else if (PlayerController->IsInputKeyDown(EKeys::V))
+	else if (Key == EKeys::V)
 		inputChar = upperCase ? 'V' : 'v';
-	else if (PlayerController->IsInputKeyDown(EKeys::W))
+	else if (Key == EKeys::W)
 		inputChar = upperCase ? 'W' : 'w';
-	else if (PlayerController->IsInputKeyDown(EKeys::X))
+	else if (Key == EKeys::X)
 		inputChar = upperCase ? 'X' : 'x';
-	else if (PlayerController->IsInputKeyDown(EKeys::Y))
+	else if (Key == EKeys::Y)
 		inputChar = upperCase ? 'Y' : 'y';
-	else if (PlayerController->IsInputKeyDown(EKeys::Z))
+	else if (Key == EKeys::Z)
 		inputChar = upperCase ? 'Z' : 'z';
 
-	else if (PlayerController->IsInputKeyDown(EKeys::Tilde))
+	else if (Key == EKeys::Tilde)
 	{
 		if (shiftOnly)
 			inputChar = '~';
 		else
 			inputChar = '`';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::One))
+	else if (Key == EKeys::One)
 	{
 		if (shiftOnly)
 			inputChar = '!';
 		else
 			inputChar = '1';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Two))
+	else if (Key == EKeys::Two)
 	{
 		if (shiftOnly)
 			inputChar = '@';
 		else
 			inputChar = '2';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Three))
+	else if (Key == EKeys::Three)
 	{
 		if (shiftOnly)
 			inputChar = '#';
 		else
 			inputChar = '3';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Four))
+	else if (Key == EKeys::Four)
 	{
 		if (shiftOnly)
 			inputChar = '$';
 		else
 			inputChar = '4';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Five))
+	else if (Key == EKeys::Five)
 	{
 		if (shiftOnly)
 			inputChar = '%';
 		else
 			inputChar = '5';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Six))
+	else if (Key == EKeys::Six)
 	{
 		if (shiftOnly)
 			inputChar = '^';
 		else
 			inputChar = '6';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Seven))
+	else if (Key == EKeys::Seven)
 	{
 		if (shiftOnly)
 			inputChar = '&';
 		else
 			inputChar = '7';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Eight))
+	else if (Key == EKeys::Eight)
 	{
 		if (shiftOnly)
 			inputChar = '*';
 		else
 			inputChar = '8';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Nine))
+	else if (Key == EKeys::Nine)
 	{
 		if (shiftOnly)
 			inputChar = '(';
 		else
 			inputChar = '9';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Zero))
+	else if (Key == EKeys::Zero)
 	{
 		if (shiftOnly)
 			inputChar = ')';
 		else
 			inputChar = '0';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Hyphen))
+	else if (Key == EKeys::Hyphen)
 	{
 		if (shiftOnly)
 			inputChar = '_';
 		else
 			inputChar = '-';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Equals))
+	else if (Key == EKeys::Equals)
 	{
 		if (shiftOnly)
 			inputChar = '+';
@@ -411,88 +411,88 @@ void UUITextInputComponent::AnyKeyPressed()
 			inputChar = '=';
 	}
 
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadZero))
+	else if (Key == EKeys::NumPadZero)
 		inputChar = '0';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadOne))
+	else if (Key == EKeys::NumPadOne)
 		inputChar = '1';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadTwo))
+	else if (Key == EKeys::NumPadTwo)
 		inputChar = '2';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadThree))
+	else if (Key == EKeys::NumPadThree)
 		inputChar = '3';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadFour))
+	else if (Key == EKeys::NumPadFour)
 		inputChar = '4';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadFive))
+	else if (Key == EKeys::NumPadFive)
 		inputChar = '5';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadSix))
+	else if (Key == EKeys::NumPadSix)
 		inputChar = '6';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadSeven))
+	else if (Key == EKeys::NumPadSeven)
 		inputChar = '7';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadEight))
+	else if (Key == EKeys::NumPadEight)
 		inputChar = '8';
-	else if (PlayerController->IsInputKeyDown(EKeys::NumPadNine))
+	else if (Key == EKeys::NumPadNine)
 		inputChar = '9';
 
-	else if (PlayerController->IsInputKeyDown(EKeys::Multiply))
+	else if (Key == EKeys::Multiply)
 		inputChar = '*';
-	else if (PlayerController->IsInputKeyDown(EKeys::Add))
+	else if (Key == EKeys::Add)
 		inputChar = '+';
-	else if (PlayerController->IsInputKeyDown(EKeys::Subtract))
+	else if (Key == EKeys::Subtract)
 		inputChar = '-';
-	else if (PlayerController->IsInputKeyDown(EKeys::Decimal))
+	else if (Key == EKeys::Decimal)
 		inputChar = '.';
-	else if (PlayerController->IsInputKeyDown(EKeys::Divide))
+	else if (Key == EKeys::Divide)
 		inputChar = '/';
 
-	else if (PlayerController->IsInputKeyDown(EKeys::LeftBracket))
+	else if (Key == EKeys::LeftBracket)
 	{
 		if (shiftOnly)
 			inputChar = '{';
 		else
 			inputChar = '[';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::RightBracket))
+	else if (Key == EKeys::RightBracket)
 	{
 		if (shiftOnly)
 			inputChar = '}';
 		else
 			inputChar = ']';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Backslash))
+	else if (Key == EKeys::Backslash)
 	{
 		if (shiftOnly)
 			inputChar = '|';
 		else
 			inputChar = '\\';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Semicolon))
+	else if (Key == EKeys::Semicolon)
 	{
 		if (shiftOnly)
 			inputChar = ':';
 		else
 			inputChar = ';';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Apostrophe))
+	else if (Key == EKeys::Apostrophe)
 	{
 		if (shiftOnly)
 			inputChar = '\"';
 		else
 			inputChar = '\'';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Comma))
+	else if (Key == EKeys::Comma)
 	{
 		if (shiftOnly)
 			inputChar = '<';
 		else
 			inputChar = ',';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Period))
+	else if (Key == EKeys::Period)
 	{
 		if (shiftOnly)
 			inputChar = '>';
 		else
 			inputChar = '.';
 	}
-	else if (PlayerController->IsInputKeyDown(EKeys::Slash))
+	else if (Key == EKeys::Slash)
 	{
 		if (shiftOnly)
 			inputChar = '?';
@@ -506,10 +506,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		AppendChar(inputChar);
 	}
 }
-void UUITextInputComponent::AnyKeyReleased()
-{
-	//UE_LOG(LGUI, Log, TEXT("AnyKeyReleased"));
-}
+
 FString UUITextInputComponent::PasteResultString()
 {
 	auto TempText = Text;
@@ -1591,13 +1588,6 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 	OnInputActivate.FireEvent(bInputActive);
 }
 
-#define BINDKEY_IF_NOT_IGNORE(key)\
-if(!IgnoreKeys.Contains(key))\
-{\
-	inputComp->BindKey(key, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed); \
-	inputComp->BindKey(key, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);\
-}//register pressed and repeat
-
 void UUITextInputComponent::BindKeys()
 {
 	if (GetOwner()->InputComponent == nullptr)
@@ -1605,115 +1595,123 @@ void UUITextInputComponent::BindKeys()
 		GetOwner()->AutoReceiveInput = EAutoReceiveInput::Player0;
 		GetOwner()->PreInitializeComponents();
 	}
+
+	static TArray<FKey> AllKeys = {
+	EKeys::BackSpace,
+	EKeys::Tab,
+	EKeys::Enter,
+	EKeys::Pause,
+
+	EKeys::CapsLock,
+	EKeys::Escape,
+	EKeys::SpaceBar,
+	EKeys::PageUp,
+	EKeys::PageDown,
+	EKeys::End,
+	EKeys::Home,
+
+	EKeys::Left,
+	EKeys::Up,
+	EKeys::Right,
+	EKeys::Down,
+
+	EKeys::Insert,
+	EKeys::Delete,
+
+	EKeys::Zero,
+	EKeys::One,
+	EKeys::Two,
+	EKeys::Three,
+	EKeys::Four,
+	EKeys::Five,
+	EKeys::Six,
+	EKeys::Seven,
+	EKeys::Eight,
+	EKeys::Nine,
+
+	EKeys::A,
+	EKeys::B,
+	EKeys::C,
+	EKeys::D,
+	EKeys::E,
+	EKeys::F,
+	EKeys::G,
+	EKeys::H,
+	EKeys::I,
+	EKeys::J,
+	EKeys::K,
+	EKeys::L,
+	EKeys::M,
+	EKeys::N,
+	EKeys::O,
+	EKeys::P,
+	EKeys::Q,
+	EKeys::R,
+	EKeys::S,
+	EKeys::T,
+	EKeys::U,
+	EKeys::V,
+	EKeys::W,
+	EKeys::X,
+	EKeys::Y,
+	EKeys::Z,
+
+	EKeys::NumPadZero,
+	EKeys::NumPadOne,
+	EKeys::NumPadTwo,
+	EKeys::NumPadThree,
+	EKeys::NumPadFour,
+	EKeys::NumPadFive,
+	EKeys::NumPadSix,
+	EKeys::NumPadSeven,
+	EKeys::NumPadEight,
+	EKeys::NumPadNine,
+
+	EKeys::Multiply,
+	EKeys::Add,
+	EKeys::Subtract,
+	EKeys::Decimal,
+	EKeys::Divide,
+
+	EKeys::LeftShift,
+	EKeys::RightShift,
+	EKeys::LeftControl,
+	EKeys::RightControl,
+	EKeys::LeftAlt,
+	EKeys::RightAlt,
+	EKeys::LeftCommand,
+	EKeys::RightCommand,
+
+	EKeys::Semicolon,
+	EKeys::Equals,
+	EKeys::Comma,
+	EKeys::Underscore,
+	EKeys::Hyphen,
+	EKeys::Period,
+	EKeys::Slash,
+	EKeys::Tilde,
+	EKeys::LeftBracket,
+	EKeys::Backslash,
+	EKeys::RightBracket,
+	EKeys::Apostrophe,
+
+	EKeys::Ampersand,
+	EKeys::Asterix,
+	EKeys::Caret,
+	EKeys::Colon,
+	EKeys::Dollar,
+	EKeys::Exclamation,
+	EKeys::LeftParantheses,
+	EKeys::RightParantheses,
+	EKeys::Quote,
+	};
+
 	auto inputComp = GetOwner()->InputComponent;
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::BackSpace);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Tab);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Enter);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Pause);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::CapsLock);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Escape);
-	BINDKEY_IF_NOT_IGNORE(EKeys::SpaceBar);
-	BINDKEY_IF_NOT_IGNORE(EKeys::PageUp);
-	BINDKEY_IF_NOT_IGNORE(EKeys::PageDown);
-	BINDKEY_IF_NOT_IGNORE(EKeys::End);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Home);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Left);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Up);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Right);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Down);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Insert);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Delete);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Zero);
-	BINDKEY_IF_NOT_IGNORE(EKeys::One);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Two);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Three);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Four);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Five);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Six);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Seven);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Eight);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Nine);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::A);
-	BINDKEY_IF_NOT_IGNORE(EKeys::B);
-	BINDKEY_IF_NOT_IGNORE(EKeys::C);
-	BINDKEY_IF_NOT_IGNORE(EKeys::D);
-	BINDKEY_IF_NOT_IGNORE(EKeys::E);
-	BINDKEY_IF_NOT_IGNORE(EKeys::F);
-	BINDKEY_IF_NOT_IGNORE(EKeys::G);
-	BINDKEY_IF_NOT_IGNORE(EKeys::H);
-	BINDKEY_IF_NOT_IGNORE(EKeys::I);
-	BINDKEY_IF_NOT_IGNORE(EKeys::J);
-	BINDKEY_IF_NOT_IGNORE(EKeys::K);
-	BINDKEY_IF_NOT_IGNORE(EKeys::L);
-	BINDKEY_IF_NOT_IGNORE(EKeys::M);
-	BINDKEY_IF_NOT_IGNORE(EKeys::N);
-	BINDKEY_IF_NOT_IGNORE(EKeys::O);
-	BINDKEY_IF_NOT_IGNORE(EKeys::P);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Q);
-	BINDKEY_IF_NOT_IGNORE(EKeys::R);
-	BINDKEY_IF_NOT_IGNORE(EKeys::S);
-	BINDKEY_IF_NOT_IGNORE(EKeys::T);
-	BINDKEY_IF_NOT_IGNORE(EKeys::U);
-	BINDKEY_IF_NOT_IGNORE(EKeys::V);
-	BINDKEY_IF_NOT_IGNORE(EKeys::W);
-	BINDKEY_IF_NOT_IGNORE(EKeys::X);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Y);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Z);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadZero);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadOne);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadTwo);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadThree);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadFour);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadFive);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadSix);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadSeven);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadEight);
-	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadNine);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Multiply);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Add);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Subtract);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Decimal);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Divide);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftShift);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightShift);
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftControl);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightControl);
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftAlt);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightAlt);
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftCommand);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightCommand);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Semicolon);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Equals);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Comma);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Underscore);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Hyphen);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Period);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Slash);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Tilde);
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftBracket);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Backslash);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightBracket);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Apostrophe);
-
-	BINDKEY_IF_NOT_IGNORE(EKeys::Ampersand);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Asterix);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Caret);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Colon);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Dollar);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Exclamation);
-	BINDKEY_IF_NOT_IGNORE(EKeys::LeftParantheses);
-	BINDKEY_IF_NOT_IGNORE(EKeys::RightParantheses);
-	BINDKEY_IF_NOT_IGNORE(EKeys::Quote);
+	for (auto& Key : AllKeys)
+	{
+		inputComp->BindKey(Key, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
+		inputComp->BindKey(Key, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	}
 }
 void UUITextInputComponent::UnbindKeys()
 {
