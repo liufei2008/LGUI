@@ -132,7 +132,7 @@ namespace LGUIPrefabSystem5
 			LGUIPrefabSystem::FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
 			Reader.DoSerialize(InObject);
 		};
-		serializer.CallbackBeforeAwakeForSubPrefab = InOnSubPrefabFinishDeserializeFunction;
+		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutActorIndex = serializer.ActorIndexInPrefab;
 		return rootActor;
@@ -219,9 +219,9 @@ namespace LGUIPrefabSystem5
 			}
 		}
 
-		if (CallbackBeforeAwakeForSubPrefab != nullptr)
+		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			CallbackBeforeAwakeForSubPrefab(CreatedRootActor, MapGuidToObject);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -535,7 +535,7 @@ namespace LGUIPrefabSystem5
 						}
 					}
 
-					auto OnSubPrefabFinishDeserializeFunction =
+					auto NewOnSubPrefabFinishDeserializeFunction =
 						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
 						//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
 						for (auto& KeyValue : InSubMapGuidToObject)
@@ -561,20 +561,6 @@ namespace LGUIPrefabSystem5
 								MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
 							}
 						}
-
-						for (auto& RecordData : InActorData.ObjectOverrideParameterArray)
-						{
-							auto ObjectPtr = MapGuidToObject.Find(RecordData.ObjectGuid);
-							if (ObjectPtr != nullptr)
-							{
-								auto NameSet = RecordData.OverrideParameterNameSet;
-								WriterOrReaderFunctionForSubPrefab(*ObjectPtr, RecordData.OverrideParameterData, NameSet);
-								FLGUIPrefabOverrideParameterData OverrideDataItem;
-								OverrideDataItem.MemberPropertyName = NameSet;
-								OverrideDataItem.Object = *ObjectPtr;
-								SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
-							}
-						}
 					};
 #if WITH_EDITOR
 					switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
@@ -582,14 +568,14 @@ namespace LGUIPrefabSystem5
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
 						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, OnSubPrefabFinishDeserializeFunction
+							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, OnSubPrefabFinishDeserializeFunction
+						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
@@ -597,7 +583,7 @@ namespace LGUIPrefabSystem5
 					{
 #endif
 						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, OnSubPrefabFinishDeserializeFunction
+							, NewOnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
 					}
@@ -724,10 +710,29 @@ namespace LGUIPrefabSystem5
 	}
 	AActor* ActorSerializer::DeserializeActorRecursive(FLGUIActorSaveData& InActorData)
 	{
-		if (auto ObjectPtr = MapGuidToObject.Find(InActorData.ObjectGuid))
+		if (auto ActorPtr = MapGuidToObject.Find(InActorData.ObjectGuid))
 		{
-			auto NewActor = (AActor*)(*ObjectPtr);
-			if (!InActorData.bIsPrefab)//prefab data is stored in sub prefab and override
+			auto NewActor = (AActor*)(*ActorPtr);
+			if (InActorData.bIsPrefab)//prefab data is stored in sub prefab and override
+			{
+				if (auto SubPrefabDataPtr = SubPrefabMap.Find(NewActor))
+				{
+					for (auto& RecordData : InActorData.ObjectOverrideParameterArray)
+					{
+						auto ObjectPtr = MapGuidToObject.Find(RecordData.ObjectGuid);
+						if (ObjectPtr != nullptr)
+						{
+							auto NameSet = RecordData.OverrideParameterNameSet;
+							WriterOrReaderFunctionForSubPrefab(*ObjectPtr, RecordData.OverrideParameterData, NameSet);
+							FLGUIPrefabOverrideParameterData OverrideDataItem;
+							OverrideDataItem.MemberPropertyName = NameSet;
+							OverrideDataItem.Object = *ObjectPtr;
+							SubPrefabDataPtr->ObjectOverrideParameterArray.Add(OverrideDataItem);
+						}
+					}
+				}
+			}
+			else
 			{
 				WriterOrReaderFunction(NewActor, InActorData.PropertyData, false);
 			}
