@@ -676,14 +676,14 @@ void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
 {
 	if (Instance != nullptr)
 	{
-		Instance->AllActors_PrefabSystemProcessing.AddUnique(InActor);
+		Instance->AllActors_PrefabSystemProcessing.Add(InActor);
 	}
 }
 void ULGUIEditorManagerObject::RemoveActorForPrefabSystem(AActor* InActor)
 {
 	if (Instance != nullptr)
 	{
-		Instance->AllActors_PrefabSystemProcessing.RemoveSingle(InActor);
+		Instance->AllActors_PrefabSystemProcessing.Remove(InActor);
 	}
 }
 bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
