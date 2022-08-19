@@ -109,7 +109,7 @@ namespace LGUIPrefabSystem4
 		, AActor* InParentLoadedRootActor
 		, int32& InOutActorIndex
 		, TMap<FGuid, UObject*>& InMapGuidToObject
-		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
+		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
 	)
 	{
 		ActorSerializer serializer;
@@ -207,7 +207,7 @@ namespace LGUIPrefabSystem4
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, CreatedActors);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -217,12 +217,12 @@ namespace LGUIPrefabSystem4
 #if WITH_EDITOR
 		if (!TargetWorld->IsGameWorld())
 		{
-			for (auto item : CreatedActors)
-			{
-				ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
-			}
 			if (!bIsSubPrefab)
 			{
+				for (auto item : CreatedActors)
+				{
+					ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
+				}
 				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 				{
 					ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
@@ -232,12 +232,12 @@ namespace LGUIPrefabSystem4
 		else
 #endif
 		{
-			for (auto item : CreatedActors)
-			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
-			}
 			if (!bIsSubPrefab)
 			{
+				for (auto item : CreatedActors)
+				{
+					LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+				}
 				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 				{
 					LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
@@ -502,7 +502,7 @@ namespace LGUIPrefabSystem4
 					}
 
 					auto NewOnSubPrefabFinishDeserializeFunction =
-						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
+						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
 						//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
 						for (auto& KeyValue : InSubMapGuidToObject)
 						{
@@ -527,6 +527,8 @@ namespace LGUIPrefabSystem4
 								MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
 							}
 						}
+						//collect sub-prefab's actor to parent prefab
+						CreatedActors.Append(InSubCreatedActors);
 					};
 #if WITH_EDITOR
 					switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
@@ -641,7 +643,6 @@ namespace LGUIPrefabSystem4
 				}
 
 				CreatedActors.Add(NewActor);
-				CreatedActorsGuid.Add(InActorData.ObjectGuid);
 				ActorIndexInPrefab++;
 
 				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);

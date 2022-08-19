@@ -268,7 +268,7 @@ namespace LGUIPrefabSystem5
 			, AActor* InParentRootActor
 			, int32& InOutActorIndex
 			, TMap<FGuid, UObject*>& InMapGuidToObject
-			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
+			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
 		);
 
 	private:
@@ -285,7 +285,6 @@ namespace LGUIPrefabSystem5
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 
 		TArray<AActor*> CreatedActors;//collect for created actors
-		TArray<FGuid> CreatedActorsGuid;//collect for created actor's guid
 
 		void CollectActorRecursive(AActor* Actor);
 
@@ -311,7 +310,12 @@ namespace LGUIPrefabSystem5
 
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 
-		TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
+		/**
+		 * @param	AActor*		SubPrefab's root actor
+		 * @param	const TMap<FGuid, UObject*>&	SubPrefab's map guid to all object
+		 * @param	const TArray<AActor*>&		SubPrefab's all created actor
+		 */
+		TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
 
 		/**
 		 * Writer and Reader for serialize or deserialize
