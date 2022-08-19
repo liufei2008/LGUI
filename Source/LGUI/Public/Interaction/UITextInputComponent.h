@@ -135,7 +135,8 @@ public:
 private:
 	void BindKeys();
 	void UnbindKeys();
-	void AnyKeyPressed(FKey key);
+	void AnyKeyPressed();
+	void AnyKeyReleased();
 	bool IsValidChar(char c);
 	bool IsValidString(const FString& InString);
 	FString PasteResultString();
