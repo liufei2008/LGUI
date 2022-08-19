@@ -140,7 +140,7 @@ namespace LGUIPrefabSystem4
 
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
+		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
@@ -465,7 +465,7 @@ namespace LGUIPrefabSystem4
 		}
 	}
 
-	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, AActor* ParentActor)
+	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent)
 	{
 		if (InActorData.bIsPrefab)
 		{
@@ -528,7 +528,7 @@ namespace LGUIPrefabSystem4
 					{
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -536,7 +536,7 @@ namespace LGUIPrefabSystem4
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent(), LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -638,11 +638,11 @@ namespace LGUIPrefabSystem4
 				CreatedActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
-				NewActor->AttachToActor(ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
+				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor);
+					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent());
 				}
 			}
 			else
