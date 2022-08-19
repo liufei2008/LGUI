@@ -109,7 +109,7 @@ public:
 private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<AActor>> AllActors_PrefabSystemProcessing;
+		TSet<AActor*> AllActors_PrefabSystemProcessing;
 	/** Functions that wait for prefab serialization complete then execute */
 	TArray<TFunction<void()>> LateFunctionsAfterPrefabSerialization;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
