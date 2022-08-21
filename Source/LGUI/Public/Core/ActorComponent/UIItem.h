@@ -98,10 +98,11 @@ protected:
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
 	virtual void OnChildAttached(USceneComponent* ChildComponent)override;
 	virtual void OnChildDetached(USceneComponent* ChildComponent)override;
-	virtual void OnAttachmentChanged() override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
+	void OnUIDetachedFromParent();
+	void OnUIAttachedToParent();
 public:
 	void CalculateAnchorFromTransform();
 	bool CalculateTransformFromAnchor();
