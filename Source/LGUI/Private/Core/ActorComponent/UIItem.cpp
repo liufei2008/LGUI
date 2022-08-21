@@ -643,6 +643,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	if (GetWorld() == nullptr)return;
 	if (UUIItem* childUIItem = Cast<UUIItem>(ChildComponent))
 	{
+		childUIItem->OnUIAttachedToParent();
 		//hierarchy index
 		CheckCacheUIChildren();//check
 		bool bNeedSortChildren = true;
@@ -659,12 +660,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
 					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
-					/*
-					 * why call CalculateAnchorFromTransform here, since CalculateAnchorFromTransform is already called inside OnAttachmentChanged?
-					 * 		because when processing CalculateAnchorFromTransform in OnAttachmentChanged, the RelativeLocation is not yet calculated (still world space location), so the result anchorData is wrong.
-					 * no need to call CalculateAnchorFromTransform when OnChildDetached, because anchoredPosition is always zero when not parent exist.
-					 */
-					childUIItem->CalculateAnchorFromTransform();
 				}
 				else//not registered means is loading from level. then no need to set hierarchy index
 				{
@@ -686,12 +681,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
 					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
-					/*
-					 * why call CalculateAnchorFromTransform here, since CalculateAnchorFromTransform is already called inside OnAttachmentChanged?
-					 * 		because when processing CalculateAnchorFromTransform in OnAttachmentChanged, the RelativeLocation is not yet calculated (still world space location), so the result anchorData is wrong.
-					 * no need to call CalculateAnchorFromTransform when OnChildDetached, because anchoredPosition is always zero when not parent exist.
-					 */
-					childUIItem->CalculateAnchorFromTransform();
 				}
 				else//not registered means is loading from level. then no need to set hierarchy index
 				{
@@ -727,11 +716,81 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	}
 }
 
+void UUIItem::OnUIAttachedToParent()
+{
+#if WITH_EDITORONLY_DATA
+	if (!GetWorld()->IsGameWorld())
+	{
+		if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		{
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			check(ParentUIItem.IsValid());
+			{
+				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+					}});
+			}
+		}
+		else
+		{
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			check(ParentUIItem.IsValid());
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+			}
+
+			if (this->IsRegistered())//not registered means is loading from level.
+			{
+				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
+			}
+		}
+	}
+	else
+#endif
+	{
+		auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
+		if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		{
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			check(ParentUIItem.IsValid());
+			{
+				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+					}});
+			}
+		}
+		else
+		{
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			check(ParentUIItem.IsValid());
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+			}
+
+			if (this->IsRegistered())//not registered means is loading from level.
+			{
+				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
+			}
+		}
+	}
+
+	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	UUICanvasGroup* ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
+	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup);
+	//callback
+	CallUILifeCycleBehavioursAttachmentChanged();
+}
+
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
 	Super::OnChildDetached(ChildComponent);
 	if (this->IsPendingKillOrUnreachable())return;
 	if (GetWorld() == nullptr)return;
+
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
 		//hierarchy index
@@ -747,20 +806,18 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 			}
 		}
 		MarkCanvasUpdate(false, false, false);
+
+		childUIItem->OnUIDetachedFromParent();
 	}
 }
 
-void UUIItem::OnAttachmentChanged()
+void UUIItem::OnUIDetachedFromParent()
 {
-	Super::OnAttachmentChanged();
-	if (this->IsPendingKillOrUnreachable())return;
-	if (GetWorld() == nullptr)return;
-
 #if WITH_EDITORONLY_DATA
 	if (!GetWorld()->IsGameWorld())
 	{
-		if(ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
-		{ 
+		if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		{
 			if (ParentUIItem.IsValid())//tell old parent
 			{
 				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
@@ -769,26 +826,12 @@ void UUIItem::OnAttachmentChanged()
 						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
 					}});
 			}
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			if (ParentUIItem.IsValid())
-			{
-				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
-					}});
-			}
 		}
 		else
 		{
 			if (ParentUIItem.IsValid())//tell old parent
 			{
 				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-			}
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			if (ParentUIItem.IsValid())
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 			}
 
 			if (this->IsRegistered())//not registered means is loading from level.
@@ -811,26 +854,12 @@ void UUIItem::OnAttachmentChanged()
 						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
 					}});
 			}
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			if (ParentUIItem.IsValid())
-			{
-				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
-					}});
-			}
 		}
 		else
 		{
 			if (ParentUIItem.IsValid())//tell old parent
 			{
 				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-			}
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			if (ParentUIItem.IsValid())
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 			}
 
 			if (this->IsRegistered())//not registered means is loading from level.
@@ -840,9 +869,7 @@ void UUIItem::OnAttachmentChanged()
 		}
 	}
 
-	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
-	UUICanvasGroup* ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
-	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup);
+	UIHierarchyChanged(nullptr, nullptr);
 	//callback
 	CallUILifeCycleBehavioursAttachmentChanged();
 }
