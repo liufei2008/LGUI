@@ -32,6 +32,8 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
+static const auto ScreenPercentageConsoleVariable = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"));
+
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
 #endif
@@ -53,6 +55,20 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 {
 	if (!World.IsValid())return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
+	if (!bIsRenderToRenderTarget)
+	{
+		if (InView.bIsGameView)
+		{
+			if (ScreenPercentageConsoleVariable != nullptr)
+			{
+				ScreenPercentage = ScreenPercentageConsoleVariable->GetInt() * 0.01f;
+			}
+		}
+		else
+		{
+			ScreenPercentage = 1.0f;
+		}
+	}
 	//world space
 	{
 
@@ -436,6 +452,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 		break;
 		}
+		DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
 	}
 
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));

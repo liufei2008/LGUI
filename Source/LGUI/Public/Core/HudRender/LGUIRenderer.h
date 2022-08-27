@@ -147,6 +147,8 @@ private:
 	void SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
+	//this can affect scale on depth texture
+	float ScreenPercentage = 1.0f;
 
 	void RenderLGUI_RenderThread(
 		FRDGBuilder& GraphBuilder
