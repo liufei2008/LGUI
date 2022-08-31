@@ -166,7 +166,7 @@ void ULGUICanvas::UpdateRootCanvas()
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
-						ViewExtension->SetWorldSpaceRendererDepthMode(this->GetDepthMode());
+						//put initial code here
 						bHasSetIntialStateforLGUIWorldSpaceRenderer = true;
 					}
 				}
@@ -556,12 +556,7 @@ bool ULGUICanvas::CanEditChange(const FProperty* InProperty) const
 {
 	if (InProperty)
 	{
-		FString PropertyName = InProperty->GetName();
 
-		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUICanvas, blendDepth))
-		{
-			return depthMode == ELGUICanvasDepthMode::SampleDepthTexture;
-		}
 	}
 
 	return Super::CanEditChange(InProperty);
@@ -2533,51 +2528,6 @@ float ULGUICanvas::GetActualDynamicPixelsPerUnit()const
 	return dynamicPixelsPerUnit;
 }
 
-ELGUICanvasDepthMode ULGUICanvas::GetActualDepthMode()const
-{
-	if (RootCanvas.IsValid())
-	{
-		return RootCanvas->depthMode;
-	}
-	return depthMode;
-}
-ELGUICanvasDepthMode ULGUICanvas::GetDepthMode()const
-{
-	return depthMode;
-}
-void ULGUICanvas::SetDepthMode(ELGUICanvasDepthMode value)
-{
-	if (depthMode != value)
-	{
-		depthMode = value;
-
-		if (RootCanvas.IsValid())
-		{
-			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-			{
-				if (RootCanvas->IsRenderToWorldSpace())
-				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-					}
-					if (ViewExtension.IsValid())
-					{
-						ViewExtension->SetWorldSpaceRendererDepthMode(RootCanvas->GetDepthMode());
-					}
-				}
-			}
-		}
-	}
-}
-
 float ULGUICanvas::GetActualBlendDepth()const
 {
 	if (IsRootCanvas())
@@ -2599,6 +2549,29 @@ float ULGUICanvas::GetActualBlendDepth()const
 		}
 	}
 	return blendDepth;
+}
+
+float ULGUICanvas::GetActualDepthFade()const
+{
+	if (IsRootCanvas())
+	{
+		return depthFade;
+	}
+	else
+	{
+		if (GetOverrideDepthFade())
+		{
+			return depthFade;
+		}
+		else
+		{
+			if (ParentCanvas.IsValid())
+			{
+				return ParentCanvas->GetActualDepthFade();
+			}
+		}
+	}
+	return depthFade;
 }
 
 int32 ULGUICanvas::GetActualSortOrder()const
@@ -2991,7 +2964,40 @@ void ULGUICanvas::SetBlendDepth(float value)
 					}
 					if (ViewExtension.IsValid())
 					{
-						ViewExtension->SetRenderCanvasBlendDepth(this, this->GetActualBlendDepth());
+						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
+					}
+				}
+			}
+		}
+	}
+}
+
+void ULGUICanvas::SetDepthFade(float value)
+{
+	if (depthFade != value)
+	{
+		depthFade = value;
+
+		if (RootCanvas.IsValid())
+		{
+			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
+			{
+				if (RootCanvas->IsRenderToWorldSpace())
+				{
+					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())
+					{
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
+					}
+					else
+#endif
+					{
+						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
+					}
+					if (ViewExtension.IsValid())
+					{
+						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
 					}
 				}
 			}

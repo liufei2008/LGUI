@@ -81,8 +81,8 @@ public:
 		, FTextureRHIRef MeshRegionTexture
 		, const FMatrix & ModelViewProjectionMatrix
 		, bool IsWorldSpace
-		, ELGUICanvasDepthMode WorldSpaceDepthMode
 		, float BlendDepthForWorld
+		, float DepthFadeForWorld
 		, const FVector4& DepthTextureScaleOffset
 		, const FIntRect& ViewRect
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()

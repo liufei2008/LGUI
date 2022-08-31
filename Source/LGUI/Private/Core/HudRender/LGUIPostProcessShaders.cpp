@@ -35,10 +35,16 @@ IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskPS_TextureClip, TEXT("/Plugin/LGU
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldVS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshVertexShader.usf"), TEXT("RenderMeshVS"), SF_Vertex)
 
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldDepthFadePS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldDepthFadePS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldPS_RectClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldDepthFadePS_RectClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldPS_RectClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldPS_TextureClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWorldDepthFadePS_TextureClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldPS_TextureClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
