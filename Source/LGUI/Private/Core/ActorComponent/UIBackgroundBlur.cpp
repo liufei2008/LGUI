@@ -93,8 +93,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		ELGUICanvasDepthMode WorldSpaceDepthMode,
 		float BlendDepthForWorld,
+		float DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
@@ -313,7 +313,7 @@ public:
 		}
 
 		//after blur process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, WorldSpaceDepthMode, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

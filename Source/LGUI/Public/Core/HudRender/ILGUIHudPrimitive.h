@@ -57,8 +57,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		ELGUICanvasDepthMode WorldSpaceDepthMode,
 		float BlendDepthForWorld,
+		float DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset, 
 		const FVector4f& ViewTextureScaleOffset

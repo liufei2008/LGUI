@@ -109,10 +109,10 @@ void FUIPostProcessRenderProxy::SetVisibility(bool value)
 		});
 }
 
-#define SET_PIPELINE_STATE_FOR_CLIP(DisableDepthTest)\
+#define SET_PIPELINE_STATE_FOR_CLIP()\
 FGraphicsPipelineStateInitializer GraphicsPSOInit;\
 RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);\
-GraphicsPSOInit.DepthStencilState = DisableDepthTest ? TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI() : TStaticDepthStencilState<false, ECompareFunction::CF_GreaterEqual>::GetRHI();\
+GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();\
 GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();\
 GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_InverseDestAlpha, BF_One>::GetRHI();\
 GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();\
@@ -129,8 +129,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	, FTextureRHIRef MeshRegionTexture
 	, const FMatrix44f& ModelViewProjectionMatrix
 	, bool IsWorldSpace
-	, ELGUICanvasDepthMode WorldSpaceDepthMode
 	, float BlendDepthForWorld
+	, float DepthFadeForWorld
 	, const FVector4f& DepthTextureScaleOffset
 	, const FIntRect& ViewRect
 	, FRHISamplerState* ResultTextureSamplerState
@@ -142,16 +142,12 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	FLGUIWorldRenderPSParameter* PSShaderParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
 	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Target;
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);
-	if (IsWorldSpace && WorldSpaceDepthMode == ELGUICanvasDepthMode::DirectDepthTest)
-	{
-		PSShaderParameters->RenderTargets.DepthStencil = FDepthStencilBinding(SceneTextures.Depth.Target, ERenderTargetLoadAction::ELoad, ERenderTargetLoadAction::ELoad, FExclusiveDepthStencil::DepthWrite_StencilWrite);
-	}
 
 	GraphBuilder.AddPass(
 		RDG_EVENT_NAME("UIPostProcess_RenderMeshToScreen"),
 		PSShaderParameters,
 		ERDGPassFlags::Raster,
-		[this, PSShaderParameters, GlobalShaderMap, MeshRegionTexture, ModelViewProjectionMatrix, IsWorldSpace, WorldSpaceDepthMode, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, ResultTextureSamplerState, NumSamples](FRHICommandListImmediate& RHICmdList)
+		[this, PSShaderParameters, GlobalShaderMap, MeshRegionTexture, ModelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect, ResultTextureSamplerState, NumSamples](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -166,21 +162,37 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
-							, ResultTextureSamplerState
-							, maskTexture->SamplerStateRHI
-						);
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						if (DepthFadeForWorld <= 0.0f)
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						}
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldDepthFadePS> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshWithMaskPS> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
 							, ResultTextureSamplerState
@@ -193,22 +205,39 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS_RectClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
-							, ResultTextureSamplerState
-							, maskTexture->SamplerStateRHI
-						);
-						PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						if (DepthFadeForWorld <= 0.0f)
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS_RectClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						}
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshWithMaskPS_RectClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
 							, ResultTextureSamplerState
@@ -222,25 +251,45 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS_TextureClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
-							, ResultTextureSamplerState
-							, maskTexture->SamplerStateRHI
-						);
-						if (clipTexture != nullptr)
+						if (DepthFadeForWorld <= 0.0f)
 						{
-							PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldPS_TextureClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							if (clipTexture != nullptr)
+							{
+								PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							}
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
 						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
+								, ResultTextureSamplerState
+								, maskTexture->SamplerStateRHI
+							);
+							if (clipTexture != nullptr)
+							{
+								PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							}
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshWithMaskPS_TextureClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, maskTexture->TextureRHI
 							, ResultTextureSamplerState
@@ -279,18 +328,31 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWorldPS> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						if (DepthFadeForWorld <= 0.0f)
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldPS> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						}
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldDepthFadePS> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshPS> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 					}
@@ -300,19 +362,33 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWorldPS_RectClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
-						PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						if (DepthFadeForWorld <= 0.0f)
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldPS_RectClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						}
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldDepthFadePS_RectClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshPS_RectClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 						PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
@@ -323,22 +399,39 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				{
 					if (IsWorldSpace)
 					{
-						TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLGUIRenderMeshWorldPS_TextureClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture);
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
-						if (clipTexture != nullptr)
+						if (DepthFadeForWorld <= 0.0f)
 						{
-							PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldPS_TextureClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							if (clipTexture != nullptr)
+							{
+								PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							}
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
 						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+						else
+						{
+							TShaderMapRef<FLGUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+							TShaderMapRef<FLGUIRenderMeshWorldDepthFadePS_TextureClip> PixelShader(GlobalShaderMap);
+							SET_PIPELINE_STATE_FOR_CLIP();
+							VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
+							PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+							if (clipTexture != nullptr)
+							{
+								PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+							}
+							PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+							PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld);
+						}
 					}
 					else
 					{
 						TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 						TShaderMapRef<FLGUIRenderMeshPS_TextureClip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP(true);
+						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 						if (clipTexture != nullptr)

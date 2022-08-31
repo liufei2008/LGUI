@@ -50,3 +50,17 @@ private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
+
+class FLGUIWorldRenderDepthFadePS : public FLGUIWorldRenderPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIWorldRenderDepthFadePS, Material);
+
+	FLGUIWorldRenderDepthFadePS() {}
+	FLGUIWorldRenderDepthFadePS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
+
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade);
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
+};

@@ -87,8 +87,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		ELGUICanvasDepthMode WorldSpaceDepthMode,
 		float BlendDepthForWorld,
+		float DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
@@ -367,7 +367,7 @@ public:
 			//after pixelate process, copy the area back to screen image
 			RenderMeshOnScreen_RenderThread(
 				GraphBuilder
-				, ScreenTargetTexture, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, WorldSpaceDepthMode, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+				, ScreenTargetTexture, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())

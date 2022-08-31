@@ -409,6 +409,29 @@ private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
+class FLGUIRenderMeshWorldDepthFadePS : public FLGUIRenderMeshWorldPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldDepthFadePS, Global);
+
+	FLGUIRenderMeshWorldDepthFadePS() {}
+	FLGUIRenderMeshWorldDepthFadePS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWorldPS(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWorldPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
+};
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS :public FLGUIPostProcessShader
 {
@@ -475,6 +498,29 @@ private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
+class FLGUIRenderMeshWithMaskWorldDepthFadePS : public FLGUIRenderMeshWithMaskWorldPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldDepthFadePS, Global);
+
+	FLGUIRenderMeshWithMaskWorldDepthFadePS() {}
+	FLGUIRenderMeshWithMaskWorldDepthFadePS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskWorldPS(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWithMaskWorldPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
+};
 
 #pragma region RectClip
 //render mesh pixel shader
@@ -534,6 +580,29 @@ private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
+class FLGUIRenderMeshWorldDepthFadePS_RectClip : public FLGUIRenderMeshWorldPS_RectClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldDepthFadePS_RectClip, Global);
+
+	FLGUIRenderMeshWorldDepthFadePS_RectClip() {}
+	FLGUIRenderMeshWorldDepthFadePS_RectClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWorldPS_RectClip(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWorldPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
+};
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS_RectClip :public FLGUIRenderMeshWithMaskPS
 {
@@ -590,6 +659,29 @@ private:
 	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
+};
+class FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip : public FLGUIRenderMeshWithMaskWorldPS_RectClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip, Global);
+
+	FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip() {}
+	FLGUIRenderMeshWithMaskWorldDepthFadePS_RectClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskWorldPS_RectClip(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWithMaskWorldPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
 };
 #pragma endregion
 
@@ -655,6 +747,29 @@ private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
+class FLGUIRenderMeshWorldDepthFadePS_TextureClip : public FLGUIRenderMeshWorldPS_TextureClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldDepthFadePS_TextureClip, Global);
+
+	FLGUIRenderMeshWorldDepthFadePS_TextureClip() {}
+	FLGUIRenderMeshWorldDepthFadePS_TextureClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWorldPS_TextureClip(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWorldPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
+};
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS_TextureClip :public FLGUIRenderMeshWithMaskPS
 {
@@ -715,5 +830,28 @@ private:
 	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
+};
+class FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip : public FLGUIRenderMeshWithMaskWorldPS_TextureClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip, Global);
+
+	FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip() {}
+	FLGUIRenderMeshWithMaskWorldDepthFadePS_TextureClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskWorldPS_TextureClip(Initializer)
+	{
+		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
+		FLGUIRenderMeshWithMaskWorldPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+	{
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
 };
 #pragma endregion
