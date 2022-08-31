@@ -405,33 +405,34 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 				0, 0
 			);
+			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
 			ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
 		}
 		break;
 		case EStereoscopicPass::eSSP_LEFT_EYE:
 		{
 			DepthTextureScaleOffset = FVector4(
-				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-				0.5f, 1.0f,
+				(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),//normally ViewRect.Width is half of screen size
+				(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 				0, 0
 			);
-			ViewTextureScaleOffset = DepthTextureScaleOffset;
+			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
+			ViewTextureScaleOffset = FVector4(0.5f, 1, 0, 0);
 		}
 		break;
 		case EStereoscopicPass::eSSP_RIGHT_EYE:
 		{
 			DepthTextureScaleOffset = FVector4(
-				//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-				//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-				0.5f, 1.0f,
-				0.5f, 0
+				(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+				(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				0, 0
 			);
-			ViewTextureScaleOffset = DepthTextureScaleOffset;
+			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
+			DepthTextureScaleOffset.Z = 0.5f;//right eye offset 0.5
+			ViewTextureScaleOffset = FVector4(0.5f, 1, 0.5f, 0);
 		}
 		break;
 		}
-		DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
 	}
 
 #if 0
