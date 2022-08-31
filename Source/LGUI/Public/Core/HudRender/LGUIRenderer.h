@@ -14,7 +14,6 @@ class ULGUICanvas;
 struct FLGUIPostProcessVertex;
 struct FLGUIPostProcessCopyMeshRegionVertex;
 class FGlobalShaderMap;
-enum class ELGUICanvasDepthMode :uint8;
 
 class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
 {
@@ -73,8 +72,7 @@ public:
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
 	void SortPrimitiveRenderPriority();
-	void SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth);
-	void SetWorldSpaceRendererDepthMode(ELGUICanvasDepthMode InDepthMode);
+	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRenderCanvas();
@@ -115,6 +113,8 @@ private:
 		ULGUICanvas* RenderCanvas = nullptr;
 		//blend depth, 0-occlude by depth, 1-all visible
 		float BlendDepth = 0.0f;
+		//depth fade effect
+		float DepthFade = 0.0f;
 
 		ILGUIHudPrimitive* HudPrimitive;
 	};
@@ -130,8 +130,6 @@ private:
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
-	//how dealing with scene depth
-	ELGUICanvasDepthMode WorldSpaceDepthMode = (ELGUICanvasDepthMode)0;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
@@ -142,8 +140,7 @@ private:
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
-	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
-	void SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode);
+	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
 	//this can affect scale on depth texture

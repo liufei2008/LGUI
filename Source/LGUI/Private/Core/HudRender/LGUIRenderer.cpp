@@ -450,14 +450,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	{
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_Store);
-		bool bCanUseDirectDepthTest = false;
-		if (WorldSpaceDepthMode == ELGUICanvasDepthMode::DirectDepthTest && SceneContext.GetSceneDepthSurface() != nullptr)
-		{
-			bCanUseDirectDepthTest = true;
-			RPInfo.DepthStencilRenderTarget.Action = EDepthStencilTargetActions::LoadDepthStencil_DontStoreDepthStencil;
-			RPInfo.DepthStencilRenderTarget.DepthStencilTarget = SceneContext.GetSceneDepthSurface();
-			RPInfo.DepthStencilRenderTarget.ExclusiveDepthStencil = FExclusiveDepthStencil::DepthWrite_StencilWrite;
-		}
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender_WorldSpace"));
 		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -513,8 +505,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							GlobalShaderMap,
 							ViewProjectionMatrix,
 							true,
-							bCanUseDirectDepthTest ? WorldSpaceDepthMode : ELGUICanvasDepthMode::SampleDepthTexture,
 							canvasParamItem.BlendDepth,
+							canvasParamItem.DepthFade,
 							ViewRect,
 							DepthTextureScaleOffset,
 							ViewTextureScaleOffset
@@ -537,7 +529,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
 #endif
 							FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
-								, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), bCanUseDirectDepthTest, Mesh.ReverseCulling
+								, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
 							);
 							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
@@ -547,7 +539,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 								GraphicsPSOInit.NumSamples = NumSamples;
-								if (WorldSpaceDepthMode == ELGUICanvasDepthMode::SampleDepthTexture)
+
+								if (canvasParamItem.DepthFade <= 0.0f)
 								{
 									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
 									if (PixelShader.IsValid())
@@ -565,7 +558,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								}
 								else
 								{
-									auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderDepthFadePS>();
 									if (PixelShader.IsValid())
 									{
 										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
@@ -573,6 +566,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+										PixelShader->SetDepthFadeParameter(RHICmdList, canvasParamItem.DepthFade);
 
 										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
 										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
@@ -673,8 +668,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
 							/*IsWorldSpace*/false,
-							/*WorldSpaceDepthMode*/ELGUICanvasDepthMode::SampleDepthTexture,//actually this value will no work because 'IsWorldSpace' is false
 							/*BlendDepthForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
+							/*DepthFadeForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
 							ViewRect,
 							DepthTextureScaleOffset,
 							ViewTextureScaleOffset
@@ -796,6 +791,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 	{
 		FWorldSpaceRenderParameter RenderParameter;
 		RenderParameter.BlendDepth = InCanvas->GetActualBlendDepth();
+		RenderParameter.DepthFade = InCanvas->GetActualDepthFade();
 		RenderParameter.RenderCanvas = InCanvas;
 		RenderParameter.HudPrimitive = InPrimitive;
 
@@ -881,42 +877,27 @@ void FLGUIHudRenderer::SortPrimitiveRenderPriority()
 		}
 	);
 }
-void FLGUIHudRenderer::SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth)
+void FLGUIHudRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
 {
 	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
-		[viewExtension, InRenderCanvas, InBlendDepth](FRHICommandListImmediate& RHICmdList)
+		[viewExtension, InRenderCanvas, InBlendDepth, InDepthFade](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->SetRenderCanvasBlendDepth_RenderThread(InRenderCanvas, InBlendDepth);
+			viewExtension->SetRenderCanvasDepthFade_RenderThread(InRenderCanvas, InBlendDepth, InDepthFade);
 		}
 	);
 }
 
-void FLGUIHudRenderer::SetWorldSpaceRendererDepthMode(ELGUICanvasDepthMode InDepthMode)
-{
-	auto viewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
-		[viewExtension, InDepthMode](FRHICommandListImmediate& RHICmdList)
-		{
-			viewExtension->SetWorldSpaceDepthMode_RenderThread(InDepthMode);
-		}
-	);
-}
-
-void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth)
+void FLGUIHudRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
 {
 	for (auto& RenderParameter : WorldSpaceRenderCanvasParameterArray)
 	{
 		if (RenderParameter.RenderCanvas == InRenderCanvas)
 		{
 			RenderParameter.BlendDepth = InBlendDepth;
+			RenderParameter.DepthFade = InDepthFade;
 		}
 	}
-}
-
-void FLGUIHudRenderer::SetWorldSpaceDepthMode_RenderThread(ELGUICanvasDepthMode InDepthMode)
-{
-	WorldSpaceDepthMode = InDepthMode;
 }
 
 void FLGUIHudRenderer::SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas)

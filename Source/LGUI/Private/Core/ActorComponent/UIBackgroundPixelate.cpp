@@ -111,8 +111,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		ELGUICanvasDepthMode WorldSpaceDepthMode,
 		float BlendDepthForWorld,
+		float DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4& DepthTextureScaleOffset,
 		const FVector4& ViewTextureScaleOffset
@@ -152,7 +152,7 @@ public:
 			, ViewTextureScaleOffset
 		);
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, WorldSpaceDepthMode, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();

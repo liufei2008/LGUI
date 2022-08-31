@@ -46,15 +46,6 @@ enum class ELGUICanvasClipType :uint8
 	COUNT		UMETA(Hidden),
 };
 
-UENUM(BlueprintType, Category = LGUI)
-enum class ELGUICanvasDepthMode :uint8
-{
-	/** Test depth directly by gpu, which is much faster then 'SampleDepthTexture' mode, but not support 'BlendDepth' parameter, so pixel will stay visible or not-visible, can't do half-transparent. */
-	DirectDepthTest,
-	/** Use depth buffer as a texture, sample it to get scene depth, then calculate current rendered pixel's depth and compare. Can use 'BlendDepth' parameter. */
-	SampleDepthTexture,
-};
-
 UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
 enum class ELGUICanvasAdditionalChannelType :uint8
 {
@@ -78,6 +69,7 @@ enum class ELGUICanvasOverrideParameters :uint8
 	ClipType,
 	AdditionalShaderChannels,
 	BlendDepth,
+	DepthFade,
 };
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
@@ -285,12 +277,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
 
-	/** For "World Space - LGUI Renderer" only, DepthMode define how dealing with scene depth. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		ELGUICanvasDepthMode depthMode = ELGUICanvasDepthMode::DirectDepthTest;
-	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. Valid when 'DepthMode' is 'SampleDepthTexture' */
+	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float blendDepth = 0.0f;
+	/** For "World Space - LGUI Renderer" only, render with depth fade effect. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "10.0"))
+		float depthFade = 0.05f;
 	/**
 	 * Create a depth texture so we can do depth test. This is very useful for UIStaticMesh which use Opaque material.
 	 * Only valid for ScreenSpaceOverlay and RenderTarget mode.
@@ -319,6 +311,7 @@ protected:
 	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
 	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 5); }
+	FORCEINLINE bool GetOverrideDepthFade()const					{ return overrideParameters & (1 << 6); }
 
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -382,14 +375,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
 
-	/** Get DepthMode value of canvas. Actually this property is only valid for root canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ELGUICanvasDepthMode GetActualDepthMode()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ELGUICanvasDepthMode GetDepthMode()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetDepthMode(ELGUICanvasDepthMode value);
-
 	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetActualBlendDepth()const;
@@ -398,6 +383,15 @@ public:
 		float GetBlendDepth()const { return blendDepth; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetBlendDepth(float value);
+
+	/** Get depthFade value of canvas. Actually canvas's depthFade property is inherit from parent canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetActualDepthFade()const;
+	/** Get blendDepth value of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetDepthFade()const { return depthFade; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDepthFade(float value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetEnableDepthTest()const { return bEnableDepthTest; }
