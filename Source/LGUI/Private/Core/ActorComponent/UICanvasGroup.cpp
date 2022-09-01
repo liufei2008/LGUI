@@ -4,7 +4,6 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "LTweenActor.h"
-#include "LTweenBPLibrary.h"
 
 UUICanvasGroup::UUICanvasGroup()
 {
