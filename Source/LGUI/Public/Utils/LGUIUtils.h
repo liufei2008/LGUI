@@ -10,6 +10,17 @@ class UUIItem;
 class ULGUICanvas;
 class UTexture2D;
 
+#if !UE_BUILD_SHIPPING
+#define LGUI_CHECK_VALID(UObjectPtr, ReturnValue)\
+if (!IsValid(UObjectPtr))\
+{\
+	FDebug::DumpStackTraceToLog(TEXT("Check IsValid fail!"), ELogVerbosity::Error);\
+	return ReturnValue;\
+}
+#else
+#define LGUI_CHECK_VALID(UObjectPtr, ReturnValue)
+#endif
+
 class LGUI_API LGUIUtils
 {
 public:	

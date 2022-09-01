@@ -84,7 +84,7 @@ void UUIRecyclableScrollViewComponent::ClearAllCells()
     MinCellIndexInCacheCellList = 0;
     MaxCellIndexInCacheCellList = 0;
     MinCellPosition = 0;
-    MinCellIndexInData = 0;
+    MinCellDataIndex = 0;
 }
 
 void UUIRecyclableScrollViewComponent::SetDataSource(TScriptInterface<IUIRecyclableScrollViewDataSource> InDataSource)
@@ -145,13 +145,13 @@ void UUIRecyclableScrollViewComponent::SetSpace(const FVector2D& value)
 bool UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index, FUIRecyclableScrollViewCellContainer& OutResult)const
 {
     auto MaxCellIndexInData = FMath::Min(Index + CacheCellList.Num() - 1, DataItemCount - 1);
-    if (Index < MinCellIndexInData || Index > MaxCellIndexInData)
+    if (Index < MinCellDataIndex || Index > MaxCellIndexInData)
     {
         return false;
     }
     else
     {
-        auto CellIndexOffset = Index - MinCellIndexInData;
+        auto CellIndexOffset = Index - MinCellDataIndex;
         if (CellIndexOffset >= CacheCellList.Num())
         {
             return false;
@@ -178,7 +178,6 @@ bool UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index, FUIRecy
 
 void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
 {
-    if (DataSource == nullptr)return;
     if (!IsValid(DataSource))return;
     if (!CellTemplate.IsValid())return;
 
@@ -369,7 +368,7 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         this->SetScrollProgress(FVector2D(PrevProgress.X, 0.0f));
         MinCellPosition = -Padding.Top;
     }
-    MinCellIndexInData = 0;
+    MinCellDataIndex = 0;
 
     PrevContentPosition = FVector2D(ContentUIItem->GetRelativeLocation().Y, ContentUIItem->GetRelativeLocation().Z);
     OnScrollEventDelegateHandle = this->RegisterScrollEvent(FLGUIVector2Delegate::CreateUObject(this, &UUIRecyclableScrollViewComponent::OnScrollCallback));
@@ -389,9 +388,9 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
         auto PointToScrollViewSpaceOffset = ContentUIItem->GetRelativeLocation().Y;
         if (ContentPosition.X > PrevContentPosition.X)//scroll from left to right
         {
-            while (MinCellIndexInData > 0)
+            while (MinCellDataIndex > 0)
             {
-                int CellDataIndex = MinCellIndexInData - Rows;//flip data
+                int CellDataIndex = MinCellDataIndex - Rows;//flip data
                 auto& RightTopCellItem = CacheCellList[MaxCellIndexInCacheCellList];
                 auto CellLeftPointInScrollViewSpace = RightTopCellItem.UIItem->GetLocalSpaceLeft() + RightTopCellItem.UIItem->GetRelativeLocation().Y + PointToScrollViewSpaceOffset;
                 if (CellLeftPointInScrollViewSpace > RangeArea.Y)//right item out of range
@@ -404,7 +403,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         Pos.X = Pos.X + CellItem.UIItem->GetPivot().X * CellWidth;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
-                        MinCellIndexInData--;
+                        MinCellDataIndex--;
                         //set data
                         if (CellDataIndex + i < DataItemCount)
                         {
@@ -429,7 +428,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
         }
         else if (ContentPosition.X < PrevContentPosition.X)//scroll from right to left
         {
-            int RightCellIndexInData = MinCellIndexInData + CacheCellList.Num() - 1;
+            int RightCellIndexInData = MinCellDataIndex + CacheCellList.Num() - 1;
             while (RightCellIndexInData + 1 < DataItemCount)//check if right cell reach end data
             {
                 auto& LeftTopCellItem = CacheCellList[MinCellIndexInCacheCellList];
@@ -444,8 +443,8 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         Pos.X = Pos.X + CellItem.UIItem->GetPivot().X * CellWidth;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
-                        MinCellIndexInData++;
-                        RightCellIndexInData = MinCellIndexInData + CacheCellList.Num() - 1;
+                        MinCellDataIndex++;
+                        RightCellIndexInData = MinCellDataIndex + CacheCellList.Num() - 1;
                         //set data
                         if (RightCellIndexInData < DataItemCount)
                         {
@@ -475,9 +474,9 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
         auto PointToScrollViewSpaceOffset = ContentUIItem->GetRelativeLocation().Z;
         if (ContentPosition.Y < PrevContentPosition.Y)//scroll from top to bottom
         {
-            while (MinCellIndexInData > 0)
+            while (MinCellDataIndex > 0)
             {
-                int CellDataIndex = MinCellIndexInData - Columns;//flip data
+                int CellDataIndex = MinCellDataIndex - Columns;//flip data
                 auto& BottomLeftCellItem = CacheCellList[MaxCellIndexInCacheCellList];
                 auto CellTopPointInScrollViewSpace = BottomLeftCellItem.UIItem->GetLocalSpaceTop() + BottomLeftCellItem.UIItem->GetRelativeLocation().Z + PointToScrollViewSpaceOffset;
                 if (CellTopPointInScrollViewSpace < RangeArea.X)//bottom item out of range
@@ -491,7 +490,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         Pos.Y = Pos.Y - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
-                        MinCellIndexInData--;
+                        MinCellDataIndex--;
                         //set data
                         if (CellDataIndex + i < DataItemCount)
                         {
@@ -516,7 +515,7 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
         }
         else if (ContentPosition.Y > PrevContentPosition.Y)//scroll from bottom to top
         {
-            int BottomCellIndexInData = MinCellIndexInData + CacheCellList.Num() - 1;
+            int BottomCellIndexInData = MinCellDataIndex + CacheCellList.Num() - 1;
             while (BottomCellIndexInData + 1 < DataItemCount)//check if bottom cell reach end data
             {
                 auto& TopLeftCellItem = CacheCellList[MinCellIndexInCacheCellList];
@@ -531,8 +530,8 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
                         Pos.Y = Pos.Y - (1.0f - CellItem.UIItem->GetPivot().Y) * CellHeight;
                         CellItem.UIItem->SetAnchoredPosition(Pos);
                         //data index
-                        MinCellIndexInData++;
-                        BottomCellIndexInData = MinCellIndexInData + CacheCellList.Num() - 1;
+                        MinCellDataIndex++;
+                        BottomCellIndexInData = MinCellDataIndex + CacheCellList.Num() - 1;
                         //set data
                         if (BottomCellIndexInData < DataItemCount)
                         {
@@ -558,6 +557,26 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
     }
     IUIRecyclableScrollViewDataSource::Execute_AfterSetCell(DataSource);
     PrevContentPosition = ContentPosition;
+}
+
+void UUIRecyclableScrollViewComponent::UpdateCellData()
+{
+    if (!IsValid(DataSource))return;
+
+    IUIRecyclableScrollViewDataSource::Execute_BeforeSetCell(DataSource);
+    auto CellDataIndex = MinCellDataIndex;
+    FUIRecyclableScrollViewCellContainer CellContainer;
+    for (int i = 0; i < CacheCellList.Num(); i++)
+    {
+        GetCellItemByDataIndex(CellDataIndex, CellContainer);
+        IUIRecyclableScrollViewDataSource::Execute_SetCell(DataSource, CellContainer.CellComponent, CellDataIndex);
+        CellDataIndex++;
+        if (CellDataIndex >= DataItemCount)
+        {
+            break;
+        }
+    }
+    IUIRecyclableScrollViewDataSource::Execute_AfterSetCell(DataSource);
 }
 
 void UUIRecyclableScrollViewComponent::IncreaseMinMaxCellIndexInCacheCellList(int Count)

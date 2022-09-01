@@ -91,6 +91,7 @@
 #include "Interaction/UITextInputComponent.h"
 #include "Interaction/UIToggleComponent.h"
 #include "Interaction/UIToggleGroupComponent.h"
+#include "Interaction/UIDropdownComponent.h"
 
 #include "Layout/UILayoutBase.h"
 #include "Layout/UIGridLayout.h"
