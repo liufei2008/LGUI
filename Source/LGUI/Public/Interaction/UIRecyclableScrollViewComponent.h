@@ -155,10 +155,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetCellTemplate(AUIBaseActor* value) { CellTemplate = value; }
 
-	/** Recreate cells. */
+	/** Recreate cell list. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		void UpdateWithDataSource() { InitializeOnDataSource(); }
-
+		void RecreateList() { InitializeOnDataSource(); }
+	UE_DEPRECATED(4.26, "Use RecreateList instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView", meta = (DeprecatedFunction, DeprecationMessage = "Use RecreateList instead."))
+		void UpdateWithDataSource() { RecreateList(); }
+	/** Update list cell's date, this will not change current layout, only set data. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void UpdateCellData();
 	/**
 	 * RecyclableScrollView will create a cache list to store cell object, use data-index to get the cell that represent the data.
 	 * @param Index		data index
@@ -180,7 +185,7 @@ private:
 	int MinCellIndexInCacheCellList = 0;
 	int MaxCellIndexInCacheCellList = 0;
 	float MinCellPosition = 0;//horizontal left cell position.y, or vertical top cell position.z
-	int MinCellIndexInData = 0;//horizontal left-top cell data index, or vertical left-top cell data index.
+	int MinCellDataIndex = 0;//horizontal left-top cell data index, or vertical left-top cell data index.
 	void IncreaseMinMaxCellIndexInCacheCellList(int Count);
 	void DecreaseMinMaxCellIndexInCacheCellList(int Count);
 };

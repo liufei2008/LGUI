@@ -89,8 +89,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetInteractable(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetIgnoreParentGroup(bool value);
 public:
+#pragma region TweenAnimation
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* AlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+#pragma endregion
 };

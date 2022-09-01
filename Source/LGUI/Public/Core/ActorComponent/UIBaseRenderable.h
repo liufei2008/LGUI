@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIItem.h"
+#include "LTweener.h"
 #include "UIBaseRenderable.generated.h"
 
 class UIGeometry;
@@ -164,6 +165,18 @@ public:
 protected:
 	uint8 bColorChanged : 1;
 	uint8 bTransformChanged : 1;
+public:
+#pragma region TweenAnimation
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* ColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* ColorFrom(FColor startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* AlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+#pragma endregion
+
 public:
 	/** Old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
