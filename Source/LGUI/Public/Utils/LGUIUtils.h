@@ -14,7 +14,8 @@ class UTexture2D;
 #define LGUI_CHECK_VALID(UObjectPtr, ReturnValue)\
 if (!IsValid(UObjectPtr))\
 {\
-	FDebug::DumpStackTraceToLog(TEXT("Check IsValid fail!"), ELogVerbosity::Error);\
+	auto HeaderString = FString::Printf(TEXT("Check IsValid fail! %s"), ANSI_TO_TCHAR(__FUNCTION__));\
+	FDebug::DumpStackTraceToLog(*HeaderString, ELogVerbosity::Error);\
 	return ReturnValue;\
 }
 #else

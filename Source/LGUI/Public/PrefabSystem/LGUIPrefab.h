@@ -97,7 +97,7 @@ public:
 /**
  * Similar to Unity3D's Prefab. Store actor and it's hierarchy and serailize to asset, deserialize and restore when needed.
  */
-UCLASS(ClassGroup = (LGUI), BlueprintType, NotBlueprintable)
+UCLASS(ClassGroup = (LGUI), BlueprintType)
 class LGUI_API ULGUIPrefab : public UObject
 {
 	GENERATED_BODY()
