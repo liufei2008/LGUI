@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "LTweenManager.h"
 
 UUIRing::UUIRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -91,11 +92,11 @@ void UUIRing::SetSegment(int newValue)
 
 ULTweener* UUIRing::StartAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration)
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
 ULTweener* UUIRing::EndAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration)
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }

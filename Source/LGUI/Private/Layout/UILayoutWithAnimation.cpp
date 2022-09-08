@@ -3,7 +3,7 @@
 #include "Layout/UILayoutWithAnimation.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "LTweenBPLibrary.h"
 
 void UUILayoutWithAnimation::CancelAnimation(bool callComplete)
@@ -25,7 +25,7 @@ void UUILayoutWithAnimation::CancelAnimation(bool callComplete)
 void UUILayoutWithAnimation::SetOnCompleteTween()
 {
 	bIsAnimationPlaying = true;
-	auto tweener = ALTweenActor::VirtualTo(this, AnimationDuration)->OnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
+	auto tweener = ULTweenManager::VirtualTo(this, AnimationDuration)->OnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
 		bIsAnimationPlaying = false;
 		if (bShouldRebuildLayoutAfterAnimation)
 		{
@@ -50,7 +50,7 @@ void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutChangeP
 	{
 		if (target->GetAnchoredPosition() != offset)
 		{
-			auto tweener = ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}
@@ -72,7 +72,7 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutChangePositionAnim
 	{
 		if (target->GetWidth() != width)
 		{
-			auto tweener = ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), width, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), width, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}
@@ -94,7 +94,7 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAni
 	{
 		if (target->GetHeight() != height)
 		{
-			auto tweener = ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), height, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), height, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}

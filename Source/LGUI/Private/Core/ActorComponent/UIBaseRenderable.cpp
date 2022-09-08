@@ -317,27 +317,27 @@ float UUIBaseRenderable::GetFinalAlpha01()const
 }
 
 #pragma region TweenAnimation
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 ULTweener* UUIBaseRenderable::ColorTo(FColor endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* UUIBaseRenderable::ColorFrom(FColor startValue, float duration, float delay, LTweenEase ease)
 {
 	auto endValue = this->GetColor();
 	this->SetColor(startValue);
-	return ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
 ULTweener* UUIBaseRenderable::AlphaTo(float endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* UUIBaseRenderable::AlphaFrom(float startValue, float duration, float delay, LTweenEase ease)
 {
 	auto endValue = this->GetAlpha();
 	this->SetAlpha(startValue);
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 #pragma endregion
 

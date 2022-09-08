@@ -2,15 +2,15 @@
 
 #include "PlayTween/LGUIPlayTween.h"
 #include "LGUI.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 
 void ULGUIPlayTween::Stop()
 {
-	ALTweenActor::KillIfIsTweening(this, tweener, false);
+	ULTweenManager::KillIfIsTweening(this, tweener, false);
 }
 void ULGUIPlayTween::Start()
 {
-	tweener = ALTweenActor::To(this
+	tweener = ULTweenManager::To(this
 		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
 		, FLTweenFloatSetterFunction::CreateUObject(this, &ULGUIPlayTween::OnUpdate)
 		, 1.0f, duration)

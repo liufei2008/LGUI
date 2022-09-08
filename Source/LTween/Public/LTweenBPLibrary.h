@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LTweenDelegateHandleWrapper.h"
 #include "LTweenBPLibrary.generated.h"
@@ -127,48 +127,48 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Assign start or update or omplete functions", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, FTweenerSimpleDynamicDelegate start, FTweenerFloatDynamicDelegate update, FTweenerSimpleDynamicDelegate complete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
 	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, FSimpleDelegate start, LTweenUpdateDelegate update, FSimpleDelegate complete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
 	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, const TFunction<void()>& start, const TFunction<void(float)>& update, const TFunction<void()>& complete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FTweenerSimpleDynamicDelegate delayComplete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
 	}
 	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
 	}
 	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete)
 	{
-		return ALTweenActor::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay frame call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FTweenerSimpleDynamicDelegate delayComplete)
 	{
-		return ALTweenActor::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
 	}
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FSimpleDelegate delayComplete)
 	{
-		return ALTweenActor::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
 	}
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const TFunction<void()>& delayComplete)
 	{
-		return ALTweenActor::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
 	}
 
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (WorldContext = "WorldContextObject"))
 		static bool IsTweening(UObject* WorldContextObject, ULTweener* inTweener)
 	{
-		return ALTweenActor::IsTweening(WorldContextObject, inTweener);
+		return ULTweenManager::IsTweening(WorldContextObject, inTweener);
 	}
 	/**
 	 * Force stop this animation. if callComplete = true, OnComplete will call after stop.
@@ -177,12 +177,12 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "callComplete", WorldContext = "WorldContextObject"), Category = LTween)
 		static void KillIfIsTweening(UObject* WorldContextObject, ULTweener* inTweener, bool callComplete = false)
 	{
-		ALTweenActor::KillIfIsTweening(WorldContextObject, inTweener, callComplete);
+		ULTweenManager::KillIfIsTweening(WorldContextObject, inTweener, callComplete);
 	}
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Kill If Is Tweening (Array)", AdvancedDisplay = "callComplete", WorldContext = "WorldContextObject"), Category = LTween)
 		static void ArrayKillIfIsTweening(UObject* WorldContextObject, const TArray<ULTweener*>& inTweenerArray, bool callComplete = false)
 	{
-		auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject);
+		auto Instance = ULTweenManager::GetLTweenInstance(WorldContextObject);
 		if (!IsValid(Instance))return;
 
 		for (auto tweener : inTweenerArray)
@@ -193,12 +193,12 @@ public:
 
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 	{
-		return ALTweenActor::RegisterUpdateEvent(WorldContextObject, update);
+		return ULTweenManager::RegisterUpdateEvent(WorldContextObject, update);
 	}
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const TFunction<void(float)>& update)
 	{
 		LTweenUpdateDelegate updateDelegate = LTweenUpdateDelegate::CreateLambda(update);
-		ALTweenActor::RegisterUpdateEvent(WorldContextObject, updateDelegate);
+		ULTweenManager::RegisterUpdateEvent(WorldContextObject, updateDelegate);
 		return updateDelegate.GetHandle();
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Registerred update function will be called every frame from mainthread.", WorldContext = "WorldContextObject"), Category = LTween)
@@ -206,16 +206,16 @@ public:
 	{
 		LTweenUpdateDelegate updateDelegate = LTweenUpdateDelegate::CreateLambda([update](float deltaTime) {update.ExecuteIfBound(deltaTime); });
 		FLTweenDelegateHandleWrapper delegateHandle(updateDelegate.GetHandle());
-		ALTweenActor::RegisterUpdateEvent(WorldContextObject, updateDelegate);
+		ULTweenManager::RegisterUpdateEvent(WorldContextObject, updateDelegate);
 		return delegateHandle;
 	}
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& handle)
 	{
-		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, handle);
+		ULTweenManager::UnregisterUpdateEvent(WorldContextObject, handle);
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent.", WorldContext = "WorldContextObject"), Category = LTween)
 		static void UnregisterUpdateEvent(UObject* WorldContextObject, const FLTweenDelegateHandleWrapper& delegateHandle)
 	{
-		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, delegateHandle.DelegateHandle);
+		ULTweenManager::UnregisterUpdateEvent(WorldContextObject, delegateHandle.DelegateHandle);
 	}
 };
