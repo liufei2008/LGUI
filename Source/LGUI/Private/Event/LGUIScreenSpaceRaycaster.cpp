@@ -9,7 +9,7 @@
 
 ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 {
-	
+	depth = 1000;//commonlly ScreenSpaceRaycaster is on top of WorldSpaceRaycaster, so make it higher
 }
 
 void ULGUIScreenSpaceRaycaster::BeginPlay()
