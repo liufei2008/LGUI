@@ -97,6 +97,7 @@ class LGUI_API ULGUIEditorSettings : public UObject
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
+	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)override;
 	static int32 GetLGUIPreview_EditorViewIndex();
 	static void SetLGUIPreview_EditorViewIndex(int32 value);
 	static bool GetPreserveHierarchyState();
@@ -119,6 +120,11 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
 		float DelayRestoreHierarchyTime = 0.2f;
+	/**
+	 * Prefabs in these folders will appear in "LGUI Tools" menu, so we can easily create our own UI control.
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor", meta = (LongPackageName))
+		TArray<FDirectoryPath> ExtraPrefabFolders;
 	/**
 	 * Draw helper box on selected UI element.
 	 */

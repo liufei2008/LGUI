@@ -84,6 +84,7 @@
 
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
+#include "AssetRegistryModule.h"
 
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 const FName FLGUIEditorModule::LGUIPrefabSequenceTabName(TEXT("LGUIPrefabSequenceTabName"));
@@ -881,6 +882,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
 			NAME_None, EUserInterfaceActionType::None
 		);
+		CreateExtraPrefabsSubMenu(MenuBuilder);
 		if (InitialSetup)
 		{
 			MenuBuilder.AddSubMenu(
@@ -1221,6 +1223,66 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 				);
 
 	GroupDataContainer::MakeMenu(MenuBuilder, GroupData, this);
+}
+
+void FLGUIEditorModule::CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder)
+{
+	struct LOCAL
+	{
+		static void CreateExtraPrefab_SubMenu(FMenuBuilder& MenuBuilder, TArray<ULGUIPrefab*> InPrefabArray)
+		{
+			for (auto Prefab : InPrefabArray)
+			{
+				MenuBuilder.AddMenuEntry(
+					FText::FromString(FPaths::GetBaseFilename(Prefab->GetPathName())),
+					FText::FromString(Prefab->GetPathName()),
+					FSlateIcon(),
+					FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, Prefab->GetPathName()))
+				);
+			}
+		}
+	};
+
+	auto PrefabFolders = GetDefault<ULGUIEditorSettings>()->ExtraPrefabFolders;
+	for (auto PrefabFolder : PrefabFolders)
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+		// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+		TArray<FString> PathsToScan;
+		PathsToScan.Add(TEXT("/Game/"));
+		AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+		TArray<FAssetData> ScriptAssetList;
+		AssetRegistry.GetAssetsByPath(FName(*PrefabFolder.Path), ScriptAssetList, false);
+		TArray<ULGUIPrefab*> PrefabAssets;
+		auto PrefabClassName = ULGUIPrefab::StaticClass()->GetFName();
+		for (auto Asset : ScriptAssetList)
+		{
+			if (Asset.AssetClass == PrefabClassName)
+			{
+				auto AssetObject = Asset.GetAsset();
+				if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+				{
+					PrefabAssets.Add(Prefab);
+				}
+			}
+		}
+
+		if(PrefabAssets.Num() > 0)
+		{
+			MenuBuilder.AddSubMenu(
+				FText::Format(LOCTEXT("CreateExtra", "CreateExtra {0}"), FText::FromString(PrefabFolder.Path)),
+				FText::Format(LOCTEXT("CreateExtra_Tooltip", "CreateExtra prefab from folder {0}"), FText::FromString(PrefabFolder.Path)),
+				FNewMenuDelegate::CreateStatic(&LOCAL::CreateExtraPrefab_SubMenu, PrefabAssets),
+				FUIAction(FExecuteAction()
+					, FCanExecuteAction()
+					, FGetActionCheckState()
+					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
+				NAME_None, EUserInterfaceActionType::None
+			);
+		}
+	}
 }
 
 void FLGUIEditorModule::UseActiveViewportAsPreview()

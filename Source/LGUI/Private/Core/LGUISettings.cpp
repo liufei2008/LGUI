@@ -86,16 +86,41 @@ FSimpleMulticastDelegate ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewVi
 void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (auto Property = PropertyChangedEvent.Property)
+	auto MemberProperty = PropertyChangedEvent.MemberProperty;
+	auto Property = PropertyChangedEvent.Property;
+	if (MemberProperty && Property)
 	{
-		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, LGUIPreview_EditorViewIndex))
+		if (MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, LGUIPreview_EditorViewIndex))
 		{
 			if (LGUIPreviewSetting_EditorPreviewViewportIndexChange.IsBound())
 			{
 				LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
 			}
 		}
+		else if (MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, ExtraPrefabFolders)
+			|| (
+				Property->GetFName() == GET_MEMBER_NAME_CHECKED(FDirectoryPath, Path)
+				&& MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, ExtraPrefabFolders)
+				)
+			)
+		{
+			for (FDirectoryPath& PathToFix : ExtraPrefabFolders)
+			{
+				if (!PathToFix.Path.IsEmpty() && !PathToFix.Path.StartsWith(TEXT("/"), ESearchCase::CaseSensitive))
+				{
+					PathToFix.Path = FString::Printf(TEXT("/Game/%s"), *PathToFix.Path);
+				}
+			}
+			if (GEditor)
+			{
+				GEditor->BroadcastLevelActorListChanged();//refresh Outliner menu
+			}
+		}
 	}
+}
+void ULGUIEditorSettings::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 }
 int32 ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex()
 {
