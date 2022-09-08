@@ -1635,11 +1635,12 @@ TArray<ULGUIPrefab*> LGUIEditorTools::GetAllPrefabArray()
 	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
 
 	TArray<ULGUIPrefab*> AllPrefabs;
+	auto PrefabClassName = ULGUIPrefab::StaticClass()->GetFName();
 	// Ensure all assets are loaded
 	for (const FAssetData& Asset : ScriptAssetList)
 	{
 		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		if (Asset.AssetClass == PrefabClassName)
 		{
 			auto AssetObject = Asset.GetAsset();
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))

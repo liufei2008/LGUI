@@ -16,7 +16,7 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "SceneOutlinerStandaloneTypes.h"
-#include "LGUIEditorModule.h"
+#include "Core/ActorComponent/UIItem.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 

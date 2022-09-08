@@ -39,6 +39,7 @@ private:
 	void CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder);
+	void CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder);
 	void BasicSetupSubMenu(FMenuBuilder& MenuBuilder);
 	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
