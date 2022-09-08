@@ -96,6 +96,7 @@ public:
 
 /**
  * Similar to Unity3D's Prefab. Store actor and it's hierarchy and serailize to asset, deserialize and restore when needed.
+ * If you don't want to package the prefab for runtime (only use in editor), you can put the prefab in a folder named "EditorOnly".
  */
 UCLASS(ClassGroup = (LGUI), BlueprintType)
 class LGUI_API ULGUIPrefab : public UObject
@@ -223,6 +224,7 @@ public:
 	virtual void BeginDestroy()override;
 	virtual void FinishDestroy()override;
 	virtual void PostEditUndo()override;
+	virtual bool IsEditorOnly()const override;
 
 	void SavePrefab(AActor* RootActor
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
