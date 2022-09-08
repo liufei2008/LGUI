@@ -11,6 +11,8 @@ class ULGUICanvas;
 class UTexture2D;
 
 #if !UE_BUILD_SHIPPING
+//Check UObject valid, if not then return, to prevent crash.
+//Removed in shipping build.
 #define LGUI_CHECK_VALID(UObjectPtr, ReturnValue)\
 if (!IsValid(UObjectPtr))\
 {\

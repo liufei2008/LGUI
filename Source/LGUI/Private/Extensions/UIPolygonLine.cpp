@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "LTweenManager.h"
 
 UUIPolygonLine::UUIPolygonLine(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -113,12 +114,12 @@ void UUIPolygonLine::SetVertexOffsetArray(const TArray<float>& value)
 }
 ULTweener* UUIPolygonLine::StartAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, LTweenEase easeType /* = LTweenEase::OutCubic */)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetStartAngle), endValue, duration)
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetStartAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
 ULTweener* UUIPolygonLine::EndAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, LTweenEase easeType /* = LTweenEase::OutCubic */)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetEndAngle), endValue, duration)
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetEndAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
 

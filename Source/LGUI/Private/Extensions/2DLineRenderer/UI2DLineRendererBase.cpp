@@ -5,6 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData_BaseObject.h"
+#include "LTweenManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("UI2DLine Update"), STAT_2DLineUpdate, STATGROUP_LGUI);
 
@@ -403,6 +404,6 @@ void UUI2DLineRendererBase::SetLineWidthOffset(float newValue)
 
 ULTweener* UUI2DLineRendererBase::LineWidthTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration)
+	return ULTweenManager::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration)
 		->SetDelay(delay)->SetEase(easeType);
 }

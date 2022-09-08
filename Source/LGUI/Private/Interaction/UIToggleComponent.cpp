@@ -3,7 +3,7 @@
 #include "Interaction/UIToggleComponent.h"
 #include "LGUI.h"
 #include "Interaction/UIToggleGroupComponent.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
@@ -99,14 +99,14 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 	{
 		if (auto UIRenderable = ToggleActor->GetUIRenderable())
 		{
-			if (ALTweenActor::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ULTweenManager::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)
 			{
 				UIRenderable->SetAlpha(IsOn ? OnAlpha : OffAlpha);
 			}
 			else
 			{
-				ToggleTransitionTweener = ALTweenActor::To(UIRenderable, FLTweenFloatGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
+				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenFloatGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
 					->SetEase(LTweenEase::InOutSine);
 			}
 		}
@@ -115,14 +115,14 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 	{
 		if (auto UIRenderable = ToggleActor->GetUIRenderable())
 		{
-			if (ALTweenActor::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ULTweenManager::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)
 			{
 				UIRenderable->SetColor(IsOn ? OnColor : OffColor);
 			}
 			else
 			{
-				ToggleTransitionTweener = ALTweenActor::To(UIRenderable, FLTweenColorGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
+				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenColorGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
 					->SetEase(LTweenEase::InOutSine);
 			}
 		}

@@ -2,7 +2,7 @@
 
 #include "Interaction/UIScrollViewComponent.h"
 #include "LGUI.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Utils/LGUIUtils.h"
 

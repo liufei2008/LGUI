@@ -2,5 +2,5 @@
 
 #pragma once
 
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "LTweenBPLibrary.h"

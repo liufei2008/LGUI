@@ -3,7 +3,7 @@
 #include "PlayTween/LGUIPlayTweenSequenceComponent.h"
 #include "PlayTween/LGUIPlayTween.h"
 #include "LTweener.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 
 void ULGUIPlayTweenSequenceComponent::BeginPlay()
 {
@@ -76,6 +76,6 @@ void ULGUIPlayTweenSequenceComponent::Stop()
 		isPlaying = false;
 		auto& tweenItem = playTweenArray[currentTweenPlayIndex];
 		tweenItem->UnregisterOnComplete(onCompleteDelegateHandle);
-		ALTweenActor::KillIfIsTweening(this, tweenItem->GetTweener(), false);
+		ULTweenManager::KillIfIsTweening(this, tweenItem->GetTweener(), false);
 	}
 }
