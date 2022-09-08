@@ -3,31 +3,38 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "Tickable.h"
 #include "LTweener.h"
-#include "LTweenActor.generated.h"
+#include "LTweenManager.generated.h"
 
 UCLASS(NotBlueprintable, NotPlaceable)
-class LTWEEN_API ALTweenActor : public AActor
+class LTWEEN_API ULTweenManager : public UGameInstanceSubsystem, public FTickableGameObject
 {
 	GENERATED_BODY()
 	
 public:	
-	ALTweenActor();
 
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void BeginDestroy()override;
+	//~USubsystem interface
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	//~End of USubsystem interface
+
+	//~FTickableObjectBase interface
+	virtual void Tick(float DeltaTime) override;
+	virtual ETickableTickType GetTickableTickType() const override;
+	virtual bool IsTickable() const override;
+	virtual TStatId GetStatId() const override;
+	virtual UWorld* GetTickableGameObjectWorld() const override;
+	//~End of FTickableObjectBase interface
 	
 	UFUNCTION(BlueprintPure, Category = LTween, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LTween Instance"))
-	static ALTweenActor* GetLTweenInstance(UObject* WorldContextObject);
+	static ULTweenManager* GetLTweenInstance(UObject* WorldContextObject);
 private:
 	/** current active tweener collection*/
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
-	/** a world should only have one LTweenActor */
-	static TMap<UWorld*, ALTweenActor*> WorldToInstanceMap;
 	bool existInInstanceMap = false;
-	virtual void Tick(float DeltaSeconds) override;
 	void OnTick(float DeltaTime);
 	LTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
@@ -37,7 +44,7 @@ public:
 	void CustomTick(float DeltaTime);
 	/**
 	 * Disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
-	 * This will only pause the tick with current LTweenActor instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
+	 * This will only pause the tick with current LTweenManager instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
 	 */ 
 	UFUNCTION(BlueprintCallable, Category = LTween)
 	void DisableTick();

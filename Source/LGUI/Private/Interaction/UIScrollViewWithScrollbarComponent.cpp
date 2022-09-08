@@ -3,7 +3,7 @@
 #include "Interaction/UIScrollViewWithScrollbarComponent.h"
 #include "LGUI.h"
 #include "Interaction/UIScrollbarComponent.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/LGUIManagerActor.h"
 

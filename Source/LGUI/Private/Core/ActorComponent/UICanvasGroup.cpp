@@ -3,7 +3,7 @@
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
-#include "LTweenActor.h"
+#include "LTweenManager.h"
 
 UUICanvasGroup::UUICanvasGroup()
 {
@@ -207,11 +207,11 @@ void UUICanvasGroup::SetIgnoreParentGroup(bool value)
 
 ULTweener* UUICanvasGroup::AlphaTo(float endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* UUICanvasGroup::AlphaFrom(float startValue, float duration, float delay, LTweenEase ease)
 {
 	auto endValue = this->GetAlpha();
 	this->SetAlpha(startValue);
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }

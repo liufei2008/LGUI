@@ -6,7 +6,6 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Event/Interface/LGUINavigationInterface.h"
-#include "Components/ActorComponent.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
