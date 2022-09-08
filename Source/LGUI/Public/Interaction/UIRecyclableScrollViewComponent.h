@@ -69,6 +69,12 @@ public:
 		UUIItem* UIItem = nullptr;
 };
 
+UENUM(BlueprintType)
+enum class EUIRecyclableScrollViewCellTemplateType :uint8
+{
+	Actor, Prefab,
+};
+
 /**
  * RecyclableScrollView can reuse cell's ui element.
  * Assign your own DataSource object (IUIRecyclableScrollViewDataSource) and create recyclable scroll view on that data.
@@ -86,14 +92,26 @@ protected:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual bool CanEditChange(const FProperty* InProperty)const override;
 #endif
 protected:
 	/** Use a Actor which implement UIRecyclableScrollViewDataSource interface. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
 		UObject* DataSource;
-	/** CellTemplate must have a ActorComponent which implement UIRecyclableScrollViewCell interface. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
-		TWeakObjectPtr<AUIBaseActor> CellTemplate;
+		EUIRecyclableScrollViewCellTemplateType CellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
+	/**
+	 * CellTemplate must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
+	 * Only valid if CellTemplateType is Actor.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+		AUIBaseActor* CellTemplate;
+	/**
+	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
+	 * Only valid if CellTemplateType is Prefab.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+		class ULGUIPrefab* CellTemplatePrefab;
 	/** When use horizontal scroll, this can set the row count in every cell. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Horizontal"))
 		uint16 Rows = 1;
@@ -126,7 +144,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const FVector2D& GetSpace()const { return Space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		AUIBaseActor* GetCellTemplate()const { return CellTemplate.Get(); }
+		EUIRecyclableScrollViewCellTemplateType GetCellTemplateType()const { return CellTemplateType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		AUIBaseActor* GetCellTemplate()const { return CellTemplate; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		class ULGUIPrefab* GetCellTemplatePrefab()const { return CellTemplatePrefab; }
 
 	/**
 	 * Delete all created cell objects.
@@ -153,7 +175,13 @@ public:
 	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		void SetCellTemplate(AUIBaseActor* value) { CellTemplate = value; }
+		void SetCellTemplate(AUIBaseActor* value);
+	/**
+	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
+	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void SetCellTemplatePrefab(class ULGUIPrefab* value);
 
 	/** Recreate cell list. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
@@ -177,6 +205,9 @@ private:
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;
 
 	void InitializeOnDataSource();
+	EUIRecyclableScrollViewCellTemplateType WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
+	TWeakObjectPtr<AUIBaseActor> WorkingCellTemplate = nullptr;//current using cell template, could be CellTemplate or CellTemplatePrefab's instance, tell by 'WorkingCellTemplateType'
+	FVector2D WorkingCellTemplateSize = FVector2D::ZeroVector;
 	FVector2D RangeArea = FVector2D::ZeroVector;//min max range point in parent location
 	FDelegateHandle OnScrollEventDelegateHandle;
 	void OnScrollCallback(FVector2D value);
