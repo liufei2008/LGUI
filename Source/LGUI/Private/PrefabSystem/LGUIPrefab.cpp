@@ -375,6 +375,17 @@ void ULGUIPrefab::PostEditUndo()
 	Super::PostEditUndo();
 	RefreshAgentObjectsInPreviewWorld();
 }
+bool ULGUIPrefab::IsEditorOnly()const
+{
+	auto PathName = this->GetPathName();
+	if (PathName.StartsWith(TEXT("/LGUI/Prefabs/"))//LGUI's preset prefab no need to use in runtime
+		|| PathName.Contains(TEXT("/EditorOnly/"))//if prefab stays in a folder named "EditorOnly" then skip it too
+		)
+	{
+		return true;
+	}
+	return false;
+}
 
 #endif
 
