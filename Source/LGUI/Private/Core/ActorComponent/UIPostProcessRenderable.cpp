@@ -168,10 +168,10 @@ void UUIPostProcessRenderable::OnUpdateGeometry(bool InTriangleChanged, bool InV
 
 			if (InVertexUVChanged)
 			{
-				vertices[0].TextureCoordinate[0] = FVector2f(0, 1);
-				vertices[1].TextureCoordinate[0] = FVector2f(1, 1);
-				vertices[2].TextureCoordinate[0] = FVector2f(0, 0);
-				vertices[3].TextureCoordinate[0] = FVector2f(1, 0);
+				vertices[0].TextureCoordinate[0] = MaskTextureSpriteInfo.GetUV0();
+				vertices[1].TextureCoordinate[0] = MaskTextureSpriteInfo.GetUV1();
+				vertices[2].TextureCoordinate[0] = MaskTextureSpriteInfo.GetUV2();
+				vertices[3].TextureCoordinate[0] = MaskTextureSpriteInfo.GetUV3();
 
 				vertices[0].TextureCoordinate[1] = FVector2f(0, 1);
 				vertices[1].TextureCoordinate[1] = FVector2f(1, 1);
@@ -384,7 +384,7 @@ void UUIPostProcessRenderable::CheckSpriteData()
 	{
 		MaskTextureSpriteInfo.width = maskTexture->GetSurfaceWidth();
 		MaskTextureSpriteInfo.height = maskTexture->GetSurfaceHeight();
-		MaskTextureSpriteInfo.ApplyUV(0, 0, MaskTextureSpriteInfo.width, MaskTextureSpriteInfo.height, 1.0f / MaskTextureSpriteInfo.width, 1.0f / MaskTextureSpriteInfo.height);
+		MaskTextureSpriteInfo.ApplyUV(0, 0, MaskTextureSpriteInfo.width, MaskTextureSpriteInfo.height, 1.0f / MaskTextureSpriteInfo.width, 1.0f / MaskTextureSpriteInfo.height, MaskTextureUVRect);
 		MaskTextureSpriteInfo.ApplyBorderUV(1.0f / MaskTextureSpriteInfo.width, 1.0f / MaskTextureSpriteInfo.height);
 	}
 }
@@ -454,6 +454,17 @@ void UUIPostProcessRenderable::SetMaskTextureSpriteInfo(const FLGUISpriteInfo& v
 		bUVChanged = true;
 		bColorChanged = true;
 		MarkCanvasUpdate(false, true, false);
+	}
+}
+void UUIPostProcessRenderable::SetMaskTextureUVRect(const FVector4& value)
+{
+	if (MaskTextureUVRect != value)
+	{
+		MaskTextureUVRect = value;
+
+		bUVChanged = true;
+		CheckSpriteData();
+		MarkCanvasUpdate(false, false, false);
 	}
 }
 
