@@ -50,6 +50,7 @@ void FUIPostProcessRenderableCustomization::CustomizeDetails(IDetailLayoutBuilde
 	MaskTextureGroup.HeaderProperty(MaskTextureHandle);
 	MaskTextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIPostProcessRenderable, MaskTextureType)));
 	MaskTextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIPostProcessRenderable, MaskTextureSpriteInfo)));
+	MaskTextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIPostProcessRenderable, MaskTextureUVRect)));
 }
 
 #undef LOCTEXT_NAMESPACE

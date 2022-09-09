@@ -55,6 +55,9 @@ protected:
 		EUIPostProcessMaskTextureType MaskTextureType = EUIPostProcessMaskTextureType::Simple;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUISpriteInfo MaskTextureSpriteInfo;
+	/** MaskTexture UV offset and scale info. Only get good result when MaskTextureType is Simple */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FVector4 MaskTextureUVRect = FVector4(0, 0, 1, 1);
 	void SendMaskTextureToRenderProxy();
 	void CheckSpriteData();
 public:
@@ -64,6 +67,8 @@ public:
 		EUIPostProcessMaskTextureType GetMaskTextureType()const { return MaskTextureType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const FLGUISpriteInfo& GetMaskTextureSpriteInfo()const { return MaskTextureSpriteInfo; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector4& GetMaskTextureUVRect()const { return MaskTextureUVRect; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaskTexture(UTexture2D* newValue);
@@ -71,6 +76,8 @@ public:
 		void SetMaskTextureType(EUIPostProcessMaskTextureType value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaskTextureSpriteInfo(const FLGUISpriteInfo& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaskTextureUVRect(const FVector4& value);
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();

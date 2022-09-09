@@ -36,6 +36,7 @@ protected:
 		UITextureType type = UITextureType::Normal;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUISpriteInfo spriteData;
+	/** Texture UV offset and scale info. Only get good result when Type is Normal */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector4 uvRect = FVector4(0, 0, 1, 1);
 
