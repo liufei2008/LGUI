@@ -255,6 +255,23 @@ void ULGUILifeCycleBehaviour::SetActiveStateForEnableAndDisable(bool activeOrIna
 			}
 		}
 	}
+	else//not call awake, should be the first time that get IsUIActive:true
+	{
+		if (activeOrInactive)
+		{
+			if (!bIsAwakeCalled)
+			{
+				Call_Awake();
+			}
+			if (enable)
+			{
+				if (!bIsEnableCalled)
+				{
+					Call_OnEnable();
+				}
+			}
+		}
+	}
 }
 
 
