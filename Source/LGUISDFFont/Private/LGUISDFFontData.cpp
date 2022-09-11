@@ -157,7 +157,6 @@ void ULGUISDFFontData::PrepareForPushCharData(UUIText* InText)
 {
 	italicSlop = FMath::Tan(FMath::DegreesToRadians(ItalicAngle));
 	oneDivideFontSize = 1.0f / FontSize;
-	objectScale = InText->GetComponentScale().X;
 }
 
 uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
@@ -325,7 +324,7 @@ void ULGUISDFFontData::PushCharData(
 	//uv
 	{
 		int addVertCount = 0;
-		auto tempFontSizeAndObjectScale = richTextProperty.size * oneDivideFontSize * objectScale;
+		auto tempFontSize = richTextProperty.size * oneDivideFontSize;
 		{
 			vertices[verticesStartIndex].TextureCoordinate[0] = charData.GetUV0();
 			vertices[verticesStartIndex + 1].TextureCoordinate[0] = charData.GetUV1();
@@ -335,10 +334,10 @@ void ULGUISDFFontData::PushCharData(
 			//bold and font size
 			{
 				auto tempBoldSize = richTextProperty.bold ? BoldRatio : 0.0f;
-				vertices[verticesStartIndex].TextureCoordinate[1] = FVector2f(tempBoldSize, richTextProperty.size * oneDivideFontSize);
-				vertices[verticesStartIndex + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, richTextProperty.size * oneDivideFontSize);
-				vertices[verticesStartIndex + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, richTextProperty.size * oneDivideFontSize);
-				vertices[verticesStartIndex + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, richTextProperty.size * oneDivideFontSize);
+				vertices[verticesStartIndex].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
 			}
 
 			addVertCount = 4;
@@ -353,10 +352,10 @@ void ULGUISDFFontData::PushCharData(
 			//bold and font size, bold is not needed for underline and strikethrough, but font size is needed
 			{
 				auto tempBoldSize = 0.0f;
-				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
+				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
 			}
 
 			addVertCount += 4;
@@ -371,10 +370,10 @@ void ULGUISDFFontData::PushCharData(
 			//bold and font size, bold is not needed for underline and strikethrough, but font size is needed
 			{
 				auto tempBoldSize = 0.0f;
-				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
-				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSizeAndObjectScale);
+				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
 			}
 
 			addVertCount += 4;

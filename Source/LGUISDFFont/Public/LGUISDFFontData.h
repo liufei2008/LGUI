@@ -78,7 +78,7 @@ public:
 	virtual bool GetCanAdjustPixelPerfect() { return false; }
 	//End ULGUIFontDataBaseObject interface
 protected:
-	float italicSlop; float oneDivideFontSize; float objectScale;
+	float italicSlop; float oneDivideFontSize;
 	TMap<TCHAR, FLGUICharData> charDataMap;
 	TMap<FLGUISDFFontKerningPair, int16> KerningPairsMap;
 	virtual UTexture2D* CreateFontTexture(int InTextureSize)override;
