@@ -51,25 +51,33 @@ FLGUIHudRenderer::~FLGUIHudRenderer()
 	
 }
 
+#include "LegacyScreenPercentageDriver.h"
 void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
 	if (!World.IsValid())return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	if (!bIsRenderToRenderTarget)
 	{
-#if 0//looks like ue5's depth is not affected by ScreenPercentage
-		if (InView.bIsGameView)
+		//these codes are copied from Engine\Source\Editor\UnrealEd\Private\EditorViewportClient.cpp:GetDefaultPrimaryResolutionFractionTarget
+		FStaticResolutionFractionHeuristic StaticHeuristic;
+#if WITH_EDITOR
+		if (!InView.bIsGameView)
 		{
-			if (ScreenPercentageConsoleVariable != nullptr)
-			{
-				ScreenPercentage = ScreenPercentageConsoleVariable->GetInt() * 0.01f;
-			}
+			StaticHeuristic.Settings.PullEditorRenderingSettings(true);
 		}
 		else
 #endif
 		{
-			ScreenPercentage = 1.0f;
+			StaticHeuristic.Settings.PullRunTimeRenderingSettings();
 		}
+		//if (SupportsLowDPIPreview() && IsLowDPIPreview()) // TODO: && ViewFamily.SupportsScreenPercentage())
+		//{
+		//	StaticHeuristic.SecondaryViewFraction = GetDPIDerivedResolutionFraction();
+		//}
+
+		StaticHeuristic.TotalDisplayedPixelCount = FMath::Max(InView.UnconstrainedViewRect.Width() * InView.UnconstrainedViewRect.Height(), 1);
+		StaticHeuristic.DPIScale = 1.0f;
+		ScreenPercentage = StaticHeuristic.ResolveResolutionFraction();
 	}
 	//world space
 	{
