@@ -76,7 +76,7 @@ void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 		}
 	}
 	SetActiveStateForEnableAndDisable(activeOrInactive);
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIActiveInHierarchy(activeOrInactive);
 	}
@@ -97,49 +97,49 @@ void ULGUILifeCycleUIBehaviour::Call_Awake()
 
 void ULGUILifeCycleUIBehaviour::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIDimensionsChanged(positionChanged, sizeChanged);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive)
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIChildAcitveInHierarchy(child, ativeOrInactive);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIAttachmentChanged()
 { 
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIAttachmentChanged();
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach) 
 { 
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIChildAttachmentChanged(child, attachOrDetach);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIInteractionStateChanged(bool interactableOrNot)
 { 
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIInteractionStateChanged(interactableOrNot);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIChildHierarchyIndexChanged(UUIItem* child)
 { 
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnUIChildHierarchyIndexChanged(child);
 	}

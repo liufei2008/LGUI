@@ -50,6 +50,8 @@ protected:
 	uint8 bCanExecuteUpdate : 1;
 	uint8 bIsAddedToUpdate : 1;
 	uint8 bPrevIsRootComponentVisible : 1;
+	/** use this to tell if the class is compiled from blueprint, only blueprint can execute ReceiveXXX. */
+	uint8 bCanExecuteBlueprintEvent : 1;
 	/** this object is serialized from LGUIPrefab? Some data may need to be fixed after loaded from LGUIPrefab */
 	uint8 bIsSerializedFromLGUIPrefab : 1;
 protected:

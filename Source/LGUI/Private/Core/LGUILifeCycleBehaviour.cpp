@@ -17,6 +17,7 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 	bCanExecuteUpdate = true;
 	bIsAddedToUpdate = false;
 	bPrevIsRootComponentVisible = false;
+	bCanExecuteBlueprintEvent = false;
 	bIsSerializedFromLGUIPrefab = false;
 }
 
@@ -24,6 +25,7 @@ void ULGUILifeCycleBehaviour::BeginPlay()
 {
 	Super::BeginPlay();
 	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
+	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 	if (GetRootSceneComponent())
 	{
 		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
@@ -326,42 +328,42 @@ void ULGUILifeCycleBehaviour::SetCanExecuteUpdate(bool value)
 
 void ULGUILifeCycleBehaviour::Awake()
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveAwake();
 	}
 }
 void ULGUILifeCycleBehaviour::Start()
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveStart();
 	}
 }
 void ULGUILifeCycleBehaviour::Update(float DeltaTime)
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveUpdate(DeltaTime);
 	}
 }
 void ULGUILifeCycleBehaviour::OnDestroy()
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnDestroy();
 	}
 }
 void ULGUILifeCycleBehaviour::OnEnable()
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnEnable();
 	}
 }
 void ULGUILifeCycleBehaviour::OnDisable()
 {
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	if (bCanExecuteBlueprintEvent)
 	{
 		ReceiveOnDisable();
 	}
