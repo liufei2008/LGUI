@@ -295,6 +295,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayName = "Is UI Active"))
 		bool bIsUIActive = true;
+	bool IsOwnerActorTemporaryHiddenInEd() const;
 	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState(bool InStateChange);
 	void OnChildActiveStateChanged(UUIItem* child);
@@ -313,7 +314,8 @@ public:
 		bool GetIsUIActiveSelf()const { return bIsUIActive; }
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && bAllUpParentUIActive; };
+		bool GetIsUIActiveInHierarchy()const;
+	void ActorTemporaryHiddenChanged();
 #pragma endregion UIActive
 
 #pragma region HierarchyIndex
