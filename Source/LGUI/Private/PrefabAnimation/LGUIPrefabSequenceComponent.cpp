@@ -24,7 +24,7 @@ void ULGUIPrefabSequenceComponent::Awake()
 {
 	Super::Awake();
 
-	if (this->bIsSerializedFromLGUIPrefab)
+	if (this->bIsSerializedFromLGUIPrefab)//@todo: get rid of this
 	{
 		for (auto& SequenceItem : SequenceArray)
 		{
