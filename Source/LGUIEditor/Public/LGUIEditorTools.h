@@ -61,8 +61,8 @@ public:
 	static void FocusToScreenSpaceUI();
 	static void FocusToSelectedUI();
 
-	static TArray<TWeakObjectPtr<class ULGUIPrefab>> copiedActorPrefabList;
-	static TWeakObjectPtr<class UActorComponent> copiedComponent;
+	static TMap<FString, TWeakObjectPtr<class ULGUIPrefab>> CopiedActorPrefabMap;//map ActorLabel to prefab
+	static TWeakObjectPtr<class UActorComponent> CopiedComponent;
 	static bool HaveValidCopiedActors();
 	static bool HaveValidCopiedComponent();
 

@@ -256,71 +256,73 @@ public:
 		return srcActorLabel.Left(srcActorLabel.Len() - rightCount);
 	}
 public:
-	static FString GetCopiedActorLabel(AActor* srcActor)
+	static FString GetCopiedActorLabel(AActor* Parent, FString OriginActorLabel, UWorld* World)
 	{
-		TArray<AActor*> sameLevelActorList;
-		auto parentActor = srcActor->GetAttachParentActor();
-		for (TActorIterator<AActor> ActorItr(srcActor->GetWorld()); ActorItr; ++ActorItr)
+		TArray<AActor*> SameParentActorList;//all actors attached at same parent actor. if parent is null then get all actors
+		for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
 		{
 			if (AActor* itemActor = *ActorItr)
 			{
 				if (IsValid(itemActor))
 				{
-					if (IsValid(parentActor))
+					if (IsValid(Parent))
 					{
-						if (itemActor->GetAttachParentActor() == parentActor)
+						if (itemActor->GetAttachParentActor() == Parent)
 						{
-							sameLevelActorList.Add(itemActor);
+							SameParentActorList.Add(itemActor);
 						}
 					}
 					else
 					{
 						if (itemActor->GetAttachParentActor() == nullptr)
 						{
-							sameLevelActorList.Add(itemActor);
+							SameParentActorList.Add(itemActor);
 						}
 					}
 				}
 			}
 		}
-		
-		auto srcActorLabel = srcActor->GetActorLabel();
+	
 
-		FString maxNumetricSuffixStr = TEXT("");
-		srcActorLabel = GetLabelPrefixForCopy(srcActorLabel, maxNumetricSuffixStr);
-		int maxNumetricSuffixStrLength = maxNumetricSuffixStr.Len();
-		int count = sameLevelActorList.Num();
-		for (int i = 0; i < count; i ++)//search from same level actors, and get the right suffix
+		FString MaxNumetricSuffixStr = TEXT("");//numetric suffix
+		OriginActorLabel = GetLabelPrefixForCopy(OriginActorLabel, MaxNumetricSuffixStr);
+		int MaxNumetricSuffixStrLength = MaxNumetricSuffixStr.Len();
+		int SameNameActorCount = 0;//if actor name is same with source name, then collect it
+		for (int i = 0; i < SameParentActorList.Num(); i ++)//search from same level actors, and get the right suffix
 		{
-			auto item = sameLevelActorList[i];
+			auto item = SameParentActorList[i];
 			auto itemActorLabel = item->GetActorLabel();
-			if (srcActorLabel.Len() == 0 || itemActorLabel.StartsWith(srcActorLabel))
+			if (itemActorLabel == OriginActorLabel)SameNameActorCount++;
+			if (OriginActorLabel.Len() == 0 || itemActorLabel.StartsWith(OriginActorLabel))
 			{
-				auto itemRightStr = itemActorLabel.Right(itemActorLabel.Len() - srcActorLabel.Len());
+				auto itemRightStr = itemActorLabel.Right(itemActorLabel.Len() - OriginActorLabel.Len());
 				if (!itemRightStr.IsNumeric())//if rest is not numetric
 				{
 					continue;
 				}
 				FString itemNumetrixSuffixStr = itemRightStr;
 				int itemNumetrix = FCString::Atoi(*itemNumetrixSuffixStr);
-				int maxNumetrixSuffix = FCString::Atoi(*maxNumetricSuffixStr);
+				int maxNumetrixSuffix = FCString::Atoi(*MaxNumetricSuffixStr);
 				if (itemNumetrix > maxNumetrixSuffix)
 				{
 					maxNumetrixSuffix = itemNumetrix;
-					maxNumetricSuffixStr = FString::Printf(TEXT("%d"), maxNumetrixSuffix);
+					MaxNumetricSuffixStr = FString::Printf(TEXT("%d"), maxNumetrixSuffix);
 				}
 			}
 		}
-		FString copiedActorLabel = srcActorLabel;
-		int maxNumtrixSuffix = FCString::Atoi(*maxNumetricSuffixStr);
-		maxNumtrixSuffix++;
-		FString numetrixSuffixStr = FString::Printf(TEXT("%d"), maxNumtrixSuffix);
-		while (numetrixSuffixStr.Len() < maxNumetricSuffixStrLength)
+		FString CopiedActorLabel = OriginActorLabel;
+		if (!MaxNumetricSuffixStr.IsEmpty() || SameNameActorCount > 0)
 		{
-			numetrixSuffixStr = TEXT("0") + numetrixSuffixStr;
+			int MaxNumtrixSuffix = FCString::Atoi(*MaxNumetricSuffixStr);
+			MaxNumtrixSuffix++;
+			FString NumetrixSuffixStr = FString::Printf(TEXT("%d"), MaxNumtrixSuffix);
+			while (NumetrixSuffixStr.Len() < MaxNumetricSuffixStrLength)
+			{
+				NumetrixSuffixStr = TEXT("0") + NumetrixSuffixStr;
+			}
+			CopiedActorLabel += NumetrixSuffixStr;
 		}
-		copiedActorLabel += numetrixSuffixStr;
-		return copiedActorLabel;
+		return CopiedActorLabel;
 	}
 	
 public:
@@ -532,8 +534,8 @@ public:
 	}
 };
 
-TArray<TWeakObjectPtr<class ULGUIPrefab>> LGUIEditorTools::copiedActorPrefabList;
-TWeakObjectPtr<class UActorComponent> LGUIEditorTools::copiedComponent;
+TMap<FString, TWeakObjectPtr<class ULGUIPrefab>> LGUIEditorTools::CopiedActorPrefabMap;
+TWeakObjectPtr<class UActorComponent> LGUIEditorTools::CopiedComponent;
 
 FString LGUIEditorTools::LGUIPresetPrefabPath = TEXT("/LGUI/Prefabs/");
 
@@ -778,7 +780,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 	{
 		MakeCurrentLevel(Actor);
 		Actor->GetLevel()->Modify();
-		auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(Actor);
+		auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(Actor->GetAttachParentActor(), Actor->GetActorLabel(), Actor->GetWorld());
 		AActor* copiedActor;
 		USceneComponent* Parent = nullptr;
 		if (Actor->GetAttachParentActor())
@@ -872,13 +874,13 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	for (auto prevCopiedActorPrefab : copiedActorPrefabList)
+	for (auto KeyValuePair : CopiedActorPrefabMap)
 	{
-		prevCopiedActorPrefab->RemoveFromRoot();
-		prevCopiedActorPrefab->ConditionalBeginDestroy();
+		KeyValuePair.Value->RemoveFromRoot();
+		KeyValuePair.Value->ConditionalBeginDestroy();
 	}
 	auto CopyActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
-	copiedActorPrefabList.Reset();
+	CopiedActorPrefabMap.Reset();
 	for (auto Actor : CopyActorList)
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
@@ -940,7 +942,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 			}
 		}
 		prefab->SavePrefab(Actor, InOutMapObjectToGuid, InSubPrefabMap);
-		copiedActorPrefabList.Add(prefab);
+		CopiedActorPrefabMap.Add(Actor->GetActorLabel(), prefab);
 	}
 }
 void LGUIEditorTools::PasteSelectedActors_Impl()
@@ -990,13 +992,14 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		MakeCurrentLevel(parentComp->GetOwner());
 	}
-	for (auto prefab : copiedActorPrefabList)
+	for (auto KeyValuePair : CopiedActorPrefabMap)
 	{
-		if (prefab.IsValid())
+		if (KeyValuePair.Value.IsValid())
 		{
 			TMap<FGuid, UObject*> OutMapGuidToObject;
 			TMap<AActor*, FLGUISubPrefabData> LoadedSubPrefabMap;
-			auto copiedActor = prefab->LoadPrefabInEditor(parentComp->GetWorld(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
+			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(parentComp->GetOwner(), KeyValuePair.Key, parentComp->GetWorld());
+			auto copiedActor = KeyValuePair.Value->LoadPrefabInEditor(parentComp->GetWorld(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
 			for (auto& KeyValue : LoadedSubPrefabMap)
 			{
 				TMap<FGuid, UObject*> SubMapGuidToObject;
@@ -1006,7 +1009,6 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 				}
 				PrefabHelperObject->MakePrefabAsSubPrefab(KeyValue.Value.PrefabAsset, KeyValue.Key, SubMapGuidToObject, KeyValue.Value.ObjectOverrideParameterArray);
 			}
-			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true, true);
 		}
@@ -1155,7 +1157,7 @@ void LGUIEditorTools::CopyComponentValues_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("Only support one component"));
 		return;
 	}
-	copiedComponent = selectedComponents[0];
+	CopiedComponent = selectedComponents[0];
 }
 void LGUIEditorTools::PasteComponentValues_Impl()
 {
@@ -1166,7 +1168,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	if (copiedComponent.IsValid())
+	if (CopiedComponent.IsValid())
 	{
 		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
 		UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
@@ -1177,7 +1179,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 			{
 				SelectedComp->UnregisterComponent();
 			}
-			UEditorEngine::CopyPropertiesForUnrelatedObjects(copiedComponent.Get(), SelectedComp, Options);
+			UEditorEngine::CopyPropertiesForUnrelatedObjects(CopiedComponent.Get(), SelectedComp, Options);
 			if (!SelectedComp->IsRegistered())
 			{
 				SelectedComp->RegisterComponent();
@@ -1387,10 +1389,10 @@ void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent
 }
 bool LGUIEditorTools::HaveValidCopiedActors()
 {
-	if (copiedActorPrefabList.Num() == 0)return false;
-	for (auto item : copiedActorPrefabList)
+	if (CopiedActorPrefabMap.Num() == 0)return false;
+	for (auto KeyValuePair : CopiedActorPrefabMap)
 	{
-		if (!item.IsValid())
+		if (!KeyValuePair.Value.IsValid())
 		{
 			return false;
 		}
@@ -1399,7 +1401,7 @@ bool LGUIEditorTools::HaveValidCopiedActors()
 }
 bool LGUIEditorTools::HaveValidCopiedComponent()
 {
-	return copiedComponent.IsValid();
+	return CopiedComponent.IsValid();
 }
 
 FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
