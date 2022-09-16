@@ -10,6 +10,7 @@
 #include "Engine/Selection.h"
 #include "Engine/World.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
+#include "SceneOutliner/LGUISceneOutlinerActorLabelColumn.h"
 #include "SOutlinerTreeView.h"
 #include "Editor/GroupActor.h"
 #include "LGUIPrefabEditor.h"
@@ -42,7 +43,10 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 2));
 	InitOptions.ColumnMap.Add(FSceneOutlinerBuiltInColumnTypes::Gutter(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 0));
 	InitOptions.ColumnMap.Add(FSceneOutlinerBuiltInColumnTypes::Label(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 1));
-	InitOptions.ColumnMap.Add(FSceneOutlinerBuiltInColumnTypes::ActorInfo(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 10));
+	//InitOptions.ColumnMap.Add(FSceneOutlinerBuiltInColumnTypes::ActorInfo(), FSceneOutlinerColumnInfo(ESceneOutlinerColumnVisibility::Visible, 10));
+	// use custom actor label column, to show perfab hyper-link.
+	FSceneOutlinerColumnInfo ActorLabelColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn::MakeInstance));
+	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn::GetID(), ActorLabelColumnInfo);
 	if (ActorFilter.IsBound())
 	{
 		InitOptions.Filters->AddFilterPredicate<FActorTreeItem>(ActorFilter);

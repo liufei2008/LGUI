@@ -196,4 +196,5 @@ private:
 public:
 	static FColor ColorHSVDataToColorRGB(FVector InHSVColor);
 	static FVector ColorRGBToColorHSVData(FColor InRGBColor);
+	static void HideChildrenActorsInOutliner(AActor* TargetActor);
 };

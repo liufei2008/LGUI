@@ -176,6 +176,30 @@ void LGUIUtils::NotifyPropertyChanged(UObject* Object, FName PropertyName)
 }
 #endif
 
+// don't show TargetActor's children actors in SceneOutliner
+void LGUIUtils::HideChildrenActorsInOutliner(AActor* TargetActor)
+{
+#if WITH_EDITOR
+	if (TargetActor == nullptr)
+	{
+		return;
+	}
+
+	bool bShowInInspector = GetDefault<ULGUIEditorSettings>()->bShowSubPrefabChildrenActors;
+
+	TArray<AActor*> ChildrenActors;
+	TargetActor->GetAttachedActors(ChildrenActors, false, true);
+	for (AActor* Actor : ChildrenActors)
+	{
+		FBoolProperty* Property = CastField<FBoolProperty>(Actor->GetClass()->FindPropertyByName(TEXT("bEditable")));
+		if (Property)
+		{
+			Property->SetPropertyValue_InContainer(Actor, bShowInInspector);
+		}
+	}
+#endif
+}
+
 FColor LGUIUtils::ColorHSVDataToColorRGB(FVector InHSVColor)
 {
 	FLinearColor colorHSV(InHSVColor);

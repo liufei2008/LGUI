@@ -8,6 +8,7 @@
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
 #include "PrefabSystem/ActorSerializer4.h"
+#include "Utils/LGUIUtils.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -49,6 +50,18 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 
 	FCoreUObjectDelegates::OnObjectPropertyChanged.AddUObject(this, &ULGUIPrefabHelperObject::OnObjectPropertyChanged);
 	FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddUObject(this, &ULGUIPrefabHelperObject::OnPreObjectPropertyChanged);
+
+	// Hide prefab's children actors
+	for (auto Itr : SubPrefabMap)
+	{
+		AActor* PrefabActor = Itr.Key;
+		FLGUISubPrefabData& PrefabData = Itr.Value;
+		if (IsValid(PrefabActor) && IsValid(PrefabData.PrefabAsset))
+		{
+			PrefabActor->SetActorLabel(FString::Printf(TEXT("[%s]"), *PrefabData.PrefabAsset->GetName()));
+			LGUIUtils::HideChildrenActorsInOutliner(PrefabActor);
+		}
+	}
 }
 
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
@@ -402,11 +415,17 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 
 			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
 			auto AttachParentActor = SubPrefabRootActor->GetAttachParentActor();
-			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
+			AActor* SubPrefabActor = InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
 				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
 				, SubPrefabMapGuidToObject, SubSubPrefabMap
 				, false
 			);
+
+#if WITH_EDITOR
+			SubPrefabActor->SetActorLabel(FString::Printf(TEXT("[%s]"), *InSubPrefab->GetName()));
+			// hide sub-prefab's children actors
+			LGUIUtils::HideChildrenActorsInOutliner(SubPrefabActor);
+#endif
 
 			//delete extra actors
 			for (auto& OldChild : ChildrenActors)

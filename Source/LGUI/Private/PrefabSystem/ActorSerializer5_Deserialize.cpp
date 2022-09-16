@@ -134,6 +134,12 @@ namespace LGUIPrefabSystem5
 		};
 		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+#if WITH_EDITOR
+		rootActor->SetActorLabel(FString::Printf(TEXT("[%s]"), *InPrefab->GetName()));
+		// hide sub-prefab's children actors
+		LGUIUtils::HideChildrenActorsInOutliner(rootActor);
+#endif
+
 		InOutActorIndex = serializer.ActorIndexInPrefab;
 		return rootActor;
 	}

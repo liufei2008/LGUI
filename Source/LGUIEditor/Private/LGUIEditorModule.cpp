@@ -13,6 +13,7 @@
 #include "ISettingsSection.h"
 
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
+#include "SceneOutliner/LGUISceneOutlinerActorLabelColumn.h"
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
 #include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
@@ -420,6 +421,7 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn>();
 		delete NativeSceneOutlinerExtension;
 		NativeSceneOutlinerExtension = nullptr;
 	}
@@ -1344,12 +1346,15 @@ void FLGUIEditorModule::ApplyLGUIColumnInfo(bool value, bool refreshSceneOutline
 	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 	if (value)
 	{
-		FSceneOutlinerColumnInfo ColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
-		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(ColumnInfo);
+		FSceneOutlinerColumnInfo InfoColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
+		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(InfoColumnInfo);
+		//FSceneOutlinerColumnInfo ActorLabelColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn::MakeInstance));
+		//SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn>(ActorLabelColumnInfo);
 	}
 	else
 	{
 		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerActorLabelColumn>();
 	}
 
 	//refresh scene outliner

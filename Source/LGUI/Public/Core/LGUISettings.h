@@ -131,6 +131,11 @@ public:
 	UPROPERTY(config)
 		bool bDrawHelperFrame = true;
 	/**
+	 *  Whether show sub prefab's children actors, such as UMG
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
+	bool bShowSubPrefabChildrenActors = false;
+	/**
 	 * Draw navigation visulaizer
 	 */
 	UPROPERTY(Transient)
