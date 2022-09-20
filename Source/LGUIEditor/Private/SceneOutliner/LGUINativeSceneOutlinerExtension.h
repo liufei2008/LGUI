@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -50,11 +50,13 @@ private:
 	void OnPreBeginPIE(const bool IsSimulating);
 	void OnBeginPIE(const bool IsSimulating);
 	void OnEndPIE(const bool IsSimulating);
+	void PreserveHierarchyStateChange();
 	FDelegateHandle OnPreSaveWorldDelegateHandle;
 	FDelegateHandle OnMapOpenedDelegateHandle;
 	FDelegateHandle OnPreBeginPIEDelegateHandle;
 	FDelegateHandle OnBeginPIEDelegateHandle;
 	FDelegateHandle OnEndPIEDelegateHandle;
+	FDelegateHandle OnLGUIEditorPreserveHierarchyStateChangeDelegateHandle;
 
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
@@ -65,5 +67,5 @@ private:
 	bool shouldRestoreTemporarilyHidden = false;
 	bool shouldRestoreUseFNameData = false;
 	TArray<FName> UnexpandedActorArray;
-	ALGUIEditorLevelDataStorageActor* FindOrCreateDataStorageActor();
+	ALGUIEditorLevelDataStorageActor* FindDataStorageActor(bool CreateIfNotExist = true);
 };
