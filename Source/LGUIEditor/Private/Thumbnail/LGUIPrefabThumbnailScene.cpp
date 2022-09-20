@@ -49,23 +49,32 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 {
 	if (CurrentPrefab.IsValid())
 	{
-		if (auto rootActor = CurrentPrefab->LoadPrefabInEditor(GetWorld(), nullptr))
+		if (auto RootActor = CurrentPrefab->LoadPrefabInEditor(GetWorld(), nullptr))
 		{
-			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
+			auto PrefabRootUIItem = Cast<UUIItem>(RootActor->GetRootComponent());
+			UUIItem* RootUIItem = nullptr;
+			
+			if (PrefabRootUIItem)
 			{
-				rootCanvas->MarkCanvasUpdate(true, true, true, true);
-
-				bIsUI = true;
-			}
-			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
-			{
+				auto RootCanvas = RootActor->FindComponentByClass<ULGUICanvas>();
+				auto CanvasSize = CurrentPrefab->PrefabDataForPrefabEditor.CanvasSize;
+				auto RenderMode = (ELGUIRenderMode)CurrentPrefab->PrefabDataForPrefabEditor.CanvasRenderMode;
 				auto AgentRootActor = GetWorld()->SpawnActor<AUIContainerActor>();
-				AgentRootActor->GetUIItem()->SetSizeDelta(FVector2D(1920, 1080));
-				rootCanvas = NewObject<ULGUICanvas>(AgentRootActor);
-				rootCanvas->RegisterComponent();
-				rootActor->AttachToComponent(AgentRootActor->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
-				rootActor->AddInstanceComponent(rootCanvas);
-				rootCanvas->MarkCanvasUpdate(true, true, true, true);
+				if (!RootCanvas)
+				{
+					RootCanvas = NewObject<ULGUICanvas>(AgentRootActor);
+					RootCanvas->RegisterComponent();
+					RootActor->AddInstanceComponent(RootCanvas);
+				}
+				RootActor->AttachToComponent(AgentRootActor->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
+				RootCanvas->MarkCanvasUpdate(true, true, true, true);
+				RootCanvas->SetRenderMode(RenderMode);
+
+				if (PrefabRootUIItem)
+				{
+					AgentRootActor->GetUIItem()->SetWidth(CanvasSize.X);
+					AgentRootActor->GetUIItem()->SetHeight(CanvasSize.Y);
+				}
 
 				bIsUI = true;
 			}
@@ -75,7 +84,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			}
 
 			bool isFirstBounds = true;
-			GetBoundsRecursive(rootActor->GetRootComponent(), PreviewActorsBound, isFirstBounds);
+			GetBoundsRecursive(RootActor->GetRootComponent(), PreviewActorsBound, isFirstBounds);
 			if (isFirstBounds)
 			{
 				PreviewActorsBound = FBoxSphereBounds(EForceInit::ForceInitToZero);
