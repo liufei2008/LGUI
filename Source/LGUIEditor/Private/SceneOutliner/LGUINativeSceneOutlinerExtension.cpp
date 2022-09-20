@@ -26,6 +26,7 @@ FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 	OnPreBeginPIEDelegateHandle = FEditorDelegates::PreBeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreBeginPIE);
 	OnBeginPIEDelegateHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnBeginPIE);
 	OnEndPIEDelegateHandle = FEditorDelegates::EndPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnEndPIE);
+	OnLGUIEditorPreserveHierarchyStateChangeDelegateHandle = ULGUIEditorSettings::LGUIEditorSetting_PreserveHierarchyStateChange.AddRaw(this, &FLGUINativeSceneOutlinerExtension::PreserveHierarchyStateChange);
 }
 FLGUINativeSceneOutlinerExtension::~FLGUINativeSceneOutlinerExtension()
 {
@@ -80,11 +81,19 @@ void FLGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyH
 	delayRestoreTime = 0;
 	shouldRestoreUseFNameData = RestoreUseFName;
 }
+void FLGUINativeSceneOutlinerExtension::PreserveHierarchyStateChange()
+{
+	if (!ULGUIEditorSettings::GetPreserveHierarchyState())//no need to preseve it, just delete the actor
+	{
+		auto storageActor = FindDataStorageActor(false);
+		LGUIUtils::DestroyActorWithHierarchy(storageActor);
+	}
+}
 
 void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 {
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
-	auto storageActor = FindOrCreateDataStorageActor();
+	auto storageActor = FindDataStorageActor();
 	if (!storageActor)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
@@ -146,6 +155,8 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 		for (TActorIterator<AActor> ActorItr(world); ActorItr; ++ActorItr)
 		{
 			if(!IsValid(*ActorItr))continue;
+			if (ActorItr->GetClass() == ALGUIEditorLevelDataStorageActor::StaticClass())continue;//skip it-self
+			if (ActorItr->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient
 			if (!ExpandedActorArray.Contains(*ActorItr))
 			{
 				if (storageActor->GetLevel() == (*ActorItr)->GetLevel())
@@ -172,7 +183,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 		}
 	}
 }
-ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor()
+ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindDataStorageActor(bool CreateIfNotExist)
 {
 	ALGUIEditorLevelDataStorageActor* result = nullptr;
 	if (auto world = GEditor->GetEditorWorldContext().World())
@@ -205,7 +216,7 @@ ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindOrCreat
 			}
 			needToDelete.Empty();
 		}
-		if (!result)
+		if (!result && CreateIfNotExist)
 		{
 			world->SetCurrentLevel(baseLevel);
 			result = world->SpawnActor<ALGUIEditorLevelDataStorageActor>();
@@ -272,7 +283,7 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(Sce
 void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 {
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
-	auto storageActor = FindOrCreateDataStorageActor();
+	auto storageActor = FindDataStorageActor();
 	if (!storageActor)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();

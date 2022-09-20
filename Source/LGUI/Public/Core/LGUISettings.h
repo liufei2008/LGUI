@@ -115,6 +115,7 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
 		bool PreserveHierarchyState = true;
+	static FSimpleMulticastDelegate LGUIEditorSetting_PreserveHierarchyStateChange;
 	/**
 	 * Sometimes when there are too many actors in level, restore hierarchy will not work. Then increase this value may solve the issue.
 	 */
