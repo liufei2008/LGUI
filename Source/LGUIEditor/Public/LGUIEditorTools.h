@@ -9,13 +9,15 @@
 class ULGUIPrefabHelperObject;
 class ULGUIPrefab;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FEditingPrefabChangedDelegate, AActor*);
+
 class LGUIEDITOR_API LGUIEditorTools
 {
 private:
 	static FString PrevSavePrafabFolder;
 public:
 	static FString LGUIPresetPrefabPath;
-
+	static FEditingPrefabChangedDelegate EditingPrefabChangedDelegate;
 	static AActor* GetFirstSelectedActor();
 	static TArray<AActor*> GetSelectedActors();
 	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);
