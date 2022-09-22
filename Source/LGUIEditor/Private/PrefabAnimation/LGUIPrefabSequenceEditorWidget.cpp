@@ -21,6 +21,7 @@
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorTools.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "Selection.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 
@@ -123,6 +124,8 @@ private:
 class SLGUIPrefabSequenceEditorWidgetImpl : public SCompoundWidget, public FEditorUndoClient
 {
 public:
+
+	bool bUpdatingSequencerSelection = false;
 
 	SLATE_BEGIN_ARGS(SLGUIPrefabSequenceEditorWidgetImpl){}
 	SLATE_END_ARGS();
@@ -325,6 +328,7 @@ public:
 
 		Sequencer = FModuleManager::LoadModuleChecked<ISequencerModule>("Sequencer").CreateSequencer(SequencerInitParams);
 		Content->SetContent(Sequencer->GetSequencerWidget());
+		Sequencer->GetSelectionChangedObjectGuids().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::SyncSelectedWidgetsWithSequencerSelection);
 
 		FLevelEditorSequencerIntegrationOptions Options;
 		Options.bRequiresLevelEvents = true;
@@ -333,6 +337,50 @@ public:
 
 		FLevelEditorSequencerIntegration::Get().AddSequencer(Sequencer.ToSharedRef(), Options);
 	}
+
+	// sequence select widget handler
+	void SyncSelectedWidgetsWithSequencerSelection(TArray<FGuid> ObjectGuids)
+	{
+		if (Sequencer == nullptr || bUpdatingSequencerSelection)
+		{
+			return;
+		}
+
+		UE_LOG(LGUI, Log, TEXT("SyncSelectedWidgetsWithSequencerSelection, ObjectGuids.Num()=%d"), ObjectGuids.Num());
+
+		TGuardValue<bool> Guard(bUpdatingSequencerSelection, true);
+
+		UMovieSceneSequence* AnimationSequence = Sequencer->GetFocusedMovieSceneSequence();
+		UObject* BindingContext = WeakSequence.Get();
+		TSet<AUIBaseActor*> SequencerSelectedWidgets;
+		for (FGuid Guid : ObjectGuids)
+		{
+			TArray<UObject*, TInlineAllocator<1>> BoundObjects = AnimationSequence->LocateBoundObjects(Guid, BindingContext);
+			if (BoundObjects.Num() == 0)
+			{
+				continue;
+			}
+			else
+			{
+				AUIBaseActor* BoundWidget = Cast<AUIBaseActor>(BoundObjects[0]);
+				if (BoundWidget)
+				{
+					SequencerSelectedWidgets.Add(BoundWidget);
+				}
+			}
+		}
+
+		if (SequencerSelectedWidgets.Num() != 0)
+		{
+			AUIBaseActor* SelectedActor = *SequencerSelectedWidgets.begin();
+
+			// Sync Selection
+			GEditor->SelectNone(false, true, false);
+			GEditor->SelectActor(SelectedActor, true, true, true);
+		}
+	}
+
+
 
 	void OnSequencerReceivedFocus()
 	{
