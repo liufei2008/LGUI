@@ -346,7 +346,7 @@ public:
 			return;
 		}
 
-		UE_LOG(LGUI, Log, TEXT("SyncSelectedWidgetsWithSequencerSelection, ObjectGuids.Num()=%d"), ObjectGuids.Num());
+		//UE_LOG(LGUI, Log, TEXT("SyncSelectedWidgetsWithSequencerSelection, ObjectGuids.Num()=%d"), ObjectGuids.Num());
 
 		TGuardValue<bool> Guard(bUpdatingSequencerSelection, true);
 

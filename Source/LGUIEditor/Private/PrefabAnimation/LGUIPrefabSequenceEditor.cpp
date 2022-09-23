@@ -364,6 +364,10 @@ void SLGUIPrefabSequenceEditor::RefreshAnimationList()
 			Animations.Add(MakeShareable(new FWidgetAnimationListItem(Item)));
 		}
 		AnimationListView->RequestListRefresh();
+		if (Animations.Num() > 0)
+		{
+			AnimationListView->RequestScrollIntoView(Animations[0);
+		}
 	}
 }
 
