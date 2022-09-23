@@ -366,7 +366,7 @@ void SLGUIPrefabSequenceEditor::RefreshAnimationList()
 		AnimationListView->RequestListRefresh();
 		if (Animations.Num() > 0)
 		{
-			AnimationListView->RequestScrollIntoView(Animations[0);
+			AnimationListView->SetSelection(Animations[0]);
 		}
 	}
 }
