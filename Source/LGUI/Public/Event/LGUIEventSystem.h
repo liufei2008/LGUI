@@ -108,6 +108,12 @@ public:
 		void UnregisterGlobalListener(const FLGUIDelegateHandleWrapper& InHandle);
 	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
 
+	/**
+	 * Tell if the pointer hovering on any UI object.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool IsPointerOverUI(int pointerID = 0);
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
