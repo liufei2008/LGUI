@@ -9,6 +9,7 @@
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Core/ActorComponent/UIItem.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIPointerEventData.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
@@ -225,6 +226,22 @@ void ULGUIEventSystem::RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult,
 	{
 		hitEvent.Broadcast(hitOrNot, hitResult, hitComponent);
 	}
+}
+bool ULGUIEventSystem::IsPointerOverUI(int pointerID)
+{
+	if (auto foundPtr = pointerEventDataMap.Find(pointerID))
+	{
+		auto pointer = *foundPtr;
+		if (pointer->enterComponentStack.Num() > 0)
+		{
+			auto firstEnterComp = pointer->enterComponentStack[0];
+			if (auto UIItem = Cast<UUIItem>(firstEnterComp))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void ULGUIEventSystem::SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID)
