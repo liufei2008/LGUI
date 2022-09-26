@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "LGUIPrefabSequenceEditorWidget.h"
 
@@ -21,7 +21,8 @@
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorTools.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "Selection.h"
+#include "Engine/Selection.h"
+#include "Core/Actor/UIBaseActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 

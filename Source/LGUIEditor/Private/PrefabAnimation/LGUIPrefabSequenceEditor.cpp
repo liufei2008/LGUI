@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "LGUIPrefabSequenceEditor.h"
 
@@ -377,7 +377,7 @@ void SLGUIPrefabSequenceEditor::OnEditingPrefabChanged(AActor* RootActor)
 	if (RootActor)
 	{
 		TArray<AActor*> ChildrenActors;
-		RootActor->GetAttachedActors(ChildrenActors, true, true);
+		RootActor->GetAttachedActors(ChildrenActors, true);
 		
 		for (AActor* ChildActor : ChildrenActors)
 		{
