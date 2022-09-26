@@ -22,6 +22,7 @@
 #include "LGUIEditorTools.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "Selection.h"
+#include "Core/Actor/UIBaseActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 
