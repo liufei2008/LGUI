@@ -28,6 +28,7 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "LGUIHeaders.h"
+#include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
@@ -361,6 +362,9 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 		);
 
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
+
+	// After opening a prefab, broadcast event to LGUIPrefabSequencerEditor
+	LGUIEditorTools::EditingPrefabChangedDelegate.Broadcast(GetPreviewScene().GetRootAgentActor());
 }
 
 void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)

@@ -27,6 +27,8 @@
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 #include "Misc/TextFilter.h"
 #include "PropertyCustomizationHelpers.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "SLGUIPrefabSequenceEditor"
 
@@ -173,6 +175,7 @@ private:
 SLGUIPrefabSequenceEditor::~SLGUIPrefabSequenceEditor()
 {
 	FCoreUObjectDelegates::OnObjectsReplaced.Remove(OnObjectsReplacedHandle);
+	LGUIEditorTools::EditingPrefabChangedDelegate.Remove(EditingPrefabChangedHandle);
 }
 
 void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
@@ -296,6 +299,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 	OnObjectsReplacedHandle = FCoreUObjectDelegates::OnObjectsReplaced.AddSP(this, &SLGUIPrefabSequenceEditor::OnObjectsReplaced);
 
 	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
+	EditingPrefabChangedHandle = LGUIEditorTools::EditingPrefabChangedDelegate.AddRaw(this, &SLGUIPrefabSequenceEditor::OnEditingPrefabChanged);
 }
 
 void SLGUIPrefabSequenceEditor::AssignLGUIPrefabSequenceComponent(TWeakObjectPtr<ULGUIPrefabSequenceComponent> InSequenceComponent)
@@ -360,6 +364,39 @@ void SLGUIPrefabSequenceEditor::RefreshAnimationList()
 			Animations.Add(MakeShareable(new FWidgetAnimationListItem(Item)));
 		}
 		AnimationListView->RequestListRefresh();
+		if (Animations.Num() > 0)
+		{
+			AnimationListView->SetSelection(Animations[0]);
+		}
+	}
+}
+
+// Trigger when opening a new prefab
+void SLGUIPrefabSequenceEditor::OnEditingPrefabChanged(AActor* RootActor)
+{
+	if (RootActor)
+	{
+		TArray<AActor*> ChildrenActors;
+		RootActor->GetAttachedActors(ChildrenActors, true, true);
+		
+		for (AActor* ChildActor : ChildrenActors)
+		{
+			ULGUIPrefabHelperObject* PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(RootActor);
+			if (PrefabHelperObject)
+			{
+				//skip sub prefab's PrefabSequenceComponent
+				if (PrefabHelperObject->IsActorBelongsToSubPrefab(ChildActor))
+				{
+					continue;
+				}
+			}
+
+			ULGUIPrefabSequenceComponent* PrefabSequencerComponent = ChildActor->FindComponentByClass<ULGUIPrefabSequenceComponent>();
+			if (PrefabSequencerComponent)
+			{
+				AssignLGUIPrefabSequenceComponent(PrefabSequencerComponent);
+			}
+		}
 	}
 }
 

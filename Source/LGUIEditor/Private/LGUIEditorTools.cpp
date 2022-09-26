@@ -32,6 +32,8 @@
 
 PRAGMA_DISABLE_OPTIMIZATION
 
+FEditingPrefabChangedDelegate LGUIEditorTools::EditingPrefabChangedDelegate;
+
 namespace ReattachActorsHelper
 {
 	/** Holds the actor and socket name for attaching. */
