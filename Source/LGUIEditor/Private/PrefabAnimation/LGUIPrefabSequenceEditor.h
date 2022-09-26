@@ -28,10 +28,12 @@ public:
 	ULGUIPrefabSequence* GetLGUIPrefabSequence() const;
 	ULGUIPrefabSequenceComponent* GetSequenceComponent()const { return WeakSequenceComponent.Get(); }
 	void RefreshAnimationList();
-private:
+	void OnEditingPrefabChanged(AActor* RootActor);
 
+private:
 	TWeakObjectPtr<ULGUIPrefabSequenceComponent> WeakSequenceComponent;
 	FDelegateHandle OnObjectsReplacedHandle;
+	FDelegateHandle EditingPrefabChangedHandle;
 
 	TSharedPtr<SLGUIPrefabSequenceEditorWidget> PrefabSequenceEditor;
 
