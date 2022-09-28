@@ -135,6 +135,12 @@ public:
 		float GetOutOfRangeDamper()const { return OutOfRangeDamper; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		FVector2D GetScrollProgress()const { return Progress; }
+	/** Get Content's position range in horizontal. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		FVector2D GetHorizontalRange()const { return HorizontalRange; }
+	/** Get Content's position range in vertical. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		FVector2D GetVerticalRange()const { return VerticalRange; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollSensitivity(float value);
@@ -162,4 +168,15 @@ public:
 	/** Mannually scroll it with progress value (from 0 to 1). */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollProgress(FVector2D value);
+
+	/**
+	 * Try to scroll the scrollview so the child can sit at center. Will clamp it in valid range.
+	 * @param InChild Target child actor. Can also work on not child actor.
+	 * @param InEaseAnimation true-use tween animation to make smooth scroll, false-immediate set.
+	 * @param InAnimationDuration Animation duration if InEaseAnimation = true.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetCenterOnChild(AUIBaseActor* InChild, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
 };
+
+

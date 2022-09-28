@@ -58,8 +58,6 @@ protected:
 	bool CheckScrollbarParameter();
 	void OnHorizontalScrollbar(float InScrollValue);
 	void OnVerticalScrollbar(float InScrollValue);
-	uint8 bValueIsSetFromHorizontalScrollbar : 1;
-	uint8 bValueIsSetFromVerticalScrollbar : 1;
 	uint8 bLayoutDirty : 1;
 	enum class EScrollbarLayoutAction :uint8
 	{
