@@ -446,11 +446,37 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
     }
 }
 
+void UUIScrollViewComponent::SetCenterOnChild(AUIBaseActor* InChild, bool InEaseAnimation, float InAnimationDuration)
+{
+    if (!CheckParameters())return;
+    auto CenterPos = InChild->GetUIItem()->GetLocalSpaceCenter();
+    auto CenterPosWorld = InChild->GetUIItem()->GetComponentTransform().TransformPosition(FVector(0, CenterPos.X, CenterPos.Y));
+    auto PosOffset = Content->GetUIItem()->GetComponentTransform().InverseTransformPosition(CenterPosWorld);
+    auto TargetContentPos = FVector2d(-PosOffset.Y, -PosOffset.Z);
+    TargetContentPos.X = FMath::Clamp(TargetContentPos.X, HorizontalRange.X, HorizontalRange.Y);
+    TargetContentPos.Y = FMath::Clamp(TargetContentPos.Y, VerticalRange.X, VerticalRange.Y);
+    if (InEaseAnimation)
+    {
+        ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateWeakLambda(this
+            , [=] {
+                auto ContentLocation = ContentUIItem->GetRelativeLocation();
+                return FVector2d(ContentLocation.Y, ContentLocation.Z);
+            })
+            , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [=](FVector2d value) {
+                this->SetScrollValue(value);
+                }), TargetContentPos, InAnimationDuration);
+    }
+    else
+    {
+        SetScrollValue(TargetContentPos);
+    }
+}
+
 #define POSITION_THRESHOLD 0.001f
 void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 {
     auto Position = ContentUIItem->GetRelativeLocation();
-    if (FMath::Abs(Velocity.X) > 0 || FMath::Abs(Velocity.Y) > 0//speed larger than threshold
+    if (FMath::Abs(Velocity.X) > KINDA_SMALL_NUMBER || FMath::Abs(Velocity.Y) > KINDA_SMALL_NUMBER//speed larger than threshold
         || (bAllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))//horizontal out of range
         || (bAllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)))//vertical out of range
     {

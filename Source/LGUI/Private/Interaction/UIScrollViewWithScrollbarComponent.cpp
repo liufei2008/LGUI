@@ -10,8 +10,6 @@
 
 UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
 {
-	bValueIsSetFromHorizontalScrollbar = false;
-	bValueIsSetFromVerticalScrollbar = false;
 	bLayoutDirty = false;
 }
 
@@ -52,24 +50,18 @@ void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionCha
 
 bool UUIScrollViewWithScrollbarComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
-	Super::OnPointerDrag_Implementation(eventData);
-	bValueIsSetFromHorizontalScrollbar = false;
-	bValueIsSetFromVerticalScrollbar = false;
-	return AllowEventBubbleUp;
+	return Super::OnPointerDrag_Implementation(eventData);
 }
 bool UUIScrollViewWithScrollbarComponent::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
-	Super::OnPointerScroll_Implementation(eventData);
-	bValueIsSetFromHorizontalScrollbar = false;
-	bValueIsSetFromVerticalScrollbar = false;
-	return AllowEventBubbleUp;
+	return Super::OnPointerScroll_Implementation(eventData);
 }
 void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 {
 	Super::UpdateProgress(InFireEvent);
 	if (CheckScrollbarParameter())
 	{
-		if (bAllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowHorizontalScroll && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
@@ -83,9 +75,8 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			{
 				HorizontalScrollbarComp->SetValue(Progress.X, false);
 			}
-			bValueIsSetFromHorizontalScrollbar = false;
 		}
-		if (bAllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (bAllowVerticalScroll && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.Y > 1.0f)
 			{
@@ -99,7 +90,6 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			{
 				VerticalScrollbarComp->SetValue(Progress.Y, false);
 			}
-			bValueIsSetFromVerticalScrollbar = false;
 		}
 	}
 }
@@ -429,27 +419,25 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 {
 	if (!ContentUIItem.IsValid())return;
 	bCanUpdateAfterDrag = false;
-	bValueIsSetFromHorizontalScrollbar = true;
 	bAllowHorizontalScroll = true;
 
 	InScrollValue = FMath::Clamp(InScrollValue, 0.0f, 1.0f);
 	auto Position = ContentUIItem->GetRelativeLocation();
 	Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
-	UpdateProgress();
+	Super::UpdateProgress();//use parent's function, skip the set scrollbar code
 }
 void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValue)
 {
 	if (!ContentUIItem.IsValid())return;
 	bCanUpdateAfterDrag = false;
-	bValueIsSetFromVerticalScrollbar = true;
 	bAllowVerticalScroll = true;
 
 	InScrollValue = FMath::Clamp(InScrollValue, 0.0f, 1.0f);
 	auto Position = ContentUIItem->GetRelativeLocation();
 	Position.Z = FMath::Lerp(VerticalRange.X, VerticalRange.Y, InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
-	UpdateProgress();
+	Super::UpdateProgress();//use parent's function, skip the set scrollbar code
 }
 void UUIScrollViewWithScrollbarComponent::SetHorizontalScrollbarVisibility(EScrollViewScrollbarVisibility value)
 {
