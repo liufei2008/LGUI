@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIBPLibrary.h"
+#include "LTweenManager.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -184,13 +185,107 @@ bool UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index, FUIRecy
         }
         else
         {
-            UE_LOG(LGUI, Error, TEXT("[UUIRecyclableScrollViewComponent::GetCellItemByDataIndex] Wrong cell index. Index:%d, CellIndexOffset:%d, CellIndex:%d"), Index, CellIndexOffset, CellIndex);
+            UE_LOG(LGUI, Error, TEXT("[%s] Wrong cell index. Index:%d, CellIndexOffset:%d, CellIndex:%d"), ANSI_TO_TCHAR(__FUNCTION__), Index, CellIndexOffset, CellIndex);
             ensure(false);
             return false;
         }
     }
 }
 
+void UUIRecyclableScrollViewComponent::SetCenterOnChildByDataIndex(int InDataIndex, bool InEaseAnimation, float InAnimationDuration)
+{
+    if (Horizontal == Vertical)return;
+    if (CacheCellList.Num() == 0)return;
+    if (DataItemCount == 0)return;
+    if (InDataIndex < 0 || InDataIndex >= DataItemCount)
+    {
+        UE_LOG(LGUI, Warning, TEXT("[%s] Invalid InDataIndex:%d in range [0, %d]"), ANSI_TO_TCHAR(__FUNCTION__), InDataIndex, DataItemCount);
+        return;
+    }
+
+    if (Horizontal)
+    {
+        float CellWidth = WorkingCellTemplateSize.X;
+        float StartPos = MinCellPosition + CellWidth * 0.5f;//start cell center horizontal position
+        float TargetContentPos = StartPos;
+        if (InDataIndex == MinCellDataIndex)
+        {
+
+        }
+        else if (InDataIndex > MinCellDataIndex)//data index bigger than current minimal cell
+        {
+            for (int StartIndex = MinCellDataIndex + 1; StartIndex <= InDataIndex; StartIndex += Rows)
+            {
+                TargetContentPos += CellWidth + Space.X;
+            }
+        }
+        else if (InDataIndex < MinCellDataIndex)
+        {
+            for (int StartIndex = MinCellDataIndex - 1; StartIndex >= InDataIndex; StartIndex -= Rows)
+            {
+                TargetContentPos -= CellWidth + Space.X;
+            }
+        }
+
+        TargetContentPos = FMath::Clamp(-TargetContentPos, HorizontalRange.X, HorizontalRange.Y);
+        if (InEaseAnimation)
+        {
+            ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
+                , [=] {
+                    auto ContentLocation = ContentUIItem->GetRelativeLocation();
+                    return ContentLocation.Y;
+                })
+                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+                    this->SetScrollValue(FVector2D(value, 0));
+                    }), TargetContentPos, InAnimationDuration);
+        }
+        else
+        {
+            SetScrollValue(FVector2D(TargetContentPos, 0));
+        }
+    }
+    else if (Vertical)
+    {
+        float CellHeight = WorkingCellTemplateSize.Y;
+        float StartPos = MinCellPosition - CellHeight * 0.5f;//start cell center vertical position
+        float TargetContentPos = StartPos;
+        if (InDataIndex == MinCellDataIndex)
+        {
+
+        }
+        else if (InDataIndex > MinCellDataIndex)
+        {
+            for (int StartIndex = MinCellDataIndex + 1; StartIndex <= InDataIndex; StartIndex += Columns)
+            {
+                TargetContentPos -= CellHeight + Space.Y;
+            }
+        }
+        else if (InDataIndex < MinCellDataIndex)
+        {
+            for (int StartIndex = MinCellDataIndex - 1; StartIndex >= InDataIndex; StartIndex -= Columns)
+            {
+                TargetContentPos += CellHeight + Space.X;
+            }
+        }
+
+        TargetContentPos = FMath::Clamp(-TargetContentPos, VerticalRange.X, VerticalRange.Y);
+        if (InEaseAnimation)
+        {
+            ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
+                , [=] {
+                    auto ContentLocation = ContentUIItem->GetRelativeLocation();
+                    return ContentLocation.Z;
+                })
+                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+                    this->SetScrollValue(FVector2D(0, value));
+                    }), TargetContentPos, InAnimationDuration);
+        }
+        else
+        {
+            SetScrollValue(FVector2D(0, TargetContentPos));
+        }
+    }
+}
 
 void UUIRecyclableScrollViewComponent::SetCellTemplate(AUIBaseActor* value)
 {
@@ -240,7 +335,7 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         WorkingCellTemplate = CellTemplate;
         if (GetComponentByInterface(WorkingCellTemplate.Get(), UUIRecyclableScrollViewCell::StaticClass()) == nullptr)
         {
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplate's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"));
+            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplate's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"), ANSI_TO_TCHAR(__FUNCTION__));
             return;
         }
         WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
@@ -257,13 +352,13 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
         if (!WorkingCellTemplate.IsValid())
         {
             ULGUIBPLibrary::DestroyActorWithHierarchy(WorkingCellTemplate.Get());
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must be a UI actor!"));
+            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must be a UI actor!"), ANSI_TO_TCHAR(__FUNCTION__));
             return;
         }
         if (GetComponentByInterface(WorkingCellTemplate.Get(), UUIRecyclableScrollViewCell::StaticClass()) == nullptr)
         {
             ULGUIBPLibrary::DestroyActorWithHierarchy(WorkingCellTemplate.Get());
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"));
+            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"), ANSI_TO_TCHAR(__FUNCTION__));
             return;
         }
         WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Prefab;
