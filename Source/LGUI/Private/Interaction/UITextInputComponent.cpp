@@ -1709,8 +1709,11 @@ void UUITextInputComponent::BindKeys()
 	auto inputComp = GetOwner()->InputComponent;
 	for (auto& Key : AllKeys)
 	{
-		inputComp->BindKey(Key, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-		inputComp->BindKey(Key, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+		if (!IgnoreKeys.Contains(Key))
+		{
+			inputComp->BindKey(Key, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
+			inputComp->BindKey(Key, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+		}
 	}
 }
 void UUITextInputComponent::UnbindKeys()
