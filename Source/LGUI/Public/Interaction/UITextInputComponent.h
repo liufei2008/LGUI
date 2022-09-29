@@ -77,6 +77,9 @@ protected:
 	//Ignore these keys input. eg, if use tab and arrow keys for navigation then you should put tab and arrow keys in this array
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		TArray<FKey> IgnoreKeys;
+	/** Automatic activate input when use navigation input and navigate in this. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		bool bAutoActivateInputWhenNavigateIn = false;
 
 	FLGUIMulticastStringDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
