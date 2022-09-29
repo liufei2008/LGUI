@@ -479,14 +479,7 @@ void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection directio
 	auto eventData = eventSystem->GetPointerEventData(pointerID, true);
 	if (pressOrRelease)
 	{
-		if (eventData->inputType != ELGUIPointerInputType::Navigation)
-		{
-			eventData->inputType = ELGUIPointerInputType::Navigation;
-			if (inputChangeDelegate.IsBound())
-			{
-				inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
-			}
-		}
+		eventSystem->SetPointerInputType(eventData, ELGUIPointerInputType::Navigation);
 		eventData->navigateDirection = direction;
 	}
 	else
@@ -500,14 +493,7 @@ void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress, in
 	auto eventData = eventSystem->GetPointerEventData(pointerID, true);
 	if (inTriggerPress)
 	{
-		if (eventData->inputType != ELGUIPointerInputType::Navigation)
-		{
-			eventData->inputType = ELGUIPointerInputType::Navigation;
-			if (inputChangeDelegate.IsBound())
-			{
-				inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
-			}
-		}
+		eventSystem->SetPointerInputType(eventData, ELGUIPointerInputType::Navigation);
 	}
 	eventData->navigateTickTime = 0;
 	eventData->nowIsTriggerPressed = inTriggerPress;
@@ -647,26 +633,6 @@ void ULGUI_PointerInputModule::ClearEvent()
 	{
 		ClearEventByID(keyValue.Key);
 	}
-}
-
-void ULGUI_PointerInputModule::RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange)
-{
-	inputChangeDelegate.Add(pointerInputChange);
-}
-void ULGUI_PointerInputModule::UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle)
-{
-	inputChangeDelegate.Remove(delegateHandle);
-}
-FLGUIDelegateHandleWrapper ULGUI_PointerInputModule::RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange)
-{
-	auto delegateHandle = inputChangeDelegate.AddLambda([pointerInputChange](int pointerID, ELGUIPointerInputType pointerInputType) {
-		if (pointerInputChange.IsBound())pointerInputChange.Execute(pointerID, pointerInputType);
-		});
-	return FLGUIDelegateHandleWrapper(delegateHandle);
-}
-void ULGUI_PointerInputModule::UnregisterInputChangeEvent(FLGUIDelegateHandleWrapper delegateHandle)
-{
-	inputChangeDelegate.Remove(delegateHandle.DelegateHandle);
 }
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
