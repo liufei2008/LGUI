@@ -14,7 +14,7 @@ FLGUIComponentReference::FLGUIComponentReference(UActorComponent* InComp)
 {
 	TargetComp = InComp;
 #if WITH_EDITOR
-	HelperClass = InComp->StaticClass();
+	HelperClass = InComp->GetClass();
 	AllLGUIComponentReferenceArray.Add(this);
 #endif
 }
