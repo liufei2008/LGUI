@@ -452,7 +452,7 @@ void UUIScrollViewComponent::ScrollTo(AUIBaseActor* InChild, bool InEaseAnimatio
     auto CenterPos = InChild->GetUIItem()->GetLocalSpaceCenter();
     auto CenterPosWorld = InChild->GetUIItem()->GetComponentTransform().TransformPosition(FVector(0, CenterPos.X, CenterPos.Y));
     auto PosOffset = Content->GetUIItem()->GetComponentTransform().InverseTransformPosition(CenterPosWorld);
-    auto TargetContentPos = FVector2d(-PosOffset.Y, -PosOffset.Z);
+    auto TargetContentPos = FVector2D(-PosOffset.Y, -PosOffset.Z);
     TargetContentPos.X = FMath::Clamp(TargetContentPos.X, HorizontalRange.X, HorizontalRange.Y);
     TargetContentPos.Y = FMath::Clamp(TargetContentPos.Y, VerticalRange.X, VerticalRange.Y);
     if (InEaseAnimation)
@@ -460,9 +460,9 @@ void UUIScrollViewComponent::ScrollTo(AUIBaseActor* InChild, bool InEaseAnimatio
         ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateWeakLambda(this
             , [=] {
                 auto ContentLocation = ContentUIItem->GetRelativeLocation();
-                return FVector2d(ContentLocation.Y, ContentLocation.Z);
+                return FVector2D(ContentLocation.Y, ContentLocation.Z);
             })
-            , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [=](FVector2d value) {
+            , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [=](FVector2D value) {
                 this->SetScrollValue(value);
                 }), TargetContentPos, InAnimationDuration);
     }
