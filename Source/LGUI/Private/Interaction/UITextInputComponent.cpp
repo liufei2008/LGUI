@@ -1375,6 +1375,13 @@ void UUITextInputComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 bool UUITextInputComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerEnter_Implementation(eventData);
+	if (bAutoActivateInputWhenNavigateIn)
+	{
+		if (eventData->inputType == ELGUIPointerInputType::Navigation)
+		{
+			ActivateInput(eventData);
+		}
+	}
 	if (APlayerController* pc = this->GetWorld()->GetFirstPlayerController())
 	{
 		pc->CurrentMouseCursor = EMouseCursor::TextEditBeam;
