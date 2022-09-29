@@ -202,13 +202,13 @@ public:
 		bool GetCellItemByDataIndex(int Index, FUIRecyclableScrollViewCellContainer& OutResult)const;
 
 	/**
-	 * Try to scroll the scrollview so the child can sit at center. Will clamp it in valid range.
+	 * Try to scroll the scrollview so the cell item with InDataIndex can sit at center. Will clamp it in valid range.
 	 * @param InDataIndex Cell data index.
 	 * @param InEaseAnimation true-use tween animation to make smooth scroll, false-immediate set.
 	 * @param InAnimationDuration Animation duration if InEaseAnimation = true.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
-		void SetCenterOnChildByDataIndex(int InDataIndex, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
+		void ScrollToByDataIndex(int InDataIndex, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-RecyclableScrollView", AdvancedDisplay)
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;

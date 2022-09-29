@@ -192,7 +192,7 @@ bool UUIRecyclableScrollViewComponent::GetCellItemByDataIndex(int Index, FUIRecy
     }
 }
 
-void UUIRecyclableScrollViewComponent::SetCenterOnChildByDataIndex(int InDataIndex, bool InEaseAnimation, float InAnimationDuration)
+void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool InEaseAnimation, float InAnimationDuration)
 {
     if (Horizontal == Vertical)return;
     if (CacheCellList.Num() == 0)return;
