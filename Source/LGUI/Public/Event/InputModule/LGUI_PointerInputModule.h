@@ -10,10 +10,6 @@
 
 class ULGUIBaseRaycaster;
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIPointerInputChange_MulticastDelegate, int, ELGUIPointerInputType);
-DECLARE_DELEGATE_TwoParams(FLGUIPointerInputChange_Delegate, int, ELGUIPointerInputType);
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FLGUIPointerInputChange_DynamicDelegate, int, pointerID, ELGUIPointerInputType, type);
-
 UCLASS(Abstract)
 class LGUI_API ULGUI_PointerInputModule : public ULGUIBaseInputModule
 {
@@ -42,7 +38,6 @@ protected:
 	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
 
 	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
-	FLGUIPointerInputChange_MulticastDelegate inputChangeDelegate;
 	void ProcessInputForNavigation();
 	void ClearEventByID(int pointerID);
 	bool CanHandleInterface(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
@@ -57,11 +52,4 @@ public:
 	/** input for gamepad or keyboard press and release */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputTriggerForNavigation(bool triggerPress, int pointerID);
-
-	void RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange);
-	void UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		FLGUIDelegateHandleWrapper RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void UnregisterInputChangeEvent(FLGUIDelegateHandleWrapper delegateHandle);
 };

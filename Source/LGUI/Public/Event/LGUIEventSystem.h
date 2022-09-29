@@ -16,6 +16,9 @@ DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, ULGUIPointerEventData*, pointerEventData);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIBaseEventDynamicDelegate, ULGUIBaseEventData*, eventData);
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIPointerInputChange_MulticastDelegate, int, ELGUIPointerInputType);
+DECLARE_DELEGATE_TwoParams(FLGUIPointerInputChange_Delegate, int, ELGUIPointerInputType);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FLGUIPointerInputChange_DynamicDelegate, int, pointerID, ELGUIPointerInputType, type);
 
 /**
  * This is the place for manage LGUI's input/raycast/event.
@@ -80,10 +83,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIPointerEventData* GetPointerEventData(int pointerID = 0, bool createIfNotExist = false)const;
 protected:
-	/** call back for hit event */
+	/** called for pointer hit anything */
 	FLGUIMulticastHitDelegate hitEvent;
-	/** call back for all event */
+	/** called for all pointer event */
 	FLGUIMulticastBaseEventDelegate globalListenerPointerEvent;
+	/** called when any pointerEventData's input type is changed */
+	FLGUIPointerInputChange_MulticastDelegate inputChangeDelegate;
 public:
 	void RegisterHitEvent(const FLGUIHitDelegate& InEvent);
 	void UnregisterHitEvent(const FLGUIHitDelegate& InEvent);
@@ -118,6 +123,31 @@ public:
 		void SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		USceneComponent* GetHighlightedComponentForNavigation(int InPointerID)const;
+	/**
+	 * Set input type of the pointer, can be pointer or navigation.
+	 * @return true- input type changed, false- otherwise.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool SetPointerInputType(int InPointerID, ELGUIPointerInputType InInputType);
+	/**
+	 * Set input type of the pointer, can be pointer or navigation..
+	 * @return true- input type changed, false- otherwise.
+	 */
+	bool SetPointerInputType(class ULGUIPointerEventData* InPointerEventData, ELGUIPointerInputType InInputType);
+	/**
+	 * Set the pointer's inputType as navigation.
+	 * @param InPointerID target pointer's ID.
+	 * @param InDefaultHighlightedComponent default highlighted component for navigation input.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void ActivateNavigationInput(int InPointerID, USceneComponent* InDefaultHighlightedComponent = nullptr);
+
+	void RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange);
+	void UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FLGUIDelegateHandleWrapper RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void UnregisterInputChangeEvent(FLGUIDelegateHandleWrapper delegateHandle);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUIPointerInputType defaultInputType = ELGUIPointerInputType::Pointer;

@@ -52,10 +52,7 @@ void ULGUI_TouchInputModule::InputScroll(const FVector2D& inAxisValue)
 		if (inAxisValue != FVector2D::ZeroVector || eventData->scrollAxisValue != inAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
-			if (CheckEventSystem())
-			{
-				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireType);
-			}
+			eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireType);
 		}
 	}
 }
@@ -65,14 +62,7 @@ void ULGUI_TouchInputModule::InputTouchTrigger(bool inTouchPress, int inTouchID,
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
-	if (eventData->inputType != ELGUIPointerInputType::Pointer)
-	{
-		eventData->inputType = ELGUIPointerInputType::Pointer;
-		if (inputChangeDelegate.IsBound())
-		{
-			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
-		}
-	}
+	eventSystem->SetPointerInputType(eventData, ELGUIPointerInputType::Pointer);
 	eventData->nowIsTriggerPressed = inTouchPress;
 	eventData->pointerPosition = inTouchPointPosition;
 	if (inTouchPress)
@@ -86,13 +76,6 @@ void ULGUI_TouchInputModule::InputTouchMoved(int inTouchID, const FVector& inTou
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
-	if (eventData->inputType != ELGUIPointerInputType::Pointer)
-	{
-		eventData->inputType = ELGUIPointerInputType::Pointer;
-		if (inputChangeDelegate.IsBound())
-		{
-			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
-		}
-	}
+	eventSystem->SetPointerInputType(eventData, ELGUIPointerInputType::Pointer);
 	eventData->pointerPosition = inTouchPointPosition;
 }
