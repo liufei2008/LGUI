@@ -90,14 +90,9 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(0, true);
-	if (eventData->inputType != ELGUIPointerInputType::Pointer)
+	if (eventSystem->SetPointerInputType(eventData, ELGUIPointerInputType::Pointer))
 	{
-		eventData->inputType = ELGUIPointerInputType::Pointer;
 		standaloneInputDataArray.Reset();//input type change, clear cached input data
-		if (inputChangeDelegate.IsBound())
-		{
-			inputChangeDelegate.Broadcast(eventData->pointerID, eventData->inputType);
-		}
 	}
 
 	StandaloneInputData inputData;

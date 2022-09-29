@@ -260,6 +260,52 @@ USceneComponent* ULGUIEventSystem::GetHighlightedComponentForNavigation(int InPo
 	return nullptr;
 }
 
+bool ULGUIEventSystem::SetPointerInputType(int InPointerID, ELGUIPointerInputType InInputType)
+{
+	if (auto eventData = GetPointerEventData(InPointerID, false))
+	{
+		return SetPointerInputType(eventData, InInputType);
+	}
+	return false;
+}
+bool ULGUIEventSystem::SetPointerInputType(class ULGUIPointerEventData* InPointerEventData, ELGUIPointerInputType InInputType)
+{
+	if (InPointerEventData->inputType != InInputType)
+	{
+		InPointerEventData->inputType = InInputType;
+		inputChangeDelegate.Broadcast(InPointerEventData->pointerID, InPointerEventData->inputType);
+		return true;
+	}
+	return false;
+}
+void ULGUIEventSystem::ActivateNavigationInput(int InPointerID, USceneComponent* InDefaultHighlightedComponent)
+{
+	if (auto eventData = GetPointerEventData(InPointerID, false))
+	{
+		SetPointerInputType(eventData, ELGUIPointerInputType::Navigation);
+		eventData->highlightComponentForNavigation = InDefaultHighlightedComponent;
+	}
+}
+void ULGUIEventSystem::RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange)
+{
+	inputChangeDelegate.Add(pointerInputChange);
+}
+void ULGUIEventSystem::UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle)
+{
+	inputChangeDelegate.Remove(delegateHandle);
+}
+FLGUIDelegateHandleWrapper ULGUIEventSystem::RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange)
+{
+	auto delegateHandle = inputChangeDelegate.AddLambda([pointerInputChange](int pointerID, ELGUIPointerInputType pointerInputType) {
+		if (pointerInputChange.IsBound())pointerInputChange.Execute(pointerID, pointerInputType);
+		});
+	return FLGUIDelegateHandleWrapper(delegateHandle);
+}
+void ULGUIEventSystem::UnregisterInputChangeEvent(FLGUIDelegateHandleWrapper delegateHandle)
+{
+	inputChangeDelegate.Remove(delegateHandle.DelegateHandle);
+}
+
 
 void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType)
 {
