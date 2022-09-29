@@ -446,7 +446,7 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
     }
 }
 
-void UUIScrollViewComponent::SetCenterOnChild(AUIBaseActor* InChild, bool InEaseAnimation, float InAnimationDuration)
+void UUIScrollViewComponent::ScrollTo(AUIBaseActor* InChild, bool InEaseAnimation, float InAnimationDuration)
 {
     if (!CheckParameters())return;
     auto CenterPos = InChild->GetUIItem()->GetLocalSpaceCenter();

@@ -176,7 +176,7 @@ public:
 	 * @param InAnimationDuration Animation duration if InEaseAnimation = true.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
-		void SetCenterOnChild(AUIBaseActor* InChild, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
+		void ScrollTo(AUIBaseActor* InChild, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
 };
 
 
