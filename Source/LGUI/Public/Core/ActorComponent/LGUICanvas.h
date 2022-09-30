@@ -560,7 +560,7 @@ private:
 	/** canvas array belong to this canvas in hierarchy. */
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
 	/** update Canvas's drawcall */
-	void UpdateCanvasDrawcallRecursive();
+	bool UpdateCanvasDrawcallRecursive();
 	/** mark render finish */
 	void MarkFinishRenderFrameRecursive();
 
