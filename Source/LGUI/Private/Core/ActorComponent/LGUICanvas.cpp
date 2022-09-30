@@ -177,17 +177,8 @@ void ULGUICanvas::UpdateRootCanvas()
 
 		if (CheckUIItem())
 		{
-			/**
-			 * Why use bPrevUIItemIsActive?:
-			 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
-			 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
-			 */
-			const bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
-			if (bNowUIItemIsActive || bPrevUIItemIsActive)
+			if (UpdateCanvasDrawcallRecursive())
 			{
-				bPrevUIItemIsActive = bNowUIItemIsActive;
-
-				UpdateCanvasDrawcallRecursive();
 				MarkFinishRenderFrameRecursive();
 			}
 		}
@@ -1346,16 +1337,18 @@ void ULGUICanvas::MarkFinishRenderFrameRecursive()
 	bTextureClipParameterChanged = false;
 }
 
-void ULGUICanvas::UpdateCanvasDrawcallRecursive()
+bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 {
 	/**
 	 * Why use bPrevUIItemIsActive?:
 	 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
 	 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
 	 */
+	bool bResult = false;
 	const bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
 	if (bNowUIItemIsActive || bPrevUIItemIsActive)
 	{
+		bResult = true;
 		bPrevUIItemIsActive = bNowUIItemIsActive;
 		//update children canvas
 		for (auto& item : ChildrenCanvasArray)
@@ -1508,6 +1501,8 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 		}
 	}
+
+	return bResult;
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcallMesh"), STAT_UpdateDrawcallMesh, STATGROUP_LGUI);
