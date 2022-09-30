@@ -95,9 +95,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		class UUIText* GetTextComponent()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		FString GetText()const;
+		const FString& GetText()const;
+	/**
+	 * Set text value.
+	 * @return false if InText is wrong format.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		void SetText(FString InText, bool InFireEvent = false);
+		bool SetText(const FString& InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		ELGUITextInputType GetInputType()const { return InputType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
