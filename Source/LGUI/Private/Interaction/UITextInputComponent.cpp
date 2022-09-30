@@ -837,6 +837,7 @@ FString UUITextInputComponent::ForwardSpaceResultString()
 }
 void UUITextInputComponent::Copy()
 {
+	if (InputType == ELGUITextInputType::Password)return;//not allow copy password
 	if (SelectionPropertyArray.Num() != 0)//have selection
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
@@ -874,6 +875,7 @@ void UUITextInputComponent::Paste()
 }
 void UUITextInputComponent::Cut()
 {
+	if (InputType == ELGUITextInputType::Password)return;//not allow copy password
 	if (SelectionPropertyArray.Num() != 0)//have selection
 	{
 		Copy();
@@ -1780,25 +1782,32 @@ UUIText* UUITextInputComponent::GetTextComponent()const
 	}
 	return nullptr;
 }
-FString UUITextInputComponent::GetText()const
+const FString& UUITextInputComponent::GetText()const
 {
 	return Text;
 }
-void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
+bool UUITextInputComponent::SetText(const FString& InText, bool InFireEvent)
 {
 	if (Text != InText)
 	{
-		if (!bAllowMultiLine)
+		if (!IsValidString(InText))
 		{
-			InText = InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
+			UE_LOG(LGUI, Error, TEXT("[%s] Not valid format!"), ANSI_TO_TCHAR(__FUNCTION__));
+			return false;
 		}
-		if (IsValidString(InText))
+		if (bAllowMultiLine)
 		{
 			Text = InText;
-			CaretPositionIndex = 0;
-			UpdateAfterTextChange(InFireEvent);
 		}
+		else
+		{
+			Text = InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
+		}
+		
+		CaretPositionIndex = 0;
+		UpdateAfterTextChange(InFireEvent);
 	}
+	return true;
 }
 void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 {
