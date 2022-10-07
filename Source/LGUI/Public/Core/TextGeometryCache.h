@@ -48,9 +48,9 @@ enum class UITextOverflowType :uint8
 struct FUITextCaretProperty
 {
 	/** caret position. caret is on left side of char */
-	FVector2D caretPosition;
+	FVector2D caretPosition = FVector2D::ZeroVector;
 	/** char index in text */
-	int32 charIndex;
+	int32 charIndex = 0;
 };
 /** a line of text property */
 struct FUITextLineProperty
@@ -60,8 +60,8 @@ struct FUITextLineProperty
 /** for range selection in TextInputComponent */
 struct FUITextSelectionProperty
 {
-	FVector2D Pos;
-	int32 Size;
+	FVector2D Pos = FVector2D::ZeroVector;
+	int32 Size = 0;
 };
 /** char property */
 USTRUCT(BlueprintType, Category = LGUI)
@@ -69,15 +69,15 @@ struct FUITextCharProperty
 {
 	GENERATED_BODY()
 	/** char index in string */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndex = 0;
 	/** vertex index in UIGeometry::vertices */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartVertIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartVertIndex = 0;
 	/** vertex count */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 VertCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 VertCount = 0;
 	/** triangle index in UIGeometry::triangles */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartTriangleIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartTriangleIndex = 0;
 	/** triangle indices count */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 IndicesCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 IndicesCount = 0;
 
 	/** center position of the char, in UIText's local space */
 	//FVector2D CenterPosition;
@@ -90,9 +90,9 @@ struct FUIText_RichTextCustomTag
 	/** Tag name */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
 	/** start char index in cacheCharPropertyArray */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexStart;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexStart = 0;
 	/** end char index in cacheCharPropertyArray */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd = 0;
 };
 
 struct LGUI_API FTextGeometryCache
