@@ -6,13 +6,14 @@
 #include "LGUISDFFontModule.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "Core/LGUIAtlasData.h"
 #include "Utils/LGUIUtils.h"
 #include "Materials/MaterialInterface.h"
 #define SDF_IMPLEMENTATION
 #include "sdf/sdf.h"
+#if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#endif
 
 #define LOCTEXT_NAMESPACE "LGUISDFFontData"
 
@@ -65,6 +66,7 @@ void ULGUISDFFontData::ScaleDownUVofCachedChars()
 }
 bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize, FGlyphBitmap& OutResult)
 {
+#if WITH_FREETYPE
 	auto slot = RenderGlyphOnFreeType(charCode, FontSize);
 	if (slot == nullptr)
 	{
@@ -98,6 +100,9 @@ bool ULGUISDFFontData::RenderGlyph(const TCHAR& charCode, const float& charSize,
 	OutResult.buffer = sdfResult;
 	OutResult.pixelSize = 1;
 	return true;
+#else
+	return false;
+#endif
 }
 void ULGUISDFFontData::ClearCharDataCache()
 {

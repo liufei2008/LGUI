@@ -4,7 +4,6 @@
 #include "LGUI.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "HAL/PlatformFilemanager.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISettings.h"
@@ -13,15 +12,20 @@
 #include "Engine/Texture2D.h"
 #include "Engine/FontFace.h"
 #include "Rendering/Texture2DResource.h"
+#if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#endif
 
 void ULGUIFreeTypeRenderFontData::FinishDestroy()
 {
+#if WITH_FREETYPE
 	DeinitFreeType();
+#endif
 	Super::FinishDestroy();
 }
 
+#if WITH_FREETYPE
 const char* GetErrorMessage(FT_Error err)
 {
 #undef __FTERRORS_H__
@@ -122,8 +126,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 		{
 			FString FontFilePathStr = fontFilePath;
 			FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
-			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-			if (!PlatformFile.FileExists(*FontFilePathStr))
+			if (!FPaths::FileExists(*FontFilePathStr))
 			{
 				if (fontBinaryArray.Num() > 0 && !useExternalFileOrEmbedInToUAsset)
 				{
@@ -157,8 +160,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			if (useExternalFileOrEmbedInToUAsset)
 			{
 				auto FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
-				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-				if (!PlatformFile.FileExists(*FontFilePathStr))
+				if (!FPaths::FileExists(*FontFilePathStr))
 				{
 					UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
 					return;
@@ -215,6 +217,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 		ClearCharDataCache();
 	}
 }
+
 void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 {
 	alreadyInitialized = false;
@@ -248,67 +251,9 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 	hasKerning = false;
 	ClearCharDataCache();
 }
-UTexture2D* ULGUIFreeTypeRenderFontData::GetFontTexture()
-{
-	return texture;
-}
-void ULGUIFreeTypeRenderFontData::InitFont()
-{
-	InitFreeType();
-}
+#endif
 
-float ULGUIFreeTypeRenderFontData::GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize)
-{
-	if (face == nullptr)return 0;
-	if (!hasKerning)return 0;
-	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
-	if (error)
-	{
-		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
-		return 0;
-	}
-	FT_Vector kerning;
-	error = FT_Get_Kerning(face, FT_Get_Char_Index(face, leftCharIndex), FT_Get_Char_Index(face, rightCharIndex), FT_KERNING_DEFAULT, &kerning);
-	if (error)
-	{
-		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Get_Kerning error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
-		return 0;
-	}
-	return kerning.x >> 6;
-}
-float ULGUIFreeTypeRenderFontData::GetLineHeight(const float& fontSize)
-{
-	if (face == nullptr)return fontSize;
-	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
-	if (error)
-	{
-		UE_LOG(LGUI, Error, TEXT("[GetLineHeight] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
-		return fontSize;
-	}
-	return lineHeightType == ELGUIDynamicFontLineHeightType::FromFontFace ? (face->size->metrics.height >> 6) : fontSize;
-}
-float ULGUIFreeTypeRenderFontData::GetVerticalOffset(const float& fontSize)
-{
-	if (face == nullptr)return fontSize;
-	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
-	if (error)
-	{
-		UE_LOG(LGUI, Error, TEXT("[GetVerticalOffset] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
-		return 0;
-	}
-	return -((face->size->metrics.ascender + face->size->metrics.descender) >> 6) * 0.5f;
-}
-
-
-void ULGUIFreeTypeRenderFontData::AddUIText(UUIText* InText)
-{
-	renderTextArray.AddUnique(InText);
-}
-void ULGUIFreeTypeRenderFontData::RemoveUIText(UUIText* InText)
-{
-	renderTextArray.Remove(InText);
-}
-
+#if WITH_FREETYPE
 FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& charCode, const float& charSize)
 {
 	InitFreeType();
@@ -338,6 +283,81 @@ FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& cha
 		return nullptr;
 	}
 	return slot;
+}
+#endif
+
+UTexture2D* ULGUIFreeTypeRenderFontData::GetFontTexture()
+{
+	return texture;
+}
+void ULGUIFreeTypeRenderFontData::InitFont()
+{
+#if WITH_FREETYPE
+	InitFreeType();
+#endif
+}
+
+float ULGUIFreeTypeRenderFontData::GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize)
+{
+#if WITH_FREETYPE
+	if (face == nullptr)return 0;
+	if (!hasKerning)return 0;
+	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	FT_Vector kerning;
+	error = FT_Get_Kerning(face, FT_Get_Char_Index(face, leftCharIndex), FT_Get_Char_Index(face, rightCharIndex), FT_KERNING_DEFAULT, &kerning);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Get_Kerning error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	return kerning.x >> 6;
+#else
+	return 0;
+#endif
+}
+float ULGUIFreeTypeRenderFontData::GetLineHeight(const float& fontSize)
+{
+#if WITH_FREETYPE
+	if (face == nullptr)return fontSize;
+	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetLineHeight] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return fontSize;
+	}
+	return lineHeightType == ELGUIDynamicFontLineHeightType::FromFontFace ? (face->size->metrics.height >> 6) : fontSize;
+#else
+	return fontSize;
+#endif
+}
+float ULGUIFreeTypeRenderFontData::GetVerticalOffset(const float& fontSize)
+{
+#if WITH_FREETYPE
+	if (face == nullptr)return fontSize;
+	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
+	if (error)
+	{
+		UE_LOG(LGUI, Error, TEXT("[GetVerticalOffset] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return 0;
+	}
+	return -((face->size->metrics.ascender + face->size->metrics.descender) >> 6) * 0.5f;
+#else
+	return fontSize;
+#endif
+}
+
+void ULGUIFreeTypeRenderFontData::AddUIText(UUIText* InText)
+{
+	renderTextArray.AddUnique(InText);
+}
+void ULGUIFreeTypeRenderFontData::RemoveUIText(UUIText* InText)
+{
+	renderTextArray.Remove(InText);
 }
 
 FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR& charCode, const float& charSize)
@@ -554,8 +574,10 @@ void ULGUIFreeTypeRenderFontData::RenewFontTexture(int oldTextureSize, int newTe
 #if WITH_EDITOR
 void ULGUIFreeTypeRenderFontData::ReloadFont()
 {
+#if WITH_FREETYPE
 	DeinitFreeType();
 	InitFreeType();
+#endif
 	for (auto textItem : renderTextArray)
 	{
 		if (textItem.IsValid())

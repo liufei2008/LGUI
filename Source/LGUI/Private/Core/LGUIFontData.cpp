@@ -2,19 +2,11 @@
 
 #include "Core/LGUIFontData.h"
 #include "LGUI.h"
-#include "Misc/FileHelper.h"
-#include "Misc/Paths.h"
-#include "HAL/PlatformFilemanager.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/LGUIAtlasData.h"
-#include "Core/LGUISettings.h"
-#include "Utils/LGUIUtils.h"
-#include "TextureResource.h"
-#include "Engine/Texture2D.h"
-#include "Engine/FontFace.h"
-#include "Rendering/Texture2DResource.h"
+#if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#endif
 
 
 void ULGUIFontData::PushCharData(
@@ -408,6 +400,7 @@ void ULGUIFontData::ScaleDownUVofCachedChars()
 }
 bool ULGUIFontData::RenderGlyph(const TCHAR& charCode, const float& charSize, FGlyphBitmap& OutResult)
 {
+#if WITH_FREETYPE
 	//InSlot->bitmap_left equals (InSlot->metrics.horiBearingX >> 6), InSlot->bitmap_top equals (InSlot->metrics.horiBearingY >> 6)
 
 	auto slot = RenderGlyphOnFreeType(charCode, charSize);
@@ -432,6 +425,9 @@ bool ULGUIFontData::RenderGlyph(const TCHAR& charCode, const float& charSize, FG
 	}
 	OutResult.buffer = (unsigned char*)regionColor;
 	return true;
+#else
+	return false;
+#endif
 }
 void ULGUIFontData::ClearCharDataCache()
 {
