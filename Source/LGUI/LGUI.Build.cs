@@ -27,17 +27,29 @@ public class LGUI : ModuleRules
                 "RHI","RenderCore","Renderer",
                 "LTween",
                 "InputCore",//UITextInput
-                "FreeType2",
+                //"FreeType2",
                 "UElibPNG",
                 "zlib",
                 "ApplicationCore",//UITextInput/RequiresVirtualKeyboard, debug
                 "Projects",
-				// ... add other public dependencies that you statically link with here ...
                 "MovieScene",
                 "MovieSceneTracks"
+				// ... add other public dependencies that you statically link with here ...
             }
-			);
-			
+            );
+		if(Target.Type != TargetType.Server)
+        {
+            if (Target.bCompileFreeType)
+            {
+                PublicDependencyModuleNames.Add("FreeType2");
+                //AddEngineThirdPartyPrivateStaticDependencies(Target, "FreeType2");
+                PublicDefinitions.Add("WITH_FREETYPE=1");
+            }
+            else
+            {
+                PublicDefinitions.Add("WITH_FREETYPE=0");
+            }
+        }
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]

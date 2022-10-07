@@ -13,9 +13,11 @@
 
 class UTexture2D;
 class UUIText;
+#if WITH_FREETYPE
 struct FT_GlyphSlotRec_;
 struct FT_LibraryRec_;
 struct FT_FaceRec_;
+#endif
 
 UENUM(BlueprintType)
 enum class ELGUIDynamicFontDataType :uint8
@@ -70,11 +72,6 @@ protected:
 		bool hasKerning = false;
 	//UPROPERTY(EditAnywhere, Category = "LGUI")
 	//	TScriptInterface<class UFontFaceInterface> test;
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-		TArray<FString> subFaces;
-	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
-#endif
 	
 	/**
 	 * Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
@@ -100,9 +97,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		UTexture2D* texture;
 
-	void InitFreeType();
-	void DeinitFreeType();
-	FT_GlyphSlotRec_* RenderGlyphOnFreeType(const TCHAR& charCode, const float& charSize);
 	virtual void FinishDestroy()override;
 
 	/** when draw a rectangle, need to expend 1 pixel to avoid too sharp pixel at edge */
@@ -146,8 +140,21 @@ protected:
 	/** 1.0 / textureSize */
 	float oneDivideTextureSize;
 
+#if WITH_FREETYPE
 	FT_LibraryRec_* library = nullptr;
 	FT_FaceRec_* face = nullptr;
+	void InitFreeType();
+	void DeinitFreeType();
+	FT_GlyphSlotRec_* RenderGlyphOnFreeType(const TCHAR& charCode, const float& charSize);
+
+#if WITH_EDITOR
+	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
+#endif
+#endif
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
+		TArray<FString> subFaces;
+#endif
 	bool alreadyInitialized = false;
 	bool usePackingTag = false;
 
