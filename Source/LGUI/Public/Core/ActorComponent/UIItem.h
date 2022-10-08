@@ -314,6 +314,9 @@ public:
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && bAllUpParentUIActive; };
+#if WITH_EDITOR
+	void SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState();
+#endif
 #pragma endregion UIActive
 
 #pragma region HierarchyIndex

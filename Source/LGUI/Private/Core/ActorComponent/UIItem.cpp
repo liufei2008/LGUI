@@ -2238,6 +2238,21 @@ void UUIItem::ApplyUIActiveState(bool InStateChange)
 	}
 }
 
+#if WITH_EDITOR
+void UUIItem::SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState()
+{
+	ApplyUIActiveState(this->GetIsUIActiveInHierarchy());
+	//affect children
+	for (auto& uiChild : UIChildren)
+	{
+		if (IsValid(uiChild))
+		{
+			uiChild->SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState();
+		}
+	}
+}
+#endif
+
 FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const FUIItemActiveInHierarchyStateChangedDelegate& InCallback)\
 {
 	return UIActiveInHierarchyStateChangedDelegate.Add(InCallback);

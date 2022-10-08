@@ -15,6 +15,7 @@ public:
 	AUIBaseActor();
 
 #if WITH_EDITOR
+	static AActor* FirstTemporarilyHiddenActor;
 	virtual void SetIsTemporarilyHiddenInEditor(bool bIsHidden) override;
 #endif
 	/** This is for blueprint actor which inherit UIBaseActor, Implement it and return UIItem. */
