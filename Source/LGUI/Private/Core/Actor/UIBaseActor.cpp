@@ -5,6 +5,9 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
+#if WITH_EDITOR
+#include "Core/Actor/LGUIManagerActor.h"
+#endif
 
 
 AUIBaseActor::AUIBaseActor()
@@ -16,25 +19,32 @@ AUIBaseActor::AUIBaseActor()
 }
 
 #if WITH_EDITOR
+AActor* AUIBaseActor::FirstTemporarilyHiddenActor = nullptr;
 void AUIBaseActor::SetIsTemporarilyHiddenInEditor(bool bIsHidden)
 {
-	//if (IsTemporarilyHiddenInEditor() != bIsHidden)
-	//{
-	//	TArray<UUIItem*> UIItems;
-	//	GetComponents<UUIItem>(UIItems);
-
-	//	for (UUIItem* Item : UIItems)
-	//	{
-	//		if (bIsHidden)
-	//		{
-	//			Item->SetIsUIActive(false);
-	//		}
-	//		else
-	//		{
-	//			Item->SetIsUIActive(true);
-	//		}
-	//	}
-	//}
+	if (FirstTemporarilyHiddenActor == nullptr)
+	{
+		//only set UI item's property to first (root) UI Actor
+		FirstTemporarilyHiddenActor = this;
+		if (IsTemporarilyHiddenInEditor() != bIsHidden)
+		{
+			if (bIsHidden)
+			{
+				GetUIItem()->SetIsUIActive(false);
+			}
+			else
+			{
+				GetUIItem()->SetIsUIActive(true);
+			}
+		}
+		ULGUIEditorManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
+			FirstTemporarilyHiddenActor = nullptr;
+			if (WeakThis.IsValid())
+			{
+				WeakThis->GetUIItem()->SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState();//restore Temporary hidden state by UI item's IsUIActive state.
+			}
+			});
+	}
 
 	Super::SetIsTemporarilyHiddenInEditor(bIsHidden);
 }
