@@ -299,7 +299,7 @@ namespace LGUIPrefabSystem3
 
 		FLGUIPrefabSaveData SaveData;
 		{
-			auto LoadedData =
+			auto& LoadedData =
 #if WITH_EDITOR
 				bIsEditorOrRuntime ? InPrefab->BinaryData :
 #endif
