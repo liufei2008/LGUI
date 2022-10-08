@@ -235,6 +235,15 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 #endif
 #if WITH_EDITOR
 	CheckEditorViewportIndexAndKey();
+
+	if (bShouldBroadcastLevelActorListChanged)
+	{
+		bShouldBroadcastLevelActorListChanged = false;
+		if (IsValid(GEditor))
+		{
+			GEditor->BroadcastLevelActorListChanged();
+		}
+	}
 #endif
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
@@ -488,6 +497,14 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 		{
 			CanvasItem->EnsureDrawcallObjectReference();
 		}
+	}
+}
+
+void ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged()
+{
+	if (Instance != nullptr)
+	{
+		Instance->bShouldBroadcastLevelActorListChanged = true;
 	}
 }
 

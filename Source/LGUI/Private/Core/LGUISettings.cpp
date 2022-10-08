@@ -112,7 +112,7 @@ void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 					PathToFix.Path = FString::Printf(TEXT("/Game/%s"), *PathToFix.Path);
 				}
 			}
-			if (GEditor)
+			if (IsValid(GEditor))
 			{
 				GEditor->BroadcastLevelActorListChanged();//refresh Outliner menu
 			}
