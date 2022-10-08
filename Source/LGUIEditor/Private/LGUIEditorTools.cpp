@@ -1866,11 +1866,6 @@ void LGUIEditorTools::SetTraceChannelToParent_Recursive(AActor* InActor)
 	}
 }
 
-void LGUIEditorTools::RefreshSceneOutliner()
-{
-	GEditor->BroadcastLevelActorListChanged();
-}
-
 void LGUIEditorTools::FocusToScreenSpaceUI()
 {
 	if (!GWorld)return;

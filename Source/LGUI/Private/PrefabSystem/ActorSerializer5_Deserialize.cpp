@@ -355,10 +355,7 @@ namespace LGUIPrefabSystem5
 		UE_LOG(LGUI, Log, TEXT("End load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
 
 #if WITH_EDITOR
-		if (IsValid(GEditor))
-		{
-			GEditor->BroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
-		}
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;

@@ -1385,10 +1385,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 			}
 			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 			Item.Notification.Pin()->ExpireAndFadeout();
-			if (IsValid(GEditor))
-			{
-				GEditor->BroadcastLevelActorListChanged();//make outliner refresh
-			}
+			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 		}
 		NewVersionPrefabNotificationArray.RemoveAt(FoundIndex);
 	}
@@ -1450,10 +1447,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 		{
 			OnSubPrefabNewVersionUpdated.Broadcast();
 		}
-		if (IsValid(GEditor))
-		{
-			GEditor->BroadcastLevelActorListChanged();//make outliner refresh
-		}
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 	}
 }
 void ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked()

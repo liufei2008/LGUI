@@ -68,8 +68,6 @@ public:
 	static bool HaveValidCopiedActors();
 	static bool HaveValidCopiedComponent();
 
-	static void RefreshSceneOutliner();
-
 	static void MakeCurrentLevel(AActor* InActor);
 	static void SetTraceChannelToParent(AActor* InActor);
 	static void SetTraceChannelToParent_Recursive(AActor* InActor);

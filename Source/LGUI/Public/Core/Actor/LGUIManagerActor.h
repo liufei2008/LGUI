@@ -63,6 +63,7 @@ private:
 	bool bShouldSortWorldSpaceCanvas = true;
 	bool bShouldSortRenderTargetSpaceCanvas = true;
 
+	bool bShouldBroadcastLevelActorListChanged = false;
 #endif
 #if WITH_EDITOR
 private:
@@ -129,6 +130,8 @@ public:
 	static void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
 
 	static void RefreshAllUI();
+
+	static void MarkBroadcastLevelActorListChanged();
 private:
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);

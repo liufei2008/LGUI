@@ -68,6 +68,9 @@ namespace LGUIPrefabSystem5
 
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+#if WITH_EDITOR
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+#endif
 		return CreatedRootActor;
 	}
 	bool ActorSerializer::PrepareDataForDuplicate(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData, ActorSerializer& OutSerializer)
@@ -139,6 +142,9 @@ namespace LGUIPrefabSystem5
 		auto CreatedRootActor = copiedSerializer.DeserializeActorFromData(InData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("DuplicateActorWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
+#if WITH_EDITOR
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+#endif
 		return CreatedRootActor;
 	}
 
@@ -209,10 +215,7 @@ namespace LGUIPrefabSystem5
 		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
 
 #if WITH_EDITOR
-		if (IsValid(GEditor))
-		{
-			GEditor->BroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
-		}
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;

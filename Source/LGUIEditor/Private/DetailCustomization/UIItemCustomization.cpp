@@ -638,8 +638,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		DetailBuilder.HideProperty(HierarchyIndexHandle);
 		HierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 			ForceUpdateUI();
-			LGUIEditorTools::RefreshSceneOutliner();
-		}));
+			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+			}));
 		auto hierarchyIndexWidget =
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
@@ -888,7 +888,7 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 	}
 	GEditor->EndTransaction();
 
-	LGUIEditorTools::RefreshSceneOutliner();
+	ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
 	return FReply::Handled();
 }
 
