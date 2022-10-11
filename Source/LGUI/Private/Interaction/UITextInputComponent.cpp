@@ -65,7 +65,7 @@ void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	if (auto Property = PropertyChangedEvent.Property)
 	{
 		auto propertyName = Property->GetFName();
-		if (propertyName == TEXT("PasswordChar"))
+		if (propertyName == GET_MEMBER_NAME_CHECKED(UUITextInputComponent, PasswordChar))
 		{
 			if (PasswordChar.Len() > 1)
 			{
@@ -76,6 +76,22 @@ void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 			else if (PasswordChar.Len() == 0)
 			{
 				PasswordChar.AppendChar('*');
+			}
+		}
+		else if (propertyName == GET_MEMBER_NAME_CHECKED(UUITextInputComponent, MultiLineSubmitFunctionKeys))
+		{
+			for (int i = 0; i < MultiLineSubmitFunctionKeys.Num(); i++)
+			{
+				if (MultiLineSubmitFunctionKeys[i] == EKeys::Enter)
+				{
+					MultiLineSubmitFunctionKeys[i] = EKeys::LeftControl;
+				}
+			}
+			if (MultiLineSubmitFunctionKeys.Num() == 1
+				&& MultiLineSubmitFunctionKeys[0] == FKey(NAME_None)
+				)
+			{
+				MultiLineSubmitFunctionKeys[0] = EKeys::LeftControl;//first one set to LeftControl as default
 			}
 		}
 	}
@@ -225,9 +241,29 @@ void UUITextInputComponent::AnyKeyPressed(FKey Key)
 	//Submit
 	else if (Key == EKeys::Enter)
 	{
-		if (bAllowMultiLine)//if multiline mode, enter means new line
+		if (bAllowMultiLine)//multiline mode
 		{
-			inputChar = '\n';
+			if (MultiLineSubmitFunctionKeys.Num() > 0
+				&& !MultiLineSubmitFunctionKeys.Contains(EKeys::Enter)//Enter is not allowed
+				)
+			{
+					bool isSubmit = false;
+					for (auto& SubmitFunctionKey : MultiLineSubmitFunctionKeys)
+					{
+						if (PlayerController->PlayerInput->IsPressed(SubmitFunctionKey))
+						{
+							isSubmit = true;
+						}
+					}
+					if (isSubmit)//enter submit
+					{
+						OnSubmitCPP.Broadcast(Text);
+						OnSubmit.FireEvent(Text);
+						DeactivateInput();
+						return;
+					}
+			}
+			inputChar = '\n';//enter as new line
 		}
 		else//single line mode, enter means submit
 		{
@@ -1818,6 +1854,92 @@ void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 		UpdateUITextComponent();
 	}
 }
+void UUITextInputComponent::SetPasswordChar(const FString& value)
+{
+	if (PasswordChar != value)
+	{
+		if (value.Len() != 1)
+		{
+			return;
+		}
+		PasswordChar = value;
+		if (InputType == ELGUITextInputType::Password)
+		{
+			UpdateUITextComponent();
+		}
+	}
+}
+void UUITextInputComponent::SetAllowMultiLine(bool value)
+{
+	if (bAllowMultiLine != value)
+	{
+		bAllowMultiLine = value;
+	}
+}
+void UUITextInputComponent::SetMultiLineSubmitFunctionKeys(const TArray<FKey>& value)
+{
+	MultiLineSubmitFunctionKeys = value;
+}
+void UUITextInputComponent::SetPlaceHolderActor(class AUIBaseActor* value)
+{
+	PlaceHolderActor = value;
+}
+void UUITextInputComponent::SetCaretBlinkRate(float value)
+{
+	CaretBlinkRate = value;
+}
+void UUITextInputComponent::SetCaretWidth(float value)
+{
+	if (CaretWidth != value)
+	{
+		CaretWidth = value;
+		if (CaretObject.IsValid())
+		{
+			CaretObject->SetWidth(CaretWidth);
+		}
+	}
+}
+void UUITextInputComponent::SetCaretColor(FColor value)
+{
+	if (CaretColor != value)
+	{
+		CaretColor = value;
+		if (CaretObject.IsValid())
+		{
+			CaretObject->SetColor(CaretColor);
+		}
+	}
+}
+void UUITextInputComponent::SetSelectionColor(FColor value)
+{
+	if (SelectionColor != value)
+	{
+		SelectionColor = value;
+		if (SelectionMaskObjectArray.Num() > 0)
+		{
+			for (auto& Item : SelectionMaskObjectArray)
+			{
+				if (Item.IsValid())
+				{
+					Item->SetColor(SelectionColor);
+				}
+			}
+		}
+	}
+}
+void UUITextInputComponent::SetVirtualKeyboradOptions(FVirtualKeyboardOptions value)
+{
+	VirtualKeyboradOptions = value;
+}
+void UUITextInputComponent::SetIgnoreKeys(const TArray<FKey>& value)
+{
+	IgnoreKeys = value;
+}
+void UUITextInputComponent::SetAutoActivateInputWhenNavigateIn(bool value)
+{
+	bAutoActivateInputWhenNavigateIn = value;
+}
+
 FDelegateHandle UUITextInputComponent::RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate)
 {
 	return OnValueChangeCPP.Add(InDelegate);
