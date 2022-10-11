@@ -99,11 +99,13 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FBoxSphereBounds& OutBounds, bool& IsFirstPrimitive)const
 {
 	if (!IsValid(RootComp))return;
+	if (RootComp->IsA<UUIItemEditorHelperComp>())return;
 	FBoxSphereBounds Bounds;
-	bool bIsValidBounds = true;
+	bool bIsValidBounds = false;
 	if (RootComp->IsRegistered())
 	{
-		if (auto UIItem = Cast<UUIItem>(RootComp))
+		auto UIItem = Cast<UUIItem>(RootComp);
+		if (UIItem != nullptr)
 		{
 			if (UIItem->GetIsUIActiveInHierarchy())
 			{
@@ -111,21 +113,21 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 				bIsValidBounds = true;
 			}
 		}
-		else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(RootComp))
+		else
 		{
-			Bounds = PrimitiveComp->Bounds;
+			Bounds = RootComp->Bounds;
 			bIsValidBounds = true;
 		}
 		if (bIsValidBounds)
 		{
 			if (IsFirstPrimitive)
 			{
-				OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
+				OutBounds = Bounds;
 				IsFirstPrimitive = false;
 			}
 			else
 			{
-				OutBounds = OutBounds + RootComp->CalcBounds(RootComp->GetComponentTransform());
+				OutBounds = OutBounds + Bounds;
 			}
 		}
 	}
