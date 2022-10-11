@@ -81,7 +81,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		EUIDropdownHorizontalPosition HorizontalPosition = EUIDropdownHorizontalPosition::Center;
 	
-	/** Current selected option index */
+	/** Current selected option index. -1 means none selected */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		int Value = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
@@ -90,6 +90,9 @@ protected:
 	/** ListRoot's max height */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", AdvancedDisplay)
 		float MaxHeight = 150;
+	/** When show the list, create a overlay block to block input on other objects. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+		bool bUseInteractionBlock = true;
 
 	bool bIsShow = false;
 	bool bNeedRecreate = true;
@@ -130,6 +133,8 @@ public:
 		float GetMaxHeight()const { return MaxHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		class AUIBaseActor* GetListRoot()const { return ListRoot.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		bool GetUseInteractionBlock()const { return bUseInteractionBlock; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void SetValue(int newValue, bool fireEvent = true);
@@ -145,6 +150,8 @@ public:
 		void AddOptions(const TArray<FUIDropdownOptionData>& InOptions);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void SetMaxHeight(float newValue) { MaxHeight = newValue; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		void SetUseInteractionBlock(bool newValue);
 
 	//list items will be created at next time when show the list
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
