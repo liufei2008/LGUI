@@ -75,7 +75,10 @@ void UUIDropdownComponent::Show()
 	}
 
 	//create blocker
-	CreateBlocker();
+	if (bUseInteractionBlock)
+	{
+		CreateBlocker();
+	}
 	//show list
 	ListRoot->GetUIItem()->SetIsUIActive(true);
 	if (CanvasGroupOnListRoot.IsValid())
@@ -280,7 +283,7 @@ void UUIDropdownComponent::Hide()
 	if (BlockerActor.IsValid())
 	{
 		BlockerActor->Destroy();
-		BlockerActor.Reset();
+		BlockerActor = nullptr;
 	}
 }
 void UUIDropdownComponent::CreateBlocker()
@@ -378,11 +381,6 @@ void UUIDropdownComponent::SetValue(int newValue, bool fireEvent)
 {
 	if (Value != newValue)
 	{
-		if (Value >= Options.Num())
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::SetValue]Value: %d out of range: %d!"), newValue, Options.Num());
-			return;
-		}
 		Value = newValue;
 		if (fireEvent)
 		{
@@ -428,6 +426,21 @@ void UUIDropdownComponent::AddOptions(const TArray<FUIDropdownOptionData>& InOpt
 		Options.Add(InOptions[i]);
 	}
 	ApplyValueToUI();
+}
+void UUIDropdownComponent::SetUseInteractionBlock(bool InValue)
+{
+	if (bUseInteractionBlock != InValue)
+	{
+		bUseInteractionBlock = true;
+		if (!bUseInteractionBlock)
+		{
+			if (BlockerActor.IsValid())
+			{
+				BlockerActor->Destroy();
+				BlockerActor = nullptr;
+			}
+		}
+	}
 }
 
 void UUIDropdownComponent::OnSelectItem(int index)
