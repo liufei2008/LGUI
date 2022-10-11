@@ -19,8 +19,14 @@
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUITextInputDynamicDelegate, FString, InString);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIInputActivateDynamicDelegate, bool, InActivate);
 
+/**
+ * Custom function to verify input string, return true if the input string is good to use, false otherwise.
+ * @param	InString	The will display string value, for check if it is valid. If not, then display origin string value.
+ * @return	Is "InString" valid?
+ */
 DECLARE_DELEGATE_RetVal_OneParam(bool, FLGUITextInputCustomInputTypeDelegate, const FString&)
 /**
+ * Custom function to verify input string, return true if the input string is good to use, false otherwise.
  * @param	InString	The will display string value, for check if it is valid. If not, then display origin string value.
  * @return	Is "InString" valid?
  */
@@ -61,6 +67,13 @@ protected:
 		FString PasswordChar = TEXT("*");
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bAllowMultiLine = false;
+	/**
+	 * This will be used in multiline mode, when hit enter, if one of these keys is also pressing then the input will submit, otherwise a new line will be added.
+	 * Commonly only use control/shift/alt key.
+	 * Not allow "Enter" key.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", meta = (EditCondition="bAllowMultiLine"))
+		TArray<FKey> MultiLineSubmitFunctionKeys;
 	/** If PlaceHolderActor is a UITextActor, then mobile virtual keyboard's hint text will get from PlaceHolderActor. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		TWeakObjectPtr<class AUIBaseActor> PlaceHolderActor;
@@ -85,9 +98,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
 	FLGUIMulticastStringDelegate OnSubmitCPP;
+	/** Input submit by "Enter" key. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FLGUIEventDelegate OnSubmit = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
 	FLGUIMulticastBoolDelegate OnInputActivateCPP;
+	/** Input activate or deactivate, means begin input or end input. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FLGUIEventDelegate OnInputActivate = FLGUIEventDelegate(LGUIEventDelegateParameterType::Bool);
 	FLGUITextInputCustomInputTypeDelegate CustomInputTypeFunction;
@@ -96,6 +111,31 @@ public:
 		class UUIText* GetTextComponent()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		const FString& GetText()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		ELGUITextInputType GetInputType()const { return InputType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		const FString& GetPasswordChar()const { return PasswordChar; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		bool GetAllowMultiLine()const { return bAllowMultiLine; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		const TArray<FKey>& GetMultiLineSubmitFunctionKeys()const { return MultiLineSubmitFunctionKeys; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		class AUIBaseActor* GetPlaceHolderActor()const { return PlaceHolderActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		float GetCaretBlinkRate()const { return CaretBlinkRate; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		float GetCaretWidth()const { return CaretWidth; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		FColor GetCaretColor()const { return CaretColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		FColor GetSelectionColor()const { return SelectionColor; }
+	UFUNCTION()
+		FVirtualKeyboardOptions GetVirtualKeyboradOptions()const { return VirtualKeyboradOptions; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		const TArray<FKey>& GetIgnoreKeys()const { return IgnoreKeys; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		bool GetAutoActivateInputWhenNavigateIn()const { return bAutoActivateInputWhenNavigateIn; }
+
 	/**
 	 * Set text value.
 	 * @return false if InText is wrong format.
@@ -103,9 +143,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		bool SetText(const FString& InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		ELGUITextInputType GetInputType()const { return InputType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetInputType(ELGUITextInputType newValue);
+	/** Set password display char. Only allow one char in the value string */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetPasswordChar(const FString& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetAllowMultiLine(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetMultiLineSubmitFunctionKeys(const TArray<FKey>& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetPlaceHolderActor(class AUIBaseActor* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetCaretBlinkRate(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetCaretWidth(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetCaretColor(FColor value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetSelectionColor(FColor value);
+	UFUNCTION()
+		void SetVirtualKeyboradOptions(FVirtualKeyboardOptions value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetIgnoreKeys(const TArray<FKey>& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetAutoActivateInputWhenNavigateIn(bool value);
+
 	void ActivateInput(ULGUIPointerEventData* eventData = nullptr);
 	void DeactivateInput(bool InFireEvent = true);
 
@@ -117,26 +179,42 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterValueChangeEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
+	/** Input submit by "Enter" key. */
 	FDelegateHandle RegisterSubmitEvent(const FLGUIStringDelegate& InDelegate);
+	/** Input submit by "Enter" key. */
 	FDelegateHandle RegisterSubmitEvent(const TFunction<void(const FString&)>& InFunction);
 	void UnregisterSubmitEvent(const FDelegateHandle& InHandle);
+	/** Input submit by "Enter" key. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		FLGUIDelegateHandleWrapper RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterSubmitEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
+	/** Input activate or deactivate, means begin input or end input. */
 	FDelegateHandle RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate);
+	/** Input activate or deactivate, means begin input or end input. */
 	FDelegateHandle RegisterInputActivateEvent(const TFunction<void(bool)>& InDelegate);
 	void UnregisterInputActivateEvent(const FDelegateHandle& InHandle);
+	/** Input activate or deactivate, means begin input or end input. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		FLGUIDelegateHandleWrapper RegisterInputActivateEvent(const FLGUIInputActivateDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterInputActivateEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
+	/**
+	 * Set custom function to verify input string, return true if the input string is good to use, false otherwise.
+	 */
 	void SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDelegate& InFunction);
+	/**
+	 * Set custom function to verify input string, return true if the input string is good to use, false otherwise.
+	 */
 	void SetCustomInputTypeFunction(const TFunction<bool(const FString&)>& InFunction);
+	/**
+	 * Set custom function to verify input string, return true if the input string is good to use, false otherwise.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction);
+	/** Remove the function set by "SetCustomInputTypeFunction" */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void ClearCustomInputTypeEvent();
 private:
