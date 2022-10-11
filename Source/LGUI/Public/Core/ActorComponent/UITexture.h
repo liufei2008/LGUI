@@ -16,6 +16,13 @@ enum class UITextureType :uint8
 	Tiled,
 	Filled,
 };
+UENUM(BlueprintType, Category = LGUI)
+enum class EUITextureUVRectControlMode :uint8
+{
+	None,
+	KeepAspectRatio_FitIn,
+	KeepAspectRatio_Envelope,
+};
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUITexture : public UUITextureBase
 {
@@ -36,8 +43,10 @@ protected:
 		UITextureType type = UITextureType::Normal;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUISpriteInfo spriteData;
-	/** Texture UV offset and scale info. Only get good result when Type is Normal */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUITextureUVRectControlMode UVRectControlMode = EUITextureUVRectControlMode::None;
+	/** Texture UV offset and scale info. Only get good result when Type is Normal */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="UVRectControlMode==EUITextureUVRectControlMode::None"))
 		FVector4 uvRect = FVector4(0, 0, 1, 1);
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -55,6 +64,7 @@ protected:
 #endif
 
 	void CheckSpriteData();
+	void ApplyUVRect();
 
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 
@@ -67,6 +77,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	uint8 GetFillOrigin()const { return fillOrigin; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return fillDirectionFlip; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return fillAmount; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	EUITextureUVRectControlMode GetUVRectControlMode()const { return UVRectControlMode; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetTextureType(UITextureType newType);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetSpriteData(FLGUISpriteInfo newSpriteData);
@@ -75,6 +86,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillAmount(float newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetUVRectControlMode(EUITextureUVRectControlMode newValue);
 
 	virtual void SetTexture(UTexture* newTexture)override;
 };
