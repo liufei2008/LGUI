@@ -58,9 +58,60 @@ void UUITexture::CheckSpriteData()
 		spriteData.height = texture->GetSurfaceHeight();
 		if (type != UITextureType::Tiled)
 		{
+			ApplyUVRect();
 			spriteData.ApplyUV(0, 0, spriteData.width, spriteData.height, 1.0f / spriteData.width, 1.0f / spriteData.height, uvRect);
 			spriteData.ApplyBorderUV(1.0f / spriteData.width, 1.0f / spriteData.height);
 		}
+	}
+}
+
+void UUITexture::ApplyUVRect()
+{
+	switch (UVRectControlMode)
+	{
+	default:
+	case EUITextureUVRectControlMode::None:
+		break;
+	case EUITextureUVRectControlMode::KeepAspectRatio_FitIn:
+	{
+		auto TextureWidth = texture->GetSurfaceWidth();
+		auto TextureHeight = texture->GetSurfaceHeight();
+		auto TextureAspect = TextureWidth / TextureHeight;
+		auto ThisAspect = this->GetWidth() / this->GetHeight();
+		if (TextureAspect > ThisAspect)
+		{
+			auto VerticalScale = TextureAspect / ThisAspect;
+			auto VerticalOffset = (1.0f - VerticalScale) * 0.5f;
+			uvRect = FVector4(0, VerticalOffset, 1, VerticalScale);
+		}
+		else
+		{
+			auto HorizontalScale = ThisAspect / TextureAspect;
+			auto HorizontalOffset = (1.0f - HorizontalScale) * 0.5f;
+			uvRect = FVector4(HorizontalOffset, 0, HorizontalScale, 1);
+		}
+	}
+	break;
+	case EUITextureUVRectControlMode::KeepAspectRatio_Envelope:
+	{
+		auto TextureWidth = texture->GetSurfaceWidth();
+		auto TextureHeight = texture->GetSurfaceHeight();
+		auto TextureAspect = TextureWidth / TextureHeight;
+		auto ThisAspect = this->GetWidth() / this->GetHeight();
+		if (TextureAspect > ThisAspect)
+		{
+			auto HorizontalScale = ThisAspect / TextureAspect;
+			auto HorizontalOffset = (1.0f - HorizontalScale) * 0.5f;
+			uvRect = FVector4(HorizontalOffset, 0, HorizontalScale, 1);
+		}
+		else
+		{
+			auto VerticalScale = TextureAspect / ThisAspect;
+			auto VerticalOffset = (1.0f - VerticalScale) * 0.5f;
+			uvRect = FVector4(0, VerticalOffset, 1, VerticalScale);
+		}
+	}
+	break;
 	}
 }
 
@@ -138,6 +189,13 @@ void UUITexture::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDi
             spriteData.ApplyUV(0, 0, this->GetWidth(), this->GetHeight(), 1.0f / spriteData.width, 1.0f / spriteData.height);
             MarkUVDirty();
         }
+	}
+	if (UVRectControlMode != EUITextureUVRectControlMode::None)
+	{
+		if (InSizeChange)
+		{
+			ApplyUVRect();
+		}
 	}
     if (InPivotChange || InSizeChange)
     {
@@ -232,5 +290,14 @@ void UUITexture::SetFillAmount(float newValue)
 		{
 			MarkVerticesDirty(false, true, true, false);
 		}
+	}
+}
+void UUITexture::SetUVRectControlMode(EUITextureUVRectControlMode newValue)
+{
+	if (UVRectControlMode != newValue)
+	{
+		UVRectControlMode = newValue;
+		MarkUVDirty();
+		CheckSpriteData();
 	}
 }
