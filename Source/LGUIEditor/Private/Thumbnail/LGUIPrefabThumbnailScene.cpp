@@ -168,7 +168,7 @@ void FLGUIPrefabThumbnailScene::GetViewMatrixParameters(const float InFOVDegrees
 {
 	const float HalfFOVRadians = FMath::DegreesToRadians<float>(InFOVDegrees) * 0.5f;
 
-	const float PreviewSize = PreviewActorsBound.SphereRadius * 0.8;
+	const float PreviewSize = PreviewActorsBound.SphereRadius;
 	const float BoundsZOffset = GetBoundsZOffset(PreviewActorsBound);
 	const float TargetDistance = PreviewSize / FMath::Tan(HalfFOVRadians);
 
