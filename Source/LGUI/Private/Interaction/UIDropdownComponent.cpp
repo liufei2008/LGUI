@@ -336,6 +336,7 @@ void UUIDropdownComponent::CreateListItems()
 			this->OnSelectItem(index);
 			});
 		script->SetSelectionState(i == Value);
+		OnSetItemCustomData.ExecuteIfBound(i, script, copiedItemActor);
 		CreatedItemArray.Add(script);
 	}
 	templateUIItem->SetIsUIActive(false);
