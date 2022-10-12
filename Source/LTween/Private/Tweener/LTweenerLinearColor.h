@@ -41,8 +41,7 @@ protected:
 		value.G = FMath::Lerp(startValue.G, endValue.G, lerpValue);
 		value.B = FMath::Lerp(startValue.B, endValue.B, lerpValue);
 		value.A = FMath::Lerp(startValue.A, endValue.A, lerpValue);
-		if (setter.IsBound())
-			setter.Execute(value);
+		setter.ExecuteIfBound(value);
 	}
 	virtual void SetValueForIncremental() override
 	{

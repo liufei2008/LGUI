@@ -7,7 +7,6 @@
 
 DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
 
-/** @param Progress of this tween, from 0 to 1. */
 DECLARE_DELEGATE_OneParam(LTweenUpdateDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(LTweenUpdateMulticastDelegate, float);
 
@@ -149,7 +148,9 @@ protected:
 
 	/** call once after animation complete */
 	FSimpleDelegate onCompleteCpp;
-	/** if use loop, this will call every time after complete in every cycle */
+	/** if use loop, this will call every time when begin tween in every cycle */
+	FSimpleDelegate onCycleStartCpp;
+	/** if use loop, this will call every time after tween complete in every cycle */
 	FSimpleDelegate onCycleCompleteCpp;
 	/** call every frame after animation starts */
 	LTweenUpdateDelegate onUpdateCpp;
@@ -215,29 +216,51 @@ public:
 		ULTweener* OnComplete(const FTweenerSimpleDynamicDelegate& newComplete)
 	{
 		this->onCompleteCpp.BindLambda([newComplete] {
-			if (newComplete.IsBound())newComplete.Execute();
+			newComplete.ExecuteIfBound();
 		});
 		return this;
 	}
 	
-	/** execute every cycle complete when use loop */
+	/** if use loop, this will call every time after tween complete in every cycle */
 	ULTweener* OnCycleComplete(const FSimpleDelegate& newCycleComplete)
 	{
 		this->onCycleCompleteCpp = newCycleComplete;
 		return this;
 	}
-	/** execute every cycle complete when use loop */
+	/** if use loop, this will call every time after tween complete in every cycle */
 	ULTweener* OnCycleComplete(const TFunction<void()>& newCycleComplete)
 	{
 		this->onCycleCompleteCpp.BindLambda(newCycleComplete);
 		return this;
 	}
-	/** execute every cycle complete when use loop */
+	/** if use loop, this will call every time after tween complete in every cycle */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnCycleComplete(const FTweenerSimpleDynamicDelegate& newCycleComplete)
 	{
 		this->onCycleCompleteCpp.BindLambda([newCycleComplete] {
-			if (newCycleComplete.IsBound())newCycleComplete.Execute();
+			newCycleComplete.ExecuteIfBound();
+			});
+		return this;
+	}
+
+	/** if use loop, this will call every time when begin tween in every cycle */
+	ULTweener* OnCycleStart(const FSimpleDelegate& newCycleStart)
+	{
+		this->onCycleStartCpp = newCycleStart;
+		return this;
+	}
+	/** if use loop, this will call every time when begin tween in every cycle */
+	ULTweener* OnCycleStart(const TFunction<void()>& newCycleStart)
+	{
+		this->onCycleStartCpp.BindLambda(newCycleStart);
+		return this;
+	}
+	/** if use loop, this will call every time when begin tween in every cycle */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ULTweener* OnCycleStart(const FTweenerSimpleDynamicDelegate& newCycleStart)
+	{
+		this->onCycleStartCpp.BindLambda([newCycleStart] {
+			newCycleStart.ExecuteIfBound();
 			});
 		return this;
 	}
@@ -259,7 +282,7 @@ public:
 		ULTweener* OnUpdate(const FTweenerFloatDynamicDelegate& newUpdate)
 	{
 		this->onUpdateCpp.BindLambda([newUpdate](float progress) {
-			if (newUpdate.IsBound())newUpdate.Execute(progress);
+			newUpdate.ExecuteIfBound(progress);
 		});
 		return this;
 	}
@@ -275,7 +298,7 @@ public:
 		ULTweener* OnStart(const FTweenerSimpleDynamicDelegate& newStart)
 	{
 		this->onStartCpp.BindLambda([newStart] {
-			if (newStart.IsBound())newStart.Execute();
+			newStart.ExecuteIfBound();
 		});
 		return this;
 	}

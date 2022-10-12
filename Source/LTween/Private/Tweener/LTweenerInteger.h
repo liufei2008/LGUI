@@ -33,8 +33,7 @@ protected:
 	virtual void TweenAndApplyValue() override
 	{
 		auto lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
-		if (setter.IsBound()) 
-			setter.Execute(FMath::Lerp(startValue, endValue, lerpValue));
+		setter.ExecuteIfBound(FMath::Lerp(startValue, endValue, lerpValue));
 	}
 	virtual void SetValueForIncremental() override
 	{
