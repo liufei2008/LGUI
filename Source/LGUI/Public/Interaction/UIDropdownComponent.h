@@ -20,6 +20,8 @@ class ULGUISpriteData_BaseObject;
  */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FUIDropdownComponentDynamicDelegate, int32, InSelectIndex);
 
+DECLARE_DELEGATE_ThreeParams(FUIDropdownComponentDelegate_OnSetItemCustomData, int, class UUIDropdownItemComponent*, AActor*);
+
 UENUM(BlueprintType, Category = LGUI)
 enum class EUIDropdownVerticalPosition : uint8
 {
@@ -165,6 +167,9 @@ public:
 		FLGUIDelegateHandleWrapper RegisterSelectionChangeEvent(const FUIDropdownComponentDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void UnregisterSelectionChangeEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+	/** You can bind this delegate and set your own data for custom list item. */
+	FUIDropdownComponentDelegate_OnSetItemCustomData OnSetItemCustomData;
 };
 
 
