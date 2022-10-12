@@ -33,8 +33,7 @@ protected:
 	virtual void TweenAndApplyValue() override
 	{
 		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);
-		if (setter.IsBound()) 
-			setter.Execute(value);
+		setter.ExecuteIfBound(value);
 	}
 	virtual void SetValueForIncremental() override
 	{

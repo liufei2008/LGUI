@@ -30,22 +30,18 @@ protected:
 		if (!startToTween)
 		{
 			startToTween = true;
-			if (onStartCpp.IsBound())
-				onStartCpp.Execute();
+			onStartCpp.ExecuteIfBound();
 		}
 
 		if (GFrameNumber >= endFrameNumber)
 		{
-			if (onUpdateCpp.IsBound())
-				onUpdateCpp.Execute(1.0f);
-			if (onCompleteCpp.IsBound())
-				onCompleteCpp.Execute();
+			onUpdateCpp.ExecuteIfBound(1.0f);
+			onCompleteCpp.ExecuteIfBound();
 			return false;
 		}
 		else
 		{
-			if (onUpdateCpp.IsBound())
-				onUpdateCpp.Execute((float)(GFrameNumber - startFrameNumber) / (endFrameNumber - startFrameNumber));
+			onUpdateCpp.ExecuteIfBound((float)(GFrameNumber - startFrameNumber) / (endFrameNumber - startFrameNumber));
 			return true;
 		}
 	}

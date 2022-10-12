@@ -38,8 +38,7 @@ protected:
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
 		FRotator value;
 		value = startValue + lerpValue * (endValue - startValue);
-		if (setter.IsBound()) 
-			setter.Execute(value);
+		setter.ExecuteIfBound(value);
 	}
 	virtual void SetValueForIncremental() override
 	{

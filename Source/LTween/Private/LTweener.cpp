@@ -176,23 +176,29 @@ bool ULTweener::ToNext(float deltaTime)
 			}
 			
 			TweenAndApplyValue();
-			if (onUpdateCpp.IsBound()) 
-				onUpdateCpp.Execute(1.0f);
-			if (onCycleCompleteCpp.IsBound())
-				onCycleCompleteCpp.Execute();
+			onUpdateCpp.ExecuteIfBound(1.0f);
+			onCycleCompleteCpp.ExecuteIfBound();
 			if (loopType == LTweenLoop::Once)
 			{
-				if (onCompleteCpp.IsBound())
-					onCompleteCpp.Execute();
+				onCompleteCpp.ExecuteIfBound();
 				returnValue = false;
 			}
-			else if (maxLoopCount != -1)//infinite loop
+			else if (maxLoopCount == -1)//infinite loop
 			{
-				if (loopCycleCount >= maxLoopCount)
+				onCycleStartCpp.ExecuteIfBound();//start new cycle callback
+				returnValue = true;
+			}
+			else if (maxLoopCount != -1)//-1 means infinite loop
+			{
+				if (loopCycleCount >= maxLoopCount)//reach end cycle
 				{
-					if (onCompleteCpp.IsBound())
-						onCompleteCpp.Execute();
+					onCompleteCpp.ExecuteIfBound();
 					returnValue = false;
+				}
+				else//not reach end cycle
+				{
+					onCycleStartCpp.ExecuteIfBound();//start new cycle callback
+					returnValue = true;
 				}
 			}
 			return returnValue;
@@ -200,8 +206,7 @@ bool ULTweener::ToNext(float deltaTime)
 		else
 		{
 			TweenAndApplyValue();
-			if (onUpdateCpp.IsBound()) 
-				onUpdateCpp.Execute(elapseTime / duration);
+			onUpdateCpp.ExecuteIfBound(elapseTime / duration);
 			return true;
 		}
 	}
@@ -218,8 +223,8 @@ bool ULTweener::ToNext(float deltaTime)
 			//set initialize value
 			OnStartGetValue();
 			//execute callback
-			if (onStartCpp.IsBound())
-				onStartCpp.Execute();
+			onCycleStartCpp.ExecuteIfBound();
+			onStartCpp.ExecuteIfBound();
 			goto TWEEN_UPDATE;
 		}
 	}
@@ -229,8 +234,7 @@ void ULTweener::Kill(bool callComplete)
 {
 	if (callComplete)
 	{
-		if (onCompleteCpp.IsBound())
-			onCompleteCpp.Execute();
+		onCompleteCpp.ExecuteIfBound();
 	}
 	isMarkedToKill = true;
 }
@@ -240,10 +244,8 @@ void ULTweener::ForceComplete()
 	isMarkedToKill = true;
 	elapseTime = duration;
 	TweenAndApplyValue();
-	if (onUpdateCpp.IsBound()) 
-		onUpdateCpp.Execute(elapseTime / duration);
-	if (onCompleteCpp.IsBound()) 
-		onCompleteCpp.Execute();
+	onUpdateCpp.ExecuteIfBound(elapseTime / duration);
+	onCompleteCpp.ExecuteIfBound();
 }
 
 
