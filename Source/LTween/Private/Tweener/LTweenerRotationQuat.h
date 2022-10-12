@@ -45,8 +45,7 @@ protected:
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
 		auto value = FQuat::Slerp(startValue, endValue, lerpValue);
-		if (setter.IsBound()) 
-			setter.Execute(value, sweep, sweepHitResult, teleportType);
+		setter.ExecuteIfBound(value, sweep, sweepHitResult, teleportType);
 	}
 	virtual void SetValueForIncremental() override
 	{

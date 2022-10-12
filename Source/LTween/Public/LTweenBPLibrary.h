@@ -218,4 +218,51 @@ public:
 	{
 		ULTweenManager::UnregisterUpdateEvent(WorldContextObject, delegateHandle.DelegateHandle);
 	}
+
+	/**
+	 * Repeatedly call function.
+	 * \param delayTime delay time before the first call
+	 * \param interval interval time between every call
+	 * \param repeatCount repeat count, -1 means infinite
+	 * \return tweener
+	 */
+	static ULTweener* RepeatCall(UObject* WorldContextObject, const TFunction<void()>& callFunction, float delayTime, float interval, int repeatCount = 1)
+	{
+		return ULTweenManager::VirtualTo(WorldContextObject, interval)
+			->SetDelay(delayTime)
+			->SetLoop(repeatCount == 1 || repeatCount == 0 ? LTweenLoop::Once : LTweenLoop::Restart, repeatCount)
+			->OnCycleStart(callFunction)
+			;
+	}
+	/**
+	 * Repeatedly call function.
+	 * \param delayTime delay time before the first call
+	 * \param interval interval time between every call
+	 * \param repeatCount repeat count, -1 means infinite
+	 * \return tweener
+	 */
+	static ULTweener* RepeatCall(UObject* WorldContextObject, const FSimpleDelegate& callFunction, float delayTime, float interval, int repeatCount = 1)
+	{
+		return ULTweenManager::VirtualTo(WorldContextObject, interval)
+			->SetDelay(delayTime)
+			->SetLoop(repeatCount == 1 || repeatCount == 0 ? LTweenLoop::Once : LTweenLoop::Restart, repeatCount)
+			->OnCycleStart(callFunction)
+			;
+	}
+	/**
+	 * Repeatedly call function.
+	 * \param delayTime delay time before the first call
+	 * \param interval interval time between every call
+	 * \param repeatCount repeat count, -1 means infinite
+	 * \return tweener
+	 */
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = LTween)
+		static ULTweener* RepeatCall(UObject* WorldContextObject, FTweenerSimpleDynamicDelegate callFunction, float delayTime, float interval, int repeatCount = 1)
+	{
+		return ULTweenManager::VirtualTo(WorldContextObject, interval)
+			->SetDelay(delayTime)
+			->SetLoop(repeatCount == 1 || repeatCount == 0 ? LTweenLoop::Once : LTweenLoop::Restart, repeatCount)
+			->OnCycleStart(callFunction)
+			;
+	}
 };
