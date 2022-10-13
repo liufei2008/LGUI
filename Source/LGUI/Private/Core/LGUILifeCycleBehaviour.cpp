@@ -19,13 +19,14 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 	bPrevIsRootComponentVisible = false;
 	bCanExecuteBlueprintEvent = false;
 	bIsSerializedFromLGUIPrefab = false;
+
+	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 }
 
 void ULGUILifeCycleBehaviour::BeginPlay()
 {
 	Super::BeginPlay();
 	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
-	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 	if (GetRootSceneComponent())
 	{
 		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
