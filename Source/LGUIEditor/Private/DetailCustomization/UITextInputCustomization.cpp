@@ -32,28 +32,6 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 	}
 
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Input");
-	auto inputTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, InputType));
-	inputTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextInputCustomization::ForceRefresh, &DetailBuilder));
-	ELGUITextInputType inputType = TargetScriptPtr->InputType;
-
-	TArray<FName> needToHidePropertyName;
-	switch (inputType)
-	{
-	case ELGUITextInputType::Password:
-	{
-
-	}
-	break;
-	default:
-	{
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, PasswordChar));
-	}
-	break;
-	}
-	for (auto item : needToHidePropertyName)
-	{
-		DetailBuilder.HideProperty(item);
-	}
 
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, TextActor));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, Text));
