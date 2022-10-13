@@ -17,7 +17,6 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 	bCanExecuteUpdate = true;
 	bIsAddedToUpdate = false;
 	bPrevIsRootComponentVisible = false;
-	bCanExecuteBlueprintEvent = false;
 	bIsSerializedFromLGUIPrefab = false;
 
 	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
