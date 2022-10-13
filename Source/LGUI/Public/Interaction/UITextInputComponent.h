@@ -22,25 +22,57 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIInputActivateDynamicDelegate, bool, InAct
 /**
  * Custom function to verify input string, return true if the input string is good to use, false otherwise.
  * @param	InString	The will display string value, for check if it is valid. If not, then display origin string value.
+ * @param	InStartIndex	New insert char index in InString.
  * @return	Is "InString" valid?
  */
-DECLARE_DELEGATE_RetVal_OneParam(bool, FLGUITextInputCustomInputTypeDelegate, const FString&)
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FLGUITextInputCustomInputTypeDelegate, const FString&, int)
 /**
  * Custom function to verify input string, return true if the input string is good to use, false otherwise.
  * @param	InString	The will display string value, for check if it is valid. If not, then display origin string value.
+ * @param	InStartIndex	New insert char index in InString.
  * @return	Is "InString" valid?
  */
-DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FLGUITextInputCustomInputTypeDynamicDelegate, const FString&, InString);
+DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FLGUITextInputCustomInputTypeDynamicDelegate, const FString&, InString, int, InStartIndex);
 
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUITextInputType:uint8
 {
-	Standard,
-	IntegerNumber,
-	DecimalNumber,
-	Password,
+	/** No validation. Any input is valid. */
+	Standard = 0,
+	/**
+	 * Allow whole numbers (positive or negative).
+	 * Characters 0-9 and - (dash / minus sign) are allowed. The dash is only allowed as the first character.
+	 */
+	IntegerNumber = 1,
+	/**
+	 * Allows decimal numbers (positive or negative).
+	 * Characters 0-9, . (dot), and - (dash / minus sign) are allowed. The dash is only allowed as the first character. Only one dot in the string is allowed.
+	 */
+	DecimalNumber = 2,
+	/**
+	 * Allows letters A-Z, a-z and numbers 0-9.
+	 */
+	Alphanumeric = 5,
+	/**
+	 * Allows the characters that are allowed in an email address.
+	 * Allows characters A-Z, a.z, 0-9, @, . (dot), !, #, $, %, &amp;, ', *, +, -, /, =, ?, ^, _, `, {, |, }, and ~.
+	 * Only one @ is allowed in the string and more than one dot in a row are not allowed. Note that the character validation does not validate the entire string as being a valid email address since it only does validation on a per-character level, resulting in the typed character either being added to the string or not.
+	 */
+	EmailAddress = 6,
+	/**
+	 * Display as password, without any validation.
+	 * NOTE!!! This type will be deprecate, use DisplayType.Password instead.
+	 */
+	Password = 3,
 	/** Use *SetCustomInputTypeFunction* to check if input is valid. */
-	CustomFunction,
+	CustomFunction = 4,
+};
+UENUM(BlueprintType, Category = LGUI)
+enum class ELGUITextInputDisplayType :uint8
+{
+	Standard,
+	/** Display as password. */
+	Password,
 };
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILGUIPointerClickInterface, public ILGUIPointerDragInterface
@@ -52,6 +84,7 @@ protected:
 	virtual void Update(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #if WITH_EDITOR
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 protected:
@@ -62,6 +95,8 @@ protected:
 		FString Text;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		ELGUITextInputType InputType;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		ELGUITextInputDisplayType DisplayType = ELGUITextInputDisplayType::Standard;
 	//password display character
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FString PasswordChar = TEXT("*");
@@ -114,6 +149,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		ELGUITextInputType GetInputType()const { return InputType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		ELGUITextInputDisplayType GetDisplayType()const { return DisplayType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		const FString& GetPasswordChar()const { return PasswordChar; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		bool GetAllowMultiLine()const { return bAllowMultiLine; }
@@ -144,6 +181,8 @@ public:
 		bool SetText(const FString& InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetInputType(ELGUITextInputType newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetDisplayType(ELGUITextInputDisplayType newValue);
 	/** Set password display char. Only allow one char in the value string */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetPasswordChar(const FString& value);
@@ -208,7 +247,7 @@ public:
 	/**
 	 * Set custom function to verify input string, return true if the input string is good to use, false otherwise.
 	 */
-	void SetCustomInputTypeFunction(const TFunction<bool(const FString&)>& InFunction);
+	void SetCustomInputTypeFunction(const TFunction<bool(const FString&, int)>& InFunction);
 	/**
 	 * Set custom function to verify input string, return true if the input string is good to use, false otherwise.
 	 */
@@ -222,12 +261,13 @@ private:
 	void UnbindKeys();
 	void AnyKeyPressed();
 	void AnyKeyReleased();
-	bool IsValidChar(char c);
-	bool IsValidString(const FString& InString);
-	FString PasteResultString();
-	FString ForwardSpaceResultString();
-	FString BackSpaceResultString();
-	void AppendChar(char c);
+	bool IsValidChar(TCHAR c);
+	/**
+	 * delete selected chars if there is any.
+	 * @return true if anything deleted.
+	 */
+	bool DeleteSelection(bool InFireEvent = true, bool InUpdateInputComposition = true);
+	void InsertCharAtCaretPosition(TCHAR c);
 	FInputKeyBinding AnyKeyBinding;
 	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
 	bool CheckPlayerController();
@@ -251,7 +291,7 @@ private:
 	void Cut();
 	void SelectAll();
 
-	void UpdateAfterTextChange(bool InFireEvent = true);
+	void UpdateAfterTextChange(bool InFireEvent = true, bool InUpdateInputComposition = true);
 
 	void FireOnValueChangeEvent();
 	void UpdateUITextComponent();
@@ -262,7 +302,7 @@ private:
 	void UpdateInputComposition();
 	void HideSelectionMask();
 	//return true if have selection
-	bool DeleteIfSelection(int& OutCaretOffset);
+	bool DeleteSelectionForInputComposition(int& OutCaretOffset);
 	//a sprite for caret, can blink, can represent current caret location
 	UPROPERTY(Transient)TWeakObjectPtr<class UUISprite> CaretObject;
 	//selection mask
@@ -362,6 +402,10 @@ private:
 		TSharedPtr<SBox> CachedWindow;
 		ECaretPosition CaretPosition = ITextInputMethodContext::ECaretPosition::Ending;
 		int32 CompositionCaretOffset = 0;//if some chars is selected when input, we need to delete selected chars, and after that caret position will change. this is caret offset value
+		FString OriginString;
+		int OriginCaretPositionIndex = 0;
+		int OriginCaretPositionLineIndex = 0;
+		FString LastCompositionString;
 	};
 private:
 	TSharedPtr<FVirtualKeyboardEntry> VirtualKeyboardEntry;

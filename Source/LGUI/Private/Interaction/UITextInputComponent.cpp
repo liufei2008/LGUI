@@ -59,6 +59,18 @@ void UUITextInputComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 #if WITH_EDITOR
+bool UUITextInputComponent::CanEditChange(const FProperty* InProperty)const
+{
+	if (InProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UUITextInputComponent, PasswordChar))
+	{
+		if (InputType != ELGUITextInputType::Password
+			&& DisplayType != ELGUITextInputDisplayType::Password)
+		{
+			return false;
+		}
+	}
+	return Super::CanEditChange(InProperty);
+}
 void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -126,7 +138,7 @@ void UUITextInputComponent::AnyKeyPressed()
 	if (!CheckPlayerController())return;
 	if (TextActor == nullptr)return;
 
-	char inputChar = 127;
+	TCHAR inputChar = 127;
 	bool ctrl = PlayerController->PlayerInput->IsCtrlPressed();
 	bool shift = PlayerController->PlayerInput->IsShiftPressed();
 	bool alt = PlayerController->PlayerInput->IsAltPressed();
@@ -136,18 +148,12 @@ void UUITextInputComponent::AnyKeyPressed()
 	//Function key
 	if (PlayerController->IsInputKeyDown(EKeys::BackSpace))
 	{
-		if (IsValidString(BackSpaceResultString()))
-		{
-			BackSpace();
-		}
+		BackSpace();
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Delete))
 	{
-		if (IsValidString(ForwardSpaceResultString()))
-		{
-			ForwardSpace();
-		}
+		ForwardSpace();
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Home))
@@ -183,10 +189,7 @@ void UUITextInputComponent::AnyKeyPressed()
 	{
 		if (ctrlOnly)
 		{
-			if (IsValidString(PasteResultString()))
-			{
-				Paste();
-			}
+			Paste();
 			return;
 		}
 	}
@@ -197,10 +200,7 @@ void UUITextInputComponent::AnyKeyPressed()
 		{
 			if (SelectionPropertyArray.Num() != 0)
 			{
-				if (IsValidString(BackSpaceResultString()))
-				{
-					Cut();
-				}
+				Cut();
 			}
 			return;
 		}
@@ -539,43 +539,19 @@ void UUITextInputComponent::AnyKeyPressed()
 
 	if (IsValidChar(inputChar))
 	{
-		AppendChar(inputChar);
+		DeleteSelection(false, false);
+		InsertCharAtCaretPosition(inputChar);
+		UpdateAfterTextChange(true, true);
 	}
 }
 void UUITextInputComponent::AnyKeyReleased()
 {
 	//UE_LOG(LGUI, Log, TEXT("AnyKeyReleased"));
 }
-FString UUITextInputComponent::PasteResultString()
+
+bool UUITextInputComponent::IsValidChar(TCHAR c)
 {
-	auto TempText = Text;
-	auto TempCaretPositionIndex = CaretPositionIndex;
-	FString pasteString;
-	FPlatformApplicationMisc::ClipboardPaste(pasteString);
-	if (pasteString.Len() <= 0)return TempText;
-	pasteString.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
-	if (!bAllowMultiLine)
-	{
-		for (int i = 0; i < pasteString.Len(); i++)
-		{
-			if (pasteString[i] == '\n' || pasteString[i] == '\r')
-			{
-				pasteString[i] = ' ';
-			}
-		}
-	}
-	if (SelectionPropertyArray.Num() != 0)//delete selection frist
-	{
-		int32 startIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
-		TempText.RemoveAt(startIndex, FMath::Abs(TempCaretPositionIndex - PressCaretPositionIndex));
-		TempCaretPositionIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
-	}
-	TempText.InsertAt(TempCaretPositionIndex, pasteString);
-	return TempText;
-}
-bool UUITextInputComponent::IsValidChar(char c)
-{
-	auto OriginHaveChar = [](char testChar, const FString& string, int stringLength)
+	auto StringContainsChar = [](TCHAR testChar, const FString& string, int stringLength)
 	{
 		for (int i = 0; i < stringLength; i++)
 		{
@@ -601,7 +577,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		{
 			if (CaretPositionIndex == 0)
 			{
-				if (OriginHaveChar('-', Text, Text.Len()))
+				if (StringContainsChar('-', Text, Text.Len()))
 				{
 					return false;
 				}
@@ -610,7 +586,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		}
 		if (c == '-')
 		{
-			if (CaretPositionIndex == 0 && !OriginHaveChar('-', Text, Text.Len()))
+			if (CaretPositionIndex == 0 && !StringContainsChar('-', Text, Text.Len()))
 			{
 				return true;
 			}
@@ -624,7 +600,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		{
 			if (CaretPositionIndex == 0)
 			{
-				if (OriginHaveChar('-', Text, Text.Len()))
+				if (StringContainsChar('-', Text, Text.Len()))
 				{
 					return false;
 				}
@@ -633,7 +609,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		}
 		if (c == '.')
 		{
-			if (OriginHaveChar('.', Text, Text.Len()))
+			if (StringContainsChar('.', Text, Text.Len()))
 			{
 				return false;
 			}
@@ -641,7 +617,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 			{
 				if (CaretPositionIndex == 0)
 				{
-					if (!OriginHaveChar('-', Text, Text.Len()))
+					if (!StringContainsChar('-', Text, Text.Len()))
 					{
 						return true;
 					}
@@ -655,7 +631,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		}
 		if (c == '-')
 		{
-			if (CaretPositionIndex == 0 && !OriginHaveChar('-', Text, Text.Len()))
+			if (CaretPositionIndex == 0 && !StringContainsChar('-', Text, Text.Len()))
 			{
 				return true;
 			}
@@ -663,6 +639,40 @@ bool UUITextInputComponent::IsValidChar(char c)
 		return false;
 	}
 		break;
+	case ELGUITextInputType::Alphanumeric:
+	{
+		if (c >= 'A' && c <= 'Z') return true;
+		if (c >= 'a' && c <= 'z') return true;
+		if (c >= '0' && c <= '9') return true;
+		return false;
+	}
+	break;
+	case ELGUITextInputType::EmailAddress:
+	{
+		if (c >= 'A' && c <= 'Z') return true;
+		if (c >= 'a' && c <= 'z') return true;
+		if (c >= '0' && c <= '9') return true;
+		if (c == '@')
+		{
+			return !StringContainsChar('@', Text, Text.Len());
+		}
+		static FString kEmailSpecialCharacters = "!#$%&'*+-/=?^_`{|}~";
+		if (StringContainsChar(c, kEmailSpecialCharacters, kEmailSpecialCharacters.Len()))
+		{
+			return false;
+		}
+		if (c == '.')
+		{
+			auto LastChar = (Text.Len() > 0) ? Text[FMath::Clamp(CaretPositionIndex, 0, Text.Len() - 1)] : ' ';
+			auto NextChar = (Text.Len() > 0) ? Text[FMath::Clamp(CaretPositionIndex + 1, 0, Text.Len() - 1)] : '\n';
+			if (LastChar != '.' && NextChar != '.')
+				return true;
+			else
+				return false;
+		}
+		return false;
+	}
+	break;
 	case ELGUITextInputType::Password:
 		//handled when UpdateUITextComponent
 		return true;
@@ -681,7 +691,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 			}
 			TempText.InsertAt(TempCaretPositionIndex, c);
 
-			return CustomInputTypeFunction.Execute(TempText);
+			return CustomInputTypeFunction.Execute(TempText, TempCaretPositionIndex);
 		}
 		else
 		{
@@ -696,107 +706,37 @@ bool UUITextInputComponent::IsValidChar(char c)
 	//	return true;
 	return true;
 }
-bool UUITextInputComponent::IsValidString(const FString& InString)
+bool UUITextInputComponent::DeleteSelection(bool InFireEvent, bool InUpdateInputComposition)
 {
-	//input type
-	switch (InputType)
-	{
-	case ELGUITextInputType::Standard:
-		return true;
-		break;
-	case ELGUITextInputType::IntegerNumber:
-	{
-		int32 textLength = InString.Len();
-		for (int i = 0; i < textLength; i++)
-		{
-			TCHAR c = InString[i];
-			if (c == '-')
-			{
-				if (i != 0)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (c < '0' || c > '9')
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	break;
-	case ELGUITextInputType::DecimalNumber:
-	{
-		//check number and dot
-		int dotCount = 0;
-		int32 textLength = InString.Len();
-		for (int i = 0; i < textLength; i++)
-		{
-			TCHAR c = InString[i];
-			if (c == '-')
-			{
-				if (i != 0)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (c == '.')
-				{
-					dotCount++;
-					if (dotCount > 1)
-					{
-						return false;
-					}
-				}
-				else if (c < '0' || c > '9')
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	break;
-	case ELGUITextInputType::Password:
-		//handled when UpdateUITextComponent
-		return true;
-		break;
-	case ELGUITextInputType::CustomFunction:
-	{
-		if (CustomInputTypeFunction.IsBound())
-		{
-			return CustomInputTypeFunction.Execute(InString);
-		}
-		else
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::IsValidString]InputType use CustomFunction but not valid!"));
-			return true;
-		}
-	}
-	break;
-	}
-	return true;
-}
-void UUITextInputComponent::AppendChar(char c)
-{
-	if (TextActor == nullptr)return;
-
 	if (SelectionPropertyArray.Num() != 0)//delete selection frist
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
 		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		UpdateAfterTextChange(InFireEvent, InUpdateInputComposition);
+		return true;
 	}
+	return false;
+}
+bool UUITextInputComponent::DeleteSelectionForInputComposition(int& OutCaretOffset)
+{
+	if (SelectionPropertyArray.Num() != 0)
+	{
+		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
+		OutCaretOffset = PressCaretPositionIndex > CaretPositionIndex ? 0 : CaretPositionIndex - PressCaretPositionIndex;
+		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		return true;
+	}
+	return false;
+}
+void UUITextInputComponent::InsertCharAtCaretPosition(TCHAR c)
+{
 	Text.InsertAt(CaretPositionIndex, c);
 	CaretPositionIndex++;
-	UpdateAfterTextChange();
 	PressCaretPositionIndex = CaretPositionIndex;
 }
+
 void UUITextInputComponent::BackSpace()
 {
 	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
@@ -818,24 +758,6 @@ void UUITextInputComponent::BackSpace()
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
-FString UUITextInputComponent::BackSpaceResultString()
-{
-	auto TempText = Text;
-
-	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
-	{
-		if (CaretPositionIndex > 0)
-		{
-			TempText.RemoveAt(CaretPositionIndex - 1);
-		}
-	}
-	else//selection mask, delete 
-	{
-		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		TempText.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
-	}
-	return TempText;
-}
 void UUITextInputComponent::ForwardSpace()
 {
 	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
@@ -856,27 +778,11 @@ void UUITextInputComponent::ForwardSpace()
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
-FString UUITextInputComponent::ForwardSpaceResultString()
-{
-	auto TempText = Text;
-
-	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
-	{
-		if (CaretPositionIndex < TempText.Len())
-		{
-			TempText.RemoveAt(CaretPositionIndex);
-		}
-	}
-	else//selection mask, delete 
-	{
-		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		TempText.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
-	}
-	return TempText;
-}
 void UUITextInputComponent::Copy()
 {
-	if (InputType == ELGUITextInputType::Password)return;//not allow copy password
+	if (InputType == ELGUITextInputType::Password
+		|| DisplayType == ELGUITextInputDisplayType::Password
+		)return;//not allow copy password
 	if (SelectionPropertyArray.Num() != 0)//have selection
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
@@ -900,25 +806,32 @@ void UUITextInputComponent::Paste()
 			}
 		}
 	}
-	if (SelectionPropertyArray.Num() != 0)//have selection
-	{
-		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
-		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-	}
 
-	Text.InsertAt(CaretPositionIndex, pasteString);
-	CaretPositionIndex = PressCaretPositionIndex = Text.Len();
-	UpdateAfterTextChange();
-	PressCaretPositionLineIndex = CaretPositionLineIndex;
+	bool bAnyDeleted = DeleteSelection(false, false);
+	bool bAnyCharAdded = false;
+	for (int i = 0; i < pasteString.Len(); i++)
+	{
+		TCHAR c = pasteString[i];
+		if (IsValidChar(c))
+		{
+			InsertCharAtCaretPosition(c);
+			bAnyCharAdded = true;
+		}
+	}
+	if (bAnyCharAdded || bAnyDeleted)
+	{
+		UpdateAfterTextChange(true, true);
+	}
 }
 void UUITextInputComponent::Cut()
 {
-	if (InputType == ELGUITextInputType::Password)return;//not allow copy password
+	if (InputType == ELGUITextInputType::Password
+		|| DisplayType == ELGUITextInputDisplayType::Password
+		)return;//not allow copy password
 	if (SelectionPropertyArray.Num() != 0)//have selection
 	{
 		Copy();
-		BackSpace();
+		DeleteSelection(true, true);
 	}
 }
 void UUITextInputComponent::SelectAll()
@@ -931,7 +844,7 @@ void UUITextInputComponent::SelectAll()
 	UpdateCaretPosition(false);
 	UpdateSelection();
 }
-void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
+void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent, bool InUpdateInputComposition)
 {
 	if (bAllowMultiLine)
 	{
@@ -947,7 +860,10 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 	}
 	UpdateUITextComponent();
 	UpdateCaretPosition();
-	UpdateInputComposition();
+	if (InUpdateInputComposition)
+	{
+		UpdateInputComposition();
+	}
 	UpdatePlaceHolderComponent();
 	if (InFireEvent)
 	{
@@ -1106,9 +1022,8 @@ void UUITextInputComponent::UpdateUITextComponent()
 	{
 		auto uiText = TextActor->GetUIText();
 		FString replaceText;
-		switch (InputType)
-		{
-		case ELGUITextInputType::Password:
+		if (InputType == ELGUITextInputType::Password
+			|| DisplayType == ELGUITextInputDisplayType::Password)
 		{
 			int len = Text.Len();
 			replaceText.Reset(len);
@@ -1118,10 +1033,9 @@ void UUITextInputComponent::UpdateUITextComponent()
 				replaceText.AppendChar(psChar);
 			}
 		}
-		break;
-		default:
+		else 
+		{
 			replaceText = Text;
-			break;
 		}
 		
 		if (bAllowMultiLine)//multi line, handle out of range chars
@@ -1374,21 +1288,8 @@ void UUITextInputComponent::HideSelectionMask()
 			SelectionMaskObjectArray[i]->SetIsUIActive(false);
 		}
 	}
-	SelectionPropertyArray.Empty();//clear selection mask
+	SelectionPropertyArray.Reset();//clear selection mask
 	//TextInputMethodContext->SetSelectionRange(0, 0, ITextInputMethodContext::ECaretPosition::Beginning);
-}
-bool UUITextInputComponent::DeleteIfSelection(int& OutCaretOffset)
-{
-	if (SelectionPropertyArray.Num() != 0)
-	{
-		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
-		OutCaretOffset = PressCaretPositionIndex > CaretPositionIndex ? 0 : CaretPositionIndex - PressCaretPositionIndex;
-		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateInputComposition();
-		return true;
-	}
-	return false;
 }
 
 void UUITextInputComponent::UpdateInputComposition()
@@ -1825,18 +1726,22 @@ bool UUITextInputComponent::SetText(const FString& InText, bool InFireEvent)
 {
 	if (Text != InText)
 	{
-		if (!IsValidString(InText))
+		FString TempText;
+		for (int i = 0; i < InText.Len(); i++)
 		{
-			UE_LOG(LGUI, Error, TEXT("[%s] Not valid format!"), ANSI_TO_TCHAR(__FUNCTION__));
-			return false;
+			TCHAR c = InText[i];
+			if (IsValidChar(c))
+			{
+				TempText.AppendChar(c);
+			}
 		}
 		if (bAllowMultiLine)
 		{
-			Text = InText;
+			Text = TempText;
 		}
 		else
 		{
-			Text = InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
+			Text = TempText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
 		}
 		
 		CaretPositionIndex = 0;
@@ -1853,6 +1758,15 @@ void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 		UpdateUITextComponent();
 	}
 }
+void UUITextInputComponent::SetDisplayType(ELGUITextInputDisplayType newValue)
+{
+	if (DisplayType != newValue)
+	{
+		DisplayType = newValue;
+		CaretPositionIndex = 0;
+		UpdateUITextComponent();
+	}
+}
 void UUITextInputComponent::SetPasswordChar(const FString& value)
 {
 	if (PasswordChar != value)
@@ -1862,7 +1776,7 @@ void UUITextInputComponent::SetPasswordChar(const FString& value)
 			return;
 		}
 		PasswordChar = value;
-		if (InputType == ELGUITextInputType::Password)
+		if (InputType == ELGUITextInputType::Password || DisplayType == ELGUITextInputDisplayType::Password)
 		{
 			UpdateUITextComponent();
 		}
@@ -2015,16 +1929,16 @@ void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCusto
 {
 	CustomInputTypeFunction = InFunction;
 }
-void UUITextInputComponent::SetCustomInputTypeFunction(const TFunction<bool(const FString&)>& InFunction)
+void UUITextInputComponent::SetCustomInputTypeFunction(const TFunction<bool(const FString&, int)>& InFunction)
 {
 	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda(InFunction);
 }
 void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction)
 {
-	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda([InFunction](const FString& InString) {
+	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda([InFunction](const FString& InString, int InStartIndex) {
 		if (InFunction.IsBound())
 		{
-			return InFunction.Execute(InString);
+			return InFunction.Execute(InString, InStartIndex);
 		}
 		else
 		{
@@ -2084,6 +1998,10 @@ FText UUITextInputComponent::FVirtualKeyboardEntry::GetHintText() const
 }
 EKeyboardType UUITextInputComponent::FVirtualKeyboardEntry::GetVirtualKeyboardType() const
 {
+	if (InputComp->DisplayType == ELGUITextInputDisplayType::Password)
+	{
+		return EKeyboardType::Keyboard_Password;
+	}
 	switch (InputComp->InputType)
 	{
 	default:
@@ -2169,7 +2087,8 @@ void UUITextInputComponent::FTextInputMethodContext::SetTextInRange(const uint32
 	InputComp->Text.RemoveAt(beginIndex, Length);
 	InputComp->Text.InsertAt(beginIndex, InString);
 	InputComp->CaretPositionIndex = beginIndex + InString.Len();
-	InputComp->UpdateAfterTextChange();
+	InputComp->UpdateAfterTextChange(false, false);
+	LastCompositionString = InString;
 	//UE_LOG(LGUI, Log, TEXT("SetTextInRange, BeginIndex:%d, Length:%d, InString:%s"), BeginIndex, Length, *(InString));
 }
 int32 UUITextInputComponent::FTextInputMethodContext::GetCharacterIndexFromPoint(const FVector2D& Point)
@@ -2204,11 +2123,15 @@ TSharedPtr<FGenericWindow> UUITextInputComponent::FTextInputMethodContext::GetWi
 void UUITextInputComponent::FTextInputMethodContext::BeginComposition()
 {
 	CompositionCaretOffset = 0;
-	InputComp->DeleteIfSelection(CompositionCaretOffset);
+	InputComp->DeleteSelectionForInputComposition(CompositionCaretOffset);
 	//UE_LOG(LGUI, Log, TEXT("BeginComposition, CompositionCaretOffset:%d"), CompositionCaretOffset);
 	if (!bIsComposing)
 	{
 		bIsComposing = true;
+		OriginString = InputComp->Text;
+		OriginCaretPositionIndex = InputComp->CaretPositionIndex;
+		OriginCaretPositionLineIndex = InputComp->CaretPositionLineIndex;
+		LastCompositionString.Empty();
 	}
 }
 void UUITextInputComponent::FTextInputMethodContext::UpdateCompositionRange(const int32 InBeginIndex, const uint32 InLength)
@@ -2226,5 +2149,23 @@ void UUITextInputComponent::FTextInputMethodContext::EndComposition()
 	if (bIsComposing)
 	{
 		bIsComposing = false;
+		InputComp->Text = OriginString;
+		InputComp->CaretPositionIndex = OriginCaretPositionIndex;
+		InputComp->CaretPositionLineIndex = OriginCaretPositionLineIndex;
+		bool bAnythingDeleted = InputComp->DeleteSelection(false, false);
+		bool bAnythingAdded = false;
+		for (int i = 0; i < LastCompositionString.Len(); i++)
+		{
+			TCHAR c = LastCompositionString[i];
+			if (InputComp->IsValidChar(c))
+			{
+				InputComp->InsertCharAtCaretPosition(c);
+				bAnythingAdded = true;
+			}
+		}
+		if (bAnythingDeleted || bAnythingAdded)
+		{
+			InputComp->UpdateAfterTextChange(true, false);
+		}
 	}
 }
