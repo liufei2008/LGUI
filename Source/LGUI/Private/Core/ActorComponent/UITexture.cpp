@@ -237,6 +237,12 @@ void UUITexture::SetTexture(UTexture* newTexture)
 	if (texture != newTexture)
 	{
 		Super::SetTexture(newTexture);
+		if (UVRectControlMode == EUITextureUVRectControlMode::KeepAspectRatio_FitIn
+			|| UVRectControlMode == EUITextureUVRectControlMode::KeepAspectRatio_Envelope
+			)
+		{
+			MarkUVDirty();
+		}
 		CheckSpriteData();
 	}
 }
