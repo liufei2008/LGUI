@@ -539,9 +539,9 @@ void UUITextInputComponent::AnyKeyPressed()
 
 	if (IsValidChar(inputChar))
 	{
-		DeleteSelection(false, false);
+		DeleteSelection(false);
 		InsertCharAtCaretPosition(inputChar);
-		UpdateAfterTextChange(true, true);
+		UpdateAfterTextChange(true);
 	}
 }
 void UUITextInputComponent::AnyKeyReleased()
@@ -706,26 +706,14 @@ bool UUITextInputComponent::IsValidChar(TCHAR c)
 	//	return true;
 	return true;
 }
-bool UUITextInputComponent::DeleteSelection(bool InFireEvent, bool InUpdateInputComposition)
+bool UUITextInputComponent::DeleteSelection(bool InFireEvent)
 {
 	if (SelectionPropertyArray.Num() != 0)//delete selection frist
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
 		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateAfterTextChange(InFireEvent, InUpdateInputComposition);
-		return true;
-	}
-	return false;
-}
-bool UUITextInputComponent::DeleteSelectionForInputComposition(int& OutCaretOffset)
-{
-	if (SelectionPropertyArray.Num() != 0)
-	{
-		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
-		OutCaretOffset = PressCaretPositionIndex > CaretPositionIndex ? 0 : CaretPositionIndex - PressCaretPositionIndex;
-		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		UpdateAfterTextChange(InFireEvent);
 		return true;
 	}
 	return false;
@@ -807,7 +795,7 @@ void UUITextInputComponent::Paste()
 		}
 	}
 
-	bool bAnyDeleted = DeleteSelection(false, false);
+	bool bAnyDeleted = DeleteSelection(false);
 	bool bAnyCharAdded = false;
 	for (int i = 0; i < pasteString.Len(); i++)
 	{
@@ -820,7 +808,7 @@ void UUITextInputComponent::Paste()
 	}
 	if (bAnyCharAdded || bAnyDeleted)
 	{
-		UpdateAfterTextChange(true, true);
+		UpdateAfterTextChange(true);
 	}
 }
 void UUITextInputComponent::Cut()
@@ -831,7 +819,7 @@ void UUITextInputComponent::Cut()
 	if (SelectionPropertyArray.Num() != 0)//have selection
 	{
 		Copy();
-		DeleteSelection(true, true);
+		DeleteSelection(true);
 	}
 }
 void UUITextInputComponent::SelectAll()
@@ -844,7 +832,7 @@ void UUITextInputComponent::SelectAll()
 	UpdateCaretPosition(false);
 	UpdateSelection();
 }
-void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent, bool InUpdateInputComposition)
+void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 {
 	if (bAllowMultiLine)
 	{
@@ -860,10 +848,6 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent, bool InUpdat
 	}
 	UpdateUITextComponent();
 	UpdateCaretPosition();
-	if (InUpdateInputComposition)
-	{
-		UpdateInputComposition();
-	}
 	UpdatePlaceHolderComponent();
 	if (InFireEvent)
 	{
@@ -875,7 +859,6 @@ void UUITextInputComponent::MoveToStart()
 	CaretPositionIndex = 0;
 	UpdateUITextComponent();
 	UpdateCaretPosition();
-	UpdateInputComposition();
 	PressCaretPositionIndex = CaretPositionIndex;
 }
 void UUITextInputComponent::MoveToEnd()
@@ -883,7 +866,6 @@ void UUITextInputComponent::MoveToEnd()
 	CaretPositionIndex = Text.Len();
 	UpdateUITextComponent();
 	UpdateCaretPosition();
-	UpdateInputComposition();
 	PressCaretPositionIndex = CaretPositionIndex;
 }
 void UUITextInputComponent::MoveLeft(bool withSelection)
@@ -893,7 +875,6 @@ void UUITextInputComponent::MoveLeft(bool withSelection)
 		CaretPositionIndex--;
 		UpdateUITextComponent();
 		UpdateCaretPosition(!withSelection);
-		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -925,7 +906,6 @@ void UUITextInputComponent::MoveRight(bool withSelection)
 		}
 		UpdateUITextComponent();
 		UpdateCaretPosition(!withSelection);
-		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -954,7 +934,6 @@ void UUITextInputComponent::MoveUp(bool withSelection)
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 		UpdateCaretPosition(caretPosition, !withSelection);
-		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -994,8 +973,6 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 			CaretPositionIndex += VisibleCharStartIndex;
 			UpdateCaretPosition(caretPosition, !withSelection);
 		}
-
-		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -1292,14 +1269,6 @@ void UUITextInputComponent::HideSelectionMask()
 	//TextInputMethodContext->SetSelectionRange(0, 0, ITextInputMethodContext::ECaretPosition::Beginning);
 }
 
-void UUITextInputComponent::UpdateInputComposition()
-{
-	if (TextInputMethodContext.IsValid())
-	{
-		TextInputMethodContext->UpdateInputComposition();
-	}
-}
-
 void UUITextInputComponent::OnUIActiveInHierachy(bool ativeOrInactive)
 {
 	Super::OnUIActiveInHierachy(ativeOrInactive);
@@ -1411,7 +1380,6 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* 
 			TextActor->GetUIText()->GetSelectionProperty(selectionStartCaretIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 			UpdateCaretPosition(false);
-			UpdateInputComposition();
 		}
 		return AllowEventBubbleUp;
 	}
@@ -1445,7 +1413,6 @@ bool UUITextInputComponent::OnPointerDown_Implementation(ULGUIPointerEventData* 
 			PressCaretPositionLineIndex = PressCaretPositionLineIndex + VisibleCharStartLineIndex;
 			CaretPositionLineIndex = PressCaretPositionLineIndex;
 			UpdateCaretPosition(PressCaretPosition);
-			UpdateInputComposition();
 		}
 	}
 
@@ -1513,8 +1480,7 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 	{
 		SelectAll();
 	}
-	//end update selection
-	UpdateInputComposition();
+
 	BindKeys();
 	UpdatePlaceHolderComponent();
 	//set is selected
@@ -1677,8 +1643,6 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 		if (TextInputMethodContext.IsValid())
 		{
 			TSharedRef<FTextInputMethodContext> TextInputMethodContextRef = TextInputMethodContext.ToSharedRef();
-
-			TextInputMethodContextRef->AbortComposition();
 
 			if (TextInputMethodSystem->IsActiveContext(TextInputMethodContextRef))
 			{
@@ -1953,6 +1917,7 @@ void UUITextInputComponent::ClearCustomInputTypeEvent()
 }
 
 
+
 TSharedRef<UUITextInputComponent::FVirtualKeyboardEntry> UUITextInputComponent::FVirtualKeyboardEntry::Create(UUITextInputComponent* Input)
 {
 	return MakeShareable(new FVirtualKeyboardEntry(Input));
@@ -2026,6 +1991,7 @@ bool UUITextInputComponent::FVirtualKeyboardEntry::IsMultilineEntry() const
 }
 
 
+#define LGUI_LOG_TextInputMethodContext 0
 TSharedRef<UUITextInputComponent::FTextInputMethodContext> UUITextInputComponent::FTextInputMethodContext::Create(UUITextInputComponent* Input)
 {
 	return MakeShareable(new FTextInputMethodContext(Input));
@@ -2043,129 +2009,139 @@ void UUITextInputComponent::FTextInputMethodContext::Dispose()
 		}
 	}
 }
-void UUITextInputComponent::FTextInputMethodContext::UpdateInputComposition()
-{
-	CompositionBeginIndex = InputComp->CaretPositionIndex;
-	CaretPosition = ITextInputMethodContext::ECaretPosition::Ending;
-	CompositionLength = 0;
-	//UE_LOG(LGUI, Log, TEXT("UpdateInputComposition, BeginIndex:%d"), CompositionBeginIndex);
-}
 UUITextInputComponent::FTextInputMethodContext::FTextInputMethodContext(UUITextInputComponent* InInput)
 {
 	InputComp = InInput;
 }
 bool UUITextInputComponent::FTextInputMethodContext::IsReadOnly()
 {
+#if LGUI_LOG_TextInputMethodContext
+	//UE_LOG(LGUI, Log, TEXT("IsReadOnly"));
+#endif
 	return false;
 }
 uint32 UUITextInputComponent::FTextInputMethodContext::GetTextLength()
 {
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LGUI, Log, TEXT("GetTextLength, Text:%s, Length:%d"), *InputComp->Text, InputComp->Text.Len());
+#endif
 	return InputComp->Text.Len();
 }
 void UUITextInputComponent::FTextInputMethodContext::GetSelectionRange(uint32& BeginIndex, uint32& Length, ECaretPosition& OutCaretPosition)
 {
-	BeginIndex = CompositionBeginIndex;
-	Length = CompositionLength;
-	OutCaretPosition = CaretPosition;
-	//UE_LOG(LogTemp, Log, TEXT("GetSelectionRange, BeginIndex:%d, Length:%d, InCaretPosition:%d"), BeginIndex, Length, (int32)OutCaretPosition);
+	Length = FMath::Abs(InputComp->CaretPositionIndex - InputComp->PressCaretPositionIndex);
+	OutCaretPosition = InputComp->PressCaretPositionIndex <= InputComp->CaretPositionIndex ? ECaretPosition::Ending : ECaretPosition::Beginning;
+	if (OutCaretPosition == ECaretPosition::Beginning)
+	{
+		BeginIndex = InputComp->CaretPositionIndex;
+	}
+	else
+	{
+		BeginIndex = InputComp->PressCaretPositionIndex;
+	}
+
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetSelectionRange, BeginIndex:%d, Length:%d, InCaretPosition:%d, Text:%s"), BeginIndex, Length, (int32)OutCaretPosition, *InputComp->Text);
+#endif
 }
 void UUITextInputComponent::FTextInputMethodContext::SetSelectionRange(const uint32 BeginIndex, const uint32 Length, const ECaretPosition InCaretPosition)
 {
-	CompositionBeginIndex = BeginIndex;
-	CompositionLength = Length;
-	CaretPosition = InCaretPosition;
-	//UE_LOG(LGUI, Log, TEXT("SetSelectionRange, BeginIndex:%d, Length:%d, InCaretPosition:%d"), BeginIndex, Length, (int32)InCaretPosition)
+	InputComp->PressCaretPositionIndex = BeginIndex;
+	if (Length > 0)
+	{
+		if (InCaretPosition == ECaretPosition::Beginning)
+		{
+			InputComp->CaretPositionIndex = BeginIndex - Length;
+		}
+		else
+		{
+			InputComp->CaretPositionIndex = BeginIndex + Length;
+		}
+	}
+	else
+	{
+		InputComp->CaretPositionIndex = BeginIndex;
+	}
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LGUI, Warning, TEXT("SetSelectionRange, BeginIndex:%d, Length:%d, InCaretPosition:%d, CaretPositionIndex:%d, PressCaretPositionIndex:%d"), BeginIndex, Length, (int32)InCaretPosition, InputComp->CaretPositionIndex, InputComp->PressCaretPositionIndex)
+#endif
 }
 void UUITextInputComponent::FTextInputMethodContext::GetTextInRange(const uint32 BeginIndex, const uint32 Length, FString& OutString)
 {
 	OutString = InputComp->Text.Mid(BeginIndex, Length);
-	//UE_LOG(LogTemp, Log, TEXT("GetTextInRange, BeginIndex:%d, Length:%d, OutString:%s"), BeginIndex, Length, *(OutString));
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetTextInRange, BeginIndex:%d, Length:%d, OutString:%s"), BeginIndex, Length, *(OutString));
+#endif
 }
 void UUITextInputComponent::FTextInputMethodContext::SetTextInRange(const uint32 BeginIndex, const uint32 Length, const FString& InString)
 {
-	auto beginIndex = BeginIndex - CompositionCaretOffset;
-	InputComp->Text.RemoveAt(beginIndex, Length);
-	InputComp->Text.InsertAt(beginIndex, InString);
-	InputComp->CaretPositionIndex = beginIndex + InString.Len();
-	InputComp->UpdateAfterTextChange(false, false);
-	LastCompositionString = InString;
-	//UE_LOG(LGUI, Log, TEXT("SetTextInRange, BeginIndex:%d, Length:%d, InString:%s"), BeginIndex, Length, *(InString));
+	InputComp->Text.RemoveAt(BeginIndex, Length);
+	InputComp->Text.InsertAt(BeginIndex, InString);
+	InputComp->CaretPositionIndex = BeginIndex + InString.Len();
+	InputComp->UpdateAfterTextChange(false);
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LGUI, Log, TEXT("SetTextInRange, BeginIndex:%d, Length:%d, InString:%s"), BeginIndex, Length, *(InString));
+#endif
 }
 int32 UUITextInputComponent::FTextInputMethodContext::GetCharacterIndexFromPoint(const FVector2D& Point)
 {
-	//UE_LOG(LogTemp, Log, TEXT("GetCharacterIndexFromPoint:%s"), *(Point.ToString()));
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetCharacterIndexFromPoint:%s"), *(Point.ToString()));
+#endif
 	return 0;
 }
 bool UUITextInputComponent::FTextInputMethodContext::GetTextBounds(const uint32 BeginIndex, const uint32 Length, FVector2D& Position, FVector2D& Size)
 {
 	Position = FVector2D(0, 0);
 	Size = FVector2D(1000, 1000);
-	//UE_LOG(LogTemp, Log, TEXT("GetTextBounds:%s"), *(Position.ToString()));
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetTextBounds:%s"), *(Position.ToString()));
+#endif
 	return false;
 }
 void UUITextInputComponent::FTextInputMethodContext::GetScreenBounds(FVector2D& Position, FVector2D& Size)
 {
 	Position = FVector2D(0, 0);
 	Size = FVector2D(1000, 1000);
-	//UE_LOG(LogTemp, Log, TEXT("GetScreenBounds, Position:%s, Size:%s"), *(Position.ToString()), *(Size.ToString()));
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetScreenBounds, Position:%s, Size:%s"), *(Position.ToString()), *(Size.ToString()));
+#endif
 }
 TSharedPtr<FGenericWindow> UUITextInputComponent::FTextInputMethodContext::GetWindow()
 {
-	//UE_LOG(LogTemp, Log, TEXT("GetWindow"));
 	if (!CachedWindow.IsValid())
 	{
 		CachedWindow = SNew(SBox);
 		GEngine->GameViewport->AddViewportWidgetContent(CachedWindow.ToSharedRef());
 	}
 	const TSharedPtr<SWindow> SlateWindow = FSlateApplication::Get().FindWidgetWindow(CachedWindow.ToSharedRef());
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("GetWindow, Text:%s"), *InputComp->Text);
+#endif
 	return SlateWindow->GetNativeWindow();
 }
 void UUITextInputComponent::FTextInputMethodContext::BeginComposition()
 {
-	CompositionCaretOffset = 0;
-	InputComp->DeleteSelectionForInputComposition(CompositionCaretOffset);
-	//UE_LOG(LGUI, Log, TEXT("BeginComposition, CompositionCaretOffset:%d"), CompositionCaretOffset);
-	if (!bIsComposing)
-	{
-		bIsComposing = true;
-		OriginString = InputComp->Text;
-		OriginCaretPositionIndex = InputComp->CaretPositionIndex;
-		OriginCaretPositionLineIndex = InputComp->CaretPositionLineIndex;
-		LastCompositionString.Empty();
-	}
+	bIsComposing = true;
+	OriginString = InputComp->Text;
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LGUI, Log, TEXT("BeginComposition"));
+#endif
 }
 void UUITextInputComponent::FTextInputMethodContext::UpdateCompositionRange(const int32 InBeginIndex, const uint32 InLength)
 {
-	//UE_LOG(LogTemp, Log, TEXT("UpdateCompositionRange"));
-	if (bIsComposing)
-	{
-		CompositionBeginIndex = InBeginIndex;
-		CompositionLength = InLength;
-	}
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LogTemp, Log, TEXT("UpdateCompositionRange"));
+#endif
 }
 void UUITextInputComponent::FTextInputMethodContext::EndComposition()
 {
-	//UE_LOG(LGUI, Log, TEXT("EndComposition"));
-	if (bIsComposing)
+	bIsComposing = false;
+	if (OriginString != InputComp->Text)
 	{
-		bIsComposing = false;
-		InputComp->Text = OriginString;
-		InputComp->CaretPositionIndex = OriginCaretPositionIndex;
-		InputComp->CaretPositionLineIndex = OriginCaretPositionLineIndex;
-		bool bAnythingDeleted = InputComp->DeleteSelection(false, false);
-		bool bAnythingAdded = false;
-		for (int i = 0; i < LastCompositionString.Len(); i++)
-		{
-			TCHAR c = LastCompositionString[i];
-			if (InputComp->IsValidChar(c))
-			{
-				InputComp->InsertCharAtCaretPosition(c);
-				bAnythingAdded = true;
-			}
-		}
-		if (bAnythingDeleted || bAnythingAdded)
-		{
-			InputComp->UpdateAfterTextChange(true, false);
-		}
+		InputComp->UpdateAfterTextChange(true);
 	}
+#if LGUI_LOG_TextInputMethodContext
+	UE_LOG(LGUI, Log, TEXT("EndComposition, ResultString:%s"), *(InputComp->Text));
+#endif
 }
