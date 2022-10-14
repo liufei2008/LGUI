@@ -105,7 +105,7 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	}
 	else
 	{
-		FVector2D mousePos = FVector2D::ZeroVector;
+		FVector2D mousePos = FVector2D(eventData->pointerPosition);
 		GetMousePosition(mousePos);
 		inputData.mousePosition = mousePos;
 	}
