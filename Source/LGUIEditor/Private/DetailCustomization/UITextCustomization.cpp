@@ -73,14 +73,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew( SCheckBox )
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextLeft", "Align Text Left"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Left)
 					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Left)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("HorizontalAlignment_Left"))
+						.Image(FAppStyle::GetBrush("HorizontalAlignment_Left"))
 					]
 				]
 
@@ -89,14 +89,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew(SCheckBox)
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextCenter", "Align Text Center"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Center)
 					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Center)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("HorizontalAlignment_Center"))
+						.Image(FAppStyle::GetBrush("HorizontalAlignment_Center"))
 					]
 				]
 
@@ -105,14 +105,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew(SCheckBox)
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextRight", "Align Text Right"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Right)
 					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Right)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("HorizontalAlignment_Right"))
+						.Image(FAppStyle::GetBrush("HorizontalAlignment_Right"))
 					]
 				]
 			]
@@ -124,7 +124,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.WidthOverride(1)
 				[
 					SNew(SImage)
-					.Image(FEditorStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
+					.Image(FAppStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
 					.ColorAndOpacity(FLinearColor(1, 1, 1, 0.2f))
 				]
 			]
@@ -137,14 +137,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew( SCheckBox )
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignTop", "Vertically Align Top"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Top)
 					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Top)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("VerticalAlignment_Top"))
+						.Image(FAppStyle::GetBrush("VerticalAlignment_Top"))
 					]
 				]
 
@@ -153,14 +153,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew(SCheckBox)
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignMiddle", "Vertically Align Middle"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Middle)
 					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Middle)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("VerticalAlignment_Center"))
+						.Image(FAppStyle::GetBrush("VerticalAlignment_Center"))
 					]
 				]
 
@@ -169,14 +169,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.Padding(OuterPadding)
 				[
 					SNew(SCheckBox)
-					.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignBottom", "Vertically Align Bottom"))
 					.Padding(ContentPadding)
 					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Bottom)
 					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Bottom)
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("VerticalAlignment_Bottom"))
+						.Image(FAppStyle::GetBrush("VerticalAlignment_Bottom"))
 					]
 				]
 			]

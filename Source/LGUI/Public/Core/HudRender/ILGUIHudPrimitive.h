@@ -7,6 +7,7 @@
 #include "MeshBatch.h"
 #include "RHIResources.h"
 #include "GlobalShader.h"
+#include "SceneTextures.h"
 
 class FLGUIHudRenderer;
 class UUIPostProcessRenderable;
@@ -51,6 +52,7 @@ public:
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
+		const FMinimalSceneTextures& SceneTextures,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,

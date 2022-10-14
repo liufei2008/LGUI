@@ -150,7 +150,7 @@ public:
 	
 	TSharedRef<SDockTab> SpawnCurveEditorTab(const FSpawnTabArgs&)
 	{
-		const FSlateIcon SequencerGraphIcon = FSlateIcon(FEditorStyle::GetStyleSetName(), "GenericCurveEditor.TabIcon");
+		const FSlateIcon SequencerGraphIcon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericCurveEditor.TabIcon");
 		auto Tab = SNew(SDockTab)
 			.Label(NSLOCTEXT("Sequencer", "SequencerMainGraphEditorTitle", "Sequencer Curves"))
 			[
@@ -164,7 +164,7 @@ public:
 	{
 		NoAnimationTextBlock =
 			SNew(STextBlock)
-			.TextStyle(FEditorStyle::Get(), "UMGEditor.NoAnimationFont")
+			.TextStyle(FAppStyle::Get(), "UMGEditor.NoAnimationFont")
 			.Text(LOCTEXT("NoAnimationSelected", "No Animation Selected"));
 
 		ChildSlot

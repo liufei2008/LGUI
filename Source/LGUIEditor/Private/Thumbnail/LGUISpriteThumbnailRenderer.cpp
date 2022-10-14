@@ -77,7 +77,7 @@ void ULGUISpriteThumbnailRenderer::DrawFrame(class ULGUISpriteData* Sprite, int3
 }
 void ULGUISpriteThumbnailRenderer::DrawGrid(int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
 {
-	static UTexture2D* GridTexture = Cast<UTexture2D>(FEditorStyle::GetBrush("Checkerboard")->GetResourceObject());
+	static UTexture2D* GridTexture = Cast<UTexture2D>(FAppStyle::GetBrush("Checkerboard")->GetResourceObject());
 	if (GridTexture == nullptr)
 	{
 		GridTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EngineMaterials/DefaultWhiteGrid.DefaultWhiteGrid"), nullptr, LOAD_None, nullptr);

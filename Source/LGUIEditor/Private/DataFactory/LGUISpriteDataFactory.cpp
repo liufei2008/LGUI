@@ -35,7 +35,7 @@ UObject* ULGUISpriteDataFactory::FactoryCreateNew(UClass* Class, UObject* InPare
 			auto LogMsg = LOCTEXT("TextureSizeError", "Target texture width or height is too large! Consider use UITexture to render this texture.");
 			UE_LOG(LGUIEditor, Error, TEXT("%s"), *(LogMsg.ToString()));
 			FNotificationInfo Info(LogMsg);
-			Info.Image = FEditorStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
+			Info.Image = FAppStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
 			Info.FadeInDuration = 0.1f;
 			Info.FadeOutDuration = 0.5f;
 			Info.ExpireDuration = 8.0f;

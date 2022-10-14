@@ -71,8 +71,8 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 					SNew(SButton)
 					.Text(FText::FromString(DisplayName))
 					.ToolTipText(LOCTEXT("ObjectButtonTooltipText", "Actor.Component, click to select target"))
-					.ButtonStyle( FEditorStyle::Get(), "PropertyEditor.AssetComboStyle" )
-					.ForegroundColor(FEditorStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
+					.ButtonStyle(FAppStyle::Get(), "PropertyEditor.AssetComboStyle" )
+					.ForegroundColor(FAppStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
 					.OnClicked_Lambda([=](){
 						GEditor->SelectNone(true, true);
 						GEditor->SelectActor(Actor, true, true);

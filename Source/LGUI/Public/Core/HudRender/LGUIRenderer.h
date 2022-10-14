@@ -18,7 +18,8 @@ class FGlobalShaderMap;
 class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
 {
 public:
-	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel) :FMeshElementCollector(InFeatureLevel)
+	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel, FSceneRenderingBulkObjectAllocator& Allocator)
+		:FMeshElementCollector(InFeatureLevel, Allocator)
 	{
 
 	}
@@ -146,6 +147,7 @@ private:
 	bool bIsRenderToRenderTarget = false;
 	//this can affect scale on depth texture
 	float ScreenPercentage = 1.0f;
+	FSceneRenderingBulkObjectAllocator Allocator;
 
 	void RenderLGUI_RenderThread(
 		FRDGBuilder& GraphBuilder

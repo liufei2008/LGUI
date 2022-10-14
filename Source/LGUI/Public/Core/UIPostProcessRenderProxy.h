@@ -76,6 +76,7 @@ public:
 	 */
 	void RenderMeshOnScreen_RenderThread(
 		FRDGBuilder& GraphBuilder
+		, const FMinimalSceneTextures& SceneTextures
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef MeshRegionTexture

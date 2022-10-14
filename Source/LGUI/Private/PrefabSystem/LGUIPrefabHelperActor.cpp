@@ -60,7 +60,7 @@ FName ALGUIPrefabHelperActor::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 #if WITH_EDITOR
 void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 {
-	FActorFolders::Get().CreateFolder(*this->GetWorld(), FFolder(PrefabFolderName));
+	FActorFolders::Get().CreateFolder(*this->GetWorld(), FFolder(FFolder::FRootObject(this), PrefabFolderName));
 	this->SetFolderPath(PrefabFolderName);
 }
 
@@ -103,7 +103,7 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 		auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabManagerActor>();
 		MapLevelToManagerActor.Add(InLevel, PrefabManagerActor);
 		InLevel->MarkPackageDirty();
-		FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), FFolder(ALGUIPrefabHelperActor::PrefabFolderName));
+		FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), FFolder(FFolder::FRootObject(PrefabManagerActor), ALGUIPrefabHelperActor::PrefabFolderName));
 		PrefabManagerActor->SetFolderPath(ALGUIPrefabHelperActor::PrefabFolderName);
 	}
 	if (auto ResultPtr = MapLevelToManagerActor.Find(InLevel))

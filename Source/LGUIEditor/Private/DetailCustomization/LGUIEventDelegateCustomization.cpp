@@ -1536,7 +1536,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 					.MaxDesiredWidth(600)
 					[
 						SNew(STextPropertyEditableTextBox, EditableTextProperty)
-						.Font(FEditorStyle::GetFontStyle("PropertyWindow.NormalFont"))
+						.Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
 						.AutoWrapText(true)
 					]
 				]

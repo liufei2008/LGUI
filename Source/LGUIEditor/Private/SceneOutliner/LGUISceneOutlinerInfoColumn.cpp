@@ -134,7 +134,7 @@ namespace LGUISceneOutliner
 						[
 							SNew(SImage)
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, TreeItem)
-							.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
+							.Image(FAppStyle::GetBrush("ComboButton.Arrow"))
 							.ColorAndOpacity(FSlateColor::UseForeground())
 						]
 					]

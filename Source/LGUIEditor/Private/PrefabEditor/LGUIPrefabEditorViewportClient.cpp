@@ -33,6 +33,7 @@
 #include "LGUIHeaders.h"
 #include "LGUIPrefabEditor.h"
 #include "MouseDeltaTracker.h"
+#include "Misc/ITransaction.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
@@ -108,11 +109,11 @@ void FLGUIPrefabEditorViewportClient::Tick(float DeltaSeconds)
 }
 
 
-bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 ControllerId, FKey Key, EInputEvent Event, float AmountDepressed, bool bGamepad)
+bool FLGUIPrefabEditorViewportClient::InputKey(const FInputKeyEventArgs& EventArgs)
 {
-	bool Res = FEditorViewportClient::InputKey(InViewport, ControllerId, Key, Event, AmountDepressed, bGamepad);
+	bool Res = FEditorViewportClient::InputKey(EventArgs);
 
-	if (Key == EKeys::F && Event == IE_Pressed)
+	if (EventArgs.Key == EKeys::F && EventArgs.Event == IE_Pressed)
 	{
 		FocusViewportToTargets();
 	}

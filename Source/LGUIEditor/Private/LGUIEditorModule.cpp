@@ -1256,10 +1256,10 @@ void FLGUIEditorModule::CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder)
 		TArray<FAssetData> ScriptAssetList;
 		AssetRegistry.GetAssetsByPath(FName(*PrefabFolder.Path), ScriptAssetList, false);
 		TArray<ULGUIPrefab*> PrefabAssets;
-		auto PrefabClassName = ULGUIPrefab::StaticClass()->GetFName();
+		auto PrefabClassName = ULGUIPrefab::StaticClass()->GetClassPathName();
 		for (auto Asset : ScriptAssetList)
 		{
-			if (Asset.AssetClass == PrefabClassName)
+			if (Asset.AssetClassPath == PrefabClassName)
 			{
 				auto AssetObject = Asset.GetAsset();
 				if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))

@@ -201,7 +201,7 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 				})
 				[
 					SNew(SBorder)
-					.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+					.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 					[
 						SNew(SVerticalBox)
 						+ SVerticalBox::Slot()
@@ -229,8 +229,8 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 								.IsEnabled_Lambda([=](){
 									return WeakSequenceComponent.IsValid();
 								})
-								.ButtonStyle( FEditorStyle::Get(), "PropertyEditor.AssetComboStyle" )
-								.ForegroundColor(FEditorStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
+								.ButtonStyle( FAppStyle::Get(), "PropertyEditor.AssetComboStyle" )
+								.ForegroundColor(FAppStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
 								.OnClicked_Lambda([=](){
 									if (WeakSequenceComponent.IsValid())
 									{

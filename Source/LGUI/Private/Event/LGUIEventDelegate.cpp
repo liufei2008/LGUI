@@ -643,7 +643,7 @@ void FLGUIEventDelegate::FireEvent()const
 }
 void FLGUIEventDelegate::LogParameterError()const
 {
-	auto enumObject = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("LGUIEventDelegateParameterType"), true);
+	auto enumObject = FindObject<UEnum>(FTopLevelAssetPath(FName(TEXT("LGUI")), FName(TEXT("LGUIEventDelegateParameterType"))), true);
 	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent]Parameter type must be the same as your declaration. supportParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString());
 }
 void FLGUIEventDelegate::FireEvent(void* InParam)const

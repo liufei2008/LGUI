@@ -124,6 +124,7 @@ SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOptio
 
 void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	FRDGBuilder& GraphBuilder
+	, const FMinimalSceneTextures& SceneTextures
 	, FTextureRHIRef ScreenTargetTexture
 	, FGlobalShaderMap* GlobalShaderMap
 	, FTextureRHIRef MeshRegionTexture
@@ -138,7 +139,6 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 {
 	uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 	FLGUIWorldRenderPSParameter* PSShaderParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
 	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Target;
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);

@@ -129,7 +129,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		{
 			UE_LOG(LGUIEditor, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
 			FNotificationInfo Info(LOCTEXT("TextureSizeError", "Target texture width or height is too large! Consider use UITexture to render this texture."));
-			Info.Image = FEditorStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
+			Info.Image = FAppStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
 			Info.FadeInDuration = 0.1f;
 			Info.FadeOutDuration = 0.5f;
 			Info.ExpireDuration = 5.0f;
@@ -193,7 +193,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 							+SOverlay::Slot()
 							[
 								SNew(SImage)
-								.Image(FEditorStyle::GetBrush("Checkerboard"))
+								.Image(FAppStyle::GetBrush("Checkerboard"))
 								.ColorAndOpacity(FSlateColor(FLinearColor(0.15f, 0.15f, 0.15f)))
 							]
 							//image display
@@ -222,7 +222,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 										.WidthOverride(1)
 										[
 											SNew(SImage)
-											.Image(FEditorStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
+											.Image(FAppStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
 										]
 									]
 								]
@@ -242,7 +242,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 										.WidthOverride(1)
 										[
 											SNew(SImage)
-											.Image(FEditorStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
+											.Image(FAppStyle::GetBrush("PropertyEditor.VerticalDottedLine"))
 										]
 									]
 								]
@@ -262,7 +262,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 										.HeightOverride(1)
 										[
 											SNew(SImage)
-											.Image(FEditorStyle::GetBrush("PropertyEditor.HorizontalDottedLine"))
+											.Image(FAppStyle::GetBrush("PropertyEditor.HorizontalDottedLine"))
 										]
 									]
 								]
@@ -282,7 +282,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 										.HeightOverride(1)
 										[
 											SNew(SImage)
-											.Image(FEditorStyle::GetBrush("PropertyEditor.HorizontalDottedLine"))
+											.Image(FAppStyle::GetBrush("PropertyEditor.HorizontalDottedLine"))
 										]
 									]
 								]

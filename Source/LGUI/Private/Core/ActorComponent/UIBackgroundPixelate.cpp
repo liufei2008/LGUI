@@ -105,6 +105,7 @@ public:
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
+		const FMinimalSceneTextures& SceneTextures,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
@@ -139,7 +140,7 @@ public:
 			if (!PixelateEffectRenderTarget.IsValid())
 				return;
 		}
-		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
+		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRHI();
 
 		//copy rect area from screen image to a render target, so we can just process this area
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
@@ -153,7 +154,7 @@ public:
 			, ViewTextureScaleOffset
 		);
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();

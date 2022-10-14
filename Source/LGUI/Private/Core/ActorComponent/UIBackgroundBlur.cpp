@@ -87,6 +87,7 @@ public:
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
+		const FMinimalSceneTextures& SceneTextures,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
@@ -123,8 +124,8 @@ public:
 			if (!BlurEffectRenderTarget2.IsValid())
 				return;
 		}
-		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
-		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
+		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRHI();
+		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRHI();
 
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
@@ -313,7 +314,7 @@ public:
 		}
 
 		//after blur process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
+		RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

@@ -82,8 +82,6 @@ public:
 		TArray<UMaterialInstanceDynamic*> MaterialList;
 };
 
-class FTransform2D;
-
 struct FLGUICacheTransformContainer
 {
 public:

@@ -140,7 +140,7 @@ TSharedRef<SWidget> FComponentTransformDetails::BuildTransformFieldLabel( ETrans
 				.IsChecked(this, &FComponentTransformDetails::IsPreserveScaleRatioChecked)
 				.IsEnabled(this, &FComponentTransformDetails::GetIsEnabled)
 				.OnCheckStateChanged(this, &FComponentTransformDetails::OnPreserveScaleRatioToggled)
-				.Style(FEditorStyle::Get(), "TransparentCheckBox")
+				.Style(FAppStyle::Get(), "TransparentCheckBox")
 				.ToolTipText(LOCTEXT("PreserveScaleToolTip", "When locked, scales uniformly based on the current xyz scale values so the object maintains its shape in each direction when scaled"))
 				[
 					SNew(SImage)
@@ -455,7 +455,7 @@ bool FComponentTransformDetails::GetIsEnabled() const
 
 const FSlateBrush* FComponentTransformDetails::GetPreserveScaleRatioImage() const
 {
-	return bPreserveScaleRatio ? FEditorStyle::GetBrush(TEXT("Icons.Lock")) : FEditorStyle::GetBrush(TEXT("Icons.Unlock"));
+	return bPreserveScaleRatio ? FAppStyle::GetBrush(TEXT("Icons.Lock")) : FAppStyle::GetBrush(TEXT("Icons.Unlock"));
 }
 
 ECheckBoxState FComponentTransformDetails::IsPreserveScaleRatioChecked() const

@@ -342,22 +342,26 @@ void ULGUIBPLibrary::LGUIExecuteControllerInputAxis(FKey inputKey, float value)
 {
 	if (inputKey.IsValid())
 	{
+		FPlatformUserId UserId = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
+		FInputDeviceId DeviceId = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
 		const FGamepadKeyNames::Type keyName = inputKey.GetFName();
-		FSlateApplication::Get().OnControllerAnalog(keyName, 0, value);
+		FSlateApplication::Get().OnControllerAnalog(keyName, UserId, DeviceId, value);
 	}
 }
 void ULGUIBPLibrary::LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease)
 {
 	if (inputKey.IsValid())
 	{
+		FPlatformUserId UserId = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
+		FInputDeviceId DeviceId = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
 		const FGamepadKeyNames::Type keyName = inputKey.GetFName();
 		if (pressOrRelease)
 		{
-			FSlateApplication::Get().OnControllerButtonPressed(keyName, 0, false);
+			FSlateApplication::Get().OnControllerButtonPressed(keyName, UserId, DeviceId, false);
 		}
 		else
 		{
-			FSlateApplication::Get().OnControllerButtonReleased(keyName, 0, false);
+			FSlateApplication::Get().OnControllerButtonReleased(keyName, UserId, DeviceId, false);
 		}
 	}
 }
