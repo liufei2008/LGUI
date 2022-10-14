@@ -265,7 +265,7 @@ private:
 	 * delete selected chars if there is any.
 	 * @return true if anything deleted.
 	 */
-	bool DeleteSelection(bool InFireEvent = true, bool InUpdateInputComposition = true);
+	bool DeleteSelection(bool InFireEvent = true);
 	void InsertCharAtCaretPosition(TCHAR c);
 	FInputKeyBinding AnyKeyBinding;
 	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
@@ -290,7 +290,7 @@ private:
 	void Cut();
 	void SelectAll();
 
-	void UpdateAfterTextChange(bool InFireEvent = true, bool InUpdateInputComposition = true);
+	void UpdateAfterTextChange(bool InFireEvent = true);
 
 	void FireOnValueChangeEvent();
 	void UpdateUITextComponent();
@@ -298,10 +298,7 @@ private:
 	void UpdateCaretPosition(bool InHideSelection = true);
 	void UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection = true);
 	void UpdateSelection();
-	void UpdateInputComposition();
 	void HideSelectionMask();
-	//return true if have selection
-	bool DeleteSelectionForInputComposition(int& OutCaretOffset);
 	//a sprite for caret, can blink, can represent current caret location
 	UPROPERTY(Transient)TWeakObjectPtr<class UUISprite> CaretObject;
 	//selection mask
@@ -367,15 +364,10 @@ private:
 		static TSharedRef<FTextInputMethodContext> Create(UUITextInputComponent* Input);
 		void Dispose();
 
-		bool IsComposing() 
+		virtual bool IsComposing() override
 		{
 			return bIsComposing;
 		}
-		void AbortComposition()
-		{
-			bIsComposing = false;
-		}
-		void UpdateInputComposition();
 	
 		virtual bool IsReadOnly() override;
 		virtual uint32 GetTextLength() override;
@@ -394,17 +386,9 @@ private:
 	private:
 		FTextInputMethodContext(UUITextInputComponent* InInput);
 		UUITextInputComponent* InputComp;
-
-		bool bIsComposing = false;
-		int32 CompositionBeginIndex = 0;
-		uint32 CompositionLength = 0;
-		TSharedPtr<SBox> CachedWindow;
-		ECaretPosition CaretPosition = ITextInputMethodContext::ECaretPosition::Ending;
-		int32 CompositionCaretOffset = 0;//if some chars is selected when input, we need to delete selected chars, and after that caret position will change. this is caret offset value
 		FString OriginString;
-		int OriginCaretPositionIndex = 0;
-		int OriginCaretPositionLineIndex = 0;
-		FString LastCompositionString;
+		bool bIsComposing = false;
+		TSharedPtr<SBox> CachedWindow;
 	};
 private:
 	TSharedPtr<FVirtualKeyboardEntry> VirtualKeyboardEntry;
