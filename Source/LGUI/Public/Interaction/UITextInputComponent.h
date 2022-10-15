@@ -255,7 +255,7 @@ public:
 		void SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction);
 	/** Remove the function set by "SetCustomInputTypeFunction" */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		void ClearCustomInputTypeEvent();
+		void ClearCustomInputTypeFunction();
 private:
 	void BindKeys();
 	void UnbindKeys();

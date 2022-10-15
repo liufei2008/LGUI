@@ -1895,25 +1895,25 @@ void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCusto
 }
 void UUITextInputComponent::SetCustomInputTypeFunction(const TFunction<bool(const FString&, int)>& InFunction)
 {
-	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda(InFunction);
+	CustomInputTypeFunction.BindLambda(InFunction);
 }
 void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction)
 {
-	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda([InFunction](const FString& InString, int InStartIndex) {
+	CustomInputTypeFunction.BindLambda([InFunction](const FString& InString, int InStartIndex) {
 		if (InFunction.IsBound())
 		{
 			return InFunction.Execute(InString, InStartIndex);
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::SetCustomInputTypeFunction]CustomInputType function not valid!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].d CustomInputType function not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return false;
 		}
 	});
 }
-void UUITextInputComponent::ClearCustomInputTypeEvent()
+void UUITextInputComponent::ClearCustomInputTypeFunction()
 {
-	CustomInputTypeFunction.Unbind();
+	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate();
 }
 
 

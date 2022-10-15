@@ -336,7 +336,7 @@ void UUIDropdownComponent::CreateListItems()
 			this->OnSelectItem(index);
 			});
 		script->SetSelectionState(i == Value);
-		OnSetItemCustomData.ExecuteIfBound(i, script, copiedItemActor);
+		OnSetItemCustomDataFunction.ExecuteIfBound(i, script, copiedItemActor);
 		CreatedItemArray.Add(script);
 	}
 	templateUIItem->SetIsUIActive(false);
@@ -511,6 +511,32 @@ FLGUIDelegateHandleWrapper UUIDropdownComponent::RegisterSelectionChangeEvent(co
 void UUIDropdownComponent::UnregisterSelectionChangeEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
 	OnSelectionChangeCPP.Remove(InDelegateHandle.DelegateHandle);
+}
+
+void UUIDropdownComponent::SetItemCustomDataFunction(const FUIDropdownComponentDelegate_SetItemCustomData& InFunction)
+{
+	OnSetItemCustomDataFunction = InFunction;
+}
+void UUIDropdownComponent::SetItemCustomDataFunction(const TFunction<void(int, class UUIDropdownItemComponent*, AActor*)>& InFunction)
+{
+	OnSetItemCustomDataFunction.BindLambda(InFunction);
+}
+void UUIDropdownComponent::SetItemCustomDataFunction(const FUIDropdownComponentDynamicDelegate_SetItemCustomData& InFunction)
+{
+	OnSetItemCustomDataFunction.BindLambda([InFunction](int InItemIndex, UUIDropdownItemComponent* InItemScript, AActor* InItemActor) {
+		if (InFunction.IsBound())
+		{
+			InFunction.Execute(InItemIndex, InItemScript, InItemActor);
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OnSetItemCustomDataFunction function not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
+		});
+}
+void UUIDropdownComponent::ClearItemCustomDataFunction()
+{
+	OnSetItemCustomDataFunction = FUIDropdownComponentDelegate_SetItemCustomData();
 }
 
 
