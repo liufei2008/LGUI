@@ -15,12 +15,25 @@
 class ULGUISpriteData_BaseObject;
 
 /**
+ * Dropdown option selection change.
  * @param InSelectIndex Selected item index
  * @param InSelectItem Selected item string
  */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FUIDropdownComponentDynamicDelegate, int32, InSelectIndex);
-
-DECLARE_DELEGATE_ThreeParams(FUIDropdownComponentDelegate_OnSetItemCustomData, int, class UUIDropdownItemComponent*, AActor*);
+/**
+ * Called when set data for every dropdown-option-list item.
+ * @param InItemIndex Dropdown-option-list item index.
+ * @param InItemScript The UIDropdownItemComponent script attached on dropdown-option-list item.
+ * @param InItemActor The dropdown-option-list item actor.
+ */
+DECLARE_DELEGATE_ThreeParams(FUIDropdownComponentDelegate_SetItemCustomData, int, class UUIDropdownItemComponent*, AActor*);
+/**
+ * Called when set data for every dropdown-option-list item.
+ * @param InItemIndex Dropdown-option-list item index.
+ * @param InItemScript The UIDropdownItemComponent script attached on dropdown-option-list item.
+ * @param InItemActor The dropdown-option-list item actor.
+ */
+DECLARE_DYNAMIC_DELEGATE_ThreeParams(FUIDropdownComponentDynamicDelegate_SetItemCustomData, int, InItemIndex, class UUIDropdownItemComponent*, InItemScript, AActor*, InItemActor);
 
 UENUM(BlueprintType, Category = LGUI)
 enum class EUIDropdownVerticalPosition : uint8
@@ -111,6 +124,9 @@ protected:
 	FLGUIMulticastInt32Delegate OnSelectionChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		FLGUIEventDelegate OnSelectionChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
+
+	/** Bind this delegate and set custom data for option list item. */
+	FUIDropdownComponentDelegate_SetItemCustomData OnSetItemCustomDataFunction;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void Show();
@@ -161,15 +177,30 @@ public:
 
 	FDelegateHandle RegisterSelectionChangeEvent(const FLGUIInt32Delegate& InDelegate);
 	FDelegateHandle RegisterSelectionChangeEvent(const TFunction<void(int)>& InFunction);
-	void UnregisterSelectionChangeEvent(const FDelegateHandle& InHandle);
-
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		FLGUIDelegateHandleWrapper RegisterSelectionChangeEvent(const FUIDropdownComponentDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void UnregisterSelectionChangeEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	void UnregisterSelectionChangeEvent(const FDelegateHandle& InHandle);
 
-	/** You can bind this delegate and set your own data for custom list item. */
-	FUIDropdownComponentDelegate_OnSetItemCustomData OnSetItemCustomData;
+	/**
+	 * Set custom function to customize option-list item, called when set data for every dropdown-option-list item.
+	 */
+	void SetItemCustomDataFunction(const FUIDropdownComponentDelegate_SetItemCustomData& InFunction);
+	/**
+	 * Set custom function to customize option-list item, called when set data for every dropdown-option-list item.
+	 */
+	void SetItemCustomDataFunction(const TFunction<void(int, class UUIDropdownItemComponent*, AActor*)>& InFunction);
+	/**
+	 * Set custom function to customize option-list item, called when set data for every dropdown-option-list item.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		void SetItemCustomDataFunction(const FUIDropdownComponentDynamicDelegate_SetItemCustomData& InFunction);
+	/**
+	 * Clear the function set by "SetItemCustomDataFunction".
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void ClearItemCustomDataFunction();
 };
 
 
