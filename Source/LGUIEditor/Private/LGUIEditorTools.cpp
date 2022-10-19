@@ -344,8 +344,9 @@ public:
 	}
 
 	//this function mostly copied from UnrealED/Private/EditorEngine.cpp::ReplaceActors
-	static void ReplaceActor(const TArray<AActor*>& ActorsToReplace, TSubclassOf<AActor> NewActorClass)
+	static TArray<AActor*> ReplaceActor(const TArray<AActor*>& ActorsToReplace, TSubclassOf<AActor> NewActorClass)
 	{
+		TArray<AActor*> Result;
 		// Cache for attachment info of all actors being converted.
 		TArray<ReattachActorsHelper::FActorAttachmentCache> AttachmentInfo;
 
@@ -399,6 +400,7 @@ public:
 				UEditorEngine::CopyPropertiesForUnrelatedObjects(OldActor->GetRootComponent(), NewActor->GetRootComponent(), Options);
 			}
 			NewActor->RegisterAllComponents();
+			Result.Add(NewActor);
 
 			if (NewActor)
 			{
@@ -533,6 +535,8 @@ public:
 		GEditor->RedrawLevelEditingViewports();
 
 		ULevel::LevelDirtiedEvent.Broadcast();
+
+		return Result;
 	}
 };
 
@@ -750,6 +754,12 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 	for (auto& Actor : RootActorList)
 	{
 		MakeCurrentLevel(Actor);
+		int HierarchyIndex = 0;
+		if (auto SourceUIItem = Cast<UUIItem>(Actor->GetRootComponent()))
+		{
+			HierarchyIndex = SourceUIItem->GetHierarchyIndex();
+		}
+		AActor* ReplacedActor = nullptr;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
 			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
@@ -757,12 +767,19 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 				PrefabHelperObject->Modify();
 			}
 			PrefabHelperObject->SetCanNotifyAttachment(false);
-			LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass);
+			ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
 			PrefabHelperObject->SetCanNotifyAttachment(true);
 		}
 		else
 		{
-			LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass);
+			ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
+		}
+		if (IsValid(ReplacedActor))
+		{
+			if (auto ReplaceUIItem = Cast<UUIItem>(ReplacedActor->GetRootComponent()))
+			{
+				ReplaceUIItem->SetHierarchyIndex(HierarchyIndex);
+			}
 		}
 	}
 	GEditor->EndTransaction();
