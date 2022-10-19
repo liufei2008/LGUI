@@ -243,7 +243,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 	BinaryDataForBuild.Empty();
 	if (!IsValid(PrefabHelperObject) || !IsValid(PrefabHelperObject->LoadedRootActor))
 	{
-		UE_LOG(LGUI, Warning, TEXT("AgentObjects not valid, recreate it! prefab: '%s'"), *(this->GetPathName()));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d AgentObjects not valid, recreate it! prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetPathName()));
 		MakeAgentObjectsInPreviewWorld();
 	}
 
@@ -261,7 +261,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		}
 		if (AnythingChange)
 		{
-			UE_LOG(LGUI, Log, TEXT("[ULGUIPrefab::BeginCacheForCookedPlatformData]Something changed in sub prefab override parameter, refresh it. prefab: '%s'."), *(this->GetPathName()));
+			UE_LOG(LGUI, Log, TEXT("[%s].%d Something changed in sub prefab override parameter, refresh it. Prefab: '%s'."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetPathName()));
 		}
 
 		TMap<UObject*, FGuid> MapObjectToGuid;
@@ -454,6 +454,32 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 		}
 #else
 		LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+#endif
+	}
+	return LoadedRootActor;
+}
+AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USceneComponent* InParent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap)
+{
+	AActor* LoadedRootActor = nullptr;
+	auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (World)
+	{
+#if WITH_EDITOR
+		switch ((ELGUIPrefabVersion)PrefabVersion)
+		{
+		case ELGUIPrefabVersion::ObjectName:
+		{
+			LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefab(World, this, InParent, InReplaceAssetMap, InReplaceClassMap);
+		}
+		break;
+		default:
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d This prefab version is too old to support this function, open this prefab and hit \"Apply\" button to fix it. Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName());
+		}
+		break;
+		}
+#else
+		LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefab(World, this, InParent, InReplaceAssetMap, InReplaceClassMap);
 #endif
 	}
 	return LoadedRootActor;
