@@ -49,7 +49,7 @@ namespace LGUIPrefabSystem5
 			Reader.DoSerialize(InObject);
 		};
 		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
-		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
 		return rootActor;
@@ -76,11 +76,11 @@ namespace LGUIPrefabSystem5
 		AActor* result = nullptr;
 		if (SetRelativeTransformToIdentity)
 		{
-			result = serializer.DeserializeActor(Parent, InPrefab, true);
+			result = serializer.DeserializeActor(Parent, InPrefab, nullptr, true);
 		}
 		else
 		{
-			result = serializer.DeserializeActor(Parent, InPrefab);
+			result = serializer.DeserializeActor(Parent, InPrefab, nullptr);
 		}
 		return result;
 	}
@@ -102,7 +102,48 @@ namespace LGUIPrefabSystem5
 			LGUIPrefabSystem::FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
 			Reader.DoSerialize(InObject);
 		};
-		return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
+		return serializer.DeserializeActor(Parent, InPrefab, nullptr, true, RelativeLocation, RelativeRotation, RelativeScale);
+	}
+	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, TFunction<void(AActor*)> CallbackBeforeAwake)
+	{
+		ActorSerializer serializer;
+		serializer.TargetWorld = InWorld;
+		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
+#if !WITH_EDITOR
+		serializer.bIsEditorOrRuntime = false;
+#endif
+		serializer.bOverrideVersions = true;
+		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
+			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
+			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
+		};
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			LGUIPrefabSystem::FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Reader.DoSerialize(InObject);
+		};
+		return serializer.DeserializeActor(Parent, InPrefab, [=, &serializer] {
+			if (InReplaceAssetMap.Num() > 0)
+			{
+				for (int i = 0; i < serializer.ReferenceAssetList.Num(); i++)
+				{
+					if (auto ReplaceAssetPtr = InReplaceAssetMap.Find(serializer.ReferenceAssetList[i]))
+					{
+						serializer.ReferenceAssetList[i] = *ReplaceAssetPtr;
+					}
+				}
+			}
+			if (InReplaceClassMap.Num() > 0)
+			{
+				for (int i = 0; i < serializer.ReferenceClassList.Num(); i++)
+				{
+					if (auto ReplaceClassPtr = InReplaceClassMap.Find(serializer.ReferenceClassList[i]))
+					{
+						serializer.ReferenceClassList[i] = *ReplaceClassPtr;
+					}
+				}
+			}
+			});
 	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
@@ -133,7 +174,7 @@ namespace LGUIPrefabSystem5
 			Reader.DoSerialize(InObject);
 		};
 		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
-		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutActorIndex = serializer.ActorIndexInPrefab;
 		return rootActor;
 	}
@@ -267,7 +308,7 @@ namespace LGUIPrefabSystem5
 
 		return CreatedRootActor;
 	}
-	AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
+	AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
 		if (!InPrefab)
 		{
@@ -349,6 +390,7 @@ namespace LGUIPrefabSystem5
 			}
 		}
 
+		if (InCallbackBeforeDeserialize != nullptr)InCallbackBeforeDeserialize();
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
 		auto TimeSpan = FDateTime::Now() - StartTime;
