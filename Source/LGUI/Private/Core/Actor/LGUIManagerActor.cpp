@@ -731,20 +731,23 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 		{
 			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
 			{
-				FHitResult hitInfo;
-				auto OriginRaycastType = uiRenderable->GetRaycastType();
-				auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
-				uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
-				uiRenderable->SetRaycastTarget(true);
-				if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
+				if (uiRenderable->GetIsUIActiveInHierarchy())
 				{
-					if (uiRenderable->GetRenderCanvas()->CalculatePointVisibilityOnClip(hitInfo.Location))
+					FHitResult hitInfo;
+					auto OriginRaycastType = uiRenderable->GetRaycastType();
+					auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
+					uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
+					uiRenderable->SetRaycastTarget(true);
+					if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
 					{
-						HitResultArray.Add(hitInfo);
+						if (uiRenderable->GetRenderCanvas()->CalculatePointVisibilityOnClip(hitInfo.Location))
+						{
+							HitResultArray.Add(hitInfo);
+						}
 					}
+					uiRenderable->SetRaycastType(OriginRaycastType);
+					uiRenderable->SetRaycastTarget(OriginRaycastTarget);
 				}
-				uiRenderable->SetRaycastType(OriginRaycastType);
-				uiRenderable->SetRaycastTarget(OriginRaycastTarget);
 			}
 		}
 	}
