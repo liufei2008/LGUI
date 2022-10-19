@@ -458,6 +458,28 @@ void UUISelectableComponent::SetPressedColor(FColor NewColor)
 		}
 	}
 }
+void UUISelectableComponent::SetDisabledSprite(ULGUISpriteData_BaseObject* NewSprite)
+{
+	if (DisabledSprite != NewSprite)
+	{
+		DisabledSprite = NewSprite;
+		if (CurrentSelectionState == EUISelectableSelectionState::Disabled)
+		{
+			ApplySelectionState(false);
+		}
+	}
+}
+void UUISelectableComponent::SetDisabledColor(FColor NewColor)
+{
+	if (DisabledColor != NewColor)
+	{
+		DisabledColor = NewColor;
+		if (CurrentSelectionState == EUISelectableSelectionState::Disabled)
+		{
+			ApplySelectionState(false);
+		}
+	}
+}
 void UUISelectableComponent::SetSelectionState(EUISelectableSelectionState NewState)
 {
 	if (CurrentSelectionState != NewState)
