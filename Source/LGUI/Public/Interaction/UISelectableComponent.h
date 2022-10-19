@@ -153,6 +153,10 @@ public:
 		ULGUISpriteData_BaseObject* GetPressedSprite()const { return PressedSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
 		FColor GetPressedColor()const { return PressedColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		ULGUISpriteData_BaseObject* GetDisabledSprite()const { return DisabledSprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		FColor GetDisabledColor()const { return DisabledColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
 		EUISelectableSelectionState GetSelectionState()const;
 
@@ -170,6 +174,10 @@ public:
 		void SetPressedSprite(ULGUISpriteData_BaseObject* NewSprite);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetPressedColor(FColor NewColor);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		void SetDisabledSprite(ULGUISpriteData_BaseObject* NewSprite);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		void SetDisabledColor(FColor NewColor);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetSelectionState(EUISelectableSelectionState NewState);
 
