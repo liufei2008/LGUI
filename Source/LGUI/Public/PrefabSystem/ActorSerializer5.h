@@ -233,6 +233,10 @@ namespace LGUIPrefabSystem5
 		 */
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
 		/**
+		 * Replace asset and class then load prefab.
+		 */
+		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
+		/**
 		 * LoadPrefab and keep reference of objects.
 		 */
 		static AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
@@ -294,7 +298,7 @@ namespace LGUIPrefabSystem5
 		void SerializeObjectArray(TArray<FLGUIObjectSaveData>& ObjectSaveDataArray, TArray<FLGUIComponentSaveData>& ComponentSaveDataArray);
 		void SerializeActorToData(AActor* RootActor, FLGUIPrefabSaveData& OutData);
 		//deserialize actor
-		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
+		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
 		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent);
@@ -308,6 +312,7 @@ namespace LGUIPrefabSystem5
 		/** A temperary string for log if is loading or saving prefab (not duplicate). */
 		FString PrefabAssetPath;
 
+		TFunction<void()> CallbackBeforeDeserialize = nullptr;
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 
 		/**
