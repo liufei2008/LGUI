@@ -112,5 +112,7 @@ public:
 		return PropertyHandle->IsEditable();
 	}
 	static void DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
+private:
+	static TMap<FString, UTexture2D*> IconPathToTextureMap;
 };
 #undef LOCTEXT_NAMESPACE
