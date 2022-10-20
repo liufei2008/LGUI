@@ -97,6 +97,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		UTexture2D* texture;
 
+	/** if not find char in current font, LGUI will search the char in this font array until find it. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TArray<ULGUIFreeTypeRenderFontData*> fallbackFontArray;
+
 	virtual void FinishDestroy()override;
 
 	/** when draw a rectangle, need to expend 1 pixel to avoid too sharp pixel at edge */
