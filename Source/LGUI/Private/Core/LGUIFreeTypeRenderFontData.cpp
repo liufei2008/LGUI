@@ -259,27 +259,44 @@ FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& cha
 	InitFreeType();
 	if (alreadyInitialized == false)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType] Font is not initialized"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' is not initialized"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName());
 		return nullptr;
 	}
 
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return nullptr;
 	}
 	FT_GlyphSlot slot = face->glyph;
 	error = FT_Load_Glyph(face, FT_Get_Char_Index(face, charCode), FT_LOAD_DEFAULT);
+	if (slot->glyph_index == 0 && slot->metrics.width == 0 && slot->metrics.height == 0)//missing char in this font
+	{
+		if (fallbackFontArray.Num() > 0)
+		{
+			UE_LOG(LGUI, Log, TEXT("[%s].%d Font '%s' Can't find glyph, will search in fallbacks"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName());
+			for (int i = 0; i < fallbackFontArray.Num(); i++)
+			{
+				if (fallbackFontArray[i] == nullptr)continue;
+				if (auto fallbackSlot = fallbackFontArray[i]->RenderGlyphOnFreeType(charCode, charSize))
+				{
+					return fallbackSlot;
+				}
+			}
+		}
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		return nullptr;
+	}
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType] FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return nullptr;
 	}
 	error = FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType] FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return nullptr;
 	}
 	return slot;
