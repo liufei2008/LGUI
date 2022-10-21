@@ -51,13 +51,18 @@ public:
 	{
 #if WITH_EDITOR
 		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponent must be derived from UActorComponent");
+		if (!TargetComp)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] TargetComp is null!"));
+			return nullptr;
+		}
 		if (!TargetComp->IsA(T::StaticClass()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] Provided parameter T: '%s' must be parent of or equal to HelperClass: '%s'!"), *(T::StaticClass()->GetName()), *(HelperClass->GetName()));
 			return nullptr;
 		}
 #endif
-		return (T*)(GetComponent());
+		return (T*)(TargetComp);
 	}
 #if WITH_EDITOR
 	TSubclassOf<UActorComponent> GetComponentClass()const
