@@ -10,6 +10,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/LGUIEventSystem.h"
 #include "Core/ActorComponent/UISprite.h"
+#include "Core/ActorComponent/UICanvasGroup.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -353,7 +354,7 @@ bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData*
 	ApplySelectionState(false);
 	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 	{
-		eventSystemInstance->SetSelectComponent(GetRootUIComponent(), eventData, eventData->enterComponentEventFireType);
+		eventSystemInstance->SetSelectComponent(GetRootSceneComponent(), eventData, eventData->enterComponentEventFireType);
 	}
 	return AllowEventBubbleUp;
 }
@@ -597,10 +598,18 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	};
 
 	auto LocalPos = FVector::ZeroVector;
+	USceneComponent* RestrictNavNode = nullptr;
 	if (CheckRootUIComponent())
 	{
 		auto localDir = RootUIComp->GetComponentTransform().InverseTransformVectorNoScale(InDirection);
 		LocalPos = GetPointOnRectEdge(RootUIComp.Get(), FVector2D(localDir.Y, localDir.Z));
+		if (auto CanvasGroup = RootUIComp->GetCanvasGroup())
+		{
+			if (auto RestrictNavCanvasGroup = CanvasGroup->GetRestrictNavigationAreaCanvasGroup())
+			{
+				RestrictNavNode = RestrictNavCanvasGroup->GetOwner()->GetRootComponent();
+			}
+		}
 	}
 	auto pos = GetRootSceneComponent()->GetComponentTransform().TransformPosition(LocalPos);
 	float maxScore = -MAX_flt;
@@ -612,26 +621,41 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		if (sel == this || !sel.IsValid())
 			continue;
 
-		if (!sel->CheckRootUIComponent())
-			continue;
-
-		if (IsValid(InParent) && !sel->GetRootUIComponent()->IsAttachedTo(InParent))
+		if (IsValid(InParent) && !sel->GetRootSceneComponent()->IsAttachedTo(InParent))
 			continue;
 
 		if (!sel->IsInteractable())
 			continue;
 
-		if (!sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
+		//if is UI node, not allow inactive one
+		auto selRootUIComp = sel->GetRootUIComponent();
+		if (selRootUIComp && !sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
+		{
 			continue;
+		}
+
+		//if navigation is restricted, only allow child of restric node
+		if (RestrictNavNode && !sel->GetRootSceneComponent()->IsAttachedTo(RestrictNavNode))
+		{
+			continue;
+		}
 
 #if WITH_EDITOR
 		if (this->GetWorld() != sel->GetWorld())//get selectables from ULGUIEditorManagerObject, could be different world (thumbnail preview)
 			continue;
 #endif
 
-		auto LocalCenter = sel->GetRootUIComponent()->GetLocalSpaceCenter();
-		FVector selCenter = FVector(0, LocalCenter.X, LocalCenter.Y);
-		FVector myVector = sel->GetRootUIComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+		FVector selCenter;
+		if (selRootUIComp)
+		{
+			auto LocalCenter2D = selRootUIComp->GetLocalSpaceCenter();
+			selCenter = FVector(0, LocalCenter2D.X, LocalCenter2D.Y);
+		}
+		else
+		{
+			selCenter = sel->GetRootSceneComponent()->GetRelativeLocation();
+		}
+		FVector myVector = sel->GetRootSceneComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
 
 		float dot = FVector::DotProduct(InDirection, myVector);
 		if (dot <= 0.0f)
@@ -699,7 +723,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 	}
 	if (NavigationLeft == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootUIComponent()->GetRightVector());
+		return FindSelectable(-GetRootSceneComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -711,7 +735,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
 	}
 	if (NavigationRight == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootUIComponent()->GetRightVector());
+		return FindSelectable(GetRootSceneComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -723,7 +747,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
 	}
 	if (NavigationUp == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootUIComponent()->GetUpVector());
+		return FindSelectable(GetRootSceneComponent()->GetUpVector());
 	}
 	return nullptr;
 }
@@ -735,13 +759,13 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 	}
 	if (NavigationDown == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootUIComponent()->GetUpVector());
+		return FindSelectable(-GetRootSceneComponent()->GetUpVector());
 	}
 	return nullptr;
 }
 UUISelectableComponent* UUISelectableComponent::FindSelectableOnNext()
 {
-	if (NavigationNext == EUISelectableNavigationMode::Explicit)
+	if (NavigationNext == EUISelectableNavigationMode::Explicit && NavigationNextSpecific.IsValidComponentReference())
 	{
 		return NavigationNextSpecific.GetComponent<UUISelectableComponent>();
 	}

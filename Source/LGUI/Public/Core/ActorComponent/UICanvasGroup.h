@@ -46,6 +46,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bInteractable = true;
 	/**
+	 * Restrict navigation area to only children of this UI node when navigate out.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bRestrictNavigationArea = false;
+	/**
 	 * Will this group also be affected by the settings in UICanvasGroup components further up in the Actor hierarchy, or will it ignore those and hence override them?
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -82,8 +87,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI) float GetAlpha() const { return Alpha; }
 	/** Return final calculated interactable, will concern parent's value */
 	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetFinalInteractable() const;
+	/** Return Interactable property value directly, not concern parent's property. */
 	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetInteractable() const { return bInteractable; }
 	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetIgnoreParentGroup() const { return bIgnoreParentGroup; }
+	/** Return RestrictNavigationArea property value directly, not concern parent's property. */
+	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetRestrictNavigationArea() const { return bRestrictNavigationArea; }
+	/**
+	 * Return self or upper nearest UICanvasGroup that use restrict navigation, if none found then return nullptr.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI) const UUICanvasGroup* GetRestrictNavigationAreaCanvasGroup() const;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetAlpha(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetInteractable(bool value);
