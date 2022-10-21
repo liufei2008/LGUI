@@ -166,6 +166,40 @@ bool UUICanvasGroup::GetFinalInteractable() const
 	}
 }
 
+const UUICanvasGroup* UUICanvasGroup::GetRestrictNavigationAreaCanvasGroup() const
+{
+	if (ParentUICanvasGroup.IsValid())
+	{
+		if (bIgnoreParentGroup)
+		{
+			if (bRestrictNavigationArea)
+			{
+				return this;
+			}
+			return nullptr;
+		}
+		else
+		{
+			if (bRestrictNavigationArea)
+			{
+				return this;
+			}
+			else
+			{
+				return ParentUICanvasGroup->GetRestrictNavigationAreaCanvasGroup();
+			}
+		}
+	}
+	else
+	{
+		if (bRestrictNavigationArea)
+		{
+			return this;
+		}
+		return nullptr;
+	}
+}
+
 void UUICanvasGroup::SetAlpha(float value)
 {
 	if (value != Alpha)
