@@ -146,7 +146,17 @@ namespace LGUIPrefabSystem
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FSoftObjectPtr& Value)
 	{
-		return FObjectWriter::operator<<(Value);
+		if (Value.IsValid())
+		{
+			if (SerializeObject(Value.Get()))
+			{
+				return *this;
+			}
+		}
+		auto noneType = (uint8)EObjectType::None;
+		*this << noneType;
+
+		return *this;
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FSoftObjectPath& Value)
 	{
@@ -261,7 +271,13 @@ namespace LGUIPrefabSystem
 	}
 	FArchive& FLGUIObjectReader::operator<<(FSoftObjectPtr& Value)
 	{
-		return FObjectReader::operator<<(Value);
+		UObject* Res = nullptr;
+		SerializeObject(Res, false);
+		if (Res)
+		{
+			Value = Res;
+		}
+		return *this;
 	}
 	FArchive& FLGUIObjectReader::operator<<(FSoftObjectPath& Value)
 	{
