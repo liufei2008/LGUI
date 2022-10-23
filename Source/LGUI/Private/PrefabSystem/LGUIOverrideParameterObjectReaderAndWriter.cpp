@@ -152,7 +152,18 @@ namespace LGUIPrefabSystem
 	}
 	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPtr& Value)
 	{
-		return FObjectWriter::operator<<(Value);
+		if (Value.IsValid())
+		{
+			//no need to concern UClass, because UClass cannot use weakptr
+			if (SerializeObject(Value.Get()))
+			{
+				return *this;
+			}
+		}
+		auto noneType = (uint8)EObjectType::None;
+		*this << noneType;
+
+		return *this;
 	}
 	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPath& Value)
 	{
@@ -272,7 +283,10 @@ namespace LGUIPrefabSystem
 	}
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPtr& Value)
 	{
-		return FObjectReader::operator<<(Value);
+		UObject* Res = nullptr;
+		SerializeObject(Res, false);
+		Value = Res;
+		return *this;
 	}
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPath& Value)
 	{
