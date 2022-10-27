@@ -46,6 +46,8 @@ public:
 	bool FocusViewportToTargets();
 
 private:
+	int IndexOfClickSelectUI = -1;
+	int MouseX = 0, MouseY = 0;
 
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 	// Are we currently manipulating something?
