@@ -173,7 +173,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.UndeterminedString( NSLOCTEXT( "PropertyEditor", "MultipleValues", "Multiple Values") )
 					.Value(this, &FUIItemCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
-					.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
+					//.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
 					.OnValueCommitted(this, &FUIItemCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
 					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementBegin)
 					.OnEndSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementEnd)
@@ -1145,86 +1145,194 @@ TOptional<float> FUIItemCustomization::GetAnchorValue(TSharedRef<IPropertyHandle
 	default:
 	case 0://anchored position x, stretch left
 	{
-		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
-			&& AnchoredPositionAccessResult == FPropertyAccess::Result::Success
-			)
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success)
 		{
-			if (AnchorMinValue.X == AnchorMaxValue.X)
+			auto GetValue = [=](TWeakObjectPtr<UUIItem> Item)->float {
+				if (AnchorMinValue.X == AnchorMaxValue.X)
+				{
+					return Item->GetHorizontalAnchoredPosition();
+				}
+				else
+				{
+					return Item->GetAnchorLeft();
+				}
+			};
+			if (AnchoredPositionAccessResult == FPropertyAccess::Result::Success)
 			{
-				return AnchoredPosition.X;
+				return GetValue(TargetScriptArray[0]);
 			}
-			else
+			else if (AnchoredPositionAccessResult == FPropertyAccess::Result::MultipleValues)
 			{
-				return TargetScriptArray[0]->GetAnchorLeft();
+				bool bIsSameValue = true;
+				float Value = 0;
+				bool bIsFirst = true;
+				for (auto& Item : TargetScriptArray)
+				{
+					if (bIsFirst)
+					{
+						Value = GetValue(Item);
+						bIsFirst = false;
+					}
+					else
+					{
+						if (FMath::Abs(GetValue(Item) - Value) > KINDA_SMALL_NUMBER)
+						{
+							bIsSameValue = false;
+							break;
+						}
+					}
+				}
+				if (bIsSameValue)
+				{
+					return Value;
+				}
 			}
 		}
-		else
-		{
-			return TOptional<float>();
-		}
+		return TOptional<float>();
 	}
 	break;
 	case 1://anchored position y, stretch top
 	{
-		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
-			&& AnchoredPositionAccessResult == FPropertyAccess::Result::Success
-			)
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success)
 		{
-			if (AnchorMinValue.Y == AnchorMaxValue.Y)
+			auto GetValue = [=](TWeakObjectPtr<UUIItem> Item)->float {
+				if (AnchorMinValue.Y == AnchorMaxValue.Y)
+				{
+					return Item->GetVerticalAnchoredPosition();
+				}
+				else
+				{
+					return Item->GetAnchorTop();
+				}
+			};
+			if (AnchoredPositionAccessResult == FPropertyAccess::Result::Success)
 			{
-				return AnchoredPosition.Y;
+				return GetValue(TargetScriptArray[0]);
 			}
-			else
+			else if (AnchoredPositionAccessResult == FPropertyAccess::Result::MultipleValues)
 			{
-				return TargetScriptArray[0]->GetAnchorTop();
+				bool bIsSameValue = true;
+				float Value = 0;
+				bool bIsFirst = true;
+				for (auto& Item : TargetScriptArray)
+				{
+					if (bIsFirst)
+					{
+						Value = GetValue(Item);
+						bIsFirst = false;
+					}
+					else
+					{
+						if (FMath::Abs(GetValue(Item) - Value) > KINDA_SMALL_NUMBER)
+						{
+							bIsSameValue = false;
+							break;
+						}
+					}
+				}
+				if (bIsSameValue)
+				{
+					return Value;
+				}
 			}
 		}
-		else
-		{
-			return TOptional<float>();
-		}
+		return TOptional<float>();
 	}
 	break;
 	case 2://width, stretch right
 	{
-		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
-			&& SizeDeltaAccessResult == FPropertyAccess::Result::Success
-			)
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success)
 		{
-			if (AnchorMinValue.X == AnchorMaxValue.X)
+			auto GetValue = [=](TWeakObjectPtr<UUIItem> Item)->float {
+				if (AnchorMinValue.X == AnchorMaxValue.X)
+				{
+					return Item->GetSizeDelta().X;
+				}
+				else
+				{
+					return Item->GetAnchorRight();
+				}
+			};
+			if (SizeDeltaAccessResult == FPropertyAccess::Result::Success)
 			{
-				return SizeDelta.X;
+				return GetValue(TargetScriptArray[0]);
 			}
-			else
+			else if (SizeDeltaAccessResult == FPropertyAccess::Result::MultipleValues)
 			{
-				return TargetScriptArray[0]->GetAnchorRight();
+				bool bIsSameValue = true;
+				float Value = 0;
+				bool bIsFirst = true;
+				for (auto& Item : TargetScriptArray)
+				{
+					if (bIsFirst)
+					{
+						Value = GetValue(Item);
+						bIsFirst = false;
+					}
+					else
+					{
+						if (FMath::Abs(GetValue(Item) - Value) > KINDA_SMALL_NUMBER)
+						{
+							bIsSameValue = false;
+							break;
+						}
+					}
+				}
+				if (bIsSameValue)
+				{
+					return Value;
+				}
 			}
 		}
-		else
-		{
-			return TOptional<float>();
-		}
+		return TOptional<float>();
 	}
 	break;
 	case 3://height, stretch bottom
 	{
-		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
-			&& SizeDeltaAccessResult == FPropertyAccess::Result::Success
-			)
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success)
 		{
-			if (AnchorMinValue.Y == AnchorMaxValue.Y)
+			auto GetValue = [=](TWeakObjectPtr<UUIItem> Item)->float {
+				if (AnchorMinValue.Y == AnchorMaxValue.Y)
+				{
+					return Item->GetSizeDelta().Y;
+				}
+				else
+				{
+					return Item->GetAnchorBottom();
+				}
+			};
+			if (SizeDeltaAccessResult == FPropertyAccess::Result::Success)
 			{
-				return SizeDelta.Y;
+				return GetValue(TargetScriptArray[0]);
 			}
-			else
+			else if (SizeDeltaAccessResult == FPropertyAccess::Result::MultipleValues)
 			{
-				return TargetScriptArray[0]->GetAnchorBottom();
+				bool bIsSameValue = true;
+				float Value = 0;
+				bool bIsFirst = true;
+				for (auto& Item : TargetScriptArray)
+				{
+					if (bIsFirst)
+					{
+						Value = GetValue(Item);
+						bIsFirst = false;
+					}
+					else
+					{
+						if (FMath::Abs(GetValue(Item) - Value) > KINDA_SMALL_NUMBER)
+						{
+							bIsSameValue = false;
+							break;
+						}
+					}
+				}
+				if (bIsSameValue)
+				{
+					return Value;
+				}
 			}
 		}
-		else
-		{
-			return TOptional<float>();
-		}
+		return TOptional<float>();
 	}
 	break;
 	}
@@ -1242,10 +1350,6 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	AnchorMinHandle->GetValue(AnchorMinValue);
 	FVector2D AnchorMaxValue;
 	AnchorMaxHandle->GetValue(AnchorMaxValue);
-	FVector2D AnchoredPosition;
-	AnchoredPositionHandle->GetValue(AnchoredPosition);
-	FVector2D SizeDelta;
-	SizeDeltaHandle->GetValue(SizeDelta);
 	
 	switch (AnchorValueIndex)
 	{
@@ -1253,10 +1357,9 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
-			AnchoredPosition.X = Value;
 			for (auto& Item : TargetScriptArray)
 			{
-				Item->SetAnchoredPosition(AnchoredPosition);
+				Item->SetHorizontalAnchoredPosition(Value);
 			}
 		}
 		else
@@ -1272,10 +1375,9 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
-			AnchoredPosition.Y = Value;
 			for (auto& Item : TargetScriptArray)
 			{
-				Item->SetAnchoredPosition(AnchoredPosition);
+				Item->SetVerticalAnchoredPosition(Value);
 			}
 		}
 		else
