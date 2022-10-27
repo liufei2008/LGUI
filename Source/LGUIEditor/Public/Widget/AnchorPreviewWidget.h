@@ -2,6 +2,7 @@
 
 #include "Widgets/SCompoundWidget.h"
 #include "DesktopPlatformModule.h"
+#include "LGUIEditorStyle.h"
 #pragma once
 
 #define LOCTEXT_NAMESPACE "AnchorPreviewWidget"
