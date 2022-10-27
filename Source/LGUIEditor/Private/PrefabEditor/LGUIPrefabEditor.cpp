@@ -406,12 +406,6 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 		}
 	}
 
-	auto confirmMsg = FString::Printf(TEXT("Destroy selected actors? This will also destroy the children attached to selected actors."));
-	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
-	if (confirmResult == EAppReturnType::No)return;
-
-	GEditor->BeginTransaction(LOCTEXT("DeleteActors", "Delete actors"));
-	GEditor->GetSelectedActors()->DeselectAll();
 	TArray<AActor*> SelectedActorArray;
 	for (auto Item : InSelectedActorArray)
 	{
@@ -420,28 +414,7 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 			SelectedActorArray.Add(Item.Get());
 		}
 	}
-	for (auto Item : SelectedActorArray)
-	{
-		if (PrefabHelperObject->SubPrefabMap.Contains(Item))
-		{
-			PrefabHelperObject->SubPrefabMap.Remove(Item);
-		}
-	}
-	auto RootActorArray = LGUIEditorTools::GetRootActorListFromSelection(SelectedActorArray);
-	for (auto Item : RootActorArray)
-	{
-		LGUIUtils::DestroyActorWithHierarchy(Item);
-	}
-	GEditor->EndTransaction();
-}
-
-void FLGUIPrefabEditor::DeleteActor(AActor* InActor)
-{
-	if (PrefabHelperObject->SubPrefabMap.Contains(InActor))
-	{
-		PrefabHelperObject->SubPrefabMap.Remove(InActor);
-	}
-	LGUIUtils::DestroyActorWithHierarchy(InActor);
+	LGUIEditorTools::DeleteActors_Impl(SelectedActorArray);
 }
 
 void FLGUIPrefabEditor::SaveAsset_Execute()
