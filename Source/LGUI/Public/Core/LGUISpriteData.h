@@ -36,6 +36,9 @@ private:
 	/** Information needed for render this sprite */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FLGUISpriteInfo spriteInfo;
+	/** Repeat edge pixel fill spaced between other sprites in atlas texture */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool useEdgePixelPadding = true;
 	/** Sprites that have same packingTag will be packed into same atlas. If packingTag is None, then the UISprite which render this LGUISpriteData will be treated as a UITexture */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FName packingTag = TEXT("Main");
