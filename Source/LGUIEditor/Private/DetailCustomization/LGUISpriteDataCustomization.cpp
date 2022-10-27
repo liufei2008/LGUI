@@ -113,7 +113,8 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		]
 	]
 	;
-	
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding));
+
 	//if change packingTag, clear all sprites and repack
 	auto packingTagHangle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	packingTagHangle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([] {ULGUISpriteData::MarkAllSpritesNeedToReinitialize(); }));
