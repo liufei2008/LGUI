@@ -139,7 +139,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		{
 			AllUIItemArray.Append(CanvasItem->GetUIItemArray());
 		}
-		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI))
+		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI, IndexOfClickSelectUI))
 		{
 			ClickHitActor = ClickHitUI->GetOwner();
 		}
@@ -506,6 +506,13 @@ void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, i
 	TrackingTransaction.PromotePendingToActive();
 
 	FEditorViewportClient::CapturedMouseMove(InViewport, InMouseX, InMouseY);
+
+	if (InMouseX != MouseX || InMouseY != MouseY)
+	{
+		IndexOfClickSelectUI = INDEX_NONE;
+	}
+	MouseX = InMouseX;
+	MouseY = InMouseY;
 }
 
 void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)
