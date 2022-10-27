@@ -95,7 +95,7 @@ public:
 	/**
 	 * Return self or upper nearest UICanvasGroup that use restrict navigation, if none found then return nullptr.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI) const UUICanvasGroup* GetRestrictNavigationAreaCanvasGroup() const;
+	UFUNCTION(BlueprintCallable, Category = LGUI) UUICanvasGroup* GetRestrictNavigationAreaCanvasGroup();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetAlpha(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI) void SetInteractable(bool value);

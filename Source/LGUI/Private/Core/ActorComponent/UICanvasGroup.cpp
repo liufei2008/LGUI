@@ -166,7 +166,7 @@ bool UUICanvasGroup::GetFinalInteractable() const
 	}
 }
 
-const UUICanvasGroup* UUICanvasGroup::GetRestrictNavigationAreaCanvasGroup() const
+UUICanvasGroup* UUICanvasGroup::GetRestrictNavigationAreaCanvasGroup() 
 {
 	if (ParentUICanvasGroup.IsValid())
 	{
