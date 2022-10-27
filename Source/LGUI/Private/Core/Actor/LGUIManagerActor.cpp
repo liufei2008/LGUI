@@ -721,7 +721,7 @@ void ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(AA
 }
 
 bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-	, UUIBaseRenderable*& ResultSelectTarget
+	, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
 )
 {
 	TArray<FHitResult> HitResultArray;
@@ -731,7 +731,7 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 		{
 			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
 			{
-				if (uiRenderable->GetIsUIActiveInHierarchy())
+				if (uiRenderable->GetIsUIActiveInHierarchy() && uiRenderable->GetRenderCanvas() != nullptr)
 				{
 					FHitResult hitInfo;
 					auto OriginRaycastType = uiRenderable->GetRaycastType();
@@ -757,20 +757,23 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 			{
 				auto AUIRenderable = (UUIBaseRenderable*)(A.Component.Get());
 				auto BUIRenderable = (UUIBaseRenderable*)(B.Component.Get());
-				if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
+				if (AUIRenderable->GetRenderCanvas()->GetActualSortOrder() == BUIRenderable->GetRenderCanvas()->GetActualSortOrder())//if Canvas's sort order is equal then sort on item's depth
 				{
 					return AUIRenderable->GetFlattenHierarchyIndex() > BUIRenderable->GetFlattenHierarchyIndex();
 				}
 				else//if Canvas's depth not equal then sort on Canvas's SortOrder
 				{
-					return AUIRenderable->GetRenderCanvas()->GetSortOrder() > BUIRenderable->GetRenderCanvas()->GetSortOrder();
+					return AUIRenderable->GetRenderCanvas()->GetActualSortOrder() > BUIRenderable->GetRenderCanvas()->GetActualSortOrder();
 				}
 			});
-		if (auto uiRenderableComp = Cast<UUIBaseRenderable>(HitResultArray[0].Component.Get()))//target need to select
+		InOutTargetIndexInHitArray++;
+		if (InOutTargetIndexInHitArray >= HitResultArray.Num() || InOutTargetIndexInHitArray < 0)
 		{
-			ResultSelectTarget = uiRenderableComp;
-			return true;
+			InOutTargetIndexInHitArray = 0;
 		}
+		auto uiRenderableComp = (UUIBaseRenderable*)(HitResultArray[InOutTargetIndexInHitArray].Component.Get());//target need to select
+		ResultSelectTarget = uiRenderableComp;
+		return true;
 	}
 	return false;
 }

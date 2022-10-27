@@ -104,8 +104,18 @@ public:
 	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 
+	/**
+	 * Editor raycast hit all visible UIBaseRenderable object.
+	 * \param InWorld
+	 * \param InUIItems
+	 * \param LineStart
+	 * \param LineEnd
+	 * \param ResultSelectTarget
+	 * \param InOutTargetIndexInHitArray	Pass in desired item index, and result selected item index. Default is -1, will use first one as result.
+	 * \return 
+	 */
 	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-		, UUIBaseRenderable*& ResultSelectTarget
+		, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
 	);
 private:
 #if WITH_EDITORONLY_DATA
