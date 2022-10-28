@@ -11,6 +11,9 @@
 #include "Event/LGUIEventSystem.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
+#if WITH_EDITOR
+#include "Utils/LGUIUtils.h"
+#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -88,12 +91,14 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 					if (IsValid(TargetUISpriteComp) && IsValid(NormalSprite))
 					{
 						TargetUISpriteComp->SetSprite(isGroupAllowInteraction ? NormalSprite : DisabledSprite, false);
+						LGUIUtils::NotifyPropertyChanged(TargetUISpriteComp, FName(TEXT("sprite")));
 					}
 					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 				else if (Transition == UISelectableTransitionType::ColorTint)
 				{
 					TransitionActor->GetUIRenderable()->SetColor(isGroupAllowInteraction ? NormalColor : DisabledColor);
+					LGUIUtils::NotifyPropertyChanged(TransitionActor->GetUIRenderable(), FName(TEXT("Color")));
 					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 			}

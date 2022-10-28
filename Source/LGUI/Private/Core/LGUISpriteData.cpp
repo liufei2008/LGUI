@@ -320,6 +320,10 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 		{
 			this->ReloadTexture();
 		}
+		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding))
+		{
+			this->ReloadTexture();
+		}
 
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
