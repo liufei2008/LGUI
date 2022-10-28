@@ -653,34 +653,23 @@ bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 	}
 }
 
-bool FLGUIEditorModule::CanReplaceUIElement()
+bool FLGUIEditorModule::CanReplaceActor()
 {
-	if (LGUIEditorTools::IsSelectUIActor())//only allow replace UI element
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-		if (SelectedActor == nullptr)return false;
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allow replace
 		{
-			if (PrefabHelperObject->LoadedRootActor == SelectedActor)//not allow prefab's root object
-			{
-				return false;
-			}
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allow replace
-			{
-				return false;
-			}
+			return false;
 		}
-		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return true;
 }
 
 bool FLGUIEditorModule::CanAttachLayout()
 {
-	if (CanReplaceUIElement())
+	if (LGUIEditorTools::IsSelectUIActor())
 	{
 		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 		if (SelectedActor == nullptr)return false;
@@ -892,13 +881,13 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			);
 		}
 		MenuBuilder.AddSubMenu(
-			LOCTEXT("ReplaceUIElementMenu", "Replace this by..."),
-			LOCTEXT("ReplaceUIElementMenu_Tooltip", "Replace UI Element with..."),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceUIElementSubMenu),
+			LOCTEXT("ReplaceActorMenu", "Replace this by..."),
+			LOCTEXT("ReplaceActorMenu_Tooltip", "Replace this actor with..."),
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceActorSubMenu),
 			FUIAction(FExecuteAction()
-				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanReplaceActor)
 				, FGetActionCheckState()
-				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)),
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanReplaceActor)),
 			NAME_None,
 			EUserInterfaceActionType::None
 		);
@@ -1574,18 +1563,30 @@ void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
-void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
+void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 {
 	struct FunctionContainer
 	{
 		static void ReplaceUIElement(FMenuBuilder& InBuilder, UClass* InClass)
 		{
-			auto UIItemName = InClass->GetName();
-			auto ShotName = FString(*UIItemName);
+			auto ClassName = InClass->GetName();
+			auto ShotName = FString(*ClassName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
-				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(UIItemName)),
+				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(ClassName)),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
+			);
+		}
+		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
+		{
+			auto ClassName = InClass->GetName();
+			auto ShotName = FString(*ClassName);
+			ShotName.RemoveFromEnd(TEXT("Actor"));
+			InBuilder.AddMenuEntry(
+				FText::FromString(ShotName),
+				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(ClassName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
 			);
@@ -1625,6 +1626,60 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				}
 			}
 		}
+
+
+		const FString AllActorGroupName = TEXT("All Actors");
+		TArray<UClass*> AllValidActorArray;
+		TArray<FName> SkipArray =//these actors don't have RootComponent, which is not good for LGUI's prefab system, so ignore them
+		{
+			TEXT("Brush"),
+			TEXT("BrushShape"),
+			TEXT("AbstractNavData"),
+			TEXT("NavModifierVolume"),
+			TEXT("ARActor"),
+			TEXT("AROriginActor"),
+			TEXT("NavSystemConfigOverride"),
+			TEXT("SequenceRecorderGroup"),
+		};
+		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
+		{
+			if (ClassItr->IsChildOf(AActor::StaticClass())
+				&& (*ClassItr) != AActor::StaticClass()
+				&& !SkipArray.Contains(ClassItr->GetFName())
+				)
+			{
+				if (
+					!(ClassItr->HasAnyClassFlags(CLASS_Transient))
+					&& !(ClassItr->HasAnyClassFlags(CLASS_Abstract))
+					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
+					&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
+					)
+				{
+					if (!IsValidClassName(ClassItr->GetName()))
+					{
+						continue;
+					}
+					AllValidActorArray.Add(*ClassItr);
+				}
+			}
+		}
+		MenuBuilder.AddSubMenu(
+			FText::FromString(AllActorGroupName),
+			FText(),
+			FNewMenuDelegate::CreateLambda([=](FMenuBuilder& MenuBuilder) {
+				MenuBuilder.BeginSection(FName(*AllActorGroupName));
+				{
+					MenuBuilder.AddSearchWidget();
+					for (UClass* ActorClassItem : AllValidActorArray)
+					{
+						FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, ActorClassItem);
+					}
+				}
+				MenuBuilder.EndSection();
+				}),
+			FUIAction(),
+					NAME_None, EUserInterfaceActionType::None
+					);
 	}
 	MenuBuilder.EndSection();
 }

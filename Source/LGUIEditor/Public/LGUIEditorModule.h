@@ -41,7 +41,7 @@ private:
 	void CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder);
 	void BasicSetupSubMenu(FMenuBuilder& MenuBuilder);
-	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
+	void ReplaceActorSubMenu(FMenuBuilder& MenuBuilder);
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
 	void AttachLayout(FMenuBuilder& MenuBuilder);
 	void UseActiveViewportAsPreview();
@@ -52,7 +52,7 @@ private:
 	bool CanUpdateLevelPrefab();
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
-	bool CanReplaceUIElement();
+	bool CanReplaceActor();
 	bool CanAttachLayout();
 	bool CanCreateActor();
 
