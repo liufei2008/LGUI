@@ -16,7 +16,7 @@ class FLGUIPrefabEditorOutliner
 public:
 	~FLGUIPrefabEditorOutliner();
 
-	void InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr);
+	void InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr, const TSet<AActor*>& InUnexpendActorSet);
 
 	TSharedPtr<SBox> GetOutlinerWidget() { return OutlinerWidget; }
 	
@@ -32,6 +32,7 @@ public:
 	AActor* GetSelectedActor() const {return SelectedActor.Get();}
 	void ClearSelectedActor();
 	void RenameSelectedActor();
+	void GetUnexpendActor(TArray<AActor*>& InOutAllActors)const;
 private:
 	void OnSceneOutlinerItemPicked(TSharedRef<SceneOutliner::ITreeItem> ItemPtr);
 	void OnSceneOutlinerSelectionChanged(SceneOutliner::FTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode);

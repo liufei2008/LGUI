@@ -92,6 +92,8 @@ public:
 		uint8 CanvasRenderMode = 0;//default LGUICanvas's render mode is ELGUIRenderMode::ScreenSpaceOverlay
 	UPROPERTY()
 		TEnumAsByte<EViewModeIndex> ViewMode = EViewModeIndex::VMI_Lit;//editor viewport's viewmode
+	UPROPERTY()
+		TSet<FGuid> UnexpendActorSet;
 };
 
 //@todo: prefab variant

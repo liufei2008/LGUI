@@ -16,6 +16,8 @@
 #include "LGUIEditorModule.h"
 #include "SceneOutlinerStandaloneTypes.h"
 #include "SceneOutlinerDragDrop.h"
+#include "PrefabSystem/LGUIPrefab.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -23,7 +25,7 @@ FLGUIPrefabEditorOutliner::~FLGUIPrefabEditorOutliner()
 {
 	USelection::SelectionChangedEvent.RemoveAll(this);
 }
-void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr)
+void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr, const TSet<AActor*>& InUnexpendActorSet)
 {
 	CurrentWorld = World;
 	PrefabEditorPtr = InPrefabEditorPtr;
@@ -68,6 +70,30 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	//	return FReply::Handled();
 	//	});
 	SceneOutlinerPtr->SetSelectionMode(ESelectionMode::Multi);
+	
+
+	auto& TreeView = SceneOutlinerPtr->GetTree();
+	TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
+	TreeView.GetExpandedItems(VisitingItems);
+	for (auto& Item : VisitingItems)
+	{
+		switch (Item->GetTypeSortPriority())
+		{
+		case SceneOutliner::ETreeItemSortOrder::Actor:
+		{
+			auto ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (InUnexpendActorSet.Contains(ActorTreeItem->Actor.Get()))
+				{
+					ActorTreeItem->Flags.bIsExpanded = false;
+				}
+			}
+		}
+		break;
+		}
+	}
+	SceneOutlinerPtr->Refresh();
 
 	OutlinerWidget =
 		SNew(SBox)
@@ -224,5 +250,31 @@ void FLGUIPrefabEditorOutliner::ClearSelectedActor()
 {
 	SelectedActor = nullptr;
 }
+
+void FLGUIPrefabEditorOutliner::GetUnexpendActor(TArray<AActor*>& InOutAllActors)const
+{
+	auto& TreeView = SceneOutlinerPtr->GetTree();
+	TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
+	TreeView.GetExpandedItems(VisitingItems);
+	for (auto& Item : VisitingItems)
+	{
+		switch (Item->GetTypeSortPriority())
+		{
+		case SceneOutliner::ETreeItemSortOrder::Actor:
+		{
+			auto ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (ActorTreeItem->Flags.bIsExpanded)
+				{
+					InOutAllActors.Remove(ActorTreeItem->Actor.Get());
+				}
+			}
+		}
+		break;
+		}
+	}
+}
+
 PRAGMA_ENABLE_OPTIMIZATION
 
