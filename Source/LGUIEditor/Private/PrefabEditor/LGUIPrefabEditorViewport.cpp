@@ -7,9 +7,10 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewport"
 
-void SLGUIPrefabEditorViewport::Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor)
+void SLGUIPrefabEditorViewport::Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor, EViewModeIndex InViewMode)
 {
 	this->PrefabEditorPtr = InPrefabEditor;
+	this->ViewMode = InViewMode;
 	SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 void SLGUIPrefabEditorViewport::BindCommands()
@@ -24,6 +25,7 @@ TSharedRef<FEditorViewportClient> SLGUIPrefabEditorViewport::MakeEditorViewportC
 	EditorViewportClient->SetRealtime(true);
 	EditorViewportClient->SetShowStats(true);
 	EditorViewportClient->VisibilityDelegate.BindLambda([]() {return true; });
+	EditorViewportClient->SetViewMode(ViewMode);
 	return EditorViewportClient.ToSharedRef();
 }
 

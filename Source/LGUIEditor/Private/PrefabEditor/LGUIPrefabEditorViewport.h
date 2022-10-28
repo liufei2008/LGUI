@@ -17,7 +17,7 @@ public:
 	SLATE_BEGIN_ARGS(SLGUIPrefabEditorViewport) {}
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor);
+	void Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor, EViewModeIndex InViewMode);
 
 	// SEditorViewport interface
 	virtual void BindCommands() override;
@@ -40,6 +40,7 @@ public:
 private:
 	// Pointer back to owning sprite editor instance (the keeper of state)
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
+	EViewModeIndex ViewMode = EViewModeIndex::VMI_Lit;
 
 	// Viewport client
 	TSharedPtr<FLGUIPrefabEditorViewportClient> EditorViewportClient;
