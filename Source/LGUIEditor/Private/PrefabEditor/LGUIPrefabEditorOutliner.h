@@ -21,7 +21,6 @@ class FLGUIPrefabEditorOutliner
 public:
 	~FLGUIPrefabEditorOutliner();
 
-	friend class FLGUIPrefabEditorOutlinerMode;
 	void InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr, const TSet<AActor*>& InUnexpendActorSet);
 
 	TSharedPtr<SBox> GetOutlinerWidget() { return OutlinerWidget; }
