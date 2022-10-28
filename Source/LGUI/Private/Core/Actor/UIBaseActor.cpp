@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #if WITH_EDITOR
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 #endif
 
 
@@ -28,13 +29,26 @@ void AUIBaseActor::SetIsTemporarilyHiddenInEditor(bool bIsHidden)
 		FirstTemporarilyHiddenActor = this;
 		if (IsTemporarilyHiddenInEditor() != bIsHidden)
 		{
+			bool bShouldNotify = false;
 			if (bIsHidden)
 			{
+				if (GetUIItem()->GetIsUIActiveSelf() != false)
+				{
+					bShouldNotify = true;
+				}
 				GetUIItem()->SetIsUIActive(false);
 			}
 			else
 			{
+				if (GetUIItem()->GetIsUIActiveSelf() != true)
+				{
+					bShouldNotify = true;
+				}
 				GetUIItem()->SetIsUIActive(true);
+			}
+			if (bShouldNotify)
+			{
+				LGUIUtils::NotifyPropertyChanged(GetUIItem(), FName(TEXT("bIsUIActive")));
 			}
 		}
 		ULGUIEditorManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
