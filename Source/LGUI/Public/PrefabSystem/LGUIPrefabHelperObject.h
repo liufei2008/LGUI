@@ -39,6 +39,7 @@ public:
 	void MarkAsManagerObject();
 	bool GetIsManagerObject()const { return bIsMarkedAsManagerObject; }
 #if WITH_EDITORONLY_DATA
+	/** The root agent actor in prefab editor's outliner named [RootAgent] */
 	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
 #endif
 	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
