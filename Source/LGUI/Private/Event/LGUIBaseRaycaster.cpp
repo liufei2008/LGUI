@@ -86,7 +86,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 						&& uiItem->IsGroupAllowInteraction()
 						&& uiItem->GetTraceChannel() == traceChannel
 						&& uiItem->GetIsUIActiveInHierarchy()
-						&& uiItem->GetRenderCanvas() != nullptr
+						&& uiItem->GetRenderCanvas() != nullptr//must have valid canvas to render
 						&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
 						)
 					{
@@ -112,10 +112,6 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 					auto BUIItem = (UUIItem*)(B.Component.Get());
 					if (AUIItem != nullptr && BUIItem != nullptr)
 					{
-						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() != nullptr) return false;//if A not render yet
-						if (AUIItem->GetRenderCanvas() != nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if B not render yet
-						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if A and B not renderred, doesnt matter which one
-
 						auto ACanvasSortOrder = AUIItem->GetRenderCanvas()->GetActualSortOrder();
 						auto BCanvasSortOrder = BUIItem->GetRenderCanvas()->GetActualSortOrder();
 						if (AUIItem->GetRenderCanvas() != BUIItem->GetRenderCanvas() && ACanvasSortOrder != BCanvasSortOrder)//not in same sort order
