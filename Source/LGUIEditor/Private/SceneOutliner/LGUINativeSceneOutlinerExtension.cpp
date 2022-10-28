@@ -109,14 +109,14 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 			const auto& TreeView = SceneOutlinerWidget->GetTree();
 			TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
-			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
+			for (auto& Item : VisitingItems)
 			{
 				switch (Item->GetTypeSortPriority())
 				{
 				default:
 				case SceneOutliner::ETreeItemSortOrder::Actor:
 				{
-					TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+					auto ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
 					if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid())
 					{
 						ExpandedActorArray.Add(ActorTreeItem->Actor.Get());
@@ -125,7 +125,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 				break;
 				case SceneOutliner::ETreeItemSortOrder::Folder:
 				{
-					TSharedPtr<SceneOutliner::FFolderTreeItem> FolderTreeItem = StaticCastSharedPtr<SceneOutliner::FFolderTreeItem>(Item);
+					auto FolderTreeItem = StaticCastSharedPtr<SceneOutliner::FFolderTreeItem>(Item);
 					if (FolderTreeItem.IsValid())
 					{
 						storageActor->ExpandedFolderArray.Add(FolderTreeItem->Path);
@@ -134,7 +134,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 				break;
 				case SceneOutliner::ETreeItemSortOrder::World:
 				{
-					TSharedPtr<SceneOutliner::FWorldTreeItem> WorldTreeItem = StaticCastSharedPtr<SceneOutliner::FWorldTreeItem>(Item);
+					auto WorldTreeItem = StaticCastSharedPtr<SceneOutliner::FWorldTreeItem>(Item);
 					if (WorldTreeItem.IsValid() && WorldTreeItem->World.IsValid())
 					{
 						
@@ -297,7 +297,7 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 			auto& TreeView = SceneOutlinerWidget->GetTree();
 			TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
-			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
+			for (auto& Item : VisitingItems)
 			{
 				RestoreSceneOutlinerStateForTreeItem(Item, storageActor);
 			}
