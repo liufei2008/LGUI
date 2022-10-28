@@ -87,6 +87,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 			}
 		}
 	}
+	SceneOutlinerPtr->Refresh();
 
 	OutlinerWidget =
 		SNew(SBox)
