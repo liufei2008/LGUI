@@ -766,8 +766,13 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 			{
 				PrefabHelperObject->Modify();
 			}
+			bool bNeedSetRootActor = PrefabHelperObject->LoadedRootActor == Actor;
 			PrefabHelperObject->SetCanNotifyAttachment(false);
 			ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
+			if (bNeedSetRootActor)
+			{
+				PrefabHelperObject->LoadedRootActor = ReplacedActor;
+			}
 			PrefabHelperObject->SetCanNotifyAttachment(true);
 		}
 		else
