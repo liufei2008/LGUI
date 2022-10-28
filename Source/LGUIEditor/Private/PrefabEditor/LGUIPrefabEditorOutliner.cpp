@@ -16,6 +16,8 @@
 #include "LGUIEditorModule.h"
 #include "SceneOutlinerStandaloneTypes.h"
 #include "SceneOutlinerDragDrop.h"
+#include "PrefabSystem/LGUIPrefab.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -24,7 +26,7 @@ FLGUIPrefabEditorOutliner::~FLGUIPrefabEditorOutliner()
 	USelection::SelectionChangedEvent.RemoveAll(this);
 }
 
-void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr)
+void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr, const TSet<AActor*>& InUnexpendActorSet)
 {
 	CurrentWorld = World;
 	PrefabEditorPtr = InPrefabEditorPtr;
@@ -67,6 +69,24 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 			SceneOutlinerWeak.Pin()->FullRefresh();
 		}
 	});
+	
+
+	auto& TreeView = SceneOutlinerPtr->GetTree();
+	TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
+	TreeView.GetExpandedItems(VisitingItems);
+	for (auto& Item : VisitingItems)
+	{
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (InUnexpendActorSet.Contains(ActorTreeItem->Actor.Get()))
+				{
+					ActorTreeItem->Flags.bIsExpanded = false;
+				}
+			}
+		}
+	}
 
 	OutlinerWidget =
 		SNew(SBox)
@@ -187,5 +207,26 @@ void FLGUIPrefabEditorOutliner::ClearSelectedActor()
 {
 	SelectedActor = nullptr;
 }
+
+void FLGUIPrefabEditorOutliner::GetUnexpendActor(TArray<AActor*>& InOutAllActors)const
+{
+	auto& TreeView = SceneOutlinerPtr->GetTree();
+	TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
+	TreeView.GetExpandedItems(VisitingItems);
+	for (auto& Item : VisitingItems)
+	{
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (ActorTreeItem->Flags.bIsExpanded)
+				{
+					InOutAllActors.Remove(ActorTreeItem->Actor.Get());
+				}
+			}
+		}
+	}
+}
+
 PRAGMA_ENABLE_OPTIMIZATION
 

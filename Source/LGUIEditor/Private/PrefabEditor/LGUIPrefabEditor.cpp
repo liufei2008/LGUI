@@ -320,11 +320,23 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 
 	PrefabRawDataViewer = SNew(SLGUIPrefabRawDataViewer, PrefabEditorPtr, PrefabBeingEdited);
 
+	auto UnexpendActorGuidSet = PrefabBeingEdited->PrefabDataForPrefabEditor.UnexpendActorSet;
+	TSet<AActor*> UnexpendActorSet;
+	for (auto& ItemActorGuid : UnexpendActorGuidSet)
+	{
+		if (auto ObjectPtr = PrefabHelperObject->MapGuidToObject.Find(ItemActorGuid))
+		{
+			if (auto Actor = Cast<AActor>(*ObjectPtr))
+			{
+				UnexpendActorSet.Add(Actor);
+			}
+		}
+	}
 	OutlinerPtr = MakeShared<FLGUIPrefabEditorOutliner>();
 	OutlinerPtr->ActorFilter = FOnShouldFilterActor::CreateRaw(this, &FLGUIPrefabEditor::IsFilteredActor);
 	OutlinerPtr->OnActorPickedDelegate = FOnActorPicked::CreateRaw(this, &FLGUIPrefabEditor::OnOutlinerPickedChanged);
 	OutlinerPtr->OnActorDoubleClickDelegate = FOnActorPicked::CreateRaw(this, &FLGUIPrefabEditor::OnOutlinerActorDoubleClick);
-	OutlinerPtr->InitOutliner(GetPreviewScene().GetWorld(), PrefabEditorPtr);
+	OutlinerPtr->InitOutliner(GetPreviewScene().GetWorld(), PrefabEditorPtr, UnexpendActorSet);
 
 	BindCommands();
 	ExtendToolbar();
@@ -450,6 +462,18 @@ void FLGUIPrefabEditor::OnApply()
 			}
 		}
 		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewMode = ViewportPtr->GetViewportClient()->GetViewMode();
+		TSet<FGuid> UnexpendActorGuidArray;
+		TArray<AActor*> UnexpendActorArray;
+		LGUIUtils::CollectChildrenActors(PrefabHelperObject->LoadedRootActor, UnexpendActorArray, true);
+		OutlinerPtr->GetUnexpendActor(UnexpendActorArray);
+		for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+		{
+			if (UnexpendActorArray.Contains(KeyValue.Value))
+			{
+				UnexpendActorGuidArray.Add(KeyValue.Key);
+			}
+		}
+		PrefabBeingEdited->PrefabDataForPrefabEditor.UnexpendActorSet = UnexpendActorGuidArray;
 
 		//refresh parameter, remove invalid
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
