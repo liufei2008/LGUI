@@ -90,6 +90,8 @@ public:
 		bool bNeedCanvas = true;//do we need LGUICanvas component? default is true
 	UPROPERTY()
 		uint8 CanvasRenderMode = 0;//default LGUICanvas's render mode is ELGUIRenderMode::ScreenSpaceOverlay
+	UPROPERTY()
+		TEnumAsByte<EViewModeIndex> ViewMode = EViewModeIndex::VMI_Lit;//editor viewport's viewmode
 };
 
 //@todo: prefab variant
