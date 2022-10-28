@@ -314,7 +314,7 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 
 	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr = SharedThis(this);
 
-	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr);
+	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr, PrefabBeingEdited->PrefabDataForPrefabEditor.ViewMode);
 	
 	DetailsPtr = SNew(SLGUIPrefabEditorDetails, PrefabEditorPtr);
 
@@ -456,6 +456,7 @@ void FLGUIPrefabEditor::OnApply()
 				PrefabBeingEdited->PrefabDataForPrefabEditor.bNeedCanvas = false;
 			}
 		}
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewMode = ViewportPtr->GetViewportClient()->GetViewMode();
 
 		//refresh parameter, remove invalid
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
