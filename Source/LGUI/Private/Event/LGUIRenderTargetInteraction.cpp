@@ -326,7 +326,6 @@ void ULGUIRenderTargetInteraction::ProcessPointerEvent(ULGUIPointerEventData* ev
 
 	eventData->raycaster = hitResultContainer.raycaster;
 	auto outHitResult = hitResultContainer.hitResult;
-	auto outIsHitSomething = lineTraceHitSomething;
 
 	if (lineTraceHitSomething)
 	{
@@ -357,7 +356,6 @@ void ULGUIRenderTargetInteraction::ProcessPointerEvent(ULGUIPointerEventData* ev
 				CallOnPointerDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
 
 				outHitResult.Distance = eventData->pressDistance;
-				outIsHitSomething = true;//always hit a plane when drag
 			}
 			else
 			{
@@ -379,7 +377,6 @@ void ULGUIRenderTargetInteraction::ProcessPointerEvent(ULGUIPointerEventData* ev
 					}
 				}
 				outHitResult.Distance = eventData->pressDistance;
-				outIsHitSomething = true;
 			}
 		}
 	}

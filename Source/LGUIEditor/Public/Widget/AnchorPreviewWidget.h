@@ -53,8 +53,8 @@ namespace LGUIAnchorPreviewWidget
 			EHorizontalAlignment anchorDotRightBottomHAlign = EHorizontalAlignment::HAlign_Right;
 			EVerticalAlignment anchorDotRightBottomVAlign = EVerticalAlignment::VAlign_Bottom;
 			int anchorDotSize = 5;
-			EHorizontalAlignment pivotDotHAlign = EHorizontalAlignment::HAlign_Left;
-			EVerticalAlignment pivotDotVAlign = EVerticalAlignment::VAlign_Top;
+			//EHorizontalAlignment pivotDotHAlign = EHorizontalAlignment::HAlign_Left;
+			//EVerticalAlignment pivotDotVAlign = EVerticalAlignment::VAlign_Top;
 			int pivotDotSize = 5;
 
 			EHorizontalAlignment hAlign = EHorizontalAlignment::HAlign_Center;
@@ -64,7 +64,7 @@ namespace LGUIAnchorPreviewWidget
 			{
 				anchorDotSize = 0;
 				anchorLineVerticalHeight = 0;
-				pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
+				//pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Left:
@@ -74,7 +74,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
-				pivotDotHAlign = hAlign;
+				//pivotDotHAlign = hAlign;
 			}break;
 			case UIAnchorHorizontalAlign::Center:
 			{
@@ -83,7 +83,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
-				pivotDotHAlign = hAlign;
+				//pivotDotHAlign = hAlign;
 			} break;
 			case UIAnchorHorizontalAlign::Right:
 			{
@@ -92,13 +92,13 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
-				pivotDotHAlign = hAlign;
+				//pivotDotHAlign = hAlign;
 			} break;
 			case UIAnchorHorizontalAlign::Stretch:
 			{
 				hAlign = EHorizontalAlignment::HAlign_Fill;
 				anchorLineVerticalHeight = 1;
-				pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
+				//pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
 			}
 			break;
 			}
@@ -109,7 +109,7 @@ namespace LGUIAnchorPreviewWidget
 			{
 				anchorDotSize = 0;
 				anchorLineHorizontalWidth = 0;
-				pivotDotVAlign = EVerticalAlignment::VAlign_Center;
+				//pivotDotVAlign = EVerticalAlignment::VAlign_Center;
 			}
 			break;
 			case UIAnchorVerticalAlign::Top:
@@ -119,7 +119,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
-				pivotDotVAlign = vAlign;
+				//pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Middle:
@@ -129,7 +129,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
-				pivotDotVAlign = vAlign;
+				//pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Bottom:
@@ -139,14 +139,14 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
-				pivotDotVAlign = vAlign;
+				//pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Stretch:
 			{
 				vAlign = EVerticalAlignment::VAlign_Fill;
 				anchorLineHorizontalWidth = 1;
-				pivotDotVAlign = EVerticalAlignment::VAlign_Center;
+				//pivotDotVAlign = EVerticalAlignment::VAlign_Center;
 			}
 			break;
 			}

@@ -88,7 +88,6 @@ public:
 
 	void InitFromLGUIHudVertexData(TArray<FLGUIMeshVertex>& Vertices)
 	{
-		auto NumTexCoords = LGUI_VERTEX_TEXCOORDINATE_COUNT;
 		auto LightMapIndex = 0;
 		if (Vertices.Num())
 		{
@@ -119,7 +118,6 @@ public:
 			VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(0, FVector3f(1, 0, 0), FVector3f(0, 1, 0), FVector3f(0, 0, 1));
 			VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(0, 0, FVector2f(0, 0));
 			VertexBuffers.ColorVertexBuffer.VertexColor(0) = FColor(1, 1, 1, 1);
-			NumTexCoords = 1;
 			LightMapIndex = 0;
 		}
 
