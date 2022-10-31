@@ -645,7 +645,14 @@ bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		return PrefabHelperObject->SubPrefabMap.Contains(SelectedActor);
+		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+		{
+			if (KeyValue.Key == SelectedActor || SelectedActor->IsAttachedTo(KeyValue.Key))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	else
 	{
@@ -673,6 +680,13 @@ bool FLGUIEditorModule::CanAttachLayout()
 	{
 		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 		if (SelectedActor == nullptr)return false;
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+		{
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allowed
+			{
+				return false;
+			}
+		}
 		auto LayoutComponents = SelectedActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
 		return LayoutComponents.Num() == 0;
 	}
@@ -712,7 +726,16 @@ void FLGUIEditorModule::OnOutlinerSelectionChange()
 	}
 	if (CurrentPrefabHelperObject != nullptr)
 	{
-		PrefabOverrideDataViewer->RefreshDataContent(CurrentPrefabHelperObject->GetSubPrefabData(SelectedActor).ObjectOverrideParameterArray);
+		bool bIsSubPrefabRoot = false;
+		for (auto& KeyValue : CurrentPrefabHelperObject->SubPrefabMap)
+		{
+			if (KeyValue.Key == SelectedActor)
+			{
+				bIsSubPrefabRoot = true;
+				break;
+			}
+		}
+		PrefabOverrideDataViewer->RefreshDataContent(CurrentPrefabHelperObject->GetSubPrefabData(SelectedActor).ObjectOverrideParameterArray, bIsSubPrefabRoot ? nullptr : SelectedActor);
 	}
 }
 
