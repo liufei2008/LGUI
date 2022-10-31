@@ -22,9 +22,29 @@ void SLGUIPrefabOverrideDataViewer::Construct(const FArguments& InArgs, ULGUIPre
 	]
 	;
 }
-void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabOverrideParameterData>& ObjectOverrideParameterArray)
+void SLGUIPrefabOverrideDataViewer::SetPrefabHelperObject(ULGUIPrefabHelperObject* InPrefabHelperObject)
+{
+	PrefabHelperObject = InPrefabHelperObject; 
+}
+void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray, AActor* InReferenceActor)
 {
 	RootContentVerticalBox->ClearChildren();
+	if (ObjectOverrideParameterArray.Num() == 0)return;
+
+	auto RootObject = ObjectOverrideParameterArray[0].Object.Get();
+	if (InReferenceActor != nullptr)
+	{
+		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+		{
+			auto& Item = ObjectOverrideParameterArray[i];
+			if (!Item.Object->IsInOuter(InReferenceActor))
+			{
+				ObjectOverrideParameterArray.RemoveAt(i);
+				i--;
+			}
+		}
+	}
+
 	const float ButtonHeight = 32;
 	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 	{
@@ -198,7 +218,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 		}
 	}
 	//revert all, apply all
-	if(ObjectOverrideParameterArray.Num() > 0)
+	if(InReferenceActor == nullptr)
 	{
 		RootContentVerticalBox->AddSlot()
 		.AutoHeight()
@@ -216,8 +236,8 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 					.Text(LOCTEXT("RevertAll", "Revert All"))
 					.ToolTipText(LOCTEXT("RevertAll_Tooltip", "Revert all overrides"))
 					.OnClicked_Lambda([=](){
-						PrefabHelperObject->RevertAllPrefabOverride(ObjectOverrideParameterArray[0].Object.Get());
-						AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(ObjectOverrideParameterArray[0].Object.Get()));
+						PrefabHelperObject->RevertAllPrefabOverride(RootObject);
+						AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(RootObject));
 						return FReply::Handled();
 					})
 				]
@@ -234,8 +254,8 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 					.Text(LOCTEXT("ApplyAll", "Apply All"))
 					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "Apply all overrides to source prefab"))
 					.OnClicked_Lambda([=](){
-						PrefabHelperObject->ApplyAllOverrideToPrefab(ObjectOverrideParameterArray[0].Object.Get());
-						AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(ObjectOverrideParameterArray[0].Object.Get()));
+						PrefabHelperObject->ApplyAllOverrideToPrefab(RootObject);
+						AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(RootObject));
 						return FReply::Handled();
 					})
 				]
