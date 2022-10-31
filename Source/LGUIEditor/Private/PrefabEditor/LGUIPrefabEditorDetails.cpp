@@ -230,7 +230,7 @@ bool SLGUIPrefabEditorDetails::IsEditorAllowEditing()const
 void SLGUIPrefabEditorDetails::RefreshOverrideParameter()
 {
 	FLGUISubPrefabData SubPrefabData = PrefabEditorPtr.Pin()->GetSubPrefabDataForActor(CachedActor.Get());
-	OverrideParameterEditor->RefreshDataContent(SubPrefabData.ObjectOverrideParameterArray);
+	OverrideParameterEditor->RefreshDataContent(SubPrefabData.ObjectOverrideParameterArray, nullptr);
 }
 
 AActor* SLGUIPrefabEditorDetails::GetActorContext() const
