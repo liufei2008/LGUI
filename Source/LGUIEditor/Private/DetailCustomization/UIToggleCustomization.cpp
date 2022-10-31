@@ -40,12 +40,10 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	toggleActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIToggleCustomization::ForceRefresh, &DetailBuilder));
 
 	UUIItem* targetUIItem = nullptr;
-	USceneComponent* targetComp = nullptr;
 	UUISelectableTransitionComponent* targetTweenComp = nullptr;
 	if (auto toggleActor = TargetScriptPtr->ToggleActor.Get())
 	{
 		targetUIItem = toggleActor->FindComponentByClass<UUIItem>();
-		targetComp = toggleActor->FindComponentByClass<USceneComponent>();
 		targetTweenComp = toggleActor->FindComponentByClass<UUISelectableTransitionComponent>();
 	}
 
