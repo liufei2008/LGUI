@@ -96,8 +96,6 @@ public:
 		TSet<FGuid> UnexpendActorSet;
 };
 
-//@todo: prefab variant
-
 /**
  * Similar to Unity3D's Prefab. Store actor and it's hierarchy and serailize to asset, deserialize and restore when needed.
  * If you don't want to package the prefab for runtime (only use in editor), you can put the prefab in a folder named "EditorOnly".
@@ -110,8 +108,13 @@ class LGUI_API ULGUIPrefab : public UObject
 public:
 	ULGUIPrefab();
 	friend class FLGUIPrefabCustomization;
+	friend class ULGUIPrefabFactory;
 
 #if WITH_EDITORONLY_DATA
+private:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		bool bIsPrefabVariant = false;
+public:
 	/** put actural UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UObject*> ReferenceAssetList;
@@ -132,6 +135,7 @@ public:
 #endif
 
 #if WITH_EDITORONLY_DATA
+public:
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
@@ -232,6 +236,7 @@ public:
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
 #if WITH_EDITOR
 	void CopyDataTo(ULGUIPrefab* TargetPrefab);
+	bool GetIsPrefabVariant()const { return bIsPrefabVariant; }
 #endif
 private:
 #if WITH_EDITOR

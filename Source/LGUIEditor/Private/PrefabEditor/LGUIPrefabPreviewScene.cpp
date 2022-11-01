@@ -109,19 +109,34 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	{
 		return RootAgentActor->GetRootComponent();
 	}
-	if (IsValid(InPrefab) && InPrefab->ReferenceClassList.Num() > 0)
+	if (!IsValid(InPrefab))return nullptr;
+	auto Prefab = InPrefab;
+	if (InPrefab->GetIsPrefabVariant())
 	{
-		if (InPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
+		if (InPrefab->ReferenceAssetList.Num() <= 0)
 		{
-			auto CanvasSize = InPrefab->PrefabDataForPrefabEditor.CanvasSize;
+			return nullptr;
+		}
+		auto RootSubPrefab = Cast<ULGUIPrefab>(InPrefab->ReferenceAssetList[0]);
+		if (!RootSubPrefab)
+		{
+			return nullptr;
+		}
+		Prefab = RootSubPrefab;
+	}
+	if (Prefab->ReferenceClassList.Num() > 0)
+	{
+		if (Prefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
+		{
+			auto CanvasSize = Prefab->PrefabDataForPrefabEditor.CanvasSize;
 			//create Canvas for UI
 			auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
 			RootUICanvasActor->SetActorLabel(*RootAgentActorName);
 			RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
 
-			if (InPrefab->PrefabDataForPrefabEditor.bNeedCanvas)
+			if (Prefab->PrefabDataForPrefabEditor.bNeedCanvas)
 			{
-				auto RenderMode = (ELGUIRenderMode)InPrefab->PrefabDataForPrefabEditor.CanvasRenderMode;
+				auto RenderMode = (ELGUIRenderMode)Prefab->PrefabDataForPrefabEditor.CanvasRenderMode;
 				auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
 				CanvasComp->RegisterComponent();
 				RootUICanvasActor->AddInstanceComponent(CanvasComp);
