@@ -372,11 +372,7 @@ namespace LGUIPrefabSystem5
 				bIsEditorOrRuntime ? InPrefab->BinaryData :
 #endif
 				InPrefab->BinaryDataForBuild;
-			if (LoadedData.Num() <= 0)
-			{
-				UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
-				return nullptr;
-			}
+
 			auto FromBinary = FMemoryReader(LoadedData, false);
 #if WITH_EDITOR
 			if (bIsEditorOrRuntime)
