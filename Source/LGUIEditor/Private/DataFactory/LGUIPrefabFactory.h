@@ -12,6 +12,7 @@ class ULGUIPrefabFactory : public UFactory
 public:
 	ULGUIPrefabFactory();
 
+	class ULGUIPrefab* SourcePrefab = nullptr;
 	// UFactory interface
 	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
 	// End of UFactory interface

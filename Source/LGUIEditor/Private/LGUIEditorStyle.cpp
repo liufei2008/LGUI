@@ -124,6 +124,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("LGUIEditor.SpriteDataAction", new IMAGE_BRUSH(TEXT("UISprite_16x"), Icon16x16));
 	Style->Set("LGUIEditor.SpriteDataCreate", new IMAGE_BRUSH(TEXT("SpriteDataCreate_16x"), Icon16x16));
 	Style->Set("LGUIEditor.SpriteDataSetting", new IMAGE_BRUSH(TEXT("SpriteDataSetting_16x"), Icon16x16));
+	Style->Set("LGUIEditor.PrefabDataAction", new IMAGE_BRUSH(TEXT("Prefab_16x"), Icon16x16));
 
 	Style->Set("LGUIEditor.WhiteFrame", new BOX_BRUSH(TEXT("WhiteFrame_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("LGUIEditor.WhiteFrameHorizontal", new BOX_BRUSH(TEXT("WhiteFrameHorizontal_1x"), FVector2D(16, 16), 4.0f / 16.0f));
