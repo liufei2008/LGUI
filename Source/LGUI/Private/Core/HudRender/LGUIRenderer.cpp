@@ -32,8 +32,6 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
-static const auto ScreenPercentageConsoleVariable = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"));
-
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
 #endif
@@ -51,33 +49,13 @@ FLGUIHudRenderer::~FLGUIHudRenderer()
 	
 }
 
-#include "LegacyScreenPercentageDriver.h"
 void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
 	if (!World.IsValid())return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	if (!bIsRenderToRenderTarget)
 	{
-		//these codes are copied from Engine\Source\Editor\UnrealEd\Private\EditorViewportClient.cpp:GetDefaultPrimaryResolutionFractionTarget
-		FStaticResolutionFractionHeuristic StaticHeuristic;
-#if WITH_EDITOR
-		if (!InView.bIsGameView)
-		{
-			StaticHeuristic.Settings.PullEditorRenderingSettings(true);
-		}
-		else
-#endif
-		{
-			StaticHeuristic.Settings.PullRunTimeRenderingSettings();
-		}
-		//if (SupportsLowDPIPreview() && IsLowDPIPreview()) // TODO: && ViewFamily.SupportsScreenPercentage())
-		//{
-		//	StaticHeuristic.SecondaryViewFraction = GetDPIDerivedResolutionFraction();
-		//}
 
-		StaticHeuristic.TotalDisplayedPixelCount = FMath::Max(InView.UnconstrainedViewRect.Width() * InView.UnconstrainedViewRect.Height(), 1);
-		StaticHeuristic.DPIScale = 1.0f;
-		ScreenPercentage = StaticHeuristic.ResolveResolutionFraction();
 	}
 	//world space
 	{
@@ -426,6 +404,16 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		}
 
 		ViewRect = InView.UnscaledViewRect;
+		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
+		if (InView.bIsViewInfo)
+		{
+			auto ViewInfo = (FViewInfo*)&InView;
+			ScreenPercentage = (float)ViewInfo->ViewRect.Width() / ViewRect.Width();
+		}
+		else
+		{
+			ScreenPercentage = 1.0f;
+		}
 		const FMinimalSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 		switch (InView.StereoPass)
 		{

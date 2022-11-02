@@ -144,8 +144,6 @@ private:
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
-	//this can affect scale on depth texture
-	float ScreenPercentage = 1.0f;
 
 	void RenderLGUI_RenderThread(
 		FRDGBuilder& GraphBuilder
