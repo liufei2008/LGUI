@@ -4,7 +4,9 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIText.h"
+#include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/RichTextParser.h"
@@ -20,18 +22,19 @@ FORCEINLINE float RoundToFloat(float value)
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelPerfectVertices"), STAT_TransformPixelPerfectVertices, STATGROUP_LGUI);
 
-void UIGeometry::AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
+	FTransform componentToCanvasTransform;
+	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
+	if (!ULGUICanvas::Is2DUITransform(componentToCanvasTransform))return;//only 2d UI can do pixel perfect
+	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
+
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
-
-	FTransform componentToCanvasTransform;
-	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
-	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
 
 	for (int i = startIndex; i < count; i++)
 	{
@@ -50,18 +53,19 @@ void UIGeometry::AdjustPixelPerfectPos(TArray<FLGUIOriginVertexData>& originVert
 		originVertices[i].Position = FVector3f(canvasToComponentTransform.TransformPosition(FVector(item)));
 	}
 }
-void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>& originVertices, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>& originVertices, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
+	FTransform componentToCanvasTransform;
+	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
+	if (!ULGUICanvas::Is2DUITransform(componentToCanvasTransform))return;//only 2d UI can do pixel perfect
+	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
+
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
-
-	FTransform componentToCanvasTransform;
-	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
-	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
 
 	static TArray<int> vertArray = { 0, 2, 6, 8 };
 	for (int i = 0; i < vertArray.Num(); i++)
@@ -82,19 +86,21 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLGUIOriginVertexData>
 		originVertices[vertIndex].Position = FVector3f(canvasToComponentTransform.TransformPosition(canvasSpaceLocation));
 	}
 }
-void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVertices, const TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVertices, const TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	if (cacheCharPropertyArray.Num() <= 0)return;
+
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
+	FTransform componentToCanvasTransform;
+	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
+	if (!ULGUICanvas::Is2DUITransform(componentToCanvasTransform))return;//only 2d UI can do pixel perfect
+	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
+
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
-
-	FTransform componentToCanvasTransform;
-	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
-	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
 
 	for (int i = 0; i < cacheCharPropertyArray.Num(); i++)
 	{
@@ -134,7 +140,7 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FLGUIOriginVertexData>& originVerti
 
 #pragma region UISprite_UITexture_Simple
 void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
-	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -215,7 +221,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
-	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -386,7 +392,7 @@ void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
 
 #pragma region UISprite_Tiled
 void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
-	const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const float& width, const float& height, const FVector2f& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
+	const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const float& width, const float& height, const FVector2f& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -501,7 +507,7 @@ void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
 #pragma region UISprite_Fill_Horizontal_Vertial
 void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
-	, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -662,7 +668,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 #pragma region UISprite_Fill_Radial90
 void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
-	, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -1024,7 +1030,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 #pragma region UISprite_Fill_Radial180
 void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
-	, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -1597,7 +1603,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 #pragma region UISprite_Fill_Radial360
 void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
-	, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
