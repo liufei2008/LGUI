@@ -313,7 +313,6 @@ void UUIRecyclableScrollViewComponent::InitializeOnDataSource()
     if (!CheckParameters())return;
     if (Horizontal == Vertical)return;
     DataItemCount = IUIRecyclableScrollViewDataSource::Execute_GetItemCount(DataSource);
-    if (DataItemCount <= 0)return;
 
     auto GetComponentByInterface = [](AActor* InActor, UClass* InInterfaceClass) {
         for (UActorComponent* Component : InActor->GetComponents())
