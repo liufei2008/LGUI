@@ -566,6 +566,7 @@ private:
 	void BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, const FVector2D& InCanvasRightTop, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
 	void UpdateDrawcallMesh_Implement();
 	void UpdateDrawcallMaterial_Implement();
+public:
 	static bool Is2DUITransform(const FTransform& Transform);
 private:
 	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
