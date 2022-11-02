@@ -131,21 +131,21 @@ public:
 #pragma region UISprite_UITexture_Simple
 public:
 	static void UpdateUIRectSimpleVertex(UIGeometry* uiGeo, 
-		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 public:
 	static void UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
-		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
 #pragma region UISprite_Tiled
 public:
 	static void UpdateUIRectTiledVertex(UIGeometry* uiGeo, 
-		const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
+		const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -153,7 +153,7 @@ public:
 public:
 	static void UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -161,7 +161,7 @@ public:
 public:
 	static void UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -169,7 +169,7 @@ public:
 public:
 	static void UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -177,7 +177,7 @@ public:
 public:
 	static void UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp, const FColor& color,
+		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -209,7 +209,7 @@ public:
 	);
 	static void AdjustPixelPerfectPos(
 		TArray<FLGUIOriginVertexData>& originVertices, int startIndex, int count
-		, ULGUICanvas* renderCanvas, UUIItem* uiComp
+		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp
 	);
 private:
 	static void OffsetVertices(TArray<FLGUIOriginVertexData>& vertices, int count, float offsetX, float offsetY);
