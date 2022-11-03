@@ -178,11 +178,12 @@ public:
 		for (auto AssetIt = SelectedAssets.CreateConstIterator(); AssetIt; ++AssetIt)
 		{
 			const FAssetData& Asset = *AssetIt;
-			if (auto Texture = Cast<UTexture2D>(Asset.GetAsset()))
+			auto AssetObject = Asset.GetAsset();
+			if (auto Texture = Cast<UTexture2D>(AssetObject))
 			{
 				Textures.Add(Texture);
 			}
-			else if (auto Prefab = Cast<ULGUIPrefab>(Asset.GetAsset()))
+			else if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
 				Prefabs.Add(Prefab);
 			}
