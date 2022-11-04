@@ -4,6 +4,9 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
 {
 	if (ControlMode != value)
@@ -80,14 +83,14 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 				if (parentAspectRatio > AspectRatio)
 				{
 					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.Y = parentHeight - parentWidth / AspectRatio;
+					SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
 					SizeDelta.X = 0;
 					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
 				else
 				{
 					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.X = parentWidth - parentHeight * AspectRatio;
+					SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
 					SizeDelta.Y = 0;
 					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
 				}
@@ -123,3 +126,6 @@ bool UUISizeControlByAspectRatio::GetCanLayoutControlAnchor_Implementation(class
 		return false;
 	}
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
