@@ -472,6 +472,7 @@ void ULGUICanvas::OnUIActiveStateChanged(bool value)
 		if (ParentCanvas.IsValid())
 		{
 			ParentCanvas->UIRenderableList.AddUnique(this->UIItem.Get());
+			ParentCanvas->MarkCanvasUpdate(false, false, false, true);
 		}
 	}
 	else
@@ -479,6 +480,7 @@ void ULGUICanvas::OnUIActiveStateChanged(bool value)
 		if (ParentCanvas.IsValid())
 		{
 			ParentCanvas->UIRenderableList.Remove(this->UIItem.Get());
+			ParentCanvas->MarkCanvasUpdate(false, false, false, true);
 		}
 	}
 }
