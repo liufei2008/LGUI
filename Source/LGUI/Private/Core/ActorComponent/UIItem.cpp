@@ -1633,6 +1633,8 @@ void UUIItem::SetSizeDelta(FVector2D Value)
 	if (!AnchorData.SizeDelta.Equals(Value, 0.0f))
 	{
 		AnchorData.SizeDelta = Value;
+		bWidthCached = false;
+		bHeightCached = false;
 		SetOnAnchorChange(false, true);
 	}
 }

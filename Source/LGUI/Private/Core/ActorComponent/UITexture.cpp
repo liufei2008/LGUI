@@ -5,7 +5,9 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 UUITexture::UUITexture(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -77,7 +79,9 @@ void UUITexture::ApplyUVRect()
 		auto TextureWidth = texture->GetSurfaceWidth();
 		auto TextureHeight = texture->GetSurfaceHeight();
 		auto TextureAspect = TextureWidth / TextureHeight;
-		auto ThisAspect = this->GetWidth() / this->GetHeight();
+		auto ThisWidth = this->GetWidth();
+		auto ThisHeight = this->GetHeight();
+		auto ThisAspect = ThisWidth / ThisHeight;
 		if (TextureAspect > ThisAspect)
 		{
 			auto VerticalScale = TextureAspect / ThisAspect;
@@ -97,7 +101,9 @@ void UUITexture::ApplyUVRect()
 		auto TextureWidth = texture->GetSurfaceWidth();
 		auto TextureHeight = texture->GetSurfaceHeight();
 		auto TextureAspect = TextureWidth / TextureHeight;
-		auto ThisAspect = this->GetWidth() / this->GetHeight();
+		auto ThisWidth = this->GetWidth();
+		auto ThisHeight = this->GetHeight();
+		auto ThisAspect = ThisWidth / ThisHeight;
 		if (TextureAspect > ThisAspect)
 		{
 			auto HorizontalScale = ThisAspect / TextureAspect;
@@ -194,7 +200,8 @@ void UUITexture::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDi
 	{
 		if (InSizeChange)
 		{
-			ApplyUVRect();
+			CheckSpriteData();
+			MarkUVDirty();
 		}
 	}
     if (InPivotChange || InSizeChange)
@@ -307,3 +314,6 @@ void UUITexture::SetUVRectControlMode(EUITextureUVRectControlMode newValue)
 		CheckSpriteData();
 	}
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
