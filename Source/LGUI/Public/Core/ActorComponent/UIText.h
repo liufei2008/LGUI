@@ -90,6 +90,7 @@ private:
 	void MarkTextLayoutDirty();
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
+	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;
 	mutable FTextGeometryCache CacheTextGeometryData;
 	bool UpdateCacheTextGeometry()const;
 public:
