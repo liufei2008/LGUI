@@ -510,6 +510,21 @@ void UUIText::OnUpdateLayout_Implementation()
 		}
 	}
 }
+bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
+{
+	if (this == InUIItem)
+	{
+		if (overflowType == UITextOverflowType::HorizontalOverflow)
+		{
+			if (adjustWidth) OutResult.bCanControlHorizontalSizeDelta = true;
+		}
+		else if (overflowType == UITextOverflowType::VerticalOverflow)
+		{
+			if (adjustHeight) OutResult.bCanControlVerticalSizeDelta = true;
+		}
+	}
+	return false;
+}
 
 bool UUIText::UpdateCacheTextGeometry()const
 {
