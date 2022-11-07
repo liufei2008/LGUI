@@ -177,6 +177,7 @@ float _SceneDepthBlend;
 float _SceneDepthFade;
 #endif
 #endif
+float _ColorCorrectionValueForHDR;
 
 void MainPS(
 	FLGUIVertexFactoryInterpolantsVSToPS Interpolants
@@ -213,7 +214,7 @@ void MainPS(
 #endif
 	
 	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
-	OutColor.rgb = pow(OutColor.rgb, 0.454545);
+    OutColor.rgb = pow(OutColor.rgb, _ColorCorrectionValueForHDR);
 	
 #if MATERIALBLENDING_MASKED
     clip(GetMaterialMask(PixelMaterialInputs));
