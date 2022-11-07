@@ -43,7 +43,7 @@ void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FMaterialShader(Initializer)
 {
-	
+	ColorCorrectionValueForHDRParameter.Bind(Initializer.ParameterMap, TEXT("_ColorCorrectionValueForHDR"));
 }
 bool FLGUIHudRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
@@ -62,6 +62,10 @@ void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 	SetUniformBufferParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
 	SetViewParameters(RHICmdList, RHICmdList.GetBoundPixelShader(), View, View.ViewUniformBuffer);
 	FMaterialShader::SetParameters(RHICmdList, RHICmdList.GetBoundPixelShader(), MaterialRenderProxy, *Material, View);
+}
+void FLGUIHudRenderPS::SetColorCorrectionValue(FRHICommandList& RHICmdList, float value)
+{
+	SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), ColorCorrectionValueForHDRParameter, value);
 }
 
 
