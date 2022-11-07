@@ -516,11 +516,19 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 	{
 		if (overflowType == UITextOverflowType::HorizontalOverflow)
 		{
-			if (adjustWidth) OutResult.bCanControlHorizontalSizeDelta = true;
+			if (adjustWidth)
+			{
+				OutResult.bCanControlHorizontalSizeDelta = true;
+				return true;
+			}
 		}
 		else if (overflowType == UITextOverflowType::VerticalOverflow)
 		{
-			if (adjustHeight) OutResult.bCanControlVerticalSizeDelta = true;
+			if (adjustHeight)
+			{
+				OutResult.bCanControlVerticalSizeDelta = true;
+				return true;
+			}
 		}
 	}
 	return false;

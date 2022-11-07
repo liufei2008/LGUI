@@ -63,7 +63,16 @@ private:
 	void OnPivotChanged();
 
 	FLGUICanLayoutControlAnchor GetLayoutControlAnchorValue()const;
-	bool IsAnchorControlledByMultipleLayout()const;
+	enum class EAnchorControlledByLayoutType
+	{
+		HorizontalAnchor,
+		HorizontalAnchoredPosition,
+		HorizontalSizeDelta,
+		VerticalAnchor,
+		VerticalAnchoredPosition,
+		VerticalSizeDelta,
+	};
+	bool IsAnchorControlledByMultipleLayout(TMap<EAnchorControlledByLayoutType, TArray<UObject*>>& Result)const;
 	bool GetLayoutControlHorizontalAnchor()const;
 	bool GetLayoutControlVerticalAnchor()const;
 	bool GetLayoutControlHorizontalAnchoredPosition()const;
