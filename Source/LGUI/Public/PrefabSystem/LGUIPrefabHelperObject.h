@@ -82,9 +82,9 @@ public:
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
 	void RemoveSubPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);
-	bool GetAnythingDirty()const { return bAnythingDirty; }
-	void SetNothingDirty() { bAnythingDirty = false; }
-	void SetAnythingDirty() { bAnythingDirty = true; }
+	bool GetAnythingDirty()const;
+	void SetNothingDirty();
+	void SetAnythingDirty();
 	void CheckPrefabVersion();
 	void DismissAllVersionNotifications() { OnNewVersionDismissAllClicked(); }
 	FSimpleMulticastDelegate OnSubPrefabNewVersionUpdated;

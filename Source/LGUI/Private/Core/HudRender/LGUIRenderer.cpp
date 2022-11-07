@@ -795,7 +795,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 		RenderParameter.HudPrimitive = InPrimitive;
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
-		SortPrimitiveRenderPriority_RenderThread();
+		SortWorldSpacePrimitiveRenderPriority_RenderThread();
 		//check if we have postprocess
 		CheckContainsPostProcess_RenderThread();
 	}
@@ -859,20 +859,21 @@ void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 			return A.GetRenderPriority() < B.GetRenderPriority();
 		});
 }
-void FLGUIHudRenderer::SortPrimitiveRenderPriority_RenderThread()
+void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority_RenderThread()
 {
 	WorldSpaceRenderCanvasParameterArray.Sort([](const FWorldSpaceRenderParameter& A, const FWorldSpaceRenderParameter& B) {
 			return A.HudPrimitive->GetRenderPriority() < B.HudPrimitive->GetRenderPriority();
 		});
 }
 
-void FLGUIHudRenderer::SortPrimitiveRenderPriority()
+void FLGUIHudRenderer::SortScreenAndWorldSpacePrimitiveRenderPriority()
 {
 	auto viewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortPrimitiveRenderPriority)(
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortScreenAndWorldSpacePrimitiveRenderPriority)(
 		[viewExtension](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->SortPrimitiveRenderPriority_RenderThread();
+			viewExtension->SortWorldSpacePrimitiveRenderPriority_RenderThread();
+			viewExtension->SortScreenSpacePrimitiveRenderPriority_RenderThread();
 		}
 	);
 }
