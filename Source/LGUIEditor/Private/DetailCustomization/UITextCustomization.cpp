@@ -184,16 +184,21 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		;
 	}
 
+	auto OverflowTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, overflowType));
+	OverflowTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+	auto AdjustWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
+	AdjustWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+	auto AdjustHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
+	AdjustHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+
+	uint8 OverflowType;
+	OverflowTypeHandle->GetValue(OverflowType);
 	TArray<FName> needToHidePropertyName;
-	auto overflowTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, overflowType));
-	overflowTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
-	uint8 overflowType;
-	overflowTypeHandle->GetValue(overflowType);
-	if (overflowType == (uint8)(UITextOverflowType::HorizontalOverflow))
+	if (OverflowType == (uint8)(UITextOverflowType::HorizontalOverflow))
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 	}
-	else if (overflowType == (uint8)(UITextOverflowType::VerticalOverflow))
+	else if (OverflowType == (uint8)(UITextOverflowType::VerticalOverflow))
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
 	}

@@ -204,15 +204,12 @@ void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)
 {
 	if (!IsValid(GEditor))return;
 	FNotificationInfo Info(NofityText);
-	Info.Image = FAppStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
 	Info.FadeInDuration = 0.1f;
 	Info.FadeOutDuration = 0.5f;
 	Info.ExpireDuration = ExpireDuration;
-	Info.bUseThrobber = false;
-	Info.bUseSuccessFailIcons = true;
-	Info.bUseLargeFont = true;
-	Info.bFireAndForget = false;
-	Info.bAllowThrottleWhenFrameRateIsLow = false;
+	Info.bUseSuccessFailIcons = false;
+	Info.bUseLargeFont = false;
+	Info.bFireAndForget = true;
 	auto NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationItem->SetCompletionState(SNotificationItem::CS_Success);
 	NotificationItem->ExpireAndFadeout();
