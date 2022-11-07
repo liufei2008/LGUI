@@ -216,7 +216,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
 			if (ScreenSpaceOverlayViewExtension.IsValid())
 			{
-				ScreenSpaceOverlayViewExtension->SortPrimitiveRenderPriority();
+				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
 			}
 		}
 		if (bShouldSortWorldSpaceCanvas)
@@ -1447,7 +1447,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
 			if (ScreenSpaceOverlayViewExtension.IsValid())
 			{
-				ScreenSpaceOverlayViewExtension->SortPrimitiveRenderPriority();
+				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
 			}
 			bShouldSortLGUIRenderer = false;
 		}

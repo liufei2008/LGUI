@@ -73,7 +73,7 @@ public:
 	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	void SortPrimitiveRenderPriority();
+	void SortScreenAndWorldSpacePrimitiveRenderPriority();
 	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
@@ -141,7 +141,7 @@ private:
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
-	void SortPrimitiveRenderPriority_RenderThread();
+	void SortWorldSpacePrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;

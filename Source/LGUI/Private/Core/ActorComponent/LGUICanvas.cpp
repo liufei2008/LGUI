@@ -472,7 +472,9 @@ void ULGUICanvas::OnUIActiveStateChanged(bool value)
 		if (ParentCanvas.IsValid())
 		{
 			ParentCanvas->UIRenderableList.AddUnique(this->UIItem.Get());
-			ParentCanvas->MarkCanvasUpdate(false, false, false, true);
+			ParentCanvas->MarkCanvasUpdate(false, false, true//why make this to true? becase we need to sort UIRenderableList, and set bShouldSortRenderableOrder to true can do it
+				, true);
+
 		}
 	}
 	else
@@ -888,6 +890,9 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		}
 		return false;
 	};
+
+	ULGUIMeshComponent* PrevMesh = nullptr;//prev using mesh
+	bool bShouldMeshSectionContinue = true;//use continuous mesh section in same mesh
 	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, UIGeometry* InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType, const FLGUICacheTransformContainer& InItemToCanvasTf) {
 		TSharedPtr<UUIDrawcall> DrawcallItem = nullptr;
 		//if this UIItem exist in InCacheUIDrawcallList, then grab the entire drawcall item (may include other UIItem in RenderObjectList). No need to worry other UIItem, because they could be cleared in further operation, or exist in the same drawcall
@@ -928,7 +933,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				return false;
 				});
 		}
-		if (FoundDrawcallIndex != INDEX_NONE)
+		if (FoundDrawcallIndex != INDEX_NONE)//find exist drawcall from old DrawcallList
 		{
 			DrawcallItem = InCacheUIDrawcallList[FoundDrawcallIndex];
 			InCacheUIDrawcallList.RemoveAt(FoundDrawcallIndex);//cannot use "RemoveAtSwap" here, because we need the right order to tell if we should sort render order, see "bNeedToSortRenderPriority"
@@ -951,6 +956,23 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
 				DrawcallItem->VerticesCount = InItemGeo->vertices.Num();
 				DrawcallItem->IndicesCount = InItemGeo->triangles.Num();
+
+				if (bShouldMeshSectionContinue)//If we should continue mesh section:
+				{
+					if (PrevMesh != DrawcallItem->DrawcallMesh.Get())//but the found drawcall contains different mesh, so we clear DrawcallMesh in order to use new mesh
+					{
+						if (DrawcallItem->DrawcallMeshSection.IsValid())
+						{
+							DrawcallItem->DrawcallMesh->DeleteMeshSection(DrawcallItem->DrawcallMeshSection.Pin());
+						}
+						DrawcallItem->DrawcallMesh = nullptr;
+						DrawcallItem->DrawcallMeshSection = nullptr;
+						DrawcallItem->bNeedToUpdateVertex = true;
+						DrawcallItem->bMaterialNeedToReassign = true;
+					}
+					//else//found drawcall use same mesh as PrevMesh, means the continuous mesh section is good to use
+				}
+				//else//No need to continue mesh section, means we no need to concern PrevMesh
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
@@ -967,7 +989,6 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		}
 		else
 		{
-
 			switch (InDrawcallType)
 			{
 			default:
@@ -1101,6 +1122,8 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				FitInDrawcallMinIndex = InUIDrawcallList.Num();
 				MeshStartDrawcallIndex = InUIDrawcallList.Num();
 			}
+			PrevMesh = nullptr;
+			bShouldMeshSectionContinue = false;
 		}
 		else
 		{
@@ -1173,6 +1196,8 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry, UIItemToCanvasTf);
 					check(UIBatchGeometryRenderableItem->drawcall->VerticesCount < LGUI_MAX_VERTEX_COUNT);
 				}
+				PrevMesh = UIBatchGeometryRenderableItem->drawcall->DrawcallMesh.Get();
+				bShouldMeshSectionContinue = true;
 			}
 			break;
 			case EUIRenderableType::UIPostProcessRenderable:
@@ -1186,6 +1211,8 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				RemoveDrawcallWhenBreakMeshSequence(MeshStartDrawcallIndex);
 				FitInDrawcallMinIndex = InUIDrawcallList.Num();
 				MeshStartDrawcallIndex = InUIDrawcallList.Num();
+				PrevMesh = nullptr;
+				bShouldMeshSectionContinue = false;
 			}
 			break;
 			case EUIRenderableType::UIDirectMeshRenderable:
@@ -1196,6 +1223,8 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::DirectMesh, UIItemToCanvasTf);
 				UIDirectMeshRenderableItem->drawcall->Material = UIDirectMeshRenderableItem->GetMaterial();
 				//no need to copy drawcall's update data for UIDirectMeshRenderable, because UIDirectMeshRenderable's drawcall should be the same as previours one
+				PrevMesh = nullptr;
+				bShouldMeshSectionContinue = false;
 			}
 			break;
 			}
