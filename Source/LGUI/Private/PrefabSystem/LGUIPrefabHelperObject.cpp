@@ -1304,6 +1304,18 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 	}
 	return bAnythingChanged;
 }
+bool ULGUIPrefabHelperObject::GetAnythingDirty()const
+{
+	return bAnythingDirty; 
+}
+void ULGUIPrefabHelperObject::SetNothingDirty()
+{ 
+	bAnythingDirty = false; 
+}
+void ULGUIPrefabHelperObject::SetAnythingDirty() 
+{
+	bAnythingDirty = true; 
+}
 
 #if WITH_EDITOR
 #include "Editor.h"
