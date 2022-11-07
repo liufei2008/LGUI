@@ -120,17 +120,65 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//anchor, width, height
 	{
-		if (IsAnchorControlledByMultipleLayout())
+		TMap<EAnchorControlledByLayoutType, TArray<UObject*>> MultipleLayoutControlMap;
+		if (IsAnchorControlledByMultipleLayout(MultipleLayoutControlMap))
 		{
+			FString ControlTypeString;
+			for (auto& KeyValue : MultipleLayoutControlMap)
+			{
+				if (KeyValue.Value.Num() <= 1)continue;
+				FString LayoutControlTypeString;
+				switch (KeyValue.Key)
+				{
+				case EAnchorControlledByLayoutType::HorizontalAnchor:
+					LayoutControlTypeString = "HorizontalAnchor";
+					break;
+				case EAnchorControlledByLayoutType::HorizontalAnchoredPosition:
+					LayoutControlTypeString = "HorizontalAnchoredPosition";
+					break;
+				case EAnchorControlledByLayoutType::HorizontalSizeDelta:
+					LayoutControlTypeString = "HorizontalSizeDelta";
+					break;
+				case EAnchorControlledByLayoutType::VerticalAnchor:
+					LayoutControlTypeString = "VerticalAnchor";
+					break;
+				case EAnchorControlledByLayoutType::VerticalAnchoredPosition:
+					LayoutControlTypeString = "VerticalAnchoredPosition";
+					break;
+				case EAnchorControlledByLayoutType::VerticalSizeDelta:
+					LayoutControlTypeString = "VerticalSizeDelta";
+					break;
+				}
+				ControlTypeString += FString::Printf(TEXT("Anchor '%s' is controlled by layout object:\n"), *LayoutControlTypeString);
+				for (auto& ObjectItem : KeyValue.Value)
+				{
+					FString LayoutObjectNameString;
+					if (auto Actor = Cast<AActor>(ObjectItem))
+					{
+						LayoutObjectNameString = Actor->GetActorLabel();
+					}
+					else if (auto Component = Cast<UActorComponent>(ObjectItem))
+					{
+						LayoutObjectNameString = FString::Printf(TEXT("%s.%s"), *Component->GetOwner()->GetActorLabel(), *Component->GetName());
+					}
+					else
+					{
+						LayoutObjectNameString = Component->GetName();
+					}
+					ControlTypeString += FString::Printf(TEXT("		'%s'\n"), *LayoutObjectNameString);
+				}
+			}
+			auto MessageText = FText::Format(LOCTEXT("MultiLayoutControlAnchorInfoText", "Detect multiple layout control this UI's anchor, this may cause issue!\n{0}"), FText::FromString(ControlTypeString));
 			TransformCategory.AddCustomRow(LOCTEXT("MultiLayoutControlAnchorError", "MultiLayoutControlAnchorError"))
 				.WholeRowContent()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("MultiLayoutControlAnchorInfoText", "Detech multiple layout control this UI's anchor, this may cause issue!"))
+					.Text(MessageText)
 					.ColorAndOpacity(FLinearColor(FColor::Yellow))
 					.AutoWrapText(true)
 				]
 			;
+			LGUIUtils::EditorNotification(MessageText, 8.0f);
 		}
 		auto AnchorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 		auto AnchorMinHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin));
@@ -2009,7 +2057,7 @@ FLGUICanLayoutControlAnchor FUIItemCustomization::GetLayoutControlAnchorValue()c
 	return Result;
 }
 
-bool FUIItemCustomization::IsAnchorControlledByMultipleLayout()const
+bool FUIItemCustomization::IsAnchorControlledByMultipleLayout(TMap<EAnchorControlledByLayoutType, TArray<UObject*>>& Result)const
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
 
@@ -2035,23 +2083,42 @@ bool FUIItemCustomization::IsAnchorControlledByMultipleLayout()const
 
 		if (AllLayoutArray.Num() > 0)
 		{
-			FLGUICanLayoutControlAnchor Result;
 			for (auto& Item : AllLayoutArray)
 			{
-				FLGUICanLayoutControlAnchor ItemResult;
-				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemResult))
+				FLGUICanLayoutControlAnchor ItemLayoutControl;
+				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemLayoutControl))
 				{
-					if (Result.HaveRepeatedControl(ItemResult))
+					if (ItemLayoutControl.bCanControlHorizontalAnchor)
 					{
-						return true;
+						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchor).Add(Item.GetObject());
 					}
-					else
+					if (ItemLayoutControl.bCanControlHorizontalAnchoredPosition)
 					{
-						Result.Or(ItemResult);
+						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchoredPosition).Add(Item.GetObject());
+					}
+					if (ItemLayoutControl.bCanControlHorizontalSizeDelta)
+					{
+						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalSizeDelta).Add(Item.GetObject());
+					}
+					if (ItemLayoutControl.bCanControlVerticalAnchor)
+					{
+						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchor).Add(Item.GetObject());
+					}
+					if (ItemLayoutControl.bCanControlVerticalAnchoredPosition)
+					{
+						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchoredPosition).Add(Item.GetObject());
+					}
+					if (ItemLayoutControl.bCanControlVerticalSizeDelta)
+					{
+						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalSizeDelta).Add(Item.GetObject());
 					}
 				}
 			}
 		}
+	}
+	for (auto& KeyValue : Result)
+	{
+		if (KeyValue.Value.Num() > 1)return true;
 	}
 	return false;
 }
