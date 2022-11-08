@@ -110,6 +110,7 @@ public:
 		float InHeight,
 		FVector2f InPivot,
 		FColor InColor,
+		float InCanvasGroupAlpha,
 		FVector2f InFontSpace,
 		float InFontSize,
 		UITextParagraphHorizontalAlign InParagraphHAlign,
@@ -130,6 +131,7 @@ private:
 	float height = 0;
 	FVector2f pivot = FVector2f::ZeroVector;
 	FColor color = FColor::White;
+	float canvasGroupAlpha = 1.0f;
 	FVector2f fontSpace = FVector2f::ZeroVector;
 	float fontSize = 0;
 	UITextParagraphHorizontalAlign paragraphHAlign = UITextParagraphHorizontalAlign::Left;
