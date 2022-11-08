@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "Utils/LGUIUtils.h"
 
 //a set of helpers to parse rich text
 namespace LGUIRichTextParser
@@ -45,13 +46,15 @@ namespace LGUIRichTextParser
 
 		int originSize;
 		FColor originColor;
+		uint8 originCanvasGroupAlpha;
 		bool originBold;
 		bool originItalic;
 	public:
-		void Prepare(float inOriginSize, FColor inOriginColor, bool inBold, bool inItalic, RichTextParseResult& result)
+		void Prepare(float inOriginSize, FColor inOriginColor, uint8 inCanvasGroupAlpha, bool inBold, bool inItalic, RichTextParseResult& result)
 		{
 			originSize = inOriginSize;
 			originColor = inOriginColor;
+			originCanvasGroupAlpha = inCanvasGroupAlpha;
 			originBold = inBold;
 			originItalic = inItalic;
 
@@ -368,7 +371,7 @@ namespace LGUIRichTextParser
 		}
 		//get color from 'color=red' or 'color=#ffffff', end with '>'
 		//return true if is valid
-		static bool GetColor(const FString& text, int textLength, int startIndex, int& outEndIndex, FColor& outColor)
+		bool GetColor(const FString& text, int textLength, int startIndex, int& outEndIndex, FColor& outColor)
 		{
 			int endIndex = -1;
 			for (int i = startIndex; i < textLength; i++)
@@ -393,50 +396,70 @@ namespace LGUIRichTextParser
 				FString colorString = text.Mid(startIndex, endIndex - startIndex);
 				if (colorString == TEXT("black"))
 				{
-					outColor = FColor::Black; return true;
+					outColor = FColor::Black;
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("white"))
 				{
-					outColor = FColor::White; return true;
+					outColor = FColor::White;
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("gray"))
 				{
-					outColor = FColor(128, 128, 128, 255); return true;
+					outColor = FColor(128, 128, 128);
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("silver"))
 				{
-					outColor = FColor(192, 192, 192, 255); return true;
+					outColor = FColor(192, 192, 192);
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("red"))
 				{
-					outColor = FColor::Red; return true;
+					outColor = FColor::Red;
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("green"))
 				{
-					outColor = FColor::Green; return true;
+					outColor = FColor::Green;
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("blue"))
 				{
-					outColor = FColor::Blue; return true;
+					outColor = FColor::Blue;
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("orange"))
 				{
-					outColor = FColor(255, 165, 0, 255); return true;
+					outColor = FColor(255, 165, 0);
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("purple"))
 				{
-					outColor = FColor(128, 0, 128, 255); return true;
+					outColor = FColor(128, 0, 128);
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString == TEXT("yellow"))
 				{
-					outColor = FColor(255, 255, 0, 255); return true;
+					outColor = FColor(255, 255, 0);
+					outColor.A = originCanvasGroupAlpha;
+					return true;
 				}
 				else if (colorString[0] == '#')
 				{
 					const static TArray<TCHAR> hexTable = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
 					if (colorString.Len() == 7 || colorString.Len() == 9)//#ffffff/#ffffff00
 					{
-						outColor.A = 255;
+						outColor.A = originCanvasGroupAlpha;
 						int colorStringLength = colorString.Len();
 						for (int i = 1; i < colorStringLength; i += 2)
 						{
@@ -450,7 +473,11 @@ namespace LGUIRichTextParser
 								case 1:outColor.R = value; break;
 								case 3:outColor.G = value; break;
 								case 5:outColor.B = value; break;
-								case 7:outColor.A = value; break;
+								case 7:
+								{
+									outColor.A = (uint8)(LGUIUtils::Color255To1_Table[originCanvasGroupAlpha] * value);
+								}
+								break;
 								}
 							}
 							else
