@@ -9,6 +9,7 @@
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/ActorComponent/UICanvasGroup.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -539,6 +540,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 	if (!IsValid(this->GetFont()))return false;
 
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
+	auto CanvasGroupAlpha = (this->GetRichText() && CanvasGroup.IsValid()) ? CanvasGroup->GetFinalAlpha() : 1.0f;
 	CacheTextGeometryData.SetInputParameters(
 		this->text.ToString()
 		, this->visibleCharCount
@@ -546,6 +548,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetHeight()
 		, FVector2f(this->GetPivot())
 		, this->GetFinalColor()
+		, CanvasGroupAlpha
 		, FVector2f(this->GetFontSpace())
 		, this->GetFontSize()
 		, this->GetParagraphHorizontalAlignment()
