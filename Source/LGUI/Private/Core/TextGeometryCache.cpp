@@ -15,6 +15,7 @@ bool FTextGeometryCache::SetInputParameters(
 	float InHeight,
 	FVector2D InPivot,
 	FColor InColor,
+	float InCanvasGroupAlpha,
 	FVector2D InFontSpace,
 	float InFontSize,
 	UITextParagraphHorizontalAlign InParagraphHAlign,
@@ -57,6 +58,19 @@ bool FTextGeometryCache::SetInputParameters(
 	{
 		this->color = InColor;
 		bIsColorDirty = true;
+	}
+	if (this->richText != InRichText)
+	{
+		this->richText = InRichText;
+		bIsDirty = true;
+	}
+	if (this->canvasGroupAlpha != InCanvasGroupAlpha)
+	{
+		this->canvasGroupAlpha = InCanvasGroupAlpha;
+		if (this->richText)//CanvasGroupAlpha only affect rich text alpha
+		{
+			bIsColorDirty = true;
+		}
 	}
 	if (this->fontSpace != InFontSpace)
 	{
@@ -103,11 +117,6 @@ bool FTextGeometryCache::SetInputParameters(
 		this->fontStyle = InFontStyle;
 		bIsDirty = true;
 	}
-	if (this->richText != InRichText)
-	{
-		this->richText = InRichText;
-		bIsDirty = true;
-	}
 	if (this->font != InFont)
 	{
 		this->font = InFont;
@@ -139,6 +148,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->height
 			, this->pivot
 			, this->color
+			, (uint8)(this->canvasGroupAlpha * 255)
 			, this->fontSpace
 			, this->UIText->GetGeometry()
 			, this->fontSize
