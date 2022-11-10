@@ -59,7 +59,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
 		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 
-	float PressValue;
+	float PressValue = 0;
+
+	virtual void Serialize(FArchive& Ar)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		float GetValue()const { return Value; }
