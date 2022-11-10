@@ -67,6 +67,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
 	
+	virtual void Serialize(FArchive& Ar)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		float GetValue()const { return Value; }

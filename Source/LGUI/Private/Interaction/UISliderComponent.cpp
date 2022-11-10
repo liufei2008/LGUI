@@ -83,6 +83,12 @@ void UUISliderComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeCh
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
     ApplyValueToUI();
 }
+void UUISliderComponent::Serialize(FArchive& Ar)
+{
+    Super::Serialize(Ar);
+    OnValueChange.SetParameterType(LGUIEventDelegateParameterType::Double);//make sure it use the right type. because in UE4 the type is float and stored in prefab, so we need to make sure it use double
+}
+
 void UUISliderComponent::SetValue(float InValue, bool FireEvent)
 {
     InValue = FMath::Clamp(InValue, MinValue, MaxValue);
