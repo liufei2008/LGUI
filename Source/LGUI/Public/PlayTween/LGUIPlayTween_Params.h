@@ -17,11 +17,11 @@ protected:
 		float to = 1.0f;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 
 	virtual void OnUpdate(float progress)override
 	{
-		onUpdateValue.FireEvent((double)FMath::Lerp(from, to, progress));
+		onUpdateValue.FireEvent(FMath::Lerp(from, to, progress));
 	}
 };
 

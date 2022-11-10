@@ -208,6 +208,13 @@ private:
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
 public:
+	void SetParameterType(LGUIEventDelegateParameterType InParamType)
+	{
+		if (supportParameterType != InParamType)
+		{
+			supportParameterType = InParamType;
+		}
+	}
 	bool IsBound()const;
 public:
 	void FireEvent()const;
