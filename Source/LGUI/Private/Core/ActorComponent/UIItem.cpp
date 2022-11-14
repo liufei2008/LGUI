@@ -46,6 +46,9 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bAnchorRightCached = false;
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
+#if WITH_EDITOR
+	bUIActiveStateDirty = true;
+#endif
 
 	bIsCanvasUIItem = false;
 }
@@ -447,6 +450,9 @@ void UUIItem::MarkAllDirty()
 	bAnchorRightCached = false;
 	bAnchorTopCached = false;
 	bAnchorBottomCached = false;
+#if WITH_EDITOR
+	bUIActiveStateDirty = true;
+#endif
 }
 
 void UUIItem::MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode)
@@ -479,6 +485,25 @@ void UUIItem::ForceRefreshRenderCanvasRecursive()
 		}
 	}
 }
+
+#if WITH_EDITOR
+void UUIItem::ForceRefreshUIActiveStateRecursive()
+{
+	if (bUIActiveStateDirty)
+	{
+		bUIActiveStateDirty = false;
+
+		ApplyUIActiveState(true);
+		//affect children
+		CheckChildrenUIActiveRecursive(this->GetIsUIActiveInHierarchy());
+		//callback for parent
+		if (ParentUIItem.IsValid())
+		{
+			ParentUIItem->OnChildActiveStateChanged(this);
+		}
+	}
+}
+#endif
 
 void UUIItem::PostLoad()
 {
@@ -2173,8 +2198,14 @@ void UUIItem::CheckChildrenUIActiveRecursive(bool InUpParentUIActive)
 		{		//state is changed
 			if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
 				(uiChild->bAllUpParentUIActive != InUpParentUIActive)//state change
+#if WITH_EDITOR
+				|| bUIActiveStateDirty
+#endif
 				)
 			{
+#if WITH_EDITOR
+				bUIActiveStateDirty = false;
+#endif
 				uiChild->bAllUpParentUIActive = InUpParentUIActive;
 				//apply for state change
 				uiChild->ApplyUIActiveState(true);
