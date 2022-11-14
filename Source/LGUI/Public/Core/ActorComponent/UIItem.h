@@ -253,6 +253,9 @@ public:
 	virtual void MarkAllDirty();
 	/** force refresh render canvas, remove from old and add to new */
 	void ForceRefreshRenderCanvasRecursive();
+#if WITH_EDITOR
+	void ForceRefreshUIActiveStateRecursive();
+#endif
 	virtual void MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode);
 private:
 	void SetOnAnchorChange(bool InPivotChange, bool InSizeChange);
@@ -431,6 +434,9 @@ protected:
 
 	/** Only for RootUIItem, if dirty then we need to recalculate it */
 	mutable uint8 bFlattenHierarchyIndexDirty : 1;
+#if WITH_EDITOR
+	uint8 bUIActiveStateDirty : 1;
+#endif
 
 	/** find root UIItem of hierarchy */
 	void CheckRootUIItem();
