@@ -336,6 +336,16 @@ namespace LGUISceneOutliner
 	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
+		if (auto actor = GetActorFromTreeItem(TreeItem))
+		{
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
+			{
+				if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
+				{
+					return FSlateColor(PrefabHelperObject->GetSubPrefabData(actor).Color);
+				}
+			}
+		}
 		return FSlateColor(FColor::Green);
 	}
 
@@ -353,7 +363,7 @@ namespace LGUISceneOutliner
 				{
 					if (ActorTreeItem->Actor->GetWorld())
 					{
-						return Cast<AActor>(ActorTreeItem->Actor.Get());
+						return ActorTreeItem->Actor.Get();
 					}
 				}
 			}
