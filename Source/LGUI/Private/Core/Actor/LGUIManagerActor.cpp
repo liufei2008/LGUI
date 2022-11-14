@@ -489,6 +489,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 			{
 				RootUIItem->MarkAllDirtyRecursive();
 				RootUIItem->ForceRefreshRenderCanvasRecursive();
+				RootUIItem->ForceRefreshUIActiveStateRecursive();
 				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
 				RootUIItem->EditorForceUpdate();
 			}
