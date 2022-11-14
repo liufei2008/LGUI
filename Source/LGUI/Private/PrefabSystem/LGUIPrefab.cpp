@@ -18,6 +18,10 @@
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
 
+FLGUISubPrefabData::FLGUISubPrefabData()
+{
+	Color = FLinearColor::MakeRandomColor();
+}
 void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyName)
 {
 	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
