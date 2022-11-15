@@ -877,6 +877,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 			}
 
 			GEditor->BeginTransaction(LOCTEXT("LGUI_CreateFromAssetDrop", "LGUI Create from asset drop"));
+			TArray<AActor*> CreatedActorArray;
 			if (PrefabsToLoad.Num() > 0)
 			{
 				PrefabHelperObject->SetCanNotifyAttachment(false);
@@ -890,6 +891,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					);
 
 					PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabMapGuidToObject, {});
+					CreatedActorArray.Add(LoadedSubPrefabRootActor);
 				}
 				OnApply();
 				PrefabHelperObject->SetCanNotifyAttachment(true);
@@ -897,6 +899,15 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				if (OutlinerPtr.IsValid())
 				{
 					OutlinerPtr->FullRefresh();
+					if (ULGUIEditorManagerObject::Instance)
+					{
+						ULGUIEditorManagerObject::Instance->AddOneShotTickFunction([=] {
+							for (auto& Actor : CreatedActorArray)
+							{
+								OutlinerPtr->UnexpandActor(Actor);
+							}
+							}, 1);//delay execute, because the outliner not create actor yet
+					}
 				}
 			}
 			if (PotentialActorClassesToLoad.Num() > 0)
@@ -908,6 +919,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 						if (auto RootComp = Actor->GetRootComponent())
 						{
 							RootComp->AttachToComponent(CurrentSelectedActor->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+							CreatedActorArray.Add(Actor);
 						}
 						else
 						{
@@ -925,6 +937,15 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					MeshActor->GetStaticMeshComponent()->SetStaticMesh(Mesh);
 					MeshActor->GetStaticMeshComponent()->AttachToComponent(CurrentSelectedActor->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 					MeshActor->SetActorLabel(Mesh->GetName());
+					CreatedActorArray.Add(MeshActor);
+				}
+			}
+			if (CreatedActorArray.Num() > 0)
+			{
+				GEditor->SelectNone(true, true);
+				for (auto& Actor : CreatedActorArray)
+				{
+					GEditor->SelectActor(Actor, true, true, false, true);
 				}
 			}
 			GEditor->EndTransaction();
