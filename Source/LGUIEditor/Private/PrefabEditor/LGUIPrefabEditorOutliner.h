@@ -33,6 +33,7 @@ public:
 	void ClearSelectedActor();
 	void RenameSelectedActor();
 	void GetUnexpendActor(TArray<AActor*>& InOutAllActors)const;
+	void UnexpandActor(AActor* InActor);
 private:
 	void OnSceneOutlinerItemPicked(TSharedRef<SceneOutliner::ITreeItem> ItemPtr);
 	void OnSceneOutlinerSelectionChanged(SceneOutliner::FTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode);
