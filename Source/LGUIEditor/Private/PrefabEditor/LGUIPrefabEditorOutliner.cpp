@@ -102,6 +102,27 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	USelection::SelectionChangedEvent.AddRaw(this, &FLGUIPrefabEditorOutliner::OnEditorSelectionChanged);
 }
 
+void FLGUIPrefabEditorOutliner::UnexpandActor(AActor* InActor)
+{
+	auto& TreeView = SceneOutlinerPtr->GetTree();
+	TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
+	TreeView.GetExpandedItems(VisitingItems);
+	for (auto& Item : VisitingItems)
+	{
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (ActorTreeItem->Actor->IsAttachedTo(InActor) || ActorTreeItem->Actor.Get() == InActor)
+				{
+					ActorTreeItem->Flags.bIsExpanded = false;
+				}
+			}
+		}
+	}
+	SceneOutlinerPtr->Refresh();
+}
+
 void FLGUIPrefabEditorOutliner::OnDelete(const TArray<TWeakPtr<ISceneOutlinerTreeItem>>& InSelectedTreeItemArray)
 {
 	TArray<TWeakObjectPtr<AActor>> InSelectedActorArray;
