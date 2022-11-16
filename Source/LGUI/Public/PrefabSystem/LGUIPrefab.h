@@ -64,7 +64,7 @@ public:
 	/** For level editor, to tell if this prefab is latest version. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab;
 	/** Temporary color for quick identify in editor */
-	FLinearColor Color;
+	FLinearColor EditorIdentifyColor;
 #endif
 public:
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
