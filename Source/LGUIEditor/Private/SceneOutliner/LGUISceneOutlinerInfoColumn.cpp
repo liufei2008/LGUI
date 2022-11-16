@@ -342,7 +342,7 @@ namespace LGUISceneOutliner
 			{
 				if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 				{
-					return FSlateColor(PrefabHelperObject->GetSubPrefabData(actor).Color);
+					return FSlateColor(PrefabHelperObject->GetSubPrefabData(actor).EditorIdentifyColor);
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIPrefab.h"
 #include "LGUI.h"
@@ -20,7 +20,9 @@
 
 FLGUISubPrefabData::FLGUISubPrefabData()
 {
-	Color = FLinearColor::MakeRandomColor();
+#if WITH_EDITORONLY_DATA
+	EditorIdentifyColor = FLinearColor::MakeRandomColor();
+#endif
 }
 void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyName)
 {
