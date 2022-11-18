@@ -319,7 +319,6 @@ void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 {
-	int32 RenderPriority = 0;
 	static TSet<ULGUICanvas*> ProcessedCanvasArray;
 	ProcessedCanvasArray.Reset();
 	for (int i = 0; i < AllCanvasArray.Num(); i++)
@@ -331,6 +330,8 @@ void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRender
 			{
 				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
 				{
+					//if ProcessedCanvasArray not contains the given canvas, means it is a root canvas, then we need to set RenderPriority to 0 for root canvas
+					int32 RenderPriority = canvasItem->GetSortOrder();
 					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
 				}
 			}
@@ -1467,7 +1468,6 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//@todo: cleanup this function
 {
-	int32 RenderPriority = 0;
 	static TSet<ULGUICanvas*> ProcessedCanvasArray;
 	ProcessedCanvasArray.Reset();
 	for (int i = 0; i < AllCanvasArray.Num(); i++)
@@ -1479,6 +1479,8 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//
 			{
 				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
 				{
+					//if ProcessedCanvasArray not contains the given canvas, means it is a root canvas, then we need to set RenderPriority to 0 for root canvas
+					int32 RenderPriority = canvasItem->GetSortOrder();
 					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
 				}
 			}
