@@ -579,7 +579,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 			}
 		}
 	}
-	auto tooltipStr = FText::Format(LOCTEXT("DrawcallInfoTooltip", "This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, FText::FromString(spaceText), allDrawcallCount);
+	auto tooltipStr = FText::Format(LOCTEXT("DrawcallInfoTooltip", "This canvas's drawcall count:{0}, all canvas of {1} drawcall count:{2}"), drawcallCount, FText::FromString(spaceText), allDrawcallCount);
 	return tooltipStr;
 }
 void FLGUICanvasCustomization::OnCopySortOrder()
