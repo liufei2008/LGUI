@@ -5,6 +5,7 @@
 #include "Layout/Margin.h"
 #include "Components/ActorComponent.h"
 #include "Camera/CameraTypes.h"
+#include "Math/TransformCalculus2D.h"
 #include "LGUICanvas.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
