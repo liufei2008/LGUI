@@ -526,57 +526,68 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						{
 							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
-							auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
-#else
 							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
-#endif
 							FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
 								, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
 							);
-							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-							if (VertexShader.IsValid())
+
+							if (canvasParamItem.DepthFade <= 0.0f)
 							{
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
-								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = NumSamples;
-
-								if (canvasParamItem.DepthFade <= 0.0f)
+								TShaderRef<FLGUIHudRenderVS> VertexShader;
+								TShaderRef<FLGUIWorldRenderPS> PixelShader;
+								FMaterialShaderTypes ShaderTypes;
+								ShaderTypes.AddShaderType<FLGUIHudRenderVS>();
+								ShaderTypes.AddShaderType<FLGUIWorldRenderPS>();
+								FMaterialShaders Shaders;
+								if (Material->TryGetShaders(ShaderTypes, nullptr, Shaders))
 								{
-									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-									if (PixelShader.IsValid())
-									{
-										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+									Shaders.TryGetVertexShader(VertexShader);
+									Shaders.TryGetPixelShader(PixelShader);
 
-										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-										PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
-										PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
+									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+									GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+									GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+									GraphicsPSOInit.NumSamples = NumSamples;
+									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
-									}
+									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+									PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+
+									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
 								}
-								else
+							}
+							else
+							{
+								TShaderRef<FLGUIHudRenderVS> VertexShader;
+								TShaderRef<FLGUIWorldRenderDepthFadePS> PixelShader;
+								FMaterialShaderTypes ShaderTypes;
+								ShaderTypes.AddShaderType<FLGUIHudRenderVS>();
+								ShaderTypes.AddShaderType<FLGUIWorldRenderDepthFadePS>();
+								FMaterialShaders Shaders;
+								if (Material->TryGetShaders(ShaderTypes, nullptr, Shaders))
 								{
-									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderDepthFadePS>();
-									if (PixelShader.IsValid())
-									{
-										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+									Shaders.TryGetVertexShader(VertexShader);
+									Shaders.TryGetPixelShader(PixelShader);
 
-										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-										PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
-										PixelShader->SetDepthFadeParameter(RHICmdList, canvasParamItem.DepthFade);
-										PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIMeshVertexDeclaration();
+									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+									GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+									GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+									GraphicsPSOInit.NumSamples = NumSamples;
+									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
-									}
+									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+									PixelShader->SetDepthFadeParameter(RHICmdList, canvasParamItem.DepthFade);
+									PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+
+									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
 								}
 							}
 						}
@@ -691,17 +702,18 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						{
 							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
-							auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
-#else
 							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
-#endif
-							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-
-							auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
-							if (VertexShader.IsValid() && PixelShader.IsValid())
+							TShaderRef<FLGUIHudRenderVS> VertexShader;
+							TShaderRef<FLGUIHudRenderPS> PixelShader;
+							FMaterialShaderTypes ShaderTypes;
+							ShaderTypes.AddShaderType<FLGUIHudRenderVS>();
+							ShaderTypes.AddShaderType<FLGUIHudRenderPS>();
+							FMaterialShaders Shaders;
+							if (Material->TryGetShaders(ShaderTypes, nullptr, Shaders))
 							{
+								Shaders.TryGetVertexShader(VertexShader);
+								Shaders.TryGetPixelShader(PixelShader);
+
 								FLGUIHudRenderer::SetGraphicPipelineState(RenderView.GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), LGUIScreenSpaceDepthTexture.IsValid(), Mesh.ReverseCulling
 								);
