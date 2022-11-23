@@ -340,8 +340,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
-	if (!InView.Family->bIsViewFamilyInfo)return;
-	UE_LOG(LGUI, Error, TEXT("bIsViewFamilyInfo:%d"), InView.Family->bIsViewFamilyInfo);
+	
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
 	FTextureRHIRef OriginScreenColorTexture = nullptr;//@todo: can use a normal texture here?
