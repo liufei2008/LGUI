@@ -5,7 +5,7 @@
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUIEditorTools.h"
-#include "AssetData.h"
+#include "AssetRegistry/AssetData.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabActorFactory"
 

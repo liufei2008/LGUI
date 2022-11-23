@@ -7,7 +7,7 @@
 #include "Misc/MessageDialog.h"
 #include "PropertyCustomizationHelpers.h"
 #include "DesktopPlatformModule.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/EngineTypes.h"
 #include "Kismet2/ComponentEditorUtils.h"
 #include "Widgets/SViewport.h"

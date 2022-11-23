@@ -5,7 +5,7 @@
 #include "EditorStyleSet.h"
 #include "EditorFramework/AssetImportData.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "ContentBrowserModule.h"
 #include "AssetNotifications.h"
 #include "Algo/Transform.h"
