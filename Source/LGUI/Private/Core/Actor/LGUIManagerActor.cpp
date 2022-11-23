@@ -48,7 +48,13 @@ void ULGUIEditorManagerObject::BeginDestroy()
 #if WITH_EDITORONLY_DATA
 	if (OnAssetReimportDelegateHandle.IsValid())
 	{
-		GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
+		if (GEditor)
+		{
+			if (auto ImportSubsystem = GEditor->GetEditorSubsystem<UImportSubsystem>())
+			{
+				ImportSubsystem->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
+			}
+		}
 	}
 	if (OnActorLabelChangedDelegateHandle.IsValid())
 	{
@@ -60,7 +66,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	}
 	if (OnBlueprintCompiledDelegateHandle.IsValid())
 	{
-		GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
+		if (GEditor)
+		{
+			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
+		}
 	}
 #endif
 	Instance = nullptr;

@@ -2,8 +2,6 @@
 
 #include "LGUISDFFontEditorModule.h"
 #include "LGUISDFFontDataTypeAction.h"
-#include "SlateBasics.h"
-#include "SlateExtras.h"
 #include "LevelEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUISDFFontEditor"
