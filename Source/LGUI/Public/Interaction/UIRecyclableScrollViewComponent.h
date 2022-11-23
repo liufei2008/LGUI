@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "UIScrollViewWithScrollbarComponent.h"
+#include "Layout/Margin.h"
 #include "UIRecyclableScrollViewComponent.generated.h"
 
 class AUIBaseActor;
