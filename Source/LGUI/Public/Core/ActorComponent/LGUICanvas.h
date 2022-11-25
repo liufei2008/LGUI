@@ -188,7 +188,7 @@ public:
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }
 
-	void SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& InOutProcessedCanvasArray);
+	void SortDrawcall(int32& InOutRenderPriority);
 
 	void SetParentCanvas(ULGUICanvas* InParentCanvas);
 
