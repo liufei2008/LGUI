@@ -72,7 +72,6 @@ public:
 	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:
 	static bool InitCheck(UWorld* InWorld);
-	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 public:
 	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
@@ -216,7 +215,6 @@ private:
 	bool bShouldUpdateOnCultureChanged = false;
 	FDelegateHandle onCultureChangedDelegateHandle;
 
-	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 
 	void UpdateLayout();
@@ -238,6 +236,7 @@ public:
 	void MarkSortLGUIRenderer();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
+	static void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InAllCanvasArray);
 
 	const TArray<TScriptInterface<ILGUILayoutInterface>>& GetAllLayoutArray()const { return AllLayoutArray; }
 
