@@ -221,8 +221,8 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		}
 		if (bShouldSortLGUIRenderer)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
+			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->AllCanvasArray);
+			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->AllCanvasArray);
 			if (ScreenSpaceOverlayViewExtension.IsValid())
 			{
 				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
@@ -230,11 +230,11 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace);
+			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, this->AllCanvasArray);
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
+			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, this->AllCanvasArray);
 		}
 
 		bShouldSortLGUIRenderer = false;
@@ -326,27 +326,6 @@ void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 	FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile();
 }
 
-void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
-{
-	static TSet<ULGUICanvas*> ProcessedCanvasArray;
-	ProcessedCanvasArray.Reset();
-	for (int i = 0; i < AllCanvasArray.Num(); i++)
-	{
-		auto canvasItem = this->AllCanvasArray[i];
-		if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
-		{
-			if (canvasItem->GetActualRenderMode() == InRenderMode)
-			{
-				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
-				{
-					//if ProcessedCanvasArray not contains the given canvas, means it is a root canvas, then we need to set RenderPriority to 0 for root canvas
-					int32 RenderPriority = canvasItem->GetSortOrder();
-					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
-				}
-			}
-		}
-	}
-}
 void ULGUIEditorManagerObject::MarkSortLGUIRenderer()
 {
 	bShouldSortLGUIRenderer = true;
@@ -1454,8 +1433,8 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 		if (bShouldSortLGUIRenderer)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->AllCanvasArray);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->AllCanvasArray);
 			if (ScreenSpaceOverlayViewExtension.IsValid())
 			{
 				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
@@ -1464,33 +1443,49 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, this->AllCanvasArray);
 			bShouldSortWorldSpaceCanvas = false;
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, this->AllCanvasArray);
 			bShouldSortRenderTargetSpaceCanvas = false;
 		}
 	}
 }
 
-void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//@todo: cleanup this function
+void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InAllCanvasArray)
 {
-	static TSet<ULGUICanvas*> ProcessedCanvasArray;
-	ProcessedCanvasArray.Reset();
-	for (int i = 0; i < AllCanvasArray.Num(); i++)
+	if (InRenderMode == ELGUIRenderMode::WorldSpace)
 	{
-		auto canvasItem = this->AllCanvasArray[i];
-		if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
+		int32 RenderPriority = 0;
+		for (int i = 0; i < InAllCanvasArray.Num(); i++)
 		{
-			if (canvasItem->GetActualRenderMode() == InRenderMode)
+			auto canvasItem = InAllCanvasArray[i];
+			if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				if (!ProcessedCanvasArray.Contains(canvasItem.Get()))
+				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
 				{
-					//if ProcessedCanvasArray not contains the given canvas, means it is a root canvas, then we need to set RenderPriority to 0 for root canvas
-					int32 RenderPriority = canvasItem->GetSortOrder();
-					canvasItem->SortDrawcall(RenderPriority, ProcessedCanvasArray);
+					//ue render need to set RenderPriority, because multiple canvas with same sort order need to sort by distance.
+					RenderPriority = canvasItem->GetActualSortOrder();
+					canvasItem->SortDrawcall(RenderPriority);
+				}
+			}
+		}
+	}
+	else
+	{
+		int32 RenderPriority = 0;
+		for (int i = 0; i < InAllCanvasArray.Num(); i++)
+		{
+			auto canvasItem = InAllCanvasArray[i];
+			if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && canvasItem->GetActualRenderMode() == InRenderMode)
+			{
+				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
+				{
+					//lgui render no need to set RenderPriority
+					//RenderPriority = canvasItem->GetActualSortOrder();
+					canvasItem->SortDrawcall(RenderPriority);
 				}
 			}
 		}

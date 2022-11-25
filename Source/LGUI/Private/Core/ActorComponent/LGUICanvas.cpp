@@ -1854,10 +1854,8 @@ void ULGUICanvas::AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh)
 	}
 }
 
-void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& InOutProcessedCanvasArray)
+void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority)
 {
-	InOutProcessedCanvasArray.Add(this);
-
 	ULGUIMeshComponent* PrevUIMesh = nullptr;
 	int MeshSectionIndex = 0;
 	auto FinishPrevMesh = [&]() {
@@ -1897,7 +1895,7 @@ void ULGUICanvas::SortDrawcall(int32& InOutRenderPriority, TSet<ULGUICanvas*>& I
 			{
 				FinishPrevMesh();
 				PrevUIMesh = nullptr;
-				DrawcallItem->ChildCanvas->SortDrawcall(InOutRenderPriority, InOutProcessedCanvasArray);
+				DrawcallItem->ChildCanvas->SortDrawcall(InOutRenderPriority);
 			}
 		}
 		break;
