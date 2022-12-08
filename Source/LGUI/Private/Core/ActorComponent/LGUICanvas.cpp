@@ -1942,11 +1942,17 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 			{
 				if (DrawcallItem->Material.IsValid())//custom material
 				{
+					//the prev RenderMaterial will not be used because we have custom material, so we can try to pool it
+					if (RenderMat.IsValid()
+						&& RenderMat->IsA(UMaterialInstanceDynamic::StaticClass()))
+					{
+						this->AddUIMaterialToPool((UMaterialInstanceDynamic*)RenderMat.Get());
+					}
 					auto SrcMaterial = DrawcallItem->Material.Get();
 					auto bContainsLGUIParam = IsMaterialContainsLGUIParameter(SrcMaterial
 						, DrawcallItem->Type == EUIDrawcallType::BatchGeometry//BatchGeometry can use MainTexture parameter, not DirectMesh
 					);
-					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))//if custom material is UMaterialInstanceDynamic then use it directly
 					{
 						if (bContainsLGUIParam)
 						{
@@ -1954,16 +1960,17 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 						}
 						DrawcallItem->DrawcallMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallMeshSection.Pin(), SrcMaterial);
 					}
-					else
+					else//if custom material is not UMaterialInstanceDynamic
 					{
-						if (bContainsLGUIParam)
+						if (bContainsLGUIParam)//if custom material contains LGUI parameters, then LGUI should constrol these parameters, then we need to create UMaterialInstanceDynamic with the custom material
 						{
 							RenderMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							RenderMat->SetFlags(RF_Transient);
 							DrawcallItem->DrawcallMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallMeshSection.Pin(), RenderMat.Get());
 						}
-						else
+						else//if custom material not contains LGUI parameters, then use it directly
 						{
+							RenderMat = SrcMaterial;
 							DrawcallItem->DrawcallMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallMeshSection.Pin(), SrcMaterial);
 						}
 					}
