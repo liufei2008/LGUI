@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/EngineTypes.h"
+#include "Engine/HitResult.h"
 #include "LTweener.generated.h"
 
 DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
