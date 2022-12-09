@@ -134,10 +134,11 @@ void ULTweenManager::KillAllTweens(bool callComplete)
 }
 bool ULTweenManager::IsTweening(UObject* WorldContextObject, ULTweener* item)
 {
+	if (!IsValid(item))return false;
+
 	auto Instance = GetLTweenInstance(WorldContextObject);
 	if (!IsValid(Instance))return false;
 
-	if (!IsValid(item))return false;
 	return Instance->tweenerList.Contains(item);
 }
 void ULTweenManager::KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete)
