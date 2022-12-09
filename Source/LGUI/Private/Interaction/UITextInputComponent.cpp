@@ -2062,6 +2062,14 @@ void UUITextInputComponent::FTextInputMethodContext::SetSelectionRange(const uin
 	{
 		InputComp->CaretPositionIndex = BeginIndex;
 	}
+	if (InputComp->Text.Len() == 0)
+	{
+		InputComp->CaretPositionIndex = 0;
+	}
+	else
+	{
+		InputComp->CaretPositionIndex = FMath::Clamp(InputComp->CaretPositionIndex, 0, InputComp->Text.Len());
+	}
 #if LGUI_LOG_TextInputMethodContext
 	UE_LOG(LGUI, Warning, TEXT("SetSelectionRange, BeginIndex:%d, Length:%d, InCaretPosition:%d, CaretPositionIndex:%d, PressCaretPositionIndex:%d"), BeginIndex, Length, (int32)InCaretPosition, InputComp->CaretPositionIndex, InputComp->PressCaretPositionIndex)
 #endif
@@ -2076,8 +2084,17 @@ void UUITextInputComponent::FTextInputMethodContext::GetTextInRange(const uint32
 void UUITextInputComponent::FTextInputMethodContext::SetTextInRange(const uint32 BeginIndex, const uint32 Length, const FString& InString)
 {
 	InputComp->Text.RemoveAt(BeginIndex, Length);
-	InputComp->Text.InsertAt(BeginIndex, InString);
-	InputComp->CaretPositionIndex = BeginIndex + InString.Len();
+	int InsertCharCount = 0;
+	for (int i = 0; i < InString.Len(); i++)
+	{
+		TCHAR c = InString[i];
+		if (InputComp->IsValidChar(c))
+		{
+			InputComp->Text.InsertAt(BeginIndex + InsertCharCount, c);
+			InsertCharCount++;
+		}
+	}
+	InputComp->CaretPositionIndex = BeginIndex + InsertCharCount;
 	InputComp->UpdateAfterTextChange(false);
 #if LGUI_LOG_TextInputMethodContext
 	UE_LOG(LGUI, Log, TEXT("SetTextInRange, BeginIndex:%d, Length:%d, InString:%s"), BeginIndex, Length, *(InString));
