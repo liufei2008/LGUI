@@ -32,6 +32,11 @@ public:
 	/** Map to sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+#if WITH_EDITORONLY_DATA
+	/** Broken actor-subprefab collection, only for level's subprefab */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TSet<AActor*> MissingPrefab;
+#endif
 
 #if WITH_EDITOR
 	virtual void BeginDestroy()override;
@@ -52,6 +57,11 @@ public:
 	void SavePrefab();
 	void ClearLoadedPrefab();
 	bool IsActorBelongsToSubPrefab(const AActor* InActor);
+	/**
+	 * Actor was belongs to a sub prefab, but the prefab asset is missing..
+	 * Only call this function after IsActorBelongsToSubPrefab.
+	 */
+	bool IsActorBelongsToMissingSubPrefab(const AActor* InActor);
 	bool ActorIsSubPrefabRootActor(const AActor* InActor);
 	bool IsActorBelongsToThis(const AActor* InActor);
 	void ClearInvalidObjectAndGuid();

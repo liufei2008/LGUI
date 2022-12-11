@@ -104,15 +104,25 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 	if (!IsValid(InActor))return false;
 	for (auto& KeyValue : SubPrefabMap)
 	{
-		if (InActor == KeyValue.Key)
-		{
-			return true;
-		}
-		if (InActor->IsAttachedTo(KeyValue.Key))
+		if (InActor == KeyValue.Key || InActor->IsAttachedTo(KeyValue.Key))
 		{
 			return true;
 		}
 	}
+	return false;
+}
+bool ULGUIPrefabHelperObject::IsActorBelongsToMissingSubPrefab(const AActor* InActor)
+{
+	if (!IsValid(InActor))return false;
+#if WITH_EDITOR
+	for (auto& Item : MissingPrefab)
+	{
+		if (InActor == Item || InActor->IsAttachedTo(Item))
+		{
+			return true;
+		}
+	}
+#endif
 	return false;
 }
 
@@ -1242,12 +1252,21 @@ void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActo
 
 void ULGUIPrefabHelperObject::RemoveSubPrefabByRootActor(AActor* InPrefabRootActor)
 {
-	auto SubPrefabData = SubPrefabMap[InPrefabRootActor];
-	for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+	if (SubPrefabMap.Contains(InPrefabRootActor))
 	{
-		MapGuidToObject.Remove(KeyValue.Key);
+		auto SubPrefabData = SubPrefabMap[InPrefabRootActor];
+		for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+		{
+			MapGuidToObject.Remove(KeyValue.Key);
+		}
+		SubPrefabMap.Remove(InPrefabRootActor);
 	}
-	SubPrefabMap.Remove(InPrefabRootActor);
+#if WITH_EDITOR
+	else if (MissingPrefab.Contains(InPrefabRootActor))
+	{
+		MissingPrefab.Remove(InPrefabRootActor);
+	}
+#endif
 	ClearInvalidObjectAndGuid();
 }
 
@@ -1280,27 +1299,55 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 
 	//invalid object
 	{
-		TSet<AActor*> KeysToRemove;
+		TSet<AActor*> SubPrefabKeysToRemove;
 		for (auto& KeyValue : SubPrefabMap)
 		{
 			if (!IsValid(KeyValue.Key) || !IsValid(KeyValue.Value.PrefabAsset))
 			{
-				KeysToRemove.Add(KeyValue.Key);
+				SubPrefabKeysToRemove.Add(KeyValue.Key);
+#if WITH_EDITOR
+				MissingPrefab.Add(KeyValue.Key);
+#endif
 			}
 		}
-		for (auto& Item : KeysToRemove)
+		TSet<FGuid> GuidKeysToRemove;
+		for (auto& Item : SubPrefabKeysToRemove)
 		{
 			SubPrefabMap.Remove(Item);
+			if (IsValid(Item))
+			{
+				//cleanup MapGuidToObject
+				for (auto& GuidToObjectKeyValue : MapGuidToObject)
+				{
+					if (GuidToObjectKeyValue.Value->IsInOuter(Item) || GuidToObjectKeyValue.Value == Item)
+					{
+						if (!GuidKeysToRemove.Contains(GuidToObjectKeyValue.Key))
+						{
+							GuidKeysToRemove.Add(GuidToObjectKeyValue.Key);
+						}
+					}
+				}
+			}
 		}
-		if (KeysToRemove.Num() > 0)
+		if (SubPrefabKeysToRemove.Num() > 0)
 		{
-			SetAnythingDirty();
 			if (OnSubPrefabNewVersionUpdated.IsBound())
 			{
 				OnSubPrefabNewVersionUpdated.Broadcast();
 			}
 		}
-		bAnythingChanged = bAnythingChanged || KeysToRemove.Num() > 0;
+		for (auto& Item : GuidKeysToRemove)
+		{
+			MapGuidToObject.Remove(Item);
+		}
+		bAnythingChanged = SubPrefabKeysToRemove.Num() > 0 || GuidKeysToRemove.Num() > 0;
+		if (bAnythingChanged)
+		{
+			SetAnythingDirty();
+		}
+#if WITH_EDITOR
+		MissingPrefab.Remove(nullptr);
+#endif
 	}
 	return bAnythingChanged;
 }

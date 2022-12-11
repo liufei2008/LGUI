@@ -148,10 +148,10 @@ namespace LGUISceneOutliner
 						.VAlign(EVerticalAlignment::VAlign_Center)
 						[
 							SNew(SImage)
-							.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite"))
+							.Image(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconImage, TreeItem)
 							.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, TreeItem)
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, TreeItem)
-							.ToolTipText(LOCTEXT("PrefabMarkWhiteTip", "This actor is part of a LGUIPrefab."))
+							.ToolTipText(this, &FLGUISceneOutlinerInfoColumn::GetPrefabTooltip, TreeItem)
 						]
 					]
 				]
@@ -234,7 +234,14 @@ namespace LGUISceneOutliner
 				}
 				else
 				{
-					return EVisibility::Hidden;
+					if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(actor))
+					{
+						return EVisibility::Visible;
+					}
+					else
+					{
+						return EVisibility::Hidden;
+					}
 				}
 			}
 		}
@@ -284,6 +291,23 @@ namespace LGUISceneOutliner
 		}
 		return FText::FromString(FString::Printf(TEXT("%d"), drawcallCount));
 	}
+	const FSlateBrush* FLGUISceneOutlinerInfoColumn::GetPrefabIconImage(FSceneOutlinerTreeItemRef TreeItem)const
+	{
+		if (auto actor = GetActorFromTreeItem(TreeItem))
+		{
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
+			{
+				if (!PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
+				{
+					if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(actor))
+					{
+						return FLGUIEditorStyle::Get().GetBrush("PrefabMarkBroken");
+					}
+				}
+			}
+		}
+		return FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite");
+	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(FSceneOutlinerTreeItemRef TreeItem)const
 	{
 		if (auto actor = GetActorFromTreeItem(TreeItem))
@@ -294,9 +318,33 @@ namespace LGUISceneOutliner
 				{
 					return FSlateColor(PrefabHelperObject->GetSubPrefabData(actor).EditorIdentifyColor);
 				}
+				else
+				{
+					if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(actor))
+					{
+						return FSlateColor(FColor::White);
+					}
+				}
 			}
 		}
 		return FSlateColor(FColor::Green);
+	}
+	FText FLGUISceneOutlinerInfoColumn::GetPrefabTooltip(FSceneOutlinerTreeItemRef TreeItem)const
+	{
+		if (auto actor = GetActorFromTreeItem(TreeItem))
+		{
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
+			{
+				if (!PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
+				{
+					if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(actor))
+					{
+						return LOCTEXT("PrefabMarkBrokenTip", "This actor was part of a LGUIPrefab, but the prefab asset is missing!");
+					}
+				}
+			}
+		}
+		return LOCTEXT("PrefabMarkWhiteTip", "This actor is part of a LGUIPrefab.");
 	}
 
 	AActor* FLGUISceneOutlinerInfoColumn::GetActorFromTreeItem(FSceneOutlinerTreeItemRef TreeItem)const
