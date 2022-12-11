@@ -499,6 +499,11 @@ void FLGUIPrefabEditor::OnOpenRawDataViewerPanel()
 {
 	this->InvokeTab(FLGUIPrefabEditorTabs::PrefabRawDataViewerID);
 }
+void FLGUIPrefabEditor::OnOpenPrefabHelperObjectDetailsPanel()
+{
+	UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+	AssetEditorSubsystem->OpenEditorForAsset(PrefabHelperObject);
+}
 
 void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
@@ -565,6 +570,12 @@ void FLGUIPrefabEditor::BindCommands()
 		FCanExecuteAction(),
 		FIsActionChecked()
 	);
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.OpenPrefabHelperObject,
+		FExecuteAction::CreateSP(this, &FLGUIPrefabEditor::OnOpenPrefabHelperObjectDetailsPanel),
+		FCanExecuteAction(),
+		FIsActionChecked()
+	);
 
 	ToolkitCommands->MapAction(
 		PrefabEditorCommands.CopyActor,
@@ -614,6 +625,7 @@ void FLGUIPrefabEditor::ExtendToolbar()
 			FToolMenuSection& Section = ToolBar->AddSection("LGUIPrefabCommands", TAttribute<FText>(), InsertAfterAssetSection);
 			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply));
 			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().RawDataViewer));
+			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().OpenPrefabHelperObject));
 		}
 	}
 }
