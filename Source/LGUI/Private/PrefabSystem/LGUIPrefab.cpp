@@ -104,13 +104,14 @@ void FLGUISubPrefabData::RemoveMemberProperty(UObject* InObject)
 bool FLGUISubPrefabData::CheckParameters()
 {
 	bool AnythingChanged = false;
-	TSet<int> ObjectsNeedToRemove;
 	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 	{
 		auto DataItem = ObjectOverrideParameterArray[i];
 		if (!DataItem.Object.IsValid())
 		{
-			ObjectsNeedToRemove.Add(i);
+			ObjectOverrideParameterArray.RemoveAt(i);
+			i--;
+			AnythingChanged = true;
 		}
 		else
 		{
@@ -130,11 +131,6 @@ bool FLGUISubPrefabData::CheckParameters()
 				AnythingChanged = true;
 			}
 		}
-	}
-	for (auto Index : ObjectsNeedToRemove)
-	{
-		ObjectOverrideParameterArray.RemoveAt(Index);
-		AnythingChanged = true;
 	}
 	return AnythingChanged;
 }

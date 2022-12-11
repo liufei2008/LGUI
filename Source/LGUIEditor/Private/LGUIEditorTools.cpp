@@ -1697,8 +1697,9 @@ void LGUIEditorTools::UnpackPrefab()
 	auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor);
 	if (PrefabHelperObject != nullptr)
 	{
-		check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being checked in Unpack button
-		PrefabHelperObject->RemoveSubPrefab(SelectedActor);
+		check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor) || PrefabHelperObject->MissingPrefab.Contains(SelectedActor));//should already filtered by menu
+		PrefabHelperObject->Modify();
+		PrefabHelperObject->RemoveSubPrefabByRootActor(SelectedActor);//the SelectedActor must be root actor, should already filtered by menu
 	}
 	GEditor->EndTransaction();
 	CleanupPrefabsInWorld(SelectedActor->GetWorld());
