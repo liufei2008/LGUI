@@ -582,6 +582,10 @@ bool FLGUIEditorModule::CanUnpackActorForPrefab()
 		{
 			return true;
 		}
+		else if (PrefabHelperObject->MissingPrefab.Contains(SelectedActor))
+		{
+			return true;
+		}
 		return false;
 	}
 	else
@@ -635,6 +639,10 @@ bool FLGUIEditorModule::CanCreateActor()
 		{
 			return false;
 		}
+		else if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(SelectedActor))//missing sub prefab's actor not allowed
+		{
+			return false;
+		}
 	}
 	return true;
 }
@@ -670,6 +678,10 @@ bool FLGUIEditorModule::CanReplaceActor()
 		{
 			return false;
 		}
+		else if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(SelectedActor))//missing sub prefab's actor not allowed
+		{
+			return false;
+		}
 	}
 	return true;
 }
@@ -683,6 +695,10 @@ bool FLGUIEditorModule::CanAttachLayout()
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 		{
 			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allowed
+			{
+				return false;
+			}
+			else if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(SelectedActor))//missing sub prefab's actor not allowed
 			{
 				return false;
 			}
@@ -704,6 +720,10 @@ bool FLGUIEditorModule::CanCreatePrefab()
 			return false;
 		}
 		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
+		{
+			return false;
+		}
+		else if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(SelectedActor))
 		{
 			return false;
 		}

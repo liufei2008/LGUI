@@ -41,7 +41,9 @@ namespace LGUISceneOutliner
 		EVisibility GetDownArrowVisibility(FSceneOutlinerTreeItemRef TreeItem)const;
 		EVisibility GetCanvasIconVisibility(FSceneOutlinerTreeItemRef TreeItem)const;
 		EVisibility GetDrawcallCountVisibility(FSceneOutlinerTreeItemRef TreeItem)const;
+		const FSlateBrush* GetPrefabIconImage(FSceneOutlinerTreeItemRef TreeItem)const;
 		FSlateColor GetPrefabIconColor(FSceneOutlinerTreeItemRef TreeItem)const;
+		FText GetPrefabTooltip(FSceneOutlinerTreeItemRef TreeItem)const;
 		FSlateColor GetDrawcallIconColor(FSceneOutlinerTreeItemRef TreeItem)const;
 		FText GetDrawcallInfo(FSceneOutlinerTreeItemRef TreeItem)const;
 

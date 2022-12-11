@@ -6,6 +6,8 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUIEditorTools.h"
 #include "AssetRegistry/AssetData.h"
+#include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabActorFactory"
 
@@ -78,6 +80,13 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 	}
 	PrefabActor->MoveActorToPrefabFolder();
 	PrefabActor->SetFlags(EObjectFlags::RF_Transient);
+	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+		auto LoadedRootActor = PrefabActor->LoadedRootActor;
+		PrefabActor->LoadedRootActor = nullptr;
+		LGUIUtils::DestroyActorWithHierarchy(PrefabActor);
+		//GEditor->SelectNone(true, true);
+		GEditor->SelectActor(LoadedRootActor, true, true, false, true);
+		});
 }
 
 void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
