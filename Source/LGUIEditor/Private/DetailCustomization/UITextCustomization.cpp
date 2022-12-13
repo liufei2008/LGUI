@@ -197,15 +197,21 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	if (OverflowType == (uint8)(UITextOverflowType::HorizontalOverflow))
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
 	}
 	else if (OverflowType == (uint8)(UITextOverflowType::VerticalOverflow))
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
+	}
+	else if (OverflowType == (uint8)(UITextOverflowType::HorizontalAndVerticalOverflow))
+	{
 	}
 	else
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
 	}
 
 	for (auto item : needToHidePropertyName)

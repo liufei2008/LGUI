@@ -183,10 +183,10 @@ public:
 #pragma endregion
 #pragma region UIText
 public:
-	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
+	static void UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 		, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-		, bool adjustWidth, bool adjustHeight, bool kerning
+		, float maxHorizontalWidth, bool kerning
 		, UITextFontStyle fontStyle, FVector2f& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
