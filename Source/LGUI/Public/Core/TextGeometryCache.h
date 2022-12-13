@@ -37,11 +37,13 @@ UENUM(BlueprintType, Category = LGUI)
 enum class UITextOverflowType :uint8
 {
 	/** chars will go out of rect range horizontally */
-	HorizontalOverflow,
+	HorizontalOverflow = 0,
 	/** chars will go out of rect range vertically */
-	VerticalOverflow,
+	VerticalOverflow = 1,
+	/** if with less than maxHorizontalWidth then use HorizontalOverlow, if grater than maxHorizontalWidth then use VerticalOverflow */
+	HorizontalAndVerticalOverflow = 3,
 	/** remove chars on right if out of range */
-	ClampContent,
+	ClampContent = 2,
 };
 
 /** single char property */
@@ -116,8 +118,7 @@ public:
 		UITextParagraphHorizontalAlign InParagraphHAlign,
 		UITextParagraphVerticalAlign InParagraphVAlign,
 		UITextOverflowType InOverflowType,
-		bool InAdjustWidth,
-		bool InAdjustHeight,
+		float InMaxHorizontalWidth,
 		bool InUseKerning,
 		UITextFontStyle InFontStyle,
 		bool InRichText,
@@ -137,8 +138,7 @@ private:
 	UITextParagraphHorizontalAlign paragraphHAlign = UITextParagraphHorizontalAlign::Left;
 	UITextParagraphVerticalAlign paragraphVAlign = UITextParagraphVerticalAlign::Bottom;
 	UITextOverflowType overflowType = UITextOverflowType::HorizontalOverflow;
-	bool adjustWidth = false;
-	bool adjustHeight = false;
+	float maxHorizontalWidth = 100;
 	bool useKerning = false;
 	UITextFontStyle fontStyle = UITextFontStyle::None;
 	bool richText = false;

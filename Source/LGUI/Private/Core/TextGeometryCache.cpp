@@ -21,8 +21,7 @@ bool FTextGeometryCache::SetInputParameters(
 	UITextParagraphHorizontalAlign InParagraphHAlign,
 	UITextParagraphVerticalAlign InParagraphVAlign,
 	UITextOverflowType InOverflowType,
-	bool InAdjustWidth,
-	bool InAdjustHeight,
+	float InMaxHorizontalWidth,
 	bool InUseKerning,
 	UITextFontStyle InFontStyle,
 	bool InRichText,
@@ -97,14 +96,9 @@ bool FTextGeometryCache::SetInputParameters(
 		this->overflowType = InOverflowType;
 		bIsDirty = true;
 	}
-	if (this->adjustWidth != InAdjustWidth)
+	if (this->maxHorizontalWidth != InMaxHorizontalWidth)
 	{
-		this->adjustWidth = InAdjustWidth;
-		bIsDirty = true;
-	}
-	if (this->adjustHeight != InAdjustHeight)
-	{
-		this->adjustHeight = InAdjustHeight;
+		this->maxHorizontalWidth = InMaxHorizontalWidth;
 		bIsDirty = true;
 	}
 	if (this->useKerning != InUseKerning)
@@ -155,8 +149,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->paragraphHAlign
 			, this->paragraphVAlign
 			, this->overflowType
-			, this->adjustWidth
-			, this->adjustHeight
+			, this->maxHorizontalWidth
 			, this->useKerning
 			, this->fontStyle
 			, this->textRealSize

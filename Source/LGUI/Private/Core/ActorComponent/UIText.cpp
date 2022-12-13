@@ -449,6 +449,14 @@ void UUIText::SetAdjustHeight(bool newAdjustHeight) {
 		MarkVertexPositionDirty();
 	}
 }
+void UUIText::SetMaxHorizontalWidth(float value)
+{
+	if (maxHorizontalWidth != value)
+	{
+		maxHorizontalWidth = value;
+		MarkVertexPositionDirty();
+	}
+}
 void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
 	if (fontStyle != newFontStyle)
 	{
@@ -508,6 +516,11 @@ void UUIText::OnUpdateLayout_Implementation()
 			{
 				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
 			}
+			else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+			{
+				if (adjustWidth)SetWidth(CacheTextGeometryData.textRealSize.X);
+				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
+			}
 		}
 	}
 }
@@ -528,6 +541,21 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 			if (adjustHeight)
 			{
 				OutResult.bCanControlVerticalSizeDelta = true;
+				return true;
+			}
+		}
+		else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+		{
+			if (adjustWidth)
+			{
+				OutResult.bCanControlHorizontalSizeDelta = true;
+			}
+			if (adjustHeight)
+			{
+				OutResult.bCanControlVerticalSizeDelta = true;
+			}
+			if (adjustWidth || adjustHeight)
+			{
 				return true;
 			}
 		}
@@ -554,8 +582,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetParagraphHorizontalAlignment()
 		, this->GetParagraphVerticalAlignment()
 		, this->GetOverflowType()
-		, this->GetAdjustWidth()
-		, this->GetAdjustHeight()
+		, this->GetMaxHorizontalWidth()
 		, this->GetUseKerning()
 		, this->GetFontStyle()
 		, this->GetRichText()

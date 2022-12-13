@@ -2146,10 +2146,10 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 
 #pragma region UIText
 #include "Core/ActorComponent/UIText.h"
-void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2f& pivot
+void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 	, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-	, bool adjustWidth, bool adjustHeight, bool kerning
+	, float maxHorizontalWidth, bool kerning
 	, UITextFontStyle fontStyle, FVector2f& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
@@ -2470,7 +2470,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (charCode == ' ')//char is space
 		{
-			if (overflowType == UITextOverflowType::VerticalOverflow)//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
+			if (overflowType == UITextOverflowType::VerticalOverflow//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
+				|| overflowType == UITextOverflowType::HorizontalAndVerticalOverflow
+				)
 			{
 				auto prevCharCodeOfForwardChar = prevCharCode;
 				float spaceNeeded = GetCharGeoXAdv(prevCharCodeOfForwardChar, charCode, richText ? richTextParseResult.size : fontSize);
@@ -2492,7 +2494,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					forwardVisibleCharIndex++;
 					prevCharCodeOfForwardChar = charCodeOfForwardChar;
 				}
-				if (currentLineOffset.X + spaceNeeded > width)
+				float maxWidthToCompare = overflowType == UITextOverflowType::HorizontalAndVerticalOverflow ? maxHorizontalWidth : width;
+				if (currentLineOffset.X + spaceNeeded > maxWidthToCompare)
 				{
 					NewLine(charIndex);
 					newLineMode = NewLineMode::Space;
@@ -2597,6 +2600,26 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 			}
 			break;
+			case UITextOverflowType::HorizontalAndVerticalOverflow:
+			{
+				if (charIndex + 1 == contentLength)continue;//last char
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
+				if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit max line, then add new line
+				{
+					auto nextChar = content[charIndex + 1];
+					if (nextChar == '\r' || nextChar == '\n')
+					{
+						//next char is new line, no need to add new line
+					}
+					else
+					{
+						NewLine(charIndex + 1);
+						newLineMode = NewLineMode::Overflow;
+						continue;
+					}
+				}
+			}
+			break;
 			case UITextOverflowType::ClampContent:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
@@ -2648,39 +2671,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	//remove last line's space Y
 	paragraphHeight -= fontSpace.Y;
 
-	switch (overflowType)
-	{
-	case UITextOverflowType::HorizontalOverflow:
-	{
-		textRealSize.X = maxLineWidth;
-		textRealSize.Y = paragraphHeight;
-		if (adjustWidth)
-		{
-			width = textRealSize.X;
-		}
-	}
-	break;
-	case UITextOverflowType::VerticalOverflow:
-	{
-		if (linesCount > 1)
-			textRealSize.X = width;
-		else
-			textRealSize.X = maxLineWidth;
-		textRealSize.Y = paragraphHeight;
-		if (adjustHeight)
-		{
-			height = textRealSize.Y;
-		}
-	}
-	break;
-	case UITextOverflowType::ClampContent:
-	{
-		textRealSize.X = maxLineWidth;
-		textRealSize.Y = paragraphHeight;
-	}
-	break;
-	}
-
+	textRealSize.X = maxLineWidth;
+	textRealSize.Y = paragraphHeight;
 
 	float pivotOffsetX = width * (0.5f - pivot.X);
 	float pivotOffsetY = height * (0.5f - pivot.Y);
