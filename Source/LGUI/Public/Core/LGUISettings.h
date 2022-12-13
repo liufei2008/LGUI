@@ -114,7 +114,7 @@ public:
 	 * Note: If actors in folder and the folder is not expanded, then these actors's state will not affected, because I can't get these tree items.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
-		bool PreserveHierarchyState = true;
+		bool PreserveHierarchyState = false;
 	static FSimpleMulticastDelegate LGUIEditorSetting_PreserveHierarchyStateChange;
 	/**
 	 * Sometimes when there are too many actors in level, restore hierarchy will not work. Then increase this value may solve the issue.
