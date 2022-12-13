@@ -57,12 +57,15 @@ protected:
 		UITextParagraphVerticalAlign vAlign = UITextParagraphVerticalAlign::Middle;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextOverflowType overflowType = UITextOverflowType::VerticalOverflow;
-	/** if overflowType = HorizontalOverflow then adjust AnchorData width to true width */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow"))
+	/** adjust AnchorData width to true text content width */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustWidth = false;
-	/** if overflowType = VerticalOverflow then adjust AnchorData height to true height */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow"))
+	/** adjust AnchorData height to true text content height */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustHeight = false;
+	/** if overflowType is HorizontalAndVerticalOverflow, this parameter will limit width for horizontal overflow */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+		float maxHorizontalWidth = 100;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextFontStyle fontStyle = UITextFontStyle::None;
 	/**
@@ -139,6 +142,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
@@ -169,6 +173,8 @@ public:
 		void SetAdjustWidth(bool newAdjustWidth);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAdjustHeight(bool newAdjustHeight);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaxHorizontalWidth(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontStyle(UITextFontStyle newFontStyle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
