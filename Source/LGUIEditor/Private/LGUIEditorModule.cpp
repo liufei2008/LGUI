@@ -1077,7 +1077,8 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Dropdown"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"));
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollViewHorizontal"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollViewVertical"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("RecyclableScrollViewHorizontal"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("RecyclableScrollViewVertical"));
 	}
