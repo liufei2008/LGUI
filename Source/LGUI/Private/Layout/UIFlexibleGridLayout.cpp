@@ -194,12 +194,21 @@ void UUIFlexibleGridLayout::OnRebuildLayout()
 		float columnSize = thisFreeWidth * columnRatio * invColumnTotalRatio + columnConstant + (LayoutElement->GetColumnCount() - 1) * Spacing.X;
 		float rowSize = thisFreeHeight * rowRatio * invRowTotalRatio + rowConstant + (LayoutElement->GetRowCount() - 1) * Spacing.Y;
 		auto uiItem = Item.uiItem;
-		uiItem->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0, 1), FVector2D(0, 1), true, true);
-
-		ApplyAnchoredPositionWithAnimation(tempAnimationType
-			, FVector2D(columnSize * (uiItem->GetPivot().X), -rowSize * (1.0f - uiItem->GetPivot().Y))
-			+ GetOffset(FMath::Min(LayoutElement->GetColumnIndex(), Columns.Num() - 1), FMath::Min(LayoutElement->GetRowIndex(), Rows.Num() - 1))
-			, uiItem.Get());
+		float anchorOffsetX, anchorOffsetY;
+		auto anchorOffset = GetOffset(FMath::Min(LayoutElement->GetColumnIndex(), Columns.Num() - 1), FMath::Min(LayoutElement->GetRowIndex(), Rows.Num() - 1));
+		anchorOffsetX = columnSize * (uiItem->GetPivot().X) + anchorOffset.X;
+		anchorOffsetY = -rowSize * (1.0f - uiItem->GetPivot().Y) + anchorOffset.Y;
+		auto AnchorMin = uiItem->GetAnchorMin();
+		auto AnchorMax = uiItem->GetAnchorMax();
+		if (AnchorMin.Y != AnchorMax.Y || AnchorMin.X != AnchorMax.X)//custom anchor not support
+		{
+			AnchorMin = FVector2D(0, 1);
+			AnchorMax = FVector2D(0, 1);
+			uiItem->SetHorizontalAndVerticalAnchorMinMax(AnchorMin, AnchorMax, true, true);
+		}
+		anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
+		anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
+		ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 		ApplyWidthWithAnimation(tempAnimationType, columnSize, uiItem.Get());
 		ApplyHeightWithAnimation(tempAnimationType, rowSize, uiItem.Get());
 	}
