@@ -423,7 +423,7 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 
 	InScrollValue = FMath::Clamp(InScrollValue, 0.0f, 1.0f);
 	auto Position = ContentUIItem->GetRelativeLocation();
-	Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
+	Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, 1.0f - InScrollValue);
 	ContentUIItem->SetRelativeLocation(Position);
 	Super::UpdateProgress();//use parent's function, skip the set scrollbar code
 }

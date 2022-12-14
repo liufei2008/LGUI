@@ -221,6 +221,7 @@ private:
 	FVector2D RangeArea = FVector2D::ZeroVector;//min max range point in parent location
 	FDelegateHandle OnScrollEventDelegateHandle;
 	void OnScrollCallback(FVector2D value);
+	virtual void ApplyContentPositionWithProgress()override;
 	FVector2D PrevContentPosition = FVector2D::ZeroVector;
 	int DataItemCount = 0;
 	int MinCellIndexInCacheCellList = 0;
