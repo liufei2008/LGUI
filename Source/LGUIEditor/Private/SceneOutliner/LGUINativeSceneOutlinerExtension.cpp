@@ -266,9 +266,10 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 		TSharedPtr<SDockTab> SceneOutlinerTab = LevelEditorTabManager->FindExistingLiveTab(FTabId("LevelEditorSceneOutliner"));
 		if (SceneOutlinerTab.IsValid())
 		{
+#if 0//UE5.1 crash, so diable it
 			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
 			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
-			auto& TreeView = SceneOutlinerWidget->GetTree();
+			auto& TreeView = SceneOutlinerWidget->GetTree();//UE5.1 crash with this line, no clue yet
 			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
 			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
@@ -276,6 +277,7 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 				RestoreSceneOutlinerStateForTreeItem(Item, storageActor);
 			}
 			GEditor->BroadcastLevelActorListChanged();
+#endif
 		}
 	}
 	if (shouldRestoreTemporarilyHidden)
