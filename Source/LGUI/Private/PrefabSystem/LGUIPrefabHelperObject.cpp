@@ -1297,8 +1297,8 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 {
 	bool bAnythingChanged = false;
 
-	//invalid object
 	{
+		//invalid sub prefab
 		TSet<AActor*> SubPrefabKeysToRemove;
 		for (auto& KeyValue : SubPrefabMap)
 		{
@@ -1310,16 +1310,27 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 #endif
 			}
 		}
+		//invalid guid mapped object
 		TSet<FGuid> GuidKeysToRemove;
 		for (auto& Item : SubPrefabKeysToRemove)
 		{
 			SubPrefabMap.Remove(Item);
 			if (IsValid(Item))
 			{
-				//cleanup MapGuidToObject
+				//cleanup MapGuidToObject, because these object could belongs to sub prefab that is about to remove
 				for (auto& GuidToObjectKeyValue : MapGuidToObject)
 				{
-					if (GuidToObjectKeyValue.Value->IsInOuter(Item) || GuidToObjectKeyValue.Value == Item)
+					if (IsValid(GuidToObjectKeyValue.Value))
+					{
+						if (GuidToObjectKeyValue.Value->IsInOuter(Item) || GuidToObjectKeyValue.Value == Item)
+						{
+							if (!GuidKeysToRemove.Contains(GuidToObjectKeyValue.Key))
+							{
+								GuidKeysToRemove.Add(GuidToObjectKeyValue.Key);
+							}
+						}
+					}
+					else
 					{
 						if (!GuidKeysToRemove.Contains(GuidToObjectKeyValue.Key))
 						{
