@@ -398,8 +398,6 @@ void UUIGridLayout::OnRebuildLayout()
 	for (int i = 0; i < childrenCount; i++)
 	{
 		auto uiItem = uiChildrenList[i].uiItem;
-		uiItem->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0, 1), FVector2D(0, 1), true, true);
-
 		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal
 		{
@@ -450,6 +448,16 @@ void UUIGridLayout::OnRebuildLayout()
 			posY -= childHeight + Spacing.Y;
 		}
 
+		auto AnchorMin = uiItem->GetAnchorMin();
+		auto AnchorMax = uiItem->GetAnchorMax();
+		if (AnchorMin.Y != AnchorMax.Y || AnchorMin.X != AnchorMax.X)//custom anchor not support
+		{
+			AnchorMin = FVector2D(0, 1);
+			AnchorMax = FVector2D(0, 1);
+			uiItem->SetHorizontalAndVerticalAnchorMinMax(AnchorMin, AnchorMax, true, true);
+		}
+		anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
+		anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
 		ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 		ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
 		ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
