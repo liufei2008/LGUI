@@ -65,6 +65,13 @@ void UUIScrollViewComponent::PostEditChangeProperty(FPropertyChangedEvent &Prope
     Super::PostEditChangeProperty(PropertyChangedEvent);
     bRangeCalculated = false;
     RecalculateRange();
+    if (auto Property = PropertyChangedEvent.MemberProperty)
+    {
+        if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUIScrollViewComponent, Progress))
+        {
+            ApplyContentPositionWithProgress();
+        }
+    }
 }
 #endif
 
@@ -91,18 +98,8 @@ void UUIScrollViewComponent::RecalculateRange()
         {
             bAllowVerticalScroll = false;
         }
-        auto Position = ContentUIItem->GetRelativeLocation();
-        if (
-            (bAllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))
-            || (bAllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y))
-            )
-        {
-            bCanUpdateAfterDrag = true;
-        }
-        else
-        {
-            UpdateProgress(false);
-        }
+
+        ApplyContentPositionWithProgress();
     }
 }
 void UUIScrollViewComponent::OnUIActiveInHierachy(bool ativeOrInactive)
@@ -617,6 +614,34 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
         bCanUpdateAfterDrag = false;
     }
 }
+
+void UUIScrollViewComponent::ApplyContentPositionWithProgress()
+{
+    if (CheckParameters())
+    {
+        auto Position = ContentUIItem->GetRelativeLocation();
+        if (Horizontal)
+        {
+            bCanUpdateAfterDrag = true;
+            bAllowHorizontalScroll = true;
+
+            Progress.X = FMath::Clamp(Progress.X, 0.0f, 1.0f);
+            Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, 1.0f - Progress.X);
+            ContentUIItem->SetRelativeLocation(Position);
+        }
+        if (Vertical)
+        {
+            bCanUpdateAfterDrag = true;
+            bAllowVerticalScroll = true;
+
+            Progress.Y = FMath::Clamp(Progress.Y, 0.0f, 1.0f);
+            Position.Z = FMath::Lerp(VerticalRange.X, VerticalRange.Y, Progress.Y);
+            ContentUIItem->SetRelativeLocation(Position);
+        }
+    }
+}
+
+
 void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
 {
     if (!ContentUIItem.IsValid())
@@ -624,7 +649,7 @@ void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
     auto relativeLocation = ContentUIItem->GetRelativeLocation();
     if (bAllowHorizontalScroll)
     {
-        Progress.X = (relativeLocation.Y - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
+        Progress.X = 1.0f - (relativeLocation.Y - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
     }
     if (bAllowVerticalScroll)
     {
@@ -641,23 +666,17 @@ void UUIScrollViewComponent::CalculateHorizontalRange()
 {
     if (ContentParentUIItem->GetWidth() > ContentUIItem->GetWidth())
     {
-        if (CanScrollInSmallSize)
+        //parent
+        HorizontalRange.X = -ContentParentUIItem->GetPivot().X * ContentParentUIItem->GetWidth();
+        HorizontalRange.Y = (1.0f - ContentParentUIItem->GetPivot().X) * ContentParentUIItem->GetWidth();
+        //self
+        HorizontalRange.X += ContentUIItem->GetPivot().X * ContentUIItem->GetWidth();
+        HorizontalRange.Y += (ContentUIItem->GetPivot().X - 1.0f) * ContentUIItem->GetWidth();
+
+        if (!CanScrollInSmallSize)
         {
-            //parent
-            HorizontalRange.X = -ContentParentUIItem->GetPivot().X * ContentParentUIItem->GetWidth();
-            HorizontalRange.Y = (1.0f - ContentParentUIItem->GetPivot().X) * ContentParentUIItem->GetWidth();
-            //self
-            HorizontalRange.X += ContentUIItem->GetPivot().X * ContentUIItem->GetWidth();
-            HorizontalRange.Y += (ContentUIItem->GetPivot().X - 1.0f) * ContentUIItem->GetWidth();
-        }
-        else
-        {
-			//parent
-			HorizontalRange.X = -ContentParentUIItem->GetPivot().X * ContentParentUIItem->GetWidth();
-			HorizontalRange.Y = (1.0f - ContentParentUIItem->GetPivot().X) * ContentParentUIItem->GetWidth() - (ContentParentUIItem->GetWidth() - ContentUIItem->GetWidth());
-			//self
-			HorizontalRange.X += ContentUIItem->GetPivot().X * ContentUIItem->GetWidth();
-			HorizontalRange.Y += (ContentUIItem->GetPivot().X - 1.0f) * ContentUIItem->GetWidth();
+            //this can make content stay at Progress.X's position
+            HorizontalRange.X = HorizontalRange.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, 1.0f - Progress.X);
         }
     }
     else
@@ -672,27 +691,19 @@ void UUIScrollViewComponent::CalculateHorizontalRange()
 }
 void UUIScrollViewComponent::CalculateVerticalRange()
 {
-    auto &parentAnchorData = ContentParentUIItem->GetAnchorData();
-    auto &contentAnchorData = ContentUIItem->GetAnchorData();
     if (ContentParentUIItem->GetHeight() > ContentUIItem->GetHeight())
     {
-        if (CanScrollInSmallSize)
+        //parent
+        VerticalRange.X = -ContentParentUIItem->GetPivot().Y * ContentParentUIItem->GetHeight();
+        VerticalRange.Y = (1.0f - ContentParentUIItem->GetPivot().Y) * ContentParentUIItem->GetHeight();
+        //self
+        VerticalRange.X += ContentUIItem->GetPivot().Y * ContentUIItem->GetHeight();
+        VerticalRange.Y += (ContentUIItem->GetPivot().Y - 1.0f) * ContentUIItem->GetHeight();
+
+        if (!CanScrollInSmallSize)
         {
-            //parent
-            VerticalRange.X = -ContentParentUIItem->GetPivot().Y * ContentParentUIItem->GetHeight();
-            VerticalRange.Y = (1.0f - ContentParentUIItem->GetPivot().Y) * ContentParentUIItem->GetHeight();
-            //self
-            VerticalRange.X += ContentUIItem->GetPivot().Y * ContentUIItem->GetHeight();
-            VerticalRange.Y += (ContentUIItem->GetPivot().Y - 1.0f) * ContentUIItem->GetHeight();
-        }
-        else
-        {
-			//parent
-			VerticalRange.X = -ContentParentUIItem->GetPivot().Y * ContentParentUIItem->GetHeight() + (ContentParentUIItem->GetHeight() - ContentUIItem->GetHeight());
-			VerticalRange.Y = (1.0f - ContentParentUIItem->GetPivot().Y) * ContentParentUIItem->GetHeight();
-			//self
-			VerticalRange.X += ContentUIItem->GetPivot().Y * ContentUIItem->GetHeight();
-			VerticalRange.Y += (ContentUIItem->GetPivot().Y - 1.0f) * ContentUIItem->GetHeight();
+            //this can make content stay at Progress.Y's position
+            VerticalRange.X = VerticalRange.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y, Progress.Y);
         }
     }
     else

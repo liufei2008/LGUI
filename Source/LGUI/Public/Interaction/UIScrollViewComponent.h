@@ -82,7 +82,9 @@ protected:
 	virtual bool CheckValidHit(USceneComponent* InHitComp);
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentUIItem = nullptr;//drag or scroll Content
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentParentUIItem = nullptr;//Content's parent
-	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical
+	//progress, 0--1, x for horizontal, y for vertical
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		FVector2D Progress = FVector2D(0, 0);
 	virtual void UpdateProgress(bool InFireEvent = true);
 	FVector2D Velocity = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
@@ -90,6 +92,7 @@ protected:
 	FVector PrevPointerPosition;//prev frame pointer hit position in world
 private:
 	void UpdateAfterDrag(float deltaTime);
+	void ApplyContentPositionWithProgress();
 
 	FLGUIMulticastVector2Delegate OnScrollCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
