@@ -58,9 +58,12 @@ protected:
 	/** Sensitivity when use mouse scroll wheel input */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		float ScrollSensitivity = 1.0f;
-	/** When Content size is smaller than Content's parent size, can we still scroll? */
+	/** When Content size is smaller than Content's parent size, can we still scroll it? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool CanScrollInSmallSize = true;
+	/** When Content size is smaller than Content's parent size, flip content's scroll direction and position. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
+		bool FlipDirectionInSmallSize = false;
 	/** Determines how quickly the contents stop moving. A value of 0 means the movement will never slow down, larger value will stop the movement faster. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0"))
 		float DecelerateRate = 0.135f;
@@ -90,9 +93,9 @@ protected:
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
 	FVector2D VerticalRange;//vertical scroll range, x--min, y--max
 	FVector PrevPointerPosition;//prev frame pointer hit position in world
-private:
+
 	void UpdateAfterDrag(float deltaTime);
-	void ApplyContentPositionWithProgress();
+	virtual void ApplyContentPositionWithProgress();
 
 	FLGUIMulticastVector2Delegate OnScrollCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")

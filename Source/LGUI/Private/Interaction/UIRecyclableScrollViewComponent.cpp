@@ -726,6 +726,12 @@ void UUIRecyclableScrollViewComponent::OnScrollCallback(FVector2D value)
     PrevContentPosition = ContentPosition;
 }
 
+void UUIRecyclableScrollViewComponent::ApplyContentPositionWithProgress()
+{
+    Super::ApplyContentPositionWithProgress();
+    OnScrollCallback(FVector2D::ZeroVector);
+}
+
 void UUIRecyclableScrollViewComponent::UpdateCellData()
 {
     if (!IsValid(DataSource))return;
