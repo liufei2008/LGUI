@@ -14,6 +14,9 @@
 #include "Core/Actor/UISpriteActor.h"
 #include "Interaction/UIButtonComponent.h"
 #include "Layout/UILayoutBase.h"
+#if WITH_EDITOR
+#include "Utils/LGUIUtils.h"
+#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -38,6 +41,19 @@ void UUIDropdownComponent::Awake()
 		}
 		MaxHeight = ListRoot->GetUIItem()->GetHeight();
 	}
+	//set default display
+	if (Options.Num() > 0)
+	{
+		auto tempValue = FMath::Clamp(Value, 0, Options.Num() - 1);
+		if (CaptionText.IsValid())
+		{
+			CaptionText->GetUIText()->SetText(Options[tempValue].Text);
+		}
+		if (CaptionSprite.IsValid() && IsValid(Options[tempValue].Sprite))
+		{
+			CaptionSprite->GetUISprite()->SetSprite(Options[tempValue].Sprite);
+		}
+	}
 }
 #if WITH_EDITOR
 void UUIDropdownComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -49,10 +65,12 @@ void UUIDropdownComponent::PostEditChangeProperty(FPropertyChangedEvent& Propert
 		if (CaptionText.IsValid())
 		{
 			CaptionText->GetUIText()->SetText(Options[tempValue].Text);
+			LGUIUtils::NotifyPropertyChanged(CaptionText->GetUIText(), UUIText::GetTextPropertyName());
 		}
 		if (CaptionSprite.IsValid() && IsValid(Options[tempValue].Sprite))
 		{
 			CaptionSprite->GetUISprite()->SetSprite(Options[tempValue].Sprite);
+			LGUIUtils::NotifyPropertyChanged(CaptionText->GetUIText(), UUISpriteBase::GetSpritePropertyName());
 		}
 	}
 }

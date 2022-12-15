@@ -25,6 +25,11 @@ protected:
 	virtual void OnPreChangeSpriteProperty();
 	virtual void OnPostChangeSpriteProperty();
 #endif
+public:
+	static const FName GetSpritePropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUISpriteBase, sprite);
+	}
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;

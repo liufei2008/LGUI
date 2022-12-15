@@ -37,6 +37,11 @@ protected:
 	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
 #endif
+public:
+	static const FName GetTextPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIText, text);
+	}
 
 protected:
 	friend class FUITextCustomization;
