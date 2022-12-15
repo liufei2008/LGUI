@@ -91,14 +91,14 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 					if (IsValid(TargetUISpriteComp) && IsValid(NormalSprite))
 					{
 						TargetUISpriteComp->SetSprite(isGroupAllowInteraction ? NormalSprite : DisabledSprite, false);
-						LGUIUtils::NotifyPropertyChanged(TargetUISpriteComp, FName(TEXT("sprite")));
+						LGUIUtils::NotifyPropertyChanged(TargetUISpriteComp, UUISpriteBase::GetSpritePropertyName());
 					}
 					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 				else if (Transition == UISelectableTransitionType::ColorTint)
 				{
 					TransitionActor->GetUIRenderable()->SetColor(isGroupAllowInteraction ? NormalColor : DisabledColor);
-					LGUIUtils::NotifyPropertyChanged(TransitionActor->GetUIRenderable(), FName(TEXT("Color")));
+					LGUIUtils::NotifyPropertyChanged(TransitionActor->GetUIRenderable(), UUIBaseRenderable::GetColorPropertyName());
 					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 			}
