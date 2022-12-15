@@ -113,6 +113,11 @@ protected:
     virtual void ApplyUIActiveState(bool InStateChange) override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 public:
+	static const FName GetColorPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIBaseRenderable, Color);
+	}
+public:
 	/** get UI renderable type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		EUIRenderableType GetUIRenderableType()const { return UIRenderableType; }
