@@ -37,8 +37,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
 		ELayoutElementType GetLayoutType()const;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
-		bool GetIgnoreLayout()const;
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
 		float GetConstantSize()const;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
 		float GetRatioSize()const;
