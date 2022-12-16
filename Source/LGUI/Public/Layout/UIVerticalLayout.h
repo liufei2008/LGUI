@@ -60,9 +60,15 @@ protected:
 		bool ExpendChildrenWidth = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ExpendChildrenHeight = false;
-	/** this object's height set to children range */
+	/** this object's height set to all children's range */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
+	/** this object's width set to children width */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool WidthFitToChildren = false;
+	/** lerp from min child's width to max child's width */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float WidthFitToChildrenFromMinToMax = 1.0f;
 
 	//actural children fill range
 	float ActuralRange = 0;

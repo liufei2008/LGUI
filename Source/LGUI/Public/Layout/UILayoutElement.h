@@ -40,6 +40,8 @@ private:
 	friend class FUILayoutElementCustomization;
 	UPROPERTY(Transient) class UUILayoutBase* ParentLayout = nullptr;
 	bool CheckParentLayout();
+	/** find new parent layout when attachement change */
+	virtual void OnUIAttachmentChanged()override;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELayoutElementType LayoutElementType = ELayoutElementType::AutoSize;
