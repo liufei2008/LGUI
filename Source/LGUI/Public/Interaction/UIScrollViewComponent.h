@@ -75,6 +75,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool AllowEventBubbleUp = false;
 
+	/**
+	 * Keep progress value when content change.
+	 * true- keep progress value and change content's position to fit progress.
+	 * false- change progress value to fit content's position.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
+		bool KeepProgress = false;
+	//progress, 0--1, x for horizontal, y for vertical
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		FVector2D Progress = FVector2D(0, 0);
+
 	uint8 bAllowHorizontalScroll: 1, bAllowVerticalScroll: 1;
 	uint8 bCanUpdateAfterDrag: 1;
 	uint8 bRangeCalculated: 1;
@@ -85,9 +96,6 @@ protected:
 	virtual bool CheckValidHit(USceneComponent* InHitComp);
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentUIItem = nullptr;//drag or scroll Content
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentParentUIItem = nullptr;//Content's parent
-	//progress, 0--1, x for horizontal, y for vertical
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-		FVector2D Progress = FVector2D(0, 0);
 	virtual void UpdateProgress(bool InFireEvent = true);
 	FVector2D Velocity = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
