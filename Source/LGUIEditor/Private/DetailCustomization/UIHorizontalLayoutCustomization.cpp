@@ -33,11 +33,11 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, Spacing));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, Align));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenWidth));
-	auto expendWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenWidth));
-	expendWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	bool expendWidth;
-	expendWidthHandle->GetValue(expendWidth);
-	if (expendWidth == false)
+	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenWidth));
+	ExpendChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenWidth;
+	ExpendChildrenWidthHandle->GetValue(ExpendChildrenWidth);
+	if (ExpendChildrenWidth == false)
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren)));
 	}
@@ -45,7 +45,20 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren));
 	}
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
+	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
+	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenHeight;
+	ExpendChildrenHeightHandle->GetValue(ExpendChildrenHeight);
+	if (ExpendChildrenHeight == false)
+	{
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildren)));
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildrenFromMinToMax)));
+	}
+	else
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildren));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildrenFromMinToMax));
+	}
 
 	auto animationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, AnimationType));
 	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));

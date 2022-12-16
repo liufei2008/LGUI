@@ -52,6 +52,11 @@ bool UUILayoutElement::CheckParentLayout()
 	return false;
 }
 
+void UUILayoutElement::OnUIAttachmentChanged()
+{
+	ParentLayout = nullptr;
+}
+
 void UUILayoutElement::SetLayoutType(ELayoutElementType InType)
 {
 	if (InType != LayoutElementType)

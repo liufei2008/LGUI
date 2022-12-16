@@ -134,7 +134,7 @@ void UUILayoutBase::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayou
     OutLayoutElement = InActor->FindComponentByClass<UUILayoutElement>();
     if (OutLayoutElement)
     {
-        OutIgnoreLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(OutLayoutElement);
+        OutIgnoreLayout = ILGUILayoutElementInterface::Execute_GetLayoutType(OutLayoutElement) == ELayoutElementType::IgnoreLayout;
     }
 }
 
