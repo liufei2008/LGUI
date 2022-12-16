@@ -99,7 +99,25 @@ void UUIScrollViewComponent::RecalculateRange()
             bAllowVerticalScroll = false;
         }
 
-        ApplyContentPositionWithProgress();
+        if (KeepProgress)
+        {
+            ApplyContentPositionWithProgress();
+        }
+        else
+        {
+            auto Position = ContentUIItem->GetRelativeLocation();
+            if (
+                (bAllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))
+                || (bAllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y))
+                )
+            {
+                bCanUpdateAfterDrag = true;
+            }
+            else
+            {
+                UpdateProgress(false);
+            }
+        }
     }
 }
 void UUIScrollViewComponent::OnUIActiveInHierachy(bool ativeOrInactive)
@@ -679,12 +697,19 @@ void UUIScrollViewComponent::CalculateHorizontalRange()
         HorizontalRange.X += ContentUIItem->GetPivot().X * ContentUIItem->GetWidth();
         HorizontalRange.Y += (ContentUIItem->GetPivot().X - 1.0f) * ContentUIItem->GetWidth();
 
-        if (!CanScrollInSmallSize)
+        if (KeepProgress)
         {
-            //this can make content stay at Progress.X's position
-            HorizontalRange.X = HorizontalRange.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y
-                , FlipDirectionInSmallSize ? 1.0f - Progress.X : Progress.X
-            );
+            if (!CanScrollInSmallSize)
+            {
+                //this can make content stay at Progress.X's position
+                HorizontalRange.X = HorizontalRange.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y
+                    , FlipDirectionInSmallSize ? 1.0f - Progress.X : Progress.X
+                );
+            }
+        }
+        else
+        {
+            HorizontalRange.Y -= ContentParentUIItem->GetWidth() - ContentUIItem->GetWidth();
         }
     }
     else//content size bigger than parent
@@ -708,12 +733,19 @@ void UUIScrollViewComponent::CalculateVerticalRange()
         VerticalRange.X += ContentUIItem->GetPivot().Y * ContentUIItem->GetHeight();
         VerticalRange.Y += (ContentUIItem->GetPivot().Y - 1.0f) * ContentUIItem->GetHeight();
 
-        if (!CanScrollInSmallSize)
+        if (KeepProgress)
         {
-            //this can make content stay at Progress.Y's position
-            VerticalRange.X = VerticalRange.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y
-                , FlipDirectionInSmallSize ? Progress.Y : 1.0f - Progress.Y
-            );
+            if (!CanScrollInSmallSize)
+            {
+                //this can make content stay at Progress.Y's position
+                VerticalRange.X = VerticalRange.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y
+                    , FlipDirectionInSmallSize ? Progress.Y : 1.0f - Progress.Y
+                );
+            }
+        }
+        else
+        {
+            VerticalRange.X += ContentParentUIItem->GetHeight() - ContentUIItem->GetHeight();
         }
     }
     else//content size bigger than parent
