@@ -35,6 +35,9 @@ protected:
 	virtual void Start() override;
 	virtual void OnEnable()override;
 	virtual void OnDisable()override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 protected:
 	friend class FUIToggleCustomization;
 	/** If not assigned, use self. must have UIItem component */

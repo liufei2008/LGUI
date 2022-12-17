@@ -45,6 +45,7 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren));
 	}
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
 	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
 	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	bool ExpendChildrenHeight;
