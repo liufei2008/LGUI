@@ -30,6 +30,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetHeightFitToChildren()const { return HeightFitToChildren; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetWidthFitToChildren()const { return WidthFitToChildren; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetWidthFitToChildrenFromMinToMax()const { return WidthFitToChildrenFromMinToMax; }
+	/** return children's fill range in vertical */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetActuralRange()const { return ActuralRange; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -44,6 +49,10 @@ public:
 		void SetExpendChildrenHeight(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHeightFitToChildren(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetWidthFitToChildren(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetWidthFitToChildrenFromMinToMax(float value);
 
 	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;
 protected:
@@ -70,7 +79,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float WidthFitToChildrenFromMinToMax = 1.0f;
 
-	//actural children fill range
+	//actural children fill range in vertical
 	float ActuralRange = 0;
 
 	TArray<float> childrenHeightList;
