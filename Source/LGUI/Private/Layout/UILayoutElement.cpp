@@ -57,6 +57,34 @@ void UUILayoutElement::OnUIAttachmentChanged()
 	ParentLayout = nullptr;
 }
 
+ELayoutElementType UUILayoutElement::GetLayoutType_Implementation()const { return LayoutElementType; }
+float UUILayoutElement::GetConstantSize_Implementation(ELayoutElementSizeType type)const
+{
+	switch (ConstantSizeType)
+	{
+	case EUILayoutElement_ConstantSizeType::UseUIItemSize:
+	{
+		if (auto UIItem = GetRootUIComponent())
+		{
+			return type == ELayoutElementSizeType::Horizontal
+				? UIItem->GetWidth()
+				: UIItem->GetHeight();
+				;
+		}
+		return ConstantSize;
+	}
+		break;
+	default:
+	case EUILayoutElement_ConstantSizeType::UseCustomSize:
+		return ConstantSize;
+		break;
+	}
+}
+float UUILayoutElement::GetRatioSize_Implementation(ELayoutElementSizeType type)const
+{
+	return RatioSize; 
+}
+
 void UUILayoutElement::SetLayoutType(ELayoutElementType InType)
 {
 	if (InType != LayoutElementType)
@@ -77,7 +105,6 @@ void UUILayoutElement::SetConstantSize(float value)
 		ConstantSize = value;
 		if (CheckParentLayout())
 		{
-			ParentLayout->MarkNeedRebuildChildrenList();
 			ParentLayout->MarkNeedRebuildLayout();
 		}
 	}
@@ -90,7 +117,18 @@ void UUILayoutElement::SetRatioSize(float value)
 		RatioSize = value;
 		if (CheckParentLayout())
 		{
-			ParentLayout->MarkNeedRebuildChildrenList();
+			ParentLayout->MarkNeedRebuildLayout();
+		}
+	}
+}
+
+void UUILayoutElement::SetConstantSizeType(EUILayoutElement_ConstantSizeType value)
+{
+	if (ConstantSizeType != value)
+	{
+		ConstantSizeType = value;
+		if (CheckParentLayout())
+		{
 			ParentLayout->MarkNeedRebuildLayout();
 		}
 	}

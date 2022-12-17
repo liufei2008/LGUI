@@ -185,6 +185,11 @@ void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
     Super::OnUIActiveInHierachy(activeOrInactive);
     MarkNeedRebuildLayout();
 }
+void UUILayoutBase::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+{
+    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+    MarkNeedRebuildLayout();
+}
 void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)
 {
     Super::OnUIChildAcitveInHierarchy(InChild, InUIActive);

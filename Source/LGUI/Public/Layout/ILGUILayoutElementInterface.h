@@ -19,6 +19,15 @@ enum class ELayoutElementType :uint8
 	RatioSize,
 };
 
+UENUM(BlueprintType, Category = LGUI)
+enum class ELayoutElementSizeType : uint8
+{
+	/** Horizontal size, width */
+	Horizontal,
+	/** Vertical size, height */
+	Vertical,
+};
+
 /**
  * Interface to define how this element position and sized in parent layout
  */
@@ -37,7 +46,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
 		ELayoutElementType GetLayoutType()const;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
-		float GetConstantSize()const;
+		float GetConstantSize(ELayoutElementSizeType type)const;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout Element")
-		float GetRatioSize()const;
+		float GetRatioSize(ELayoutElementSizeType type)const;
 };

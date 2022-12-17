@@ -40,18 +40,21 @@ void FUILayoutElementCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 	case ELayoutElementType::IgnoreLayout:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSize));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSizeType));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, RatioSize));
 	}
 	break;
 	case ELayoutElementType::ConstantSize:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, RatioSize));
+		category.AddProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSizeType));
 		category.AddProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSize));
 	}
 	break;
 	case ELayoutElementType::RatioSize:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSize));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, ConstantSizeType));
 		category.AddProperty(GET_MEMBER_NAME_CHECKED(UUILayoutElement, RatioSize));
 	}
 	break;
