@@ -65,9 +65,15 @@ protected:
 	/** adjust AnchorData width to true text content width */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustWidth = false;
+	/** adjust when width in this range: adjustWidthRange.X < width < adjustWidthRange.Y, Zero means no range limit */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+		FVector2D adjustWidthRange = FVector2D::ZeroVector;
 	/** adjust AnchorData height to true text content height */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustHeight = false;
+	/** adjust when height in this range: adjustHeightRange.X < height < adjustHeightRange.Y, Zero means no range limit */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+		FVector2D adjustHeightRange = FVector2D::ZeroVector;
 	/** if overflowType is HorizontalAndVerticalOverflow, this parameter will limit width for horizontal overflow */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
 		float maxHorizontalWidth = 100;
@@ -146,7 +152,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetAdjustWidthRange()const { return adjustWidthRange; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetAdjustHeightRange()const { return adjustHeightRange; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
