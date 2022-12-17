@@ -336,7 +336,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				[
 					SNew(SComboButton)
 					.HasDownArrow(false)
-					.IsEnabled(this, &FUIItemCustomization::GetIsAnchorsEnabled)
 					.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
 					.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
 					.ButtonContent()
@@ -631,16 +630,16 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 		auto AnchorControlledByLayout = GetLayoutControlHorizontalAnchor() || GetLayoutControlVerticalAnchor();
 		IDetailPropertyRow& AnchorMinProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
-		if (AnchorControlledByLayout || this->IsAnchorEditable())
+		if (!this->IsAnchorEditable())
 		{
-			AnchorMinProperty.IsEnabled(!AnchorControlledByLayout && this->IsAnchorEditable());
+			AnchorMinProperty.IsEnabled(false);
 			AnchorMinProperty.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 		}
 
 		IDetailPropertyRow& AnchorMaxProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
-		if (AnchorControlledByLayout || this->IsAnchorEditable())
+		if (!this->IsAnchorEditable())
 		{
-			AnchorMaxProperty.IsEnabled(!AnchorControlledByLayout && this->IsAnchorEditable());
+			AnchorMaxProperty.IsEnabled(false);
 			AnchorMaxProperty.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 		}
 

@@ -50,6 +50,21 @@ void UUIToggleComponent::OnDisable()
 	}
 }
 
+#if WITH_EDITOR
+void UUIToggleComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto Property = PropertyChangedEvent.MemberProperty)
+	{
+		auto PropertyName = Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIToggleComponent, IsOn))
+		{
+			ApplyValueToUI(true);
+		}
+	}
+}
+#endif
+
 bool UUIToggleComponent::CheckTarget()
 {
 	if (ToggleActor.IsValid())return true;

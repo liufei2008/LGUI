@@ -1269,7 +1269,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	if (this->GetWorld())
 	{
 		auto Settings = GetDefault<ULGUIEditorSettings>();
-		if (Settings->bDrawHelperFrame)
+		if (Settings->bDrawHelperFrame && GEditor->GetSelectedActorCount() > 0)
 		{
 			if (this->GetWorld()->WorldType == EWorldType::Game
 				|| this->GetWorld()->WorldType == EWorldType::PIE
