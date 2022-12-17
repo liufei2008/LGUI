@@ -288,21 +288,58 @@ void UUIText::OnCultureChanged_Implementation()
 #if WITH_EDITOR
 void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (auto Property = PropertyChangedEvent.Property)
+	auto MemberProperty = PropertyChangedEvent.MemberProperty;
+	auto Property = PropertyChangedEvent.Property;
+	if (MemberProperty != nullptr && Property != nullptr)
 	{
 		auto PropertyName = Property->GetFName();
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, text))
+		auto MemberPropertyName = MemberProperty->GetFName();
+		if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, text))
 		{
 			
 		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, font))
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, font))
 		{
 			UUIText::CurrentUsingFontData = font;
 		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIText, useKerning))
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, useKerning))
 		{
 			MarkVertexPositionDirty();
 			CacheTextGeometryData.MarkDirty();
+		}
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange))
+		{
+			if (PropertyName == "X")
+			{
+				if (adjustWidthRange.Y < adjustWidthRange.X)
+				{
+					adjustWidthRange.Y = adjustWidthRange.X;
+				}
+			}
+			else if (PropertyName == "Y")
+			{
+				if (adjustWidthRange.X > adjustWidthRange.Y)
+				{
+					adjustWidthRange.X = adjustWidthRange.Y;
+				}
+			}
+		}
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange))
+		{
+			if (PropertyName == "X")
+			{
+				if (adjustHeightRange.Y < adjustHeightRange.X)
+				{
+					adjustHeightRange.Y = adjustHeightRange.X;
+				}
+			}
+			else if (PropertyName == "Y")
+			{
+				if (adjustHeightRange.X > adjustHeightRange.Y)
+				{
+					adjustHeightRange.X = adjustHeightRange.Y;
+				}
+			}
 		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -508,18 +545,49 @@ void UUIText::OnUpdateLayout_Implementation()
 		if (UpdateCacheTextGeometry())
 		{
 			bTextLayoutDirty = false;
+			auto tempAdjustWidth = false, tempAdjustHeight = false;
 			if (overflowType == UITextOverflowType::HorizontalOverflow)
 			{
-				if (adjustWidth) SetWidth(CacheTextGeometryData.textRealSize.X);
+				if (adjustWidth)
+				{
+					tempAdjustWidth = true;
+				}
 			}
 			else if (overflowType == UITextOverflowType::VerticalOverflow)
 			{
-				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
+				if (adjustHeight)
+				{
+					tempAdjustHeight = true;
+				}
 			}
 			else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
 			{
-				if (adjustWidth)SetWidth(CacheTextGeometryData.textRealSize.X);
-				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
+				if (adjustWidth)
+				{
+					tempAdjustWidth = true;
+				}
+				if (adjustHeight)
+				{
+					tempAdjustHeight = true;
+				}
+			}
+			if (tempAdjustWidth)
+			{
+				if (adjustWidthRange == FVector2D::ZeroVector
+					|| (CacheTextGeometryData.textRealSize.X >= adjustWidthRange.X && CacheTextGeometryData.textRealSize.X <= adjustWidthRange.Y)
+					)
+				{
+					SetWidth(CacheTextGeometryData.textRealSize.X);
+				}
+			}
+			if (tempAdjustHeight)
+			{
+				if (adjustHeightRange == FVector2D::ZeroVector
+					|| (CacheTextGeometryData.textRealSize.Y >= adjustHeightRange.X && CacheTextGeometryData.textRealSize.Y <= adjustHeightRange.Y)
+					)
+				{
+					SetHeight(CacheTextGeometryData.textRealSize.Y);
+				}
 			}
 		}
 	}
@@ -532,7 +600,12 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 		{
 			if (adjustWidth)
 			{
-				OutResult.bCanControlHorizontalSizeDelta = true;
+				if (adjustWidthRange == FVector2D::ZeroVector
+					|| (this->GetWidth() >= adjustWidthRange.X && this->GetWidth() <= adjustWidthRange.Y)
+					)
+				{
+					OutResult.bCanControlHorizontalSizeDelta = true;
+				}
 				return true;
 			}
 		}
@@ -540,7 +613,12 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 		{
 			if (adjustHeight)
 			{
-				OutResult.bCanControlVerticalSizeDelta = true;
+				if (adjustHeightRange == FVector2D::ZeroVector
+					|| (this->GetHeight() >= adjustHeightRange.X && this->GetHeight() <= adjustHeightRange.Y)
+					)
+				{
+					OutResult.bCanControlVerticalSizeDelta = true;
+				}
 				return true;
 			}
 		}
@@ -548,11 +626,21 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 		{
 			if (adjustWidth)
 			{
-				OutResult.bCanControlHorizontalSizeDelta = true;
+				if (adjustWidthRange == FVector2D::ZeroVector
+					|| (this->GetWidth() >= adjustWidthRange.X && this->GetWidth() <= adjustWidthRange.Y)
+					)
+				{
+					OutResult.bCanControlHorizontalSizeDelta = true;
+				}
 			}
 			if (adjustHeight)
 			{
-				OutResult.bCanControlVerticalSizeDelta = true;
+				if (adjustHeightRange == FVector2D::ZeroVector
+					|| (this->GetHeight() >= adjustHeightRange.X && this->GetHeight() <= adjustHeightRange.Y)
+					)
+				{
+					OutResult.bCanControlVerticalSizeDelta = true;
+				}
 			}
 			if (adjustWidth || adjustHeight)
 			{

@@ -832,14 +832,19 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 {
 	if (bAllowMultiLine)
 	{
-		if (TextActor != nullptr)
+		if (TextActor.IsValid())
 		{
 			//set to full text, and find CaretPositionLineIndex
 			TextActor->GetUIText()->SetText(FText::FromString(Text));
 			FVector2f caretPosition;
 			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
-			//calculate MaxVisibleLineCount
-			MaxVisibleLineCount = (int)((TextActor->GetUIText()->GetHeight() + TextActor->GetUIText()->GetFontSpace().Y) / (TextActor->GetUIText()->GetFontSize() + TextActor->GetUIText()->GetFontSpace().Y));
+			//recalculate MaxVisibleLineCount
+			if (OverflowType == ELGUITextInputOverflowType::ClampContent)
+			{
+				auto SingleLineHeight = TextActor->GetUIText()->GetFont()->GetLineHeight(TextActor->GetUIText()->GetFontSize());
+				MaxLineCount = (int)(TextActor->GetUIText()->GetHeight()
+					/ (SingleLineHeight + TextActor->GetUIText()->GetFontSpace().Y));
+			}
 		}
 	}
 	UpdateUITextComponent();
@@ -950,7 +955,7 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 	{
 		if (!bAllowMultiLine)return;
 		if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().ToString().Len() >= Text.Len()//no more invisible line
-			&& CaretPositionLineIndex + 1 == MaxVisibleLineCount + VisibleCharStartLineIndex//and caret is at last line
+			&& CaretPositionLineIndex + 1 == MaxLineCount + VisibleCharStartLineIndex//and caret is at last line
 			)//move caret to last
 		{
 			CaretPositionIndex = Text.Len();
@@ -1028,17 +1033,20 @@ void UUITextInputComponent::UpdateUITextComponent()
 			{
 				VisibleCharStartLineIndex = CaretPositionLineIndex;
 			}
-			if (VisibleCharStartLineIndex + (MaxVisibleLineCount - 1) < CaretPositionLineIndex)
+			if (VisibleCharStartLineIndex + (MaxLineCount - 1) < CaretPositionLineIndex)
 			{
-				VisibleCharStartLineIndex = CaretPositionLineIndex - (MaxVisibleLineCount - 1);
+				VisibleCharStartLineIndex = CaretPositionLineIndex - (MaxLineCount - 1);
 			}
 			int VisibleCharEndIndex = 0;
-			int VisibleCharEndLineIndex = VisibleCharStartLineIndex + (MaxVisibleLineCount - 1);
+			int VisibleCharEndLineIndex = VisibleCharStartLineIndex + (MaxLineCount - 1);
 			replaceText = uiText->GetSubStringByLine(replaceText, VisibleCharStartLineIndex, VisibleCharEndLineIndex, VisibleCharStartIndex, VisibleCharEndIndex);
 		}
 		else//single line, handle out of range chars
 		{
-			float maxWidth = uiText->GetWidth();
+			float maxWidth = OverflowType == ELGUITextInputOverflowType::ClampContent
+				? uiText->GetWidth()
+				: MaxLineWidth
+				;
 			float width = 0;
 			bool outOfRange = false;
 			int VisibleCharEndIndex = CaretPositionIndex;
@@ -1274,6 +1282,15 @@ void UUITextInputComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 {
 	Super::OnUIInteractionStateChanged(interactableOrNot);
 	DeactivateInput();
+}
+void UUITextInputComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+{
+	Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+	if (sizeChanged)
+	{
+		DeactivateInput();
+		this->UpdateAfterTextChange(false);//if size change, need to recalculate text input area
+	}
 }
 
 bool UUITextInputComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)

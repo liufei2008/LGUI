@@ -74,6 +74,16 @@ enum class ELGUITextInputDisplayType :uint8
 	/** Display as password. */
 	Password,
 };
+UENUM(BlueprintType, Category = LGUI)
+enum class ELGUITextInputOverflowType :uint8
+{
+	ClampContent,
+	/**
+	 * Overflow to max limit then clamp content.
+	 * For multiline mode, the max limit is the MaxVisibleLineCount property.
+	 */
+	OverflowToMax,
+};
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILGUIPointerClickInterface, public ILGUIPointerDragInterface
 {
@@ -102,6 +112,14 @@ protected:
 		FString PasswordChar = TEXT("*");
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bAllowMultiLine = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		ELGUITextInputOverflowType OverflowType = ELGUITextInputOverflowType::ClampContent;
+	//when use multiline mode and OverflowType is OverflowToMax, this is the max line count that can expend the input area
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", meta=(EditCondition="OverflowType==ELGUITextInputOverflowType::OverflowToMax"))
+		int MaxLineCount = 5;
+	//when use singleline mode and OverflowType is OverflowToMax, this is the max width that can expend the input area
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", meta=(EditCondition="OverflowType==ELGUITextInputOverflowType::OverflowToMax"))
+		float MaxLineWidth = 100;
 	/**
 	 * This will be used in multiline mode, when hit enter, if one of these keys is also pressing then the input will submit, otherwise a new line will be added.
 	 * Commonly only use control/shift/alt key.
@@ -311,8 +329,6 @@ private:
 	//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
 	//this property can only modify in UpdateUITextComponent function
 	int VisibleCharStartLineIndex = 0;
-	//max visible line count that can fit in rect
-	int MaxVisibleLineCount = 0;
 
 	//mouse position when press, world space
 	FVector3f PressMousePosition = FVector3f(0, 0, 0);
@@ -322,6 +338,7 @@ private:
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot)override;
+	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
