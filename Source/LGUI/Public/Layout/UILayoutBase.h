@@ -64,6 +64,7 @@ protected:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 	virtual void OnUIAttachmentChanged()override;
 	virtual void OnUIActiveInHierachy(bool activeOrInactive)override;
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;

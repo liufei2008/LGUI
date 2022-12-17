@@ -69,6 +69,22 @@ void UUIHorizontalLayout::SetWidthFitToChildren(bool value)
         MarkNeedRebuildLayout();
     }
 }
+void UUIHorizontalLayout::SetHeightFitToChildren(bool value)
+{
+    if (HeightFitToChildren != value)
+    {
+        HeightFitToChildren = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIHorizontalLayout::SetHeightFitToChildrenFromMinToMax(float value)
+{
+    if (HeightFitToChildrenFromMinToMax != value)
+    {
+        HeightFitToChildrenFromMinToMax = value;
+        MarkNeedRebuildChildrenList();
+    }
+}
 
 void UUIHorizontalLayout::OnRebuildLayout()
 {
@@ -110,10 +126,10 @@ void UUIHorizontalLayout::OnRebuildLayout()
                     autoSizeChildrenCount++;
                     break;
                 case ELayoutElementType::ConstantSize:
-                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get());
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get(), ELayoutElementSizeType::Horizontal);
                     break;
                 case ELayoutElementType::RatioSize:
-                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get()) * sizeWithoutSpacing;
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get(), ELayoutElementSizeType::Horizontal) * sizeWithoutSpacing;
                     break;
                 }
             }
@@ -271,10 +287,10 @@ void UUIHorizontalLayout::OnRebuildLayout()
     {
         tempActuralHorizontalRange += Spacing * (childrenCount - 1);
     }
+    ActuralRange = tempActuralHorizontalRange;
     if (WidthFitToChildren && !ExpendChildrenWidth)
     {
         auto thisWidth = tempActuralHorizontalRange + Padding.Left + Padding.Right;
-        ActuralRange = tempActuralHorizontalRange;
         ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
     }
     if (HeightFitToChildren && !ExpendChildrenHeight)
@@ -295,15 +311,16 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
     if (this->GetRootUIComponent() == InUIItem)
     {
         OutResult.bCanControlHorizontalSizeDelta = (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && this->GetEnable();
         return true;
     }
     else
     {
         if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-        UActorComponent* layoutElement = nullptr;
-        bool ignoreLayout = false;
-        GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
-        if (ignoreLayout)
+        UActorComponent* LayoutElementInterface = nullptr;
+        bool bIgnoreLayout = false;
+        GetLayoutElement(InUIItem->GetOwner(), LayoutElementInterface, bIgnoreLayout);
+        if (bIgnoreLayout)
         {
             return true;
         }
@@ -313,6 +330,13 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
         OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
         OutResult.bCanControlHorizontalSizeDelta = GetExpendChildrenWidth() && this->GetEnable();
         OutResult.bCanControlVerticalSizeDelta = GetExpendChildrenHeight() && this->GetEnable();
+        if (auto LayoutElementComp = Cast<UUILayoutElement>(LayoutElementInterface))
+        {
+            if (LayoutElementComp->GetConstantSizeType() == EUILayoutElement_ConstantSizeType::UseUIItemSize)
+            {
+                OutResult.bCanControlHorizontalSizeDelta = false;
+            }
+        }
         return true;
     }
 }
