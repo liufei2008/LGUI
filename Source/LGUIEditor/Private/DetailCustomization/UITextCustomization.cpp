@@ -191,26 +191,54 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	auto AdjustHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 	AdjustHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
 
-	uint8 OverflowType;
-	OverflowTypeHandle->GetValue(OverflowType);
+	UITextOverflowType OverflowType;
+	OverflowTypeHandle->GetValue(*(uint8*)&OverflowType);
 	TArray<FName> needToHidePropertyName;
-	if (OverflowType == (uint8)(UITextOverflowType::HorizontalOverflow))
+	if (OverflowType == UITextOverflowType::HorizontalOverflow)
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
+		bool AdjustWidth;
+		AdjustWidthHandle->GetValue(AdjustWidth);
+		if (!AdjustWidth)
+		{
+			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
+		}
 	}
-	else if (OverflowType == (uint8)(UITextOverflowType::VerticalOverflow))
+	else if (OverflowType == UITextOverflowType::VerticalOverflow)
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
+		bool AdjustHeight;
+		AdjustHeightHandle->GetValue(AdjustHeight);
+		if (!AdjustHeight)
+		{
+			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
+		}
 	}
-	else if (OverflowType == (uint8)(UITextOverflowType::HorizontalAndVerticalOverflow))
+	else if (OverflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
 	{
+		bool AdjustWidth;
+		AdjustWidthHandle->GetValue(AdjustWidth);
+		if (!AdjustWidth)
+		{
+			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
+		}
+		bool AdjustHeight;
+		AdjustHeightHandle->GetValue(AdjustHeight);
+		if (!AdjustHeight)
+		{
+			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
+		}
 	}
 	else
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
 	}
 
