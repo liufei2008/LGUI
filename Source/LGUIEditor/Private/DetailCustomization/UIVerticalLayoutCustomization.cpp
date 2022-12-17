@@ -32,7 +32,6 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Padding));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Spacing));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Align));
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
 	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
 	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
@@ -46,6 +45,7 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren));
 	}
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
 	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
 	ExpendChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	bool ExpendChildrenWidth;
