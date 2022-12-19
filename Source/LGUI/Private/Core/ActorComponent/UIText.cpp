@@ -770,10 +770,11 @@ FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineSta
 	return inString.Mid(inOutCharStartIndex, inOutCharEndIndex - inOutCharStartIndex);
 }
 //caret is at left side of char
-void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex)
+void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCharStartIndex)
 {
 	outCaretPosition.X = outCaretPosition.Y = 0;
 	outCaretPositionLineIndex = 0;
+	outVisibleCharStartIndex = 0;
 	if (text.ToString().Len() == 0)
 	{
 		float pivotOffsetX = this->GetWidth() * (0.5f - this->GetPivot().X);
@@ -819,10 +820,11 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosi
 	{
 		UpdateCacheTextGeometry();
 		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
-
 		if (caretPositionIndex == 0)//first char
 		{
 			outCaretPosition = cacheTextPropertyArray[0].charPropertyList[0].caretPosition;
+			outCaretPositionLineIndex = 0;
+			outVisibleCharStartIndex = 0;
 		}
 		else//not first char
 		{
@@ -833,6 +835,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosi
 				auto& charProperty = firstLine.charPropertyList[caretPositionIndex];
 				outCaretPosition = charProperty.caretPosition;
 				outCaretPositionLineIndex = 0;
+				outVisibleCharStartIndex = 0;
 				return;
 			}
 			//search all lines, find charIndex == caretPositionIndex
@@ -847,6 +850,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosi
 					{
 						outCaretPosition = charItem.caretPosition;
 						outCaretPositionLineIndex = lineIndex;
+						outVisibleCharStartIndex = lineItem.charPropertyList[0].charIndex;
 						return;
 					}
 				}
@@ -854,44 +858,13 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosi
 		}
 	}
 }
-void UUIText::FindCaretUp(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaret(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.ToString().Len() == 0)//no text
 		return;
 	UpdateCacheTextGeometry();
 	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
 	auto lineCount = cacheTextPropertyArray.Num();//line count
-	if (lineCount == 1)//only one line
-		return;
-	outCaretPositionIndex = 0;
-
-	//find nearest char to caret from this line
-	auto& lineItem = cacheTextPropertyArray[inCaretPositionLineIndex];
-	int charCount = lineItem.charPropertyList.Num();//char count of this line
-	float nearestDistance = MAX_FLT;
-	int32 nearestIndex = -1;
-	for (int charIndex = 0; charIndex < charCount; charIndex++)
-	{
-		auto& charItem = lineItem.charPropertyList[charIndex];
-		float distance = FMath::Abs(charItem.caretPosition.X - inOutCaretPosition.X);
-		if (distance <= nearestDistance)
-		{
-			nearestDistance = distance;
-			nearestIndex = charIndex;
-			outCaretPositionIndex = charItem.charIndex;
-		}
-	}
-	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
-}
-void UUIText::FindCaretDown(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex)
-{
-	if (text.ToString().Len() == 0)//no text
-		return;
-	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
-	auto lineCount = cacheTextPropertyArray.Num();//line count
-	if (lineCount == 1)//only one line
-		return;
 	outCaretPositionIndex = 0;
 
 	//find nearest char to caret from this line
@@ -913,12 +886,13 @@ void UUIText::FindCaretDown(FVector2f& inOutCaretPosition, int32 inCaretPosition
 	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
 }
 //find caret by position, caret is on left side of char
-void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.ToString().Len() == 0)//no text
 	{
 		outCaretPositionIndex = 0;
-		FindCaretByIndex(0, outCaretPosition, outCaretPositionLineIndex);
+		int tempVisibleCharStartIndex = 0;
+		FindCaretByIndex(0, outCaretPosition, outCaretPositionLineIndex, tempVisibleCharStartIndex);
 	}
 	else
 	{
@@ -968,11 +942,12 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	//start
 	FVector2f startCaretPosition;
 	int32 startCaretPositionLineIndex;
-	FindCaretByIndex(InSelectionStartCaretIndex, startCaretPosition, startCaretPositionLineIndex);
+	int visibleCharStartIndex = 0;
+	FindCaretByIndex(InSelectionStartCaretIndex, startCaretPosition, startCaretPositionLineIndex, visibleCharStartIndex);
 	//end
 	FVector2f endCaretPosition;
 	int32 endCaretPositionLineIndex;
-	FindCaretByIndex(InSelectionEndCaretIndex, endCaretPosition, endCaretPositionLineIndex);
+	FindCaretByIndex(InSelectionEndCaretIndex, endCaretPosition, endCaretPositionLineIndex, visibleCharStartIndex);
 	//if select from down to up, then convert it from up to down
 	if (startCaretPositionLineIndex > endCaretPositionLineIndex)
 	{

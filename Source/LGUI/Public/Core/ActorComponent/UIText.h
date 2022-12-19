@@ -197,13 +197,11 @@ protected:
 public:
 #pragma region UITextInputComponent
 	/** get caret position and line index */
-	void FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex);
-	/** find up of current caret position */
-	void FindCaretUp(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
-	/** find down of current caret position */
-	void FindCaretDown(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
+	void FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCharStartIndex);
+	/** find current caret position */
+	void FindCaret(FVector2f& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
 	/** find caret index by position */
-	void FindCaretByPosition(FVector inWorldPosition, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
+	void FindCaretByWorldPosition(FVector inWorldPosition, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
 	FString GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex);
 
 	/** range selection */
