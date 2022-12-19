@@ -311,7 +311,7 @@ private:
 	void UpdateAfterTextChange(bool InFireEvent = true);
 
 	void FireOnValueChangeEvent();
-	void UpdateUITextComponent();
+	void UpdateUITextComponent(bool InCaretMovement = true);
 	void UpdatePlaceHolderComponent();
 	void UpdateCaretPosition(bool InHideSelection = true);
 	void UpdateCaretPosition(FVector2f InCaretPosition, bool InHideSelection = true);

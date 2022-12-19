@@ -127,7 +127,7 @@ void UUIVerticalLayout::OnRebuildLayout()
                     autoSizeChildrenCount++;
                     break;
                 case ELayoutElementType::ConstantSize:
-                    tempChildHeight = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get(), ELayoutElementSizeType::Horizontal);
+                    tempChildHeight = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get(), ELayoutElementSizeType::Vertical);
                     break;
                 case ELayoutElementType::RatioSize:
                     tempChildHeight = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get(), ELayoutElementSizeType::Vertical) * sizeWithoutSpacing;
