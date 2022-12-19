@@ -161,7 +161,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetTextRealSize();
+	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetTextRealSize()const;
 	UE_DEPRECATED(4.24, "Use GetTextRealSize instead")
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetTextRealSize instead"))
 		FVector2D GetRealSize() { return GetTextRealSize(); }
@@ -197,13 +197,11 @@ protected:
 public:
 #pragma region UITextInputComponent
 	/** get caret position and line index */
-	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);
-	/** find up of current caret position */
-	void FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
-	/** find down of current caret position */
-	void FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
+	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCharStartIndex);
+	/** find current caret position */
+	void FindCaret(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
 	/** find caret index by position */
-	void FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
+	void FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
 	FString GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex);
 
 	/** range selection */
