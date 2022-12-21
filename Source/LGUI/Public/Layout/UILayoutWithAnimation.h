@@ -27,7 +27,7 @@ protected:
 	friend class FUIGridLayoutCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="AnimationType==EUILayoutChangePositionAnimationType::EaseAnimation"))
 		float AnimationDuration = 0.3f;
 	UPROPERTY(Transient)
 		TArray<class ULTweener*> TweenerArray;
