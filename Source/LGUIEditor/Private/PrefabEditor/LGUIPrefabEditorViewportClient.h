@@ -48,6 +48,8 @@ public:
 private:
 	int IndexOfClickSelectUI = -1;
 	int MouseX = 0, MouseY = 0;
+	bool bLeftControlPressed = false, bRightControlPressed = false;
+	bool bLeftShiftPressed = false, bRightShiftPressed = false;
 
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 	// Are we currently manipulating something?
