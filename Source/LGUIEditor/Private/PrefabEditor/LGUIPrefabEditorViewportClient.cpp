@@ -112,9 +112,56 @@ bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 Cont
 {
 	bool Res = FEditorViewportClient::InputKey(InViewport, ControllerId, Key, Event, AmountDepressed, bGamepad);
 
-	if (Key == EKeys::F && Event == IE_Pressed)
+	if (Key == EKeys::F)
 	{
-		FocusViewportToTargets();
+		if (Event == IE_Pressed)
+		{
+			FocusViewportToTargets();
+		}
+	}
+	else if (Key == EKeys::LeftControl)
+	{
+		if (Event == IE_Pressed)
+		{
+			bLeftControlPressed = true;
+		}
+		else if (Event == IE_Released)
+		{
+			bLeftControlPressed = false;
+		}
+	}
+	else if (Key == EKeys::RightControl)
+	{
+		if (Event == IE_Pressed)
+		{
+			bRightControlPressed = true;
+		}
+		else if (Event == IE_Released)
+		{
+			bRightControlPressed = false;
+		}
+	}
+	else if (Key == EKeys::LeftShift)
+	{
+		if (Event == IE_Pressed)
+		{
+			bLeftShiftPressed = true;
+		}
+		else if (Event == IE_Released)
+		{
+			bLeftShiftPressed = false;
+		}
+	}
+	else if (Key == EKeys::RightShift)
+	{
+		if (Event == IE_Pressed)
+		{
+			bRightShiftPressed = true;
+		}
+		else if (Event == IE_Released)
+		{
+			bRightShiftPressed = false;
+		}
 	}
 
 	return Res;
@@ -171,8 +218,11 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		GEditor->BeginTransaction(LOCTEXT("ClickToPickActor", "Click to pick UI item"));
 		GEditor->GetSelectedActors()->Modify();
 
-		// Clear the selection.
-		GEditor->SelectNone(false, true, true);
+		// Clear the selection if not multiple selection.
+		if (!bLeftControlPressed && !bRightControlPressed && !bLeftShiftPressed && !bRightShiftPressed)
+		{
+			GEditor->SelectNone(false, true, true);
+		}
 
 		// We'll batch selection changes instead by using BeginBatchSelectOperation()
 		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
