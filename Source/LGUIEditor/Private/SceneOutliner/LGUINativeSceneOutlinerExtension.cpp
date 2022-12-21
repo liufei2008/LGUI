@@ -21,20 +21,24 @@
 #define LOCTEXT_NAMESPACE "LGUINativeSceneOutlinerExtension"
 FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 {
+#if 0//UE5.1 crash, so diable it
 	OnPreSaveWorldDelegateHandle = FEditorDelegates::PreSaveWorldWithContext.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreSaveWorld);
 	OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnMapOpened);
 	OnPreBeginPIEDelegateHandle = FEditorDelegates::PreBeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreBeginPIE);
 	OnBeginPIEDelegateHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnBeginPIE);
 	OnEndPIEDelegateHandle = FEditorDelegates::EndPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnEndPIE);
 	OnLGUIEditorPreserveHierarchyStateChangeDelegateHandle = ULGUIEditorSettings::LGUIEditorSetting_PreserveHierarchyStateChange.AddRaw(this, &FLGUINativeSceneOutlinerExtension::PreserveHierarchyStateChange);
+#endif
 }
 FLGUINativeSceneOutlinerExtension::~FLGUINativeSceneOutlinerExtension()
 {
+#if 0//UE5.1 crash, so diable it
 	FEditorDelegates::PreSaveWorldWithContext.Remove(OnPreSaveWorldDelegateHandle);
 	FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
 	FEditorDelegates::PreBeginPIE.Remove(OnPreBeginPIEDelegateHandle);
 	FEditorDelegates::BeginPIE.Remove(OnBeginPIEDelegateHandle);
 	FEditorDelegates::EndPIE.Remove(OnEndPIEDelegateHandle);
+#endif
 }
 void FLGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
 {
@@ -104,9 +108,10 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 		TSharedPtr<SDockTab> SceneOutlinerTab = LevelEditorTabManager->FindExistingLiveTab(FTabId("LevelEditorSceneOutliner"));
 		if (SceneOutlinerTab.IsValid())
 		{
+#if 0//UE5.1 crash, so diable it
 			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
 			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
-			const auto& TreeView = SceneOutlinerWidget->GetTree();
+			const auto& TreeView = SceneOutlinerWidget->GetTree();//UE5.1 crash with this line, no clue yet
 			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
 			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
@@ -130,6 +135,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 					}
 				}
 			}
+#endif
 		}
 	}
 	storageActor->TemporarilyHiddenActorArray.Reset();
