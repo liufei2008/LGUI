@@ -644,7 +644,7 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Actor")));
+	GEditor->BeginTransaction(LOCTEXT("CreateActor", "LGUI Create Actor"));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
@@ -670,7 +670,7 @@ void LGUIEditorTools::CreateEmptyActor()
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
+	GEditor->BeginTransaction(LOCTEXT("CreateUIElement", "LGUI Create UI Element"));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
