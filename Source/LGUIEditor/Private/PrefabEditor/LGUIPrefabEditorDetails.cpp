@@ -307,18 +307,24 @@ void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged(const TArray<
 		{
 			DetailsView->SetObjects(SelectedObjects);
 		}
-		if (SelectedComponents.Num() > 0)
-		{
-			GEditor->SelectNone(true, true);
-			for (auto Comp : SelectedComponents)
-			{
-				GEditor->SelectComponent(Comp, true, true);
-			}
-		}
-		else
-		{
-			GEditor->SelectNone(true, true);
-		}
+		//if (SelectedComponents.Num() > 0)
+		//{
+		//	for (auto Iter = GEditor->GetSelectedComponentIterator(); Iter; ++Iter)
+		//	{
+		//		if (auto Comp = Cast<UActorComponent>(*Iter))
+		//		{
+		//			if (!SelectedComponents.Contains(Comp))
+		//			{
+		//				GEditor->SelectComponent(Comp, false, false);
+		//			}
+		//		}
+		//	}
+		//	for (auto Comp : SelectedComponents)
+		//	{
+		//		GEditor->SelectComponent(Comp, true, false);
+		//	}
+		//	GEditor->NoteSelectionChange();
+		//}
 	}
 }
 
