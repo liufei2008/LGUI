@@ -144,6 +144,15 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		}
 	}
 
+	auto KeepProgressHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIScrollViewWithScrollbarComponent, KeepProgress));
+	KeepProgressHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIScrollViewWithScrollBarCustomization::ForceRefresh, &DetailBuilder));
+	bool KeepProgress;
+	KeepProgressHandle->GetValue(KeepProgress);
+	if (!KeepProgress)
+	{
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIScrollViewWithScrollbarComponent, Progress));
+	}
+
 	for (auto item : needToHidePropertyName)
 	{
 		DetailBuilder.HideProperty(item);

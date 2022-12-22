@@ -76,14 +76,14 @@ protected:
 		bool AllowEventBubbleUp = false;
 
 	/**
-	 * Keep progress value when content change.
-	 * true- keep progress value and change content's position to fit progress.
-	 * false- change progress value to fit content's position.
+	 * Keep progress value when content position and size change.
+	 * true- keep progress value and change content's position and size to fit progress.
+	 * false- change progress value to fit content's position and size.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool KeepProgress = false;
 	//progress, 0--1, x for horizontal, y for vertical
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition="KeepProgress"))
 		FVector2D Progress = FVector2D(0, 0);
 
 	uint8 bAllowHorizontalScroll: 1, bAllowVerticalScroll: 1;
