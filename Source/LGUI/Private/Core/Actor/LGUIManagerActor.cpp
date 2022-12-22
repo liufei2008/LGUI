@@ -501,18 +501,7 @@ void ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged()
 bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 {
 	if (!IsValid(GEditor))return false;
-	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
-	{
-		if (*itr != nullptr)
-		{
-			auto itrActor = Cast<AActor>(*itr);
-			if (itrActor == InObject)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
+	return GEditor->GetSelectedActors()->IsSelected(InObject);
 }
 
 bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
