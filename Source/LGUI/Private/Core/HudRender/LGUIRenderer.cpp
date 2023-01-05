@@ -127,7 +127,10 @@ bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionConte
 
 
 	if (!World.IsValid())return false;
-	if (World.Get() != Context.GetWorld())return false;//only render self world
+#if WITH_EDITOR
+	if(World->IsGameWorld())//the next line should be ignored in editor
+#endif
+		if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
 }
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
