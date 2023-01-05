@@ -264,6 +264,14 @@ void UUIItem::MarkFlattenHierarchyIndexDirty()
 		)
 	{
 		RenderCanvas->MarkCanvasUpdate(false, false, true);
+		//if this UIItem have a LGUICanvas, then we need to tell the upper canvas that hierarchy order change, in order to sort render order between canvas
+		if (this->bIsCanvasUIItem)
+		{
+			if (RenderCanvas->GetParentCanvas().IsValid())
+			{
+				RenderCanvas->GetParentCanvas()->MarkCanvasUpdate(false, false, true);
+			}
+		}
 	}
 }
 
@@ -317,14 +325,11 @@ void UUIItem::ApplyHierarchyIndex()
 
 void UUIItem::SetAsFirstHierarchy()
 {
-	SetHierarchyIndex(-1);
+	SetHierarchyIndex(0);
 }
 void UUIItem::SetAsLastHierarchy()
 {
-	if (ParentUIItem.IsValid())
-	{
-		SetHierarchyIndex(ParentUIItem->GetAttachUIChildren().Num());
-	}
+	SetHierarchyIndex(ParentUIItem->UIChildren.Num() - 1);
 }
 
 UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChildren)const
