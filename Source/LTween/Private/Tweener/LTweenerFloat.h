@@ -30,9 +30,9 @@ protected:
 			this->startValue = getter.Execute();
 		this->changeValue = endValue - startValue;
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);
+		auto value = tweenFunc.Execute(changeValue, startValue, currentTime, duration);
 		setter.ExecuteIfBound(value);
 	}
 	virtual void SetValueForIncremental() override

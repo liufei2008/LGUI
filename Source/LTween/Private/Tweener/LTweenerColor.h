@@ -33,9 +33,9 @@ protected:
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
+		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, currentTime, duration);
 		FColor value;
 		value.R = FMath::Lerp(startValue.R, endValue.R, lerpValue);
 		value.G = FMath::Lerp(startValue.G, endValue.G, lerpValue);

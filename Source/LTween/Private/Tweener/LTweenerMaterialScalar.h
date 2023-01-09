@@ -40,9 +40,9 @@ protected:
 			}
 		}
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);
+		auto value = tweenFunc.Execute(changeValue, startValue, currentTime, duration);
 		if (setter.IsBound()) 
 			if (setter.Execute(parameterIndex, value) == false)
 			{
