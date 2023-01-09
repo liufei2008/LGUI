@@ -71,6 +71,11 @@ public:
 	 * @param callComplete true-execute onComplete event.
 	 */
 	static void KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete);
+	/**
+	 * Remove tweener from list, so the tweener will not be managed by this LTweenManager.
+	 * @param item tweener item
+	 */
+	static void RemoveTweener(UObject* WorldContextObject, ULTweener* item);
 
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
@@ -90,6 +95,8 @@ public:
 	static ULTweener* VirtualTo(UObject* WorldContextObject, float duration);
 
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int delayFrame);
+
+	static class ULTweenerSequence* CreateSequence(UObject* WorldContextObject);
 
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle);

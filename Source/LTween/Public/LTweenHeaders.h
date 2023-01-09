@@ -4,3 +4,4 @@
 
 #include "LTweenManager.h"
 #include "LTweenBPLibrary.h"
+#include "LTweenerSequence.h"

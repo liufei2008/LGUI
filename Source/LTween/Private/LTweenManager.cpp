@@ -19,6 +19,8 @@
 #include "Tweener/LTweenerFrame.h"
 #include "Tweener/LTweenerVirtual.h"
 
+#include "LTweenerSequence.h"
+
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 
@@ -147,6 +149,14 @@ void ULTweenManager::KillIfIsTweening(UObject* WorldContextObject, ULTweener* it
 	{
 		item->Kill(callComplete);
 	}
+}
+void ULTweenManager::RemoveTweener(UObject* WorldContextObject, ULTweener* item)
+{
+	if (!IsValid(item))return;
+
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return;
+	Instance->tweenerList.Remove(item);
 }
 //float
 ULTweener* ULTweenManager::To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration)
@@ -325,6 +335,15 @@ ULTweener* ULTweenManager::DelayFrameCall(UObject* WorldContextObject, int delay
 	return tweener;
 }
 
+ULTweenerSequence* ULTweenManager::CreateSequence(UObject* WorldContextObject)
+{
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
+	auto tweener = NewObject<ULTweenerSequence>(WorldContextObject);
+	Instance->tweenerList.Add(tweener);
+	return tweener;
+}
 
 FDelegateHandle ULTweenManager::RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 {

@@ -45,7 +45,7 @@ protected:
 			return true;
 		}
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
 		
 	}

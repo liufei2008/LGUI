@@ -10,6 +10,7 @@ ULTweener::ULTweener()
 }
 ULTweener* ULTweener::SetEase(LTweenEase easetype)
 {
+	if (elapseTime > 0 || startToTween)return this;
 	switch (easetype)
 	{
 	case LTweenEase::Linear:
@@ -102,6 +103,23 @@ ULTweener* ULTweener::SetEase(LTweenEase easetype)
 	}
 	return this;
 }
+ULTweener* ULTweener::SetDelay(float newDelay)
+{
+	if (elapseTime > 0 || startToTween)return this;
+	this->delay = newDelay;
+	if (this->delay < 0)
+	{
+		this->delay = 0;
+	}
+	return this;
+}
+ULTweener* ULTweener::SetLoop(LTweenLoop newLoopType, int32 newLoopCount)
+{
+	if (elapseTime > 0 || startToTween)return this;
+	this->loopType = newLoopType;
+	this->maxLoopCount = newLoopCount;
+	return this;
+}
 ULTweener* ULTweener::SetEaseCurve(UCurveFloat* newCurve)
 {
 	if (IsValid(newCurve))
@@ -118,6 +136,7 @@ ULTweener* ULTweener::SetEaseCurve(UCurveFloat* newCurve)
 
 ULTweener* ULTweener::SetCurveFloat(UCurveFloat* newCurveFloat)
 {
+	if (elapseTime > 0 || startToTween)return this;
 	curveFloat = newCurveFloat;
 	return this;
 }
@@ -126,56 +145,31 @@ bool ULTweener::ToNext(float deltaTime)
 {
 	if (isMarkedToKill)return false;
 	if (isMarkedPause)return true;//no need to tick time if pause
-	if (reverseTween)
-		elapseTime -= deltaTime;
-	else
-		elapseTime += deltaTime;
-
-	if (startToTween)//if already start tween animation
+	return this->ToNextWithElapsedTime(elapseTime + deltaTime);
+}
+bool ULTweener::ToNextWithElapsedTime(float InElapseTime)
+{
+	this->elapseTime = InElapseTime;
+	if (elapseTime > delay)//if elapseTime bigger than delay, do animation
 	{
-		TWEEN_UPDATE:
-		if (elapseTime >= duration || elapseTime < 0)//elapseTime less than 0 means loop reverse
+		if (!startToTween)
+		{
+			startToTween = true;
+			//set initialize value
+			OnStartGetValue();
+			//execute callback
+			onCycleStartCpp.ExecuteIfBound();
+			onStartCpp.ExecuteIfBound();
+		}
+
+		float elapseTimeWithoutDelay = elapseTime - delay;
+		float currentTime = elapseTimeWithoutDelay - duration * loopCycleCount;
+		if (currentTime >= duration)
 		{
 			bool returnValue = true;
 			loopCycleCount++;
-			switch (loopType)
-			{
-			case LTweenLoop::Once:
-			{
-				elapseTime = duration;
-				returnValue = false;
-			}
-			break;
-			case LTweenLoop::Restart:
-			{
-				elapseTime -= duration;
-				returnValue = true;
-			}
-			break;
-			case LTweenLoop::Yoyo:
-			{
-				if (elapseTime < 0)
-				{
-					elapseTime += deltaTime;
-				}
-				else
-				{
-					elapseTime -= deltaTime;
-				}
-				returnValue = true;
-				reverseTween = !reverseTween;
-			}
-			break;
-			case LTweenLoop::Incremental:
-			{
-				SetValueForIncremental();
-				elapseTime -= duration;
-				returnValue = true;
-			}
-			break;
-			}
-			
-			TweenAndApplyValue();
+
+			TweenAndApplyValue(reverseTween ? 0 : duration);
 			onUpdateCpp.ExecuteIfBound(1.0f);
 			onCycleCompleteCpp.ExecuteIfBound();
 			if (loopType == LTweenLoop::Once)
@@ -183,12 +177,12 @@ bool ULTweener::ToNext(float deltaTime)
 				onCompleteCpp.ExecuteIfBound();
 				returnValue = false;
 			}
-			else if (maxLoopCount == -1)//infinite loop
+			else if (maxLoopCount <= -1)//infinite loop
 			{
 				onCycleStartCpp.ExecuteIfBound();//start new cycle callback
 				returnValue = true;
 			}
-			else if (maxLoopCount != -1)//-1 means infinite loop
+			else
 			{
 				if (loopCycleCount >= maxLoopCount)//reach end cycle
 				{
@@ -201,32 +195,41 @@ bool ULTweener::ToNext(float deltaTime)
 					returnValue = true;
 				}
 			}
+			switch (loopType)
+			{
+			case LTweenLoop::Restart:
+			{
+				SetValueForRestart();
+			}
+			break;
+			case LTweenLoop::Yoyo:
+			{
+				reverseTween = !reverseTween;
+				SetValueForYoyo();
+			}
+			break;
+			case LTweenLoop::Incremental:
+			{
+				SetValueForIncremental();
+			}
+			break;
+			}
 			return returnValue;
 		}
 		else
 		{
-			TweenAndApplyValue();
-			onUpdateCpp.ExecuteIfBound(elapseTime / duration);
+			if (reverseTween)
+			{
+				currentTime = duration - currentTime;
+			}
+			TweenAndApplyValue(currentTime);
+			onUpdateCpp.ExecuteIfBound(currentTime / duration);
 			return true;
 		}
 	}
-	else//if not start animation yet, check delay
+	else
 	{
-		if (elapseTime < delay)//if elapse time less than delay, means we need to keep waiting
-		{
-			return true;
-		}
-		else//if elapse time more than delay, start animation
-		{
-			elapseTime -= delay;
-			startToTween = true;
-			//set initialize value
-			OnStartGetValue();
-			//execute callback
-			onCycleStartCpp.ExecuteIfBound();
-			onStartCpp.ExecuteIfBound();
-			goto TWEEN_UPDATE;
-		}
+		return true;//waiting delay
 	}
 }
 
@@ -242,9 +245,9 @@ void ULTweener::Kill(bool callComplete)
 void ULTweener::ForceComplete()
 {
 	isMarkedToKill = true;
-	elapseTime = duration;
-	TweenAndApplyValue();
-	onUpdateCpp.ExecuteIfBound(elapseTime / duration);
+	elapseTime = 0;
+	TweenAndApplyValue(duration);
+	onUpdateCpp.ExecuteIfBound(1.0f);
 	onCompleteCpp.ExecuteIfBound();
 }
 

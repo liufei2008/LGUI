@@ -120,31 +120,33 @@ public:
 	ULTweener();
 
 protected:
-	/** d, animation duration */
+	friend class ULTweenerSequence;
+	/** animation duration */
 	float duration = 0.0f;
 	/** delay time before animation start */
 	float delay = 0.0f;
-	/** t, elapse time */
+	/** total elapse time, include delay */
 	float elapseTime = 0.0f;
 	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
 	TWeakObjectPtr<UCurveFloat> curveFloat = nullptr;
 	/** loop type */
 	LTweenLoop loopType = LTweenLoop::Once;
-	/** if loopType = Yoyo, reverse time */
-	bool reverseTween = false;
 	/** max loop count when loop type is Restart/Yoyo/Incremental */
 	int32 maxLoopCount = 0;
 	/** current completed cycle count */
 	int32 loopCycleCount = 0;
 
+	/** reverse animation */
+	bool reverseTween = false;
 	/** if animation start play */
 	bool startToTween = false;
-	/** tween function */
-	FLTweenFunction tweenFunc;
 	/** mark this tween for kill, so when the next update came, the tween will be killed */
 	bool isMarkedToKill = false;
 	/** mark this tween as pause, it will keep pause until call Resume() */
 	bool isMarkedPause = false;
+
+	/** tween function */
+	FLTweenFunction tweenFunc;
 
 	/** call once after animation complete */
 	FSimpleDelegate onCompleteCpp;
@@ -157,23 +159,22 @@ protected:
 	/** call once when animation starts */
 	FSimpleDelegate onStartCpp;
 public:
-	/** set animation curve type */
+	/**
+	 * Set animation curve type.
+	 * Has no effect if the Sequence has already started.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetEase(LTweenEase easetype);
 	/** set ease to CurveFloat and use CurveFloat as animation function, horizontal is time (0-1),vertical is value (0-1) */
 	UE_DEPRECATED(4.23, "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead."))
 		ULTweener* SetEaseCurve(UCurveFloat* newCurve);
-	/** delay start animation */
+	/**
+	 * Set delay time before start animation.
+	 * Has no effect if the Sequence has already started.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		virtual ULTweener* SetDelay(float newDelay)
-	{
-		if (newDelay > 0)
-		{
-			this->delay = newDelay;
-		}
-		return this;
-	}
+		virtual ULTweener* SetDelay(float newDelay);
 	UE_DEPRECATED(4.23, "SetLoopType not valid anymore, use SetLoop instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetLoopType not valid anymore, use SetLoop instead."))
 		virtual ULTweener* SetLoopType(LTweenLoop newLoopType)
@@ -182,16 +183,12 @@ public:
 	}
 	/**
 	 * Set loop of tween.
+	 * Has no effect if the Sequence has already started.
 	 * @param newLoopType	loop type
 	 * @param newLoopCount	number of cycles to play (-1 for infinite)
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		virtual ULTweener* SetLoop(LTweenLoop newLoopType, int32 newLoopCount)
-	{
-		this->loopType = newLoopType;
-		this->maxLoopCount = newLoopCount;
-		return this;
-	}
+		virtual ULTweener* SetLoop(LTweenLoop newLoopType, int32 newLoopCount = 1);
 	UE_DEPRECATED(4.23, "GetLoopCount not valid anymore, use GetLoopCycleCount instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "GetLoopCount not valid anymore, use GetLoopCycleCount instead."))
 		int32 GetLoopCount() { return loopCycleCount; }
@@ -309,8 +306,8 @@ public:
 		return this;
 	}
 	/**
-	 * Make sure ease type is CurveFloat. (Call SetEase function to set ease type)
-	 * Set CurveFloat as animation curve.
+	 * Set CurveFloat as animation curve. Make sure ease type is CurveFloat. (Call SetEase function to set ease type)
+	 * Has no effect if the Sequence has already started.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetCurveFloat(UCurveFloat* newCurveFloat);
@@ -318,6 +315,10 @@ public:
 	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
 	 */
 	virtual bool ToNext(float deltaTime);
+	/**
+	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
+	 */
+	virtual bool ToNextWithElapsedTime(float InElapseTime);
 	/** Force stop this animation. if callComplete = true, OnComplete will call after stop*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void Kill(bool callComplete = false);
@@ -341,9 +342,11 @@ protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
 	/** set value when tweening. child class must override this, check LTweenerFloat for reference */
-	virtual void TweenAndApplyValue() PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
+	virtual void TweenAndApplyValue(float currentTime) PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
 	/** set start and change value if looptype is Incremental. */
 	virtual void SetValueForIncremental() PURE_VIRTUAL(ULTweener::SetValueForIncremental, );
+	virtual void SetValueForYoyo() {};
+	virtual void SetValueForRestart() {};
 #pragma region tweenFunctions
 public:
 	/**
