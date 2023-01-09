@@ -265,4 +265,9 @@ public:
 			->OnCycleStart(callFunction)
 			;
 	}
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = LTween)
+		static class ULTweenerSequence* CreateSequence(UObject* WorldContextObject)
+	{
+		return ULTweenManager::CreateSequence(WorldContextObject);
+	}
 };

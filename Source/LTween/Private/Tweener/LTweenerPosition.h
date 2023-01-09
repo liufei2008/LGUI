@@ -41,9 +41,9 @@ protected:
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
+		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, currentTime, duration);
 		FVector value = FMath::Lerp(startValue, endValue, lerpValue);
 		setter.ExecuteIfBound(value, sweep, sweepHitResult, teleportType);
 	}

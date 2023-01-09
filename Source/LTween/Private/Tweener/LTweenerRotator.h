@@ -33,9 +33,9 @@ protected:
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
+		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, currentTime, duration);
 		FRotator value;
 		value = startValue + lerpValue * (endValue - startValue);
 		setter.ExecuteIfBound(value);

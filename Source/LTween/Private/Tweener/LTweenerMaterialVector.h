@@ -41,9 +41,9 @@ protected:
 			}
 		}
 	}
-	virtual void TweenAndApplyValue() override
+	virtual void TweenAndApplyValue(float currentTime) override
 	{
-		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
+		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, currentTime, duration);
 		FLinearColor value;
 		value.R = FMath::Lerp(startValue.R, endValue.R, lerpValue);
 		value.G = FMath::Lerp(startValue.G, endValue.G, lerpValue);
