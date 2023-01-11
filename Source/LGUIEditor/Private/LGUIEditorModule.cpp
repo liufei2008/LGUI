@@ -135,7 +135,7 @@ void FLGUIEditorModule::StartupModule()
 			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCopyActor)
 		);
 		PluginCommands->MapAction(
-			editorCommand.PasteActor,
+			editorCommand.CutActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::CutSelectedActors_Impl),
 			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCutActor),
 			FGetActionCheckState(),
@@ -958,7 +958,11 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("ChangeCollisionChannelSubMenu", "Change Trace Channel"),
 			LOCTEXT("ChangeCollisionChannelSubMenu_Tooltip", "Change a UI element's trace channel to selected channel, with hierarchy"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ChangeTraceChannelSubMenu),
-			FUIAction(FExecuteAction(), FCanExecuteAction::CreateStatic(&LGUIEditorTools::IsSelectUIActor)),
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction::CreateStatic(&LGUIEditorTools::IsSelectUIActor)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::IsSelectUIActor)
+			),
 			NAME_None,
 			EUserInterfaceActionType::Button
 		);
