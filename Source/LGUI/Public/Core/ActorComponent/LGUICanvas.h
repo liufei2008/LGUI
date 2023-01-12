@@ -270,7 +270,7 @@ protected:
 		float dynamicPixelsPerUnit = 1.0f;
 
 	/** Flags to enable/disable shader channels. Default only provide Position/Color/UV0, you can check Normal/Tangent/UV1/UV2/UV3 for your own use. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasAdditionalChannelType"))
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELGUICanvasAdditionalChannelType"))
 		int8 additionalShaderChannels = 0;
 
 	/** Default materials, for render default UI elements. */
@@ -290,7 +290,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bEnableDepthTest = false;
 	/** For not root canvas, inherit or override parent canvas parameters. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
 
 	/**
