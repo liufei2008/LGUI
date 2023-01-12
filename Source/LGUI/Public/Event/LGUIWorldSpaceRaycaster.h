@@ -12,7 +12,7 @@ class ULGUIWorldSpaceRaycaster;
  * NOTE! This type is not valid anymore
  * The interaction source for world space UI, actually the ray emitter object.
  */
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = LGUI, meta=(ScriptName="LGUIWorldSpaceRaycasterSourceType_Deprecated"))
 enum class ELGUIWorldSpaceRaycasterSource :uint8
 {
 	/** Sends traces from the world location and orientation of the interaction component. */
