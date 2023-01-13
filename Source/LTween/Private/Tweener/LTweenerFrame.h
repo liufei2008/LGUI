@@ -63,4 +63,10 @@ protected:
 	{
 		
 	}
+	virtual void SetOriginValueForRestart() override
+	{
+		auto changeValue = endFrameNumber - startFrameNumber;
+		startFrameNumber = GFrameNumber;
+		endFrameNumber = GFrameNumber + changeValue;
+	}
 };

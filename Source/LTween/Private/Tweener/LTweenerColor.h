@@ -17,6 +17,9 @@ public:
 	FLTweenColorGetterFunction getter;
 	FLTweenColorSetterFunction setter;
 
+	FColor originStartValue;
+	FColor originEndValue;
+
 	void SetInitialValue(const FLTweenColorGetterFunction& newGetter, const FLTweenColorSetterFunction& newSetter, const FColor& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
@@ -30,8 +33,9 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
-			this->startValue = getter.Execute();
+		this->startValue = getter.Execute();
+		this->originStartValue = this->startValue;
+		this->originEndValue = this->endValue;
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
 	{
@@ -52,5 +56,10 @@ protected:
 		diffValue.A = endValue.A - startValue.A;
 		startValue = endValue;
 		endValue += diffValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		startValue = originStartValue;
+		endValue = originEndValue;
 	}
 };

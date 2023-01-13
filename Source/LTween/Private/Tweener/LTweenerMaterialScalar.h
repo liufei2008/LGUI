@@ -17,6 +17,8 @@ public:
 	FLTweenMaterialScalarGetterFunction getter;
 	FLTweenMaterialScalarSetterFunction setter;
 
+	float originStartValue = 0.0f;
+
 	void SetInitialValue(const FLTweenMaterialScalarGetterFunction& newGetter, const FLTweenMaterialScalarSetterFunction& newSetter, float newEndValue, float newDuration, int32 newParameterIndex)
 	{
 		this->duration = newDuration;
@@ -28,30 +30,32 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
+		if (getter.Execute(startValue))
 		{
-			if (getter.Execute(startValue))
-			{
-				this->changeValue = endValue - startValue;
-			}
-			else
-			{
-				UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialScalar/OnStartGetValue]Get paramter value error!"));
-			}
+			this->changeValue = endValue - startValue;
+			this->originStartValue = this->changeValue;
+		}
+		else
+		{
+			UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialScalar/OnStartGetValue]Get paramter value error!"));
 		}
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
 	{
 		auto value = tweenFunc.Execute(changeValue, startValue, currentTime, duration);
-		if (setter.IsBound()) 
-			if (setter.Execute(parameterIndex, value) == false)
-			{
-				UE_LOG(LTween, Warning, TEXT("[ULTweenerMaterialScalar/TweenAndApplyValue]Set paramter value error!"));
-			}
+		if (setter.Execute(parameterIndex, value) == false)
+		{
+			UE_LOG(LTween, Warning, TEXT("[ULTweenerMaterialScalar/TweenAndApplyValue]Set paramter value error!"));
+		}
 	}
 	virtual void SetValueForIncremental() override
 	{
 		startValue = endValue;
 		endValue += changeValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		startValue = originStartValue;
+		endValue = originStartValue + changeValue;
 	}
 };

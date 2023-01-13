@@ -19,6 +19,8 @@ public:
 	FLTweenMaterialVectorGetterFunction getter;
 	FLTweenMaterialVectorSetterFunction setter;
 
+	FLinearColor originStartValue;
+
 	void SetInitialValue(const FLTweenMaterialVectorGetterFunction& newGetter, const FLTweenMaterialVectorSetterFunction& newSetter, const FLinearColor& newEndValue, float newDuration, int32 newParameterIndex)
 	{
 		this->duration = newDuration;
@@ -33,12 +35,13 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
+		if (getter.Execute(startValue))
 		{
-			if (getter.Execute(startValue) == false)
-			{
-				UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialVector/OnStartGetValue]Get paramter value error!"));
-			}
+			this->originStartValue = startValue;
+		}
+		else
+		{
+			UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialVector/OnStartGetValue]Get paramter value error!"));
 		}
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
@@ -60,5 +63,11 @@ protected:
 		auto diffValue = endValue - startValue;
 		startValue = endValue;
 		endValue += diffValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = originStartValue;
+		endValue = originStartValue + diffValue;
 	}
 };

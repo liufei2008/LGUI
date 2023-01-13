@@ -162,7 +162,7 @@ protected:
 public:
 	/**
 	 * Set animation curve type.
-	 * Has no effect if the Sequence has already started.
+	 * Has no effect if the Tween has already started.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetEase(LTweenEase easetype);
@@ -172,7 +172,7 @@ public:
 		ULTweener* SetEaseCurve(UCurveFloat* newCurve);
 	/**
 	 * Set delay time before start animation.
-	 * Has no effect if the Sequence has already started.
+	 * Has no effect if the Tween has already started.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual ULTweener* SetDelay(float newDelay);
@@ -184,7 +184,7 @@ public:
 	}
 	/**
 	 * Set loop of tween.
-	 * Has no effect if the Sequence has already started.
+	 * Has no effect if the Tween has already started.
 	 * @param newLoopType	loop type
 	 * @param newLoopCount	number of cycles to play (-1 for infinite)
 	 */
@@ -308,44 +308,52 @@ public:
 	}
 	/**
 	 * Set CurveFloat as animation curve. Make sure ease type is CurveFloat. (Call SetEase function to set ease type)
-	 * Has no effect if the Sequence has already started.
+	 * Has no effect if the Tween has already started.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetCurveFloat(UCurveFloat* newCurveFloat);
 	/**
-	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
+	 * @return false: the tween is complete and need to be killed. true: the tween is still processing.
 	 */
 	virtual bool ToNext(float deltaTime);
 	/**
-	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
+	 * @return false: the tween is complete and need to be killed. true: the tween is still processing.
 	 */
 	virtual bool ToNextWithElapsedTime(float InElapseTime);
-	/** Force stop this animation. if callComplete = true, OnComplete will call after stop*/
+	/** Force stop this animation. if callComplete = true, will call OnComplete after stop*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void Kill(bool callComplete = false);
-	/** Force complete this animation at this frame, call OnComplete*/
+	/** Force stop this animation at this frame, set value to end, call OnComplete. */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void ForceComplete();
-	/** pause this animation*/
+	/** Pause this animation. */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		void Pause()
 	{
 		isMarkedPause = true;
 	}
-	/** resume animation after pause*/
+	/** Continue play animation if is paused. */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		void Resume()
 	{
 		isMarkedPause = false;
 	}
+	/**
+	 * Restart animation.
+	 * Has no effect if the Tween is not started.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		void Restart();
 
 protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
 	/** set value when tweening. child class must override this, check LTweenerFloat for reference */
 	virtual void TweenAndApplyValue(float currentTime) PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
-	/** set start and change value if looptype is Incremental. */
+	/** set start and end value if looptype is Incremental. */
 	virtual void SetValueForIncremental() PURE_VIRTUAL(ULTweener::SetValueForIncremental, );
+	/** set start and end value before the animation wan't to restart */
+	virtual void SetOriginValueForRestart() PURE_VIRTUAL(ULTweener::SetOriginValueForRestart, );
 	virtual void SetValueForYoyo() {};
 	virtual void SetValueForRestart() {};
 #pragma region tweenFunctions

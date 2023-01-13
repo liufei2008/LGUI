@@ -27,4 +27,8 @@ protected:
 	{
 		
 	}
+	virtual void SetOriginValueForRestart() override
+	{
+		
+	}
 };
