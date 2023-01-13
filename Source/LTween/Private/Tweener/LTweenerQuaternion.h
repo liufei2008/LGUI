@@ -17,6 +17,8 @@ public:
 	FLTweenQuaternionGetterFunction getter;
 	FLTweenQuaternionSetterFunction setter;
 
+	FQuat originStartValue;
+
 	void SetInitialValue(const FLTweenQuaternionGetterFunction& newGetter, const FLTweenQuaternionSetterFunction& newSetter, const FQuat& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
@@ -30,8 +32,8 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
-			this->startValue = getter.Execute();
+		this->startValue = getter.Execute();
+		this->originStartValue = this->startValue;
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
 	{
@@ -44,5 +46,11 @@ protected:
 		auto diffValue = endValue - startValue;
 		startValue = endValue;
 		endValue += diffValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = originStartValue;
+		endValue = originStartValue + diffValue;
 	}
 };

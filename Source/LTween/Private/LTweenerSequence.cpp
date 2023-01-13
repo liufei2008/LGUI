@@ -3,6 +3,8 @@
 #include "LTweenerSequence.h"
 #include "LTween.h"
 #include "LTweenManager.h"
+#include "Tweener/LTweenerFrame.h"
+#include "Tweener/LTweenerVirtual.h"
 
 ULTweenerSequence* ULTweenerSequence::Append(UObject* WorldContextObject, ULTweener* tweener)
 {
@@ -20,6 +22,16 @@ ULTweenerSequence* ULTweenerSequence::AppendInterval(UObject* WorldContextObject
 }
 ULTweenerSequence* ULTweenerSequence::Insert(UObject* WorldContextObject, float timePosition, ULTweener* tweener)
 {
+	if (!IsValid(tweener))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d tweener is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		return this;
+	}
+	if (tweener->IsA<ULTweenerFrame>() || tweener->IsA<ULTweenerVirtual>())
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d sequence not support this tweener type: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(tweener->GetClass()->GetName()));
+		return this;
+	}
 	if (elapseTime > 0 || startToTween)
 	{
 		UE_LOG(LTween, Error, TEXT("[%s].%d can't do this because this tween already started"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
@@ -50,6 +62,16 @@ ULTweenerSequence* ULTweenerSequence::Insert(UObject* WorldContextObject, float 
 }
 ULTweenerSequence* ULTweenerSequence::Prepend(UObject* WorldContextObject, ULTweener* tweener)
 {
+	if (!IsValid(tweener))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d tweener is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		return this;
+	}
+	if (tweener->IsA<ULTweenerFrame>() || tweener->IsA<ULTweenerVirtual>())
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d sequence not support this tweener type: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(tweener->GetClass()->GetName()));
+		return this;
+	}
 	if (elapseTime > 0 || startToTween)
 	{
 		UE_LOG(LTween, Error, TEXT("[%s].%d can't do this because this tween already started"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
@@ -96,6 +118,16 @@ ULTweenerSequence* ULTweenerSequence::PrependInterval(UObject* WorldContextObjec
 }
 ULTweenerSequence* ULTweenerSequence::Join(UObject* WorldContextObject, ULTweener* tweener)
 {
+	if (!IsValid(tweener))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d tweener is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		return this;
+	}
+	if (tweener->IsA<ULTweenerFrame>() || tweener->IsA<ULTweenerVirtual>())
+	{
+		UE_LOG(LTween, Error, TEXT("[%s].%d sequence not support this tweener type: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(tweener->GetClass()->GetName()));
+		return this;
+	}
 	if (tweenerList.Num() == 0)return this;
 	return this->Insert(WorldContextObject, lastTweenStartTime, tweener);
 }
@@ -111,6 +143,26 @@ void ULTweenerSequence::TweenAndApplyValue(float currentTime)
 			tweenerList.RemoveAt(i);
 			i--;
 		}
+	}
+}
+
+void ULTweenerSequence::SetOriginValueForRestart()
+{
+	for (auto& item : finishedTweenerList)
+	{
+		//add tweener to tweenerList
+		tweenerList.Add(item);
+	}
+	finishedTweenerList.Reset();
+
+	for (auto& item : tweenerList)
+	{
+		item->SetOriginValueForRestart();
+		//set parameter to initial
+		item->elapseTime = 0;
+		item->loopCycleCount = 0;
+		item->reverseTween = false;
+		item->TweenAndApplyValue(0);
 	}
 }
 

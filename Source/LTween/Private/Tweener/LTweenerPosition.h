@@ -21,6 +21,8 @@ public:
 	FLTweenPositionGetterFunction getter;
 	FLTweenPositionSetterFunction setter;
 
+	FVector originStartValue;
+
 	void SetInitialValue(const FLTweenPositionGetterFunction& newGetter, const FLTweenPositionSetterFunction& newSetter, const FVector& newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
 	{
 		this->duration = newDuration;
@@ -38,8 +40,8 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
-			this->startValue = getter.Execute();
+		this->startValue = getter.Execute();
+		this->originStartValue = this->startValue;
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
 	{
@@ -52,5 +54,11 @@ protected:
 		auto diffValue = endValue - startValue;
 		startValue = endValue;
 		endValue += diffValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = originStartValue;
+		endValue = originStartValue + diffValue;
 	}
 };
