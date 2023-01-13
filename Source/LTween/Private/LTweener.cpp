@@ -245,10 +245,25 @@ void ULTweener::Kill(bool callComplete)
 void ULTweener::ForceComplete()
 {
 	isMarkedToKill = true;
-	elapseTime = 0;
+	elapseTime = delay + duration;
 	TweenAndApplyValue(duration);
 	onUpdateCpp.ExecuteIfBound(1.0f);
 	onCompleteCpp.ExecuteIfBound();
+}
+
+void ULTweener::Restart()
+{
+	if (elapseTime == 0 || !startToTween)
+	{
+		return;
+	}
+	isMarkedPause = false;//incase it is paused.
+	//reset parameter to initial
+	loopCycleCount = 0;
+	reverseTween = false;
+	SetOriginValueForRestart();
+
+	this->ToNextWithElapsedTime(0);
 }
 
 

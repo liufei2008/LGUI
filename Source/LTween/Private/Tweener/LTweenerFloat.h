@@ -11,10 +11,12 @@ class LTWEEN_API ULTweenerFloat:public ULTweener
 public:
 	float startValue = 0.0f;//b
 	float changeValue = 0.0f;//c
-
 	float endValue = 0.0f;
+
 	FLTweenFloatGetterFunction getter;
 	FLTweenFloatSetterFunction setter;
+
+	float originStartValue = 0.0f;
 
 	void SetInitialValue(const FLTweenFloatGetterFunction& newGetter, const FLTweenFloatSetterFunction& newSetter, float newEndValue, float newDuration)
 	{
@@ -26,8 +28,8 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.IsBound())
-			this->startValue = getter.Execute();
+		this->startValue = getter.Execute();
+		this->originStartValue = this->startValue;
 		this->changeValue = endValue - startValue;
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
@@ -39,5 +41,10 @@ protected:
 	{
 		startValue = endValue;
 		endValue += changeValue;
+	}
+	virtual void SetOriginValueForRestart() override
+	{
+		startValue = originStartValue;
+		endValue = startValue + changeValue;
 	}
 };
