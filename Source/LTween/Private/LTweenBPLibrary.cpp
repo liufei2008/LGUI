@@ -604,7 +604,7 @@ ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UObject* WorldContextObje
 	}), FLTweenMaterialVectorSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULTweenBPLibrary::MeshMaterialScalarParameterTo(UMeshComponent* target, int materialIndex, FName parameterName, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULTweenBPLibrary::MeshMaterialScalarParameterTo(UPrimitiveComponent* target, int materialIndex, FName parameterName, float endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -628,7 +628,7 @@ ULTweener* ULTweenBPLibrary::MeshMaterialScalarParameterTo(UMeshComponent* targe
 			return material->GetScalarParameterValue(parameterName, result);
 		}), FLTweenMaterialScalarSetterFunction::CreateUObject(material, &UMaterialInstanceDynamic::SetScalarParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UMeshComponent* target, int materialIndex, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UPrimitiveComponent* target, int materialIndex, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{

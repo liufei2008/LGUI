@@ -266,6 +266,11 @@ void ULTweener::Restart()
 	this->ToNextWithElapsedTime(0);
 }
 
+void ULTweener::Goto(float timePoint)
+{
+	timePoint = FMath::Max(timePoint, 0);
+	this->ToNextWithElapsedTime(timePoint);
+}
 
 float ULTweener::CurveFloat(float c, float b, float t, float d)
 {
