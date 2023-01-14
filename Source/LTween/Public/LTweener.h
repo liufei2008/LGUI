@@ -343,6 +343,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		void Restart();
+	/**
+	 * Send the tween to the given position in time.
+	 * @param timePoint Time position to reach, include delay and loop cycle.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		void Goto(float timePoint);
 
 protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
