@@ -132,21 +132,24 @@ void UUISprite::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool
 	}
 }
 
-void UUISprite::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUISprite::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
 {
-    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
 	if (!IsValid(sprite))return;
 	if (type == UISpriteType::Tiled)
 	{
-        if (InSizeChange)
+        if (InWidthChange)
         {
 			CalculateTiledWidth();
-			CalculateTiledHeight();
         }
+		if (InHeightChange)
+		{
+			CalculateTiledHeight();
+		}
 	}
     else
     {
-        if (InPivotChange || InSizeChange)
+        if (InPivotChange || InWidthChange || InHeightChange)
         {
 			MarkVertexPositionDirty();
 		}

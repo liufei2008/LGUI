@@ -42,9 +42,9 @@ void UUIScrollViewWithScrollbarComponent::OnUnregister()
 	}
 }
 
-void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-	Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+	Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	CheckScrollbarParameter();//Check and register scrollbar event
 }
 

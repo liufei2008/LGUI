@@ -30,7 +30,7 @@ class LGUI_API UUIScrollViewWithScrollbarComponent : public UUIScrollViewCompone
 public:
 	UUIScrollViewWithScrollbarComponent();
 protected:
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 protected:

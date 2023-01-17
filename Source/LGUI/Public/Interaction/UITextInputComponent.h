@@ -338,7 +338,7 @@ private:
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot)override;
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;

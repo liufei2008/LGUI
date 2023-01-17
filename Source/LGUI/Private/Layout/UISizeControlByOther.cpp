@@ -5,6 +5,8 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/Actor/UIBaseActor.h"
 
+DECLARE_CYCLE_STAT(TEXT("UILayout SizeControlByOtherRebuildLayout"), STAT_SizeControlByOther, STATGROUP_LGUI);
+
 void UUISizeControlByOther::SetControlWidth(bool value)
 {
     if (ControlWidth != value)
@@ -43,16 +45,18 @@ void UUISizeControlByOtherHelper::Awake()
     Super::Awake();
     this->SetCanExecuteUpdate(false);
 }
-void UUISizeControlByOtherHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUISizeControlByOtherHelper::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     if (!TargetComp.IsValid())
     {
         this->DestroyComponent();
     }
     else
     {
-        if (sizeChanged)
+        if ((TargetComp->GetControlWidth() && widthChanged)
+            || (TargetComp->GetControlHeight() && heightChanged)
+            )
             TargetComp->MarkNeedRebuildLayout();
     }
 }
@@ -63,9 +67,9 @@ void UUISizeControlByOther::Awake()
     Super::Awake();
 }
 
-void UUISizeControlByOther::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUISizeControlByOther::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     CheckTargetUIItem();
 }
 void UUISizeControlByOther::OnUIAttachmentChanged()
@@ -81,7 +85,7 @@ void UUISizeControlByOther::PostEditChangeProperty(FPropertyChangedEvent &Proper
     if (auto Property = PropertyChangedEvent.Property)
     {
         auto propertyName = Property->GetFName();
-        if (propertyName == TEXT("TargetActor"))
+        if (propertyName == GET_MEMBER_NAME_CHECKED(UUISizeControlByOther, TargetActor))
         {
             //delete old
             if (HelperComp.IsValid())
@@ -125,19 +129,35 @@ bool UUISizeControlByOther::CheckTargetUIItem()
 
 void UUISizeControlByOther::OnRebuildLayout()
 {
-	if (!CheckRootUIComponent())return;
+    SCOPE_CYCLE_COUNTER(STAT_SizeControlByOther);
+    if (!CheckRootUIComponent())return;
 	if (!GetEnable())return;
-
-    if (CheckTargetUIItem() && CheckRootUIComponent() && GetEnable())
+    if (!CheckTargetUIItem())return;
+    if (bIsAnimationPlaying)
     {
-        if (ControlWidth)
-        {
-            ApplyUIItemWidth(RootUIComp.Get(), TargetUIItem->GetWidth() + AdditionalWidth);
-        }
-        if (ControlHeight)
-        {
-            ApplyUIItemHeight(RootUIComp.Get(), TargetUIItem->GetHeight() + AdditionalHeight);
-        }
+        bShouldRebuildLayoutAfterAnimation = true;
+        return;
+    }
+    CancelAnimation();
+
+    EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+    if (!this->GetWorld()->IsGameWorld())
+    {
+        tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+    }
+#endif
+    if (ControlWidth)
+    {
+        ApplyWidthWithAnimation(tempAnimationType, TargetUIItem->GetWidth() + AdditionalWidth, RootUIComp.Get());
+    }
+    if (ControlHeight)
+    {
+        ApplyHeightWithAnimation(tempAnimationType, TargetUIItem->GetHeight() + AdditionalHeight, RootUIComp.Get());
+    }
+    if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+    {
+        SetOnCompleteTween();
     }
 }
 

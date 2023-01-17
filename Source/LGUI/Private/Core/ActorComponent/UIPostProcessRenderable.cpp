@@ -65,10 +65,10 @@ void UUIPostProcessRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIPostProcessRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUIPostProcessRenderable::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
 {
-    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
-    if (InPivotChange || InSizeChange)
+    Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
+    if (InPivotChange || InWidthChange || InHeightChange)
     {
 	    MarkVertexPositionDirty();
     }

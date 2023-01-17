@@ -8,19 +8,9 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout GridRebuildLayout"), STAT_GridLayout, STATGROUP_LGUI);
 
-void UUIGridLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUIGridLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-	Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
-#if WITH_EDITOR
-	if (child->GetIsUIActiveInHierarchy())
-	{
-		if (this->GetWorld() == nullptr)return;
-		if (!this->GetWorld()->IsGameWorld())
-		{
-			MarkNeedRebuildLayout();
-		}
-	}
-#endif
+	Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 }
 
 void UUIGridLayout::SetPadding(FMargin value)

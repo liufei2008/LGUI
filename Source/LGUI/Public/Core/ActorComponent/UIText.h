@@ -193,7 +193,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
 protected:
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 public:
 #pragma region UITextInputComponent
 	/** get caret position and line index */

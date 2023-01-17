@@ -21,8 +21,8 @@ class LGUI_API UUIScrollViewHelper :public ULGUILifeCycleUIBehaviour
 	GENERATED_BODY()
 private:
 	virtual void Awake()override;
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	friend class UUIScrollViewComponent;
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class UUIScrollViewComponent> TargetComp;
@@ -41,7 +41,7 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	virtual void RecalculateRange();
 protected:
 	friend class UUIScrollViewHelper;

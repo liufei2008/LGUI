@@ -36,12 +36,14 @@ protected:
 	bool bShouldRebuildLayoutAfterAnimation = false;
 	/** This function can be override. */
 	virtual void SetOnCompleteTween();
-	/** This function can be override to achive your own animation effect. */
+	/** This function can be override to make your own animation effect. */
 	virtual void ApplyAnchoredPositionWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D offset, UUIItem* target);
-	/** This function can be override to achive your own animation effect. */
+	/** This function can be override to make your own animation effect. */
 	virtual void ApplyWidthWithAnimation(EUILayoutChangePositionAnimationType animationType, float width, UUIItem* target);
-	/** This function can be override to achive your own animation effect. */
+	/** This function can be override to make your own animation effect. */
 	virtual void ApplyHeightWithAnimation(EUILayoutChangePositionAnimationType animationType, float height, UUIItem* target);
+	/** This function can be override to make your own animation effect. */
+	virtual void ApplySizeDeltaWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D sizeDelta, UUIItem* target);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUILayoutChangePositionAnimationType GetAnimationType()const { return AnimationType; }

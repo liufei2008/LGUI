@@ -184,13 +184,13 @@ void UUITexture::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 	}
 }
 
-void UUITexture::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUITexture::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
 {
-    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
 	if (!IsValid(texture))return;
 	if (type == UITextureType::Tiled)
 	{
-        if (InSizeChange)
+        if (InWidthChange || InHeightChange)
         {
             spriteData.ApplyUV(0, 0, this->GetWidth(), this->GetHeight(), 1.0f / spriteData.width, 1.0f / spriteData.height);
             MarkUVDirty();
@@ -198,13 +198,13 @@ void UUITexture::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDi
 	}
 	if (UVRectControlMode != EUITextureUVRectControlMode::None)
 	{
-		if (InSizeChange)
+		if (InWidthChange || InHeightChange)
 		{
 			CheckSpriteData();
 			MarkUVDirty();
 		}
 	}
-    if (InPivotChange || InSizeChange)
+    if (InPivotChange || InWidthChange || InHeightChange)
     {
         MarkVertexPositionDirty();
     }

@@ -1316,10 +1316,10 @@ void UUITextInputComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 	Super::OnUIInteractionStateChanged(interactableOrNot);
 	DeactivateInput();
 }
-void UUITextInputComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUITextInputComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-	Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
-	if (sizeChanged)
+	Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+	if (widthChanged || heightChanged)
 	{
 		this->UpdateAfterTextChange(false);//if size change, need to recalculate text input area
 	}
