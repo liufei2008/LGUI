@@ -268,7 +268,7 @@ void ULTweener::Restart()
 
 void ULTweener::Goto(float timePoint)
 {
-	timePoint = FMath::Max(timePoint, 0);
+	timePoint = FMath::Max(timePoint, 0.0f);
 	this->ToNextWithElapsedTime(timePoint);
 }
 
