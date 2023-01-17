@@ -55,9 +55,9 @@ void UUIScrollbarComponent::OnUIActiveInHierachy(bool ativeOrInactive)
     Super::OnUIActiveInHierachy(ativeOrInactive);
     ApplyValueToUI();
 }
-void UUIScrollbarComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIScrollbarComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     ApplyValueToUI();
 }
 

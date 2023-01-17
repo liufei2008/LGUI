@@ -102,6 +102,28 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAni
 	}
 }
 
+void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, FVector2D sizeDelta, UUIItem* target)
+{
+	switch (tempAnimationType)
+	{
+	default:
+	case EUILayoutChangePositionAnimationType::Immediately:
+	{
+		ApplyUIItemSizeDelta(target, sizeDelta);
+	}
+	break;
+	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	{
+		if (target->GetSizeDelta() != sizeDelta)
+		{
+			auto tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetSizeDelta), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetSizeDelta), sizeDelta, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	}
+}
+
 void UUILayoutWithAnimation::SetAnimationType(EUILayoutChangePositionAnimationType value)
 {
 	if (AnimationType != value)

@@ -8,13 +8,17 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout VerticalRebuildLayout"), STAT_VerticalLayout, STATGROUP_LGUI);
 
-void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+    //skip UILayoutBase
+    Super::Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+    if (this->GetWorld() == nullptr)return;
     if (child->GetIsUIActiveInHierarchy())
     {
-        if (this->GetWorld() == nullptr)return;
-        if (!ExpendChildrenHeight)
+        if (horizontalPositionChanged || verticalPositionChanged
+            || (ExpendChildrenWidth && widthChanged)
+            || (ExpendChildrenHeight && heightChanged)
+            )
         {
             MarkNeedRebuildLayout();
         }

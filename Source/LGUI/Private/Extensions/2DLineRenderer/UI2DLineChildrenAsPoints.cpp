@@ -79,10 +79,10 @@ void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem *child, bool 
         }
     }
 }
-void UUI2DLineChildrenAsPoints::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
+void UUI2DLineChildrenAsPoints::OnUIChildDimensionsChanged(UUIItem *child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
-    if (positionChanged)
+    Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+    if (horizontalPositionChanged || verticalPositionChanged)
     {
         OnChildPositionChanged();
     }

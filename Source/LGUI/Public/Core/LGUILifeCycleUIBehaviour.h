@@ -62,14 +62,12 @@ protected:
 	virtual void OnUIActiveInHierachy(bool activeOrInactive);
 	/** 
 	 * Called when RootUIComp->AnchorData is changed. 
-	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/**
 	 * Called when RootUIComp's attachchildren->AnchorData is changed.
-	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
 	/** Called when RootUIComp attach to a new parent */
@@ -81,8 +79,8 @@ protected:
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child);
 
-	void Call_OnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
-	void Call_OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	void Call_OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
+	void Call_OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	void Call_OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
 	void Call_OnUIAttachmentChanged();
 	void Call_OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach);
@@ -94,14 +92,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIActiveInHierarchy"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIActiveInHierarchy(bool activeOrInactive);
 	/** 
 	 * Called when RootUIComp->AnchorData is changed
-	 * @param positionChanged	relative position
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** 
 	 * Called when RootUIComp's attachchildren->AnchorData is changed.
-	 * @param positionChanged	relative position
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAcitveInHierarchy"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
 	/** Called when RootUIComp attach to a new parent */

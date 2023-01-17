@@ -170,10 +170,13 @@ void UUILayoutBase::MarkNeedRebuildLayout()
     }
 }
 
-void UUILayoutBase::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUILayoutBase::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
-    MarkNeedRebuildLayout();
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+    if (horizontalPositionChanged || verticalPositionChanged)
+    {
+        MarkNeedRebuildLayout();
+    }
 }
 void UUILayoutBase::OnUIAttachmentChanged()
 {
@@ -185,9 +188,9 @@ void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
     Super::OnUIActiveInHierachy(activeOrInactive);
     MarkNeedRebuildLayout();
 }
-void UUILayoutBase::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUILayoutBase::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+    Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)

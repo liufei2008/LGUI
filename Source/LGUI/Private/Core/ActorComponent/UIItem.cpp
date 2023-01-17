@@ -78,11 +78,11 @@ void UUIItem::CallUILifeCycleBehavioursActiveInHierarchyStateChanged()
 	if (this->GetOwner()->GetRootComponent() != this)return;
 	if (UIActiveInHierarchyStateChangedDelegate.IsBound())UIActiveInHierarchyStateChangedDelegate.Broadcast(TempIsUIActive);
 }
-void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+	OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -93,7 +93,7 @@ void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bo
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		CompItem->Call_OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+		CompItem->Call_OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive)
@@ -114,11 +114,11 @@ void UUIItem::CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIIte
 		CompItem->Call_OnUIChildAcitveInHierarchy(child, activeOrInactive);
 	}
 }
-void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	OnUIDimensionsChanged(positionChanged, sizeChanged);
+	OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -129,13 +129,13 @@ void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, b
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		CompItem->Call_OnUIDimensionsChanged(positionChanged, sizeChanged);
+		CompItem->Call_OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 
 	//call parent
 	if (ParentUIItem.IsValid())
 	{
-		ParentUIItem->CallUILifeCycleBehavioursChildDimensionsChanged(this, positionChanged, sizeChanged);
+		ParentUIItem->CallUILifeCycleBehavioursChildDimensionsChanged(this, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursAttachmentChanged()
@@ -562,7 +562,7 @@ void UUIItem::PostEditUndo()
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
 
-	SetOnAnchorChange(true, true);
+	SetOnAnchorChange(true, true, true);
 
 #if WITH_EDITOR
 	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
@@ -1233,7 +1233,7 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 		bAnchorBottomCached = false;
 		bAnchorTopCached = false;
 
-		SetOnAnchorChange(false, true);
+		SetOnAnchorChange(false, true, true);
 	}
 }
 
@@ -1291,7 +1291,12 @@ void UUIItem::UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle)
 	UIHierarchyChangedDelegate.Remove(InHandle);
 }
 
-bool UUIItem::CalculateTransformFromAnchor()
+void UUIItem::CalculateTransformFromAnchor()
+{
+	bool HorizontalPositionChanged = false, VerticalPositionChanged = false;
+	CalculateTransformFromAnchor(HorizontalPositionChanged, VerticalPositionChanged);
+}
+void UUIItem::CalculateTransformFromAnchor(bool& OutHorizontalPositionChanged, bool& OutVerticalPositionChanged)
 {
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
@@ -1300,7 +1305,7 @@ bool UUIItem::CalculateTransformFromAnchor()
 		{
 			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
 			{
-				return false;
+				return;
 			}
 		}
 	}
@@ -1336,16 +1341,22 @@ bool UUIItem::CalculateTransformFromAnchor()
 		ResultLocation.Z = this->AnchorData.AnchoredPosition.Y;
 	}
 
-	bool TransformChange = false;
-	if (!this->GetRelativeLocation().Equals(ResultLocation, 0.0f))
+	auto OriginRelativeLocation = this->GetRelativeLocation();
+	double Tolerance = 0.0f;
+	if (FMath::Abs(OriginRelativeLocation.Y - ResultLocation.Y) > Tolerance)
+	{
+		OutHorizontalPositionChanged = true;
+	}
+	if (FMath::Abs(OriginRelativeLocation.Z - ResultLocation.Z) > Tolerance)
+	{
+		OutVerticalPositionChanged = true;
+	}
+	if (OutHorizontalPositionChanged || OutVerticalPositionChanged)
 	{
 		GetRelativeLocation_DirectMutable() = ResultLocation;
 		UpdateComponentToWorld();
-		TransformChange = true;
 	}
 	bCanSetAnchorFromTransform = true;
-
-	return TransformChange;
 }
 
 
@@ -1413,7 +1424,7 @@ void UUIItem::SetAnchorData(const FUIAnchorData& InAnchorData)
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
 
-	SetOnAnchorChange(true, true);
+	SetOnAnchorChange(true, true, true);
 }
 
 void UUIItem::SetPivot(FVector2D Value) 
@@ -1425,7 +1436,7 @@ void UUIItem::SetPivot(FVector2D Value)
 		bAnchorRightCached = false;
 		bAnchorBottomCached = false;
 		bAnchorTopCached = false;
-		SetOnAnchorChange(true, false);
+		SetOnAnchorChange(true, false, false);
 	}
 }
 
@@ -1464,7 +1475,7 @@ void UUIItem::SetAnchorMin(FVector2D Value)
 				this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -CurrentTop, this->AnchorData.Pivot.Y);
 			}
 
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, true, true);
 		}
 	}
 	else
@@ -1506,7 +1517,7 @@ void UUIItem::SetAnchorMax(FVector2D Value)
 				this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -CurrentTop, this->AnchorData.Pivot.Y);
 			}
 
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, true, true);
 		}
 	}
 	else
@@ -1579,7 +1590,7 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bK
 				this->SetRelativeLocation(PrevRelativeLocation);
 			}
 
-			SetOnAnchorChange(false, !bKeepSize);
+			SetOnAnchorChange(false, !bKeepSize, !bKeepSize);
 		}
 	}
 	else
@@ -1623,7 +1634,7 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bKee
 				this->SetRelativeLocation(PrevRelativeLocation);
 			}
 
-			SetOnAnchorChange(false, !bKeepSize);
+			SetOnAnchorChange(false, !bKeepSize, !bKeepSize);
 		}
 	}
 	else
@@ -1637,7 +1648,7 @@ void UUIItem::SetAnchoredPosition(FVector2D Value)
 	if (!AnchorData.AnchoredPosition.Equals(Value, 0.0f))
 	{
 		AnchorData.AnchoredPosition = Value;
-		SetOnAnchorChange(false, false);
+		SetOnAnchorChange(false, false, false);
 	}
 }
 
@@ -1646,7 +1657,7 @@ void UUIItem::SetHorizontalAnchoredPosition(float Value)
 	if (AnchorData.AnchoredPosition.X != Value)
 	{
 		AnchorData.AnchoredPosition.X = Value;
-		SetOnAnchorChange(false, false);
+		SetOnAnchorChange(false, false, false);
 	}
 }
 void UUIItem::SetVerticalAnchoredPosition(float Value)
@@ -1654,7 +1665,7 @@ void UUIItem::SetVerticalAnchoredPosition(float Value)
 	if (AnchorData.AnchoredPosition.Y != Value)
 	{
 		AnchorData.AnchoredPosition.Y = Value;
-		SetOnAnchorChange(false, false);
+		SetOnAnchorChange(false, false, false);
 	}
 }
 
@@ -1665,7 +1676,7 @@ void UUIItem::SetSizeDelta(FVector2D Value)
 		AnchorData.SizeDelta = Value;
 		bWidthCached = false;
 		bHeightCached = false;
-		SetOnAnchorChange(false, true);
+		SetOnAnchorChange(false, true, true);
 	}
 }
 
@@ -1785,7 +1796,7 @@ void UUIItem::SetAnchorLeft(float Value)
 				}
 			}
 			this->AnchorData.AnchoredPosition.X = FMath::Lerp(Value, -CurrentRight, this->AnchorData.Pivot.X);
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, true, false);
 		}
 	}
 	else
@@ -1816,7 +1827,7 @@ void UUIItem::SetAnchorTop(float Value)
 				}
 			}
 			this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -Value, this->AnchorData.Pivot.Y);
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, false, true);
 		}
 	}
 	else
@@ -1847,7 +1858,7 @@ void UUIItem::SetAnchorRight(float Value)
 				}
 			}
 			this->AnchorData.AnchoredPosition.X = FMath::Lerp(CurrentLeft, -Value, this->AnchorData.Pivot.X);
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, true, false);
 		}
 	}
 	else
@@ -1878,7 +1889,7 @@ void UUIItem::SetAnchorBottom(float Value)
 				}
 			}
 			this->AnchorData.AnchoredPosition.Y = FMath::Lerp(Value, -CurrentTop, this->AnchorData.Pivot.Y);
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, false, true);
 		}
 	}
 	else
@@ -1901,7 +1912,7 @@ void UUIItem::SetWidth(float Value)
 				if (AnchorData.SizeDelta.X != CalculatedSizeDeltaX)
 				{
 					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
-					SetOnAnchorChange(false, true);
+					SetOnAnchorChange(false, true, false);
 				}
 			}
 			else
@@ -1909,7 +1920,7 @@ void UUIItem::SetWidth(float Value)
 				if (AnchorData.SizeDelta.X != Value)
 				{
 					AnchorData.SizeDelta.X = Value;
-					SetOnAnchorChange(false, true);
+					SetOnAnchorChange(false, true, false);
 				}
 			}
 		}
@@ -1918,7 +1929,7 @@ void UUIItem::SetWidth(float Value)
 			if (AnchorData.SizeDelta.X != Value)
 			{
 				AnchorData.SizeDelta.X = Value;
-				SetOnAnchorChange(false, true);
+				SetOnAnchorChange(false, true, false);
 			}
 		}
 	}
@@ -1937,7 +1948,7 @@ void UUIItem::SetHeight(float Value)
 				if (AnchorData.SizeDelta.Y != CalculatedSizeDeltaY)
 				{
 					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
-					SetOnAnchorChange(false, true);
+					SetOnAnchorChange(false, false, true);
 				}
 			}
 			else
@@ -1945,7 +1956,7 @@ void UUIItem::SetHeight(float Value)
 				if (AnchorData.SizeDelta.Y != Value)
 				{
 					AnchorData.SizeDelta.Y = Value;
-					SetOnAnchorChange(false, true);
+					SetOnAnchorChange(false, false, true);
 				}
 			}
 		}
@@ -1954,7 +1965,7 @@ void UUIItem::SetHeight(float Value)
 			if (AnchorData.SizeDelta.Y != Value)
 			{
 				AnchorData.SizeDelta.Y = Value;
-				SetOnAnchorChange(false, true);
+				SetOnAnchorChange(false, false, true);
 			}
 		}
 	}
@@ -2024,9 +2035,9 @@ float UUIItem::GetLocalSpaceTop()const
 	return this->GetHeight() * (1.0f - AnchorData.Pivot.Y);
 }
 
-void UUIItem::SetOnAnchorChange(bool InPivotChange, bool InSizeChange)
+void UUIItem::SetOnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange)
 {
-	OnAnchorChange(InPivotChange, InSizeChange, false);
+	OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, false);
 }
 
 void UUIItem::SetOnTransformChange()
@@ -2040,7 +2051,7 @@ void UUIItem::SetOnTransformChange()
 		}
 	}
 
-	CallUILifeCycleBehavioursDimensionsChanged(true, false);
+	CallUILifeCycleBehavioursDimensionsChanged(true, true, false, false);
 
 	for (auto& UIChild : UIChildren)
 	{
@@ -2051,15 +2062,19 @@ void UUIItem::SetOnTransformChange()
 	}
 }
 
-void UUIItem::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUIItem::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
 {
-	bool TransformChange = CalculateTransformFromAnchor();
+	bool HorizontalPositionChanged = false, VerticalPositionChanged = false;
+	CalculateTransformFromAnchor(HorizontalPositionChanged, VerticalPositionChanged);
 
 	if (InDiscardCache)
 	{
-		if (InSizeChange)
+		if (InWidthChange)
 		{
 			bWidthCached = false;
+		}
+		if (InHeightChange)
+		{
 			bHeightCached = false;
 		}
 		bAnchorLeftCached = false;
@@ -2070,28 +2085,29 @@ void UUIItem::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDisca
 
 	if (this->RenderCanvas.IsValid())
 	{
-		this->RenderCanvas->MarkCanvasUpdate(false, TransformChange, false);//mark canvas to update
+		this->RenderCanvas->MarkCanvasUpdate(false, HorizontalPositionChanged || VerticalPositionChanged, false);//mark canvas to update
 		if (this->IsCanvasUIItem())
 		{
 			this->RenderCanvas->MarkCanvasLayoutDirty();
 		}
 	}
 
-	CallUILifeCycleBehavioursDimensionsChanged(TransformChange, InSizeChange);
+	CallUILifeCycleBehavioursDimensionsChanged(HorizontalPositionChanged, VerticalPositionChanged, InWidthChange, InHeightChange);
 
 	for (auto& UIChild : UIChildren)
 	{
 		if (IsValid(UIChild))
 		{
-			bool ChildSizeChange = false;
-			if (InSizeChange)
+			bool ChildWidthChange = false, ChildHeightChange = false;
+			if (InWidthChange && UIChild->AnchorData.IsHorizontalStretched())
 			{
-				if (UIChild->AnchorData.IsHorizontalStretched() || UIChild->AnchorData.IsVerticalStretched())
-				{
-					ChildSizeChange = true;
-				}
+				ChildWidthChange = true;
 			}
-			UIChild->OnAnchorChange(false, ChildSizeChange);
+			if (InHeightChange && UIChild->AnchorData.IsVerticalStretched())
+			{
+				ChildHeightChange = true;
+			}
+			UIChild->OnAnchorChange(false, ChildWidthChange, ChildHeightChange);
 		}
 	}
 }

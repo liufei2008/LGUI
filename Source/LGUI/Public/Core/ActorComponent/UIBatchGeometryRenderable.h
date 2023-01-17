@@ -118,7 +118,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
 protected:
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();

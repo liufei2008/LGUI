@@ -61,8 +61,8 @@ private:
 	TInlineComponentArray<class ULGUILifeCycleUIBehaviour*> LGUILifeCycleUIBehaviourArray;
 	void CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
 	void CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive);
-	void CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, bool sizeChanged);
-	void CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	void CallUILifeCycleBehavioursDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
+	void CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	void CallUILifeCycleBehavioursAttachmentChanged();
 	void CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
 	void CallUILifeCycleBehavioursInteractionStateChanged();
@@ -74,12 +74,12 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	 * Called when this->AnchorData is changed. 
 	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged) { }
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged) { }
 	/**
 	 * Called when this's attachchildren->AnchorData is changed. 
 	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged) { }
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged) { }
 	/** Called when this's attachchildren IsActiveInHierarchy state is changed */
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive) { }
 	/** Called when this attach to a new parent */
@@ -106,7 +106,8 @@ protected:
 	void OnUIAttachedToParent();
 public:
 	void CalculateAnchorFromTransform();
-	bool CalculateTransformFromAnchor();
+	void CalculateTransformFromAnchor();
+	void CalculateTransformFromAnchor(bool& OutHorizontalPositionChanged, bool& OutVerticalPositionChanged);
 public:
 
 	FDelegateHandle RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback);
@@ -258,10 +259,10 @@ public:
 #endif
 	virtual void MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode);
 private:
-	void SetOnAnchorChange(bool InPivotChange, bool InSizeChange);
+	void SetOnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange);
 	void SetOnTransformChange();
 protected:
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true);
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true);
 public:
 	virtual void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 private:

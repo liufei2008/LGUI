@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutBase.h"
+#include "UILayoutWithAnimation.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "UISizeControlByOther.generated.h"
 
@@ -15,7 +15,7 @@ class LGUI_API UUISizeControlByOtherHelper :public ULGUILifeCycleUIBehaviour
 
 private:
 	virtual void Awake()override;
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	friend class UUISizeControlByOther;
 	UPROPERTY(Transient)TWeakObjectPtr<class UUISizeControlByOther> TargetComp;
 };
@@ -24,7 +24,7 @@ private:
  * Use other UI element to control the size of this one.
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUISizeControlByOther : public UUILayoutBase
+class LGUI_API UUISizeControlByOther : public UUILayoutWithAnimation
 {
 	GENERATED_BODY()
 
@@ -75,7 +75,7 @@ protected:
 	UPROPERTY(Transient) TWeakObjectPtr<class UUISizeControlByOtherHelper> HelperComp = nullptr;
 	bool CheckTargetUIItem();
 
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	virtual void OnUIAttachmentChanged()override;
 
 	//these will not affect this Layout

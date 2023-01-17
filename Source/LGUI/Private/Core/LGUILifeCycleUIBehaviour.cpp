@@ -95,18 +95,18 @@ void ULGUILifeCycleUIBehaviour::Call_Awake()
 	Super::Call_Awake();
 }
 
-void ULGUILifeCycleUIBehaviour::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void ULGUILifeCycleUIBehaviour::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 	if (bCanExecuteBlueprintEvent)
 	{
-		ReceiveOnUIDimensionsChanged(positionChanged, sizeChanged);
+		ReceiveOnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 }
-void ULGUILifeCycleUIBehaviour::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void ULGUILifeCycleUIBehaviour::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 	if (bCanExecuteBlueprintEvent)
 	{
-		ReceiveOnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+		ReceiveOnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 }
 void ULGUILifeCycleUIBehaviour::OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive)
@@ -146,19 +146,19 @@ void ULGUILifeCycleUIBehaviour::OnUIChildHierarchyIndexChanged(UUIItem* child)
 }
 
 
-void ULGUILifeCycleUIBehaviour::Call_OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void ULGUILifeCycleUIBehaviour::Call_OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		OnUIDimensionsChanged(positionChanged, sizeChanged);
+		OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 	else
 #endif
 	{
 		if (bIsAwakeCalled)
 		{
-			OnUIDimensionsChanged(positionChanged, sizeChanged);
+			OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 		}
 		else
 		{
@@ -166,24 +166,24 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIDimensionsChanged(bool positionChanged,
 			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIDimensionsChanged] = [=]() {
 				if (ThisPtr.IsValid())
 				{
-					ThisPtr->OnUIDimensionsChanged(positionChanged, sizeChanged);
+					ThisPtr->OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 				}};
 		}
 	}
 }
-void ULGUILifeCycleUIBehaviour::Call_OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void ULGUILifeCycleUIBehaviour::Call_OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+		OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 	}
 	else
 #endif
 	{
 		if (bIsAwakeCalled)
 		{
-			OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+			OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 		}
 		else
 		{
@@ -192,7 +192,7 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildDimensionsChanged(UUIItem* child, 
 			CallbacksBeforeAwake[(int)ECallbackFunctionType::Call_OnUIChildDimensionsChanged] = [=]() {
 				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
-					ThisPtr->OnUIChildDimensionsChanged(ChildPtr.Get(), positionChanged, sizeChanged);
+					ThisPtr->OnUIChildDimensionsChanged(ChildPtr.Get(), horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
 				}};
 		}
 	}

@@ -42,7 +42,7 @@ protected:
 	TSharedPtr<UIGeometry> geometry_Sliced = nullptr;
 	virtual void UpdateGeometry()override final;
 
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 
 	virtual void MarkAllDirty()override;
 
