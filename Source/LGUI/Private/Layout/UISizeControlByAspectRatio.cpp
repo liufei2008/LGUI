@@ -7,6 +7,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
+DECLARE_CYCLE_STAT(TEXT("UILayout SizeControlByAspectRatioRebuildLayout"), STAT_SizeControlByAspectRatio, STATGROUP_LGUI);
 void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
 {
 	if (ControlMode != value)
@@ -26,78 +27,93 @@ void UUISizeControlByAspectRatio::SetAspectRatio(float value)
 
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
+	SCOPE_CYCLE_COUNTER(STAT_SizeControlByAspectRatio);
 	if (!CheckRootUIComponent())return;
 	if (!GetEnable())return;
-
-	if (CheckRootUIComponent() && GetEnable())
+	if (bIsAnimationPlaying)
 	{
-		switch (ControlMode)
-		{
-		case EUISizeControlByAspectRatioMode::HeightControlWidth:
-		{
-			ApplyUIItemWidth(RootUIComp.Get(), RootUIComp->GetHeight() * AspectRatio);
-		}
-		break;
-		case EUISizeControlByAspectRatioMode::WidthControlHeight:
-		{
-			ApplyUIItemHeight(RootUIComp.Get(), RootUIComp->GetWidth() / AspectRatio);
-		}
-		break;
-		case EUISizeControlByAspectRatioMode::FitInParent:
-		{
-			if (auto parent = RootUIComp->GetParentUIItem())
-			{
-				RootUIComp->SetAnchorMin(FVector2D(0, 0));
-				RootUIComp->SetAnchorMax(FVector2D(1, 1));
+		bShouldRebuildLayoutAfterAnimation = true;
+		return;
+	}
+	CancelAnimation();
 
-				auto parentWidth = parent->GetWidth();
-				auto parentHeight = parent->GetHeight();
-				auto parentAspectRatio = parentWidth / parentHeight;
-				if (parentAspectRatio > AspectRatio)
-				{
-					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
-					SizeDelta.Y = 0;
-					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
-				}
-				else
-				{
-					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
-					SizeDelta.X = 0;
-					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
-				}
+	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+	}
+#endif
+	switch (ControlMode)
+	{
+	case EUISizeControlByAspectRatioMode::HeightControlWidth:
+	{
+		ApplyWidthWithAnimation(tempAnimationType, RootUIComp->GetHeight() * AspectRatio, RootUIComp.Get());
+	}
+	break;
+	case EUISizeControlByAspectRatioMode::WidthControlHeight:
+	{
+		ApplyHeightWithAnimation(tempAnimationType, RootUIComp->GetWidth() / AspectRatio, RootUIComp.Get());
+	}
+	break;
+	case EUISizeControlByAspectRatioMode::FitInParent:
+	{
+		if (auto parent = RootUIComp->GetParentUIItem())
+		{
+			RootUIComp->SetAnchorMin(FVector2D(0, 0));
+			RootUIComp->SetAnchorMax(FVector2D(1, 1));
+
+			auto parentWidth = parent->GetWidth();
+			auto parentHeight = parent->GetHeight();
+			auto parentAspectRatio = parentWidth / parentHeight;
+			if (parentAspectRatio > AspectRatio)
+			{
+				auto SizeDelta = RootUIComp->GetSizeDelta();
+				SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
+				SizeDelta.Y = 0;
+				ApplySizeDeltaWithAnimation(tempAnimationType, SizeDelta, RootUIComp.Get());
+			}
+			else
+			{
+				auto SizeDelta = RootUIComp->GetSizeDelta();
+				SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
+				SizeDelta.X = 0;
+				ApplySizeDeltaWithAnimation(tempAnimationType, SizeDelta, RootUIComp.Get());
 			}
 		}
-		break;
-		case EUISizeControlByAspectRatioMode::EnvelopeParent:
+	}
+	break;
+	case EUISizeControlByAspectRatioMode::EnvelopeParent:
+	{
+		if (auto parent = RootUIComp->GetParentUIItem())
 		{
-			if (auto parent = RootUIComp->GetParentUIItem())
-			{
-				RootUIComp->SetAnchorMin(FVector2D(0, 0));
-				RootUIComp->SetAnchorMax(FVector2D(1, 1));
+			RootUIComp->SetAnchorMin(FVector2D(0, 0));
+			RootUIComp->SetAnchorMax(FVector2D(1, 1));
 
-				auto parentWidth = parent->GetWidth();
-				auto parentHeight = parent->GetHeight();
-				auto parentAspectRatio = parentWidth / parentHeight;
-				if (parentAspectRatio > AspectRatio)
-				{
-					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
-					SizeDelta.X = 0;
-					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
-				}
-				else
-				{
-					auto SizeDelta = RootUIComp->GetSizeDelta();
-					SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
-					SizeDelta.Y = 0;
-					ApplyUIItemSizeDelta(RootUIComp.Get(), SizeDelta);
-				}
+			auto parentWidth = parent->GetWidth();
+			auto parentHeight = parent->GetHeight();
+			auto parentAspectRatio = parentWidth / parentHeight;
+			if (parentAspectRatio > AspectRatio)
+			{
+				auto SizeDelta = RootUIComp->GetSizeDelta();
+				SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
+				SizeDelta.X = 0;
+				ApplySizeDeltaWithAnimation(tempAnimationType, SizeDelta, RootUIComp.Get());
+			}
+			else
+			{
+				auto SizeDelta = RootUIComp->GetSizeDelta();
+				SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
+				SizeDelta.Y = 0;
+				ApplySizeDeltaWithAnimation(tempAnimationType, SizeDelta, RootUIComp.Get());
 			}
 		}
-		break;
-		}
+	}
+	break;
+	}
+	if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+	{
+		SetOnCompleteTween();
 	}
 }
 

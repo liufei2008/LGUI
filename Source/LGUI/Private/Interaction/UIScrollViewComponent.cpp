@@ -11,32 +11,32 @@ void UUIScrollViewHelper::Awake()
     Super::Awake();
     this->SetCanExecuteUpdate(false);
 }
-void UUIScrollViewHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIScrollViewHelper::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     if (!TargetComp.IsValid())
     {
         this->DestroyComponent();
     }
     else
     {
-        if (sizeChanged)
+        if (widthChanged || heightChanged)
         {
             TargetComp->bRangeCalculated = false;
             TargetComp->RecalculateRange();
         }
     }
 }
-void UUIScrollViewHelper::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
+void UUIScrollViewHelper::OnUIChildDimensionsChanged(UUIItem *child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+    Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     if (!TargetComp.IsValid())
     {
         this->DestroyComponent();
     }
     else
     {
-        if (sizeChanged)
+        if (widthChanged || heightChanged)
         {
             TargetComp->bRangeCalculated = false;
             TargetComp->RecalculateRange();
@@ -129,10 +129,10 @@ void UUIScrollViewComponent::OnUIActiveInHierachy(bool ativeOrInactive)
         RecalculateRange();
     }
 }
-void UUIScrollViewComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIScrollViewComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
-    Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
-    if (sizeChanged)
+    Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+    if (widthChanged || heightChanged)
     {
         bRangeCalculated = false;
         RecalculateRange();

@@ -29,7 +29,7 @@ protected:
 
 	virtual void UpdateGeometry()override;
 
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 
 	void MarkVertexPositionDirty();
 

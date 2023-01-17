@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutBase.h"
+#include "UILayoutWithAnimation.h"
 #include "UISizeControlByAspectRatio.generated.h"
 
 
@@ -21,7 +21,7 @@ enum class EUISizeControlByAspectRatioMode :uint8
  * Use aspect ratio to control with and height.
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUISizeControlByAspectRatio : public UUILayoutBase
+class LGUI_API UUISizeControlByAspectRatio : public UUILayoutWithAnimation
 {
 	GENERATED_BODY()
 

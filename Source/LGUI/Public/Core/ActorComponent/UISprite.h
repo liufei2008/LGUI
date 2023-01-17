@@ -77,7 +77,7 @@ protected:
 	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")UISpriteFillOriginType_Radial360 fillOriginType_Radial360;
 #endif
 
-	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 
 	//width direction rectangel count, in tiled mode
 	int32 Tiled_WidthRectCount = 0;
