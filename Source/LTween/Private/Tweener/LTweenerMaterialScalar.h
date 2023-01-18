@@ -30,14 +30,17 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.Execute(startValue))
+		if (getter.IsBound())
 		{
-			this->changeValue = endValue - startValue;
-			this->originStartValue = this->changeValue;
-		}
-		else
-		{
-			UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialScalar/OnStartGetValue]Get paramter value error!"));
+			if (getter.Execute(startValue))
+			{
+				this->changeValue = endValue - startValue;
+				this->originStartValue = this->changeValue;
+			}
+			else
+			{
+				UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialScalar/OnStartGetValue]Get paramter value error!"));
+			}
 		}
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
