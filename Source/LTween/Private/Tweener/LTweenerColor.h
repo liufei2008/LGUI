@@ -33,7 +33,8 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		this->startValue = getter.Execute();
+		if (getter.IsBound())
+			this->startValue = getter.Execute();
 		this->originStartValue = this->startValue;
 		this->originEndValue = this->endValue;
 	}

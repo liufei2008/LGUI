@@ -35,13 +35,16 @@ public:
 protected:
 	virtual void OnStartGetValue() override
 	{
-		if (getter.Execute(startValue))
+		if (getter.IsBound())
 		{
-			this->originStartValue = startValue;
-		}
-		else
-		{
-			UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialVector/OnStartGetValue]Get paramter value error!"));
+			if (getter.Execute(startValue))
+			{
+				this->originStartValue = startValue;
+			}
+			else
+			{
+				UE_LOG(LTween, Error, TEXT("[ULTweenerMaterialVector/OnStartGetValue]Get paramter value error!"));
+			}
 		}
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
