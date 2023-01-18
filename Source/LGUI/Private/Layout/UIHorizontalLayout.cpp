@@ -141,10 +141,39 @@ void UUIHorizontalLayout::OnRebuildLayout()
             {
                 autoSizeChildrenCount++;
             }
+            if (UseChildrenScaleOnWidth)
+            {
+                tempChildWidth *= item.uiItem->GetRelativeScale3D().Y;
+            }
             autoSizeChildrenSize -= tempChildWidth;
             childrenWidthList.Add(tempChildWidth);
         }
-        float autoSizeChildWidth = autoSizeChildrenSize / autoSizeChildrenCount;
+        float autoSizeChildWidth = 0;
+        if (UseChildrenScaleOnWidth)
+        {
+            float autoSizeChildrenScaleSum = 0;
+            for (int i = 0; i < childrenCount; i++)
+            {
+                auto item = uiChildrenList[i];
+                if (item.layoutElement != nullptr)
+                {
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    if (layoutType == ELayoutElementType::AutoSize)
+                    {
+                        autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Y;
+                    }
+                }
+                else
+                {
+                    autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Y;
+                }
+            }
+            autoSizeChildWidth = autoSizeChildrenSize / autoSizeChildrenScaleSum;
+        }
+        else
+        {
+            autoSizeChildWidth = autoSizeChildrenSize / autoSizeChildrenCount;
+        }
         for (int i = 0; i < childrenCount; i++)
         {
             auto item = uiChildrenList[i];
@@ -180,7 +209,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
             for (int i = 0; i < childrenCount; i++)
             {
                 auto uiItem = uiChildrenList[i].uiItem;
-                totalWidth += uiItem->GetWidth();
+                auto itemWidth = uiItem->GetWidth();
+                if (UseChildrenScaleOnWidth)
+                {
+                    itemWidth *= uiItem->GetRelativeScale3D().Y;
+                }
+                totalWidth += itemWidth;
             }
             totalWidth += Spacing * (childrenCount - 1);
             startPosition.X += (rectSize.X - totalWidth) * 0.5f;
@@ -194,7 +228,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
             for (int i = 0; i < childrenCount; i++)
             {
                 auto uiItem = uiChildrenList[i].uiItem;
-                totalWidth += uiItem->GetWidth();
+                auto itemWidth = uiItem->GetWidth();
+                if (UseChildrenScaleOnWidth)
+                {
+                    itemWidth *= uiItem->GetRelativeScale3D().Y;
+                }
+                totalWidth += itemWidth;
             }
             totalWidth += Spacing * (childrenCount - 1);
             startPosition.X += (rectSize.X - totalWidth);
@@ -226,6 +265,10 @@ void UUIHorizontalLayout::OnRebuildLayout()
         else
         {
             childWidth = uiItem->GetWidth();
+        }
+        if (UseChildrenScaleOnWidth)
+        {
+            childWidth *= uiItem->GetRelativeScale3D().Y;
         }
 
         if (ExpendChildrenHeight)
