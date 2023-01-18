@@ -206,7 +206,10 @@ public:
 	/** execute when animation complete */
 	ULTweener* OnComplete(const TFunction<void()>& newComplete)
 	{
-		this->onCompleteCpp.BindLambda(newComplete);
+		if (newComplete != nullptr)
+		{
+			this->onCompleteCpp.BindLambda(newComplete);
+		}
 		return this;
 	}
 	/** execute when animation complete */
@@ -228,7 +231,10 @@ public:
 	/** if use loop, this will call every time after tween complete in every cycle */
 	ULTweener* OnCycleComplete(const TFunction<void()>& newCycleComplete)
 	{
-		this->onCycleCompleteCpp.BindLambda(newCycleComplete);
+		if (newCycleComplete != nullptr)
+		{
+			this->onCycleCompleteCpp.BindLambda(newCycleComplete);
+		}
 		return this;
 	}
 	/** if use loop, this will call every time after tween complete in every cycle */
@@ -250,7 +256,10 @@ public:
 	/** if use loop, this will call every time when begin tween in every cycle */
 	ULTweener* OnCycleStart(const TFunction<void()>& newCycleStart)
 	{
-		this->onCycleStartCpp.BindLambda(newCycleStart);
+		if (newCycleStart != nullptr)
+		{
+			this->onCycleStartCpp.BindLambda(newCycleStart);
+		}
 		return this;
 	}
 	/** if use loop, this will call every time when begin tween in every cycle */
@@ -272,7 +281,10 @@ public:
 	/** execute every frame if animation is playing */
 	ULTweener* OnUpdate(const TFunction<void(float)>& newUpdate)
 	{
-		this->onUpdateCpp.BindLambda(newUpdate);
+		if (newUpdate != nullptr)
+		{
+			this->onUpdateCpp.BindLambda(newUpdate);
+		}
 		return this;
 	}
 	/** execute every frame if animation is playing */
@@ -303,7 +315,10 @@ public:
 	/** execute when animation start, lambda version*/
 	ULTweener* OnStart(const TFunction<void()>& newStart)
 	{
-		this->onStartCpp.BindLambda(newStart);
+		if (newStart != nullptr)
+		{
+			this->onStartCpp.BindLambda(newStart);
+		}
 		return this;
 	}
 	/**
