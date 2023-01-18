@@ -285,7 +285,9 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	}
 	else//if geometry is created, update data
 	{
-		if (bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged)
+		//when use pixel-perfect, the pixel-perfect calculation will take consider transform matrix, so we need to recalculate geometry if pixel-perfect & bTransformChanged
+		bool pixelPerfectAffectTransform = this->GetRenderCanvas()->GetActualPixelPerfect() && bTransformChanged;
+		if (bTriangleChanged || bLocalVertexPositionChanged || pixelPerfectAffectTransform || bColorChanged || bUVChanged)
 		{
 			geometry->Clear();
 			//check if GeometryModifier will affect vertex data, if so we need to update these data in OnUpdateGeometry
@@ -297,7 +299,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 				if (TempUV)bUVChanged = true;
 				if (TempColor)bColorChanged = true;
 			}
-			OnUpdateGeometry(*(geometry.Get()), bTriangleChanged, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
+			OnUpdateGeometry(*(geometry.Get()), bTriangleChanged, bLocalVertexPositionChanged || pixelPerfectAffectTransform, bUVChanged, bColorChanged);
 			ApplyGeometryModifier(bTriangleChanged, bUVChanged, bColorChanged, bLocalVertexPositionChanged);
 			drawcall->bNeedToUpdateVertex = true;
 			if (bLocalVertexPositionChanged)
