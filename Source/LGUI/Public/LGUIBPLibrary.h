@@ -73,20 +73,33 @@ public:
 	}
 
 	/**
-	 * find the first component in parent and up parent hierarchy with type 
-	 * @param IncludeSelf	include actor self
+	 * Find the first component in parent and up parent hierarchy with type.
+	 * @param IncludeSelf	Include actor self.
+	 * @param InStopNode	If parent is InStopNode then break the search chain.
 	 */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true);
-	/** find all compoents in children with type */
+		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true, AActor* InStopNode = nullptr);
+	/**
+	 * Find all compoents in children with type.
+	 * @param InActor Root actor to start from.
+	 * @param ComponentClass The component type that need to search.
+	 * @param IncludeSelf true- also search component at InActor.
+	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
+	 */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf);
-	/** find the first component in children with type */
+		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
+	/**
+	 * Find the first component in children with type.
+	 * @param InActor Root actor to start from.
+	 * @param ComponentClass The component type that need to search.
+	 * @param IncludeSelf true- also search component at InActor.
+	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
+	 */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf);
+		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
 private:
-	static void CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray);
-	static UActorComponent* FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass);
+	static void CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray, const TSet<AActor*>& InExcludeNode);
+	static UActorComponent* FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, const TSet<AActor*>& InExcludeNode);
 public:
 #pragma region EventDelegate
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIEventDelegateExecuteEmpty(const FLGUIEventDelegate& InEvent) { InEvent.FireEvent(); }
