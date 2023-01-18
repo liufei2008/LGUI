@@ -142,10 +142,39 @@ void UUIVerticalLayout::OnRebuildLayout()
             {
                 autoSizeChildrenCount++;
             }
+            if (UseChildrenScaleOnHeight)
+            {
+                tempChildHeight *= item.uiItem->GetRelativeScale3D().Z;
+            }
             autoSizeChildrenSize -= tempChildHeight;
             childrenHeightList.Add(tempChildHeight);
         }
-        float autoSizeChildHeight = autoSizeChildrenSize / autoSizeChildrenCount;
+        float autoSizeChildHeight = 0;
+        if (UseChildrenScaleOnHeight)
+        {
+            float autoSizeChildrenScaleSum = 0;
+            for (int i = 0; i < childrenCount; i++)
+            {
+                auto item = uiChildrenList[i];
+                if (item.layoutElement != nullptr)
+                {
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    if (layoutType == ELayoutElementType::AutoSize)
+                    {
+                        autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Z;
+                    }
+                }
+                else
+                {
+                    autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Z;
+                }
+            }
+            autoSizeChildHeight = autoSizeChildrenSize / autoSizeChildrenScaleSum;
+        }
+        else
+        {
+            autoSizeChildHeight = autoSizeChildrenSize / autoSizeChildrenCount;
+        }
         for (int i = 0; i < childrenCount; i++)
         {
             auto item = uiChildrenList[i];
@@ -181,7 +210,12 @@ void UUIVerticalLayout::OnRebuildLayout()
             for (int i = 0; i < childrenCount; i++)
             {
                 auto uiItem = uiChildrenList[i].uiItem;
-                totalHeight += uiItem->GetHeight();
+                auto itemHeight = uiItem->GetHeight();
+                if (UseChildrenScaleOnHeight)
+                {
+                    itemHeight *= uiItem->GetRelativeScale3D().Z;
+                }
+                totalHeight += itemHeight;
             }
             totalHeight += Spacing * (childrenCount - 1);
             startPosition.Y -= (rectSize.Y - totalHeight) * 0.5f;
@@ -195,7 +229,12 @@ void UUIVerticalLayout::OnRebuildLayout()
             for (int i = 0; i < childrenCount; i++)
             {
                 auto uiItem = uiChildrenList[i].uiItem;
-                totalHeight += uiItem->GetHeight();
+                auto itemHeight = uiItem->GetHeight();
+                if (UseChildrenScaleOnHeight)
+                {
+                    itemHeight *= uiItem->GetRelativeScale3D().Z;
+                }
+                totalHeight += itemHeight;
             }
             totalHeight += Spacing * (childrenCount - 1);
             startPosition.Y -= (rectSize.Y - totalHeight);
@@ -260,6 +299,10 @@ void UUIVerticalLayout::OnRebuildLayout()
         else
         {
             childHeight = uiItem->GetHeight();
+        }
+        if (UseChildrenScaleOnHeight)
+        {
+            childHeight *= uiItem->GetRelativeScale3D().Z;
         }
 
         float anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;

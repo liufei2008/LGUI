@@ -78,6 +78,9 @@ protected:
 	/** lerp from min child's height to max child's height */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float HeightFitToChildrenFromMinToMax = 1.0f;
+	/** Whether children widths are scaled by their horizontal scale. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool UseChildrenScaleOnWidth = false;
 
 	/** actural children's fill range in horizontal */
 	float ActuralRange;
