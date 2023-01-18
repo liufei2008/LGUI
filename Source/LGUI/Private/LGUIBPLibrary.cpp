@@ -48,7 +48,7 @@ AActor* ULGUIBPLibrary::DuplicateActorWithPreparedData(FLGUIDuplicateDataContain
 	}
 }
 
-UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
+UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, AActor* InStopNode)
 {
 	if (!IsValid(InActor))
 	{
@@ -58,6 +58,10 @@ UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclass
 	AActor* parentActor = IncludeSelf ? InActor : InActor->GetAttachParentActor();
 	while (parentActor != nullptr)
 	{
+		if (InStopNode != nullptr)
+		{
+			if (parentActor == InStopNode)return nullptr;
+		}
 		auto resultComp = parentActor->FindComponentByClass(ComponentClass);
 		if (resultComp != nullptr)
 		{
@@ -70,7 +74,7 @@ UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclass
 	}
 	return nullptr;
 }
-TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
+TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode)
 {
 	TArray<UActorComponent*> result;
 	if (!IsValid(InActor))
@@ -80,7 +84,7 @@ TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor
 	}
 	if (IncludeSelf)
 	{
-		CollectComponentsInChildrenRecursive(InActor, ComponentClass, result);
+		CollectComponentsInChildrenRecursive(InActor, ComponentClass, result, InExcludeNode);
 	}
 	else
 	{
@@ -90,15 +94,16 @@ TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor
 		{
 			for (AActor* actor : childrenActors)
 			{
-				CollectComponentsInChildrenRecursive(actor, ComponentClass, result);
+				CollectComponentsInChildrenRecursive(actor, ComponentClass, result, InExcludeNode);
 			}
 		}
 	}
 	return result;
 }
 
-void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray)
+void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray, const TSet<AActor*>& InExcludeNode)
 {
+	if (InExcludeNode.Contains(InActor))return;
 	auto& components = InActor->GetComponents();
 	for (UActorComponent* comp : components)
 	{
@@ -114,12 +119,12 @@ void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubc
 	{
 		for (AActor* actor : childrenActors)
 		{
-			CollectComponentsInChildrenRecursive(actor, ComponentClass, InOutArray);
+			CollectComponentsInChildrenRecursive(actor, ComponentClass, InOutArray, InExcludeNode);
 		}
 	}
 }
 
-UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
+UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode)
 {
 	if (!IsValid(InActor))
 	{
@@ -129,7 +134,7 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 	UActorComponent* result = nullptr;
 	if (IncludeSelf)
 	{
-		result = FindComponentInChildrenRecursive(InActor, ComponentClass);
+		result = FindComponentInChildrenRecursive(InActor, ComponentClass, InExcludeNode);
 	}
 	else
 	{
@@ -139,7 +144,7 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 		{
 			for (AActor* actor : childrenActors)
 			{
-				result = FindComponentInChildrenRecursive(InActor, ComponentClass);
+				result = FindComponentInChildrenRecursive(InActor, ComponentClass, InExcludeNode);
 				if (IsValid(result))
 				{
 					return result;
@@ -149,8 +154,9 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 	}
 	return result;
 }
-UActorComponent* ULGUIBPLibrary::FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass)
+UActorComponent* ULGUIBPLibrary::FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, const TSet<AActor*>& InExcludeNode)
 {
+	if (InExcludeNode.Contains(InActor))return nullptr;
 	if (auto comp = InActor->GetComponentByClass(ComponentClass))
 	{
 		if (IsValid(comp))
@@ -162,7 +168,7 @@ UActorComponent* ULGUIBPLibrary::FindComponentInChildrenRecursive(AActor* InActo
 	InActor->GetAttachedActors(childrenActors);
 	for (auto childActor : childrenActors)
 	{
-		auto comp = FindComponentInChildrenRecursive(childActor, ComponentClass);
+		auto comp = FindComponentInChildrenRecursive(childActor, ComponentClass, InExcludeNode);
 		if (IsValid(comp))
 		{
 			return comp;
