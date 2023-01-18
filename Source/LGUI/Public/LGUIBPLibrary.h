@@ -75,7 +75,7 @@ public:
 	/**
 	 * Find the first component in parent and up parent hierarchy with type.
 	 * @param IncludeSelf	Include actor self.
-	 * @param InStopNode	If parent is InStopNode then break the search chain.
+	 * @param InStopNode	If parent is InStopNode then break the search chain. Can be null to ignore it.
 	 */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
 		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true, AActor* InStopNode = nullptr);
