@@ -68,7 +68,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIDynamicFontLineHeightType lineHeightType = ELGUIDynamicFontLineHeightType::FontSizeAsLineHeight;
 	/** Current using font face has kerning? */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient)
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
 		bool hasKerning = false;
 	//UPROPERTY(EditAnywhere, Category = "LGUI")
 	//	TScriptInterface<class UFontFaceInterface> test;

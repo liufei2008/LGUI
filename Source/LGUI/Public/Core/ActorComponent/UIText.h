@@ -102,6 +102,7 @@ private:
 	mutable int visibleCharCount = -1;
 	bool bTextLayoutDirty = false;
 	void MarkTextLayoutDirty();
+	void ConditionalMarkTextLayoutDirty();
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
 	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;

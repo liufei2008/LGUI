@@ -535,6 +535,34 @@ void UUIText::MarkTextLayoutDirty()
 		}
 	}
 }
+void UUIText::ConditionalMarkTextLayoutDirty()
+{
+	if (overflowType == UITextOverflowType::HorizontalOverflow)
+	{
+		if (adjustWidth)
+		{
+			MarkTextLayoutDirty();
+		}
+	}
+	else if (overflowType == UITextOverflowType::VerticalOverflow)
+	{
+		if (adjustHeight)
+		{
+			MarkTextLayoutDirty();
+		}
+	}
+	else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+	{
+		if (adjustWidth)
+		{
+			MarkTextLayoutDirty();
+		}
+		if (adjustHeight)
+		{
+			MarkTextLayoutDirty();
+		}
+	}
+}
 
 void UUIText::OnUpdateLayout_Implementation()
 {
@@ -686,20 +714,24 @@ bool UUIText::UpdateCacheTextGeometry()const
 
 void UUIText::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
 {
-	MarkTextLayoutDirty();
+	if (InVertexPositionDirty)//position change, could cause layout change
+	{
+		ConditionalMarkTextLayoutDirty();
+	}
 	CacheTextGeometryData.MarkDirty();
 	Super::MarkVerticesDirty(InTriangleDirty, InVertexPositionDirty, InVertexUVDirty, InVertexColorDirty);
 }
 void UUIText::MarkTextureDirty()
 {
-	MarkTextLayoutDirty();
+	//texture dirty, could because font change, then text's geometry will be recreate, so layout will change
+	ConditionalMarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
 	Super::MarkTextureDirty();
 }
 
 void UUIText::MarkAllDirty()
 {
-	MarkTextLayoutDirty();
+	ConditionalMarkTextLayoutDirty();
 	CacheTextGeometryData.MarkDirty();
 	Super::MarkAllDirty();
 }

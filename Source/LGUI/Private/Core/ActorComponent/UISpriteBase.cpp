@@ -81,9 +81,9 @@ void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSiz
 				newSprite->AddUISprite(this);
 				bHasAddToSprite = true;
 			}
+			MarkTextureDirty();
 		}
 		sprite = newSprite;
-		MarkTextureDirty();
 		MarkUVDirty();
 		if (setSize) SetSizeFromSpriteData();
 	}
