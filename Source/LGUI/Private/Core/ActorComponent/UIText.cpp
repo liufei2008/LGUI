@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData_BaseObject.h"
+#include "Core/LGUIEmojiData.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
@@ -117,6 +118,10 @@ void UUIText::BeginPlay()
 			bHasAddToFont = true;
 		}
 	}
+	if (IsValid(emojiData))
+	{
+		this->RegisterOnEmojiDataChange();
+	}
 	visibleCharCount = VisibleCharCountInString(text.ToString());
 }
 
@@ -132,6 +137,10 @@ void UUIText::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		font->RemoveUIText(this);
 		bHasAddToFont = false;
+	}
+	if (IsValid(emojiData))
+	{
+		this->UnregisterOnEmojiDataChange();
 	}
 }
 
@@ -149,6 +158,13 @@ void UUIText::OnRegister()
 				{
 					font->AddUIText(this);
 					bHasAddToFont = true;
+				}
+			}
+			if (!onEmojiDataChangedDelegateHandle.IsValid())
+			{
+				if (IsValid(emojiData))
+				{
+					this->RegisterOnEmojiDataChange();
 				}
 			}
 			ULGUIEditorManagerObject::RegisterLGUILayout(this);
@@ -174,6 +190,13 @@ void UUIText::OnUnregister()
 				font->RemoveUIText(this);
 				bHasAddToFont = false;
 			}
+			if (IsValid(emojiData))
+			{
+				if (onEmojiDataChangedDelegateHandle.IsValid())
+				{
+					this->UnregisterOnEmojiDataChange();
+				}
+			}
 			ULGUIEditorManagerObject::UnregisterLGUILayout(this);
 		}
 		else
@@ -183,6 +206,19 @@ void UUIText::OnUnregister()
 			ALGUIManagerActor::UnregisterLGUILayout(this);
 		}
 	}
+}
+void UUIText::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	for (int i = 0; i < createdEmojiObjectArray.Num(); i++)
+	{
+		auto item = createdEmojiObjectArray[i];
+		if (IsValid(item) && IsValid(item->GetOwner()))
+		{
+			LGUIUtils::DestroyActorWithHierarchy(item->GetOwner());
+		}
+	}
+	createdEmojiObjectArray.Empty();
 }
 
 void UUIText::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
@@ -252,6 +288,13 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 		{
 			font->AddUIText(this);
 			bHasAddToFont = true;
+		}
+	}
+	if (!onEmojiDataChangedDelegateHandle.IsValid())
+	{
+		if (richText && IsValid(emojiData))
+		{
+			this->RegisterOnEmojiDataChange();
 		}
 	}
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
@@ -341,6 +384,21 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 				}
 			}
 		}
+		
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, listEmojiObjectInOutliner))
+		{
+			for (auto& emojiObj : createdEmojiObjectArray)
+			{
+				if (IsValid(emojiObj))
+				{
+					auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+					bListedInSceneOutliner_Property->SetPropertyValue_InContainer(emojiObj->GetOwner(), listEmojiObjectInOutliner);
+				}
+			}
+#if WITH_EDITOR
+			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+#endif
+		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -375,7 +433,31 @@ void UUIText::OnPostChangeFontProperty()
 		bHasAddToFont = true;
 	}
 }
+void UUIText::OnPreChangeEmojiDataProperty()
+{
+	if (IsValid(emojiData))//unregister event from prev
+	{
+		UnregisterOnEmojiDataChange();
+	}
+}
+void UUIText::OnPostChangeEmojiDataProperty()
+{
+	if (IsValid(emojiData))
+	{
+		RegisterOnEmojiDataChange();
+	}
+}
 #endif
+void UUIText::RegisterOnEmojiDataChange()
+{
+	onEmojiDataChangedDelegateHandle = emojiData->OnDataChange.AddWeakLambda(this, [=] {
+		this->MarkVerticesDirty(false, true, true, false);
+		});
+}
+void UUIText::UnregisterOnEmojiDataChange()
+{
+	emojiData->OnDataChange.Remove(onEmojiDataChangedDelegateHandle);
+}
 
 FVector2D UUIText::GetTextRealSize()const
 {
@@ -702,6 +784,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetUseKerning()
 		, this->GetFontStyle()
 		, this->GetRichText()
+		, this->GetEmojiData()
 		, this->GetFont()
 	);
 	if (geometry->vertices.Num() == 0)//@todo: geometry is cleared before OnUpdateGeometry, consider use a cached UIGeometry
@@ -766,6 +849,101 @@ const TArray<FUIText_RichTextCustomTag>& UUIText::GetRichTextCustomTagArray()con
 {
 	UpdateCacheTextGeometry();
 	return CacheTextGeometryData.cacheRichTextCustomTagArray;
+}
+const TArray<FUIText_RichTextEmojiTag>& UUIText::GetRichTextEmojiTagArray()const
+{
+	UpdateCacheTextGeometry();
+	return CacheTextGeometryData.cacheRichTextEmojiTagArray;
+}
+
+#include "Core/Actor/UISpriteActor.h"
+#include "Core/LGUIEmojiData.h"
+#include "Extensions/UISpriteSequencePlayer.h"
+void UUIText::GenerateEmojiObject()
+{
+	if (!IsValid(emojiData))return;
+	auto& emojiTagData = CacheTextGeometryData.cacheRichTextEmojiTagArray;
+	//destroy extra
+	while (createdEmojiObjectArray.Num() > emojiTagData.Num())
+	{
+		auto lastIndex = createdEmojiObjectArray.Num() - 1;
+		auto emojiObj = createdEmojiObjectArray[lastIndex];
+		LGUIUtils::DestroyActorWithHierarchy(emojiObj->GetOwner());
+		createdEmojiObjectArray.RemoveAt(lastIndex);
+	}
+	//create more
+	while (createdEmojiObjectArray.Num() < emojiTagData.Num())
+	{
+		auto spriteActor = this->GetWorld()->SpawnActor<AUISpriteActor>();
+		spriteActor->SetFlags(EObjectFlags::RF_Transient);
+		spriteActor->GetUISprite()->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+		createdEmojiObjectArray.Push(spriteActor->GetUISprite());
+	}
+	//apply data
+	for (int i = 0; i < emojiTagData.Num(); i++)
+	{
+		auto emojiObj = createdEmojiObjectArray[i];
+#if WITH_EDITOR
+		emojiObj->GetOwner()->SetActorLabel(FString::Printf(TEXT("[%s]"), *emojiTagData[i].TagName.ToString()));
+		if (!this->GetWorld()->IsGameWorld())//set it only in edit mode
+		{
+			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(emojiObj->GetOwner(), listEmojiObjectInOutliner);
+		}
+#endif
+		auto& emojiMap = emojiData->GetEmojiMap();
+		if (auto emojiItemPtr = emojiMap.Find(emojiTagData[i].TagName))
+		{
+			auto& spriteFrames = emojiItemPtr->frames;
+			auto sequencePlayerComp = emojiObj->GetOwner()->FindComponentByClass<UUISpriteSequencePlayer>();
+			ULGUISpriteData_BaseObject* sprite = nullptr;
+			if (spriteFrames.Num() == 0)
+			{
+				emojiObj->SetSprite(nullptr, false);
+				if (IsValid(sequencePlayerComp))
+				{
+					sequencePlayerComp->DestroyComponent();
+				}
+			}
+			if (spriteFrames.Num() == 1)
+			{
+				sprite = spriteFrames[0];
+				if (IsValid(sequencePlayerComp))
+				{
+					sequencePlayerComp->DestroyComponent();
+				}
+			}
+			else
+			{
+				sprite = spriteFrames[0];
+				if (!IsValid(sequencePlayerComp))
+				{
+					sequencePlayerComp = NewObject<UUISpriteSequencePlayer>(emojiObj->GetOwner());
+					sequencePlayerComp->SetSnapSpriteSize(false);
+					sequencePlayerComp->RegisterComponent();
+					emojiObj->GetOwner()->AddInstanceComponent(sequencePlayerComp);
+				}
+				sequencePlayerComp->SetSpriteSequence(spriteFrames);
+				sequencePlayerComp->SetFps(emojiItemPtr->overrideAnimationFps < 0 ? emojiData->GetAnimationFps() : emojiItemPtr->overrideAnimationFps);
+				if (this->GetWorld()->IsGameWorld())
+				{
+					sequencePlayerComp->Play();
+				}
+			}
+			emojiObj->SetSprite(sprite, false);
+			emojiObj->SetColor(emojiTagData[i].TintColor);
+			emojiObj->SetAnchoredPosition(emojiTagData[i].Position);
+			auto referenceWidth = emojiTagData[i].Size;
+			auto referenceHeight = (float)sprite->GetSpriteInfo().height / (float)sprite->GetSpriteInfo().width * referenceWidth;
+			emojiObj->SetSizeDelta(FVector2D(referenceWidth, referenceHeight));
+		}
+	}
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())//refresh on editor
+	{
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+	}
+#endif
 }
 
 

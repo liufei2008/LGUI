@@ -10,6 +10,7 @@
 
 
 class ULGUIFontData_BaseObject;
+class ULGUIEmojiData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
@@ -25,6 +26,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
@@ -32,7 +34,12 @@ public:
 protected:
 	virtual void OnPreChangeFontProperty();
 	virtual void OnPostChangeFontProperty();
+	virtual void OnPreChangeEmojiDataProperty();
+	virtual void OnPostChangeEmojiDataProperty();
 #endif
+	void RegisterOnEmojiDataChange();
+	void UnregisterOnEmojiDataChange();
+	FDelegateHandle onEmojiDataChangedDelegateHandle;
 #if WITH_EDITORONLY_DATA
 	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
@@ -93,9 +100,20 @@ protected:
 	 * <sup>Superscript</sup>
 	 * <sub>Subscript</sub>
 	 * <MyTag>Custom tag</MyTag> use any string as custom tag
+	 * <emoji=smile/> support emoji display, must set EmojiData property
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
+	/** emoji data for rendering emoji image */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
+		ULGUIEmojiData* emojiData = nullptr;
+	/** created emoji image object */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
+		TArray<class UUISprite*> createdEmojiObjectArray;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+		bool listEmojiObjectInOutliner = false;
+#endif
 private:
 	bool bHasAddToFont = false;
 	/** visible/renderable char count of current text. -1 means not set yet */
@@ -115,6 +133,8 @@ public:
 		int32 GetVisibleCharCount()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const TArray<FUIText_RichTextEmojiTag>& GetRichTextEmojiTagArray()const;
 public:
 	virtual void MarkAllDirty()override;
 protected:
@@ -142,6 +162,8 @@ public:
 	}
 	/** count visible char count of the string */
 	static int VisibleCharCountInString(const FString& srcStr);
+
+	void GenerateEmojiObject();
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData_BaseObject* GetFont()const { return font; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FText& GetText()const { return text; }
@@ -159,6 +181,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIEmojiData* GetEmojiData()const { return emojiData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
 

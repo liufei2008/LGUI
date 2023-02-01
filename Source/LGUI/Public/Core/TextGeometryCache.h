@@ -8,6 +8,7 @@
 class UIGeometry;
 class UUIText;
 class ULGUIFontData_BaseObject;
+class ULGUIEmojiData;
 
 
 UENUM(BlueprintType, Category = LGUI)
@@ -97,6 +98,18 @@ struct FUIText_RichTextCustomTag
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd = 0;
 };
 
+USTRUCT(BlueprintType, Category = LGUI)
+struct FUIText_RichTextEmojiTag
+{
+	GENERATED_BODY()
+	/** Tag name */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
+	/** emoji object position */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Position = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) float Size;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FColor TintColor;
+};
+
 struct LGUI_API FTextGeometryCache
 {
 public:
@@ -122,7 +135,8 @@ public:
 		bool InUseKerning,
 		UITextFontStyle InFontStyle,
 		bool InRichText,
-		TWeakObjectPtr<ULGUIFontData_BaseObject> InFont
+		ULGUIEmojiData* InEmojiData,
+		ULGUIFontData_BaseObject* InFont
 	);
 private:
 #pragma region InputParameters
@@ -142,6 +156,7 @@ private:
 	bool useKerning = false;
 	UITextFontStyle fontStyle = UITextFontStyle::None;
 	bool richText = false;
+	TWeakObjectPtr<ULGUIEmojiData> emojiData = nullptr;
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;
 #pragma endregion InputParameters
 
@@ -157,6 +172,7 @@ public:
 	/** char properties, from first char to last one in array */
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
 	TArray<FUIText_RichTextCustomTag> cacheRichTextCustomTagArray;
+	TArray<FUIText_RichTextEmojiTag> cacheRichTextEmojiTagArray;
 #pragma endregion OutputResults
 public:
 	void MarkDirty();

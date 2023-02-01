@@ -92,7 +92,7 @@ void UUIPostProcessRenderable::MarkAllDirty()
 	Super::MarkAllDirty();
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateGeometry"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
 void UUIPostProcessRenderable::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);

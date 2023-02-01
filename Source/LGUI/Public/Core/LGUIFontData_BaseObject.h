@@ -101,7 +101,7 @@ public:
 	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; }
 	virtual bool GetCanAdjustPixelPerfect() { return true; }
 
-	/** this is called once every time before create any char geometry */
+	/** this is called every time before create a string of char geometry */
 	virtual void PrepareForPushCharData(UUIText* InText) {};
 	/** create char geometry and push to vertices & triangleIndices array */
 	virtual void PushCharData(

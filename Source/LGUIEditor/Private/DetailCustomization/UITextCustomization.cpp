@@ -242,6 +242,15 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, maxHorizontalWidth));
 	}
 
+	auto RichTextHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richText));
+	RichTextHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+	bool richText;
+	RichTextHandle->GetValue(richText);
+	if (!richText)
+	{
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
+	}
+
 	for (auto item : needToHidePropertyName)
 	{
 		DetailBuilder.HideProperty(item);
@@ -254,6 +263,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	fontHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=]{
 		TargetScriptPtr->OnPreChangeFontProperty();
 	}));
+
+	auto emojiDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
+	emojiDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPostChangeEmojiDataProperty();
+		}));
+	emojiDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPreChangeEmojiDataProperty();
+		}));
 }
 void FUITextCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
