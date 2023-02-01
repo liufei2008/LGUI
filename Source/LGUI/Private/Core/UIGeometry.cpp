@@ -2146,6 +2146,64 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 
 #pragma region UIText
 #include "Core/ActorComponent/UIText.h"
+void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart
+	, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& sentenceProperty
+)
+{
+	float xOffset = 0;
+	switch (pivotHAlign)
+	{
+	case UITextParagraphHorizontalAlign::Center:
+		xOffset = -lineWidth * 0.5f;
+		break;
+	case UITextParagraphHorizontalAlign::Right:
+		xOffset = -lineWidth;
+		break;
+	}
+
+	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
+	{
+		auto& vertex = vertices[i].Position;
+		vertex.Y += xOffset;
+	}
+
+	auto& charList = sentenceProperty.charPropertyList;
+	for (auto& item : charList)
+	{
+		item.caretPosition.X += xOffset;
+	}
+}
+void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart
+	, TArray<FLGUIOriginVertexData>& vertices
+	, int lineEmojiStartIndex, TArray<FUIText_RichTextEmojiTag>& emojiArray
+)
+{
+	float xOffset = 0;
+	switch (pivotHAlign)
+	{
+	case UITextParagraphHorizontalAlign::Center:
+		xOffset = -lineWidth * 0.5f;
+		break;
+	case UITextParagraphHorizontalAlign::Right:
+		xOffset = -lineWidth;
+		break;
+	}
+	float yOffset = -(lineHeight - fontSize) * 0.5f;
+
+	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
+	{
+		auto& vertex = vertices[i].Position;
+		vertex.Y += xOffset;
+		vertex.Z += yOffset;
+	}
+
+	for (int i = lineEmojiStartIndex; i < emojiArray.Num(); i++)
+	{
+		auto& item = emojiArray[i];
+		item.Position.X += xOffset;
+		item.Position.Y += yOffset;
+	}
+}
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 	, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
@@ -2153,6 +2211,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, UITextFontStyle fontStyle, FVector2f& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+	, TArray<FUIText_RichTextEmojiTag>& cacheRichTextEmojiTagArray
 	, ULGUIFontData_BaseObject* font, bool richText)
 {
 	FString content = text;
@@ -2215,6 +2274,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	cacheTextPropertyArray.Reset();
 	cacheCharPropertyArray.Reset();
 	cacheRichTextCustomTagArray.Reset();
+	cacheRichTextEmojiTagArray.Reset();
 	int contentLength = content.Len();
 	FVector2f currentLineOffset(0, 0);
 	float originLineHeight = font->GetLineHeight(fontSize);
@@ -2223,6 +2283,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float maxLineWidth = 0;//if have multiple line
 	int lineUIGeoVertStart = 0;//vertex index in originVertices of current line
 	int currentVisibleCharCount = 0;//visible char count, skip invisible char(\r,\n,\t)
+	int emojiStartIndexInCurrentLine = 0;//
 	FUITextLineProperty sentenceProperty;
 	FVector2f caretPosition(0, 0);
 	float halfFontSpaceX = fontSpace.X * 0.5f;
@@ -2251,7 +2312,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (richText)
 		{
-			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originVertices);
+			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originVertices, emojiStartIndexInCurrentLine, cacheRichTextEmojiTagArray);
+			emojiStartIndexInCurrentLine = cacheRichTextEmojiTagArray.Num();
 		}
 		else
 		{
@@ -2260,7 +2322,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			caretProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(caretProperty);
 
-			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originVertices, sentenceProperty);
+			UIGeometry_AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originVertices, sentenceProperty);
 
 			cacheTextPropertyArray.Add(sentenceProperty);
 			sentenceProperty = FUITextLineProperty();
@@ -2288,6 +2350,42 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		currentLineHeight = originLineHeight;
 	};
 
+	auto IsEmojiSpace = [&](TCHAR charCode, const RichTextParseResult& richTextResult)
+	{
+		if (charCode == ' ')
+		{
+			if (richText && !richTextResult.emojiTag.IsNone())
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	};
+	auto IsSpace = [&](TCHAR charCode, const RichTextParseResult& richTextResult)
+	{
+		if (charCode == ' ')
+		{
+			if (richText && !richTextResult.emojiTag.IsNone())
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	};
 	auto GetCharGeo = [&](TCHAR prevCharCode, TCHAR charCode, float inFontSize)
 	{
 		auto charData = font->GetCharData(charCode, inFontSize);
@@ -2300,11 +2398,18 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * rootCanvasScale;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				overrideCharData = font->GetCharData(charCode, inFontSize);
+				if (IsEmojiSpace(charCode, richTextParseResult))
+				{
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+				}
+				else
+				{
+					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-				overrideCharData.width = overrideCharData.width * oneDivideRootCanvasScale;
-				overrideCharData.height = overrideCharData.height * oneDivideRootCanvasScale;
-				overrideCharData.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+					overrideCharData.width = overrideCharData.width * oneDivideRootCanvasScale;
+					overrideCharData.height = overrideCharData.height * oneDivideRootCanvasScale;
+					overrideCharData.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+				}
 				overrideCharData.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
 				overrideCharData.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 			}
@@ -2312,11 +2417,18 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * dynamicPixelsPerUnit;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				overrideCharData = font->GetCharData(charCode, inFontSize);
+				if (IsEmojiSpace(charCode, richTextParseResult))
+				{
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+				}
+				else
+				{
+					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-				overrideCharData.width = overrideCharData.width * oneDivideDynamicPixelsPerUnit;
-				overrideCharData.height = overrideCharData.height * oneDivideDynamicPixelsPerUnit;
-				overrideCharData.xadvance = overrideCharData.xadvance * oneDivideDynamicPixelsPerUnit;
+					overrideCharData.width = overrideCharData.width * oneDivideDynamicPixelsPerUnit;
+					overrideCharData.height = overrideCharData.height * oneDivideDynamicPixelsPerUnit;
+					overrideCharData.xadvance = overrideCharData.xadvance * oneDivideDynamicPixelsPerUnit;
+				}
 				overrideCharData.xoffset = overrideCharData.xoffset * oneDivideDynamicPixelsPerUnit;
 				overrideCharData.yoffset = overrideCharData.yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
 			}
@@ -2324,22 +2436,29 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * rootCanvasScale;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				overrideCharData = font->GetCharData(charCode, inFontSize);
+				if (IsEmojiSpace(charCode, richTextParseResult))
+				{
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+				}
+				else
+				{
+					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-				overrideCharData.width = overrideCharData.width * oneDivideRootCanvasScale;
-				overrideCharData.height = overrideCharData.height * oneDivideRootCanvasScale;
-				overrideCharData.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+					overrideCharData.width = overrideCharData.width * oneDivideRootCanvasScale;
+					overrideCharData.height = overrideCharData.height * oneDivideRootCanvasScale;
+					overrideCharData.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
+				}
 				overrideCharData.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
 				overrideCharData.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 			}
 		}
 		else
 		{
-			overrideCharData.width = charData.width;
-			overrideCharData.height = charData.height;
-			overrideCharData.xadvance = charData.xadvance;
-			overrideCharData.xoffset = charData.xoffset;
-			overrideCharData.yoffset = charData.yoffset + calculatedCharFixedOffset;
+			if (IsEmojiSpace(charCode, richTextParseResult))
+			{
+				overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+			}
+			overrideCharData.yoffset += calculatedCharFixedOffset;
 		}
 		if (useKerning && prevCharCode != charCode)
 		{
@@ -2348,23 +2467,27 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			overrideCharData.xoffset += kerning;
 		}
 
-		if (charCode == ' ' || charCode == '\t')
-		{
-			overrideCharData.uv0X = overrideCharData.uv0Y = overrideCharData.uv3X = overrideCharData.uv3Y = 1.0f;
-		}
 		return overrideCharData;
 	};
-	auto GetCharGeoXAdv = [&](TCHAR prevCharCode, TCHAR charCode, float overrideFontSize)
+	auto GetCharGeoXAdv = [&](TCHAR prevCharCode, TCHAR charCode, const RichTextParseResult& richTextResult)
 	{
-		auto charData = font->GetCharData(charCode, overrideFontSize);
-		if (useKerning && prevCharCode != charCode)
+		if (IsEmojiSpace(charCode, richTextResult))
 		{
-			auto kerning = font->GetKerning(prevCharCode, charCode, overrideFontSize);
-			return charData.xadvance + kerning;
+			return richTextResult.size;//emoji use font size as width & height & xadvance
 		}
 		else
 		{
-			return charData.xadvance;
+			auto overrideFontSize = richText ? richTextResult.size : fontSize;
+			auto charData = font->GetCharData(charCode, overrideFontSize);
+			if (useKerning && prevCharCode != charCode)
+			{
+				auto kerning = font->GetKerning(prevCharCode, charCode, overrideFontSize);
+				return charData.xadvance + kerning;
+			}
+			else
+			{
+				return charData.xadvance;
+			}
 		}
 	};
 
@@ -2380,8 +2503,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			auto charCode = content[charIndex];
 			richTextParseResult.customTag = NAME_None;
 			richTextParseResult.customTagMode = CustomTagMode::None;
+			richTextParser.ClearEmojiTag();
 			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
 			{
+				if (!richTextParseResult.emojiTag.IsNone())//get emoji, append a blank placeholder
+				{
+					richTextContent.AppendChar(' ');
+					richTextPropertyArray.Add(richTextParseResult);
+					richTextParseResult.emojiTag = NAME_None;//clear it
+					richTextParser.ClearEmojiTag();
+				}
 				if (charIndex < contentLength)
 				{
 					charCode = content[charIndex];
@@ -2440,7 +2571,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (newLineMode == NewLineMode::Space || newLineMode == NewLineMode::Overflow)
 		{
-			if (charCode == ' ')
+			if (IsSpace(charCode, richTextParseResult))
 			{
 				if (newLineMode == NewLineMode::Overflow)
 				{
@@ -2468,20 +2599,20 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
 		}
 
-		if (charCode == ' ')//char is space
+		if (IsSpace(charCode, richTextParseResult))//char is space
 		{
 			if (overflowType == UITextOverflowType::VerticalOverflow//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
 				|| overflowType == UITextOverflowType::HorizontalAndVerticalOverflow
 				)
 			{
 				auto prevCharCodeOfForwardChar = prevCharCode;
-				float spaceNeeded = GetCharGeoXAdv(prevCharCodeOfForwardChar, charCode, richText ? richTextParseResult.size : fontSize);
+				float spaceNeeded = GetCharGeoXAdv(prevCharCodeOfForwardChar, charCode, richTextParseResult);
 				prevCharCodeOfForwardChar = charCode;
 				spaceNeeded += fontSpace.X;
 				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = currentVisibleCharCount; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
 				{
 					auto charCodeOfForwardChar = content[forwardCharIndex];
-					if (charCodeOfForwardChar == ' ')//space
+					if (IsSpace(charCodeOfForwardChar, richTextParseResult))//space
 					{
 						break;
 					}
@@ -2489,7 +2620,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						break;
 					}
-					spaceNeeded += GetCharGeoXAdv(prevCharCodeOfForwardChar, charCodeOfForwardChar, richText ? richTextParseResult.size : fontSize);
+					spaceNeeded += GetCharGeoXAdv(prevCharCodeOfForwardChar, charCodeOfForwardChar, richTextParseResult);
 					spaceNeeded += fontSpace.X;
 					forwardVisibleCharIndex++;
 					prevCharCodeOfForwardChar = charCodeOfForwardChar;
@@ -2507,36 +2638,48 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		prevCharCode = charCode;
 		float charWidth = charGeo.xadvance + fontSpace.X;
 		//char geometry
-		if (charCode != ' ' && charCode != '\t')
+		if (IsEmojiSpace(charCode, richTextParseResult))
 		{
-			if (richText)
+			FUIText_RichTextEmojiTag emojiTagData;
+			emojiTagData.TagName = richTextParseResult.emojiTag;
+			emojiTagData.Position = FVector2D(currentLineOffset.X + charWidth * 0.5f, currentLineOffset.Y);
+			emojiTagData.Size = charWidth;
+			emojiTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
+			cacheRichTextEmojiTagArray.Add(emojiTagData);
+		}
+		else
+		{
+			if (charCode != ' ' && charCode != '\t')//skip invisible char
 			{
-				currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
+				if (richText)
+				{
+					currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
+				}
+
+				int additionalVerticesCount, additionalIndicesCount;
+				font->PushCharData(
+					charCode, currentLineOffset, fontSpace, charGeo,
+					richTextParseResult,
+					verticesCount, indicesCount,
+					additionalVerticesCount, additionalIndicesCount,
+					originVertices, vertices, triangles
+				);
+
+				//collect char property
+				{
+					FUITextCharProperty charProperty;
+					charProperty.StartVertIndex = verticesCount;
+					charProperty.VertCount = additionalVerticesCount;
+					charProperty.StartTriangleIndex = indicesCount;
+					charProperty.IndicesCount = indicesCount + additionalIndicesCount;
+					cacheCharPropertyArray.Add(charProperty);
+				}
+
+				verticesCount += additionalVerticesCount;
+				indicesCount += additionalIndicesCount;
+
+				currentVisibleCharCount++;
 			}
-
-			int additionalVerticesCount, additionalIndicesCount;
-			font->PushCharData(
-				charCode, currentLineOffset, fontSpace, charGeo,
-				richTextParseResult,
-				verticesCount, indicesCount,
-				additionalVerticesCount, additionalIndicesCount,
-				originVertices, vertices, triangles
-			);
-
-			//collect char property
-			{
-				FUITextCharProperty charProperty;
-				charProperty.StartVertIndex = verticesCount;
-				charProperty.VertCount = additionalVerticesCount;
-				charProperty.StartTriangleIndex = indicesCount;
-				charProperty.IndicesCount = indicesCount + additionalIndicesCount;
-				cacheCharPropertyArray.Add(charProperty);
-			}
-
-			verticesCount += additionalVerticesCount;
-			indicesCount += additionalIndicesCount;
-
-			currentVisibleCharCount++;
 		}
 
 		//collect rich text custom tag. custom tag use start/end mark, so put these code outside of visible-char-check.
@@ -2583,7 +2726,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::VerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -2603,7 +2746,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::HorizontalAndVerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
 				if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit max line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -2625,7 +2768,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				if (charIndex + 1 == contentLength)continue;//last char
 				if (hasClampContent)continue;
 
-				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextParseResult.size : fontSize);
+				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
 				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
 				{
 					hasClampContent = true;
@@ -2714,6 +2857,15 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			}
 		}
 	}
+	//emoji
+	if (richText)
+	{
+		for (auto& emojiItem : cacheRichTextEmojiTagArray)
+		{
+			emojiItem.Position.X += xOffset;
+			emojiItem.Position.Y += yOffset;
+		}
+	}
 
 	UIGeometry::OffsetVertices(originVertices, verticesCount, xOffset, yOffset);
 
@@ -2721,53 +2873,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	if (pixelPerfect)
 	{
 		AdjustPixelPerfectPos_For_UIText(originVertices, cacheCharPropertyArray, renderCanvas, uiComp);
-	}
-}
-
-void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& sentenceProperty)
-{
-	float xOffset = 0;
-	switch (pivotHAlign)
-	{
-	case UITextParagraphHorizontalAlign::Center:
-		xOffset = -lineWidth * 0.5f;
-		break;
-	case UITextParagraphHorizontalAlign::Right:
-		xOffset = -lineWidth;
-		break;
-	}
-
-	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
-	{
-		auto& vertex = vertices[i].Position;
-		vertex.Y += xOffset;
-	}
-	
-	auto& charList = sentenceProperty.charPropertyList;
-	for (auto& item : charList)
-	{
-		item.caretPosition.X += xOffset;
-	}
-}
-void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices)
-{
-	float xOffset = 0;
-	switch (pivotHAlign)
-	{
-	case UITextParagraphHorizontalAlign::Center:
-		xOffset = -lineWidth * 0.5f;
-	break;
-	case UITextParagraphHorizontalAlign::Right:
-		xOffset = -lineWidth;
-	break;
-	}
-	float yOffset = -(lineHeight - fontSize) * 0.5f;
-
-	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
-	{
-		auto& vertex = vertices[i].Position;
-		vertex.Y += xOffset;
-		vertex.Z += yOffset;
 	}
 }
 

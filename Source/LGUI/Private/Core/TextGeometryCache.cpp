@@ -3,6 +3,7 @@
 #include "Core/TextGeometryCache.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
+#include "Core/LGUIEmojiData.h"
 
 FTextGeometryCache::FTextGeometryCache(UUIText* InUIText)
 {
@@ -25,7 +26,8 @@ bool FTextGeometryCache::SetInputParameters(
 	bool InUseKerning,
 	UITextFontStyle InFontStyle,
 	bool InRichText,
-	TWeakObjectPtr<ULGUIFontData_BaseObject> InFont
+	ULGUIEmojiData* InEmojiData,
+	ULGUIFontData_BaseObject* InFont
 )
 {
 	if (!this->content.Equals(InContent))
@@ -111,6 +113,11 @@ bool FTextGeometryCache::SetInputParameters(
 		this->fontStyle = InFontStyle;
 		bIsDirty = true;
 	}
+	if (this->emojiData != InEmojiData)
+	{
+		this->emojiData = InEmojiData;
+		bIsDirty = true;
+	}
 	if (this->font != InFont)
 	{
 		this->font = InFont;
@@ -158,9 +165,11 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->cacheTextPropertyArray
 			, this->cacheCharPropertyArray
 			, this->cacheRichTextCustomTagArray
+			, this->cacheRichTextEmojiTagArray
 			, this->font.Get()
 			, this->richText
 		);
+		this->UIText->GenerateEmojiObject();
 	}
 }
 
