@@ -25,11 +25,13 @@ namespace LGUIRichTextParser
 		float size = 0;
 
 		FColor color = FColor::Black;
+		bool hasColor = false;
 
 		SupOrSubMode supOrSubMode = SupOrSubMode::None;
 
 		CustomTagMode customTagMode = CustomTagMode::None;
 		FName customTag;
+		FName emojiTag;
 	};
 	
 	struct RichTextParser
@@ -43,6 +45,7 @@ namespace LGUIRichTextParser
 		TArray<FColor>			colorArray;
 		TArray<SupOrSubMode>	supOrSubArray;
 		TArray<FName>			customTagArray;
+		FName emojiTag = NAME_None;
 
 		int originSize;
 		FColor originColor;
@@ -50,6 +53,10 @@ namespace LGUIRichTextParser
 		bool originBold;
 		bool originItalic;
 	public:
+		void ClearEmojiTag()
+		{
+			emojiTag = NAME_None;
+		}
 		void Prepare(float inOriginSize, FColor inOriginColor, uint8 inCanvasGroupAlpha, bool inBold, bool inItalic, RichTextParseResult& result)
 		{
 			originSize = inOriginSize;
@@ -73,6 +80,7 @@ namespace LGUIRichTextParser
 			colorArray.Reset();
 			supOrSubArray.Reset();
 			customTagArray.Reset();
+			emojiTag = NAME_None;
 		}
 		bool Parse(const FString& text, const int& textLength, int& startIndex, RichTextParseResult& parseResult)
 		{
@@ -171,6 +179,22 @@ namespace LGUIRichTextParser
 					startIndex += 5;
 					supOrSubArray.Add(SupOrSubMode::Sub);
 					haveSymbol = true;
+				}
+				else if (charIndex + 6 < textLength
+					&& text[charIndex + 1] == 'e'
+					&& text[charIndex + 2] == 'm'
+					&& text[charIndex + 3] == 'o'
+					&& text[charIndex + 4] == 'j'
+					&& text[charIndex + 5] == 'i'
+					&& text[charIndex + 6] == '='
+					)//begin emoji=
+				{
+					int charEndIndex;
+					if (GetEmojiTag(text, textLength, charIndex + 7, charEndIndex, emojiTag))
+					{
+						startIndex += charEndIndex - charIndex + 1;
+						haveSymbol = true;
+					}
 				}
 				else if (charIndex + 1 < textLength && text[charIndex + 1] == '/')//end
 				{
@@ -298,12 +322,14 @@ namespace LGUIRichTextParser
 				parseResult.strikethrough = strikethroughCount > 0;
 				parseResult.size = sizeArray.Num() > 0 ? sizeArray[sizeArray.Num() - 1] : originSize;
 				parseResult.size = FMath::Max(parseResult.size, 0.0f);
-				parseResult.color = colorArray.Num() > 0 ? colorArray[colorArray.Num() - 1] : originColor;
+				parseResult.hasColor = colorArray.Num() > 0;
+				parseResult.color = parseResult.hasColor ? colorArray[colorArray.Num() - 1] : originColor;
 				parseResult.supOrSubMode = supOrSubArray.Num() > 0 ? supOrSubArray[supOrSubArray.Num() - 1] : SupOrSubMode::None;
 				if (parseResult.supOrSubMode != SupOrSubMode::None)
 				{
 					parseResult.size *= 0.8f;//sup or sub size
 				}
+				parseResult.emojiTag = emojiTag;
 			}
 			return haveSymbol;
 		}
@@ -364,6 +390,40 @@ namespace LGUIRichTextParser
 			if (endIndex != -1 && endIndex > startIndex)//found end
 			{
 				outTag = FName(*text.Mid(startIndex, endIndex - startIndex));
+				outEndIndex = endIndex;
+				return true;
+			}
+			return false;
+		}
+		static bool GetEmojiTag(const FString& text, int textLength, int startIndex, int& outEndIndex, FName& outTag)
+		{
+			int endIndex = -1;
+			for (int i = startIndex + 1; i < textLength; i++)
+			{
+				if (text[i] == '>')
+				{
+					if (text[i - 1] == '/')//emoji is self-close tag, must end with '/>'
+					{
+						endIndex = i;
+						break;
+					}
+					else
+					{
+						break;
+					}
+				}
+				else if (text[i] == '<'//reach another tag
+					|| text[i] == ' '//reach space
+					|| text[i] == '\n'//reach new line
+					|| text[i] == '\t'//reach new line
+					)
+				{
+					break;
+				}
+			}
+			if (endIndex != -1 && endIndex > startIndex)//found end
+			{
+				outTag = FName(*text.Mid(startIndex, endIndex - startIndex - 1));
 				outEndIndex = endIndex;
 				return true;
 			}

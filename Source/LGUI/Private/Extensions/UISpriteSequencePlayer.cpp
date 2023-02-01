@@ -59,10 +59,15 @@ void UUISpriteSequencePlayer::PrepareForPlay()
 void UUISpriteSequencePlayer::OnUpdateAnimation(int frameNumber)
 {
 	frameNumber = FMath::Clamp(frameNumber, 0, spriteSequence.Num() - 1);
-	sprite->SetSprite(spriteSequence[frameNumber]);
+	sprite->SetSprite(spriteSequence[frameNumber], snapSpriteSize);
 }
 
 void UUISpriteSequencePlayer::SetSpriteSequence(TArray<ULGUISpriteData_BaseObject*> value)
 {
 	spriteSequence = value;
+}
+
+void UUISpriteSequencePlayer::SetSnapSpriteSize(bool value)
+{
+	snapSpriteSize = value;
 }

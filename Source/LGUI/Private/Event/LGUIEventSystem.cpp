@@ -25,7 +25,7 @@ ALGUIEventSystemActor::ALGUIEventSystemActor()
 	EventSystem = CreateDefaultSubobject<ULGUIEventSystem>(TEXT("EventSystem"));
 }
 
-DECLARE_CYCLE_STAT(TEXT("EventSystem RayAndEvent"), STAT_RayAndEvent, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("EventSystem"), STAT_EventSystem, STATGROUP_LGUI);
 
 TMap<UWorld*, ULGUIEventSystem*> ULGUIEventSystem::WorldToInstanceMap;
 ULGUIEventSystem::ULGUIEventSystem()
@@ -91,7 +91,7 @@ void ULGUIEventSystem::ProcessInputEvent()
 		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
 		if (CurrentInputModule.IsValid())
 		{
-			SCOPE_CYCLE_COUNTER(STAT_RayAndEvent);
+			SCOPE_CYCLE_COUNTER(STAT_EventSystem);
 			CurrentInputModule->ProcessInput();
 		}
 	}

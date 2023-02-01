@@ -190,10 +190,8 @@ public:
 		, UITextFontStyle fontStyle, FVector2f& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+		, TArray<FUIText_RichTextEmojiTag>& cacheRichTextEmojiTagArray
 		, ULGUIFontData_BaseObject* font, bool richText);
-private:
-	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& sentenceProperty);
-	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FLGUIOriginVertexData>& vertices);
 #pragma endregion
 
 public:

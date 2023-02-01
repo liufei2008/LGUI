@@ -24,6 +24,9 @@ protected:
 		TWeakObjectPtr<class UUISpriteBase> sprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<ULGUISpriteData_BaseObject*> spriteSequence;
+	/** should also set size to sprite-data? */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool snapSpriteSize = true;
 
 	virtual bool CanPlay()override;
 	virtual float GetDuration()const override;
@@ -33,5 +36,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<ULGUISpriteData_BaseObject*> GetSpriteSequence()const { return spriteSequence; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetSnapSpriteSize()const { return snapSpriteSize; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSpriteSequence(TArray<ULGUISpriteData_BaseObject*> value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSnapSpriteSize(bool value);
 };

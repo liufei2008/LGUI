@@ -37,6 +37,7 @@
 #include "AssetTypeActions/AssetTypeActions_LGUIFontData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIPrefab.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIStaticMeshCache.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIEmojiData.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
@@ -315,14 +316,17 @@ void FLGUIEditorModule::StartupModule()
 		TSharedPtr<FAssetTypeActions_Base> FontDataAction = MakeShareable(new FAssetTypeActions_LGUIFontData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> PrefabDataAction = MakeShareable(new FAssetTypeActions_LGUIPrefab(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FAssetTypeActions_LGUIStaticMeshCache(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> EmojiDataAction = MakeShareable(new FAssetTypeActions_LGUIEmojiData(LGUIAssetCategoryBit));
 		AssetTools.RegisterAssetTypeActions(SpriteDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(FontDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(PrefabDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(EmojiDataAction.ToSharedRef());
 		AssetTypeActionsArray.Add(SpriteDataAction);
 		AssetTypeActionsArray.Add(FontDataAction);
 		AssetTypeActionsArray.Add(PrefabDataAction);
 		AssetTypeActionsArray.Add(UIStaticMeshCacheDataAction);
+		AssetTypeActionsArray.Add(EmojiDataAction);
 	}
 	//register Thumbnail
 	{
