@@ -2636,14 +2636,13 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 
 		prevCharCode = charCode;
-		float charWidth = charGeo.xadvance + fontSpace.X;
 		//char geometry
 		if (IsEmojiSpace(charCode, richTextParseResult))
 		{
 			FUIText_RichTextEmojiTag emojiTagData;
 			emojiTagData.TagName = richTextParseResult.emojiTag;
-			emojiTagData.Position = FVector2D(currentLineOffset.X + charWidth * 0.5f, currentLineOffset.Y);
-			emojiTagData.Size = charWidth;
+			emojiTagData.Position = FVector2D(currentLineOffset.X + charGeo.xadvance * 0.5f, currentLineOffset.Y);
+			emojiTagData.Size = charGeo.xadvance;
 			emojiTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
 			cacheRichTextEmojiTagArray.Add(emojiTagData);
 		}
@@ -2711,8 +2710,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			}
 		}
 
-		currentLineOffset.X += charWidth;
-		currentLineWidth += charWidth;
+		currentLineOffset.X += charGeo.xadvance + fontSpace.X;
+		currentLineWidth += charGeo.xadvance + fontSpace.X;
 
 		//overflow
 		{

@@ -244,11 +244,20 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	auto RichTextHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richText));
 	RichTextHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
-	bool richText;
+	bool richText = false;
 	RichTextHandle->GetValue(richText);
 	if (!richText)
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
+	}
+	auto EmojiDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
+	EmojiDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+	UObject* emojiData = nullptr;
+	EmojiDataHandle->GetValue(emojiData);
+	if (!richText || emojiData == nullptr)
+	{
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listEmojiObjectInOutliner));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdEmojiObjectArray));
 	}
 
 	for (auto item : needToHidePropertyName)
