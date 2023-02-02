@@ -81,7 +81,7 @@ class UTexture2D;
 class UUIText;
 
 /**
- * font asset for UIText to render
+ * base font class, UIText can use a implemented asset object to render text
  */
 UCLASS(Abstract, BlueprintType)
 class LGUI_API ULGUIFontData_BaseObject : public UObject

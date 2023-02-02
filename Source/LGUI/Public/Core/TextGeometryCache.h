@@ -135,7 +135,6 @@ public:
 		bool InUseKerning,
 		UITextFontStyle InFontStyle,
 		bool InRichText,
-		ULGUIEmojiData* InEmojiData,
 		ULGUIFontData_BaseObject* InFont
 	);
 private:
@@ -156,7 +155,6 @@ private:
 	bool useKerning = false;
 	UITextFontStyle fontStyle = UITextFontStyle::None;
 	bool richText = false;
-	TWeakObjectPtr<ULGUIEmojiData> emojiData = nullptr;
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;
 #pragma endregion InputParameters
 

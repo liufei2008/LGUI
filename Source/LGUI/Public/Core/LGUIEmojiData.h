@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TextGeometryCache.h"
+#include "LGUIEmojiData_BaseObject.h"
 #include "LGUIEmojiData.generated.h"
 
 USTRUCT()
@@ -17,9 +18,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float overrideAnimationFps = -1;
 };
-/** emoji sprite data for UIText to render */
+/** use sprite to render emoji for UIText */
 UCLASS(NotBlueprintable, NotBlueprintType)
-class LGUI_API ULGUIEmojiData :public UObject
+class LGUI_API ULGUIEmojiData :public ULGUIEmojiData_BaseObject
 {
 	GENERATED_BODY()
 private:
@@ -30,9 +31,5 @@ private:
 protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 public:
-	DECLARE_EVENT(ULGUIEmojiData, FLGUIEmojiDataRefreshEvent);
-
-	FLGUIEmojiDataRefreshEvent OnDataChange;
-	const TMap<FName, FLGUIEmojiItemData>& GetEmojiMap()const { return emojiMap; }
-	float GetAnimationFps()const { return animationFps; }
+	virtual void CreateOrUpdateEmojiObject(class UUIItem* parent, const TArray<FUIText_RichTextEmojiTag>& emojiTagArray, TArray<class UUIItem*>& inOutCreatedEmojiObjectArray, bool listEmojiObjectInOutliner)override;
 };
