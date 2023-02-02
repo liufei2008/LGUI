@@ -26,7 +26,6 @@ bool FTextGeometryCache::SetInputParameters(
 	bool InUseKerning,
 	UITextFontStyle InFontStyle,
 	bool InRichText,
-	ULGUIEmojiData* InEmojiData,
 	ULGUIFontData_BaseObject* InFont
 )
 {
@@ -111,11 +110,6 @@ bool FTextGeometryCache::SetInputParameters(
 	if (this->fontStyle != InFontStyle)
 	{
 		this->fontStyle = InFontStyle;
-		bIsDirty = true;
-	}
-	if (this->emojiData != InEmojiData)
-	{
-		this->emojiData = InEmojiData;
 		bIsDirty = true;
 	}
 	if (this->font != InFont)

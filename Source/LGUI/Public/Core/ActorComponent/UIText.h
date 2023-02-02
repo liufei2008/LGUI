@@ -10,7 +10,7 @@
 
 
 class ULGUIFontData_BaseObject;
-class ULGUIEmojiData;
+class ULGUIEmojiData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
@@ -106,10 +106,10 @@ protected:
 		bool richText = false;
 	/** emoji data for rendering emoji image */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
-		ULGUIEmojiData* emojiData = nullptr;
+		ULGUIEmojiData_BaseObject* emojiData = nullptr;
 	/** created emoji image object */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
-		TArray<class UUISprite*> createdEmojiObjectArray;
+		TArray<class UUIItem*> createdEmojiObjectArray;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		bool listEmojiObjectInOutliner = false;
@@ -181,7 +181,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIEmojiData* GetEmojiData()const { return emojiData; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIEmojiData_BaseObject* GetEmojiData()const { return emojiData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
 
@@ -216,6 +216,10 @@ public:
 		void SetFontStyle(UITextFontStyle newFontStyle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEmojiData(ULGUIEmojiData_BaseObject* value);
+private:
+	void ClearCreatedEmojiObject();
 protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 public:

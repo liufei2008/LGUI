@@ -20,12 +20,12 @@ public:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	void CheckSpriteData();
 protected:
 	virtual void OnPreChangeSpriteProperty();
 	virtual void OnPostChangeSpriteProperty();
 #endif
 public:
+	void CheckSpriteData();
 	static const FName GetSpritePropertyName()
 	{
 		return GET_MEMBER_NAME_CHECKED(UUISpriteBase, sprite);

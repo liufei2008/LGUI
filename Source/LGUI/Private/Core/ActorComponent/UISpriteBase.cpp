@@ -133,14 +133,6 @@ void UUISpriteBase::OnUnregister()
 #endif
 }
 #if WITH_EDITOR
-void UUISpriteBase::CheckSpriteData()
-{
-	if (!IsValid(sprite))
-	{
-		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
-		sprite->AddUISprite(this);
-	}
-}
 void UUISpriteBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -163,10 +155,19 @@ void UUISpriteBase::OnPostChangeSpriteProperty()
 }
 #endif
 
+void UUISpriteBase::CheckSpriteData()
+{
+	if (!IsValid(sprite))
+	{
+		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
+		sprite->AddUISprite(this);
+	}
+}
 void UUISpriteBase::OnBeforeCreateOrUpdateGeometry()
 {
 	if (!bHasAddToSprite)
 	{
+		CheckSpriteData();
 		if (IsValid(sprite))
 		{
 			sprite->AddUISprite(this);
