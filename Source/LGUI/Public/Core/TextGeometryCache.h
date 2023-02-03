@@ -8,7 +8,7 @@
 class UIGeometry;
 class UUIText;
 class ULGUIFontData_BaseObject;
-class ULGUIEmojiData;
+class ULGUIRichTextImageData;
 
 
 UENUM(BlueprintType, Category = LGUI)
@@ -99,12 +99,12 @@ struct FUIText_RichTextCustomTag
 };
 
 USTRUCT(BlueprintType, Category = LGUI)
-struct FUIText_RichTextEmojiTag
+struct FUIText_RichTextImageTag
 {
 	GENERATED_BODY()
 	/** Tag name */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
-	/** emoji object position */
+	/** image object position */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Position = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) float Size;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FColor TintColor;
@@ -170,7 +170,7 @@ public:
 	/** char properties, from first char to last one in array */
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
 	TArray<FUIText_RichTextCustomTag> cacheRichTextCustomTagArray;
-	TArray<FUIText_RichTextEmojiTag> cacheRichTextEmojiTagArray;
+	TArray<FUIText_RichTextImageTag> cacheRichTextImageTagArray;
 #pragma endregion OutputResults
 public:
 	void MarkDirty();

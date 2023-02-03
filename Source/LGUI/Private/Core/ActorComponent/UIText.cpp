@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData_BaseObject.h"
-#include "Core/LGUIEmojiData_BaseObject.h"
+#include "Core/LGUIRichTextImageData_BaseObject.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
@@ -118,9 +118,9 @@ void UUIText::BeginPlay()
 			bHasAddToFont = true;
 		}
 	}
-	if (IsValid(emojiData))
+	if (IsValid(richTextImageData))
 	{
-		this->RegisterOnEmojiDataChange();
+		this->RegisterOnRichTextImageDataChange();
 	}
 	visibleCharCount = VisibleCharCountInString(text.ToString());
 }
@@ -138,9 +138,9 @@ void UUIText::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		font->RemoveUIText(this);
 		bHasAddToFont = false;
 	}
-	if (IsValid(emojiData))
+	if (IsValid(richTextImageData))
 	{
-		this->UnregisterOnEmojiDataChange();
+		this->UnregisterOnRichTextImageDataChange();
 	}
 }
 
@@ -160,11 +160,11 @@ void UUIText::OnRegister()
 					bHasAddToFont = true;
 				}
 			}
-			if (!onEmojiDataChangedDelegateHandle.IsValid())
+			if (!onRichTextImageDataChangedDelegateHandle.IsValid())
 			{
-				if (IsValid(emojiData))
+				if (IsValid(richTextImageData))
 				{
-					this->RegisterOnEmojiDataChange();
+					this->RegisterOnRichTextImageDataChange();
 				}
 			}
 			ULGUIEditorManagerObject::RegisterLGUILayout(this);
@@ -190,11 +190,11 @@ void UUIText::OnUnregister()
 				font->RemoveUIText(this);
 				bHasAddToFont = false;
 			}
-			if (IsValid(emojiData))
+			if (IsValid(richTextImageData))
 			{
-				if (onEmojiDataChangedDelegateHandle.IsValid())
+				if (onRichTextImageDataChangedDelegateHandle.IsValid())
 				{
-					this->UnregisterOnEmojiDataChange();
+					this->UnregisterOnRichTextImageDataChange();
 				}
 			}
 			ULGUIEditorManagerObject::UnregisterLGUILayout(this);
@@ -210,15 +210,15 @@ void UUIText::OnUnregister()
 void UUIText::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
-	for (int i = 0; i < createdEmojiObjectArray.Num(); i++)
+	for (int i = 0; i < createdRichTextImageObjectArray.Num(); i++)
 	{
-		auto item = createdEmojiObjectArray[i];
+		auto item = createdRichTextImageObjectArray[i];
 		if (IsValid(item) && IsValid(item->GetOwner()))
 		{
 			LGUIUtils::DestroyActorWithHierarchy(item->GetOwner());
 		}
 	}
-	createdEmojiObjectArray.Empty();
+	createdRichTextImageObjectArray.Empty();
 }
 
 void UUIText::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
@@ -290,11 +290,11 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 			bHasAddToFont = true;
 		}
 	}
-	if (!onEmojiDataChangedDelegateHandle.IsValid())
+	if (!onRichTextImageDataChangedDelegateHandle.IsValid())
 	{
-		if (richText && IsValid(emojiData))
+		if (richText && IsValid(richTextImageData))
 		{
-			this->RegisterOnEmojiDataChange();
+			this->RegisterOnRichTextImageDataChange();
 		}
 	}
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
@@ -385,14 +385,14 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			}
 		}
 		
-		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, listEmojiObjectInOutliner))
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner))
 		{
-			for (auto& emojiObj : createdEmojiObjectArray)
+			for (auto& imageObj : createdRichTextImageObjectArray)
 			{
-				if (IsValid(emojiObj))
+				if (IsValid(imageObj))
 				{
 					auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-					bListedInSceneOutliner_Property->SetPropertyValue_InContainer(emojiObj->GetOwner(), listEmojiObjectInOutliner);
+					bListedInSceneOutliner_Property->SetPropertyValue_InContainer(imageObj->GetOwner(), listRichTextImageObjectInOutliner);
 				}
 			}
 #if WITH_EDITOR
@@ -403,14 +403,14 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		{
 			if (!richText)
 			{
-				ClearCreatedEmojiObject();
+				ClearCreatedRichTextImageObject();
 			}
 		}
-		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, emojiData))
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData))
 		{
-			if (!IsValid(emojiData))//clear emojiData, then need to delete created emoji object
+			if (!IsValid(richTextImageData))//clear richTextImageData, then need to delete created object
 			{
-				ClearCreatedEmojiObject();
+				ClearCreatedRichTextImageObject();
 			}
 		}
 	}
@@ -447,31 +447,31 @@ void UUIText::OnPostChangeFontProperty()
 		bHasAddToFont = true;
 	}
 }
-void UUIText::OnPreChangeEmojiDataProperty()
+void UUIText::OnPreChangeRichTextImageDataProperty()
 {
-	if (IsValid(emojiData))//unregister event from prev
+	if (IsValid(richTextImageData))//unregister event from prev
 	{
-		UnregisterOnEmojiDataChange();
+		UnregisterOnRichTextImageDataChange();
 	}
 }
-void UUIText::OnPostChangeEmojiDataProperty()
+void UUIText::OnPostChangeRichTextImageDataProperty()
 {
-	if (IsValid(emojiData))
+	if (IsValid(richTextImageData))
 	{
-		RegisterOnEmojiDataChange();
+		RegisterOnRichTextImageDataChange();
 	}
 }
 #endif
-void UUIText::RegisterOnEmojiDataChange()
+void UUIText::RegisterOnRichTextImageDataChange()
 {
-	onEmojiDataChangedDelegateHandle = emojiData->OnDataChange.AddWeakLambda(this, [=] {
+	onRichTextImageDataChangedDelegateHandle = richTextImageData->OnDataChange.AddWeakLambda(this, [=] {
 		this->MarkVerticesDirty(false, true, true, false);
 		});
 }
-void UUIText::UnregisterOnEmojiDataChange()
+void UUIText::UnregisterOnRichTextImageDataChange()
 {
-	emojiData->OnDataChange.Remove(onEmojiDataChangedDelegateHandle);
-	onEmojiDataChangedDelegateHandle.Reset();
+	richTextImageData->OnDataChange.Remove(onRichTextImageDataChangedDelegateHandle);
+	onRichTextImageDataChangedDelegateHandle.Reset();
 }
 
 FVector2D UUIText::GetTextRealSize()const
@@ -614,33 +614,33 @@ void UUIText::SetRichText(bool newRichText)
 		richText = newRichText;
 		if (!richText)
 		{
-			ClearCreatedEmojiObject();
+			ClearCreatedRichTextImageObject();
 		}
 	}
 }
-void UUIText::SetEmojiData(ULGUIEmojiData_BaseObject* value)
+void UUIText::SetRichTextImageData(ULGUIRichTextImageData_BaseObject* value)
 {
-	if (emojiData != value)
+	if (richTextImageData != value)
 	{
 		MarkVerticesDirty(true, true, true, true);
-		emojiData = value;
-		if (!IsValid(emojiData))//clear emojiData, then need to delete created emoji object
+		richTextImageData = value;
+		if (!IsValid(richTextImageData))//clear richTextImageData, then need to delete created object
 		{
-			ClearCreatedEmojiObject();
+			ClearCreatedRichTextImageObject();
 		}
 	}
 }
 
-void UUIText::ClearCreatedEmojiObject()
+void UUIText::ClearCreatedRichTextImageObject()
 {
-	for (auto& emojiObj : createdEmojiObjectArray)
+	for (auto& imageObj : createdRichTextImageObjectArray)
 	{
-		if (IsValid(emojiObj))
+		if (IsValid(imageObj))
 		{
-			LGUIUtils::DestroyActorWithHierarchy(emojiObj->GetOwner());
+			LGUIUtils::DestroyActorWithHierarchy(imageObj->GetOwner());
 		}
 	}
-	createdEmojiObjectArray.Empty();
+	createdRichTextImageObjectArray.Empty();
 }
 
 void UUIText::MarkTextLayoutDirty()
@@ -892,16 +892,16 @@ const TArray<FUIText_RichTextCustomTag>& UUIText::GetRichTextCustomTagArray()con
 	UpdateCacheTextGeometry();
 	return CacheTextGeometryData.cacheRichTextCustomTagArray;
 }
-const TArray<FUIText_RichTextEmojiTag>& UUIText::GetRichTextEmojiTagArray()const
+const TArray<FUIText_RichTextImageTag>& UUIText::GetRichTextImageTagArray()const
 {
 	UpdateCacheTextGeometry();
-	return CacheTextGeometryData.cacheRichTextEmojiTagArray;
+	return CacheTextGeometryData.cacheRichTextImageTagArray;
 }
 
-void UUIText::GenerateEmojiObject()
+void UUIText::GenerateRichTextImageObject()
 {
-	if (!IsValid(emojiData))return;
-	emojiData->CreateOrUpdateEmojiObject(this, CacheTextGeometryData.cacheRichTextEmojiTagArray, createdEmojiObjectArray, listEmojiObjectInOutliner);
+	if (!IsValid(richTextImageData))return;
+	richTextImageData->CreateOrUpdateObject(this, CacheTextGeometryData.cacheRichTextImageTagArray, createdRichTextImageObjectArray, listRichTextImageObjectInOutliner);
 }
 
 

@@ -4,10 +4,10 @@
 
 #include "AssetTypeActions_Base.h"
 
-class FAssetTypeActions_LGUIEmojiData : public FAssetTypeActions_Base
+class FAssetTypeActions_LGUIRichTextImageData : public FAssetTypeActions_Base
 {
 public:
-	FAssetTypeActions_LGUIEmojiData(EAssetTypeCategories::Type InAssetType);
+	FAssetTypeActions_LGUIRichTextImageData(EAssetTypeCategories::Type InAssetType);
 
 	// FAssetTypeActions_Base overrides
 	virtual bool CanFilter() override;

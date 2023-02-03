@@ -3,14 +3,14 @@
 #pragma once
 
 #include "Factories/Factory.h"
-#include "LGUIEmojiDataFactory.generated.h"
+#include "LGUIRichTextImageDataFactory.generated.h"
 
 UCLASS()
-class ULGUIEmojiDataFactory : public UFactory
+class ULGUIRichTextImageDataFactory : public UFactory
 {
 	GENERATED_BODY()
 public:
-	ULGUIEmojiDataFactory();
+	ULGUIRichTextImageDataFactory();
 
 	// UFactory interface
 	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;

@@ -3,7 +3,7 @@
 #include "Core/TextGeometryCache.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/LGUIEmojiData.h"
+#include "Core/LGUIRichTextImageData.h"
 
 FTextGeometryCache::FTextGeometryCache(UUIText* InUIText)
 {
@@ -159,11 +159,11 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->cacheTextPropertyArray
 			, this->cacheCharPropertyArray
 			, this->cacheRichTextCustomTagArray
-			, this->cacheRichTextEmojiTagArray
+			, this->cacheRichTextImageTagArray
 			, this->font.Get()
 			, this->richText
 		);
-		this->UIText->GenerateEmojiObject();
+		this->UIText->GenerateRichTextImageObject();
 	}
 }
 
