@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "TextGeometryCache.h"
-#include "LGUIEmojiData_BaseObject.h"
-#include "LGUIEmojiData.generated.h"
+#include "LGUIRichTextImageData_BaseObject.h"
+#include "LGUIRichTextImageData.generated.h"
 
 USTRUCT()
-struct FLGUIEmojiItemData
+struct FLGUIRichTextImageItemData
 {
 	GENERATED_BODY()
 public:
@@ -18,18 +18,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float overrideAnimationFps = -1;
 };
-/** use sprite to render emoji for UIText */
+/** use sprite to render image for UIText */
 UCLASS(NotBlueprintable, NotBlueprintType)
-class LGUI_API ULGUIEmojiData :public ULGUIEmojiData_BaseObject
+class LGUI_API ULGUIRichTextImageData :public ULGUIRichTextImageData_BaseObject
 {
 	GENERATED_BODY()
 private:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TMap<FName, FLGUIEmojiItemData> emojiMap;
+		TMap<FName, FLGUIRichTextImageItemData> imageMap;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float animationFps = 4;
 protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 public:
-	virtual void CreateOrUpdateEmojiObject(class UUIItem* parent, const TArray<FUIText_RichTextEmojiTag>& emojiTagArray, TArray<class UUIItem*>& inOutCreatedEmojiObjectArray, bool listEmojiObjectInOutliner)override;
+	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<class UUIItem*>& inOutCreatedImageObjectArray, bool listImageObjectInOutliner)override;
 };
