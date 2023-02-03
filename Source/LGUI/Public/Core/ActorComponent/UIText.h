@@ -100,7 +100,7 @@ protected:
 	 * <sup>Superscript</sup>
 	 * <sub>Subscript</sub>
 	 * <MyTag>Custom tag</MyTag> use any string as custom tag
-	 * <img=smile/> display a image with key "smile" which defined in RichTextImageData property, can be used for emoji
+	 * <img=smile/> display a image with key "smile" which defined in RichTextImageData property, can be used for emoji. @todo: image size option
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
