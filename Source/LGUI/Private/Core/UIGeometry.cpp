@@ -2175,7 +2175,7 @@ void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign
 }
 void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart
 	, TArray<FLGUIOriginVertexData>& vertices
-	, int lineEmojiStartIndex, TArray<FUIText_RichTextEmojiTag>& emojiArray
+	, int lineImageStartIndex, TArray<FUIText_RichTextImageTag>& imageArray
 )
 {
 	float xOffset = 0;
@@ -2197,9 +2197,9 @@ void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign 
 		vertex.Z += yOffset;
 	}
 
-	for (int i = lineEmojiStartIndex; i < emojiArray.Num(); i++)
+	for (int i = lineImageStartIndex; i < imageArray.Num(); i++)
 	{
-		auto& item = emojiArray[i];
+		auto& item = imageArray[i];
 		item.Position.X += xOffset;
 		item.Position.Y += yOffset;
 	}
@@ -2211,7 +2211,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
-	, TArray<FUIText_RichTextEmojiTag>& cacheRichTextEmojiTagArray
+	, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
 	, ULGUIFontData_BaseObject* font, bool richText)
 {
 	FString content = text;
@@ -2274,7 +2274,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	cacheTextPropertyArray.Reset();
 	cacheCharPropertyArray.Reset();
 	cacheRichTextCustomTagArray.Reset();
-	cacheRichTextEmojiTagArray.Reset();
+	cacheRichTextImageTagArray.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
 	float originLineHeight = font->GetLineHeight(fontSize);
@@ -2283,7 +2283,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float maxLineWidth = 0;//if have multiple line
 	int lineUIGeoVertStart = 0;//vertex index in originVertices of current line
 	int currentVisibleCharCount = 0;//visible char count, skip invisible char(\r,\n,\t)
-	int emojiStartIndexInCurrentLine = 0;//
+	int imageStartIndexInCurrentLine = 0;//
 	FUITextLineProperty sentenceProperty;
 	FVector2D caretPosition(0, 0);
 	float halfFontSpaceX = fontSpace.X * 0.5f;
@@ -2312,8 +2312,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (richText)
 		{
-			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originVertices, emojiStartIndexInCurrentLine, cacheRichTextEmojiTagArray);
-			emojiStartIndexInCurrentLine = cacheRichTextEmojiTagArray.Num();
+			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originVertices, imageStartIndexInCurrentLine, cacheRichTextImageTagArray);
+			imageStartIndexInCurrentLine = cacheRichTextImageTagArray.Num();
 		}
 		else
 		{
@@ -2350,11 +2350,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		currentLineHeight = originLineHeight;
 	};
 
-	auto IsEmojiSpace = [&](TCHAR charCode, const RichTextParseResult& richTextResult)
+	auto IsRichTextImageSpace = [&](TCHAR charCode, const RichTextParseResult& richTextResult)
 	{
 		if (charCode == ' ')
 		{
-			if (richText && !richTextResult.emojiTag.IsNone())
+			if (richText && !richTextResult.imageTag.IsNone())
 			{
 				return true;
 			}
@@ -2372,7 +2372,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	{
 		if (charCode == ' ')
 		{
-			if (richText && !richTextResult.emojiTag.IsNone())
+			if (richText && !richTextResult.imageTag.IsNone())
 			{
 				return false;
 			}
@@ -2398,9 +2398,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * rootCanvasScale;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				if (IsEmojiSpace(charCode, richTextParseResult))
+				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
 				}
 				else
 				{
@@ -2417,9 +2417,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * dynamicPixelsPerUnit;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				if (IsEmojiSpace(charCode, richTextParseResult))
+				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
 				}
 				else
 				{
@@ -2436,9 +2436,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				inFontSize = inFontSize * rootCanvasScale;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
-				if (IsEmojiSpace(charCode, richTextParseResult))
+				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
 				}
 				else
 				{
@@ -2454,9 +2454,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 		else
 		{
-			if (IsEmojiSpace(charCode, richTextParseResult))
+			if (IsRichTextImageSpace(charCode, richTextParseResult))
 			{
-				overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//emoji use font size as width & height & xadvance
+				overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
 			}
 			overrideCharData.yoffset += calculatedCharFixedOffset;
 		}
@@ -2471,9 +2471,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	};
 	auto GetCharGeoXAdv = [&](TCHAR prevCharCode, TCHAR charCode, const RichTextParseResult& richTextResult)
 	{
-		if (IsEmojiSpace(charCode, richTextResult))
+		if (IsRichTextImageSpace(charCode, richTextResult))
 		{
-			return richTextResult.size;//emoji use font size as width & height & xadvance
+			return richTextResult.size;//image use font size as width & height & xadvance
 		}
 		else
 		{
@@ -2503,15 +2503,15 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			auto charCode = content[charIndex];
 			richTextParseResult.customTag = NAME_None;
 			richTextParseResult.customTagMode = CustomTagMode::None;
-			richTextParser.ClearEmojiTag();
+			richTextParser.ClearImageTag();
 			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
 			{
-				if (!richTextParseResult.emojiTag.IsNone())//get emoji, append a blank placeholder
+				if (!richTextParseResult.imageTag.IsNone())//get image, append a blank placeholder
 				{
 					richTextContent.AppendChar(' ');
 					richTextPropertyArray.Add(richTextParseResult);
-					richTextParseResult.emojiTag = NAME_None;//clear it
-					richTextParser.ClearEmojiTag();
+					richTextParseResult.imageTag = NAME_None;//clear it
+					richTextParser.ClearImageTag();
 				}
 				if (charIndex < contentLength)
 				{
@@ -2637,14 +2637,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		prevCharCode = charCode;
 		//char geometry
-		if (IsEmojiSpace(charCode, richTextParseResult))
+		if (IsRichTextImageSpace(charCode, richTextParseResult))
 		{
-			FUIText_RichTextEmojiTag emojiTagData;
-			emojiTagData.TagName = richTextParseResult.emojiTag;
-			emojiTagData.Position = FVector2D(currentLineOffset.X + charGeo.xadvance * 0.5f, currentLineOffset.Y);
-			emojiTagData.Size = charGeo.xadvance;
-			emojiTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
-			cacheRichTextEmojiTagArray.Add(emojiTagData);
+			FUIText_RichTextImageTag imageTagData;
+			imageTagData.TagName = richTextParseResult.imageTag;
+			imageTagData.Position = FVector2D(currentLineOffset.X + charGeo.xadvance * 0.5f, currentLineOffset.Y);
+			imageTagData.Size = charGeo.xadvance;
+			imageTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
+			cacheRichTextImageTagArray.Add(imageTagData);
 		}
 		else
 		{
@@ -2856,13 +2856,13 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			}
 		}
 	}
-	//emoji
+	//image
 	if (richText)
 	{
-		for (auto& emojiItem : cacheRichTextEmojiTagArray)
+		for (auto& imageItem : cacheRichTextImageTagArray)
 		{
-			emojiItem.Position.X += xOffset;
-			emojiItem.Position.Y += yOffset;
+			imageItem.Position.X += xOffset;
+			imageItem.Position.Y += yOffset;
 		}
 	}
 

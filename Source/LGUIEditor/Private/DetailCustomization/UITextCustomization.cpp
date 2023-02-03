@@ -248,16 +248,16 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	RichTextHandle->GetValue(richText);
 	if (!richText)
 	{
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
 	}
-	auto EmojiDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
-	EmojiDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
-	UObject* emojiData = nullptr;
-	EmojiDataHandle->GetValue(emojiData);
-	if (!richText || emojiData == nullptr)
+	auto RichTextImageDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
+	RichTextImageDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
+	UObject* richTextImageData = nullptr;
+	RichTextImageDataHandle->GetValue(richTextImageData);
+	if (!richText || richTextImageData == nullptr)
 	{
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listEmojiObjectInOutliner));
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdEmojiObjectArray));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray));
 	}
 
 	for (auto item : needToHidePropertyName)
@@ -273,12 +273,12 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		TargetScriptPtr->OnPreChangeFontProperty();
 	}));
 
-	auto emojiDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, emojiData));
-	emojiDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-		TargetScriptPtr->OnPostChangeEmojiDataProperty();
+	auto richTextImageDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
+	richTextImageDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPostChangeRichTextImageDataProperty();
 		}));
-	emojiDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
-		TargetScriptPtr->OnPreChangeEmojiDataProperty();
+	richTextImageDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPreChangeRichTextImageDataProperty();
 		}));
 }
 void FUITextCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)

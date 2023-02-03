@@ -1,57 +1,57 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Core/LGUIEmojiData.h"
+#include "Core/LGUIRichTextImageData.h"
 #include "LGUI.h"
 #include "Core/Actor/UISpriteActor.h"
-#include "Core/LGUIEmojiData.h"
+#include "Core/LGUIRichTextImageData.h"
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
-void ULGUIEmojiData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	OnDataChange.Broadcast();
 }
 
-void ULGUIEmojiData::CreateOrUpdateEmojiObject(UUIItem* parent, const TArray<FUIText_RichTextEmojiTag>& emojiTagData, TArray<UUIItem*>& createdEmojiObjectArray, bool listEmojiObjectInOutliner)
+void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInOutliner)
 {
 	//destroy extra
-	while (createdEmojiObjectArray.Num() > emojiTagData.Num())
+	while (createdImageObjectArray.Num() > imageTagData.Num())
 	{
-		auto lastIndex = createdEmojiObjectArray.Num() - 1;
-		auto emojiObj = createdEmojiObjectArray[lastIndex];
-		LGUIUtils::DestroyActorWithHierarchy(emojiObj->GetOwner());
-		createdEmojiObjectArray.RemoveAt(lastIndex);
+		auto lastIndex = createdImageObjectArray.Num() - 1;
+		auto imageObj = createdImageObjectArray[lastIndex];
+		LGUIUtils::DestroyActorWithHierarchy(imageObj->GetOwner());
+		createdImageObjectArray.RemoveAt(lastIndex);
 	}
 	//create more
-	while (createdEmojiObjectArray.Num() < emojiTagData.Num())
+	while (createdImageObjectArray.Num() < imageTagData.Num())
 	{
 		auto spriteActor = parent->GetWorld()->SpawnActor<AUISpriteActor>();
 		spriteActor->SetFlags(EObjectFlags::RF_Transient);
 		spriteActor->GetUISprite()->AttachToComponent(parent, FAttachmentTransformRules::KeepRelativeTransform);
-		createdEmojiObjectArray.Push(spriteActor->GetUISprite());
+		createdImageObjectArray.Push(spriteActor->GetUISprite());
 	}
 	//apply data
-	for (int i = 0; i < emojiTagData.Num(); i++)
+	for (int i = 0; i < imageTagData.Num(); i++)
 	{
-		auto emojiObj = (UUISprite*)createdEmojiObjectArray[i];
+		auto imageObj = (UUISprite*)createdImageObjectArray[i];
 #if WITH_EDITOR
-		emojiObj->GetOwner()->SetActorLabel(FString::Printf(TEXT("[%s]"), *emojiTagData[i].TagName.ToString()));
+		imageObj->GetOwner()->SetActorLabel(FString::Printf(TEXT("[%s]"), *imageTagData[i].TagName.ToString()));
 		if (!parent->GetWorld()->IsGameWorld())//set it only in edit mode
 		{
 			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(emojiObj->GetOwner(), listEmojiObjectInOutliner);
+			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(imageObj->GetOwner(), listImageObjectInOutliner);
 		}
 #endif
-		if (auto emojiItemPtr = emojiMap.Find(emojiTagData[i].TagName))
+		if (auto imageItemPtr = imageMap.Find(imageTagData[i].TagName))
 		{
-			auto& spriteFrames = emojiItemPtr->frames;
-			auto sequencePlayerComp = emojiObj->GetOwner()->FindComponentByClass<UUISpriteSequencePlayer>();
+			auto& spriteFrames = imageItemPtr->frames;
+			auto sequencePlayerComp = imageObj->GetOwner()->FindComponentByClass<UUISpriteSequencePlayer>();
 			ULGUISpriteData_BaseObject* sprite = nullptr;
 			if (spriteFrames.Num() == 0)
 			{
-				emojiObj->SetSprite(nullptr, false);
+				imageObj->SetSprite(nullptr, false);
 				if (IsValid(sequencePlayerComp))
 				{
 					sequencePlayerComp->DestroyComponent();
@@ -70,32 +70,32 @@ void ULGUIEmojiData::CreateOrUpdateEmojiObject(UUIItem* parent, const TArray<FUI
 				sprite = spriteFrames[0];
 				if (!IsValid(sequencePlayerComp))
 				{
-					sequencePlayerComp = NewObject<UUISpriteSequencePlayer>(emojiObj->GetOwner());
+					sequencePlayerComp = NewObject<UUISpriteSequencePlayer>(imageObj->GetOwner());
 					sequencePlayerComp->SetSnapSpriteSize(false);
 					sequencePlayerComp->RegisterComponent();
-					emojiObj->GetOwner()->AddInstanceComponent(sequencePlayerComp);
+					imageObj->GetOwner()->AddInstanceComponent(sequencePlayerComp);
 				}
 				sequencePlayerComp->SetSpriteSequence(spriteFrames);
-				sequencePlayerComp->SetFps(emojiItemPtr->overrideAnimationFps < 0 ? animationFps : emojiItemPtr->overrideAnimationFps);
+				sequencePlayerComp->SetFps(imageItemPtr->overrideAnimationFps < 0 ? animationFps : imageItemPtr->overrideAnimationFps);
 				if (parent->GetWorld()->IsGameWorld())
 				{
 					sequencePlayerComp->Play();
 				}
 			}
-			emojiObj->SetColor(emojiTagData[i].TintColor);
-			emojiObj->SetAnchoredPosition(emojiTagData[i].Position);
-			auto referenceWidth = emojiTagData[i].Size;
+			imageObj->SetColor(imageTagData[i].TintColor);
+			imageObj->SetAnchoredPosition(imageTagData[i].Position);
+			auto referenceWidth = imageTagData[i].Size;
 			float referenceHeight;
 			if (sprite != nullptr)
 			{
-				emojiObj->SetSprite(sprite, false);
+				imageObj->SetSprite(sprite, false);
 				referenceHeight = (float)sprite->GetSpriteInfo().height / (float)sprite->GetSpriteInfo().width * referenceWidth;
 			}
 			else
 			{
 				referenceHeight = referenceWidth;
 			}
-			emojiObj->SetSizeDelta(FVector2D(referenceWidth, referenceHeight));
+			imageObj->SetSizeDelta(FVector2D(referenceWidth, referenceHeight));
 		}
 	}
 #if WITH_EDITOR

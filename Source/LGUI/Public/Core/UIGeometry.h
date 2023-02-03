@@ -190,7 +190,7 @@ public:
 		, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
-		, TArray<FUIText_RichTextEmojiTag>& cacheRichTextEmojiTagArray
+		, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
 		, ULGUIFontData_BaseObject* font, bool richText);
 #pragma endregion
 
