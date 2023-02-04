@@ -29,7 +29,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 		ApplyUIItemAnchoredPosition(uiItem.Get(), FVector2D(x, y));
 		if (bSetChildAngle)
 		{
-			uiItem->SetRelativeRotation(FQuat::MakeFromEuler(FVector(FMath::RadiansToDegrees(angle), 0, 0)));
+			uiItem->SetRelativeRotation(FQuat::MakeFromEuler(FVector(FMath::RadiansToDegrees(-angle), 0, 0)));
 		}
 		angle += angleInterval;
 	}
