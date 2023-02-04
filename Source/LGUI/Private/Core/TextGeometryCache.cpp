@@ -4,6 +4,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/LGUIRichTextImageData.h"
+#include "Core/LGUIFontData_BaseObject.h"
 
 FTextGeometryCache::FTextGeometryCache(UUIText* InUIText)
 {
