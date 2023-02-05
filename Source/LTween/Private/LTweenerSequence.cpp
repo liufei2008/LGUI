@@ -157,12 +157,15 @@ void ULTweenerSequence::SetOriginValueForRestart()
 
 	for (auto& item : tweenerList)
 	{
-		item->SetOriginValueForRestart();
+		if (item->elapseTime > 0 || item->startToTween)
+		{
+			item->SetOriginValueForRestart();//if tween already start, then we can call "SetOriginValueForRestart"
+			item->TweenAndApplyValue(0);
+		}
 		//set parameter to initial
 		item->elapseTime = 0;
 		item->loopCycleCount = 0;
 		item->reverseTween = false;
-		item->TweenAndApplyValue(0);
 	}
 }
 
@@ -219,5 +222,105 @@ void ULTweenerSequence::SetValueForRestart()
 		tweenerList.Add(item);
 	}
 	finishedTweenerList.Reset();
+}
+void ULTweenerSequence::Restart()
+{
+	if (elapseTime == 0)
+	{
+		return;
+	}
+	this->isMarkedPause = false;//incase it is paused.
+
+	//reset parameter and value to start
+	{
+		//reset parameter to initial
+		if (this->loopType == LTweenLoop::Yoyo)
+		{
+			if (loopCycleCount % 2 != 0)//this means current is yoyo back, then we should reverse it
+			{
+				this->reverseTween = true;
+				for (auto& item : tweenerList)
+				{
+					finishedTweenerList.Add(item);
+				}
+				tweenerList.Reset();
+				this->SetValueForYoyo();
+			}
+		}
+		for (auto& item : finishedTweenerList)
+		{
+			tweenerList.Add(item);
+		}
+		finishedTweenerList.Reset();
+		this->loopCycleCount = 0;
+
+		//sort it, so later tweener can do "SetOriginValueForRestart" ealier, so ealier tweener will get correct start state
+		tweenerList.Sort([=](const ULTweener& A, const ULTweener& B) {
+			return A.delay > B.delay;
+			});
+		for (int i = 0; i < tweenerList.Num(); i++)
+		{
+			auto& item = tweenerList[i];
+			if (item->startToTween)
+			{
+				item->SetOriginValueForRestart();
+				item->TweenAndApplyValue(0);
+			}
+			//set parameter to initial
+			item->elapseTime = 0;
+			item->loopCycleCount = 0;
+			item->reverseTween = false;
+		}
+	}
+
+	this->ToNextWithElapsedTime(0);
+}
+void ULTweenerSequence::Goto(float timePoint)
+{
+	timePoint = FMath::Clamp(timePoint, 0.0f, duration);
+
+	//reset parameter to start, then goto timepoint. these line should be same as lines in "Restart"
+	{
+		//reset parameter to initial
+		if (this->loopType == LTweenLoop::Yoyo)
+		{
+			if (loopCycleCount % 2 != 0)//mean current is yoyo back, should reverse it
+			{
+				this->reverseTween = true;
+				for (auto& item : tweenerList)
+				{
+					finishedTweenerList.Add(item);
+				}
+				tweenerList.Reset();
+				this->SetValueForYoyo();
+			}
+		}
+		for (auto& item : finishedTweenerList)
+		{
+			tweenerList.Add(item);
+		}
+		finishedTweenerList.Reset();
+		this->loopCycleCount = 0;
+
+		//sort it, so later tweener can do "SetOriginValueForRestart" ealier, so ealier tweener will get correct start state
+		tweenerList.Sort([=](const ULTweener& A, const ULTweener& B) {
+			return A.delay > B.delay;
+			});
+		for (int i = 0; i < tweenerList.Num(); i++)
+		{
+			auto& item = tweenerList[i];
+			if (item->startToTween)
+			{
+				item->SetOriginValueForRestart();
+				item->TweenAndApplyValue(0);
+			}
+			//set parameter to initial
+			item->elapseTime = 0;
+			item->loopCycleCount = 0;
+			item->reverseTween = false;
+		}
+	}
+
+	this->ToNextWithElapsedTime(timePoint);
 }
 

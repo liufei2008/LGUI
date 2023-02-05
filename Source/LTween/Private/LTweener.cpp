@@ -253,7 +253,7 @@ void ULTweener::ForceComplete()
 
 void ULTweener::Restart()
 {
-	if (elapseTime == 0 || !startToTween)
+	if (elapseTime == 0)
 	{
 		return;
 	}
@@ -268,7 +268,11 @@ void ULTweener::Restart()
 
 void ULTweener::Goto(float timePoint)
 {
-	timePoint = FMath::Max(timePoint, 0.0f);
+	timePoint = FMath::Clamp(timePoint, 0.0f, duration);
+	//reset parameter to initial
+	loopCycleCount = 0;
+	reverseTween = false;
+
 	this->ToNextWithElapsedTime(timePoint);
 }
 

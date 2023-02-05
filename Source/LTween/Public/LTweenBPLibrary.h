@@ -221,10 +221,10 @@ public:
 
 	/**
 	 * Repeatedly call function.
-	 * \param delayTime delay time before the first call
-	 * \param interval interval time between every call
-	 * \param repeatCount repeat count, -1 means infinite
-	 * \return tweener
+	 * @param delayTime delay time before the first call
+	 * @param interval interval time between every call
+	 * @param repeatCount repeat count, -1 means infinite
+	 * @return tweener
 	 */
 	static ULTweener* RepeatCall(UObject* WorldContextObject, const TFunction<void()>& callFunction, float delayTime, float interval, int repeatCount = 1)
 	{
@@ -236,9 +236,9 @@ public:
 	}
 	/**
 	 * Repeatedly call function.
-	 * \param delayTime delay time before the first call
-	 * \param interval interval time between every call
-	 * \param repeatCount repeat count, -1 means infinite
+	 * @param delayTime delay time before the first call
+	 * @param interval interval time between every call
+	 * @param repeatCount repeat count, -1 means infinite
 	 * \return tweener
 	 */
 	static ULTweener* RepeatCall(UObject* WorldContextObject, const FSimpleDelegate& callFunction, float delayTime, float interval, int repeatCount = 1)
@@ -251,13 +251,13 @@ public:
 	}
 	/**
 	 * Repeatedly call function.
-	 * \param delayTime delay time before the first call
-	 * \param interval interval time between every call
-	 * \param repeatCount repeat count, -1 means infinite
-	 * \return tweener
+	 * @param delayTime delay time before the first call
+	 * @param interval interval time between every call
+	 * @param repeatCount repeat count, -1 means infinite
+	 * @return tweener
 	 */
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* RepeatCall(UObject* WorldContextObject, FTweenerSimpleDynamicDelegate callFunction, float delayTime, float interval, int repeatCount = 1)
+		static ULTweener* RepeatCall(UObject* WorldContextObject, FTweenerSimpleDynamicDelegate callFunction, float delayTime, float interval = 1.0f, int repeatCount = 1)
 	{
 		return ULTweenManager::VirtualTo(WorldContextObject, interval)
 			->SetDelay(delayTime)
