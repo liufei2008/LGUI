@@ -65,4 +65,7 @@ protected:
 	virtual void SetValueForYoyo() override;
 	virtual void SetValueForRestart() override;
 	virtual void SetOriginValueForRestart() override;
+
+	virtual void Restart()override;
+	virtual void Goto(float timePoint)override;
 };
