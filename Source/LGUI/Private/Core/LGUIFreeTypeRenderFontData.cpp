@@ -381,11 +381,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 {
 	auto Result = FLGUICharData_HighPrecision();
 	if (charSize <= 0.0f)return Result;
-	if (GetCharDataFromCache(charCode, charSize, Result))
-	{
-		return Result;
-	}
-	else
+	if (!GetCharDataFromCache(charCode, charSize, Result))//if charData not cached, then create it and add to cache
 	{
 		FGlyphBitmap glyphBitmap;
 		if (!RenderGlyph(charCode, charSize, glyphBitmap))
@@ -395,9 +391,9 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 
 		auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
 		auto& calcTexture = usePackingTag ? packingAtlasData->atlasTexture : this->texture;
-		FLGUICharData resultCharData;
+		FLGUICharData uiCharData;
 	PACK_AND_INSERT:
-		if (PackRectAndInsertChar(glyphBitmap, calcBinpack, calcTexture, resultCharData))
+		if (PackRectAndInsertChar(glyphBitmap, calcBinpack, calcTexture, uiCharData))
 		{
 
 		}
@@ -448,8 +444,8 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 			goto PACK_AND_INSERT;
 		}
 
-		AddCharDataToCache(charCode, charSize, resultCharData);
-		return resultCharData;
+		AddCharDataToCache(charCode, charSize, uiCharData);
+		GetCharDataFromCache(charCode, charSize, Result);
 	}
 	return Result;
 }
