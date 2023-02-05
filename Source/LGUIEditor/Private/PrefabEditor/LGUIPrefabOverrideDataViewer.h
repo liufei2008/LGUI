@@ -25,8 +25,8 @@ public:
 	void Construct(const FArguments& InArgs, ULGUIPrefabHelperObject* InPrefabHelperObject);
 		/**
 		 * Refresh override parameter data.
-		 * \param ObjectOverrideParameterArray All override parameter data in this sub prefab.
-		 * \param InReferenceActor Pass in actor in sub prefab means only show override parameters of the actor or it's components. Pass in nullptr menas show all.
+		 * @param ObjectOverrideParameterArray All override parameter data in this sub prefab.
+		 * @param InReferenceActor Pass in actor in sub prefab means only show override parameters of the actor or it's components. Pass in nullptr menas show all.
 		 */
 	void RefreshDataContent(TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray, AActor* InReferenceActor);
 	void SetPrefabHelperObject(ULGUIPrefabHelperObject* InPrefabHelperObject);
