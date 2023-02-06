@@ -8,13 +8,15 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
+#if WITH_EDITOR
 void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	OnDataChange.Broadcast();
 }
+#endif
 
-void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInOutliner)
+void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInEditorOutliner)
 {
 	//destroy extra
 	while (createdImageObjectArray.Num() > imageTagData.Num())
@@ -41,7 +43,7 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 		if (!parent->GetWorld()->IsGameWorld())//set it only in edit mode
 		{
 			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(imageObj->GetOwner(), listImageObjectInOutliner);
+			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(imageObj->GetOwner(), listImageObjectInEditorOutliner);
 		}
 #endif
 		if (auto imageItemPtr = imageMap.Find(imageTagData[i].TagName))

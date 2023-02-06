@@ -901,7 +901,13 @@ const TArray<FUIText_RichTextImageTag>& UUIText::GetRichTextImageTagArray()const
 void UUIText::GenerateRichTextImageObject()
 {
 	if (!IsValid(richTextImageData))return;
-	richTextImageData->CreateOrUpdateObject(this, CacheTextGeometryData.cacheRichTextImageTagArray, createdRichTextImageObjectArray, listRichTextImageObjectInOutliner);
+	richTextImageData->CreateOrUpdateObject(this, CacheTextGeometryData.cacheRichTextImageTagArray, createdRichTextImageObjectArray, 
+#if WITH_EDITOR
+		listRichTextImageObjectInOutliner
+#else
+		false
+#endif
+	);
 }
 
 
