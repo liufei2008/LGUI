@@ -62,9 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetVertexOffsetArray(const TArray<float>& value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
 		ULTweener* StartAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase easeType = LTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
 		ULTweener* EndAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase easeType = LTweenEase::OutCubic);
 };
 
