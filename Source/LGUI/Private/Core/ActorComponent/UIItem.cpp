@@ -329,7 +329,10 @@ void UUIItem::SetAsFirstHierarchy()
 }
 void UUIItem::SetAsLastHierarchy()
 {
-	SetHierarchyIndex(ParentUIItem->UIChildren.Num() - 1);
+	if (ParentUIItem.IsValid())
+	{
+		SetHierarchyIndex(ParentUIItem->UIChildren.Num() - 1);
+	}
 }
 
 UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChildren)const
