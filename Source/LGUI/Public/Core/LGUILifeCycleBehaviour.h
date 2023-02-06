@@ -110,7 +110,7 @@ protected:
 public:
 	/**
 	 * Set if this component can execute "Update" event or not. "CanExecuteUpdate" is true by default.
-	 * NOTE!!! This will not immediately affect "Update" event, "Update" event's state will only change after "Start" "OnEnable" "OnDisable".
+	 * NOTE!!! This will not immediately affect "Update" event, "Update" event's state will only change after "Awake" "Start" "OnEnable" "OnDisable".
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		void SetCanExecuteUpdate(bool value);
