@@ -29,7 +29,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float animationFps = 4;
 protected:
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 public:
-	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<class UUIItem*>& inOutCreatedImageObjectArray, bool listImageObjectInOutliner)override;
+	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<class UUIItem*>& inOutCreatedImageObjectArray, bool listImageObjectInEditorOutliner)override;
 };
