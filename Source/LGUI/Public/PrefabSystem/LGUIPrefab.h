@@ -62,7 +62,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, UObject*> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
 	/** For level editor, to tell if this prefab is latest version. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab = FDateTime(0);
 	/** Temporary color for quick identify in editor */
 	FLinearColor EditorIdentifyColor;
 #endif
