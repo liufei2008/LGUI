@@ -99,6 +99,12 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 			}
 			imageObj->SetSizeDelta(FVector2D(referenceWidth, referenceHeight));
 		}
+		else
+		{
+			imageObj->SetColor(imageTagData[i].TintColor);
+			imageObj->SetAnchoredPosition(imageTagData[i].Position);
+			imageObj->SetSizeDelta(FVector2D(imageTagData[i].Size, imageTagData[i].Size));
+		}
 	}
 #if WITH_EDITOR
 	if (!parent->GetWorld()->IsGameWorld())//refresh on editor
