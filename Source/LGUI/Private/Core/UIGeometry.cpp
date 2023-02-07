@@ -2645,6 +2645,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			imageTagData.Size = charGeo.xadvance;
 			imageTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
 			cacheRichTextImageTagArray.Add(imageTagData);
+			currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
 		}
 		else
 		{
