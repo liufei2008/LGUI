@@ -7,6 +7,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "IDetailGroup.h"
 
 #define LOCTEXT_NAMESPACE "UITextCustomization"
 FUITextCustomization::FUITextCustomization()
@@ -246,21 +247,21 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	RichTextHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
 	bool richText = false;
 	RichTextHandle->GetValue(richText);
-	if (!richText)
+	if (richText)
 	{
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
+		IDetailGroup& RichTextGroup = category.AddGroup(FName("RichText"), RichTextHandle->GetPropertyDisplayName());
+		RichTextGroup.HeaderProperty(RichTextHandle);
+		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextTagFilterFlags)));
+		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData)));
+		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner)));
+		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray)));
 	}
-	auto RichTextImageDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
-	RichTextImageDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
-	UObject* richTextImageData = nullptr;
-	RichTextImageDataHandle->GetValue(richTextImageData);
-	if (!richText || richTextImageData == nullptr)
+	else
 	{
+		category.AddProperty(RichTextHandle);
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray));
-	}
-	if (!richText)
-	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextTagFilterFlags));
 	}
 
