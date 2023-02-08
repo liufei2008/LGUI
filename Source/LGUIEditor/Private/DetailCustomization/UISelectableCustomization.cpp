@@ -62,7 +62,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	uint8 transitionType;
 	transitionHandle->GetValue(transitionType);
 	TArray<FName> needToHidePropertyNameForTransition;
-	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), LOCTEXT("Transition", "Transition"));
+	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), transitionHandle->GetPropertyDisplayName());
 	transitionGroup.HeaderProperty(transitionHandle);
 	if (transitionType == (uint8)(UISelectableTransitionType::None))
 	{
