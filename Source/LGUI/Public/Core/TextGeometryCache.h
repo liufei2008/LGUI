@@ -110,6 +110,13 @@ struct FUIText_RichTextImageTag
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FColor TintColor;
 };
 
+UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
+enum class EUIText_RichTextTagFilterFlags : uint8
+{
+	Bold, Italic, Underline, Strikethrough, Size, Color, Superscript, Subscript, CustomTag, Image
+};
+ENUM_CLASS_FLAGS(EUIText_RichTextTagFilterFlags);
+
 struct LGUI_API FTextGeometryCache
 {
 public:
@@ -135,6 +142,7 @@ public:
 		bool InUseKerning,
 		UITextFontStyle InFontStyle,
 		bool InRichText,
+		int32 InRichTextFilterFlags,
 		ULGUIFontData_BaseObject* InFont
 	);
 private:
@@ -155,6 +163,7 @@ private:
 	bool useKerning = false;
 	UITextFontStyle fontStyle = UITextFontStyle::None;
 	bool richText = false;
+	int32 richTextFilterFlags = 0xffffffff;
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;
 #pragma endregion InputParameters
 

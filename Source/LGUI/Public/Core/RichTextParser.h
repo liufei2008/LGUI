@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Utils/LGUIUtils.h"
+#include "TextGeometryCache.h"
 
 //a set of helpers to parse rich text
 namespace LGUIRichTextParser
@@ -52,12 +53,14 @@ namespace LGUIRichTextParser
 		uint8 originCanvasGroupAlpha;
 		bool originBold;
 		bool originItalic;
+
+		bool enableBold, enableItalic, enableUnderline, enableStrikethrough, enableSize, enableColor, enableSuperscript, enableSubscript, enableCustomTag, enableImage;
 	public:
 		void ClearImageTag()
 		{
 			imageTag = NAME_None;
 		}
-		void Prepare(float inOriginSize, FColor inOriginColor, uint8 inCanvasGroupAlpha, bool inBold, bool inItalic, RichTextParseResult& result)
+		void Prepare(float inOriginSize, FColor inOriginColor, uint8 inCanvasGroupAlpha, bool inBold, bool inItalic, int32 inFlags, RichTextParseResult& result)
 		{
 			originSize = inOriginSize;
 			originColor = inOriginColor;
@@ -69,6 +72,17 @@ namespace LGUIRichTextParser
 			result.italic = inItalic;
 			result.size = inOriginSize;
 			result.color = inOriginColor;
+
+			enableBold = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Bold);
+			enableItalic = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Italic);
+			enableUnderline = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Underline);
+			enableStrikethrough = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Strikethrough);
+			enableSize = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Size);
+			enableColor = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Color);
+			enableSuperscript = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Superscript);
+			enableSubscript = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Subscript);
+			enableCustomTag = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::CustomTag);
+			enableImage = inFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Image);
 		}
 		void Clear()
 		{
@@ -90,25 +104,25 @@ namespace LGUIRichTextParser
 			{
 				if (charIndex + 2 < textLength && text[charIndex + 2] == '>')
 				{
-					if (text[charIndex + 1] == 'b')//begin bold
+					if (text[charIndex + 1] == 'b' && enableBold)//begin bold
 					{
 						startIndex += 3;
 						boldCount++;
 						haveSymbol = true;
 					}
-					else if (text[charIndex + 1] == 'i')//begin italic
+					else if (text[charIndex + 1] == 'i' && enableItalic)//begin italic
 					{
 						startIndex += 3;
 						italicCount++;
 						haveSymbol = true;
 					}
-					else if (text[charIndex + 1] == 'u')//begin underline
+					else if (text[charIndex + 1] == 'u' && enableUnderline)//begin underline
 					{
 						startIndex += 3;
 						underlineCount++;
 						haveSymbol = true;
 					}
-					else if (text[charIndex + 1] == 's')//begin strikethough
+					else if (text[charIndex + 1] == 's' && enableStrikethrough)//begin strikethough
 					{
 						startIndex += 3;
 						strikethroughCount++;
@@ -121,6 +135,7 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 3] == 'z'
 					&& text[charIndex + 4] == 'e'
 					&& text[charIndex + 5] == '='
+					&& enableSize
 					)//being size=
 				{
 					int charEndIndex;
@@ -147,6 +162,7 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 4] == 'o'
 					&& text[charIndex + 5] == 'r'
 					&& text[charIndex + 6] == '='
+					&& enableColor
 					)//begin color=
 				{
 					int charEndIndex;
@@ -163,6 +179,7 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 2] == 'u'
 					&& text[charIndex + 3] == 'p'
 					&& text[charIndex + 4] == '>'
+					&& enableSuperscript
 					)//begin sup
 				{
 					startIndex += 5;
@@ -174,6 +191,7 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 2] == 'u'
 					&& text[charIndex + 3] == 'b'
 					&& text[charIndex + 4] == '>'
+					&& enableSubscript
 					)//begin sub
 				{
 					startIndex += 5;
@@ -185,6 +203,7 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 2] == 'm'
 					&& text[charIndex + 3] == 'g'
 					&& text[charIndex + 4] == '='
+					&& enableImage
 					)//begin image=
 				{
 					int charEndIndex;
@@ -198,25 +217,25 @@ namespace LGUIRichTextParser
 				{
 					if (charIndex + 3 < textLength && text[charIndex + 3] == '>')
 					{
-						if (text[charIndex + 2] == 'b' && boldCount > 0)//end bold
+						if (text[charIndex + 2] == 'b' && boldCount > 0 && enableBold)//end bold
 						{
 							startIndex += 4;
 							boldCount--;
 							haveSymbol = true;
 						}
-						else if (text[charIndex + 2] == 'i' && italicCount > 0)//end italic
+						else if (text[charIndex + 2] == 'i' && italicCount > 0 && enableItalic)//end italic
 						{
 							startIndex += 4;
 							italicCount--;
 							haveSymbol = true;
 						}
-						else if (text[charIndex + 2] == 'u' && underlineCount > 0)//end underline
+						else if (text[charIndex + 2] == 'u' && underlineCount > 0 && enableUnderline)//end underline
 						{
 							startIndex += 4;
 							underlineCount--;
 							haveSymbol = true;
 						}
-						else if (text[charIndex + 2] == 's' && strikethroughCount > 0)//end strikethough
+						else if (text[charIndex + 2] == 's' && strikethroughCount > 0 && enableStrikethrough)//end strikethough
 						{
 							startIndex += 4;
 							strikethroughCount--;
@@ -230,6 +249,7 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 5] == 'e'
 						&& text[charIndex + 6] == '>'
 						&& sizeArray.Num() > 0
+						&& enableSize
 						)//end size
 					{
 						startIndex += 7;
@@ -244,6 +264,7 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 6] == 'r'
 						&& text[charIndex + 7] == '>'
 						&& colorArray.Num() > 0
+						&& enableColor
 						)//end color
 					{
 						startIndex += 8;
@@ -256,6 +277,7 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 4] == 'p'
 						&& text[charIndex + 5] == '>'
 						&& supOrSubArray.Num() > 0
+						&& enableSuperscript
 						)//end sup
 					{
 						startIndex += 6;
@@ -268,6 +290,7 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 4] == 'b'
 						&& text[charIndex + 5] == '>'
 						&& supOrSubArray.Num() > 0
+						&& enableSubscript
 						)//end sub
 					{
 						startIndex += 6;
@@ -279,7 +302,7 @@ namespace LGUIRichTextParser
 					{
 						int charEndIndex;
 						FName tag;
-						if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag))
+						if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag) && enableCustomTag)
 						{
 							auto foundIndex = customTagArray.IndexOfByKey(tag);
 							if (foundIndex != -1)
@@ -298,7 +321,7 @@ namespace LGUIRichTextParser
 				{
 					int charEndIndex;
 					FName tag;
-					if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag))
+					if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag) && enableCustomTag)
 					{
 						auto foundIndex = customTagArray.IndexOfByKey(tag);
 						if (foundIndex == -1)
