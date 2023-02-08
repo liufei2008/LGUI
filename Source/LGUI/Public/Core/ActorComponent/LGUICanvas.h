@@ -304,13 +304,13 @@ protected:
 	FORCEINLINE FLinearColor GetRectClipFeather();
 	FORCEINLINE FLinearColor GetTextureClipOffsetAndSize();
 
-	FORCEINLINE bool GetOverrideDefaultMaterials()const				{ return overrideParameters & (1 << 0); }
-	FORCEINLINE bool GetOverridePixelPerfect()const					{ return overrideParameters & (1 << 1); }
-	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return overrideParameters & (1 << 2); }
-	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
-	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
-	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 5); }
-	FORCEINLINE bool GetOverrideDepthFade()const					{ return overrideParameters & (1 << 6); }
+	FORCEINLINE bool GetOverrideDefaultMaterials()const				{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::DefaltMaterials); }
+	FORCEINLINE bool GetOverridePixelPerfect()const					{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::PixelPerfect); }
+	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::DynamicPixelsPerUnit); }
+	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::ClipType); }
+	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::AdditionalShaderChannels); }
+	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::BlendDepth); }
+	FORCEINLINE bool GetOverrideDepthFade()const					{ return overrideParameters & (1 << (int)ELGUICanvasOverrideParameters::DepthFade); }
 
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)

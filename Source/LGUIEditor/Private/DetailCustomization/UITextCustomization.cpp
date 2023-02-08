@@ -259,6 +259,10 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray));
 	}
+	if (!richText)
+	{
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextTagFilterFlags));
+	}
 
 	for (auto item : needToHidePropertyName)
 	{

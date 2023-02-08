@@ -321,9 +321,8 @@ void UUIText::UpdateMaterialClipType()
 
 void UUIText::OnCultureChanged_Implementation()
 {
-	static auto emptyText = FText();
 	auto originText = text;
-	text = emptyText;//just make it work, because SetText will compare text value
+	text = FText::GetEmpty();//just make it work, because SetText will compare text value
 	SetText(originText);
 }
 
@@ -409,6 +408,13 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData))
 		{
 			if (!IsValid(richTextImageData))//clear richTextImageData, then need to delete created object
+			{
+				ClearCreatedRichTextImageObject();
+			}
+		}
+		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, richTextTagFilterFlags))
+		{
+			if (!(richTextTagFilterFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Image)))
 			{
 				ClearCreatedRichTextImageObject();
 			}
@@ -613,6 +619,18 @@ void UUIText::SetRichText(bool newRichText)
 		MarkVerticesDirty(true, true, true, true);
 		richText = newRichText;
 		if (!richText)
+		{
+			ClearCreatedRichTextImageObject();
+		}
+	}
+}
+void UUIText::SetRichTextTagFilterFlags(int32 value)
+{
+	if (richTextTagFilterFlags != value)
+	{
+		MarkVerticesDirty(true, true, true, true);
+		richTextTagFilterFlags = value;
+		if (!(richTextTagFilterFlags & (1 << (int)EUIText_RichTextTagFilterFlags::Image)))
 		{
 			ClearCreatedRichTextImageObject();
 		}
@@ -827,6 +845,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetUseKerning()
 		, this->GetFontStyle()
 		, this->GetRichText()
+		, this->GetRichTextTagFilterFlags()
 		, this->GetFont()
 	);
 	if (geometry->vertices.Num() == 0)//@todo: geometry is cleared before OnUpdateGeometry, consider use a cached UIGeometry

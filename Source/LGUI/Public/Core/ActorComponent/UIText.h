@@ -104,6 +104,9 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
+	/** Flags to enable/disable rich text tag. */
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.EUIText_RichTextTagFilterFlags", EditCondition = "richText"))
+		int32 richTextTagFilterFlags = 0xffffffff;
 	/** rich text image data for rendering image inside UIText */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
 		ULGUIRichTextImageData_BaseObject* richTextImageData = nullptr;
@@ -181,6 +184,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") int32 GetRichTextTagFilterFlags()const { return richTextTagFilterFlags; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIRichTextImageData_BaseObject* GetRichTextImageData()const { return richTextImageData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
@@ -216,6 +220,8 @@ public:
 		void SetFontStyle(UITextFontStyle newFontStyle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRichTextTagFilterFlags(int32 value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichTextImageData(ULGUIRichTextImageData_BaseObject* value);
 private:
