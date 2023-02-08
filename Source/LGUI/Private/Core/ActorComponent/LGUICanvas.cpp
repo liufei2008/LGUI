@@ -2695,23 +2695,23 @@ int8 ULGUICanvas::GetActualAdditionalShaderChannelFlags()const
 }
 bool ULGUICanvas::GetRequireNormal()const 
 {
-	return GetActualAdditionalShaderChannelFlags() & (1 << 0);
+	return GetActualAdditionalShaderChannelFlags() & (1 << (int)ELGUICanvasAdditionalChannelType::Normal);
 }
 bool ULGUICanvas::GetRequireTangent()const 
 { 
-	return GetActualAdditionalShaderChannelFlags() & (1 << 1);
+	return GetActualAdditionalShaderChannelFlags() & (1 << (int)ELGUICanvasAdditionalChannelType::Tangent);
 }
 bool ULGUICanvas::GetRequireUV1()const 
 { 
-	return GetActualAdditionalShaderChannelFlags() & (1 << 2);
+	return GetActualAdditionalShaderChannelFlags() & (1 << (int)ELGUICanvasAdditionalChannelType::UV1);
 }
 bool ULGUICanvas::GetRequireUV2()const 
 {
-	return GetActualAdditionalShaderChannelFlags() & (1 << 3);
+	return GetActualAdditionalShaderChannelFlags() & (1 << (int)ELGUICanvasAdditionalChannelType::UV2);
 }
 bool ULGUICanvas::GetRequireUV3()const 
 { 
-	return GetActualAdditionalShaderChannelFlags() & (1 << 4);
+	return GetActualAdditionalShaderChannelFlags() & (1 << (int)ELGUICanvasAdditionalChannelType::UV3);
 }
 
 

@@ -27,6 +27,7 @@ bool FTextGeometryCache::SetInputParameters(
 	bool InUseKerning,
 	UITextFontStyle InFontStyle,
 	bool InRichText,
+	int32 InRichTextFilterFlags,
 	ULGUIFontData_BaseObject* InFont
 )
 {
@@ -63,6 +64,11 @@ bool FTextGeometryCache::SetInputParameters(
 	if (this->richText != InRichText)
 	{
 		this->richText = InRichText;
+		bIsDirty = true;
+	}
+	if (this->richTextFilterFlags != InRichTextFilterFlags)
+	{
+		this->richTextFilterFlags = InRichTextFilterFlags;
 		bIsDirty = true;
 	}
 	if (this->canvasGroupAlpha != InCanvasGroupAlpha)
@@ -163,7 +169,8 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->cacheRichTextImageTagArray
 			, this->font.Get()
 			, this->richText
-		);
+			, this->richTextFilterFlags
+			);
 		this->UIText->GenerateRichTextImageObject();
 	}
 }

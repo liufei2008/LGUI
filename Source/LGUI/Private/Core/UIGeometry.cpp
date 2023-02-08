@@ -2212,7 +2212,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 	, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
-	, ULGUIFontData_BaseObject* font, bool richText)
+	, ULGUIFontData_BaseObject* font, bool richText, int32 richTextFilterFlags)
 {
 	FString content = text;
 
@@ -2259,7 +2259,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		richTextParser.Clear();
 		bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 		bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
-		richTextParser.Prepare(fontSize, color, canvasGroupAlpha, bold, italic, richTextParseResult);
+		richTextParser.Prepare(fontSize, color, canvasGroupAlpha, bold, italic, richTextFilterFlags, richTextParseResult);
 	}
 	else
 	{
