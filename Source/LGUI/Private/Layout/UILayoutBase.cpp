@@ -7,6 +7,10 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 void UUILayoutBase::Awake()
 {
     Super::Awake();
@@ -343,3 +347,8 @@ void UUILayoutBase::ApplyUIItemSizeDelta(UUIItem* InUIItem, const FVector2D& InS
     }
 #endif
 }
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
+
