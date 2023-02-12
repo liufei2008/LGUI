@@ -102,7 +102,8 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTa
 
 void ULGUICanvas::UpdateRootCanvas()
 {
-	if (ensure(this == RootCanvas))
+	CheckRootCanvas();
+	if (this == RootCanvas)
 	{
 		bool bIsRenderTargetRenderer = false;
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
@@ -287,6 +288,17 @@ void ULGUICanvas::OnUnregister()
 		SetParentCanvas(nullptr);
 	}
 
+	if (this == RootCanvas)
+	{
+		for (auto& ChildCanvas : ChildrenCanvasArray)
+		{
+			if (ChildCanvas.IsValid())
+			{
+				ChildCanvas->RootCanvas = nullptr;//force ChildCanvas to find new RootCanvas
+			}
+		}
+	}
+
 	//tell UIItem
 	if (UIItem.IsValid())
 	{
@@ -414,7 +426,7 @@ void ULGUICanvas::CheckRenderMode()
 	const auto OldRenderMode = CurrentRenderMode;
 	if (this->IsRegistered())
 	{
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			CurrentRenderMode = RootCanvas->GetRenderMode();
 		}
@@ -489,7 +501,7 @@ void ULGUICanvas::OnUIActiveStateChanged(bool value)
 
 bool ULGUICanvas::IsRenderToScreenSpace()const
 {
-	if (RootCanvas.IsValid())
+	if (CheckRootCanvas())
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
 	}
@@ -497,7 +509,7 @@ bool ULGUICanvas::IsRenderToScreenSpace()const
 }
 bool ULGUICanvas::IsRenderToRenderTarget()const
 {
-	if (RootCanvas.IsValid())
+	if (CheckRootCanvas())
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::RenderTarget;
 	}
@@ -505,7 +517,7 @@ bool ULGUICanvas::IsRenderToRenderTarget()const
 }
 bool ULGUICanvas::IsRenderToWorldSpace()const
 {
-	if (RootCanvas.IsValid())
+	if (CheckRootCanvas())
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::WorldSpace
 			|| RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI
@@ -516,7 +528,7 @@ bool ULGUICanvas::IsRenderToWorldSpace()const
 
 bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()const
 {
-	if (RootCanvas.IsValid())
+	if (CheckRootCanvas())
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
 			|| RootCanvas->renderMode == ELGUIRenderMode::RenderTarget
@@ -642,7 +654,7 @@ ULGUICanvas* ULGUICanvas::GetRootCanvas() const
 }
 bool ULGUICanvas::IsRootCanvas()const
 {
-	return RootCanvas == this;
+	return GetRootCanvas() == this;
 }
 
 bool ULGUICanvas::GetIsUIActive()const
@@ -726,7 +738,7 @@ void ULGUICanvas::SetActualRequireAdditionalShaderChannels(uint8 InFlags)
 	ULGUICanvas* TargetCanvas = this;
 	while (true)
 	{
-		if (TargetCanvas == RootCanvas || TargetCanvas->GetOverrideAddionalShaderChannel())
+		if (TargetCanvas == this->GetRootCanvas() || TargetCanvas->GetOverrideAddionalShaderChannel())
 		{
 			break;
 		}
@@ -2385,7 +2397,7 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 {
 	if (sortOrder != InSortOrder)
 	{
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			RootCanvas->bNeedToSortRenderPriority = true;
 		}
@@ -2640,7 +2652,7 @@ void ULGUICanvas::SetOverrideSorting(bool value)
 	if (bOverrideSorting != value)
 	{
 		bOverrideSorting = value;
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			RootCanvas->bNeedToSortRenderPriority = true;
 		}
@@ -2934,7 +2946,7 @@ ELGUIRenderMode ULGUICanvas::GetActualRenderMode()const
 	}
 	else
 	{
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			return RootCanvas->renderMode;
 		}
@@ -2950,7 +2962,7 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 	}
 	else
 	{
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			if (GetOverridePixelPerfect())
 			{
@@ -2976,7 +2988,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 	{
 		blendDepth = value;
 
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 			{
@@ -3009,7 +3021,7 @@ void ULGUICanvas::SetDepthFade(float value)
 	{
 		depthFade = value;
 
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			if (RootCanvas->RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 			{
@@ -3052,7 +3064,7 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 	}
 	else
 	{
-		if (RootCanvas.IsValid())
+		if (CheckRootCanvas())
 		{
 			return RootCanvas->renderTarget;
 		}
