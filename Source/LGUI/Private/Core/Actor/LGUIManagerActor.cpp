@@ -175,7 +175,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	}
 	for (auto& item : AllCanvasArray)
 	{
-		if (item.IsValid() && item->IsRootCanvas())
+		if (item.IsValid())
 		{
 			item->UpdateRootCanvas();
 		}
