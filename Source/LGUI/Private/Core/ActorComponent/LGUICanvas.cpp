@@ -784,7 +784,7 @@ void ULGUICanvas::UpdateGeometry_Implement()
 
 		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{
-			auto ChildRenderCanvas = Item->GetRenderCanvas();
+			//auto ChildRenderCanvas = Item->GetRenderCanvas();
 		}
 		else
 		{
@@ -892,7 +892,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 	};
 
 	ULGUIMeshComponent* PrevMesh = nullptr;//prev using mesh
-	bool bShouldMeshSectionContinue = true;//use continuous mesh section in same mesh
+	bool bShouldMeshSectionContinue = false;//use continuous mesh section in same mesh. Default is false, because first PrevMesh is nullptr, can't continue mesh section
 	auto PushSingleDrawcall = [&](UUIItem* InUIItem, bool InSearchInCacheList, UIGeometry* InItemGeo, bool InIs2DSpace, EUIDrawcallType InDrawcallType, const FLGUICacheTransformContainer& InItemToCanvasTf) {
 		TSharedPtr<UUIDrawcall> DrawcallItem = nullptr;
 		//if this UIItem exist in InCacheUIDrawcallList, then grab the entire drawcall item (may include other UIItem in RenderObjectList). No need to worry other UIItem, because they could be cleared in further operation, or exist in the same drawcall
