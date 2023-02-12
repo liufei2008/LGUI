@@ -117,7 +117,7 @@ void LGUIUtils::FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
 	if (!IsValid(actor))return;
 	auto tempComp = GetComponentInParent<ULGUICanvas>(actor, false);
-	if (tempComp != nullptr)
+	if (tempComp != nullptr && tempComp->IsRegistered())
 	{
 		resultCanvas = tempComp;
 	}

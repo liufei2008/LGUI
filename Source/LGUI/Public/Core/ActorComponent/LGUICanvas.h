@@ -488,7 +488,7 @@ public:
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 public:
-	/** Called from LGUIManagerActor */
+	/** Called from LGUIManagerActor. Update this canvas if it is a RootCanvas */
 	void UpdateRootCanvas();
 	/** Check if any invalid in list. Currently use in editor after undo check. */
 	void EnsureDrawcallObjectReference();
