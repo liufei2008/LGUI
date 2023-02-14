@@ -57,7 +57,7 @@ void FUITextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 		.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
 		.OnClicked_Lambda([=]()
 		{
-			GEditor->BeginTransaction(LOCTEXT("TextureSnapSize", "UITexture snap size"));
+			GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UITexture snap size"));
 			for (auto item : TargetScriptArray)
 			{
 				if (item.IsValid())

@@ -330,7 +330,7 @@ LGUI will change CompressionSettings & MipGenSettings\
 "))
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("FixTextureSettingsForHitTest", "FixTextureForHitTest"))
+							.Text(LOCTEXT("FixTextureSettingsForHitTest", "Fix texture settings for hit test"))
 							.Font(IDetailLayoutBuilder::GetDetailFont())
 						]
 					]
@@ -412,31 +412,31 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 				}
 			}
 
-			FString spaceText;
+			FText spaceText;
 			if (TargetScript->IsRenderToScreenSpace())
 			{
-				spaceText = TEXT("ScreenSpaceOverlay");
+				spaceText = LOCTEXT("ScreenSpaceOverlay", "ScreenSpaceOverlay");
 			}
 			else if (TargetScript->IsRenderToWorldSpace())
 			{
 				if (TargetScript->IsRenderByLGUIRendererOrUERenderer())
 				{
-					spaceText = TEXT("World Space - LGUI Renderer");
+					spaceText = LOCTEXT("World Space - LGUI Renderer", "World Space - LGUI Renderer");
 				}
 				else
 				{
-					spaceText = TEXT("World Space - UE Renderer");
+					spaceText = LOCTEXT("World Space - UE Renderer", "World Space - UE Renderer");
 				}
 			}
 			else if (TargetScript->IsRenderToRenderTarget())
 			{
 				if (IsValid(TargetScript->renderTarget))
 				{
-					spaceText = FString::Printf(TEXT("RenderTarget(%s)"), *(TargetScript->renderTarget->GetName()));
+					spaceText = FText::Format(LOCTEXT("RenderTarget({0})", "RenderTarget({0})"), FText::FromString(TargetScript->renderTarget->GetName()));
 				}
 				else
 				{
-					spaceText = FString::Printf(TEXT("RenderTarget(NotValid)"));
+					spaceText = LOCTEXT("RenderTarget(NotValid)", "RenderTarget(NotValid)");
 				}
 			}
 
@@ -452,11 +452,11 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 				if (item->GetSortOrder() == TargetScript->GetSortOrder())
 					sortOrderCount++;
 			}
-			auto depthInfo = FText::Format(LOCTEXT("CanvasSortOrderTip", "All LGUICanvas of {0} with same SortOrder count: {1}\n"), FText::FromString(spaceText), sortOrderCount);
+			auto depthInfo = FText::Format(LOCTEXT("CanvasSortOrderTip", "All LGUICanvas of {0} with same SortOrder count: {1}\n"), spaceText, sortOrderCount);
 			return depthInfo;
 		}
 	}
-	return LOCTEXT("", "");
+	return FText::GetEmpty();
 }
 
 const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray(UWorld* InWorld)

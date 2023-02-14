@@ -47,7 +47,7 @@ public:
 			FUIAction Action_Duplicate(FExecuteAction::CreateStatic(&FLGUILevelEditorExtensions_Impl::Deplicate, InUIItem->GetOwner()));
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("DuplicateActor", "DuplicateActor"),
-				LOCTEXT("CreateButton_Tooltip", "Duplicate this actor"),
+				LOCTEXT("DuplicateActor_Tooltip", "Duplicate this actor"),
 				FSlateIcon(),
 				Action_Duplicate,
 				NAME_None,

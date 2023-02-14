@@ -215,7 +215,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	}
 
 	{
-		GEditor->BeginTransaction(LOCTEXT("ClickToPickActor", "Click to pick UI item"));
+		GEditor->BeginTransaction(LOCTEXT("ClickToPickActor_Transaction", "Click to pick UI item"));
 		GEditor->GetSelectedActors()->Modify();
 
 		// Clear the selection if not multiple selection.
