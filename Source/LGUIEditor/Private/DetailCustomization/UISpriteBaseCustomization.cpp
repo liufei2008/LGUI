@@ -80,7 +80,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			.VAlign(EVerticalAlignment::VAlign_Center)
 			.OnClicked_Lambda([=]()
 			{
-				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize", "UISprite snap size"));
+				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize_Transaction", "UISprite snap size"));
 				for (auto item : TargetScriptArray)
 				{
 					if (item.IsValid())

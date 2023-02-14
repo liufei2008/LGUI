@@ -90,7 +90,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use ColorTint, Target must have UIItem component"))
+					.Text(LOCTEXT("TransitionActor_ColorTint_Tip", "If use ColorTint, Target must have UIItem component"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
@@ -117,7 +117,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use SpriteSwap, Target must have UISprite component"))
+					.Text(LOCTEXT("TransitionActor_SpriteSwap_Tip", "If use SpriteSwap, Target must have UISprite component"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
@@ -143,7 +143,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, This actor must have UISelectableTransitionComponent"))
+					.Text(LOCTEXT("TransitionActor_TransitionComponent_Tip", "If use TransitionComponent, This actor must have UISelectableTransitionComponent"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
@@ -237,7 +237,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				})
 			.OnCheckStateChanged_Lambda([=](ECheckBoxState State)
 			{
-				GEditor->BeginTransaction(LOCTEXT("ToggleNavigationVisualizer", "Toggle Navigation Visualizer"));
+				GEditor->BeginTransaction(LOCTEXT("ToggleNavigationVisualizer_Transaction", "Toggle Navigation Visualizer"));
 				auto LGUIEditorSetting = GetMutableDefault<ULGUIEditorSettings>();
 				LGUIEditorSetting->Modify();
 				LGUIEditorSetting->bDrawSelectableNavigationVisualizer = State == ECheckBoxState::Checked;

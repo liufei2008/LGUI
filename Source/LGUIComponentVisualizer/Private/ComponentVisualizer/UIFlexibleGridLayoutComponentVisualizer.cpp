@@ -377,7 +377,7 @@ TSharedPtr<SWidget> FUIFlexibleGridLayoutComponentVisualizer::GenerateContextMen
 		else if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame)
 		{
 			MenuBuilder.AddMenuEntry(
-				LOCTEXT("AddSpliter", "Add Spliter Here"),
+				LOCTEXT("AddSpliterHere", "Add Spliter Here"),
 				LOCTEXT("AddSpliter_Tooltip", "Add a new spliter at click point"),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateSP((FUIFlexibleGridLayoutComponentVisualizer*)this, &FUIFlexibleGridLayoutComponentVisualizer::AddSpliter))
@@ -395,7 +395,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::AddSpliter()
 	auto UIItem = TargetComp->GetRootUIComponent();
 	if (!UIItem)return;
 
-	GEditor->BeginTransaction(LOCTEXT("AddSpliter", "UIFlexibleGridLayout AddSpliter"));
+	GEditor->BeginTransaction(LOCTEXT("AddSpliter_Transaction", "UIFlexibleGridLayout AddSpliter"));
 	TargetComp->Modify();
 	auto LocalClickPoint = UIItem->GetComponentTransform().InverseTransformPosition(SelectionState->CurrentClickPoint);
 	switch (SelectionState->FrameType)
@@ -458,7 +458,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::RemoveSpliter()
 	if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame)return;
 	if (SelectionState->SelectedSpliterIndex == -1)return;
 
-	GEditor->BeginTransaction(LOCTEXT("RemoveSpliter", "UIFlexibleGridLayout RemoveSpliter"));
+	GEditor->BeginTransaction(LOCTEXT("RemoveSpliter_Transaction", "UIFlexibleGridLayout RemoveSpliter"));
 	TargetComp->Modify();
 
 	if (SelectionState->bHorizontalOrVertical)

@@ -715,7 +715,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.ToolTipText(LOCTEXT("IncreaseHierarchyOrder_Tooltip", "Move order down"))
+				.ToolTipText(LOCTEXT("DecreaseHierarchyOrder_Tooltip", "Move order down"))
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
@@ -782,7 +782,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, false, displayNamePropertyHandle)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
-				.ToolTipText(LOCTEXT("FixDisplayName_Tooltip", "DisplayName not equal to ActorLabel."))
+				.ToolTipText(LOCTEXT("FixDisplayNameOnHierarchy_Tooltip", "DisplayName not equal to ActorLabel."))
 			]
 		]
 		;
@@ -906,7 +906,7 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
 
 	//hierarchy index could affect other items
-	GEditor->BeginTransaction(LOCTEXT("ChangeHierarchyIndex", "Change LGUI Hierarchy Index"));
+	GEditor->BeginTransaction(LOCTEXT("ChangeHierarchyIndex_Transaction", "Change LGUI Hierarchy Index"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
@@ -956,11 +956,11 @@ FText FUIItemCustomization::GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinH
 		}
 		else if (AnchorMinValue.X == 0.5f)
 		{
-			return LOCTEXT("AnchorLeft", "Center");
+			return LOCTEXT("AnchorCenter", "Center");
 		}
 		else if (AnchorMinValue.X == 1.0f)
 		{
-			return LOCTEXT("AnchorLeft", "Right");
+			return LOCTEXT("AnchorRight", "Right");
 		}
 		else
 		{
@@ -969,7 +969,7 @@ FText FUIItemCustomization::GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinH
 	}
 	else if (AnchorMinValue.X == 0.0f && AnchorMaxValue.X == 1.0f)
 	{
-		return LOCTEXT("AnchorCustom", "Stretch");
+		return LOCTEXT("AnchorStretch", "Stretch");
 	}
 	else
 	{
@@ -989,15 +989,15 @@ FText FUIItemCustomization::GetVAlignText(TSharedRef<IPropertyHandle> AnchorMinH
 	{
 		if (AnchorMinValue.Y == 0)
 		{
-			return LOCTEXT("AnchorCustom", "Bottom");
+			return LOCTEXT("AnchorBottom", "Bottom");
 		}
 		else if (AnchorMinValue.Y == 0.5f)
 		{
-			return LOCTEXT("AnchorCustom", "Middle");
+			return LOCTEXT("AnchorMiddle", "Middle");
 		}
 		else if (AnchorMinValue.Y == 1.0f)
 		{
-			return LOCTEXT("AnchorCustom", "Top");
+			return LOCTEXT("AnchorTop", "Top");
 		}
 		else
 		{
@@ -1006,7 +1006,7 @@ FText FUIItemCustomization::GetVAlignText(TSharedRef<IPropertyHandle> AnchorMinH
 	}
 	else if (AnchorMinValue.Y == 0.0f && AnchorMaxValue.Y == 1.0f)
 	{
-		return LOCTEXT("AnchorCustom", "Stretch");
+		return LOCTEXT("AnchorStretch", "Stretch");
 	}
 	else
 	{
@@ -1053,7 +1053,7 @@ FText FUIItemCustomization::GetAnchorLabelText(TSharedRef<IPropertyHandle> Ancho
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
-			return LOCTEXT("AnchoredPositionX", "Width");
+			return LOCTEXT("Width", "Width");
 		}
 		else
 		{
@@ -1065,7 +1065,7 @@ FText FUIItemCustomization::GetAnchorLabelText(TSharedRef<IPropertyHandle> Ancho
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
-			return LOCTEXT("AnchoredPositionX", "Height");
+			return LOCTEXT("Height", "Height");
 		}
 		else
 		{
@@ -1117,7 +1117,7 @@ FText FUIItemCustomization::GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
-			return FText::Format(LOCTEXT("AnchoredPositionX_Tooltip", "Horizontal size. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetWidth)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetWidth)));
+			return FText::Format(LOCTEXT("Width_Tooltip", "Horizontal size. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetWidth)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetWidth)));
 		}
 		else
 		{
@@ -1129,7 +1129,7 @@ FText FUIItemCustomization::GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
-			return FText::Format(LOCTEXT("AnchoredPositionX_Tooltip", "Vertical size. Related function: {0} / {1}"), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetHeight)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetHeight)));
+			return FText::Format(LOCTEXT("Height_Tooltip", "Vertical size. Related function: {0} / {1}"), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetHeight)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetHeight)));
 		}
 		else
 		{
@@ -1482,7 +1482,7 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 }
 void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
-	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue_Transaction", "Change LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
@@ -1493,7 +1493,7 @@ void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type
 
 void FUIItemCustomization::OnAnchorValueSliderMovementBegin()
 {
-	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue_Transaction", "Change LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
@@ -1575,7 +1575,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 	bool ShiftPressed = FSlateApplication::Get().GetModifierKeys().IsShiftDown();
 	bool AltPressed = FSlateApplication::Get().GetModifierKeys().IsAltDown();
 
-	GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchor_Transaction", "Change LGUI Anchor"));
 	for (auto& UIItem : TargetScriptArray)
 	{
 		UIItem->Modify();
@@ -1865,7 +1865,7 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll, TShar
 		}
 	}
 
-	GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
+	GEditor->BeginTransaction(LOCTEXT("FixDisplayName_Transaction", "Fix DisplayName"));
 	for (auto& UIItem : UIItems)
 	{
 		UIItem->Modify();
@@ -1922,7 +1922,7 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 }
 FText FUIItemCustomization::GetAnchorsTooltipText()const
 {
-	return GetIsAnchorsEnabled() ? LOCTEXT("ChangeAnchor", "Change anchor") : LOCTEXT("AnchorIsControlledByLayout", "Anchor is controlled by layout");
+	return GetIsAnchorsEnabled() ? LOCTEXT("ChangeAnchor_Tooltip", "Change anchor") : LOCTEXT("AnchorIsControlledByLayout", "Anchor is controlled by layout");
 }
 bool FUIItemCustomization::OnCanCopyAnchor()const
 {

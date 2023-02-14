@@ -888,7 +888,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				return FReply::Unhandled();
 			}
 
-			GEditor->BeginTransaction(LOCTEXT("LGUI_CreateFromAssetDrop", "LGUI Create from asset drop"));
+			GEditor->BeginTransaction(LOCTEXT("CreateFromAssetDrop_Transaction", "LGUI Create from asset drop"));
 			TArray<AActor*> CreatedActorArray;
 			if (PrefabsToLoad.Num() > 0)
 			{

@@ -16,7 +16,7 @@ enum class EUILayoutElement_ConstantSizeType : uint8
 	UseCustomSize,
 };
 /**
- * Attach to layout's child, make is specific or ignore layout
+ * Attach to layout's child, make it specific or ignore layout
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUILayoutElement : public ULGUILifeCycleUIBehaviour, public ILGUILayoutElementInterface
