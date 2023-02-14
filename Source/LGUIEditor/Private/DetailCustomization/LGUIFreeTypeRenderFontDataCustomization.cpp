@@ -71,7 +71,7 @@ void FLGUIFreeTypeRenderFontDataCustomization::CustomizeDetails(IDetailLayoutBui
 		propertiesNeedToHide.Add(GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontFace));
 
 		auto fontFilePathHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontFilePath));
-		lguiCategory.AddCustomRow(LOCTEXT("FontSourceFile","FontSourceFile"))
+		lguiCategory.AddCustomRow(LOCTEXT("FontSourceFileCategory","FontSourceFile"))
 		.NameContent()
 		[
 			SNew(STextBlock)

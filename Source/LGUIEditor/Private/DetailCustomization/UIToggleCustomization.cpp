@@ -74,7 +74,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use Fade, Target must have UIItem component"))
+					.Text(LOCTEXT("TransitionActor_Fade_Tip", "If use Fade, Target must have UIItem component"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 		}
@@ -98,7 +98,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use ColorTint, Target must have UIItem component"))
+					.Text(LOCTEXT("TransitionActor_ColorTint_Tip", "If use ColorTint, Target must have UIItem component"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
@@ -123,7 +123,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, Target must have UUISelectableTransitionComponent component"))
+					.Text(LOCTEXT("TransitionActor_TransitionComponent_Tip", "If use TransitionComponent, Target must have UUISelectableTransitionComponent component"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];

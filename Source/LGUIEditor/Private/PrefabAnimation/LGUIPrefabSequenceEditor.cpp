@@ -522,7 +522,7 @@ void SLGUIPrefabSequenceEditor::OnDuplicateAnimation()
 {
 	if (WeakSequenceComponent.IsValid())
 	{
-		GEditor->BeginTransaction(LOCTEXT("LGUISequence_DuplicateAnimation", "LGUISequence Duplicate Animation"));
+		GEditor->BeginTransaction(LOCTEXT("DuplicateAnimation_Transaction", "LGUISequence Duplicate Animation"));
 		WeakSequenceComponent->Modify();
 		auto Sequence = WeakSequenceComponent->DuplicateAnimationByIndex(CurrentSelectedAnimationIndex);
 		GEditor->EndTransaction();
@@ -541,7 +541,7 @@ void SLGUIPrefabSequenceEditor::OnDeleteAnimation()
 {
 	if (WeakSequenceComponent.IsValid())
 	{
-		GEditor->BeginTransaction(LOCTEXT("LGUISequence_DeleteAnimation", "LGUISequence Delete Animation"));
+		GEditor->BeginTransaction(LOCTEXT("DeleteAnimation_Transaction", "LGUISequence Delete Animation"));
 		WeakSequenceComponent->Modify();
 		bool bDeleted = WeakSequenceComponent->DeleteAnimationByIndex(CurrentSelectedAnimationIndex);
 		GEditor->EndTransaction();

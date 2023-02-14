@@ -789,7 +789,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		{
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("CreatePrefab", "Create Prefab"),
-				LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
+				LOCTEXT("CreatePrefab_Tooltip", "Use selected actor to create a new prefab"),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreatePrefabAsset)
 					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCreatePrefab)
@@ -1595,7 +1595,7 @@ void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
 		);
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("AttachLayout_LayoutElement", "Layout Element"),
-			LOCTEXT("AttachLayout_LayoutElement_Tooltip", "Attach to layout's child, make is specific or ignore layout"),
+			LOCTEXT("AttachLayout_LayoutElement_Tooltip", "Attach to layout's child, make it specific or ignore layout"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUILayoutElement::StaticClass())))
 		);

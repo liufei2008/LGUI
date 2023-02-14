@@ -909,7 +909,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		}
 		auto SubPrefabData = GetSubPrefabData(Actor);
 
-		GEditor->BeginTransaction(LOCTEXT("RevertPrefabOnAll", "Revert Prefab Override"));
+		GEditor->BeginTransaction(LOCTEXT("RevertPrefabOnAll_Transaction", "Revert Prefab Override"));
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
 		{
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
@@ -1110,7 +1110,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 
 	bCanCollectProperty = false;
 	{
-		GEditor->BeginTransaction(LOCTEXT("ApplyPrefabOnAll", "Apply Prefab Override"));
+		GEditor->BeginTransaction(LOCTEXT("ApplyPrefabOnAll_Transaction", "Apply Prefab Override"));
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
 		{
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
@@ -1436,7 +1436,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 			auto SubPrefabDataPtr = SubPrefabMap.Find(InPrefabRootActor);
 			if (SubPrefabDataPtr != nullptr)
 			{
-				GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab", "LGUI Update Prefabs"));
+				GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab_Transaction", "LGUI Update Prefabs"));
 				InPrefabRootActor->GetLevel()->Modify();
 				this->Modify();
 				if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
@@ -1479,7 +1479,7 @@ void ULGUIPrefabHelperObject::OnNewVersionDismissClicked(AActor* InPrefabRootAct
 
 void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 {
-	GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab", "LGUI Update Prefabs"));
+	GEditor->BeginTransaction(LOCTEXT("LGUIUpdateAllPrefab_Transaction", "LGUI Update Prefabs"));
 	this->Modify();
 
 	bool bUpdated = false;

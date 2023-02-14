@@ -644,7 +644,7 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(LOCTEXT("CreateActor", "LGUI Create Actor"));
+	GEditor->BeginTransaction(LOCTEXT("CreateActor_Transaction", "LGUI Create Actor"));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
@@ -670,7 +670,7 @@ void LGUIEditorTools::CreateEmptyActor()
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(LOCTEXT("CreateUIElement", "LGUI Create UI Element"));
+	GEditor->BeginTransaction(LOCTEXT("CreateUIElement_Transaction", "LGUI Create UI Element"));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
@@ -721,7 +721,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(LOCTEXT("CreateUIControl", "LGUI Create UI Control"));
+	GEditor->BeginTransaction(LOCTEXT("CreateUIControl_Transaction", "LGUI Create UI Control"));
 	MakeCurrentLevel(selectedActor);
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
@@ -750,7 +750,7 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 	}
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
 
-	GEditor->BeginTransaction(LOCTEXT("ReplaceUIElement", "LGUI Replace UI Element"));
+	GEditor->BeginTransaction(LOCTEXT("ReplaceUIElement_Transaction", "LGUI Replace UI Element"));
 	for (auto& Actor : RootActorList)
 	{
 		MakeCurrentLevel(Actor);
@@ -799,7 +799,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		return;
 	}
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
-	GEditor->BeginTransaction(LOCTEXT("DuplicateActor", "LGUI Duplicate Actors"));
+	GEditor->BeginTransaction(LOCTEXT("DuplicateActor_Transaction", "LGUI Duplicate Actors"));
 	for (auto Actor : RootActorList)
 	{
 		MakeCurrentLevel(Actor);
@@ -1007,7 +1007,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	if (PrefabHelperObject == nullptr)return;
 
 	PrefabHelperObject->SetCanNotifyAttachment(false);
-	GEditor->BeginTransaction(LOCTEXT("PasteActor", "LGUI Paste Actors"));
+	GEditor->BeginTransaction(LOCTEXT("PasteActor_Transaction", "LGUI Paste Actors"));
 	for (auto item : selectedActors)
 	{
 		GEditor->SelectActor(item, false, true);
@@ -1069,7 +1069,7 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 	if (confirmResult == EAppReturnType::No)return;
 
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(InActors);
-	GEditor->BeginTransaction(LOCTEXT("DestroyActor", "LGUI Destroy Actor"));
+	GEditor->BeginTransaction(LOCTEXT("DestroyActor_Transaction", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
 	for (auto Actor : RootActorList)
 	{
@@ -1196,7 +1196,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 	}
 	if (CopiedComponent.IsValid())
 	{
-		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
+		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues_Transaction", "LGUI Paste Component Proeprties"));
 		UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
 		Options.bNotifyObjectReplacement = true;
 		for (UActorComponent* SelectedComp : selectedComponents)
@@ -1251,7 +1251,7 @@ void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 		}
 	};
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
-	GEditor->BeginTransaction(LOCTEXT("ChangeTraceChannel", "LGUI Change Trace Channel"));
+	GEditor->BeginTransaction(LOCTEXT("ChangeTraceChannel_Transaction", "LGUI Change Trace Channel"));
 	for (auto item : RootActorList)
 	{
 		FunctionContainer::ChangeTraceChannel(item->GetRootComponent(), InTraceTypeQuery);
