@@ -1,7 +1,7 @@
 // Copyright 2019-present LexLiu. All Rights Reserved.
 
 #include "LGUISDFFontDataFactory.h"
-#include "LGUISDFFontData.h"
+#include "Core/LGUISDFFontData.h"
 
 #define LOCTEXT_NAMESPACE "LGUISDFFontDataFactory"
 

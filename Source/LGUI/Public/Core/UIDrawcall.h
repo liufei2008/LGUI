@@ -57,6 +57,7 @@ public:
 	bool bMaterialChanged = true;
 	bool bMaterialNeedToReassign = true;//once a mesh section is recreated, and the material is still valid, then we need to re-assign the material to newly created mesh section
 	bool bTextureChanged = true;
+	bool bIsSDFFont = false;//sdf font need special material
 
 	bool bNeedToUpdateVertex = true;
 	bool bVertexPositionChanged = true;//if vertex position changed? use for update bounds

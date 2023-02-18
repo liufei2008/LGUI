@@ -73,12 +73,4 @@ public:
 	static void SetTraceChannelToParent_Recursive(AActor* InActor);
 
 	static void ForceGC();
-
-	static void UpgradeLevelToLGUI3();
-	static void UpgradeAllPrefabToLGUI3();
-	static void UpgradeSelectedPrefabToLGUI3();
-private:
-	static void UpgradeActorArray(const TArray<AActor*>& InActorArray, bool InIsPrefabOrWorld);
-	static void UpgradeObjectProperty(UObject* InObject);
-	static void UpgradeCommonProperty(FProperty* Property, uint8* ContainerPtr);
 };
