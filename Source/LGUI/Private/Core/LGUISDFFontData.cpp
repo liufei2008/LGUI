@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include "LGUISDFFontData.h"
-#include "LGUISDFFontModule.h"
+#include "Core/LGUISDFFontData.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
 #include "Materials/MaterialInterface.h"
 #define SDF_IMPLEMENTATION
-#include "sdf/sdf.h"
+#include "Utils/sdf/sdf.h"
 #if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -167,8 +166,7 @@ void ULGUISDFFontData::PrepareForPushCharData(UUIText* InText)
 uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
 {
 	return
-		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = charSize * objectScale
-		//| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
+		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = richTextProperty.size * oneDivideFontSize
 		;
 }
 
@@ -201,6 +199,10 @@ float ULGUISDFFontData::GetVerticalOffset(const float& fontSize)
 		VerticalOffset = Super::GetVerticalOffset(FontSize);
 	}
 	return VerticalOffset * fontSize * oneDivideFontSize;
+}
+UMaterialInterface* ULGUISDFFontData::GetFontMaterial(ELGUICanvasClipType clipType)
+{
+	return SDFDefaultMaterials[(int)clipType];
 }
 
 void ULGUISDFFontData::PushCharData(
@@ -496,7 +498,7 @@ void ULGUISDFFontData::PostInitProperties()
 
 void ULGUISDFFontData::CheckMaterials()
 {
-	for (int i = 0; i < (int)ELGUICanvasClipType::COUNT; i++)
+	for (int i = 0; i < (int)ELGUICanvasClipType::Custom; i++)
 	{
 		if (SDFDefaultMaterials[i] == nullptr)
 		{

@@ -42,8 +42,11 @@ enum class ELGUICanvasClipType :uint8
 	Rect		UMETA(DisplayName = "Rect Clip"),
 	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
 	Texture		UMETA(DisplayName = "Texture Clip"),
-
-	COUNT		UMETA(Hidden),
+	/**
+	 * Assign CustomClip parameter to use a custom class do the clip.
+	 * Will fallback to "No Clip" if not assign CustomClip value.
+	 */
+	Custom		UMETA(DisplayName = "Custom Clip"),
 };
 
 UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
@@ -101,6 +104,7 @@ class ULGUIMeshComponent;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
 class UTextureRenderTarget2D;
+class ULGUICanvasCustomClip;
 
 /**
  * Canvas is for render and update all UI elements.
@@ -150,7 +154,7 @@ public:
 	void MarkItemTransformOrVertexPositionChanged(UUIBaseRenderable* InRenderable);
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
-	bool CalculatePointVisibilityOnClip(FVector worldPoint);
+	bool CalculatePointVisibilityOnClip(const FVector& worldPoint);
 	/** calculate rect clip range */
 	void ConditionalCalculateRectRange();
 	const FVector2D& GetClipRectMin() { ConditionalCalculateRectRange(); return clipRectMin; }
@@ -257,10 +261,15 @@ protected:
 	/** Threshold for line trace interaction test, if transparent value less then this threshold then hit test return false. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float clipTextureHitTestThreshold = 0.1f;
-
 	/** if inherit parent's rect clip value. only valid if self is RectClip */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool inheritRectClip = true;
+	/**
+	 * Use this to do custom clip.
+	 * Will fallback to "No Clip" if not assign this value.
+	 */
+	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
+		ULGUICanvasCustomClip* customClip;
 
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
@@ -275,7 +284,7 @@ protected:
 
 	/** Default materials, for render default UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::COUNT];
+		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::Custom];
 
 	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
@@ -342,6 +351,9 @@ public:
 		void SetClipTexture(UTexture2D* newTexture);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetInheriRectClip(bool newBool);
+	/** Set current clip type as CustomClip, and set the CustomClip object */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetCustomClip(ULGUICanvasCustomClip* value);
 	/** 
 	 * Set LGUICanvas SortOrder
 	 * @param	propagateToChildrenCanvas	if true, set this Canvas's SortOrder and all children Canvas, not just set absolute value, but keep child Canvas's relative order to this one
@@ -412,6 +424,9 @@ public:
 		ELGUICanvasClipType GetActualClipType()const;
 	/** Get clip type of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUICanvasCustomClip* GetActualCustomClip()const;
+	/** Get clip type of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasClipType GetClipType()const { return clipType; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D GetClipFeather()const { return clipFeather; }
@@ -419,6 +434,8 @@ public:
 		UTexture2D* GetClipTexture()const { return clipTexture; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetInheritRectClip()const { return inheritRectClip; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUICanvasCustomClip* GetCustomClip()const { return customClip; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireNormal()const;
@@ -485,7 +502,7 @@ public:
 	static FName LGUI_RectClipFeather_MaterialParameterName;
 	static FName LGUI_TextureClip_MaterialParameterName;
 	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
-	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, bool InIncludeMainTexture);
+	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, bool InIncludeMainTexture, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 public:
@@ -497,7 +514,8 @@ private:
 	uint32 bHasAddToLGUIManager : 1;
 	uint32 bClipTypeChanged:1;
 	uint32 bRectClipParameterChanged:1;
-	uint32 bTextureClipParameterChanged:1;
+	uint32 bTextureClipParameterChanged : 1;
+	uint32 bNeedToUpdateCustomClipParameter:1;
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
 	uint32 bShouldRebuildDrawcall : 1;
@@ -571,7 +589,7 @@ private:
 public:
 	static bool Is2DUITransform(const FTransform& Transform);
 private:
-	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
+	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
 	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
 	TWeakObjectPtr<ULGUIMeshComponent> GetUIMeshFromPool();
 	void AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh);

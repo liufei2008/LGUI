@@ -8,26 +8,6 @@
 
 class ULGUIWorldSpaceRaycaster;
 
-/**
- * NOTE! This type is not valid anymore
- * The interaction source for world space UI, actually the ray emitter object.
- */
-UENUM(BlueprintType, Category = LGUI, meta=(ScriptName="LGUIWorldSpaceRaycasterSourceType_Deprecated"))
-enum class ELGUIWorldSpaceRaycasterSource :uint8
-{
-	/** Sends traces from the world location and orientation of the interaction component. */
-	World,
-	/** Sends traces from mouse or touch location of the first local player controller. */
-	Mouse,
-	/** Sends trace from the center of the first local player's screen. */
-	CenterScreen,
-	/**
-	 * Sends traces from a custom location determined by the user.  Will use whatever
-	 * FHitResult is set by the call to SetCustomHitResult.
-	 */
-	//Custom
-};
-
 /** Interaction target for world space */
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIInteractionTarget :uint8
@@ -83,9 +63,6 @@ public:
 	virtual void BeginPlay()override;
 	virtual void OnRegister()override;
 protected:
-	/** Old data */
-	UPROPERTY(EditAnywhere, Category = "LGUI-old", AdvancedDisplay)
-		ELGUIWorldSpaceRaycasterSource interactionSource = ELGUIWorldSpaceRaycasterSource::Mouse;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIInteractionTarget interactionTarget = ELGUIInteractionTarget::UIAndWorld;
 

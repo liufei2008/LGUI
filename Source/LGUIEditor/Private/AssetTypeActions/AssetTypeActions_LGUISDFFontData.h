@@ -1,13 +1,14 @@
+
 // Copyright 2019-present LexLiu. All Rights Reserved.
 
 #pragma once
 
 #include "AssetTypeActions_Base.h"
 
-class FLGUISDFFontDataTypeAction : public FAssetTypeActions_Base
+class FAssetTypeActions_LGUISDFFontData : public FAssetTypeActions_Base
 {
 public:
-	FLGUISDFFontDataTypeAction(EAssetTypeCategories::Type InAssetType);
+	FAssetTypeActions_LGUISDFFontData(EAssetTypeCategories::Type InAssetType);
 
 	// FAssetTypeActions_Base overrides
 	virtual bool CanFilter() override;

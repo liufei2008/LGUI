@@ -73,6 +73,7 @@ public:
 	bool IsValidComponentReference()const;
 
 #if WITH_EDITORONLY_DATA
+	//can't delete those old data, or blueprint will throw error.
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		TWeakObjectPtr<AActor> targetActor;
