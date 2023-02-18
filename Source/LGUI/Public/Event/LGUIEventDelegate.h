@@ -113,10 +113,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* HelperActor = nullptr;
 	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		UClass* HelperClass = nullptr;
 	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -155,34 +155,6 @@ private:
 	void FindAndExecute(UObject* Target, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData);
-#if WITH_EDITORONLY_DATA
-public:
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		AActor* targetActor = nullptr;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* componentClass = nullptr;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		FName componentName;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		FName ReferenceName;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		FString ReferenceString;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		FText ReferenceText;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		AActor* ReferenceActor = nullptr;
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* ReferenceClass = nullptr;
-	
-#endif
 };
 
 /**

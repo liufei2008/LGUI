@@ -43,18 +43,6 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64", "Mac", "Linux", "IOS", "Android" ]
-		},
-		{
-			"Name": "LGUISDFFont",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Mac", "Linux", "IOS", "Android" ]
-		},
-		{
-			"Name": "LGUISDFFontEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
 		}
 	]
 }

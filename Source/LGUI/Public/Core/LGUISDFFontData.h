@@ -28,8 +28,8 @@ public:
 };
 
 /** SDF(Signed Distance Field) Font asset for UIText to render smooth scaled sdf font. */
-UCLASS(BlueprintType)
-class LGUISDFFONT_API ULGUISDFFontData : public ULGUIFreeTypeRenderFontData
+UCLASS(BlueprintType, meta = (DisplayName = "LGUI SDF Font Data"))
+class LGUI_API ULGUISDFFontData : public ULGUIFreeTypeRenderFontData
 {
 	GENERATED_BODY()
 public:
@@ -37,7 +37,7 @@ public:
 private:
 	/** Use these material to render SDF font for UIText, include clip material. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
-		UMaterialInterface* SDFDefaultMaterials[(int)ELGUICanvasClipType::COUNT];
+		UMaterialInterface* SDFDefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Font size when render glyph. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "16", UIMax = "100"))
 		int FontSize = 32;
@@ -62,7 +62,7 @@ private:
 
 public:
 	//Begin ULGUIFontDataBaseObject interface
-	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override { return SDFDefaultMaterials[(int)clipType]; }
+	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override;
 	virtual void PushCharData(
 		TCHAR charCode, const FVector2D& lineOffset, const FVector2D& fontSpace, const FLGUICharData_HighPrecision& charData,
 		const LGUIRichTextParser::RichTextParseResult& richTextProperty,

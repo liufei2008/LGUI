@@ -181,16 +181,4 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
-
-public:
-	/** Old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		bool bRaycastComplex = false;
-public:
-	UE_DEPRECATED(4.24, "Use GetRaycastType instead.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DePrecatedFunction, DeprecationMessage = "Use GetRaycastType instead."))
-		bool GetRaycastComplex() { return RaycastType == EUIRenderableRaycastType::Geometry; }
-	UE_DEPRECATED(4.24, "Use SetRaycastType instead.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DePrecatedFunction, DeprecationMessage = "Use SetRaycastType instead."))
-		void SetRaycastComplex(bool value) { RaycastType = bRaycastComplex ? EUIRenderableRaycastType::Geometry : EUIRenderableRaycastType::Rect; }
 };

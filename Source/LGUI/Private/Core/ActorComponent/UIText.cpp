@@ -256,7 +256,16 @@ UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
 		}
 		font->InitFont();
 		CheckFontAdditionalShaderChannels();
-		return font->GetFontMaterial(this->GetRenderCanvas() != nullptr ? this->GetRenderCanvas()->GetActualClipType() : ELGUICanvasClipType::None);
+		auto CanvasClipType = ELGUICanvasClipType::None;
+		if (this->GetRenderCanvas() != nullptr)
+		{
+			CanvasClipType = this->GetRenderCanvas()->GetActualClipType();
+			if (CanvasClipType == ELGUICanvasClipType::Custom)
+			{
+				CanvasClipType = ELGUICanvasClipType::None;
+			}
+		}
+		return font->GetFontMaterial(CanvasClipType);
 	}
 }
 
