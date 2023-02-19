@@ -46,6 +46,11 @@ bool ULGUICanvasCustomClip::CheckPointVisible(const FVector& InWorldPoint, ULGUI
 
 
 #include "Materials/MaterialInstanceDynamic.h"
+ULGUICanvasCustomClip_Circle::ULGUICanvasCustomClip_Circle()
+{
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle")));
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_SDF_Font_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle_SDFFont")));
+}
 void ULGUICanvasCustomClip_Circle::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
 {
 	auto LocalSpaceCenter = InUIItem->GetLocalSpaceCenter();
@@ -58,7 +63,7 @@ bool ULGUICanvasCustomClip_Circle::CheckPointVisible(const FVector& InWorldPoint
 	auto LocalPoint = InUIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
 	auto LocalPoint2D = FVector2D(LocalPoint.Y, LocalPoint.Z);
 	auto LocalSpaceCenter2D = InUIItem->GetLocalSpaceCenter();
-	float d = ((LocalPoint2D - LocalSpaceCenter2D) / FVector2D(InUIItem->GetWidth() * sizeMultiply, InUIItem->GetHeight() * sizeMultiply) * 2).Size();
+	auto d = ((LocalPoint2D - LocalSpaceCenter2D) / FVector2D(InUIItem->GetWidth() * sizeMultiply, InUIItem->GetHeight() * sizeMultiply) * 2).Size();
 	return d <= 1;
 }
 void ULGUICanvasCustomClip_Circle::SetSizeMultiply(float value)

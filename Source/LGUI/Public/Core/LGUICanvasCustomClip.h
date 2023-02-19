@@ -45,6 +45,7 @@ class LGUI_API ULGUICanvasCustomClip_Circle: public ULGUICanvasCustomClip
 {
 	GENERATED_BODY()
 public:
+	ULGUICanvasCustomClip_Circle();
 	virtual void ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)override;
 	virtual bool CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)override;
 private:
