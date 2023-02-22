@@ -6,6 +6,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "Core/ActorComponent/UISpriteBase.h"
 
 #define LOCTEXT_NAMESPACE "UISpriteSequencePlayerCustomization"
 
