@@ -735,7 +735,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateUIControls]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *InPrefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateUIControls] Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issue."), *InPrefabPath);
 	}
 	GEditor->EndTransaction();
 }
@@ -1288,7 +1288,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup] Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
 			}
 		}
 		GEditor->EndTransaction();
@@ -1296,7 +1296,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issue."), *prefabPath);
 	}
 }
 void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
@@ -1329,7 +1329,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
 			}
 		}
 		GEditor->EndTransaction();
@@ -1337,7 +1337,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issue."), *prefabPath);
 	}
 }
 void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
@@ -1370,7 +1370,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
 			}
 		}
 		GEditor->EndTransaction();
@@ -1378,7 +1378,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issue."), *prefabPath);
 	}
 }
 void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass)

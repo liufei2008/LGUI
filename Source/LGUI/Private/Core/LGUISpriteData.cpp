@@ -11,7 +11,9 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "RHI.h"
 #include "Rendering/Texture2DResource.h"
+#include "Utils/LGUIUtils.h"
 
+#define LOCTEXT_NAMESPACE "LGUISpriteData"
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
 {
@@ -490,8 +492,14 @@ ULGUISpriteData* ULGUISpriteData::GetDefaultWhiteSolid()
 	static auto defaultWhiteSolid = LoadObject<ULGUISpriteData>(NULL, TEXT("/LGUI/LGUIPreset_WhiteSolid"));
 	if (defaultWhiteSolid == nullptr)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUISpriteData::GetDefaultWhiteSolid]Load default sprite error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+		auto errMsg = LOCTEXT("MissingDefaultContent", "[LGUISpriteData::GetDefaultWhiteSolid] Load default sprite error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+		UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
 		return nullptr;
 	}
 	return defaultWhiteSolid;
 }
+
+#undef LOCTEXT_NAMESPACE
