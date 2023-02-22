@@ -513,7 +513,7 @@ void ULGUISDFFontData::CheckMaterials()
 			auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
 			if (mat == nullptr)
 			{
-				auto errMsg = LOCTEXT("AssignMaterialError_MissingSourceMaterial", "[ULGUISDFFontData::CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure.");
+				auto errMsg = LOCTEXT("MissingDefaultContent", "[ULGUISDFFontData::CheckMaterials] Load material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
 				UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 #if WITH_EDITOR
 				LGUIUtils::EditorNotification(errMsg, 10);
