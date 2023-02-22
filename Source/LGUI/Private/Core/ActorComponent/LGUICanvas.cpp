@@ -602,43 +602,15 @@ void ULGUICanvas::PostLoad()
 
 UMaterialInterface** ULGUICanvas::GetMaterials()
 {
-	auto CheckDefaultMaterialsFunction = [=] 
-	{
-		for (int i = 0; i < (int)ELGUICanvasClipType::Custom; i++)
-		{
-			if (DefaultMaterials[i] == nullptr)
-			{
-				FString matPath;
-				switch (i)
-				{
-				default:
-				case 0: matPath = TEXT("/LGUI/LGUI_Standard"); break;
-				case 1: matPath = TEXT("/LGUI/LGUI_Standard_RectClip"); break;
-				case 2: matPath = TEXT("/LGUI/LGUI_Standard_TextureClip"); break;
-				}
-				auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
-				if (mat == nullptr)
-				{
-					auto errMsg = LOCTEXT("AssignMaterialError_MissingSourceMaterial", "[ULGUICanvas/CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure.");
-					UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
-#if WITH_EDITOR
-					LGUIUtils::EditorNotification(errMsg, 10);
-#endif
-					continue;
-				}
-				DefaultMaterials[i] = mat;
-			}
-		}
-	};
 	if(IsRootCanvas())
 	{
-		CheckDefaultMaterialsFunction();
+		CheckDefaultMaterials();
 	}
 	else
 	{
 		if (GetOverrideDefaultMaterials())
 		{
-			CheckDefaultMaterialsFunction();
+			CheckDefaultMaterials();
 		}
 		else
 		{
@@ -648,11 +620,38 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 			}
 			else
 			{
-				CheckDefaultMaterialsFunction();
+				CheckDefaultMaterials();
 			}
 		}
 	}
 	return &DefaultMaterials[0];
+}
+void ULGUICanvas::CheckDefaultMaterials()
+{
+	for (int i = 0; i < (int)ELGUICanvasClipType::Custom; i++)
+	{
+		if (DefaultMaterials[i] == nullptr)
+		{
+			FString matPath;
+			switch (i)
+			{
+			default:
+			case 0: matPath = TEXT("/LGUI/LGUI_Standard"); break;
+			case 1: matPath = TEXT("/LGUI/LGUI_Standard_RectClip"); break;
+			case 2: matPath = TEXT("/LGUI/LGUI_Standard_TextureClip"); break;
+			}
+			auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
+			if (!IsValid(mat))
+			{
+				auto errMsg = LOCTEXT("MissingDefaultContent", "[ULGUICanvas/CheckDefaultMaterials] Load material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+				continue;
+			}
+			DefaultMaterials[i] = mat;
+		}
+	}
 }
 
 

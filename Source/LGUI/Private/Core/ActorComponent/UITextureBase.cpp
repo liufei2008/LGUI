@@ -5,7 +5,9 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
+#include "Utils/LGUIUtils.h"
 
+#define LOCTEXT_NAMESPACE "LGUISpriteData"
 
 UUITextureBase::UUITextureBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -46,7 +48,11 @@ UTexture* UUITextureBase::GetDefaultWhiteTexture()
 	auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
 	if (!IsValid(defaultWhiteSolid))
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUITextureBase::GetDefaultWhiteTexture]Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+		auto errMsg = LOCTEXT("MissingDefaultContent", "[UUITextureBase::GetDefaultWhiteTexture] Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+		UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
 	}
 	return defaultWhiteSolid;
 }
@@ -84,3 +90,5 @@ void UUITextureBase::SetSizeFromTexture()
 		UE_LOG(LGUI, Error, TEXT("[UUITextureBase::SetSizeFromTexture]texture is null!"));
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

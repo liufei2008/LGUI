@@ -208,6 +208,7 @@ protected:
 	UPROPERTY(Transient) TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	
 	UMaterialInterface** GetMaterials();
+	void CheckDefaultMaterials();
 
 	UPROPERTY(Transient) mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
 	bool CheckUIItem()const;
