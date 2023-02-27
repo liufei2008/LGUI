@@ -104,29 +104,41 @@ namespace LGUIRichTextParser
 			{
 				if (charIndex + 2 < textLength && text[charIndex + 2] == '>')
 				{
-					if (text[charIndex + 1] == 'b' && enableBold)//begin bold
+					if (text[charIndex + 1] == 'b')//begin bold
 					{
-						startIndex += 3;
-						boldCount++;
-						haveSymbol = true;
+						if (enableBold)
+						{
+							startIndex += 3;
+							boldCount++;
+							haveSymbol = true;
+						}
 					}
-					else if (text[charIndex + 1] == 'i' && enableItalic)//begin italic
+					else if (text[charIndex + 1] == 'i')//begin italic
 					{
-						startIndex += 3;
-						italicCount++;
-						haveSymbol = true;
+						if (enableItalic)
+						{
+							startIndex += 3;
+							italicCount++;
+							haveSymbol = true;
+						}
 					}
-					else if (text[charIndex + 1] == 'u' && enableUnderline)//begin underline
+					else if (text[charIndex + 1] == 'u')//begin underline
 					{
-						startIndex += 3;
-						underlineCount++;
-						haveSymbol = true;
+						if (enableUnderline)
+						{
+							startIndex += 3;
+							underlineCount++;
+							haveSymbol = true;
+						}
 					}
-					else if (text[charIndex + 1] == 's' && enableStrikethrough)//begin strikethough
+					else if (text[charIndex + 1] == 's')//begin strikethough
 					{
-						startIndex += 3;
-						strikethroughCount++;
-						haveSymbol = true;
+						if (enableStrikethrough)
+						{
+							startIndex += 3;
+							strikethroughCount++;
+							haveSymbol = true;
+						}
 					}
 				}
 				else if (charIndex + 5 < textLength
@@ -135,24 +147,26 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 3] == 'z'
 					&& text[charIndex + 4] == 'e'
 					&& text[charIndex + 5] == '='
-					&& enableSize
 					)//being size=
 				{
-					int charEndIndex;
-					float parsedSize;
-					bool absoluteOrAdditional;
-					if (GetSize(text, textLength, charIndex + 6, charEndIndex, parsedSize, absoluteOrAdditional))
+					if (enableSize)
 					{
-						startIndex += charEndIndex - charIndex + 1;
-						if (absoluteOrAdditional)
+						int charEndIndex;
+						float parsedSize;
+						bool absoluteOrAdditional;
+						if (GetSize(text, textLength, charIndex + 6, charEndIndex, parsedSize, absoluteOrAdditional))
 						{
-							sizeArray.Add(parsedSize);
+							startIndex += charEndIndex - charIndex + 1;
+							if (absoluteOrAdditional)
+							{
+								sizeArray.Add(parsedSize);
+							}
+							else
+							{
+								sizeArray.Add(originSize + parsedSize);
+							}
+							haveSymbol = true;
 						}
-						else
-						{
-							sizeArray.Add(originSize + parsedSize);
-						}
-						haveSymbol = true;
 					}
 				}
 				else if (charIndex + 6 < textLength
@@ -162,16 +176,18 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 4] == 'o'
 					&& text[charIndex + 5] == 'r'
 					&& text[charIndex + 6] == '='
-					&& enableColor
 					)//begin color=
 				{
-					int charEndIndex;
-					FColor parsedColor;
-					if (GetColor(text, textLength, charIndex + 7, charEndIndex, parsedColor))
+					if (enableColor)
 					{
-						startIndex += charEndIndex - charIndex + 1;
-						colorArray.Add(parsedColor);
-						haveSymbol = true;
+						int charEndIndex;
+						FColor parsedColor;
+						if (GetColor(text, textLength, charIndex + 7, charEndIndex, parsedColor))
+						{
+							startIndex += charEndIndex - charIndex + 1;
+							colorArray.Add(parsedColor);
+							haveSymbol = true;
+						}
 					}
 				}
 				else if (charIndex + 4 < textLength
@@ -179,67 +195,85 @@ namespace LGUIRichTextParser
 					&& text[charIndex + 2] == 'u'
 					&& text[charIndex + 3] == 'p'
 					&& text[charIndex + 4] == '>'
-					&& enableSuperscript
 					)//begin sup
 				{
-					startIndex += 5;
-					supOrSubArray.Add(SupOrSubMode::Sup);
-					haveSymbol = true;
+					if (enableSuperscript)
+					{
+						startIndex += 5;
+						supOrSubArray.Add(SupOrSubMode::Sup);
+						haveSymbol = true;
+					}
 				}
 				else if (charIndex + 4 < textLength
 					&& text[charIndex + 1] == 's'
 					&& text[charIndex + 2] == 'u'
 					&& text[charIndex + 3] == 'b'
 					&& text[charIndex + 4] == '>'
-					&& enableSubscript
 					)//begin sub
 				{
-					startIndex += 5;
-					supOrSubArray.Add(SupOrSubMode::Sub);
-					haveSymbol = true;
+					if (enableSubscript)
+					{
+						startIndex += 5;
+						supOrSubArray.Add(SupOrSubMode::Sub);
+						haveSymbol = true;
+					}
 				}
 				else if (charIndex + 6 < textLength
 					&& text[charIndex + 1] == 'i'
 					&& text[charIndex + 2] == 'm'
 					&& text[charIndex + 3] == 'g'
 					&& text[charIndex + 4] == '='
-					&& enableImage
 					)//begin image=
 				{
-					int charEndIndex;
-					if (GetImageTag(text, textLength, charIndex + 5, charEndIndex, imageTag))
+					if (enableImage)
 					{
-						startIndex += charEndIndex - charIndex + 1;
-						haveSymbol = true;
+						int charEndIndex;
+						if (GetImageTag(text, textLength, charIndex + 5, charEndIndex, imageTag))
+						{
+							startIndex += charEndIndex - charIndex + 1;
+							haveSymbol = true;
+						}
 					}
 				}
 				else if (charIndex + 1 < textLength && text[charIndex + 1] == '/')//end
 				{
 					if (charIndex + 3 < textLength && text[charIndex + 3] == '>')
 					{
-						if (text[charIndex + 2] == 'b' && boldCount > 0 && enableBold)//end bold
+						if (text[charIndex + 2] == 'b' && boldCount > 0)//end bold
 						{
-							startIndex += 4;
-							boldCount--;
-							haveSymbol = true;
+							if (enableBold)
+							{
+								startIndex += 4;
+								boldCount--;
+								haveSymbol = true;
+							}
 						}
-						else if (text[charIndex + 2] == 'i' && italicCount > 0 && enableItalic)//end italic
+						else if (text[charIndex + 2] == 'i' && italicCount > 0)//end italic
 						{
-							startIndex += 4;
-							italicCount--;
-							haveSymbol = true;
+							if (enableItalic)
+							{
+								startIndex += 4;
+								italicCount--;
+								haveSymbol = true;
+							}
 						}
-						else if (text[charIndex + 2] == 'u' && underlineCount > 0 && enableUnderline)//end underline
+						else if (text[charIndex + 2] == 'u' && underlineCount > 0)//end underline
 						{
-							startIndex += 4;
-							underlineCount--;
-							haveSymbol = true;
+							if (enableUnderline)
+							{
+								startIndex += 4;
+								underlineCount--;
+								haveSymbol = true;
+							}
 						}
-						else if (text[charIndex + 2] == 's' && strikethroughCount > 0 && enableStrikethrough)//end strikethough
+						else if (text[charIndex + 2] == 's' && strikethroughCount > 0)//end strikethough
 						{
-							startIndex += 4;
-							strikethroughCount--;
-							haveSymbol = true;
+							if (enableStrikethrough)
+							{
+								startIndex += 4;
+								strikethroughCount--;
+								haveSymbol = true;
+							}
 						}
 					}
 					else if (charIndex + 6 < textLength
@@ -249,12 +283,14 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 5] == 'e'
 						&& text[charIndex + 6] == '>'
 						&& sizeArray.Num() > 0
-						&& enableSize
 						)//end size
 					{
-						startIndex += 7;
-						sizeArray.RemoveAt(sizeArray.Num() - 1);
-						haveSymbol = true;
+						if (enableSize)
+						{
+							startIndex += 7;
+							sizeArray.RemoveAt(sizeArray.Num() - 1);
+							haveSymbol = true;
+						}
 					}
 					else if (charIndex + 7 < textLength
 						&& text[charIndex + 2] == 'c'
@@ -264,12 +300,14 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 6] == 'r'
 						&& text[charIndex + 7] == '>'
 						&& colorArray.Num() > 0
-						&& enableColor
 						)//end color
 					{
-						startIndex += 8;
-						colorArray.RemoveAt(colorArray.Num() - 1);
-						haveSymbol = true;
+						if (enableColor)
+						{
+							startIndex += 8;
+							colorArray.RemoveAt(colorArray.Num() - 1);
+							haveSymbol = true;
+						}
 					}
 					else if (charIndex + 5 < textLength
 						&& text[charIndex + 2] == 's'
@@ -277,12 +315,14 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 4] == 'p'
 						&& text[charIndex + 5] == '>'
 						&& supOrSubArray.Num() > 0
-						&& enableSuperscript
 						)//end sup
 					{
-						startIndex += 6;
-						supOrSubArray.RemoveAt(supOrSubArray.Num() - 1);
-						haveSymbol = true;
+						if (enableSuperscript)
+						{
+							startIndex += 6;
+							supOrSubArray.RemoveAt(supOrSubArray.Num() - 1);
+							haveSymbol = true;
+						}
 					}
 					else if (charIndex + 5 < textLength
 						&& text[charIndex + 2] == 's'
@@ -290,28 +330,33 @@ namespace LGUIRichTextParser
 						&& text[charIndex + 4] == 'b'
 						&& text[charIndex + 5] == '>'
 						&& supOrSubArray.Num() > 0
-						&& enableSubscript
 						)//end sub
 					{
-						startIndex += 6;
-						supOrSubArray.RemoveAt(supOrSubArray.Num() - 1);
-						haveSymbol = true;
+						if (enableSubscript)
+						{
+							startIndex += 6;
+							supOrSubArray.RemoveAt(supOrSubArray.Num() - 1);
+							haveSymbol = true;
+						}
 					}
 					else if (customTagArray.Num() > 0
 						)//end custom tag
 					{
-						int charEndIndex;
-						FName tag;
-						if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag) && enableCustomTag)
+						if (enableCustomTag)
 						{
-							auto foundIndex = customTagArray.IndexOfByKey(tag);
-							if (foundIndex != -1)
+							int charEndIndex;
+							FName tag;
+							if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag))
 							{
-								customTagArray.RemoveAt(foundIndex);
-								startIndex += charEndIndex - charIndex + 1;
-								parseResult.customTag = tag;
-								parseResult.customTagMode = CustomTagMode::End;
-								haveSymbol = true;
+								auto foundIndex = customTagArray.IndexOfByKey(tag);
+								if (foundIndex != -1)
+								{
+									customTagArray.RemoveAt(foundIndex);
+									startIndex += charEndIndex - charIndex + 1;
+									parseResult.customTag = tag;
+									parseResult.customTagMode = CustomTagMode::End;
+									haveSymbol = true;
+								}
 							}
 						}
 					}
@@ -319,18 +364,21 @@ namespace LGUIRichTextParser
 				else if(charIndex + 1 < textLength
 					)//check custom tag
 				{
-					int charEndIndex;
-					FName tag;
-					if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag) && enableCustomTag)
+					if (enableCustomTag)
 					{
-						auto foundIndex = customTagArray.IndexOfByKey(tag);
-						if (foundIndex == -1)
+						int charEndIndex;
+						FName tag;
+						if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag))
 						{
-							startIndex += charEndIndex - charIndex + 1;
-							customTagArray.Add(tag);
-							parseResult.customTag = tag;
-							parseResult.customTagMode = CustomTagMode::Start;
-							haveSymbol = true;
+							auto foundIndex = customTagArray.IndexOfByKey(tag);
+							if (foundIndex == -1)
+							{
+								startIndex += charEndIndex - charIndex + 1;
+								customTagArray.Add(tag);
+								parseResult.customTag = tag;
+								parseResult.customTagMode = CustomTagMode::Start;
+								haveSymbol = true;
+							}
 						}
 					}
 				}
