@@ -436,6 +436,11 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 	LGUIEditorTools::DeleteActors_Impl(SelectedActorArray);
 }
 
+void FLGUIPrefabEditor::ApplyPrefab()
+{
+	OnApply();
+}
+
 void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
