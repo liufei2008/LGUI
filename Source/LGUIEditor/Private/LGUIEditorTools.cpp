@@ -1444,8 +1444,8 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 		FMessageDialog::Open(EAppMsgType::Ok, Message);
 		return;
 	}
-	auto oldPrefabActor = GetPrefabHelperObject_WhichManageThisActor(selectedActor);
-	if (IsValid(oldPrefabActor) && oldPrefabActor->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
+	auto OldPrefabHelperObject = GetPrefabHelperObject_WhichManageThisActor(selectedActor);
+	if (IsValid(OldPrefabHelperObject) && OldPrefabHelperObject->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
 	{
 		auto Message = LOCTEXT("CreatePrefabError_BelongToOtherPrefab", "This actor is a root actor of another prefab, this is not allowed! Instead you can duplicate the prefab asset.");
 		FMessageDialog::Open(EAppMsgType::Ok, Message);
@@ -1560,6 +1560,14 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 					if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActorByPrefabHelperObject(PrefabHelperObjectWhichManageThisActor))
 					{
 						PrefabManagerActor->MarkPackageDirty();
+					}
+
+					if (OldPrefabHelperObject != nullptr && OldPrefabHelperObject->PrefabAsset != nullptr)
+					{
+						if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(OldPrefabHelperObject->PrefabAsset))//if is create prefab inside a prefab editor, then apply the prefab editor
+						{
+							PrefabEditor->ApplyPrefab();
+						}
 					}
 				}
 				CleanupPrefabsInWorld(selectedActor->GetWorld());
