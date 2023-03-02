@@ -86,6 +86,7 @@ public:
 	void CloseWithoutCheckDataDirty();
 
 	ULGUIPrefabHelperObject* GetPrefabManagerObject()const { return PrefabHelperObject; }
+	void ApplyPrefab();
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
