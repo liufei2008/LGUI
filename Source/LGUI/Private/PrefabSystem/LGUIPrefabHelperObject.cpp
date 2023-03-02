@@ -172,6 +172,18 @@ void ULGUIPrefabHelperObject::ClearInvalidObjectAndGuid()
 	for (auto& Item : GuidsToRemove)
 	{
 		MapGuidToObject.Remove(Item);
+
+		for (auto& SubPrefabKeyValue : SubPrefabMap)
+		{
+			if (auto GuidInSubPrefabPtr = SubPrefabKeyValue.Value.MapObjectGuidFromParentPrefabToSubPrefab.Find(Item))
+			{
+				auto GuidInParentPrefab = Item;
+				auto GuidInSubPrefab = *GuidInSubPrefabPtr;
+				SubPrefabKeyValue.Value.MapGuidToObject.Remove(GuidInSubPrefab);
+				SubPrefabKeyValue.Value.MapObjectGuidFromParentPrefabToSubPrefab.Remove(GuidInParentPrefab);
+				break;
+			}
+		}
 	}
 }
 
@@ -366,6 +378,7 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor)
 {
 	CleanupInvalidSubPrefab();
+
 	bCanNotifyAttachment = false;
 	bool AnythingChange = false;
 
@@ -471,6 +484,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		{
 			this->PrefabAsset->MarkPackageDirty();
 		}
+		ClearInvalidObjectAndGuid();//incase LevelPrefab reference invalid object, eg: delete object in sub-prefab's sub-prefab, and update the prefab in level
 	}
 	ULGUIEditorManagerObject::RefreshAllUI();
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
@@ -1451,6 +1465,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 						OnSubPrefabNewVersionUpdated.Broadcast();
 					}
 				}
+				this->ClearInvalidObjectAndGuid();
 				GEditor->EndTransaction();
 			}
 			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
@@ -1509,6 +1524,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 		}
 	}
 	NewVersionPrefabNotificationArray.Empty();
+	this->ClearInvalidObjectAndGuid();
 	GEditor->EndTransaction();
 
 	if (bUpdated)
