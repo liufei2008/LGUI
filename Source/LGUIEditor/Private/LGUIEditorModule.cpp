@@ -324,6 +324,7 @@ void FLGUIEditorModule::StartupModule()
 		AssetTools.RegisterAssetTypeActions(PrefabDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(RichTextImageDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(SDFFontDataTypeAction.ToSharedRef());
 		AssetTypeActionsArray.Add(SpriteDataAction);
 		AssetTypeActionsArray.Add(FontDataAction);
 		AssetTypeActionsArray.Add(PrefabDataAction);
