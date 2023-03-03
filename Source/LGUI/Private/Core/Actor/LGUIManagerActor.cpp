@@ -1258,7 +1258,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//editor draw helper frame
 #if WITH_EDITOR
-	if (this->GetWorld())
+	if (this->GetWorld() != nullptr && IsValid(GEditor))
 	{
 		auto Settings = GetDefault<ULGUIEditorSettings>();
 		if (Settings->bDrawHelperFrame && GEditor->GetSelectedActorCount() > 0)
