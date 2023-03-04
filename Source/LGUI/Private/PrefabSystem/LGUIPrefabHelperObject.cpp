@@ -7,7 +7,7 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
-#include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer5.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -382,18 +382,6 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	bCanNotifyAttachment = false;
 	bool AnythingChange = false;
 
-	auto OriginObjectContainsInSourcePrefabByGuid = [=](UObject* InObject, FLGUISubPrefabData& SubPrefabData) {
-		FGuid ObjectGuid;
-		for (auto& KeyValue : this->MapGuidToObject)
-		{
-			if (KeyValue.Value == InObject)
-			{
-				ObjectGuid = KeyValue.Key;
-			}
-		}
-		FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
-		return SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(ObjectGuidInSubPrefab);
-	};
 	for (auto& SubPrefabKeyValue : this->SubPrefabMap)
 	{
 		auto SubPrefabRootActor = SubPrefabKeyValue.Key;
@@ -404,66 +392,95 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			)
 		{
 			//store override parameter to data
-			LGUIPrefabSystem4::ActorSerializer serializer;
+			LGUIPrefabSystem5::ActorSerializer serializer;
 			serializer.bOverrideVersions = false;
 			auto OverrideData = serializer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
 
-			TArray<AActor*> ChildrenActors;
-			LGUIUtils::CollectChildrenActors(SubPrefabRootActor, ChildrenActors);
+			auto& SubPrefabMapGuidToObject = SubPrefabData.MapGuidToObject;
 
-			TMap<FGuid, UObject*>& SubPrefabMapGuidToObject = SubPrefabData.MapGuidToObject;
-			for (auto& GuidToObject : this->MapGuidToObject)
+			TSet<FGuid> ExtraObjectsGuidsToRemove;
+			TSet<UObject*> ExtraObjectsToDelete;
+			//check objects to delete: compare guid in sub-prefab's assets and this parent stored guid
+			SubPrefabData.PrefabAsset->ClearAgentObjectsInPreviewWorld();//force it create new agent object and use new data, because the prefab's sub-prefab or sub-sub-prefab could change
+			auto& MapGuidObjectInSubPrefab = SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject;
+			for (auto& KeyValue : SubPrefabMapGuidToObject)
 			{
-				if (auto ObjectGuidInSubPrefabPtr = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Find(GuidToObject.Key))
+				if (!MapGuidObjectInSubPrefab.Contains(KeyValue.Key))
 				{
-					if (!SubPrefabMapGuidToObject.Contains(*ObjectGuidInSubPrefabPtr))
-					{
-						SubPrefabMapGuidToObject.Add(*ObjectGuidInSubPrefabPtr, GuidToObject.Value);
-					}
-				}
-			}
-
-			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-			auto AttachParentActor = SubPrefabRootActor->GetAttachParentActor();
-			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
-				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
-				, SubPrefabMapGuidToObject, SubSubPrefabMap
-				, false
-			);
-
-			//delete extra actors
-			for (auto& OldChild : ChildrenActors)
-			{
-				if (!OriginObjectContainsInSourcePrefabByGuid(OldChild, SubPrefabData))
-				{
-					LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
+					ExtraObjectsGuidsToRemove.Add(KeyValue.Key);
+					ExtraObjectsToDelete.Add(KeyValue.Value);
 					AnythingChange = true;
 				}
 			}
-			//collect added object and guid
-			auto FindOrAddSubPrefabObjectGuidInParentPrefab = [&](UObject* InObject) {
+			for (auto& Item : ExtraObjectsGuidsToRemove)
+			{
+				SubPrefabMapGuidToObject.Remove(Item);
+
+				FGuid FoundGuid;
+				for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+				{
+					if (KeyValue.Value == Item)
+					{
+						FoundGuid = KeyValue.Key;
+						break;
+					}
+				}
+				if (FoundGuid.IsValid())
+				{
+					SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Remove(FoundGuid);
+				}
+				AnythingChange = true;
+			}
+
+			//refresh sub-prefab's object
+			TMap<AActor*, FLGUISubPrefabData> TempSubSubPrefabMap;
+			auto AttachParentActor = SubPrefabRootActor->GetAttachParentActor();
+			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
+				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
+				, SubPrefabMapGuidToObject, TempSubSubPrefabMap
+				, false
+			);
+
+			//collect newly added object and guid
+			auto ObjectExist = [&](UObject* InObject) {
 				for (auto& KeyValue : this->MapGuidToObject)
 				{
 					if (KeyValue.Value == InObject)
 					{
-						return KeyValue.Key;
+						return true;
 					}
 				}
-				auto NewGuid = FGuid::NewGuid();
-				this->MapGuidToObject.Add(NewGuid, InObject);
-				AnythingChange = true;
-				return NewGuid;
+				return false;
 			};
-			for (auto& SubPrefabGuidToObject : SubPrefabMapGuidToObject)
+			for (auto& KeyValue : SubPrefabMapGuidToObject)
 			{
-				auto ObjectGuidInParentPrefab = FindOrAddSubPrefabObjectGuidInParentPrefab(SubPrefabGuidToObject.Value);
-				if (!SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Contains(ObjectGuidInParentPrefab))
+				if (!ObjectExist(KeyValue.Value))
 				{
-					SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, SubPrefabGuidToObject.Key);
+					auto NewGuid = FGuid::NewGuid();
+					this->MapGuidToObject.Add(NewGuid, KeyValue.Value);
+					SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(NewGuid, KeyValue.Key);
 					AnythingChange = true;
 				}
 			}
-			//no need to clear invalid objects, because when SavePrefab it will do the clear work
+
+			//delete extra objects
+			for (auto& Item : ExtraObjectsToDelete)
+			{
+				if (auto Comp = Cast<UActorComponent>(Item))
+				{
+					Comp->DestroyComponent();
+				}
+				else if (auto Actor = Cast<AActor>(Item))
+				{
+					LGUIUtils::DestroyActorWithHierarchy(Actor, false);
+				}
+				else
+				{
+					Item->ConditionalBeginDestroy();
+				}
+			}
+
+			//no need to clear invalid objects, because when SavePrefab it will do the clear work. But if we are in level editor, then there is no SavePrefab, so clear invalid objects is required: ClearInvalidObjectAndGuid()
 			//apply override parameter. 
 			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
 
