@@ -766,14 +766,37 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 			{
 				PrefabHelperObject->Modify();
 			}
-			bool bNeedSetRootActor = PrefabHelperObject->LoadedRootActor == Actor;
-			PrefabHelperObject->SetCanNotifyAttachment(false);
-			ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
-			if (bNeedSetRootActor)
+			bool bIsRootActor = PrefabHelperObject->LoadedRootActor == Actor;
+			if (bIsRootActor)
 			{
-				PrefabHelperObject->LoadedRootActor = ReplacedActor;
+				auto confirmMsg = LOCTEXT("Warning_ReplaceRootActorOfPrefab", "Trying to replace root actor of a prefab, this could cause unexpected error if other prefab or level is referencing this prefab!\
+\nDo you want to continue.");
+				auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, confirmMsg);
+				if (confirmResult == EAppReturnType::Yes)
+				{
+					FGuid RootActorGuid, RootComponentGuid;
+					for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+					{
+						if (PrefabHelperObject->LoadedRootActor == KeyValue.Value)
+						{
+							RootActorGuid = KeyValue.Key;
+						}
+						if (PrefabHelperObject->LoadedRootActor->GetRootComponent() == KeyValue.Value)
+						{
+							RootComponentGuid = KeyValue.Key;
+						}
+					}
+					PrefabHelperObject->SetCanNotifyAttachment(false);
+					ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
+					if (bIsRootActor)
+					{
+						PrefabHelperObject->LoadedRootActor = ReplacedActor;
+						PrefabHelperObject->MapGuidToObject[RootActorGuid] = ReplacedActor;
+						PrefabHelperObject->MapGuidToObject[RootComponentGuid] = ReplacedActor->GetRootComponent();
+					}
+					PrefabHelperObject->SetCanNotifyAttachment(true);
+				}
 			}
-			PrefabHelperObject->SetCanNotifyAttachment(true);
 		}
 		else
 		{
@@ -1472,7 +1495,8 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 				PrevSavePrafabFolder = FPaths::GetPath(selectedFilePath);
 				if (FPaths::FileExists(selectedFilePath + TEXT(".uasset")))
 				{
-					auto returnValue = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(FString::Printf(TEXT("Asset already exist at path: \"%s\" !\nReplace it?"), *(selectedFilePath))));
+					auto returnValue = FMessageDialog::Open(EAppMsgType::YesNo
+						, FText::Format(LOCTEXT("Error_AssetAlreadyExist", "Asset already exist at path: \"{0}\" !\nReplace it?"), FText::FromString(selectedFilePath)));
 					if (returnValue == EAppReturnType::No)
 					{
 						return;
@@ -1484,7 +1508,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 				if (package == nullptr)
 				{
 					FMessageDialog::Open(EAppMsgType::Ok
-						, FText::FromString(FString::Printf(TEXT("Selected path not valid, please choose another path to save prefab."))));
+						, LOCTEXT("Error_NotValidPathForSavePrefab", "Selected path not valid, please choose another path to save prefab."));
 					return;
 				}
 				package->FullyLoad();
@@ -1511,10 +1535,13 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 							for (auto& KeyValue : InOriginSubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
 							{
 								auto Object = InPrefabHelperObject->MapGuidToObject[KeyValue.Key];
-								auto Guid = InNewParentMapObjectToGuid[Object];
-								if (!Result.Contains(Guid))
+								if (IsValid(Object))
 								{
-									Result.Add(Guid, KeyValue.Value);
+									auto Guid = InNewParentMapObjectToGuid[Object];
+									if (!Result.Contains(Guid))
+									{
+										Result.Add(Guid, KeyValue.Value);
+									}
 								}
 							}
 							return Result;
@@ -1575,7 +1602,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 			else
 			{
 				FMessageDialog::Open(EAppMsgType::Ok
-					, FText::FromString(FString::Printf(TEXT("Prefab should only save inside Content folder!"))));
+					, LOCTEXT("Error_PrefabSaveLocation", "Prefab should only save inside Content folder!"));
 			}
 		}
 	}
