@@ -586,6 +586,7 @@ namespace LGUIPrefabSystem5
 								ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
 							}
 							SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
+							SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
 
 							if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
 							{
