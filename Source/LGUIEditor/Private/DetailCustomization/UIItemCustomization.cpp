@@ -221,10 +221,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.UndeterminedString( NSLOCTEXT( "PropertyEditor", "MultipleValues", "Multiple Values") )
 					.Value(this, &FUIItemCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
-					//.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
+					.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
 					.OnValueCommitted(this, &FUIItemCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
 					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementBegin)
-					.OnEndSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementEnd)
+					.OnEndSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementEnd, AnchorHandle, AnchorValueIndex)
 					.IsEnabled(this, &FUIItemCustomization::IsAnchorValueEnable, AnchorHandle, AnchorValueIndex)
 				]
 			;
@@ -1384,7 +1384,7 @@ TOptional<float> FUIItemCustomization::GetAnchorValue(TSharedRef<IPropertyHandle
 	break;
 	}
 }
-void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
+void FUIItemCustomization::ApplyValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
 
@@ -1397,7 +1397,7 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	AnchorMinHandle->GetValue(AnchorMinValue);
 	FVector2D AnchorMaxValue;
 	AnchorMaxHandle->GetValue(AnchorMaxValue);
-	
+
 	switch (AnchorValueIndex)
 	{
 	case 0://anchored position x, stretch left
@@ -1482,28 +1482,39 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 		LGUIUtils::NotifyPropertyChanged(Item.Get(), RelativeLocationProperty);
 	}
 }
-void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
+void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
 	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue_Transaction", "Change LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
 	}
-	OnAnchorValueChanged(Value, AnchorHandle, AnchorValueIndex);
+	ApplyValueChanged(Value, AnchorHandle, AnchorValueIndex);
+	GEditor->EndTransaction();
+}
+void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
+{
+	GEditor->BeginTransaction(LOCTEXT("CommitAnchorValue_Transaction", "Commit LGUI Anchor Value"));
+	for (auto& Item : TargetScriptArray)
+	{
+		Item->Modify();
+	}
+	ApplyValueChanged(Value, AnchorHandle, AnchorValueIndex);
 	GEditor->EndTransaction();
 }
 
 void FUIItemCustomization::OnAnchorValueSliderMovementBegin()
 {
-	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue_Transaction", "Change LGUI Anchor Value"));
+	GEditor->BeginTransaction(LOCTEXT("SlideAnchorValue_Transaction", "Slide LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
 	}
 }
 
-void FUIItemCustomization::OnAnchorValueSliderMovementEnd(float Value)
+void FUIItemCustomization::OnAnchorValueSliderMovementEnd(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
+	ApplyValueChanged(Value, AnchorHandle, AnchorValueIndex);
 	GEditor->EndTransaction();
 }
 
