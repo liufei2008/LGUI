@@ -4,6 +4,7 @@
 
 #include "LGUIHeaders.h"
 #include "ComponentVisualizer/UIFlexibleGridLayoutComponentVisualizer.h"
+#include "ComponentVisualizer/UIItemComponentVisualizer.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
 
@@ -14,11 +15,14 @@ void FLGUIComponentVisualizerModule::StartupModule()
 {
 	//component visualizer
 	{
-		TSharedPtr<FUIFlexibleGridLayoutComponentVisualizer> Visualizer = MakeShareable(new FUIFlexibleGridLayoutComponentVisualizer);
+		TSharedPtr<FUIFlexibleGridLayoutComponentVisualizer> UIFlexibleGridLayoutVisualizer = MakeShareable(new FUIFlexibleGridLayoutComponentVisualizer);
+		TSharedPtr<FUIItemComponentVisualizer> UIItemVisualizer = MakeShareable(new FUIItemComponentVisualizer);
 		if (GUnrealEd)
 		{
-			GUnrealEd->RegisterComponentVisualizer(UUIFlexibleGridLayout::StaticClass()->GetFName(), Visualizer);
-			Visualizer->OnRegister();
+			GUnrealEd->RegisterComponentVisualizer(UUIFlexibleGridLayout::StaticClass()->GetFName(), UIFlexibleGridLayoutVisualizer);
+			GUnrealEd->RegisterComponentVisualizer(UUIItem::StaticClass()->GetFName(), UIItemVisualizer);
+			UIFlexibleGridLayoutVisualizer->OnRegister();
+			UIItemVisualizer->OnRegister();
 		}
 	}
 }
@@ -30,6 +34,7 @@ void FLGUIComponentVisualizerModule::ShutdownModule()
 		if (GUnrealEd)
 		{
 			GUnrealEd->UnregisterComponentVisualizer(UUIFlexibleGridLayout::StaticClass()->GetFName());
+			GUnrealEd->UnregisterComponentVisualizer(UUIItem::StaticClass()->GetFName());
 		}
 	}
 }
