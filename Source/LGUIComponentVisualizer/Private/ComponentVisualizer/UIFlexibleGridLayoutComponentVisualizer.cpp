@@ -5,7 +5,9 @@
 #include "LGUIComponentVisualizerModule.h"
 #include "LGUI.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 #define LOCTEXT_NAMESPACE "UIFlexibleGridLayoutComponentVisualizer"
 
@@ -138,7 +140,8 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 		offsetY += itemHeight + Layout->GetSpacing().Y;
 	}
 
-	const float FrameLineThickness = 2.0f;
+	lineColor = FLinearColor(0, 1, 0, 1);
+	const float FrameLineThickness = 0.5f;
 	auto LeftTop = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceTop());
 	auto RightTop = FVector(0, UIItem->GetLocalSpaceRight(), UIItem->GetLocalSpaceTop());
 	auto LeftBottom = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceBottom());
@@ -573,4 +576,6 @@ HUIFlexibleGridLayoutFrameLineVisProxy::HUIFlexibleGridLayoutFrameLineVisProxy(c
 
 #undef LOCTEXT_NAMESPACE
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

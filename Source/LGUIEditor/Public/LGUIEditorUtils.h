@@ -6,7 +6,7 @@
 #include "IDetailPropertyRow.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorUtils"
-class LGUIEditorUtils
+class LGUIEDITOR_API LGUIEditorUtils
 {
 #define ErrorInfoCategory TEXT("Error")
 public:
@@ -112,6 +112,7 @@ public:
 		return PropertyHandle->IsEditable();
 	}
 	static void DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
+	static UTexture2D* LoadTexture(const FString& IconPath);
 private:
 	static TMap<FString, UTexture2D*> IconPathToTextureMap;
 };
