@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "LGUIEditorUtils"
 
 TMap<FString, UTexture2D*> LGUIEditorUtils::IconPathToTextureMap;
-void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
+UTexture2D* LGUIEditorUtils::LoadTexture(const FString& IconPath)
 {
 	auto LoadSpriteIconTextureFromFile = [IconPath]()
 	{
@@ -65,7 +65,11 @@ void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 
 	{
 		IconPathToTextureMap.Add(IconPath, LoadSpriteIconTextureFromFile());
 	}
-	SpriteIconTexture = IconPathToTextureMap[IconPath];
+	return IconPathToTextureMap[IconPath];
+}
+void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
+{
+	auto SpriteIconTexture = LoadTexture(IconPath);
 	if (SpriteIconTexture != nullptr && SpriteIconTexture->GetResource() != nullptr)
 	{
 		const float Scale = 0.3f;

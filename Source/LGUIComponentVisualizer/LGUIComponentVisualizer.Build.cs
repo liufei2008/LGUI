@@ -22,7 +22,6 @@ public class LGUIComponentVisualizer : ModuleRules
                 "SlateCore",
                 "Engine",
                 "UnrealEd",
-                "LGUI",
             }
             );
 			
@@ -32,9 +31,11 @@ public class LGUIComponentVisualizer : ModuleRules
 			{
                 "EditorStyle",
 				// ... add private dependencies that you statically link with here ...	
-
+                "LGUI",
+                "LGUIEditor",
+                "InputCore",
             }
-			);
+            );
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(
