@@ -379,6 +379,16 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	LGUIEditorTools::EditingPrefabChangedDelegate.Broadcast(GetPreviewScene().GetRootAgentActor());
 }
 
+TArray<AActor*> FLGUIPrefabEditor::GetAllActors()
+{
+	TArray<AActor*> AllActors;
+	if (PrefabHelperObject->LoadedRootActor != nullptr)
+	{
+		LGUIUtils::CollectChildrenActors(PrefabHelperObject->LoadedRootActor, AllActors, true);
+	}
+	return AllActors;
+}
+
 void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)
 {
 	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor == FRotator::ZeroRotator)

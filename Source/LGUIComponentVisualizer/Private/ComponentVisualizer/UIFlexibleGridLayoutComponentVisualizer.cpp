@@ -25,6 +25,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 	if (!UIItem)return;
 
 	TargetComp = (UUIFlexibleGridLayout*)Layout;
+	if (TargetComp->GetWorld() != View->Family->Scene->GetWorld())return;
 
 	auto& Columns = Layout->GetColumns();
 	auto& Rows = Layout->GetRows();

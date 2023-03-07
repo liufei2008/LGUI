@@ -34,6 +34,9 @@
 #include "LGUIPrefabEditor.h"
 #include "MouseDeltaTracker.h"
 #include "Misc/ITransaction.h"
+#include "UnrealEdGlobals.h"
+#include "Editor/EditorPerProjectUserSettings.h"
+#include "UnrealWidget.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
@@ -49,9 +52,8 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 	GEditor->SelectNone(true, true);
 
 	// The level editor fully supports mode tools and isn't doing any incompatible stuff with the Widget
-	//ModeTools->SetWidgetMode(FWidget::WM_Translate);
-	//Widget->SetUsesEditorModeTools(ModeTools);
-	//((FAssetEditorModeManager*)ModeTools)->SetPreviewScene(PreviewScene);
+	ModeTools->SetWidgetMode(UE::Widget::WM_Translate);
+	Widget->SetUsesEditorModeTools(ModeTools.Get());
 
 	// GEditorModeTools serves as our draw helper
 	bUsesDrawHelper = false;
@@ -92,14 +94,71 @@ FLGUIPrefabEditorViewportClient::~FLGUIPrefabEditorViewportClient()
 {
 }
 
+void FLGUIPrefabEditorViewportClient::Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI)
+{
+	FEditorViewportClient::Draw(View, PDI);
+
+	if (GUnrealEd != nullptr)
+	{
+		GUnrealEd->DrawComponentVisualizers(View, PDI);
+		//bool bHitTesting = PDI->IsHitTesting();
+		//auto AllActors = PrefabEditorPtr.Pin()->GetAllActors();
+		//for (auto& PreviewActor : AllActors)
+		//{
+		//	if (ULGUIEditorManagerObject::IsSelected(PreviewActor))
+		//	{
+		//		auto& Components = PreviewActor->GetComponents();
+		//		for (auto& Comp : Components)
+		//		{
+		//			if (IsValid(Comp) && Comp->IsRegistered())
+		//			{
+		//				// Try and find a visualizer
+		//				TSharedPtr<FComponentVisualizer> Visualizer = GUnrealEd->FindComponentVisualizer(Comp->GetClass());
+		//				if (Visualizer.IsValid())
+		//				{
+		//					Visualizer->DrawVisualization(Comp, View, PDI);
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+	}
+}
 void FLGUIPrefabEditorViewportClient::Draw(FViewport* InViewport, FCanvas* Canvas)
 {
 	FEditorViewportClient::Draw(InViewport, Canvas);
 }
+void FLGUIPrefabEditorViewportClient::DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas)
+{
+	FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
+	if (GUnrealEd != nullptr)
+	{
+		GUnrealEd->DrawComponentVisualizersHUD(&InViewport, &View, &Canvas);
+		//auto AllActors = PrefabEditorPtr.Pin()->GetAllActors();
+		//for (auto& PreviewActor : AllActors)
+		//{
+		//	if (ULGUIEditorManagerObject::IsSelected(PreviewActor))
+		//	{
+		//		auto& Components = PreviewActor->GetComponents();
+		//		for (auto& Comp : Components)
+		//		{
+		//			if (IsValid(Comp) && Comp->IsRegistered())
+		//			{
+		//				// Try and find a visualizer
+		//				TSharedPtr<FComponentVisualizer> Visualizer = GUnrealEd->FindComponentVisualizer(Comp->GetClass());
+		//				if (Visualizer.IsValid())
+		//				{
+		//					Visualizer->DrawVisualizationHUD(Comp, &InViewport, &View, &Canvas);
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+	}
+}
 
 void FLGUIPrefabEditorViewportClient::Tick(float DeltaSeconds)
 {
-
 	FEditorViewportClient::Tick(DeltaSeconds);
 
 	float RequestDelta = DeltaSeconds;
@@ -111,65 +170,31 @@ void FLGUIPrefabEditorViewportClient::Tick(float DeltaSeconds)
 
 bool FLGUIPrefabEditorViewportClient::InputKey(const FInputKeyEventArgs& EventArgs)
 {
-	bool Res = FEditorViewportClient::InputKey(EventArgs);
+	bool bHandled = GUnrealEd->ComponentVisManager.HandleInputKey(this, EventArgs.Viewport, EventArgs.Key, EventArgs.Event);
+	if (!bHandled)
+	{
+		bool Res = FEditorViewportClient::InputKey(EventArgs);
 
-	if (EventArgs.Key == EKeys::F)
-	{
-		if (EventArgs.Event == IE_Pressed)
+		if (EventArgs.Key == EKeys::F)
 		{
-			FocusViewportToTargets();
-		}
-	}
-	else if (EventArgs.Key == EKeys::LeftControl)
-	{
-		if (EventArgs.Event == IE_Pressed)
-		{
-			bLeftControlPressed = true;
-		}
-		else if (EventArgs.Event == IE_Released)
-		{
-			bLeftControlPressed = false;
-		}
-	}
-	else if (EventArgs.Key == EKeys::RightControl)
-	{
-		if (EventArgs.Event == IE_Pressed)
-		{
-			bRightControlPressed = true;
-		}
-		else if (EventArgs.Event == IE_Released)
-		{
-			bRightControlPressed = false;
-		}
-	}
-	else if (EventArgs.Key == EKeys::LeftShift)
-	{
-		if (EventArgs.Event == IE_Pressed)
-		{
-			bLeftShiftPressed = true;
-		}
-		else if (EventArgs.Event == IE_Released)
-		{
-			bLeftShiftPressed = false;
-		}
-	}
-	else if (EventArgs.Key == EKeys::RightShift)
-	{
-		if (EventArgs.Event == IE_Pressed)
-		{
-			bRightShiftPressed = true;
-		}
-		else if (EventArgs.Event == IE_Released)
-		{
-			bRightShiftPressed = false;
+			if (EventArgs.Event == IE_Pressed)
+			{
+				bHandled = FocusViewportToTargets();
+			}
 		}
 	}
 
-	return Res;
+	return bHandled;
 }
 
 void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
+	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
+	if (GUnrealEd->ComponentVisManager.HandleClick(this, HitProxy, Click))
+	{
+		return;
+	}
+
 	AActor* ClickHitActor = nullptr;
 	if (ULGUIEditorManagerObject::Instance != nullptr)
 	{
@@ -194,7 +219,6 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	}
 	if (ClickHitActor == nullptr)
 	{
-		const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 		if (!ModeTools->HandleClick(this, HitProxy, Click))
 		{
 			if (HitProxy == NULL)
@@ -220,7 +244,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		GEditor->GetSelectedActors()->Modify();
 
 		// Clear the selection if not multiple selection.
-		if (!bLeftControlPressed && !bRightControlPressed && !bLeftShiftPressed && !bRightShiftPressed)
+		if (!IsCtrlPressed() && !IsShiftPressed())
 		{
 			GEditor->SelectNone(false, true, true);
 		}
@@ -243,6 +267,11 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 
 bool FLGUIPrefabEditorViewportClient::InputWidgetDelta(FViewport* InViewport, EAxisList::Type InCurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale)
 {
+	if (GUnrealEd->ComponentVisManager.IsActive() && GUnrealEd->ComponentVisManager.HandleInputDelta(this, InViewport, Drag, Rot, Scale))
+	{
+		return true;
+	}
+
 	bool bHandled = false;
 
 	// Give the current editor mode a chance to use the input first.  If it does, don't apply it to anything else.
@@ -294,6 +323,43 @@ bool FLGUIPrefabEditorViewportClient::InputWidgetDelta(FViewport* InViewport, EA
 	}
 
 	return bHandled;
+}
+UE::Widget::EWidgetMode FLGUIPrefabEditorViewportClient::GetWidgetMode() const
+{
+	if (GUnrealEd->ComponentVisManager.IsActive() && GUnrealEd->ComponentVisManager.IsVisualizingArchetype())
+	{
+		return UE::Widget::WM_None;
+	}
+
+	return FEditorViewportClient::GetWidgetMode();
+}
+FVector FLGUIPrefabEditorViewportClient::GetWidgetLocation() const
+{
+	FVector ComponentVisWidgetLocation;
+	if (GUnrealEd->ComponentVisManager.GetWidgetLocation(this, ComponentVisWidgetLocation))
+	{
+		return ComponentVisWidgetLocation;
+	}
+
+	return FEditorViewportClient::GetWidgetLocation();
+}
+FMatrix FLGUIPrefabEditorViewportClient::GetWidgetCoordSystem() const
+{
+	FMatrix ComponentVisWidgetCoordSystem;
+	if (GUnrealEd->ComponentVisManager.GetCustomInputCoordinateSystem(this, ComponentVisWidgetCoordSystem))
+	{
+		return ComponentVisWidgetCoordSystem;
+	}
+
+	return FEditorViewportClient::GetWidgetCoordSystem();
+}
+int32 FLGUIPrefabEditorViewportClient::GetCameraSpeedSetting() const
+{
+	return GetDefault<UEditorPerProjectUserSettings>()->SCSViewportCameraSpeed;
+}
+void FLGUIPrefabEditorViewportClient::SetCameraSpeedSetting(int32 SpeedSetting)
+{
+	GetMutableDefault<UEditorPerProjectUserSettings>()->SCSViewportCameraSpeed = SpeedSetting;
 }
 
 void FLGUIPrefabEditorViewportClient::ApplyDeltaToActors(const FVector& InDrag, const FRotator& InRot, const FVector& InScale)
@@ -375,17 +441,6 @@ void FLGUIPrefabEditorViewportClient::TickWorld(float DeltaSeconds)
 
 bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
 {
-	FIntPoint ViewportSize(FIntPoint::ZeroValue);
-	if (Viewport != nullptr)
-	{
-		ViewportSize = Viewport->GetSizeXY();
-	}
-
-	if (ViewportSize.SizeSquared() <= 0)
-	{
-		return false;
-	}
-
 	if (!PrefabEditorPtr.IsValid())
 	{
 		return false;
@@ -396,11 +451,7 @@ bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
 	{
 		Bounds = PrefabEditorPtr.Pin()->GetAllObjectsBounds();
 	}
-	auto TargetLocation = Bounds.GetSphere().Center;
-	this->CenterViewportAtPoint(TargetLocation);
-	auto ViewDirection = this->GetViewRotation().RotateVector(FVector(1, 0, 0));
-	auto Distance = Bounds.GetSphere().W;
-	this->SetViewLocation(TargetLocation - ViewDirection * Distance * 1.5f);
+	FocusViewportOnBox(Bounds.GetBox());
 
 	return false;
 }

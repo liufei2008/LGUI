@@ -23,6 +23,7 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 	auto UIItem = Cast<UUIItem>(Component);
 	if (!UIItem)return;
 	TargetComp = (UUIItem*)UIItem;
+	if (TargetComp->GetWorld() != View->Family->Scene->GetWorld())return;
 
 	auto Center = TargetComp->GetLocalSpaceCenter();
 	auto Left = TargetComp->GetLocalSpaceLeft();
@@ -83,19 +84,6 @@ bool FUIItemComponentVisualizer::VisProxyHandleClick(FEditorViewportClient* InVi
 }
 bool FUIItemComponentVisualizer::HandleInputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	if (Key == EKeys::LeftAlt || Key == EKeys::RightAlt)
-	{
-		if (Event == EInputEvent::IE_Pressed)
-		{
-			bAltPressed = true;
-			return true;
-		}
-		else if (Event == EInputEvent::IE_Released)
-		{
-			bAltPressed = false;
-			return true;
-		}
-	}
 	return false;
 }
 bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& DeltaTranslate, FRotator& DeltalRotate, FVector& DeltaScale)
@@ -154,7 +142,7 @@ bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* Viewpor
 		if (LocalSpaceDeltaTranslate.Y != 0)
 		{
 			TargetComp->SetAnchorLeft(TargetComp->GetAnchorLeft() + LocalSpaceDeltaTranslate.Y);
-			if (bAltPressed)
+			if (IsAltDown(Viewport))
 			{
 				TargetComp->SetAnchorRight(TargetComp->GetAnchorRight() + LocalSpaceDeltaTranslate.Y);
 			}
@@ -166,7 +154,7 @@ bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* Viewpor
 		if (LocalSpaceDeltaTranslate.Y != 0)
 		{
 			TargetComp->SetAnchorRight(TargetComp->GetAnchorRight() - LocalSpaceDeltaTranslate.Y);
-			if (bAltPressed)
+			if (IsAltDown(Viewport))
 			{
 				TargetComp->SetAnchorLeft(TargetComp->GetAnchorLeft() - LocalSpaceDeltaTranslate.Y);
 			}
@@ -178,7 +166,7 @@ bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* Viewpor
 		if (LocalSpaceDeltaTranslate.Z != 0)
 		{
 			TargetComp->SetAnchorBottom(TargetComp->GetAnchorBottom() + LocalSpaceDeltaTranslate.Z);
-			if (bAltPressed)
+			if (IsAltDown(Viewport))
 			{
 				TargetComp->SetAnchorTop(TargetComp->GetAnchorTop() + LocalSpaceDeltaTranslate.Z);
 			}
@@ -190,7 +178,7 @@ bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* Viewpor
 		if (LocalSpaceDeltaTranslate.Z != 0)
 		{
 			TargetComp->SetAnchorTop(TargetComp->GetAnchorTop() - LocalSpaceDeltaTranslate.Z);
-			if (bAltPressed)
+			if (IsAltDown(Viewport))
 			{
 				TargetComp->SetAnchorBottom(TargetComp->GetAnchorBottom() - LocalSpaceDeltaTranslate.Z);
 			}
