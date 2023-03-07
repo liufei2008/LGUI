@@ -58,6 +58,7 @@ public:
 	bool CheckBeforeSaveAsset();
 
 	void InitPrefabEditor(const EToolkitMode::Type Mode, const TSharedPtr< class IToolkitHost >& InitToolkitHost, ULGUIPrefab* InPrefab);
+	TArray<AActor*> GetAllActors();
 
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);

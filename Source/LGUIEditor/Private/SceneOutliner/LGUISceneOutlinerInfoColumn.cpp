@@ -68,7 +68,7 @@ namespace LGUISceneOutliner
 	}
 	FName FLGUISceneOutlinerInfoColumn::GetID()
 	{
-		static FName LGUIInfoID("LGUIInfo");
+		static FName LGUIInfoID("LGUI");
 		return LGUIInfoID;
 	}
 

@@ -39,5 +39,4 @@ public:
 private:
 	EUIItemVisualizerSelectorType SelectorType;
 	TWeakObjectPtr<UUIItem> TargetComp = nullptr;
-	bool bAltPressed = false;
 };
