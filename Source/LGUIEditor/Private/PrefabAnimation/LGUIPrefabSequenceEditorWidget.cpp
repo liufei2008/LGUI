@@ -100,6 +100,9 @@ private:
 };
 
 
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "PrefabAnimation/MovieSceneLGUIMaterialTrack.h"
+
 class SLGUIPrefabSequenceEditorWidgetImpl : public SCompoundWidget, public FEditorUndoClient
 {
 public:
@@ -124,6 +127,13 @@ public:
 	~SLGUIPrefabSequenceEditorWidgetImpl()
 	{
 		Close();
+
+		// Un-Register sequencer menu extenders.
+		ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
+		SequencerModule.GetAddTrackMenuExtensibilityManager()->GetExtenderDelegates().RemoveAll([this](const FAssetEditorExtender& Extender)
+			{
+				return SequencerAddTrackExtenderHandle == Extender.GetHandle();
+			});
 	}
 	
 	TSharedRef<SDockTab> SpawnCurveEditorTab(const FSpawnTabArgs&)
@@ -162,6 +172,14 @@ public:
 
 		GEditor->RegisterForUndo(this);
 		ToolkitHost = MakeShared<FFakeToolkitHost>();
+
+		// Register sequencer menu extenders.
+		ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
+		{
+			int32 NewIndex = SequencerModule.GetAddTrackMenuExtensibilityManager()->GetExtenderDelegates().Add(
+				FAssetEditorExtender::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::GetAddTrackSequencerExtender));
+			SequencerAddTrackExtenderHandle = SequencerModule.GetAddTrackMenuExtensibilityManager()->GetExtenderDelegates()[NewIndex].GetHandle();
+		}
 	}
 
 
@@ -527,7 +545,71 @@ public:
 			}
 		}
 	}
+private:
+	TSharedRef<FExtender> GetAddTrackSequencerExtender(const TSharedRef<FUICommandList> CommandList, const TArray<UObject*> ContextSensitiveObjects)
+	{
+		TSharedRef<FExtender> AddTrackMenuExtender(new FExtender());
+		AddTrackMenuExtender->AddMenuExtension(
+			SequencerMenuExtensionPoints::AddTrackMenu_PropertiesSection,
+			EExtensionHook::Before,
+			CommandList,
+			FMenuExtensionDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::ExtendSequencerAddTrackMenu, ContextSensitiveObjects));
+		return AddTrackMenuExtender;
+	}
 
+	void ExtendSequencerAddTrackMenu(FMenuBuilder& AddTrackMenuBuilder, const TArray<UObject*> ContextObjects)
+	{
+		if (ContextObjects.Num() == 1)
+		{
+			auto Renderable = Cast<UUIBatchGeometryRenderable>(ContextObjects[0]);
+
+			if (Renderable != nullptr)
+			{
+				if (Renderable != nullptr && Renderable->GetCustomUIMaterial() != nullptr)
+				{
+					auto MaterialProperty = Renderable->GetClass()->FindPropertyByName(UUIBatchGeometryRenderable::GetCustomUIMaterialPropertyName());
+					AddTrackMenuBuilder.BeginSection("Materials", LOCTEXT("MaterialsSection", "Materials"));
+					{
+						FText DisplayNameText = MaterialProperty->GetDisplayNameText();
+						FUIAction AddMaterialAction(FExecuteAction::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddMaterialTrack, Renderable, MaterialProperty, DisplayNameText));
+						FText AddMaterialLabel = DisplayNameText;
+						FText AddMaterialToolTip = FText::Format(LOCTEXT("MaterialToolTipFormat", "Add a material track for the {0} property."), DisplayNameText);
+						AddTrackMenuBuilder.AddMenuEntry(AddMaterialLabel, AddMaterialToolTip, FSlateIcon(), AddMaterialAction);
+					}
+					AddTrackMenuBuilder.EndSection();
+				}
+			}
+		}
+	}
+
+	void AddMaterialTrack(UUIBatchGeometryRenderable* Renderable, FProperty* MaterialProperty, FText MaterialPropertyDisplayName)
+	{
+		FGuid WidgetHandle = Sequencer->GetHandleToObject(Renderable);
+		if (WidgetHandle.IsValid())
+		{
+			UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
+
+			if (MovieScene->IsReadOnly())
+			{
+				return;
+			}
+
+			FName MaterialPropertyNamePath = MaterialProperty->GetFName();
+			if (MovieScene->FindTrack(UMovieSceneLGUIMaterialTrack::StaticClass(), WidgetHandle, MaterialPropertyNamePath) == nullptr)
+			{
+				const FScopedTransaction Transaction(LOCTEXT("AddWidgetMaterialTrack", "Add widget material track"));
+
+				MovieScene->Modify();
+
+				auto NewTrack = Cast<UMovieSceneLGUIMaterialTrack>(MovieScene->AddTrack(UMovieSceneLGUIMaterialTrack::StaticClass(), WidgetHandle));
+				NewTrack->Modify();
+				NewTrack->SetPropertyName(MaterialPropertyNamePath);
+				NewTrack->SetDisplayName(FText::Format(LOCTEXT("TrackDisplayNameFormat", "{0}"), MaterialPropertyDisplayName));
+
+				Sequencer->NotifyMovieSceneDataChanged(EMovieSceneDataChangeType::MovieSceneStructureItemAdded);
+			}
+		}
+	}
 private:
 	TWeakObjectPtr<ULGUIPrefabSequence> WeakSequence;
 
@@ -540,6 +622,8 @@ private:
 
 	/** The asset editor that created this Sequencer if any */
 	TSharedPtr<IToolkitHost> ToolkitHost;
+
+	FDelegateHandle SequencerAddTrackExtenderHandle;
 };
 
 void SLGUIPrefabSequenceEditorWidget::Construct(const FArguments&, TWeakPtr<FBlueprintEditor> InBlueprintEditor)

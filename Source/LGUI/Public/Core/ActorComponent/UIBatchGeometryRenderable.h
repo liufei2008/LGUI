@@ -81,6 +81,11 @@ class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
 public:	
 	UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer);
 
+public:
+	static const FName GetCustomUIMaterialPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, CustomUIMaterial);
+	}
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;

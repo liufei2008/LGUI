@@ -14,6 +14,7 @@ class ULGUIPrefabSequenceComponent;
 class ULGUIPrefabSequence;
 class SLGUIPrefabSequenceEditorWidget;
 struct FWidgetAnimationListItem;
+class ULGUIPrefabHelperObject;
 
 class SLGUIPrefabSequenceEditor : public SCompoundWidget
 {
@@ -29,11 +30,12 @@ public:
 	ULGUIPrefabSequenceComponent* GetSequenceComponent()const { return WeakSequenceComponent.Get(); }
 	void RefreshAnimationList();
 	void OnEditingPrefabChanged(AActor* RootActor);
-
 private:
 	TWeakObjectPtr<ULGUIPrefabSequenceComponent> WeakSequenceComponent;
 	FDelegateHandle OnObjectsReplacedHandle;
 	FDelegateHandle EditingPrefabChangedHandle;
+	FDelegateHandle OnBeforeApplyPrefabHandle;
+	void OnBeforeApplyPrefab(ULGUIPrefabHelperObject* InObject);
 
 	TSharedPtr<SLGUIPrefabSequenceEditorWidget> PrefabSequenceEditor;
 

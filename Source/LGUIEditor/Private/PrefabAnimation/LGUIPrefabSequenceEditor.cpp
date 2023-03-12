@@ -175,7 +175,8 @@ private:
 SLGUIPrefabSequenceEditor::~SLGUIPrefabSequenceEditor()
 {
 	GEditor->OnObjectsReplaced().Remove(OnObjectsReplacedHandle);
-	LGUIEditorTools::EditingPrefabChangedDelegate.Remove(EditingPrefabChangedHandle);
+	LGUIEditorTools::OnEditingPrefabChanged.Remove(EditingPrefabChangedHandle);
+	LGUIEditorTools::OnBeforeApplyPrefab.Remove(OnBeforeApplyPrefabHandle);
 }
 
 void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
@@ -299,7 +300,8 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 	OnObjectsReplacedHandle = GEditor->OnObjectsReplaced().AddSP(this, &SLGUIPrefabSequenceEditor::OnObjectsReplaced);
 
 	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
-	EditingPrefabChangedHandle = LGUIEditorTools::EditingPrefabChangedDelegate.AddRaw(this, &SLGUIPrefabSequenceEditor::OnEditingPrefabChanged);
+	EditingPrefabChangedHandle = LGUIEditorTools::OnEditingPrefabChanged.AddRaw(this, &SLGUIPrefabSequenceEditor::OnEditingPrefabChanged);
+	OnBeforeApplyPrefabHandle = LGUIEditorTools::OnBeforeApplyPrefab.AddRaw(this, &SLGUIPrefabSequenceEditor::OnBeforeApplyPrefab);
 }
 
 void SLGUIPrefabSequenceEditor::AssignLGUIPrefabSequenceComponent(TWeakObjectPtr<ULGUIPrefabSequenceComponent> InSequenceComponent)
@@ -367,6 +369,20 @@ void SLGUIPrefabSequenceEditor::RefreshAnimationList()
 		if (Animations.Num() > 0)
 		{
 			AnimationListView->SetSelection(Animations[0]);
+		}
+	}
+}
+
+void SLGUIPrefabSequenceEditor::OnBeforeApplyPrefab(ULGUIPrefabHelperObject* InObject)
+{
+	if (WeakSequenceComponent.IsValid())
+	{
+		if (auto Actor = WeakSequenceComponent->GetOwner())
+		{
+			if (InObject->IsActorBelongsToThis(Actor))
+			{
+				this->AnimationListView->ClearSelection();
+			}
 		}
 	}
 }

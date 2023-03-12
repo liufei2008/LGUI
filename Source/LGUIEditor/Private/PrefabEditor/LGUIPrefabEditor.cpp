@@ -383,7 +383,7 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 
 	// After opening a prefab, broadcast event to LGUIPrefabSequencerEditor
-	LGUIEditorTools::EditingPrefabChangedDelegate.Broadcast(GetPreviewScene().GetRootAgentActor());
+	LGUIEditorTools::OnEditingPrefabChanged.Broadcast(GetPreviewScene().GetRootAgentActor());
 }
 
 TArray<AActor*> FLGUIPrefabEditor::GetAllActors()
@@ -503,6 +503,7 @@ void FLGUIPrefabEditor::OnApply()
 			KeyValue.Value.CheckParameters();
 		}
 
+		LGUIEditorTools::OnBeforeApplyPrefab.Broadcast(PrefabHelperObject);
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
