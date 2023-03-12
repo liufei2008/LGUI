@@ -79,4 +79,5 @@ private:
 	FDelegateHandle OnInitializeSequenceHandle;
 	FName LGUIPrefabSequenceComponentName;
 	static void OnInitializeSequence(class ULGUIPrefabSequence* Sequence);
+	FDelegateHandle LGUIMaterialTrackEditorCreateTrackEditorHandle;
 };

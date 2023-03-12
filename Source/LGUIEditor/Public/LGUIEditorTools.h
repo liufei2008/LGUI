@@ -10,6 +10,7 @@ class ULGUIPrefabHelperObject;
 class ULGUIPrefab;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FEditingPrefabChangedDelegate, AActor*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FBeforeApplyPrefabDelegate, ULGUIPrefabHelperObject*);
 
 class LGUIEDITOR_API LGUIEditorTools
 {
@@ -17,7 +18,8 @@ private:
 	static FString PrevSavePrafabFolder;
 public:
 	static FString LGUIPresetPrefabPath;
-	static FEditingPrefabChangedDelegate EditingPrefabChangedDelegate;
+	static FEditingPrefabChangedDelegate OnEditingPrefabChanged;
+	static FBeforeApplyPrefabDelegate OnBeforeApplyPrefab;
 	static AActor* GetFirstSelectedActor();
 	static TArray<AActor*> GetSelectedActors();
 	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);

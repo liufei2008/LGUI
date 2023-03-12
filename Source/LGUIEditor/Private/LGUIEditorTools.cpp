@@ -32,7 +32,8 @@
 
 PRAGMA_DISABLE_OPTIMIZATION
 
-FEditingPrefabChangedDelegate LGUIEditorTools::EditingPrefabChangedDelegate;
+FEditingPrefabChangedDelegate LGUIEditorTools::OnEditingPrefabChanged;
+FBeforeApplyPrefabDelegate LGUIEditorTools::OnBeforeApplyPrefab;
 
 namespace ReattachActorsHelper
 {
