@@ -83,6 +83,7 @@
 #include "ISequencerModule.h"
 #include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
 #include "MovieSceneToolsProjectSettings.h"
+#include "PrefabAnimation/LGUIMaterialTrackEditor.h"
 
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
@@ -105,6 +106,7 @@ void FLGUIEditorModule::StartupModule()
 
 	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
 	SequenceEditorHandle = SequencerModule.RegisterSequenceEditor(ULGUIPrefabSequence::StaticClass(), MakeUnique<FMovieSceneSequenceEditor_LGUIPrefabSequence>());
+	LGUIMaterialTrackEditorCreateTrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FLGUIMaterialTrackEditor::CreateTrackEditor));
 
 	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 
@@ -417,6 +419,7 @@ void FLGUIEditorModule::ShutdownModule()
 	if (SequencerModule)
 	{
 		SequencerModule->UnregisterSequenceEditor(SequenceEditorHandle);
+		SequencerModule->UnRegisterTrackEditor(LGUIMaterialTrackEditorCreateTrackEditorHandle);
 	}
 	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	//if (SettingsModule != nullptr)
