@@ -50,6 +50,7 @@ private:
 	bool CanUnpackActorForPrefab();
 	bool CanBrowsePrefab();
 	bool CanUpdateLevelPrefab();
+	ECheckBoxState GetAutoUpdateLevelPrefab()const;
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
 	bool CanReplaceActor();

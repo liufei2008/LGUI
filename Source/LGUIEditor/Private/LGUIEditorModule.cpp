@@ -640,6 +640,20 @@ bool FLGUIEditorModule::CanUpdateLevelPrefab()
 	}
 }
 
+ECheckBoxState FLGUIEditorModule::GetAutoUpdateLevelPrefab()const
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return ECheckBoxState::Undetermined;
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (auto SubPrefabDataPtr = PrefabHelperObject->SubPrefabMap.Find(SelectedActor))
+		{
+			return SubPrefabDataPtr->bAutoUpdate ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+		}
+	}
+	return ECheckBoxState::Undetermined;
+}
+
 bool FLGUIEditorModule::CanCreateActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -838,6 +852,17 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab)
 					, FGetActionCheckState()
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("AutoUpdateLevelPrefab", "Auto Update Prefab"),
+				LOCTEXT("AutoUpdateLevelPrefab_Tooltip", "Auto update this prefab when detect newer version"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ToggleLevelPrefabAutoUpdate)
+					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab)
+					, FGetActionCheckState::CreateRaw(this, &FLGUIEditorModule::GetAutoUpdateLevelPrefab)
+					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab)),
+				NAME_None,
+				EUserInterfaceActionType::ToggleButton
 			);
 			CheckPrefabOverrideDataViewerEntry();
 			MenuBuilder.AddMenuEntry(

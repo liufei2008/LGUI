@@ -1791,6 +1791,19 @@ void LGUIEditorTools::UpdateLevelPrefab()
 	}
 }
 
+void LGUIEditorTools::ToggleLevelPrefabAutoUpdate()
+{
+	auto SelectedActor = GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return;
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (auto SubPrefabDataPtr = PrefabHelperObject->SubPrefabMap.Find(SelectedActor))
+		{
+			SubPrefabDataPtr->bAutoUpdate = !SubPrefabDataPtr->bAutoUpdate;
+		}
+	}
+}
+
 ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(AActor* InActor)
 {
 	if (!IsValid(InActor))return nullptr;
