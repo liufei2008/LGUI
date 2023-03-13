@@ -4,8 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
+#include "EntitySystem/IMovieSceneEntityProvider.h"
+#include "Sections/MovieSceneParameterSection.h"
 #include "Tracks/MovieSceneMaterialTrack.h"
 #include "MovieSceneLGUIMaterialTrack.generated.h"
+
+class UMovieSceneEntitySystemLinker;
+class UMovieSceneSection;
+struct FMovieSceneEntityComponentFieldBuilder;
+struct FMovieSceneEvaluationFieldEntityMetaData;
 
 /**
  * A material track which is specialized for LGUI's UIBatchGeometryRenderable's CustomUIMaterial.
@@ -13,16 +20,23 @@
 UCLASS(MinimalAPI)
 class UMovieSceneLGUIMaterialTrack
 	: public UMovieSceneMaterialTrack
-	, public IMovieSceneTrackTemplateProducer
+	, public IMovieSceneEntityProvider
+	, public IMovieSceneParameterSectionExtender
 {
 	GENERATED_BODY()
 
 public:
 
 	// UMovieSceneTrack interface
-
-	virtual FMovieSceneEvalTemplatePtr CreateTemplateForSection(const UMovieSceneSection& InSection) const override;
+	virtual void AddSection(UMovieSceneSection& Section) override;
 	virtual FName GetTrackName() const override;
+
+	/*~ IMovieSceneEntityProvider */
+	virtual void ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity) override;
+	virtual bool PopulateEvaluationFieldImpl(const TRange<FFrameNumber>& EffectiveRange, const FMovieSceneEvaluationFieldEntityMetaData& InMetaData, FMovieSceneEntityComponentFieldBuilder* OutFieldBuilder) override;
+
+	/*~ IMovieSceneParameterSectionExtender */
+	virtual void ExtendEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const UE::MovieScene::FEntityImportParams& Params, UE::MovieScene::FImportedEntity* OutImportedEntity) override;
 
 #if WITH_EDITORONLY_DATA
 	virtual FText GetDefaultDisplayName() const override;

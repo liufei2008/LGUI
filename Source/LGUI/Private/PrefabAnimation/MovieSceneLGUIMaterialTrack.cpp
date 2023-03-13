@@ -1,14 +1,62 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PrefabAnimation/MovieSceneLGUIMaterialTrack.h"
-#include "PrefabAnimation/MovieSceneLGUIMaterialTemplate.h"
+#include "PrefabAnimation/MovieSceneLGUIComponentTypes.h"
+#include "EntitySystem/BuiltInComponentTypes.h"
 
-
-FMovieSceneEvalTemplatePtr UMovieSceneLGUIMaterialTrack::CreateTemplateForSection(const UMovieSceneSection& InSection) const
+void UMovieSceneLGUIMaterialTrack::AddSection(UMovieSceneSection& Section)
 {
-	return FMovieSceneLGUIMaterialSectionTemplate(*CastChecked<UMovieSceneParameterSection>(&InSection), *this);
+	// Materials are always blendable now
+	Section.SetBlendType(EMovieSceneBlendType::Absolute);
+	Super::AddSection(Section);
 }
 
+void UMovieSceneLGUIMaterialTrack::ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity)
+{
+	// These tracks don't define any entities for themselves
+	checkf(false, TEXT("This track should never have created entities for itself - this assertion indicates an error in the entity-component field"));
+}
+
+void UMovieSceneLGUIMaterialTrack::ExtendEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const UE::MovieScene::FEntityImportParams& Params, UE::MovieScene::FImportedEntity* OutImportedEntity)
+{
+	using namespace UE::MovieScene;
+
+	FBuiltInComponentTypes* BuiltInComponents = FBuiltInComponentTypes::Get();
+	FMovieSceneLGUIComponentTypes* WidgetComponents = FMovieSceneLGUIComponentTypes::Get();
+
+	// Material parameters are always absolute blends for the time being
+	OutImportedEntity->AddBuilder(
+		FEntityBuilder()
+		.Add(WidgetComponents->LGUIMaterialPath, FLGUIMaterialPath(PropertyName))
+		.AddTag(BuiltInComponents->Tags.AbsoluteBlend)
+	);
+}
+
+bool UMovieSceneLGUIMaterialTrack::PopulateEvaluationFieldImpl(const TRange<FFrameNumber>& EffectiveRange, const FMovieSceneEvaluationFieldEntityMetaData& InMetaData, FMovieSceneEntityComponentFieldBuilder* OutFieldBuilder)
+{
+	const FMovieSceneTrackEvaluationField& LocalEvaluationField = GetEvaluationField();
+
+	// Define entities for every entry in our evaluation field
+	for (const FMovieSceneTrackEvaluationFieldEntry& Entry : LocalEvaluationField.Entries)
+	{
+		UMovieSceneParameterSection* ParameterSection = Cast<UMovieSceneParameterSection>(Entry.Section);
+		if (!ParameterSection || IsRowEvalDisabled(ParameterSection->GetRowIndex()))
+		{
+			continue;
+		}
+
+		TRange<FFrameNumber> SectionEffectiveRange = TRange<FFrameNumber>::Intersection(EffectiveRange, Entry.Range);
+		if (!SectionEffectiveRange.IsEmpty())
+		{
+			FMovieSceneEvaluationFieldEntityMetaData SectionMetaData = InMetaData;
+			SectionMetaData.Flags = Entry.Flags;
+
+			ParameterSection->ExternalPopulateEvaluationField(SectionEffectiveRange, SectionMetaData, OutFieldBuilder);
+		}
+	}
+
+	return true;
+}
 
 FName UMovieSceneLGUIMaterialTrack::GetTrackName() const
 { 
@@ -19,7 +67,7 @@ FName UMovieSceneLGUIMaterialTrack::GetTrackName() const
 #if WITH_EDITORONLY_DATA
 FText UMovieSceneLGUIMaterialTrack::GetDefaultDisplayName() const
 {
-	return FText::Format(NSLOCTEXT("UMGAnimation", "MaterialTrackFormat", "{0} Material"), FText::FromName( TrackName ) );
+	return FText::Format(NSLOCTEXT("LGUIAnimation", "MaterialTrackFormat", "{0} Material"), FText::FromName( TrackName ) );
 }
 #endif
 
