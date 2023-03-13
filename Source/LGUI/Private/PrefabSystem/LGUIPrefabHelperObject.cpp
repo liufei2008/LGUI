@@ -1416,41 +1416,77 @@ void ULGUIPrefabHelperObject::SetAnythingDirty()
 void ULGUIPrefabHelperObject::CheckPrefabVersion()
 {
 	CleanupInvalidSubPrefab();
+	bool bSomeAutoUpdate = false;
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		auto& SubPrefabData = KeyValue.Value;
 		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
 		{
-			auto FoundIndex = NewVersionPrefabNotificationArray.IndexOfByPredicate([SubPrefabRootActor = KeyValue.Key](const FNotificationContainer& Item) {
-				return Item.SubPrefabRootActor == SubPrefabRootActor;
-			});
-			if (FoundIndex != INDEX_NONE)
+			if (SubPrefabData.bAutoUpdate)
 			{
-				return;
+				bSomeAutoUpdate = true;
 			}
-			auto InfoText = FText::Format(LOCTEXT("OldPrefabVersion", "Detect old prefab: Actor:'{0}' Prefab:'{1}', Would you want to update it?"), FText::FromString(KeyValue.Key->GetActorLabel()), FText::FromString(SubPrefabData.PrefabAsset->GetName()));
-			FNotificationInfo Info(InfoText);
-			Info.bFireAndForget = false;
-			Info.bUseLargeFont = true;
-			Info.bUseThrobber = false;
-			Info.FadeOutDuration = 0.0f;
-			Info.ExpireDuration = 0.0f;
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateToNewPrefabButton", "Update"), LOCTEXT("UpdateToNewPrefabButton_Tooltip", "Update the prefab to new.")
-				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateClicked, KeyValue.Key)));
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateAllToNewPrefabButton", "Update All"), LOCTEXT("UpdateToAllNewPrefabButton_Tooltip", "Update all prefabs to new.")
-				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked)));
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissButton", "Dismiss"), LOCTEXT("DismissButton_Tooltip", "Dismiss this notification")
-				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissClicked, KeyValue.Key)));
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissAllButton", "Dismiss All"), LOCTEXT("DismissAllButton_Tooltip", "Dismiss all notifications")
-				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked)));
-
-			auto Notification = FSlateNotificationManager::Get().AddNotification(Info);
-			Notification->SetCompletionState(SNotificationItem::CS_Pending);
-			FNotificationContainer Item;
-			Item.SubPrefabRootActor = KeyValue.Key;
-			Item.Notification = Notification;
-			NewVersionPrefabNotificationArray.Add(Item);
 		}
+	}
+	if (bSomeAutoUpdate)
+	{
+		GEditor->BeginTransaction(LOCTEXT("LGUIAutoUpdatePrefab_Transaction", "LGUI Update Prefabs"));
+		this->Modify();
+	}
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		auto& SubPrefabData = KeyValue.Value;
+		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		{
+			if (SubPrefabData.bAutoUpdate)
+			{
+				KeyValue.Key->GetLevel()->Modify();
+				this->RefreshOnSubPrefabDirty(SubPrefabData.PrefabAsset, KeyValue.Key);
+				auto InfoText = FText::Format(LOCTEXT("AutoUpdatePrefabInfo", "Auto update old version prefab to latest version:\nActor:'{0}' Prefab:'{1}'."), FText::FromString(KeyValue.Key->GetActorLabel()), FText::FromString(SubPrefabData.PrefabAsset->GetName()));
+				UE_LOG(LGUI, Log, TEXT("%s"), *InfoText.ToString());
+				LGUIUtils::EditorNotification(InfoText);
+			}
+			else
+			{
+				auto FoundIndex = NewVersionPrefabNotificationArray.IndexOfByPredicate([SubPrefabRootActor = KeyValue.Key](const FNotificationContainer& Item) {
+					return Item.SubPrefabRootActor == SubPrefabRootActor;
+					});
+				if (FoundIndex != INDEX_NONE)
+				{
+					return;
+				}
+				auto InfoText = FText::Format(LOCTEXT("OldPrefabVersion", "Detect old prefab: Actor:'{0}' Prefab:'{1}', Would you want to update it?"), FText::FromString(KeyValue.Key->GetActorLabel()), FText::FromString(SubPrefabData.PrefabAsset->GetName()));
+				FNotificationInfo Info(InfoText);
+				Info.bFireAndForget = false;
+				Info.bUseLargeFont = true;
+				Info.bUseThrobber = false;
+				Info.FadeOutDuration = 0.0f;
+				Info.ExpireDuration = 0.0f;
+				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateToNewPrefabButton", "Update"), LOCTEXT("UpdateToNewPrefabButton_Tooltip", "Update the prefab to new.")
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateClicked, KeyValue.Key)));
+				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateAllToNewPrefabButton", "Update All"), LOCTEXT("UpdateToAllNewPrefabButton_Tooltip", "Update all prefabs to new.")
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked)));
+				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissButton", "Dismiss"), LOCTEXT("DismissButton_Tooltip", "Dismiss this notification")
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissClicked, KeyValue.Key)));
+				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissAllButton", "Dismiss All"), LOCTEXT("DismissAllButton_Tooltip", "Dismiss all notifications")
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked)));
+
+				auto Notification = FSlateNotificationManager::Get().AddNotification(Info);
+				Notification->SetCompletionState(SNotificationItem::CS_Pending);
+				FNotificationContainer Item;
+				Item.SubPrefabRootActor = KeyValue.Key;
+				Item.Notification = Notification;
+				NewVersionPrefabNotificationArray.Add(Item);
+			}
+		}
+	}
+
+	if (bSomeAutoUpdate)
+	{
+		this->ClearInvalidObjectAndGuid();
+		GEditor->EndTransaction();
+
+		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 	}
 }
 
@@ -1477,10 +1513,6 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 				else
 				{
 					this->RefreshOnSubPrefabDirty(SubPrefabDataPtr->PrefabAsset, InPrefabRootActor);
-					if (OnSubPrefabNewVersionUpdated.IsBound())
-					{
-						OnSubPrefabNewVersionUpdated.Broadcast();
-					}
 				}
 				this->ClearInvalidObjectAndGuid();
 				GEditor->EndTransaction();
@@ -1546,10 +1578,6 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 
 	if (bUpdated)
 	{
-		if (OnSubPrefabNewVersionUpdated.IsBound())
-		{
-			OnSubPrefabNewVersionUpdated.Broadcast();
-		}
 		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 	}
 }

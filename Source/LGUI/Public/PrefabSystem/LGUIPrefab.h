@@ -63,6 +63,8 @@ public:
 #if WITH_EDITORONLY_DATA
 	/** For level editor, to tell if this prefab is latest version. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab = FDateTime(0);
+	/** For level editor, true means it will not show a dialog box and do the update if detect new version. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")bool bAutoUpdate = true;
 	/** Temporary color for quick identify in editor */
 	FLinearColor EditorIdentifyColor;
 #endif
