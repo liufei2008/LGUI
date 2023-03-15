@@ -14,7 +14,7 @@ class FToolBarBuilder;
 class FMenuBuilder;
 DECLARE_LOG_CATEGORY_EXTERN(LGUIEditor, Log, All);
 
-class FLGUIEditorModule : public IModuleInterface
+class FLGUIEditorModule : public IModuleInterface, public FGCObject
 {
 public:
 
@@ -81,4 +81,9 @@ private:
 	FName LGUIPrefabSequenceComponentName;
 	static void OnInitializeSequence(class ULGUIPrefabSequence* Sequence);
 	FDelegateHandle LGUIMaterialTrackEditorCreateTrackEditorHandle;
+	class USequencerSettings* LGUIPrefabSequencerSettings = nullptr;
+
+	/** FGCObject interface */
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual FString GetReferencerName() const override;
 };

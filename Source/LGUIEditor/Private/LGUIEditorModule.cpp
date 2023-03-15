@@ -84,6 +84,7 @@
 #include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
 #include "MovieSceneToolsProjectSettings.h"
 #include "PrefabAnimation/LGUIMaterialTrackEditor.h"
+#include "PrefabAnimation/LGUIPrefabSequencerSettings.h"
 
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
@@ -107,18 +108,6 @@ void FLGUIEditorModule::StartupModule()
 	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
 	SequenceEditorHandle = SequencerModule.RegisterSequenceEditor(ULGUIPrefabSequence::StaticClass(), MakeUnique<FMovieSceneSequenceEditor_LGUIPrefabSequence>());
 	LGUIMaterialTrackEditorCreateTrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FLGUIMaterialTrackEditor::CreateTrackEditor));
-
-	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
-
-	//if (SettingsModule != nullptr)
-	//{
-	//	Settings = USequencerSettingsContainer::GetOrCreate<USequencerSettings>(TEXT("EmbeddedLGUIPrefabSequenceEditor"));
-
-	//	SettingsModule->RegisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor",
-	//		LOCTEXT("EmbeddedLGUIPrefabSequenceEditorSettingsName", "Embedded Actor Sequence Editor"),
-	//		LOCTEXT("EmbeddedLGUIPrefabSequenceEditorSettingsDescription", "Configure the look and feel of the Embedded Actor Sequence Editor."),
-	//		Settings);
-	//}
 
 	FLGUIEditorCommands::Register();
 	
@@ -357,9 +346,15 @@ void FLGUIEditorModule::StartupModule()
 				LOCTEXT("LGUISettingsDescription", "LGUI Settings"),
 				GetMutableDefault<ULGUISettings>());
 			SettingsModule->RegisterSettings("Project", "Plugins", "LGUI Editor",
-				LOCTEXT("LGUIEditorSettingsName", "LGUIEditor"),
+				LOCTEXT("LGUIEditorSettingsName", "LGUI Editor"),
 				LOCTEXT("LGUIEditorSettingsDescription", "LGUI Editor Settings"),
 				GetMutableDefault<ULGUIEditorSettings>());
+
+			LGUIPrefabSequencerSettings = USequencerSettingsContainer::GetOrCreate<ULGUIPrefabSequencerSettings>(TEXT("EmbeddedLGUIPrefabSequenceEditor"));
+			SettingsModule->RegisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor",
+				LOCTEXT("LGUIPrefabSequencerSettingsName", "LGUI Prefab Sequence Editor"),
+				LOCTEXT("LGUIPrefabSequencerSettingsDescription", "Configure the look and feel of the LGUI Prefab Sequence Editor."),
+				LGUIPrefabSequencerSettings);
 		}
 	}
 	//blueprint
@@ -421,11 +416,6 @@ void FLGUIEditorModule::ShutdownModule()
 		SequencerModule->UnregisterSequenceEditor(SequenceEditorHandle);
 		SequencerModule->UnRegisterTrackEditor(LGUIMaterialTrackEditorCreateTrackEditorHandle);
 	}
-	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
-	//if (SettingsModule != nullptr)
-	//{
-	//	SettingsModule->UnregisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor");
-	//}
 
 	//unregister SceneOutliner ColumnInfo
 	{
@@ -537,12 +527,25 @@ void FLGUIEditorModule::ShutdownModule()
 		{
 			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI");
 			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI Editor");
+			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUIPrefabSequencerSettings");
 		}
 	}
 
 	FKismetEditorUtilities::UnregisterAutoBlueprintNodeCreation(this);
 
 	USelection::SelectionChangedEvent.RemoveAll(this);
+}
+
+void FLGUIEditorModule::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	if (LGUIPrefabSequencerSettings)
+	{
+		Collector.AddReferencedObject(LGUIPrefabSequencerSettings);
+	}
+}
+FString FLGUIEditorModule::GetReferencerName() const 
+{
+	return "LGUIEditorModule";
 }
 
 FLGUIEditorModule& FLGUIEditorModule::Get()

@@ -708,6 +708,7 @@ bool UUITextInputComponent::IsValidChar(TCHAR c)
 }
 bool UUITextInputComponent::DeleteSelection(bool InFireEvent)
 {
+	if (bReadOnly)return false;
 	if (SelectionPropertyArray.Num() != 0)//delete selection frist
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
@@ -720,6 +721,7 @@ bool UUITextInputComponent::DeleteSelection(bool InFireEvent)
 }
 void UUITextInputComponent::InsertCharAtCaretPosition(TCHAR c)
 {
+	if (bReadOnly)return;
 	Text.InsertAt(CaretPositionIndex, c);
 	CaretPositionIndex++;
 	PressCaretPositionIndex = CaretPositionIndex;
@@ -727,6 +729,7 @@ void UUITextInputComponent::InsertCharAtCaretPosition(TCHAR c)
 
 void UUITextInputComponent::BackSpace()
 {
+	if (bReadOnly)return;
 	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
 	{
 		if (CaretPositionIndex > 0)
@@ -748,6 +751,7 @@ void UUITextInputComponent::BackSpace()
 }
 void UUITextInputComponent::ForwardSpace()
 {
+	if (bReadOnly)return;
 	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
 	{
 		if (CaretPositionIndex < Text.Len())
@@ -780,6 +784,7 @@ void UUITextInputComponent::Copy()
 }
 void UUITextInputComponent::Paste()
 {
+	if (bReadOnly)return;
 	FString pasteString;
 	FPlatformApplicationMisc::ClipboardPaste(pasteString);
 	if (pasteString.Len() <= 0)return;
@@ -813,6 +818,7 @@ void UUITextInputComponent::Paste()
 }
 void UUITextInputComponent::Cut()
 {
+	if (bReadOnly)return;
 	if (InputType == ELGUITextInputType::Password
 		|| DisplayType == ELGUITextInputDisplayType::Password
 		)return;//not allow copy password
@@ -1865,6 +1871,10 @@ void UUITextInputComponent::SetAutoActivateInputWhenNavigateIn(bool value)
 {
 	bAutoActivateInputWhenNavigateIn = value;
 }
+void UUITextInputComponent::SetReadOnly(bool value)
+{
+	bReadOnly = value;
+}
 
 FDelegateHandle UUITextInputComponent::RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate)
 {
@@ -2067,7 +2077,7 @@ bool UUITextInputComponent::FTextInputMethodContext::IsReadOnly()
 #if LGUI_LOG_TextInputMethodContext
 	//UE_LOG(LGUI, Log, TEXT("IsReadOnly"));
 #endif
-	return false;
+	return InputComp->GetReadOnly();
 }
 uint32 UUITextInputComponent::FTextInputMethodContext::GetTextLength()
 {
