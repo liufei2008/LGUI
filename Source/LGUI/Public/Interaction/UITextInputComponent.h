@@ -146,6 +146,9 @@ protected:
 	/** Automatic activate input when use navigation input and navigate in this. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bAutoActivateInputWhenNavigateIn = false;
+	/** Read only text block, can copy text content, but not editable. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		bool bReadOnly = false;
 
 	FLGUIMulticastStringDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
@@ -190,6 +193,8 @@ public:
 		const TArray<FKey>& GetIgnoreKeys()const { return IgnoreKeys; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		bool GetAutoActivateInputWhenNavigateIn()const { return bAutoActivateInputWhenNavigateIn; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		bool GetReadOnly()const { return bReadOnly; }
 
 	/**
 	 * Set text value.
@@ -224,6 +229,8 @@ public:
 		void SetIgnoreKeys(const TArray<FKey>& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetAutoActivateInputWhenNavigateIn(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetReadOnly(bool value);
 
 	void ActivateInput(ULGUIPointerEventData* eventData = nullptr);
 	void DeactivateInput(bool InFireEvent = true);
