@@ -17,9 +17,7 @@ static float _Weight[3] =
 };
 Texture2D _MainTex;
 SamplerState _MainTexSampler;
-float2 _HorizontalOrVerticalFilter;
-float2 _InvSize;
-float _BlurStrength;
+float2 _BlurStrength;
 #if USE_STRENGTH_TEXTURE
 Texture2D _StrengthTex;
 SamplerState _StrengthTexSampler;
@@ -33,12 +31,12 @@ float4 GaussianBlurPS(SimpleVSToPS input) : SV_Target0
     float4 color = _MainTex.Sample(_MainTexSampler, input.uv) * _Weight[0];
     for (int i = 1; i < 3; i++)
     {
-        float uvOffset = _Offset[i];
+        float2 uvOffset = _Offset[i] * _BlurStrength;
 #if USE_STRENGTH_TEXTURE
         uvOffset *= strength;
 #endif
-        color += _MainTex.Sample(_MainTexSampler, input.uv + uvOffset * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
-        color += _MainTex.Sample(_MainTexSampler, input.uv - uvOffset * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
+        color += _MainTex.Sample(_MainTexSampler, input.uv + uvOffset) * _Weight[i];
+        color += _MainTex.Sample(_MainTexSampler, input.uv - uvOffset) * _Weight[i];
     }
     return color;
 }

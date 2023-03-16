@@ -76,8 +76,6 @@ public:
 	{
 		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
 		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
-		HorizontalOrVerticalFilterParameter.Bind(Initializer.ParameterMap, TEXT("_HorizontalOrVerticalFilter"));
-		InvSizeParameter.Bind(Initializer.ParameterMap, TEXT("_InvSize"));
 		BlurStrengthParameter.Bind(Initializer.ParameterMap, TEXT("_BlurStrength"));
 	}
 	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
@@ -88,23 +86,13 @@ public:
 	{
 		FLGUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2f& InvSize)
-	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), InvSizeParameter, InvSize);
-	}
-	void SetBlurStrength(FRHICommandListImmediate& RHICmdList, float BlurStrength)
+	void SetBlurStrength(FRHICommandListImmediate& RHICmdList, const FVector2f& BlurStrength)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), BlurStrengthParameter, BlurStrength);
-	}
-	void SetHorizontalOrVertical(FRHICommandListImmediate& RHICmdList, bool HorizontalOrVertical)
-	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), HorizontalOrVerticalFilterParameter, HorizontalOrVertical ? FVector2f(1.0f, 0.0f) : FVector2f(0.0f, 1.0f));
 	}
 private:
 	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
 	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
-	LAYOUT_FIELD(FShaderParameter, HorizontalOrVerticalFilterParameter);
-	LAYOUT_FIELD(FShaderParameter, InvSizeParameter);
 	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
 };
 class FLGUIPostProcessGaussianBlurWithStrengthTexturePS :public FLGUIPostProcessGaussianBlurPS
