@@ -109,11 +109,12 @@ public:
 		width = FMath::Max(width, 1.0f);
 		height = FMath::Max(height, 1.0f);
 		FVector2D inv_TextureSize(1.0f / width, 1.0f / height);
+		FIntPoint TextureSize(width, height);
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(TextureSize, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = NumSamples;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
@@ -154,7 +155,6 @@ public:
 				GraphicsPSOInit.NumSamples = NumSamples;
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
-				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 				PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
 
 				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
@@ -164,28 +164,29 @@ public:
 				int sampleCount = (int)calculatedBlurStrength + 1;
 				for (int i = 0; i < sampleCount; i++)
 				{
+					float tempBlurStrength = 0.0f;
 					if (i + 1 == sampleCount)
 					{
 						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
 						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
-						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
+						tempBlurStrength = calculatedBlurStrength2 * fracValue;
 					}
 					else
 					{
-						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
+						tempBlurStrength = calculatedBlurStrength2;
 					}
 					//render vertical
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
-					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
+					PixelShader->SetBlurStrength(RHICmdList, FVector2D(0, tempBlurStrength * inv_TextureSize.Y));
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
-					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
+					PixelShader->SetBlurStrength(RHICmdList, FVector2D(tempBlurStrength * inv_TextureSize.X, 0));
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					calculatedBlurStrength2 *= 2;
@@ -208,7 +209,6 @@ public:
 				GraphicsPSOInit.NumSamples = NumSamples;
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
-				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 
 				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more smooth
@@ -217,28 +217,29 @@ public:
 				int sampleCount = (int)calculatedBlurStrength + 1;
 				for (int i = 0; i < sampleCount; i++)
 				{
+					float tempBlurStrength = 0.0f;
 					if (i + 1 == sampleCount)
 					{
 						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
 						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
-						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
+						tempBlurStrength = calculatedBlurStrength2 * fracValue;
 					}
 					else
 					{
-						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
+						tempBlurStrength = calculatedBlurStrength2;
 					}
 					//render vertical
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
-					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
+					PixelShader->SetBlurStrength(RHICmdList, FVector2D(0, tempBlurStrength * inv_TextureSize.Y));
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
-					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
+					PixelShader->SetBlurStrength(RHICmdList, FVector2D(tempBlurStrength * inv_TextureSize.X, 0));
 					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					calculatedBlurStrength2 *= 2;
