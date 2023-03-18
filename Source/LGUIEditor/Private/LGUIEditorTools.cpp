@@ -1118,41 +1118,18 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 
 bool LGUIEditorTools::CanDuplicateActor()
 {
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor == nullptr)return false;
+	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
+	if (SelectedActors.Num() == 0)return false;
 
-	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	for (auto Actor : SelectedActors)
 	{
-		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))//sub prefab's root actor can duplicate
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
-			return true;
-		}
-		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's other actor cannot duplicate
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	else
-	{
-		return true;
-	}
-}
-bool LGUIEditorTools::CanCopyActor()
-{
-	return GEditor->GetSelectedActorCount() > 0;
-}
-bool LGUIEditorTools::CanPasteActor()
-{
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-		{
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
+			if (PrefabHelperObject->SubPrefabMap.Contains(Actor))//sub prefab's root actor can duplicate
+			{
+				return true;
+			}
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))//sub prefab's other actor cannot duplicate
 			{
 				return false;
 			}
@@ -1166,10 +1143,36 @@ bool LGUIEditorTools::CanPasteActor()
 			return true;
 		}
 	}
-	else
+	return true;
+}
+bool LGUIEditorTools::CanCopyActor()
+{
+	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
+	if (SelectedActors.Num() <= 0)return false;
+	return true;
+}
+bool LGUIEditorTools::CanPasteActor()
+{
+	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
+	for (auto Actor : SelectedActors)
 	{
-		return false;
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
+		{
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
 	}
+	return true;
 }
 bool LGUIEditorTools::CanCutActor()
 {
@@ -1922,7 +1925,7 @@ void LGUIEditorTools::SetTraceChannelToParent(AActor* InActor)
 				{
 					compItem->Modify();
 					compItem->SetTraceChannel(parentUIComp->GetTraceChannel());
-					LGUIUtils::NotifyPropertyChanged(compItem, FName(TEXT("traceChannel")));
+					LGUIUtils::NotifyPropertyChanged(compItem, UUIItem::GetTraceChannelPropertyName());
 				}
 				GEditor->EndTransaction();
 			}

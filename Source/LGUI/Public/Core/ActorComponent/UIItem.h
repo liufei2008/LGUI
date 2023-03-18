@@ -54,6 +54,10 @@ public:
 	{
 		return GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex);
 	}
+	static const FName GetTraceChannelPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIItem, traceChannel);
+	}
 	
 #pragma region LGUILifeCycleUIBehaviour
 private:
