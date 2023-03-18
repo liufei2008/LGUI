@@ -18,6 +18,7 @@ public:
 	TSharedPtr<FUICommandInfo> CutActor;
 	TSharedPtr<FUICommandInfo> DuplicateActor;
 	TSharedPtr<FUICommandInfo> DestroyActor;
+	TSharedPtr<FUICommandInfo> ToggleSpatiallyLoaded;
 
 	TSharedPtr<FUICommandInfo> CopyComponentValues;
 	TSharedPtr<FUICommandInfo> PasteComponentValues;
