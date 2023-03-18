@@ -1079,6 +1079,68 @@ void LGUIEditorTools::CutSelectedActors_Impl()
 	CopySelectedActors_Impl();
 	DeleteSelectedActors_Impl();
 }
+void LGUIEditorTools::ToggleSelectedActorsSpatiallyLoaded_Impl()
+{
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto count = selectedActors.Num();
+	if (count == 0)
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
+		return;
+	}
+	struct LOCAL
+	{
+		static void SetSpatiallyLoadedValue_Recursive(AActor* Actor, bool value)
+		{
+			if (Actor->CanChangeIsSpatiallyLoadedFlag())
+			{
+				if (Actor->GetIsSpatiallyLoaded() != value)
+				{
+					Actor->SetIsSpatiallyLoaded(value);
+					LGUIUtils::NotifyPropertyChanged(Actor, AActor::GetIsSpatiallyLoadedPropertyName());
+				}
+			}
+			TArray<AActor*> ChildActors;
+			Actor->GetAttachedActors(ChildActors);
+			for (auto ChildActor : ChildActors)
+			{
+				if (IsValid(ChildActor))
+				{
+					SetSpatiallyLoadedValue_Recursive(ChildActor, value);
+				}
+			}
+		}
+	};
+	GEditor->BeginTransaction(LOCTEXT("ToggleSpatiallyLoaded_Transaction", "LGUI Toggle Actors IsSpatiallyLoaded"));
+	auto ActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
+	for (auto Actor : ActorList)
+	{
+		Actor->Modify();
+		auto bIsSpatiallyLoadedValue = !Actor->GetIsSpatiallyLoaded();
+		LOCAL::SetSpatiallyLoadedValue_Recursive(Actor, bIsSpatiallyLoadedValue);
+	}
+	GEditor->EndTransaction();
+}
+ECheckBoxState LGUIEditorTools::GetActorSpatiallyLoadedProperty()
+{
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto count = selectedActors.Num();
+	if (count == 0)
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
+		return ECheckBoxState::Undetermined;
+	}
+	auto ActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
+	bool bIsSpatiallyLoadedValue = ActorList[0]->GetIsSpatiallyLoaded();
+	for (int i = 1; i < ActorList.Num(); i++)
+	{
+		if (bIsSpatiallyLoadedValue != ActorList[i]->GetIsSpatiallyLoaded())
+		{
+			return ECheckBoxState::Undetermined;
+		}
+	}
+	return bIsSpatiallyLoadedValue ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
 
 void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 {
@@ -1188,6 +1250,21 @@ bool LGUIEditorTools::CanDeleteActor()
 			{
 				return false;
 			}
+		}
+	}
+	return true;
+}
+bool LGUIEditorTools::CanToggleActorSpatiallyLoaded()
+{
+	return GEditor->GetSelectedActorCount() > 0;
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	if (selectedActors.Num() <= 0)return false;
+	auto ActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
+	for (auto Actor : ActorList)
+	{
+		if (!Actor->CanChangeIsSpatiallyLoadedFlag())
+		{
+			return false;
 		}
 	}
 	return true;

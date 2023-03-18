@@ -33,12 +33,15 @@ public:
 	static void PasteSelectedActors_Impl();
 	static void DeleteSelectedActors_Impl();
 	static void CutSelectedActors_Impl();
+	static void ToggleSelectedActorsSpatiallyLoaded_Impl();
+	static ECheckBoxState GetActorSpatiallyLoadedProperty();
 	static void DeleteActors_Impl(const TArray<AActor*>& InActors);
 	static bool CanDuplicateActor();
 	static bool CanCopyActor();
 	static bool CanPasteActor();
 	static bool CanCutActor();
 	static bool CanDeleteActor();
+	static bool CanToggleActorSpatiallyLoaded();
 	static void CopyComponentValues_Impl();
 	static void PasteComponentValues_Impl();
 	static void OpenAtlasViewer_Impl();

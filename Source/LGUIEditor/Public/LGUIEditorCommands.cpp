@@ -17,6 +17,7 @@ void FLGUIEditorCommands::RegisterCommands()
 	UI_COMMAND(CutActor, "Cut Actors", "Cut actors with hierarchy", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(DuplicateActor, "Duplicate Actors", "Duplicate selected actors with hierarchy", EUserInterfaceActionType::Button, FInputChord(EKeys::D, EModifierKey::Shift | EModifierKey::Alt));
 	UI_COMMAND(DestroyActor, "Destroy Actors", "Destroy selected actors with hierarchy", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(ToggleSpatiallyLoaded, "Toggle Actors IsSpatiallyLoaded", "Toggle selected actor's IsSpatiallyLoaded property for WorldPartition", EUserInterfaceActionType::ToggleButton, FInputChord());
 	
 	UI_COMMAND(CopyComponentValues, "Copy Component Values", "Copy selected component values", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(PasteComponentValues, "Paste Component Values", "Paste values to selected component", EUserInterfaceActionType::Button, FInputChord());

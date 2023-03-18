@@ -155,6 +155,13 @@ void FLGUIEditorModule::StartupModule()
 			FGetActionCheckState(),
 			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanDeleteActor)
 		);
+		PluginCommands->MapAction(
+			editorCommand.ToggleSpatiallyLoaded,
+			FExecuteAction::CreateStatic(&LGUIEditorTools::ToggleSelectedActorsSpatiallyLoaded_Impl),
+			FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanToggleActorSpatiallyLoaded),
+			FGetActionCheckState::CreateStatic(&LGUIEditorTools::GetActorSpatiallyLoadedProperty),
+			FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanToggleActorSpatiallyLoaded)
+		);
 
 		//component action
 		PluginCommands->MapAction(
@@ -993,6 +1000,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		MenuBuilder.AddMenuEntry(commandList.CutActor);
 		MenuBuilder.AddMenuEntry(commandList.DuplicateActor);
 		MenuBuilder.AddMenuEntry(commandList.DestroyActor);
+		MenuBuilder.AddMenuEntry(commandList.ToggleSpatiallyLoaded);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("ChangeCollisionChannelSubMenu", "Change Trace Channel"),
 			LOCTEXT("ChangeCollisionChannelSubMenu_Tooltip", "Change a UI element's trace channel to selected channel, with hierarchy"),
