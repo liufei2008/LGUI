@@ -67,6 +67,16 @@ namespace LGUISceneOutliner
 		{
 			return SNew(SBox);
 		}
+		auto ActorClassName = actor->GetClass()->GetFName();
+		if (
+			ActorClassName == TEXT("Landscape")
+			|| ActorClassName == TEXT("LandscapeStreamingProxy")
+			|| ActorClassName == TEXT("WorldDataLayers")
+			|| ActorClassName == TEXT("WorldPartitionMiniMap")
+			)
+		{
+			return SNew(SBox);
+		}
 
 		auto bIsRootAgentActor = FLGUIPrefabEditor::ActorIsRootAgent(actor);
 		TSharedRef<SLGUISceneOutlinerButton> result = SNew(SLGUISceneOutlinerButton)
