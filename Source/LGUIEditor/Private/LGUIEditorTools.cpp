@@ -1127,7 +1127,6 @@ ECheckBoxState LGUIEditorTools::GetActorSpatiallyLoadedProperty()
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return ECheckBoxState::Undetermined;
 	}
 	auto ActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
