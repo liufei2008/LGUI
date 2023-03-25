@@ -79,6 +79,9 @@ public:
 
 	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
 
+	void RevertPrefabPropertyValue(FProperty* Property, UObject* ObjectInParent, UObject* ObjectInPrefab, const FLGUISubPrefabData& SubPrefabData);
+	void ApplyPrefabPropertyValue(FProperty* Property, UObject* ObjectInParent, UObject* ObjectInPrefab, const FLGUISubPrefabData& SubPrefabData);
+
 	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
 	void RevertAllPrefabOverride(UObject* InObject);

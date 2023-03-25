@@ -209,6 +209,7 @@ void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPre
 		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
 		{
 			KeyValue.Value.RemoveMemberProperty(InObject, InPropertyName);
+			break;
 		}
 	}
 }
@@ -542,8 +543,6 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 	if (!bCanCollectProperty)return;
 	if (InObject->GetWorld() == this->GetPrefabWorld())
 	{
-		SetAnythingDirty();
-
 		auto PropertyName = InMemberProperty->GetFName();
 		AActor* PropertyActor = nullptr;
 		if (auto Actor = Cast<AActor>(InObject))
@@ -566,7 +565,19 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 			{
 				if (IsActorBelongsToSubPrefab(Actor))
 				{
-					PropertyActor = Actor;
+					bool bFindObjectInGuidMap = false;
+					for (auto& KeyValue : this->MapGuidToObject)
+					{
+						if (KeyValue.Value == InObject)
+						{
+							bFindObjectInGuidMap = true;
+							break;
+						}
+					}
+					if (bFindObjectInGuidMap)
+					{
+						PropertyActor = Actor;
+					}
 				}
 			}
 		}
@@ -584,6 +595,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
 			if (Property != nullptr)
 			{
+				SetAnythingDirty();
 				AddMemberPropertyToSubPrefab(PropertyActor, InObject, PropertyName);
 				if (auto UIItem = Cast<UUIItem>(InObject))
 				{
@@ -821,6 +833,86 @@ void ULGUIPrefabHelperObject::CopyRootObjectParentAnchorData(UObject* InObject, 
 	}
 }
 
+void ULGUIPrefabHelperObject::RevertPrefabPropertyValue(FProperty* Property, UObject* ObjectInParent, UObject* ObjectInPrefab, const FLGUISubPrefabData& SubPrefabData)
+{
+	bool bPropertySupportDirectCopyValue = false;
+	if (CastField<FClassProperty>(Property) != nullptr)
+	{
+		bPropertySupportDirectCopyValue = true;
+	}
+	else if (auto ObjectProperty = CastField<FObjectPropertyBase>(Property))
+	{
+		if (auto PropertyObjectValue = ObjectProperty->GetObjectPropertyValue_InContainer(ObjectInPrefab))
+		{
+			auto ObjectClass = PropertyObjectValue->GetClass();
+			if (PropertyObjectValue->IsAsset() && !ObjectClass->IsChildOf(AActor::StaticClass()))
+			{
+				bPropertySupportDirectCopyValue = true;
+			}
+			else
+			{
+				if (ObjectClass->IsChildOf(AActor::StaticClass()) || ObjectClass->IsChildOf(UActorComponent::StaticClass()))
+				{
+					//search object in guid
+					FGuid PropertyObjectValueGuid;
+					for (auto& KeyValue : SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject)
+					{
+						if (KeyValue.Value == PropertyObjectValue)
+						{
+							PropertyObjectValueGuid = KeyValue.Key;
+							break;
+						}
+					}
+					//find valid guid, get the guid in prarent, with the guid then get object, so that object is the real value
+					if (PropertyObjectValueGuid.IsValid())
+					{
+						FGuid PropertyObjectGuidInSubPrefab;
+						for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+						{
+							if (KeyValue.Value == PropertyObjectValueGuid)
+							{
+								PropertyObjectGuidInSubPrefab = KeyValue.Key;
+								break;
+							}
+						}
+						auto PropertyObjectInParent = this->MapGuidToObject[PropertyObjectGuidInSubPrefab];
+						ObjectProperty->SetObjectPropertyValue_InContainer(ObjectInParent, PropertyObjectInParent);
+					}
+				}
+				else
+				{
+					//EditInlineNew object should create new
+					if (ObjectClass->HasAnyClassFlags(EClassFlags::CLASS_EditInlineNew)
+						//&& ObjectProperty->HasAnyPropertyFlags(EPropertyFlags::CPF_InstancedReference)//is this necessary?
+						)
+					{
+						auto InstantiateObject = NewObject<UObject>(ObjectInParent, ObjectClass, NAME_None, RF_NoFlags, PropertyObjectValue);
+						ObjectProperty->SetObjectPropertyValue_InContainer(ObjectInParent, InstantiateObject);
+					}
+					else
+					{
+						auto InfoText = FText::Format(LOCTEXT("RevertPrefabPropertyValue_MissingConditionWarning", "LGUI have not handle this condition:\nobject: '{0}'\nobjectClass: '{1}'")
+							, FText::FromString(PropertyObjectValue->GetPathName()), FText::FromString(ObjectClass->GetPathName()));
+						UE_LOG(LGUI, Log, TEXT("%s"), *InfoText.ToString());
+						LGUIUtils::EditorNotification(InfoText);
+					}
+				}
+			}
+		}
+		else
+		{
+			bPropertySupportDirectCopyValue = true;
+		}
+	}
+	else
+	{
+		bPropertySupportDirectCopyValue = true;
+	}
+	if (bPropertySupportDirectCopyValue)
+	{
+		Property->CopyCompleteValue_InContainer(ObjectInParent, ObjectInPrefab);
+	}
+}
 void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
@@ -845,6 +937,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 		if (KeyValue.Value == InObject)
 		{
 			ObjectGuid = KeyValue.Key;
+			break;
 		}
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
@@ -858,7 +951,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
 			{
 				//set to default value
-				Property->CopyCompleteValue_InContainer(InObject, OriginObject);
+				RevertPrefabPropertyValue(Property, InObject, OriginObject, SubPrefabData);
 				//delete item
 				RemoveMemberPropertyFromSubPrefab(Actor, InObject, PropertyName);
 				//notify
@@ -894,6 +987,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		if (KeyValue.Value == InObject)
 		{
 			ObjectGuid = KeyValue.Key;
+			break;
 		}
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
@@ -909,7 +1003,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
 		{
 			//set to default value
-			Property->CopyCompleteValue_InContainer(InObject, OriginObject);
+			RevertPrefabPropertyValue(Property, InObject, OriginObject, SubPrefabData);
 			//delete item
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
@@ -957,6 +1051,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 				if (KeyValue.Value == InObject)
 				{
 					ObjectGuid = KeyValue.Key;
+					break;
 				}
 			}
 			FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
@@ -985,7 +1080,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
 				{
 					//set to default value
-					Property->CopyCompleteValue_InContainer(SourceObject, OriginObject);
+					RevertPrefabPropertyValue(Property, SourceObject, OriginObject, SubPrefabData);
 					//notify
 					LGUIUtils::NotifyPropertyChanged(SourceObject, Property);
 				}
@@ -1006,6 +1101,78 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 	ULGUIEditorManagerObject::RefreshAllUI();
 }
 
+void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(FProperty* Property, UObject* ObjectInParent, UObject* ObjectInPrefab, const FLGUISubPrefabData& SubPrefabData)
+{
+	bool bPropertySupportDirectCopyValue = false;
+	if (CastField<FClassProperty>(Property) != nullptr)
+	{
+		bPropertySupportDirectCopyValue = true;
+	}
+	else if (auto ObjectProperty = CastField<FObjectPropertyBase>(Property))
+	{
+		if (auto PropertyObjectValue = ObjectProperty->GetObjectPropertyValue_InContainer(ObjectInParent))
+		{
+			auto ObjectClass = PropertyObjectValue->GetClass();
+			if (PropertyObjectValue->IsAsset() && !ObjectClass->IsChildOf(AActor::StaticClass()))
+			{
+				bPropertySupportDirectCopyValue = true;
+			}
+			else
+			{
+				if (ObjectClass->IsChildOf(AActor::StaticClass()) || ObjectClass->IsChildOf(UActorComponent::StaticClass()))
+				{
+					//search object in guid
+					FGuid PropertyObjectValueGuid;
+					for (auto& KeyValue : MapGuidToObject)
+					{
+						if (KeyValue.Value == PropertyObjectValue)
+						{
+							PropertyObjectValueGuid = KeyValue.Key;
+							break;
+						}
+					}
+					//find valid guid, get the guid in prefab, with the guid then get object, so that object is the real value
+					if (PropertyObjectValueGuid.IsValid())
+					{
+						FGuid PropertyObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[PropertyObjectValueGuid];
+						auto PropertyObjectInPrefab = SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[PropertyObjectGuidInSubPrefab];
+						ObjectProperty->SetObjectPropertyValue_InContainer(ObjectInPrefab, PropertyObjectInPrefab);
+					}
+				}
+				else
+				{
+					//EditInlineNew object should create new
+					if (ObjectClass->HasAnyClassFlags(EClassFlags::CLASS_EditInlineNew)
+						//&& ObjectProperty->HasAnyPropertyFlags(EPropertyFlags::CPF_InstancedReference)//is this necessary?
+						)
+					{
+						auto InstantiateObject = NewObject<UObject>(ObjectInPrefab, ObjectClass, NAME_None, RF_NoFlags, PropertyObjectValue);
+						ObjectProperty->SetObjectPropertyValue_InContainer(ObjectInPrefab, InstantiateObject);
+					}
+					else
+					{
+						auto InfoText = FText::Format(LOCTEXT("ApplyPrefabPropertyValue_MissingConditionWarning", "LGUI have not handle this condition:\nobject: '{0}'\nobjectClass: '{1}'")
+							, FText::FromString(PropertyObjectValue->GetPathName()), FText::FromString(ObjectClass->GetPathName()));
+						UE_LOG(LGUI, Log, TEXT("%s"), *InfoText.ToString());
+						LGUIUtils::EditorNotification(InfoText);
+					}
+				}
+			}
+		}
+		else
+		{
+			bPropertySupportDirectCopyValue = true;
+		}
+	}
+	else
+	{
+		bPropertySupportDirectCopyValue = true;
+	}
+	if (bPropertySupportDirectCopyValue)
+	{
+		Property->CopyCompleteValue_InContainer(ObjectInPrefab, ObjectInParent);
+	}
+}
 void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperties", "Apply Prefab Override: {0}"), FText::FromString(InObject->GetName())));
@@ -1030,7 +1197,13 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 		if (KeyValue.Value == InObject)
 		{
 			ObjectGuid = KeyValue.Key;
+			break;
 		}
+	}
+	//object not exist
+	if (!ObjectGuid.IsValid())
+	{
+		return;
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
 	auto OriginObject = SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
@@ -1042,7 +1215,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
 			{
 				//set to default value
-				Property->CopyCompleteValue_InContainer(OriginObject, InObject);
+				ApplyPrefabPropertyValue(Property, InObject, OriginObject, SubPrefabData);
 				//delete item
 				RemoveMemberPropertyFromSubPrefab(Actor, InObject, PropertyName);
 				//notify
@@ -1087,7 +1260,13 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		if (KeyValue.Value == InObject)
 		{
 			ObjectGuid = KeyValue.Key;
+			break;
 		}
+	}
+	//object not exist
+	if (!ObjectGuid.IsValid())
+	{
+		return;
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
 	auto OriginObject = SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
@@ -1101,7 +1280,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
 		{
 			//set to default value
-			Property->CopyCompleteValue_InContainer(OriginObject, InObject);
+			ApplyPrefabPropertyValue(Property, InObject, OriginObject, SubPrefabData);
 			//delete item
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
@@ -1157,6 +1336,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 				if (KeyValue.Value == InObject)
 				{
 					ObjectGuid = KeyValue.Key;
+					break;
 				}
 			}
 			if (ObjectGuid.IsValid())
@@ -1191,7 +1371,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 					if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
 					{
 						//set to default value
-						Property->CopyCompleteValue_InContainer(OriginObject, SourceObject);
+						ApplyPrefabPropertyValue(Property, SourceObject, OriginObject, SubPrefabData);
 						//notify
 						LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
 					}
