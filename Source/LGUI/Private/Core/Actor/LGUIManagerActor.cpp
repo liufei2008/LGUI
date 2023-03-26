@@ -35,7 +35,7 @@
 #define LOCTEXT_NAMESPACE "LGUIManagerObject"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::Instance = nullptr;
@@ -1932,6 +1932,6 @@ void ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* I
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif
 #undef LOCTEXT_NAMESPACE

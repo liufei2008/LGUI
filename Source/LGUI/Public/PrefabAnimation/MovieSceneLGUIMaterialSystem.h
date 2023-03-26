@@ -19,17 +19,17 @@ namespace UE::MovieScene
 struct FLGUIMaterialKey
 {
 	FObjectKey Object;
-	FLGUIMaterialPath LGUIMaterialPath;
+	FLGUIMaterialHandle LGUIMaterialHandle;
 
 	friend uint32 GetTypeHash(const FLGUIMaterialKey& In)
 	{
 		uint32 Accumulator = GetTypeHash(In.Object);
-		Accumulator ^= GetTypeHash(In.LGUIMaterialPath.Path);
+		Accumulator ^= GetTypeHash(In.LGUIMaterialHandle);
 		return Accumulator;
 	}
 	friend bool operator==(const FLGUIMaterialKey& A, const FLGUIMaterialKey& B)
 	{
-		return A.Object == B.Object && A.LGUIMaterialPath.Path == B.LGUIMaterialPath.Path;
+		return A.Object == B.Object && A.LGUIMaterialHandle == B.LGUIMaterialHandle;
 	}
 };
 
@@ -38,10 +38,10 @@ struct FLGUIMaterialAccessor
 	using KeyType = FLGUIMaterialKey;
 
 	UUIBatchGeometryRenderable* Renderable;
-	FLGUIMaterialPath LGUIMaterialPath;
+	FLGUIMaterialHandle LGUIMaterialHandle;
 
 	FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey);
-	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialPath InWidgetMaterialPath);
+	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InWidgetMaterialPath);
 
 	UMaterialInterface* GetMaterial() const;
 	void SetMaterial(UMaterialInterface* InMaterial) const;
@@ -49,17 +49,17 @@ struct FLGUIMaterialAccessor
 	FString ToString() const;
 };
 
-using FPreAnimatedWidgetMaterialTraits          = TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
-using FPreAnimatedWidgetMaterialParameterTraits = TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
+using FPreAnimatedWidgetMaterialTraits          = TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialHandle>;
+using FPreAnimatedWidgetMaterialParameterTraits = TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialHandle>;
 
 struct FPreAnimatedWidgetMaterialSwitcherStorage
-	: public TPreAnimatedStateStorage<TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>>
+	: public TPreAnimatedStateStorage<TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialHandle>>
 {
 	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialSwitcherStorage> StorageID;
 };
 
 struct FPreAnimatedWidgetMaterialParameterStorage
-	: public TPreAnimatedStateStorage<TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>>
+	: public TPreAnimatedStateStorage<TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialHandle>>
 {
 	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialParameterStorage> StorageID;
 };
@@ -88,5 +88,5 @@ private:
 
 private:
 
-	UE::MovieScene::TMovieSceneMaterialSystem<UE::MovieScene::FLGUIMaterialAccessor, UObject*, UE::MovieScene::FLGUIMaterialPath> SystemImpl;
+	UE::MovieScene::TMovieSceneMaterialSystem<UE::MovieScene::FLGUIMaterialAccessor, UObject*, FLGUIMaterialHandle> SystemImpl;
 };

@@ -17,7 +17,7 @@
 #include "Core/LGUISpriteData.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 
 void UUITextInputComponent::Awake()
@@ -2223,6 +2223,6 @@ void UUITextInputComponent::FTextInputMethodContext::EndComposition()
 }
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif
 

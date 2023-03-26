@@ -16,7 +16,7 @@
 #endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 namespace LGUIPrefabSystem3
 {
@@ -173,8 +173,8 @@ namespace LGUIPrefabSystem3
 			InPrefab->ArchiveVersion = GPackageFileUEVersion.FileVersionUE4;
 			InPrefab->ArchiveVersionUE5 = GPackageFileUEVersion.FileVersionUE5;
 			InPrefab->ArchiveLicenseeVer = GPackageFileLicenseeUEVersion;
-			InPrefab->ArEngineNetVer = FNetworkVersion::GetEngineNetworkProtocolVersion();
-			InPrefab->ArGameNetVer = FNetworkVersion::GetGameNetworkProtocolVersion();
+			InPrefab->ArEngineNetVer = FNetworkVersion::GetNetworkProtocolVersion(FEngineNetworkCustomVersion::Guid);
+			InPrefab->ArGameNetVer = FNetworkVersion::GetNetworkProtocolVersion(FGameNetworkCustomVersion::Guid);
 
 			InPrefab->MarkPackageDirty();
 		}
@@ -191,8 +191,8 @@ namespace LGUIPrefabSystem3
 			InPrefab->ArchiveVersion_ForBuild = GPackageFileUEVersion.FileVersionUE4;
 			InPrefab->ArchiveVersionUE5_ForBuild = GPackageFileUEVersion.FileVersionUE5;
 			InPrefab->ArchiveLicenseeVer_ForBuild = GPackageFileLicenseeUEVersion;
-			InPrefab->ArEngineNetVer_ForBuild = FNetworkVersion::GetEngineNetworkProtocolVersion();
-			InPrefab->ArGameNetVer_ForBuild = FNetworkVersion::GetGameNetworkProtocolVersion();
+			InPrefab->ArEngineNetVer_ForBuild = FNetworkVersion::GetNetworkProtocolVersion(FEngineNetworkCustomVersion::Guid);
+			InPrefab->ArGameNetVer_ForBuild = FNetworkVersion::GetNetworkProtocolVersion(FGameNetworkCustomVersion::Guid);
 		}
 
 		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
@@ -268,7 +268,7 @@ namespace LGUIPrefabSystem3
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif
 
 #endif

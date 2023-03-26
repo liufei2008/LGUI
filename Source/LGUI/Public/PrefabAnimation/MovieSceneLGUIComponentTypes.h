@@ -11,6 +11,37 @@
 
 #include "Containers/ArrayView.h"
 
+class LGUI_API FLGUIMaterialHandle
+{
+public:
+	FLGUIMaterialHandle()
+		: Data(nullptr)
+	{}
+
+	FLGUIMaterialHandle(void* InData)
+		: Data(InData)
+	{}
+
+	friend uint32 GetTypeHash(const FLGUIMaterialHandle& In)
+	{
+		return GetTypeHash(In.Data);
+	}
+	friend bool operator==(const FLGUIMaterialHandle& A, const FLGUIMaterialHandle& B)
+	{
+		return A.Data == B.Data;
+	}
+	friend bool operator!=(const FLGUIMaterialHandle& A, const FLGUIMaterialHandle& B)
+	{
+		return !(A == B);
+	}
+
+	/** @return true if this handle points to valid data */
+	bool IsValid() const { return Data != nullptr; }
+
+private:
+	/** Pointer to the struct data holding the material */
+	void* Data;
+};
 
 namespace UE
 {
@@ -32,6 +63,7 @@ struct LGUI_API FMovieSceneLGUIComponentTypes
 	~FMovieSceneLGUIComponentTypes();
 
 	TComponentTypeID<FLGUIMaterialPath> LGUIMaterialPath;
+	TComponentTypeID<FLGUIMaterialHandle> LGUIMaterialHandle;
 
 	static void Destroy();
 

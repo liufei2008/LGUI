@@ -32,7 +32,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 
 const FName PrefabEditorAppName = FName(TEXT("LGUIPrefabEditorApp"));
 
@@ -984,6 +984,6 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 	return FReply::Unhandled();
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 
 #undef LOCTEXT_NAMESPACE

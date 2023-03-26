@@ -5,7 +5,7 @@
 #include "Core/ActorComponent/UIItem.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 DECLARE_CYCLE_STAT(TEXT("UILayout SizeControlByAspectRatioRebuildLayout"), STAT_SizeControlByAspectRatio, STATGROUP_LGUI);
 void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
@@ -143,5 +143,5 @@ bool UUISizeControlByAspectRatio::GetCanLayoutControlAnchor_Implementation(class
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif

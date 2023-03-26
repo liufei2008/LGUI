@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 UUITexture::UUITexture(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -315,5 +315,5 @@ void UUITexture::SetUVRectControlMode(EUITextureUVRectControlMode newValue)
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif

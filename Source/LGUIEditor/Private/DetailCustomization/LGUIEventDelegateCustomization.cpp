@@ -23,7 +23,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIEventDelegateCustomization"
 
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 
 #define LGUIEventActorSelfName "(ActorSelf)"
 
@@ -2099,5 +2099,5 @@ void FLGUIEventDelegateCustomization::CreateColorPicker(bool bIsLinearColor, TSh
 	OpenColorPicker(PickerArgs);
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #undef LOCTEXT_NAMESPACE

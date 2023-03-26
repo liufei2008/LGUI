@@ -21,19 +21,19 @@ namespace UE::MovieScene
 
 FLGUIMaterialAccessor::FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey)
 	: Renderable(Cast<UUIBatchGeometryRenderable>(InKey.Object.ResolveObjectPtr()))
-	, LGUIMaterialPath(InKey.LGUIMaterialPath)
+	, LGUIMaterialHandle(InKey.LGUIMaterialHandle)
 {}
 
-FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialPath InWidgetMaterialPath)
+FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InWidgetMaterialPath)
 	: Renderable(Cast<UUIBatchGeometryRenderable>(InObject))
-	, LGUIMaterialPath(MoveTemp(InWidgetMaterialPath))
+	, LGUIMaterialHandle(MoveTemp(InWidgetMaterialPath))
 {
 	check(!InObject || Renderable);
 }
 
 FString FLGUIMaterialAccessor::ToString() const
 {
-	return FString::Printf(TEXT("CustomUIMaterial %s.%s"), *Renderable->GetPathName(), *LGUIMaterialPath.Path.ToString());
+	return FString::Printf(TEXT("CustomUIMaterial %s"), *Renderable->GetPathName());
 }
 
 UMaterialInterface* FLGUIMaterialAccessor::GetMaterial() const
@@ -102,7 +102,7 @@ void UMovieSceneLGUIMaterialSystem::OnLink()
 	SystemImpl.MaterialSwitcherStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedWidgetMaterialSwitcherStorage>();
 	SystemImpl.MaterialParameterStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedWidgetMaterialParameterStorage>();
 
-	SystemImpl.OnLink(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialPath);
+	SystemImpl.OnLink(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialHandle);
 }
 
 void UMovieSceneLGUIMaterialSystem::OnUnlink()
@@ -117,7 +117,7 @@ void UMovieSceneLGUIMaterialSystem::OnRun(FSystemTaskPrerequisites& InPrerequisi
 	FBuiltInComponentTypes*       BuiltInComponents = FBuiltInComponentTypes::Get();
 	FMovieSceneLGUIComponentTypes* LGUIComponents  = FMovieSceneLGUIComponentTypes::Get();
 
-	SystemImpl.OnRun(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialPath, InPrerequisites, Subsequents);
+	SystemImpl.OnRun(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialHandle, InPrerequisites, Subsequents);
 }
 
 void UMovieSceneLGUIMaterialSystem::SavePreAnimatedState(const FPreAnimationParameters& InParameters)
@@ -127,5 +127,5 @@ void UMovieSceneLGUIMaterialSystem::SavePreAnimatedState(const FPreAnimationPara
 	FBuiltInComponentTypes*       BuiltInComponents = FBuiltInComponentTypes::Get();
 	FMovieSceneLGUIComponentTypes* LGUIComponents  = FMovieSceneLGUIComponentTypes::Get();
 
-	SystemImpl.SavePreAnimatedState(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialPath, InParameters);
+	SystemImpl.SavePreAnimatedState(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialHandle, InParameters);
 }

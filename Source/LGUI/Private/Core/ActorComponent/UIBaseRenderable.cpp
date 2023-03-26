@@ -9,7 +9,7 @@
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_DISABLE_OPTIMIZATION
+UE_DISABLE_OPTIMIZATION
 #endif
 
 bool UUIRenderableCustomRaycast::Raycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)
@@ -342,5 +342,5 @@ ULTweener* UUIBaseRenderable::AlphaFrom(float startValue, float duration, float 
 #pragma endregion
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-PRAGMA_ENABLE_OPTIMIZATION
+UE_ENABLE_OPTIMIZATION
 #endif
