@@ -6,6 +6,7 @@
 #include "LGUI.h"
 #include "LGUIEditorUtils.h"
 #include "Utils/LGUIUtils.h"
+#include "Interfaces/IPluginManager.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -41,8 +42,9 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 	auto RightTopPoint = TargetComp->GetComponentTransform().TransformPosition(FVector(0, Right, Top));
 
 	//draw selector
-	auto AnchorVisTexture = LGUIEditorUtils::LoadTexture(TEXT("LGUI/Resources/Icons/AnchorVisSelector.png"));
-	auto PivotVisTexture = LGUIEditorUtils::LoadTexture(TEXT("LGUI/Resources/Icons/PivotVisSelector.png"));
+	static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();
+	auto AnchorVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/AnchorVisSelector.png"));
+	auto PivotVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PivotVisSelector.png"));
 	auto Area = TargetComp->GetWidth() * TargetComp->GetHeight();
 	Area = FMath::Sqrt(Area);
 	auto DrawHitProxy = [=](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture) {
