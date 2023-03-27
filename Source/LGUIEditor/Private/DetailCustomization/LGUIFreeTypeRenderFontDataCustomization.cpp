@@ -174,9 +174,9 @@ void FLGUIFreeTypeRenderFontDataCustomization::CustomizeDetails(IDetailLayoutBui
 	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, packingTag));
 	DetailBuilder.HideProperty(PackingTagProperty);
 	RefreshNameList(nullptr);
-	if (ULGUIAtlasManager::Instance != nullptr)
+	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
 	{
-		ULGUIAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUIFreeTypeRenderFontDataCustomization::RefreshNameList, &DetailBuilder);
+		ULGUIDynamicSpriteAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUIFreeTypeRenderFontDataCustomization::RefreshNameList, &DetailBuilder);
 	}
 	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
 	.NameContent()
@@ -253,9 +253,9 @@ void FLGUIFreeTypeRenderFontDataCustomization::RefreshNameList(IDetailLayoutBuil
 {
 	PackingTagOptions.Reset();
 	PackingTagOptions.Add(MakeShareable(new FName(NAME_None)));
-	if (ULGUIAtlasManager::Instance != nullptr)
+	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
 	{
-		auto& AtlasMap = ULGUIAtlasManager::Instance->GetAtlasMap();
+		auto& AtlasMap = ULGUIDynamicSpriteAtlasManager::Instance->GetAtlasMap();
 		for (auto KeyValue : AtlasMap)
 		{
 			PackingTagOptions.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));

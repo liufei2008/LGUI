@@ -12,7 +12,7 @@
 
 class ULGUISpriteData;
 class UUISpriteBase;
-struct FLGUIAtlasData;
+struct FLGUIDynamicSpriteAtlasData;
 
 #define WARNING_ATLAS_SIZE 4096
 
@@ -26,7 +26,7 @@ class LGUI_API ULGUISpriteData :public ULGUISpriteData_BaseObject
 private:
 	friend class FLGUISpriteDataCustomization;
 	friend class ULGUISpriteDataFactory;
-	friend struct FLGUIAtlasData;
+	friend struct FLGUIDynamicSpriteAtlasData;
 	/**
 	 * Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
 	 * Donot modify spriteTexture's setting unless you know what you doing
@@ -46,7 +46,7 @@ private:
 	bool isInitialized = false;
 	UPROPERTY(Transient)UTexture2D * atlasTexture = nullptr;
 	bool PackageSprite();
-	bool InsertTexture(FLGUIAtlasData* InAtlasData);
+	bool InsertTexture(FLGUIDynamicSpriteAtlasData* InAtlasData);
 	void CheckSpriteTexture();
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture);

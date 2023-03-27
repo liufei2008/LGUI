@@ -5,7 +5,7 @@
 #include "Core/LGUISettings.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Sound/SoundCue.h"
 
@@ -53,9 +53,9 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	DetailBuilder.HideProperty(PackingTagProperty);
 	
 	RefreshNameList(nullptr);
-	if (ULGUIAtlasManager::Instance != nullptr)
+	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
 	{
-		ULGUIAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUISpriteDataCustomization::RefreshNameList, &DetailBuilder);
+		ULGUIDynamicSpriteAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUISpriteDataCustomization::RefreshNameList, &DetailBuilder);
 	}
 	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
 	.NameContent()
@@ -300,9 +300,9 @@ void FLGUISpriteDataCustomization::RefreshNameList(IDetailLayoutBuilder* DetailB
 {
 	NameList.Reset();
 	NameList.Add(MakeShareable(new FName(NAME_None)));
-	if (ULGUIAtlasManager::Instance != nullptr)
+	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
 	{
-		auto& AtlasMap = ULGUIAtlasManager::Instance->GetAtlasMap();
+		auto& AtlasMap = ULGUIDynamicSpriteAtlasManager::Instance->GetAtlasMap();
 		for (auto KeyValue : AtlasMap)
 		{
 			NameList.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));

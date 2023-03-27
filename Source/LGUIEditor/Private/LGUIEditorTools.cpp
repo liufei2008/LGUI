@@ -1324,7 +1324,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 }
 void LGUIEditorTools::OpenAtlasViewer_Impl()
 {
-	FGlobalTabmanager::Get()->TryInvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
+	FGlobalTabmanager::Get()->TryInvokeTab(FLGUIEditorModule::LGUIDynamicSpriteAtlasViewerName);
 }
 void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {

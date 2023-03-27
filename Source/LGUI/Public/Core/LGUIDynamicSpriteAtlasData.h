@@ -6,7 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Engine/Texture2D.h"
-#include "LGUIAtlasData.generated.h"
+#include "LGUIDynamicSpriteAtlasData.generated.h"
 
 
 class ULGUISpriteData;
@@ -14,7 +14,7 @@ class UUISpriteBase;
 
 /** atlas data container */
 USTRUCT()
-struct LGUI_API FLGUIAtlasData
+struct LGUI_API FLGUIDynamicSpriteAtlasData
 {
 	GENERATED_BODY()
 	/** collection of all UISprite whitch use this atlas to render */
@@ -37,7 +37,7 @@ struct LGUI_API FLGUIAtlasData
 
 	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
 	{
-		friend struct FLGUIAtlasData;
+		friend struct FLGUIDynamicSpriteAtlasData;
 	};
 	/** atlas texture size may change when dynamic packing, this event will be called when that happen. */
 	FLGUIAtlasTextureExpendEvent OnTextureSizeExpanded;
@@ -48,22 +48,22 @@ private:
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType)
-class LGUI_API ULGUIAtlasManager :public UObject
+class LGUI_API ULGUIDynamicSpriteAtlasManager :public UObject
 {
 	GENERATED_BODY()
 public:
-	static ULGUIAtlasManager* Instance;
+	static ULGUIDynamicSpriteAtlasManager* Instance;
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		TMap<FName, FLGUIAtlasData> atlasMap;
+		TMap<FName, FLGUIDynamicSpriteAtlasData> atlasMap;
 protected:
 	virtual void BeginDestroy()override;
 	bool isStaticAtlasPacked = false;
 public:
 	static bool InitCheck();
-	const TMap<FName, FLGUIAtlasData>& GetAtlasMap() { return atlasMap; }
-	static FLGUIAtlasData* FindOrAdd(const FName& packingTag);
-	static FLGUIAtlasData* Find(const FName& packingTag);
+	const TMap<FName, FLGUIDynamicSpriteAtlasData>& GetAtlasMap() { return atlasMap; }
+	static FLGUIDynamicSpriteAtlasData* FindOrAdd(const FName& packingTag);
+	static FLGUIDynamicSpriteAtlasData* Find(const FName& packingTag);
 	static void ResetAtlasMap();
 
 	static void PackStaticAtlas();
@@ -76,7 +76,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
 		static void DisposeAtlasByPackingTag(FName inPackingTag);
 
-	DECLARE_EVENT(ULGUIAtlasManager, FLGUIAtlasMapChangeEvent);
+	DECLARE_EVENT(ULGUIDynamicSpriteAtlasManager, FLGUIAtlasMapChangeEvent);
 
 	FLGUIAtlasMapChangeEvent OnAtlasMapChanged;
 };

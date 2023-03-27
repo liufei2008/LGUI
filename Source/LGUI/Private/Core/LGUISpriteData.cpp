@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Core/LGUISettings.h"
 #include "Core/ActorComponent/UISpriteBase.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
@@ -52,7 +52,7 @@ void FLGUISpriteInfo::ApplyBorderUV(float texFullWidthReciprocal, float texFullH
 	buv3Y = uv3Y + borderTop * texFullHeightReciprocal;
 }
 
-bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
+bool ULGUISpriteData::InsertTexture(FLGUIDynamicSpriteAtlasData* InAtlasData)
 {
 #if WITH_EDITOR
 	int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
@@ -225,7 +225,7 @@ bool ULGUISpriteData::PackageSprite()
 {
 	CheckAndApplySpriteTextureSetting(spriteTexture);
 
-	auto atlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
+	auto atlasData = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag);
 	atlasData->EnsureAtlasTexture(packingTag);
 	atlasTexture = atlasData->atlasTexture;
 PACK_AND_INSERT:
@@ -241,7 +241,7 @@ PACK_AND_INSERT:
 		{
 			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
 \nTry reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to split your atlasTexture.\
-\nAlso remember to dispose unused atlas by call function DisposeAtlasByPackingTag from LGUIAtlasManager.\
+\nAlso remember to dispose unused atlas by call function DisposeAtlasByPackingTag from LGUIDynamicSpriteAtlasManager.\
 ")
 				, *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
 			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
@@ -333,7 +333,7 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 }
 void ULGUISpriteData::MarkAllSpritesNeedToReinitialize()
 {
-	ULGUIAtlasManager::ResetAtlasMap();
+	ULGUIDynamicSpriteAtlasManager::ResetAtlasMap();
 	for (TObjectIterator<ULGUISpriteData> SpriteItr; SpriteItr; ++SpriteItr)
 	{
 		SpriteItr->isInitialized = false;
@@ -476,7 +476,7 @@ void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
 	if (!packingTag.IsNone())
 	{
 		InitSpriteData();
-		auto& spriteArray = ULGUIAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
+		auto& spriteArray = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
 		spriteArray.AddUnique(InUISprite);
 	}
 }
@@ -484,7 +484,7 @@ void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
 {
 	if (!packingTag.IsNone())
 	{
-		if (auto spriteData = ULGUIAtlasManager::Find(packingTag))
+		if (auto spriteData = ULGUIDynamicSpriteAtlasManager::Find(packingTag))
 		{
 			spriteData->renderSpriteArray.RemoveSingle(InUISprite);
 		}

@@ -5,7 +5,7 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/LGUISettings.h"
 #include "Utils/LGUIUtils.h"
 #include "TextureResource.h"
@@ -193,7 +193,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 		{
 			if (packingAtlasData == nullptr)
 			{
-				packingAtlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
+				packingAtlasData = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag);
 				packingAtlasTextureExpandDelegateHandle = packingAtlasData->OnTextureSizeExpanded.AddUObject(this, &ULGUIFreeTypeRenderFontData::ApplyPackingAtlasTextureExpand);
 			}
 			packingAtlasData->EnsureAtlasTexture(packingTag);
@@ -222,7 +222,7 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 {
 	alreadyInitialized = false;
 	usePackingTag = false;
-	packingAtlasData = ULGUIAtlasManager::Find(packingTag);
+	packingAtlasData = ULGUIDynamicSpriteAtlasManager::Find(packingTag);
 	if (packingAtlasData != nullptr)
 	{
 		packingAtlasData->OnTextureSizeExpanded.Remove(packingAtlasTextureExpandDelegateHandle);
