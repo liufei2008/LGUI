@@ -111,9 +111,9 @@ public:
 	{
 		return PropertyHandle->IsEditable();
 	}
-	static void DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
-	static UTexture2D* LoadTexture(const FString& IconPath);
+	static void DrawThumbnailIcon(const FString& TextureFullPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
+	static UTexture2D* LoadTexture(const FString& TextureFullPath);
 private:
-	static TMap<FString, UTexture2D*> IconPathToTextureMap;
+	static TMap<FString, UTexture2D*> TexturePathToTextureMap;
 };
 #undef LOCTEXT_NAMESPACE
