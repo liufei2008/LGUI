@@ -8,6 +8,7 @@
 #include "CanvasItem.h"
 #include "CanvasTypes.h"
 #include "LGUIEditorUtils.h"
+#include "Interfaces/IPluginManager.h"
 
 ULGUIPrefabThumbnailRenderer::ULGUIPrefabThumbnailRenderer()
 {
@@ -40,7 +41,8 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 		RenderViewFamily(Canvas, &ViewFamily);
 	}
 	//draw prefab icon
-	LGUIEditorUtils::DrawThumbnailIcon(TEXT("LGUI/Resources/Icons/Prefab_40x.png"), X, Y, Width, Height, Canvas);
+	static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();
+	LGUIEditorUtils::DrawThumbnailIcon(LGUIBasePath + TEXT("/Resources/Icons/Prefab_40x.png"), X, Y, Width, Height, Canvas);
 }
 void ULGUIPrefabThumbnailRenderer::BeginDestroy()
 {

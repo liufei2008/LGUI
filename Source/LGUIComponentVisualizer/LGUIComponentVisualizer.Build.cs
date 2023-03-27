@@ -22,6 +22,7 @@ public class LGUIComponentVisualizer : ModuleRules
                 "SlateCore",
                 "Engine",
                 "UnrealEd",
+                "Projects",
             }
             );
 			

@@ -11,26 +11,20 @@
 
 #define LOCTEXT_NAMESPACE "LGUIEditorUtils"
 
-TMap<FString, UTexture2D*> LGUIEditorUtils::IconPathToTextureMap;
-UTexture2D* LGUIEditorUtils::LoadTexture(const FString& IconPath)
+TMap<FString, UTexture2D*> LGUIEditorUtils::TexturePathToTextureMap;
+UTexture2D* LGUIEditorUtils::LoadTexture(const FString& TextureFullPath)
 {
-	auto LoadSpriteIconTextureFromFile = [IconPath]()
+	auto LoadSpriteIconTextureFromFile = [TextureFullPath]()
 	{
 		UTexture2D* Texture = nullptr;
 
-		auto SpriteIconFullPath = FPaths::Combine(FPaths::ProjectPluginsDir(), IconPath);
-		if (!FPaths::FileExists(SpriteIconFullPath))
-		{
-			SpriteIconFullPath = FPaths::Combine(FPaths::EnginePluginsDir(), IconPath);
-		}
-
-		if (!FPaths::FileExists(*SpriteIconFullPath))
+		if (!FPaths::FileExists(*TextureFullPath))
 		{
 			return Texture;
 		}
 
 		TArray<uint8> CompressedData;
-		if (!FFileHelper::LoadFileToArray(CompressedData, *SpriteIconFullPath))
+		if (!FFileHelper::LoadFileToArray(CompressedData, *TextureFullPath))
 		{
 			return Texture;
 		}
@@ -61,15 +55,15 @@ UTexture2D* LGUIEditorUtils::LoadTexture(const FString& IconPath)
 	};
 
 	UTexture2D* SpriteIconTexture = nullptr;
-	if (!IconPathToTextureMap.Contains(IconPath))
+	if (!TexturePathToTextureMap.Contains(TextureFullPath))
 	{
-		IconPathToTextureMap.Add(IconPath, LoadSpriteIconTextureFromFile());
+		TexturePathToTextureMap.Add(TextureFullPath, LoadSpriteIconTextureFromFile());
 	}
-	return IconPathToTextureMap[IconPath];
+	return TexturePathToTextureMap[TextureFullPath];
 }
-void LGUIEditorUtils::DrawThumbnailIcon(const FString& IconPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
+void LGUIEditorUtils::DrawThumbnailIcon(const FString& TextureFullPath, int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
 {
-	auto SpriteIconTexture = LoadTexture(IconPath);
+	auto SpriteIconTexture = LoadTexture(TextureFullPath);
 	if (SpriteIconTexture != nullptr && SpriteIconTexture->GetResource() != nullptr)
 	{
 		const float Scale = 0.3f;
