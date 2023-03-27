@@ -1,4 +1,4 @@
-﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_CenterScreen.h"
 #include "Engine/LocalPlayer.h"
