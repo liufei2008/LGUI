@@ -5,7 +5,6 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/LGUISettings.h"
 #include "Utils/LGUIUtils.h"
 #include "TextureResource.h"
@@ -176,7 +175,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			}
 		}
 	}
-	
+
 	if (error)
 	{
 		UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, error:%s"), *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
@@ -187,33 +186,18 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 	{
 		UE_LOG(LGUI, Log, TEXT("[InitFreeType]success, font:%s"), *(this->GetName()));
 		alreadyInitialized = true;
-		usePackingTag = !packingTag.IsNone();
 		hasKerning = FT_HAS_KERNING(face) != 0;
-		if (usePackingTag)
-		{
-			if (packingAtlasData == nullptr)
-			{
-				packingAtlasData = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag);
-				packingAtlasTextureExpandDelegateHandle = packingAtlasData->OnTextureSizeExpanded.AddUObject(this, &ULGUIFreeTypeRenderFontData::ApplyPackingAtlasTextureExpand);
-			}
-			packingAtlasData->EnsureAtlasTexture(packingTag);
-			texture = packingAtlasData->atlasTexture;
-			textureSize = texture->GetSizeX();
-			oneDivideTextureSize = 1.0f / textureSize;
-		}
-		else
-		{
-			texture = nullptr;
 
-			textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
-			binPack = rbp::MaxRectsBinPack(rectPackCellSize, rectPackCellSize);
-			if (initialSize != ELGUIAtlasTextureSizeType::SIZE_256x256)
-			{
-				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, rectPackCellSize, false);
-			}
-			RenewFontTexture(0, textureSize);
-			oneDivideTextureSize = 1.0f / textureSize;
+		texture = nullptr;
+		textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
+		binPack = rbp::MaxRectsBinPack(rectPackCellSize, rectPackCellSize);
+		if (initialSize != ELGUIAtlasTextureSizeType::SIZE_256x256)
+		{
+			binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, rectPackCellSize, false);
 		}
+		RenewFontTexture(0, textureSize);
+		oneDivideTextureSize = 1.0f / textureSize;
+
 		ClearCharDataCache();
 	}
 }
@@ -221,13 +205,6 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 {
 	alreadyInitialized = false;
-	usePackingTag = false;
-	packingAtlasData = ULGUIDynamicSpriteAtlasManager::Find(packingTag);
-	if (packingAtlasData != nullptr)
-	{
-		packingAtlasData->OnTextureSizeExpanded.Remove(packingAtlasTextureExpandDelegateHandle);
-		packingAtlasData = nullptr;
-	}
 	if (library != nullptr)
 	{
 		auto error = FT_Done_FreeType(library);
@@ -389,8 +366,8 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 			return Result;
 		}
 
-		auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
-		auto& calcTexture = usePackingTag ? packingAtlasData->atlasTexture : this->texture;
+		auto& calcBinpack = this->binPack;
+		auto& calcTexture = this->texture;
 		FLGUICharData uiCharData;
 	PACK_AND_INSERT:
 		if (PackRectAndInsertChar(glyphBitmap, calcBinpack, calcTexture, uiCharData))
@@ -400,43 +377,32 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 		else
 		{
 			int32 newTextureSize = 0;
-			if (usePackingTag)
+			if (freeRects.Num() > 0)
 			{
-				newTextureSize = packingAtlasData->ExpendTextureSize(packingTag);
-				UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
-				texture = packingAtlasData->atlasTexture;
-				textureSize = newTextureSize;
-				oneDivideTextureSize = 1.0f / textureSize;
+				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
 			}
 			else
 			{
-				if (freeRects.Num() > 0)
-				{
-					calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
-					freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
-				}
-				else
-				{
-					newTextureSize = textureSize + textureSize;
-					UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
-					//expend by multiply 2
-					calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects, rectPackCellSize);
-					calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
-					freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
+				newTextureSize = textureSize + textureSize;
+				UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
+				//expend by multiply 2
+				calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects, rectPackCellSize);
+				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
 
-					RenewFontTexture(textureSize, newTextureSize);
-					textureSize = newTextureSize;
-					oneDivideTextureSize = 1.0f / textureSize;
+				RenewFontTexture(textureSize, newTextureSize);
+				textureSize = newTextureSize;
+				oneDivideTextureSize = 1.0f / textureSize;
 
-					//scale down uv of prev chars
-					ScaleDownUVofCachedChars();
-					//tell UIText to scale down uv
-					for (auto textItem : renderTextArray)
+				//scale down uv of prev chars
+				ScaleDownUVofCachedChars();
+				//tell UIText to scale down uv
+				for (auto textItem : renderTextArray)
+				{
+					if (textItem.IsValid())
 					{
-						if (textItem.IsValid())
-						{
-							textItem->ApplyFontTextureScaleUp();
-						}
+						textItem->ApplyFontTextureScaleUp();
 					}
 				}
 			}
@@ -608,7 +574,6 @@ void ULGUIFreeTypeRenderFontData::PostEditChangeProperty(FPropertyChangedEvent& 
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, useExternalFileOrEmbedInToUAsset)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontFace)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, fontType)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, packingTag)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, lineHeightType)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, unrealFont)
 			)

@@ -12,7 +12,7 @@
 class ULGUISpriteData;
 class UUISpriteBase;
 
-/** atlas data container */
+/** Data container for dyanmically generated sprite atlas */
 USTRUCT()
 struct LGUI_API FLGUIDynamicSpriteAtlasData
 {
