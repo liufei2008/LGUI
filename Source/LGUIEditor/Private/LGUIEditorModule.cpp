@@ -31,7 +31,7 @@
 #include "Thumbnail/LGUISpriteDataBaseObjectThumbnailRenderer.h"
 #include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
-#include "Window/LGUIAtlasViewer.h"
+#include "Window/LGUIDynamicSpriteAtlasViewer.h"
 
 #include "AssetTypeActions/AssetTypeActions_LGUISpriteData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIFontData.h"
@@ -90,7 +90,7 @@
 #include "Editor/UnrealEdEngine.h"
 #include "AssetRegistryModule.h"
 
-const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
+const FName FLGUIEditorModule::LGUIDynamicSpriteAtlasViewerName(TEXT("LGUIDynamicSpriteAtlasViewerName"));
 const FName FLGUIEditorModule::LGUIPrefabSequenceTabName(TEXT("LGUIPrefabSequenceTabName"));
 
 #define LOCTEXT_NAMESPACE "FLGUIEditorModule"
@@ -226,8 +226,8 @@ void FLGUIEditorModule::StartupModule()
 	//register window
 	{
 		//atlas texture viewer
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
-			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIDynamicSpriteAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnDynamicSpriteAtlasViewerTab))
+			.SetDisplayName(LOCTEXT("LGUISpriteAtlasTextureViewerName", "LGUI Sprite Atlas Texture Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIPrefabSequenceTabName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnLGUIPrefabSequenceTab))
 			.SetDisplayName(LOCTEXT("LGUIPrefabSequenceTabName", "LGUI Prefab Sequence"))
@@ -433,7 +433,7 @@ void FLGUIEditorModule::ShutdownModule()
 	}
 	//unregister window
 	{
-		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
+		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIDynamicSpriteAtlasViewerName);
 		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIPrefabSequenceTabName);
 	}
 	//unregister custom editor
@@ -577,10 +577,10 @@ void FLGUIEditorModule::CheckPrefabOverrideDataViewerEntry()
 	;
 }
 
-TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs)
+TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnDynamicSpriteAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
-	auto TabContentWidget = SNew(SLGUIAtlasViewer, ResultTab);
+	auto TabContentWidget = SNew(SLGUIDynamicSpriteAtlasViewer, ResultTab);
 	ResultTab->SetContent(TabContentWidget);
 	return ResultTab;
 }

@@ -1,18 +1,18 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Window/LGUIAtlasViewer.h"
+#include "Window/LGUIDynamicSpriteAtlasViewer.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Core/ActorComponent/UISpriteBase.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "LGUIEditorModule.h"
 #include "ISinglePropertyView.h"
 
-#define LOCTEXT_NAMESPACE "LGUIAtlasViewer"
+#define LOCTEXT_NAMESPACE "LGUIDynamicSpriteAtlasViewer"
 
-void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> InOwnerTab)
+void SLGUIDynamicSpriteAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> InOwnerTab)
 {
-	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIAtlasViewer::CloseTabCallback));
-	if (ULGUIAtlasManager::Instance != nullptr)
+	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIDynamicSpriteAtlasViewer::CloseTabCallback));
+	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
 	{
 		FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		FDetailsViewArgs DetailsViewArgs;
@@ -28,7 +28,7 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 		//Property->SetObject(ULGUIAtlasManager::Instance);
 
 		TSharedPtr<IDetailsView> DescriptorDetailView = EditModule.CreateDetailView(DetailsViewArgs);
-		DescriptorDetailView->SetObject(ULGUIAtlasManager::Instance);
+		DescriptorDetailView->SetObject(ULGUIDynamicSpriteAtlasManager::Instance);
 
 		ChildSlot
 			[
@@ -52,7 +52,7 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 	}
 }
 
-void SLGUIAtlasViewer::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
+void SLGUIDynamicSpriteAtlasViewer::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
 	
 }
