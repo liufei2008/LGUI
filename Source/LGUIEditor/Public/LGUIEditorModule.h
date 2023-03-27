@@ -18,7 +18,7 @@ class FLGUIEditorModule : public IModuleInterface, public FGCObject
 {
 public:
 
-	static const FName LGUIAtlasViewerName;
+	static const FName LGUIDynamicSpriteAtlasViewerName;
 	static const FName LGUIPrefabSequenceTabName;
 
 	/** IModuleInterface implementation */
@@ -68,7 +68,7 @@ private:
 	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
 	TWeakObjectPtr<class ULGUIPrefabHelperObject> CurrentPrefabHelperObject;
 private:
-	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
+	TSharedRef<SDockTab> HandleSpawnDynamicSpriteAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnLGUIPrefabSequenceTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;

@@ -133,7 +133,7 @@ protected:
 		TArray<uint8> fontBinaryArray;
 	/** temp array for storing font binary data, because freetype need to load font from it so we need keep it alive */
 	TArray<uint8> tempFontBinaryArray;
-	struct FLGUIAtlasData* packingAtlasData = nullptr;
+	struct FLGUIDynamicSpriteAtlasData* packingAtlasData = nullptr;
 	FDelegateHandle packingAtlasTextureExpandDelegateHandle;
 
 	/** for rect packing */
