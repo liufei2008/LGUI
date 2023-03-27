@@ -28,12 +28,4 @@ private:
 
 	FText GetCurrentValue() const;
 	void OnFontFaceComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle);
-	void OnFontFaceComboMenuOpening();
-
-	void OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
-	FText GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const;
-	TSharedRef<ITableRow> PackingTagOptions_GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable, IDetailLayoutBuilder* DetailBuilder);
-	void PackingTagOptions_OnComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
-	TArray<TSharedPtr<FName>> PackingTagOptions;
-	void RefreshNameList(IDetailLayoutBuilder* DetailBuilder);
 };

@@ -74,12 +74,6 @@ protected:
 	//	TScriptInterface<class UFontFaceInterface> test;
 	
 	/**
-	 * Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
-	 * This can be very useful to reduce drawcall.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName packingTag;
-	/**
 	 * when packing char pixel into one single atlas texture, we will use this size to create a blank texture, then insert char pixel. if texture is full(cannot insert anymore), a new larger texture will be created.
 	 * if initialSize is too small, some lag or freeze may happen when creating new texture.
 	 * if initialSize is too big, it is not much efficient to sample very big texture on GPU.
@@ -133,7 +127,6 @@ protected:
 		TArray<uint8> fontBinaryArray;
 	/** temp array for storing font binary data, because freetype need to load font from it so we need keep it alive */
 	TArray<uint8> tempFontBinaryArray;
-	struct FLGUIDynamicSpriteAtlasData* packingAtlasData = nullptr;
 	FDelegateHandle packingAtlasTextureExpandDelegateHandle;
 
 	/** for rect packing */
@@ -160,7 +153,6 @@ protected:
 		TArray<FString> subFaces;
 #endif
 	bool alreadyInitialized = false;
-	bool usePackingTag = false;
 
 	struct FGlyphBitmap
 	{

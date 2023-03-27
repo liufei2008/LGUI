@@ -170,108 +170,11 @@ void FLGUIFreeTypeRenderFontDataCustomization::CustomizeDetails(IDetailLayoutBui
 			]
 		]
 		;
-	//packing tag
-	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIFreeTypeRenderFontData, packingTag));
-	DetailBuilder.HideProperty(PackingTagProperty);
-	RefreshNameList(nullptr);
-	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
-	{
-		ULGUIDynamicSpriteAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUIFreeTypeRenderFontDataCustomization::RefreshNameList, &DetailBuilder);
-	}
-	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
-	.NameContent()
-	[
-		PackingTagProperty->CreatePropertyNameWidget()
-	]
-	.ValueContent()
-	[
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SBox)
-			.MinDesiredWidth(120)
-			.Padding(FMargin(0, 2, 0, 2))
-			[
-				//PackingTagProperty->CreatePropertyValueWidget()
-				SNew(SComboButton)
-				.HasDownArrow(true)
-				.ButtonContent()
-				[
-					SNew(SHorizontalBox)
-					+SHorizontalBox::Slot()
-					[
-						SNew(SEditableText)
-						.OnTextCommitted(this, &FLGUIFreeTypeRenderFontDataCustomization::OnPackingTagTextCommited, PackingTagProperty, &DetailBuilder)
-						.Text(this, &FLGUIFreeTypeRenderFontDataCustomization::GetPackingTagText, PackingTagProperty)
-						.Font(DetailBuilder.GetDetailFont())
-					]
-				]
-				.MenuContent()
-				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						SNew(SListView<TSharedPtr<FName>>)
-						.ListItemsSource(&PackingTagOptions)
-						.OnGenerateRow(this, &FLGUIFreeTypeRenderFontDataCustomization::PackingTagOptions_GenerateComboItem, &DetailBuilder)
-						.OnSelectionChanged(this, &FLGUIFreeTypeRenderFontDataCustomization::PackingTagOptions_OnComboChanged, PackingTagProperty, &DetailBuilder)
-					]
-				]
-			]
-		]
-		+SHorizontalBox::Slot()
-		.Padding(FMargin(2))
-		.AutoWidth()
-		[
-			TargetScriptPtr->packingTag.IsNone() 
-			?
-			SNew(SBox)
-			:
-			SNew(SBox)
-			[
-			SNew(SButton)
-			.VAlign(EVerticalAlignment::VAlign_Center)
-			.Text(LOCTEXT("OpenAtals", "Open Atals Viewer"))
-			.OnClicked_Lambda([]() {
-			LGUIEditorTools::OpenAtlasViewer_Impl();
-			return FReply::Handled();
-				})
-			]
-		]
-	]
-	;
 
 	for (auto& propertyName : propertiesNeedToHide)
 	{
 		DetailBuilder.HideProperty(propertyName);
 	}
-}
-
-void FLGUIFreeTypeRenderFontDataCustomization::RefreshNameList(IDetailLayoutBuilder* DetailBuilder)
-{
-	PackingTagOptions.Reset();
-	PackingTagOptions.Add(MakeShareable(new FName(NAME_None)));
-	if (ULGUIDynamicSpriteAtlasManager::Instance != nullptr)
-	{
-		auto& AtlasMap = ULGUIDynamicSpriteAtlasManager::Instance->GetAtlasMap();
-		for (auto KeyValue : AtlasMap)
-		{
-			PackingTagOptions.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));
-		}
-	}
-	if (DetailBuilder != nullptr)
-	{
-		DetailBuilder->ForceRefreshDetails();
-	}
-}
-
-void FLGUIFreeTypeRenderFontDataCustomization::OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
-{
-	FName packingTag = FName(InText.ToString());
-	InProperty->SetValue(packingTag);
-	DetailBuilder->ForceRefreshDetails();
 }
 
 FText FLGUIFreeTypeRenderFontDataCustomization::FontFaceOptions_GetCurrentFace()const
@@ -307,33 +210,6 @@ void FLGUIFreeTypeRenderFontDataCustomization::FontFaceOptions_OnComboChanged(TS
 	}
 }
 
-TSharedRef<ITableRow> FLGUIFreeTypeRenderFontDataCustomization::PackingTagOptions_GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable, IDetailLayoutBuilder* DetailBuilder)
-{
-	return SNew(STableRow<TSharedPtr<FName>>, OwnerTable)
-		[
-			SNew(SBox)
-			.Padding(FMargin(8, 2))
-			[
-				SNew(STextBlock)
-				.Font(DetailBuilder->GetDetailFont())
-				.Text(FText::FromName(*InItem))
-			]
-		];
-}
-
-void FLGUIFreeTypeRenderFontDataCustomization::PackingTagOptions_OnComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
-{
-	InProperty->SetValue(*Item.Get());
-	DetailBuilder->ForceRefreshDetails();
-}
-
-FText FLGUIFreeTypeRenderFontDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const
-{
-	FName packingTag;
-	InProperty->GetValue(packingTag);
-	return FText::FromName(packingTag);
-}
-
 FText FLGUIFreeTypeRenderFontDataCustomization::OnGetFontFilePath()const
 {
 	auto& fileManager = IFileManager::Get();
@@ -356,25 +232,6 @@ void FLGUIFreeTypeRenderFontDataCustomization::OnFontFaceComboSelectionChanged(T
 		}
 	}
 	fontFaceHandle->SetValue(selectedIndex);
-}
-void FLGUIFreeTypeRenderFontDataCustomization::OnFontFaceComboMenuOpening()
-{
-	//int32 CurrentNameIndex = TargetScriptPtr->fontFace;
-	//TSharedPtr<int32> FoundNameIndexItem;
-	//for (int32 i = 0; i < VisibleEnumNameIndices.Num(); i++)
-	//{
-	//	if (*VisibleEnumNameIndices[i] == CurrentNameIndex)
-	//	{
-	//		FoundNameIndexItem = VisibleEnumNameIndices[i];
-	//		break;
-	//	}
-	//}
-	//if (FoundNameIndexItem.IsValid())
-	//{
-	//	bUpdatingSelectionInternally = true;
-	//	SetSelectedItem(FoundNameIndexItem);
-	//	bUpdatingSelectionInternally = false;
-	//}
 }
 
 void FLGUIFreeTypeRenderFontDataCustomization::OnPathTextChanged(const FString& InString, TSharedRef<IPropertyHandle> InPathProperty)
