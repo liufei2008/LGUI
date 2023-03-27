@@ -1,4 +1,4 @@
-﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
