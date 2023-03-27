@@ -10,10 +10,10 @@
 /**
  * 
  */
-class SLGUIAtlasViewer : public SCompoundWidget
+class SLGUIDynamicSpriteAtlasViewer : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SLGUIAtlasViewer) {}
+	SLATE_BEGIN_ARGS(SLGUIDynamicSpriteAtlasViewer) {}
 	
 	SLATE_END_ARGS()
 

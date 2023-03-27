@@ -3,7 +3,7 @@
 #include "Core/LGUISettings.h"
 #include "LGUI.h"
 #include "Core/LGUISpriteData.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 
 #if WITH_EDITOR
 float ULGUISettings::CacheAutoBatchThreshold = -1;
@@ -18,7 +18,7 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			)
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
-			ULGUIAtlasManager::InitCheck();
+			ULGUIDynamicSpriteAtlasManager::InitCheck();
 		}
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, AutoBatchThreshold))
 		{

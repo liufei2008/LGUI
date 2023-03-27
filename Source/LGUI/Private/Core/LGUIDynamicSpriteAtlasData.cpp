@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "LGUI.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -10,7 +10,7 @@
 #include "Rendering/Texture2DResource.h"
 
 
-void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
+void FLGUIDynamicSpriteAtlasData::EnsureAtlasTexture(const FName& packingTag)
 {
 	if (!IsValid(atlasTexture))
 	{
@@ -23,7 +23,7 @@ void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
 		CreateAtlasTexture(packingTag, 0, defaultAtlasTextureSize);
 	}
 }
-void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize)
+void FLGUIDynamicSpriteAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize)
 {
 #if WITH_EDITOR
 	bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
@@ -66,7 +66,7 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 		}
 	}
 }
-int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
+int32 FLGUIDynamicSpriteAtlasData::ExpendTextureSize(const FName& packingTag)
 {
 	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
 	int32 newTextureSize = oldTextureSize + oldTextureSize;
@@ -99,12 +99,12 @@ int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 
 	return newTextureSize;
 }
-int32 FLGUIAtlasData::GetWillExpendTextureSize()const
+int32 FLGUIDynamicSpriteAtlasData::GetWillExpendTextureSize()const
 {
 	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
 	return oldTextureSize + oldTextureSize;
 }
-bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
+bool FLGUIDynamicSpriteAtlasData::StaticPacking(const FName& packingTag)
 {
 	bool canPack = true;
 	for (int i = 0; i < spriteDataArray.Num(); i++)
@@ -383,7 +383,7 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 	this->atlasTexture = texture;
 	return true;
 }
-bool FLGUIAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32 spaceBetweenSprites)
+bool FLGUIDynamicSpriteAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32 spaceBetweenSprites)
 {
 	result.Reset();
 	result.AddDefaulted(spriteDataArray.Num());
@@ -416,12 +416,12 @@ bool FLGUIAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32
 	return true;
 }
 
-ULGUIAtlasManager* ULGUIAtlasManager::Instance = nullptr;
-bool ULGUIAtlasManager::InitCheck()
+ULGUIDynamicSpriteAtlasManager* ULGUIDynamicSpriteAtlasManager::Instance = nullptr;
+bool ULGUIDynamicSpriteAtlasManager::InitCheck()
 {
 	if (Instance == nullptr)
 	{
-		Instance = NewObject<ULGUIAtlasManager>();
+		Instance = NewObject<ULGUIDynamicSpriteAtlasManager>();
 		Instance->AddToRoot();
 	}
 	if (!Instance->isStaticAtlasPacked)
@@ -431,7 +431,7 @@ bool ULGUIAtlasManager::InitCheck()
 	}
 	return true;
 }
-void ULGUIAtlasManager::BeginDestroy()
+void ULGUIDynamicSpriteAtlasManager::BeginDestroy()
 {
 	ResetAtlasMap();
 #if WITH_EDITOR
@@ -441,7 +441,7 @@ void ULGUIAtlasManager::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-FLGUIAtlasData* ULGUIAtlasManager::FindOrAdd(const FName& packingTag)
+FLGUIDynamicSpriteAtlasData* ULGUIDynamicSpriteAtlasManager::FindOrAdd(const FName& packingTag)
 {
 	if (InitCheck())
 	{
@@ -458,7 +458,7 @@ FLGUIAtlasData* ULGUIAtlasManager::FindOrAdd(const FName& packingTag)
 	}
 	return nullptr;
 }
-FLGUIAtlasData* ULGUIAtlasManager::Find(const FName& packingTag)
+FLGUIDynamicSpriteAtlasData* ULGUIDynamicSpriteAtlasManager::Find(const FName& packingTag)
 {
 	if (Instance != nullptr)
 	{
@@ -466,7 +466,7 @@ FLGUIAtlasData* ULGUIAtlasManager::Find(const FName& packingTag)
 	}
 	return nullptr;
 }
-void ULGUIAtlasManager::ResetAtlasMap()
+void ULGUIDynamicSpriteAtlasManager::ResetAtlasMap()
 {
 	if (Instance != nullptr)
 	{
@@ -486,7 +486,7 @@ void ULGUIAtlasManager::ResetAtlasMap()
 		}
 	}
 }
-void ULGUIAtlasManager::PackStaticAtlas()
+void ULGUIDynamicSpriteAtlasManager::PackStaticAtlas()
 {
 #if 0
 	auto& allAtlasSettings = ULGUISettings::GetAllAtlasSettings();
@@ -511,7 +511,7 @@ void ULGUIAtlasManager::PackStaticAtlas()
 				{
 					if (staticPackingTagArray.Contains(packingTag))
 					{
-						FLGUIAtlasData* atlasData = FindOrAdd(packingTag);
+						FLGUIDynamicSpriteAtlasData* atlasData = FindOrAdd(packingTag);
 						atlasData->spriteDataArray.Add(spriteDataItem);
 					}
 				}
@@ -526,7 +526,7 @@ void ULGUIAtlasManager::PackStaticAtlas()
 #endif
 }
 
-void ULGUIAtlasManager::DisposeAtlasByPackingTag(FName inPackingTag)
+void ULGUIDynamicSpriteAtlasManager::DisposeAtlasByPackingTag(FName inPackingTag)
 {
 	if (Instance != nullptr)
 	{

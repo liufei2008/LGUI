@@ -22,7 +22,7 @@
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/LGUIFreeTypeRenderFontData.h"
-#include "Core/LGUIAtlasData.h"
+#include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUISpriteInfo.h"
 #include "Core/LGUISpriteData_BaseObject.h"
