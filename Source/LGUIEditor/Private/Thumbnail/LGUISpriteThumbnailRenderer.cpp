@@ -10,6 +10,7 @@
 #include "EditorStyleSet.h"
 #include "CanvasTypes.h"
 #include "LGUIEditorUtils.h"
+#include "Interfaces/IPluginManager.h"
 
 ULGUISpriteThumbnailRenderer::ULGUISpriteThumbnailRenderer()
 {
@@ -73,7 +74,8 @@ void ULGUISpriteThumbnailRenderer::DrawFrame(class ULGUISpriteData* Sprite, int3
 		DrawGrid(X, Y, Width, Height, Canvas);
 	}
 	//draw sprite icon
-	LGUIEditorUtils::DrawThumbnailIcon(TEXT("LGUI/Resources/Icons/UISprite_40x.png"), X, Y, Width, Height, Canvas);
+	static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();
+	LGUIEditorUtils::DrawThumbnailIcon(LGUIBasePath + TEXT("/Resources/Icons/UISprite_40x.png"), X, Y, Width, Height, Canvas);
 }
 void ULGUISpriteThumbnailRenderer::DrawGrid(int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas)
 {
