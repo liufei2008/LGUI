@@ -18,13 +18,12 @@ class LGUI_API ULGUIStaticSpriteAtlasData :public UObject
 	GENERATED_BODY()
 private:
 	friend class FLGUIStaticSpriteAtlasDataCustomization;
-	static uint32 TextureNameSufix;
-#if WITH_EDITORONLY_DATA
 	/** whether or not use srgb for generate atlas texture */
 	UPROPERTY(EditAnywhere, Category = "Atlas-Setting")
 		bool atlasTextureUseSRGB = true;
 	UPROPERTY(EditAnywhere, Category = "Atlas-Setting")
 		TEnumAsByte<TextureFilter> atlasTextureFilter = TextureFilter::TF_Trilinear;
+#if WITH_EDITORONLY_DATA
 	/** space between two sprites when package into atlas */
 	UPROPERTY(EditAnywhere, Category = "Atlas-Setting")
 		int32 spaceBetweenSprites = 2;
@@ -47,8 +46,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
 		TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 #endif
-	/** Store mip data, so we can recreate atlas texture use this data. */
-	UPROPERTY()
+	/**
+	 * Store mip data, so we can recreate atlas texture with this data.
+	 * @todo: Actually I want to save this only in cook time (reduce editor asset size), but I can't get texutre's pixel data in cook time.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		TArray<uint8> textureMipData;
 	UPROPERTY()
 		uint32 textureSize;
@@ -61,15 +63,17 @@ public:
 	void RemoveRenderSprite(UUISpriteBase* InSprite);
 	void ClearRenderSprite();
 	bool PackAtlas();
-	bool InitCheck();
 	void MarkNotInitialized();
+
+	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
+	virtual void WillNeverCacheCookedPlatformDataAgain()override;
+	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 private:
 	bool PackAtlasTest(uint32 size, TArray<rbp::Rect>& result);
 #endif
 private:
 	bool bIsInitialized = false;
 public:
+	bool InitCheck();
 	UTexture2D* GetAtlasTexture();
-	DECLARE_EVENT(ULGUIStaticSpriteAtlasData, FLGUIAtlasMapChangeEvent);
-	FLGUIAtlasMapChangeEvent OnAtlasMapChanged;
 };
