@@ -5,6 +5,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUIDynamicSpriteAtlasData.h"
+#include "Core/LGUIStaticSpriteAtlasData.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
@@ -62,6 +63,9 @@ bool ULGUISpriteData::InsertTexture(FLGUIDynamicSpriteAtlasData* InAtlasData)
 	float atlasTextureSizeInv = 1.0f / InAtlasData->atlasTexture->GetSizeX();
 
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
+#if WITH_EDITOR
+	FTextureCompilingManager::Get().FinishCompilation({ spriteTexture });
+#endif
 	int insertRectWidth = spriteTexture->GetSizeX() + spaceBetweenSprites + spaceBetweenSprites;
 	int insertRectHeight = spriteTexture->GetSizeY() + spaceBetweenSprites + spaceBetweenSprites;
 
@@ -272,10 +276,8 @@ void ULGUISpriteData::CheckSpriteTexture()
 	}
 }
 
-void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture)
+void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv)
 {
-	this->atlasTexture = InAtlasTexture;
-	isInitialized = true;
 	spriteInfo.ApplyUV(InPackedRect.x, InPackedRect.y, InPackedRect.width, InPackedRect.height, InAtlasTextureSizeInv, InAtlasTextureSizeInv);
 	spriteInfo.ApplyBorderUV(InAtlasTextureSizeInv, InAtlasTextureSizeInv);
 }
@@ -292,11 +294,14 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 			if (spriteTexture != nullptr)
 			{
 				CheckAndApplySpriteTextureSetting(spriteTexture);
+#if WITH_EDITOR
+				FTextureCompilingManager::Get().FinishCompilation({ spriteTexture });
+#endif
 				spriteInfo.width = spriteTexture->GetSizeX();
 				spriteInfo.height = spriteTexture->GetSizeY();
 			}
 		}
-		if (
+		else if (
 			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderLeft) ||
 			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderRight) ||
 			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderTop) ||
@@ -306,6 +311,9 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 			//sprite data, apply border
 			if (spriteTexture != nullptr)
 			{
+#if WITH_EDITOR
+				FTextureCompilingManager::Get().FinishCompilation({ spriteTexture });
+#endif
 				spriteInfo.width = spriteTexture->GetSizeX();
 				spriteInfo.height = spriteTexture->GetSizeY();
 				if (isInitialized)
@@ -315,15 +323,19 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 				}
 			}
 		}
-		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag))
+		else if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag))
 		{
 			this->ReloadTexture();
 		}
-		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture))
+		else if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture))
 		{
 			this->ReloadTexture();
 		}
-		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding))
+		else if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding))
+		{
+			this->ReloadTexture();
+		}
+		else if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingAtlas))
 		{
 			this->ReloadTexture();
 		}
@@ -361,10 +373,18 @@ void ULGUISpriteData::ReloadTexture()
 {
 	isInitialized = false;
 
+	if (IsValid(packingAtlas))
+	{
+		packingAtlas->MarkNotInitialized();
+	}
+
+#if WITH_EDITOR
+	FTextureCompilingManager::Get().FinishCompilation({ spriteTexture });
+#endif
 	atlasTexture = spriteTexture;
-	float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
-	float atlasTextureHeightInv = 1.0f / atlasTexture->GetSurfaceHeight();
-	spriteInfo.ApplyUV(0, 0, atlasTexture->GetSurfaceWidth(), atlasTexture->GetSurfaceHeight(), atlasTextureWidthInv, atlasTextureHeightInv);
+	float atlasTextureWidthInv = 1.0f / atlasTexture->GetSizeX();
+	float atlasTextureHeightInv = 1.0f / atlasTexture->GetSizeY();
+	spriteInfo.ApplyUV(0, 0, atlasTexture->GetSizeX(), atlasTexture->GetSizeY(), atlasTextureWidthInv, atlasTextureHeightInv);
 	spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 }
 
@@ -372,6 +392,19 @@ void ULGUISpriteData::InitSpriteData()
 {
 	if (!isInitialized)
 	{
+		if (IsValid(packingAtlas))
+		{
+			if (packingAtlas->InitCheck())
+			{
+				atlasTexture = packingAtlas->GetAtlasTexture();
+				//no need to set spriteInfo because it is already set when do static pack
+				return;
+			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData] PackingAtlas:%s pack error, will fallback to use PackingTag!"), *(packingAtlas->GetPathName()));
+			}
+		}
 		if (spriteTexture == nullptr)
 		{
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
@@ -397,9 +430,9 @@ void ULGUISpriteData::InitSpriteData()
 		else//no need to pack to atlas, so spriteTextire self is the atlas
 		{
 			atlasTexture = spriteTexture;
-			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
-			float atlasTextureHeightInv = 1.0f / atlasTexture->GetSurfaceHeight();
-			//spriteInfo.ApplyUV(0, 0, atlasTexture->GetSurfaceWidth(), atlasTexture->GetSurfaceHeight(), atlasTextureWidthInv, atlasTextureHeightInv);
+			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSizeX();
+			float atlasTextureHeightInv = 1.0f / atlasTexture->GetSizeY();
+			//spriteInfo.ApplyUV(0, 0, atlasTexture->GetSizeX(), atlasTexture->GetSizeY(), atlasTextureWidthInv, atlasTextureHeightInv);
 			spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 			isInitialized = true;
 		}
@@ -419,7 +452,7 @@ const FLGUISpriteInfo& ULGUISpriteData::GetSpriteInfo()
 
 bool ULGUISpriteData::IsIndividual()const
 {
-	return packingTag.IsNone();
+	return !IsValid(packingAtlas) && packingTag.IsNone();
 }
 
 bool ULGUISpriteData::HavePackingTag()const
@@ -443,7 +476,7 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 	{
 		int32 atlasPadding = 0;
 		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
-		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceHeight() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
+		if (inSpriteTexture->GetSizeX() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSizeY() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
 			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::CreateLGUISpriteData]Target texture width or height is too large! Consider use UITexture to render this texture."));
 			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
@@ -461,8 +494,8 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 	{
 		result->spriteTexture = inSpriteTexture;
 		auto& spriteInfo = result->spriteInfo;
-		spriteInfo.width = inSpriteTexture->GetSurfaceWidth();
-		spriteInfo.height = inSpriteTexture->GetSurfaceHeight();
+		spriteInfo.width = inSpriteTexture->GetSizeX();
+		spriteInfo.height = inSpriteTexture->GetSizeY();
 		spriteInfo.borderLeft = (uint16)inHorizontalBorder.X;
 		spriteInfo.borderRight = (uint16)inHorizontalBorder.Y;
 		spriteInfo.borderTop = (uint16)inVerticalBorder.X;
@@ -473,7 +506,15 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 
 void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
 {
-	if (!packingTag.IsNone())
+	if (IsValid(packingAtlas))
+	{
+		InitSpriteData();
+#if WITH_EDITOR
+		//packingAtlas only need to collect sprite in editor
+		packingAtlas->AddRenderSprite(InUISprite);
+#endif
+	}
+	else if (!packingTag.IsNone())
 	{
 		InitSpriteData();
 		auto& spriteArray = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
@@ -482,7 +523,14 @@ void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
 }
 void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
 {
-	if (!packingTag.IsNone())
+	if (IsValid(packingAtlas))
+	{
+#if WITH_EDITOR
+		//packingAtlas only need to collect sprite in editor
+		packingAtlas->RemoveRenderSprite(InUISprite);
+#endif
+	}
+	else if (!packingTag.IsNone())
 	{
 		if (auto spriteData = ULGUIDynamicSpriteAtlasManager::Find(packingTag))
 		{

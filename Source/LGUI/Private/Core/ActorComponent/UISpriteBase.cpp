@@ -36,6 +36,19 @@ void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
+void UUISpriteBase::ApplyAtlasTextureChange()
+{
+	geometry->texture = sprite->GetAtlasTexture();
+	if (RenderCanvas.IsValid())
+	{
+		if (drawcall.IsValid())
+		{
+			drawcall->Texture = geometry->texture;
+			drawcall->bTextureChanged = true;
+		}
+	}
+	MarkCanvasUpdate(true, true, false);
+}
 void UUISpriteBase::ApplyAtlasTextureScaleUp()
 {
 	auto& vertices = geometry->vertices;

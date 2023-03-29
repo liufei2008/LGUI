@@ -18,7 +18,7 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 {
 	GENERATED_BODY()
 	/** collection of all UISprite whitch use this atlas to render */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 	/** atlasTexture is the real texture for render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
@@ -34,6 +34,7 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	/** create a new texture with size * 2 */
 	int32 ExpendTextureSize(const FName& packingTag);
 	int32 GetWillExpendTextureSize()const;
+	void ClearRenderSprite(const FName& packingTag);
 
 	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
 	{
@@ -41,10 +42,6 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	};
 	/** atlas texture size may change when dynamic packing, this event will be called when that happen. */
 	FLGUIAtlasTextureExpendEvent OnTextureSizeExpanded;
-
-	bool StaticPacking(const FName& packingTag);
-private:
-	bool PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32 spaceBetweenSprites);
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -58,15 +55,12 @@ private:
 		TMap<FName, FLGUIDynamicSpriteAtlasData> atlasMap;
 protected:
 	virtual void BeginDestroy()override;
-	bool isStaticAtlasPacked = false;
 public:
 	static bool InitCheck();
 	const TMap<FName, FLGUIDynamicSpriteAtlasData>& GetAtlasMap() { return atlasMap; }
 	static FLGUIDynamicSpriteAtlasData* FindOrAdd(const FName& packingTag);
 	static FLGUIDynamicSpriteAtlasData* Find(const FName& packingTag);
 	static void ResetAtlasMap();
-
-	static void PackStaticAtlas();
 
 	/**
 	 * Dispose and release atlas by packingTag.
