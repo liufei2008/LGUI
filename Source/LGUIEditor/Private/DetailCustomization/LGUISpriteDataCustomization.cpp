@@ -54,15 +54,15 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	auto PackingAtlasProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingAtlas));
 	atlasPackingCategory.AddProperty(PackingAtlasProperty);
 	PackingAtlasProperty->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
-		if (IsValid(TargetScriptPtr->packingAtlas))
+		if (IsValid(TargetScriptPtr->GetPackingAtlas()))
 		{
-			TargetScriptPtr->packingAtlas->RemoveSpriteData(TargetScriptPtr.Get());
+			TargetScriptPtr->GetPackingAtlas()->RemoveSpriteData(TargetScriptPtr.Get());
 		}
 		}));
 	PackingAtlasProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
-		if (IsValid(TargetScriptPtr->packingAtlas))
+		if (IsValid(TargetScriptPtr->GetPackingAtlas()))
 		{
-			TargetScriptPtr->packingAtlas->AddSpriteData(TargetScriptPtr.Get());
+			TargetScriptPtr->GetPackingAtlas()->AddSpriteData(TargetScriptPtr.Get());
 		}
 		CheckInvalidRenderSpriteInAtlas();
 		TargetScriptPtr->InitSpriteData();
@@ -83,52 +83,58 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	]
 	.ValueContent()
 	[
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.AutoWidth()
+		SNew(SBox)
+		.IsEnabled_Lambda([=] {
+			return !IsValid(TargetScriptPtr->GetPackingAtlas());
+			})
 		[
-			SNew(SBox)
-			.MinDesiredWidth(120)
-			.Padding(FMargin(0, 2, 0, 2))
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.AutoWidth()
 			[
-				//PackingTagProperty->CreatePropertyValueWidget()
-				SNew(SComboButton)
-				.HasDownArrow(true)
-				.ButtonContent()
+				SNew(SBox)
+				.MinDesiredWidth(120)
+				.Padding(FMargin(0, 2, 0, 2))
 				[
-					SNew(SHorizontalBox)
-					+SHorizontalBox::Slot()
+					//PackingTagProperty->CreatePropertyValueWidget()
+					SNew(SComboButton)
+					.HasDownArrow(true)
+					.ButtonContent()
 					[
-						SNew(SEditableText)
-						.OnTextCommitted(this, &FLGUISpriteDataCustomization::OnPackingTagTextCommited, PackingTagProperty, &DetailBuilder)
-						.Text(this, &FLGUISpriteDataCustomization::GetPackingTagText, PackingTagProperty)
+						SNew(SHorizontalBox)
+						+SHorizontalBox::Slot()
+						[
+							SNew(SEditableText)
+							.OnTextCommitted(this, &FLGUISpriteDataCustomization::OnPackingTagTextCommited, PackingTagProperty, &DetailBuilder)
+							.Text(this, &FLGUISpriteDataCustomization::GetPackingTagText, PackingTagProperty)
+						]
 					]
-				]
-				.MenuContent()
-				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
+					.MenuContent()
 					[
-						SNew(SListView<TSharedPtr<FName>>)
-						.ListItemsSource(&NameList)
-						.OnGenerateRow(this, &FLGUISpriteDataCustomization::GenerateComboItem)
-						.OnSelectionChanged(this, &FLGUISpriteDataCustomization::HandleRequiredParamComboChanged, PackingTagProperty, &DetailBuilder)
+						SNew(SVerticalBox)
+						+SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(SListView<TSharedPtr<FName>>)
+							.ListItemsSource(&NameList)
+							.OnGenerateRow(this, &FLGUISpriteDataCustomization::GenerateComboItem)
+							.OnSelectionChanged(this, &FLGUISpriteDataCustomization::HandleRequiredParamComboChanged, PackingTagProperty, &DetailBuilder)
+						]
 					]
 				]
 			]
-		]
-		+SHorizontalBox::Slot()
-		.Padding(FMargin(2))
-		.AutoWidth()
-		[
-			SNew(SButton)
-			.VAlign(EVerticalAlignment::VAlign_Center)
-			.Text(LOCTEXT("OpenAtals", "Open Atals Viewer"))
-			.OnClicked_Lambda([]() {
-			LGUIEditorTools::OpenAtlasViewer_Impl();
-			return FReply::Handled();
-				})
+			+SHorizontalBox::Slot()
+			.Padding(FMargin(2))
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				.Text(LOCTEXT("OpenAtals", "Open Atals Viewer"))
+				.OnClicked_Lambda([]() {
+				LGUIEditorTools::OpenAtlasViewer_Impl();
+				return FReply::Handled();
+					})
+			]
 		]
 	]
 	;
