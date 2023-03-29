@@ -333,6 +333,19 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
+bool ULGUISpriteData::CanEditChange(const FProperty* InProperty) const
+{
+	if (InProperty)
+	{
+		FString PropertyName = InProperty->GetName();
+
+		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUISpriteData, packingTag))
+		{
+			return IsValid(packingAtlas);
+		}
+	}
+	return Super::CanEditChange(InProperty);
+}
 void ULGUISpriteData::MarkAllSpritesNeedToReinitialize()
 {
 	ULGUIDynamicSpriteAtlasManager::ResetAtlasMap();
@@ -363,10 +376,12 @@ void ULGUISpriteData::ReloadTexture()
 {
 	isInitialized = false;
 
+#if WITH_EDITOR
 	if (IsValid(packingAtlas))
 	{
 		packingAtlas->MarkNotInitialized();
 	}
+#endif
 
 	atlasTexture = spriteTexture;
 	float atlasTextureWidthInv = 1.0f / atlasTexture->GetSizeX();

@@ -8,8 +8,6 @@
 
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
 
-uint32 ULGUIStaticSpriteAtlasData::TextureNameSufix = 0;
-
 #if WITH_EDITOR
 void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -19,14 +17,6 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 		auto PropertyName = Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
 		{
-			//int power = 1;
-			//auto value = maxAtlasTextureSize;
-			//while (value > 1)
-			//{
-			//	value >> 1;
-			//	power++;
-			//}
-			//maxAtlasTextureSize = 1 << value;
 			maxAtlasTextureSize = FMath::RoundUpToPowerOfTwo(maxAtlasTextureSize);
 			maxAtlasTextureSize = FMath::Clamp(maxAtlasTextureSize, (uint32)256, (uint32)8192);
 		}
@@ -84,6 +74,7 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 	bIsInitialized = false;
 	atlasTexture = nullptr;
 
+	if (spriteArray.Num() <= 0)return false;
 	for (int i = 0; i < spriteArray.Num(); i++)
 	{
 		ULGUISpriteData* spriteDataItem = spriteArray[i];
@@ -307,15 +298,6 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 
 	delete[] pixelData;
 
-	//tell UISprite to change texture
-	for (auto itemSprite : this->renderSpriteArray)
-	{
-		if (itemSprite.IsValid())
-		{
-			itemSprite->ApplyAtlasTextureChange();
-		}
-	}
-	bIsInitialized = true;
 	return true;
 }
 bool ULGUIStaticSpriteAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result)
@@ -347,6 +329,22 @@ bool ULGUIStaticSpriteAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& r
 	}
 	return true;
 }
+void ULGUIStaticSpriteAtlasData::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)
+{
+	
+}
+void ULGUIStaticSpriteAtlasData::WillNeverCacheCookedPlatformDataAgain()
+{
+	
+}
+void ULGUIStaticSpriteAtlasData::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)
+{
+	
+}
+void ULGUIStaticSpriteAtlasData::MarkNotInitialized()
+{
+	bIsInitialized = false;
+}
 #endif
 
 bool ULGUIStaticSpriteAtlasData::InitCheck()
@@ -361,7 +359,10 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 #endif
 
 		//create texture
-		auto texture = NewObject<UTexture2D>(this, FName(*FString::Printf(TEXT("LGUIStaticSpriteAtlasData_Texture_%d"), TextureNameSufix++)));
+		auto texture = NewObject<UTexture2D>(
+			this, 
+			FName(*FString::Printf(TEXT("LGUIStaticSpriteAtlasData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++))
+			);
 		auto PlatformData = new FTexturePlatformData();
 		PlatformData->SizeX = textureSize;
 		PlatformData->SizeY = textureSize;
@@ -373,7 +374,7 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 			uint32 textureDataOffset = 0;
 			int mipSize = textureSize;
 			while (true)
-			{				
+			{
 				// Allocate next mipmap.
 				FTexture2DMipMap* mip = new FTexture2DMipMap;
 				texture->PlatformData->Mips.Add(mip);
@@ -410,10 +411,6 @@ UTexture2D* ULGUIStaticSpriteAtlasData::GetAtlasTexture()
 {
 	InitCheck();
 	return atlasTexture;
-}
-void ULGUIStaticSpriteAtlasData::MarkNotInitialized()
-{
-	bIsInitialized = false;
 }
 
 #undef LOCTEXT_NAMESPACE

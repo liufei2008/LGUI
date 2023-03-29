@@ -98,6 +98,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D* GetSpriteTexture()const { return spriteTexture; }
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	static void MarkAllSpritesNeedToReinitialize();
 #endif
 	static void CheckAndApplySpriteTextureSetting(UTexture2D* InSpriteTexture);
