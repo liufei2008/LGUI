@@ -34,6 +34,7 @@
 #include "Window/LGUIDynamicSpriteAtlasViewer.h"
 
 #include "AssetTypeActions/AssetTypeActions_LGUISpriteData.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIStaticSpriteAtlasData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIFontData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIPrefab.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIStaticMeshCache.h"
@@ -48,6 +49,7 @@
 #include "DetailCustomization/UITextCustomization.h"
 #include "DetailCustomization/UITextureBaseCustomization.h"
 #include "DetailCustomization/LGUISpriteDataCustomization.h"
+#include "DetailCustomization/LGUIStaticSpriteAtlasDataCustomization.h"
 #include "DetailCustomization/LGUIFreeTypeRenderFontDataCustomization.h"
 #include "DetailCustomization/UISelectableCustomization.h"
 #include "DetailCustomization/UIToggleCustomization.h"
@@ -239,6 +241,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPostProcessRenderableCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUISpriteDataCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(ULGUIStaticSpriteAtlasData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIStaticSpriteAtlasDataCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIFreeTypeRenderFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFreeTypeRenderFontDataCustomization::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISelectableCustomization::MakeInstance));
@@ -305,18 +308,21 @@ void FLGUIEditorModule::StartupModule()
 		}
 
 		TSharedPtr<FAssetTypeActions_Base> SpriteDataAction = MakeShareable(new FAssetTypeActions_LGUISpriteData(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> StaticSpriteAtlasDataAction = MakeShareable(new FAssetTypeActions_LGUIStaticSpriteAtlasData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> FontDataAction = MakeShareable(new FAssetTypeActions_LGUIFontData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> PrefabDataAction = MakeShareable(new FAssetTypeActions_LGUIPrefab(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FAssetTypeActions_LGUIStaticMeshCache(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> RichTextImageDataAction = MakeShareable(new FAssetTypeActions_LGUIRichTextImageData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> SDFFontDataTypeAction = MakeShareable(new FAssetTypeActions_LGUISDFFontData(LGUIAssetCategoryBit));
 		AssetTools.RegisterAssetTypeActions(SpriteDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(StaticSpriteAtlasDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(FontDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(PrefabDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(RichTextImageDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(SDFFontDataTypeAction.ToSharedRef());
 		AssetTypeActionsArray.Add(SpriteDataAction);
+		AssetTypeActionsArray.Add(StaticSpriteAtlasDataAction);
 		AssetTypeActionsArray.Add(FontDataAction);
 		AssetTypeActionsArray.Add(PrefabDataAction);
 		AssetTypeActionsArray.Add(UIStaticMeshCacheDataAction);

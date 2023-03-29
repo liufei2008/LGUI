@@ -6,6 +6,7 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Core/LGUIDynamicSpriteAtlasData.h"
+#include "Core/LGUIStaticSpriteAtlasData.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Sound/SoundCue.h"
 
@@ -49,6 +50,24 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		];
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.width));
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
+	IDetailCategoryBuilder& atlasPackingCategory = DetailBuilder.EditCategory("AtlasPacking");
+	auto PackingAtlasProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingAtlas));
+	atlasPackingCategory.AddProperty(PackingAtlasProperty);
+	PackingAtlasProperty->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		if (IsValid(TargetScriptPtr->packingAtlas))
+		{
+			TargetScriptPtr->packingAtlas->RemoveSpriteData(TargetScriptPtr.Get());
+		}
+		}));
+	PackingAtlasProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
+		if (IsValid(TargetScriptPtr->packingAtlas))
+		{
+			TargetScriptPtr->packingAtlas->AddSpriteData(TargetScriptPtr.Get());
+		}
+		CheckInvalidRenderSpriteInAtlas();
+		TargetScriptPtr->InitSpriteData();
+		DetailBuilder.ForceRefreshDetails();
+		}));
 	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	DetailBuilder.HideProperty(PackingTagProperty);
 	
@@ -57,7 +76,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	{
 		ULGUIDynamicSpriteAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUISpriteDataCustomization::RefreshNameList, &DetailBuilder);
 	}
-	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
+	atlasPackingCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
 	.NameContent()
 	[
 		PackingTagProperty->CreatePropertyNameWidget()
@@ -113,7 +132,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		]
 	]
 	;
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding));
+	atlasPackingCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, useEdgePixelPadding));
 
 	//if change packingTag, clear all sprites and repack
 	auto packingTagHangle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
@@ -296,6 +315,19 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	}
 }
 
+void FLGUISpriteDataCustomization::CheckInvalidRenderSpriteInAtlas()
+{
+	//check invalid RenderSprite in atlas
+	if (IsValid(TargetScriptPtr->packingAtlas))
+	{
+		TargetScriptPtr->packingAtlas->ClearRenderSprite();
+	}
+	if (auto spriteAtlasData = ULGUIDynamicSpriteAtlasManager::Find(TargetScriptPtr->packingTag))
+	{
+		spriteAtlasData->ClearRenderSprite(TargetScriptPtr->packingTag);
+	}
+}
+
 void FLGUISpriteDataCustomization::RefreshNameList(IDetailLayoutBuilder* DetailBuilder)
 {
 	NameList.Reset();
@@ -321,6 +353,8 @@ void FLGUISpriteDataCustomization::OnPackingTagTextCommited(const FText& InText,
 	TargetScriptPtr->ReloadTexture();
 	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
+
+	CheckInvalidRenderSpriteInAtlas();
 }
 
 TSharedRef<ITableRow> FLGUISpriteDataCustomization::GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable)
@@ -337,6 +371,8 @@ void FLGUISpriteDataCustomization::HandleRequiredParamComboChanged(TSharedPtr<FN
 	TargetScriptPtr->ReloadTexture();
 	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
+
+	CheckInvalidRenderSpriteInAtlas();
 }
 
 FText FLGUISpriteDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const
