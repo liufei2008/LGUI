@@ -49,6 +49,7 @@ protected:
 
 	bool bHasAddToSprite = false;
 public:
+	void ApplyAtlasTextureChange();
 	void ApplyAtlasTextureScaleUp();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUISpriteData_BaseObject* GetSprite()const { return sprite; }
