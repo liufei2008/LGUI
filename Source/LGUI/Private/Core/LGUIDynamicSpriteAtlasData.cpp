@@ -32,7 +32,10 @@ void FLGUIDynamicSpriteAtlasData::CreateAtlasTexture(const FName& packingTag, in
 	static bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
 	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
 #endif
-	auto texture = LGUIUtils::CreateTexture(newTextureSize);
+	auto texture = LGUIUtils::CreateTexture(newTextureSize, FColor::Transparent
+		, ULGUIDynamicSpriteAtlasManager::Instance
+		, FName(*FString::Printf(TEXT("LGUIDynamicSpriteAtlasData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++))
+	);
 
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
