@@ -10,6 +10,15 @@
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
 
 #if WITH_EDITOR
+void ULGUIStaticSpriteAtlasData::PreEditChange(FProperty* PropertyAboutToChange)
+{
+	Super::PreEditChange(PropertyAboutToChange);
+	auto PropertyName = PropertyAboutToChange->GetFName();
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, spriteArray))
+	{
+		prevSpriteArray = spriteArray;
+	}
+}
 void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -20,6 +29,98 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 		{
 			maxAtlasTextureSize = FMath::RoundUpToPowerOfTwo(maxAtlasTextureSize);
 			maxAtlasTextureSize = FMath::Clamp(maxAtlasTextureSize, (uint32)256, (uint32)8192);
+		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, spriteArray))
+		{
+			//not allow empty
+			prevSpriteArray.Remove(nullptr);
+			spriteArray.Remove(nullptr);
+
+			TArray<ULGUISpriteData*> AddedArray;
+			TArray<ULGUISpriteData*> RemovedArray;
+			for (auto Item : spriteArray)
+			{
+				if (!prevSpriteArray.Contains(Item))
+				{
+					AddedArray.Add(Item);
+				}
+			}
+			for (auto Item : prevSpriteArray)
+			{
+				if (!spriteArray.Contains(Item))
+				{
+					RemovedArray.Add(Item);
+				}
+			}
+
+			bool bIsYesToAll = false;
+			bool bIsNoToAll = false;
+			auto TransferSprite = [=](ULGUISpriteData* spriteData) {
+				spriteData->Modify();
+				spriteData->packingAtlas->RemoveSpriteData(spriteData);
+				spriteData->packingAtlas = this;
+				spriteData->isInitialized = false;
+				spriteData->MarkPackageDirty();
+			};
+			auto KeepOldSprite = [=](ULGUISpriteData* spriteData) {
+				spriteArray.Remove(spriteData);
+			};
+			for (auto Item : AddedArray)
+			{
+				if (Item->packingAtlas == nullptr)
+				{
+					Item->packingAtlas = this;
+				}
+				else
+				{
+					if (bIsYesToAll || bIsNoToAll)
+					{
+						if (bIsYesToAll)
+						{
+							TransferSprite(Item);
+						}
+						if (bIsNoToAll)
+						{
+							KeepOldSprite(Item);
+						}
+					}
+					else
+					{
+						auto WarningMsg = FText::Format(LOCTEXT("TransferSpriteWarning", "Sprite: '{0}' was belongs to atlas: '{1}', do you want to transfer the sprite to this atlas?")
+							, FText::FromString(Item->GetPathName()), FText::FromString(Item->packingAtlas->GetPathName()));
+						auto Result = FMessageDialog::Open(EAppMsgType::YesNoYesAllNoAll, WarningMsg);
+						switch (Result)
+						{
+						case EAppReturnType::No:
+							KeepOldSprite(Item);
+							break;
+						case EAppReturnType::Yes:
+							TransferSprite(Item);
+							break;
+						case EAppReturnType::YesAll:
+							bIsYesToAll = true;
+							TransferSprite(Item);
+							break;
+						case EAppReturnType::NoAll:
+							bIsNoToAll = true;
+							KeepOldSprite(Item);
+							break;
+						}
+					}
+				}
+			}
+
+			for (auto Item : RemovedArray)
+			{
+				Item->Modify();
+				Item->packingAtlas = nullptr;
+				Item->isInitialized = false;
+				Item->MarkPackageDirty();
+			}
+
+			MarkNotInitialized();
+			InitCheck();
+			MarkPackageDirty();
 		}
 		bIsInitialized = false;
 	}
@@ -42,8 +143,23 @@ void ULGUIStaticSpriteAtlasData::RemoveRenderSprite(UUISpriteBase* InSprite)
 {
 	renderSpriteArray.Remove(InSprite);
 }
-void ULGUIStaticSpriteAtlasData::ClearRenderSprite()
+void ULGUIStaticSpriteAtlasData::CheckSprite()
 {
+	for (int i = this->spriteArray.Num() - 1; i >= 0; i--)
+	{
+		auto itemSprite = this->spriteArray[i];
+		if (IsValid(itemSprite))
+		{
+			if (itemSprite->GetPackingAtlas() != this)
+			{
+				this->spriteArray.RemoveAt(i);
+			}
+		}
+		else
+		{
+			this->spriteArray.RemoveAt(i);
+		}
+	}
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
@@ -67,6 +183,10 @@ void ULGUIStaticSpriteAtlasData::ClearRenderSprite()
 					this->renderSpriteArray.RemoveAt(i);
 				}
 			}
+		}
+		else
+		{
+			this->renderSpriteArray.RemoveAt(i);
 		}
 	}
 }

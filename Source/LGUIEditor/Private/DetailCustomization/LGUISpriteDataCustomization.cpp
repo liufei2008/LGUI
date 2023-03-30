@@ -64,7 +64,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		{
 			TargetScriptPtr->GetPackingAtlas()->AddSpriteData(TargetScriptPtr.Get());
 		}
-		CheckInvalidRenderSpriteInAtlas();
+		CheckSprite();
 		TargetScriptPtr->InitSpriteData();
 		DetailBuilder.ForceRefreshDetails();
 		}));
@@ -321,16 +321,16 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	}
 }
 
-void FLGUISpriteDataCustomization::CheckInvalidRenderSpriteInAtlas()
+void FLGUISpriteDataCustomization::CheckSprite()
 {
 	//check invalid RenderSprite in atlas
 	if (IsValid(TargetScriptPtr->packingAtlas))
 	{
-		TargetScriptPtr->packingAtlas->ClearRenderSprite();
+		TargetScriptPtr->packingAtlas->CheckSprite();
 	}
 	if (auto spriteAtlasData = ULGUIDynamicSpriteAtlasManager::Find(TargetScriptPtr->packingTag))
 	{
-		spriteAtlasData->ClearRenderSprite(TargetScriptPtr->packingTag);
+		spriteAtlasData->CheckSprite(TargetScriptPtr->packingTag);
 	}
 }
 
@@ -360,7 +360,7 @@ void FLGUISpriteDataCustomization::OnPackingTagTextCommited(const FText& InText,
 	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
 
-	CheckInvalidRenderSpriteInAtlas();
+	CheckSprite();
 }
 
 TSharedRef<ITableRow> FLGUISpriteDataCustomization::GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable)
@@ -378,7 +378,7 @@ void FLGUISpriteDataCustomization::HandleRequiredParamComboChanged(TSharedPtr<FN
 	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
 
-	CheckInvalidRenderSpriteInAtlas();
+	CheckSprite();
 }
 
 FText FLGUISpriteDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const
