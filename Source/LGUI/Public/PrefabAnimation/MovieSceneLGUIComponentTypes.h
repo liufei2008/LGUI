@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Layout/Margin.h"
-#include "Slate/WidgetTransform.h"
 #include "EntitySystem/MovieSceneEntityIDs.h"
 #include "EntitySystem/MovieScenePropertySystemTypes.h"
 #include "EntitySystem/MovieScenePropertyTraits.h"
