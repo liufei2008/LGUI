@@ -28,6 +28,7 @@ private:
 	friend class FLGUISpriteDataCustomization;
 	friend class ULGUISpriteDataFactory;
 	friend struct FLGUIDynamicSpriteAtlasData;
+	friend class ULGUIStaticSpriteAtlasData;
 	/**
 	 * Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
 	 * Donot modify spriteTexture's setting unless you know what you doing

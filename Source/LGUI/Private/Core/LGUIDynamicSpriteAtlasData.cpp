@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Core/LGUIDynamicSpriteAtlasData.h"
+#include "Core/LGUIStaticSpriteAtlasData.h"
 #include "LGUI.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -107,8 +108,30 @@ int32 FLGUIDynamicSpriteAtlasData::GetWillExpendTextureSize()const
 	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
 	return oldTextureSize + oldTextureSize;
 }
-void FLGUIDynamicSpriteAtlasData::ClearRenderSprite(const FName& packingTag)
+void FLGUIDynamicSpriteAtlasData::CheckSprite(const FName& packingTag)
 {
+	for (int i = this->spriteDataArray.Num() - 1; i >= 0; i--)
+	{
+		auto itemSprite = this->spriteDataArray[i];
+		if (IsValid(itemSprite))
+		{
+			if (IsValid(itemSprite->GetPackingAtlas()))
+			{
+				this->spriteDataArray.RemoveAt(i);
+			}
+			else
+			{
+				if (itemSprite->GetPackingTag() != packingTag)
+				{
+					this->spriteDataArray.RemoveAt(i);
+				}
+			}
+		}
+		else
+		{
+			this->spriteDataArray.RemoveAt(i);
+		}
+	}
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
@@ -132,6 +155,10 @@ void FLGUIDynamicSpriteAtlasData::ClearRenderSprite(const FName& packingTag)
 					this->renderSpriteArray.RemoveAt(i);
 				}
 			}
+		}
+		else
+		{
+			this->renderSpriteArray.RemoveAt(i);
 		}
 	}
 }
