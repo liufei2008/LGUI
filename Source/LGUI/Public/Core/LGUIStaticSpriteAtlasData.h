@@ -12,7 +12,7 @@ class ULGUISpriteData;
 class UUISpriteBase;
 
 //Static packing sprite into atlas
-UCLASS(NotBlueprintable, NotBlueprintType)
+UCLASS(NotBlueprintable, NotBlueprintType, Experimental)
 class LGUI_API ULGUIStaticSpriteAtlasData :public UObject
 {
 	GENERATED_BODY()
@@ -39,9 +39,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		UTexture2D* atlasTexture = nullptr;
 	/** Collected sprite array to pack. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<ULGUISpriteData*> spriteArray;
 #if WITH_EDITORONLY_DATA
+	TArray<ULGUISpriteData*> prevSpriteArray;
 	/** collection of all UISprite whitch use this atlas to render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
 		TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
@@ -56,12 +57,14 @@ private:
 		uint32 textureSize;
 #if WITH_EDITOR
 public:
+	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	void AddSpriteData(ULGUISpriteData* InSpriteData);
 	void RemoveSpriteData(ULGUISpriteData* InSpriteData);
 	void AddRenderSprite(UUISpriteBase* InSprite);
 	void RemoveRenderSprite(UUISpriteBase* InSprite);
-	void ClearRenderSprite();
+	/** Check sprite and render sprite, remove not valid. */
+	void CheckSprite();
 	bool PackAtlas();
 	void MarkNotInitialized();
 

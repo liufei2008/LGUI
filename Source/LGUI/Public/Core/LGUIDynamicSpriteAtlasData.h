@@ -34,7 +34,7 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	/** create a new texture with size * 2 */
 	int32 ExpendTextureSize(const FName& packingTag);
 	int32 GetWillExpendTextureSize()const;
-	void ClearRenderSprite(const FName& packingTag);
+	void CheckSprite(const FName& packingTag);
 
 	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
 	{
