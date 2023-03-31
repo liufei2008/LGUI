@@ -23,17 +23,42 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.MemberProperty)
 	{
+		MarkNotInitialized();
 		auto PropertyName = Property->GetFName();
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
-		{
-			maxAtlasTextureSize = FMath::RoundUpToPowerOfTwo(maxAtlasTextureSize);
-			maxAtlasTextureSize = FMath::Clamp(maxAtlasTextureSize, (uint32)256, (uint32)8192);
-		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, spriteArray))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, spriteArray))
 		{
 			//not allow empty
 			prevSpriteArray.Remove(nullptr);
 			spriteArray.Remove(nullptr);
+			//not allow repeated
+			TSet<ULGUISpriteData*> tempSet;
+			for (int i = 0; i < prevSpriteArray.Num(); i++)
+			{
+				auto spriteItem = prevSpriteArray[i];
+				if (tempSet.Contains(spriteItem))
+				{
+					prevSpriteArray.RemoveAt(i);
+					i--;
+				}
+				else
+				{
+					tempSet.Add(spriteItem);
+				}
+			}
+			tempSet.Empty();
+			for (int i = 0; i < spriteArray.Num(); i++)
+			{
+				auto spriteItem = spriteArray[i];
+				if (tempSet.Contains(spriteItem))
+				{
+					spriteArray.RemoveAt(i);
+					i--;
+				}
+				else
+				{
+					tempSet.Add(spriteItem);
+				}
+			}
 
 			TArray<ULGUISpriteData*> AddedArray;
 			TArray<ULGUISpriteData*> RemovedArray;
@@ -121,18 +146,22 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 			InitCheck();
 			MarkPackageDirty();
 		}
-		bIsInitialized = false;
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
+		{
+			maxAtlasTextureSize = FMath::RoundUpToPowerOfTwo(maxAtlasTextureSize);
+			maxAtlasTextureSize = FMath::Clamp(maxAtlasTextureSize, (uint32)256, (uint32)8192);
+		}
 	}
 }
 void ULGUIStaticSpriteAtlasData::AddSpriteData(ULGUISpriteData* InSpriteData)
 {
 	spriteArray.AddUnique(InSpriteData);
-	bIsInitialized = false;
+	MarkNotInitialized();
 }
 void ULGUIStaticSpriteAtlasData::RemoveSpriteData(ULGUISpriteData* InSpriteData)
 {
 	spriteArray.Remove(InSpriteData);
-	bIsInitialized = false;
+	MarkNotInitialized();
 }
 void ULGUIStaticSpriteAtlasData::AddRenderSprite(UUISpriteBase* InSprite)
 {
@@ -191,7 +220,6 @@ void ULGUIStaticSpriteAtlasData::CheckSprite()
 }
 bool ULGUIStaticSpriteAtlasData::PackAtlas()
 {
-	bIsInitialized = false;
 	atlasTexture = nullptr;
 
 	if (spriteArray.Num() <= 0)return false;
@@ -200,16 +228,24 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 		ULGUISpriteData* spriteDataItem = spriteArray[i];
 		if (!IsValid(spriteDataItem))
 		{
-			auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "SpriteData is not valid in spriteArray at index {0}"), i);
-			UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
-			LGUIUtils::EditorNotification(ErrMsg);
+			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
+			{
+				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "SpriteData is not valid in spriteArray at index {0}"), i);
+				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
+				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
+			}
 			return false;
 		}
 		if (!IsValid(spriteDataItem->GetSpriteTexture()))
 		{
-			auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "SpriteData's texture is not valid of spriteData: '{0}'"), FText::FromString(spriteDataItem->GetPathName()));
-			UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
-			LGUIUtils::EditorNotification(ErrMsg);
+			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
+			{
+				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "SpriteData's texture is not valid of spriteData: '{0}'"), FText::FromString(spriteDataItem->GetPathName()));
+				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
+				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
+			}
 			return false;
 		}
 	}
@@ -224,12 +260,16 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 	}
 	if (packSize > maxAtlasTextureSize)
 	{
-		auto ErrMsg = FText::Format(LOCTEXT("AtlasSizeTooLargeError", "Atlas texture size coule be {0}, larger than {1}: {2}! Please remove some large size sprite, or split to multiple atlas.")
-			, packSize
-			, FText::FromName(GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
-			, maxAtlasTextureSize);
-		UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
-		LGUIUtils::EditorNotification(ErrMsg);
+		if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
+		{
+			bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
+			auto ErrMsg = FText::Format(LOCTEXT("AtlasSizeTooLargeError", "Package sprite atlas fail! Atlas texture size {0} larger than {1}: {2}! Please remove some large size sprite, or split to multiple atlas.")
+				, packSize
+				, FText::FromName(GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
+				, maxAtlasTextureSize);
+			UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
+			LGUIUtils::EditorNotification(ErrMsg, 10.0f);
+		}
 		return false;
 	}
 
@@ -252,9 +292,7 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 		if (IsValid(spriteDataItem) && IsValid(spriteDataItem->GetSpriteTexture()))
 		{
 			auto spriteTexture = spriteDataItem->GetSpriteTexture();
-			spriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-			spriteTexture->SRGB = false;
-			spriteTexture->UpdateResource();
+			ULGUISpriteData::CheckAndApplySpriteTextureSetting(spriteTexture);
 			int32 spriteWidth = spriteTexture->GetSizeX();
 			int32 spriteHeight = spriteTexture->GetSizeY();
 			const FColor* spriteColorBuffer = reinterpret_cast<const FColor*>(spriteTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
@@ -464,6 +502,7 @@ void ULGUIStaticSpriteAtlasData::ClearCachedCookedPlatformData(const ITargetPlat
 void ULGUIStaticSpriteAtlasData::MarkNotInitialized()
 {
 	bIsInitialized = false;
+	bWarningIsAlreadyAppearedAtCurrentPackingSession = false;
 }
 #endif
 
@@ -477,6 +516,7 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 			return false;
 		}
 #endif
+		bIsInitialized = true;
 
 		//create texture
 		auto texture = NewObject<UTexture2D>(
@@ -522,8 +562,15 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 		texture->UpdateResource();
 
 		this->atlasTexture = texture;
-
-		bIsInitialized = true;
+#if WITH_EDITOR
+		for (auto& sprite : renderSpriteArray)
+		{
+			if (sprite.IsValid())
+			{
+				sprite->ApplyAtlasTextureChange();
+			}
+		}
+#endif
 	}
 	return bIsInitialized;
 }
