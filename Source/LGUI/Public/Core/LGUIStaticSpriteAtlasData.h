@@ -48,10 +48,10 @@ private:
 		TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 #endif
 	/**
-	 * Store mip data, so we can recreate atlas texture with this data.
+	 * Store texture mip data, so we can recreate atlas texture with this data.
 	 * @todo: Actually I want to save this only in cook time (reduce editor asset size), but I can't get texutre's pixel data in cook time.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY()
 		TArray<uint8> textureMipData;
 	UPROPERTY()
 		uint32 textureSize;
@@ -73,6 +73,7 @@ public:
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 private:
 	bool PackAtlasTest(uint32 size, TArray<rbp::Rect>& result);
+	bool bWarningIsAlreadyAppearedAtCurrentPackingSession = false;
 #endif
 private:
 	bool bIsInitialized = false;
