@@ -61,15 +61,13 @@ void FLGUIStaticSpriteAtlasDataCustomization::CustomizeDetails(IDetailLayoutBuil
 				return FReply::Handled();
 			})
 		];
-	DetailBuilder.HideProperty(TextureMipDataHandle);
 	LguiCategory.AddCustomRow(LOCTEXT("PackedDataSize_Row", "Packed Data Size"), true)
 		.NameContent()
 		[
-			//TextureMipDataHandle->CreatePropertyNameWidget()
 			SNew(STextBlock)
 			.Text(LOCTEXT("PackedDataSize_Name", "Packed Data Size"))
 			.Font(DetailBuilder.GetDetailFont())
-			.ToolTipText(TextureMipDataHandle->GetToolTipText())
+			.ToolTipText(LOCTEXT("PackedDataSize_Tooltip", "Store texture mip data, so we can recreate atlas texture with this data."))
 		]
 		.ValueContent()
 		[
