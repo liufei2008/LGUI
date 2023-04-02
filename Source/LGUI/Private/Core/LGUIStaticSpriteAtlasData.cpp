@@ -588,7 +588,7 @@ bool ULGUIStaticSpriteAtlasData::ReadPixel(const FVector2D& InUV, FColor& OutPix
 {
 	InitCheck();
 
-	auto PlatformData = atlasTexture->GetPlatformData();
+	auto PlatformData = atlasTexture->PlatformData;
 	if (PlatformData && PlatformData->Mips.Num() > 0)
 	{
 		auto Pixels = (FColor*)(PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
