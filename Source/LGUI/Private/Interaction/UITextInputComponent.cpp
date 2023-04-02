@@ -20,6 +20,19 @@
 UE_DISABLE_OPTIMIZATION
 #endif
 
+UUITextInputCustomValidation::UUITextInputCustomValidation()
+{
+	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
+}
+bool UUITextInputCustomValidation::OnValidateInput(UUITextInputComponent* InTextInput, const FString& InString, int InIndexOfInsertedChar)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		return ReceiveOnValidateInput(InTextInput, InString, InIndexOfInsertedChar);
+	}
+	return false;
+}
+
 void UUITextInputComponent::Awake()
 {
 	Super::Awake();
@@ -695,11 +708,34 @@ bool UUITextInputComponent::IsValidChar(TCHAR c)
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::IsValidChar]InputType use CustomFunction but not valid!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InputType use CustomFunction but not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return true;
 		}
 	}
 		break;
+	case ELGUITextInputType::Custom:
+	{
+		if (IsValid(CustomValidation))
+		{
+			auto TempText = Text;
+			auto TempCaretPositionIndex = CaretPositionIndex;
+			if (SelectionPropertyArray.Num() != 0)//delete selection frist
+			{
+				int32 startIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+				TempText.RemoveAt(startIndex, FMath::Abs(TempCaretPositionIndex - PressCaretPositionIndex));
+				TempCaretPositionIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+			}
+			TempText.InsertAt(TempCaretPositionIndex, c);
+
+			return CustomValidation->OnValidateInput(this, TempText, TempCaretPositionIndex);
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InputType use CustomValidation, but the object is not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return true;
+		}
+	}
+	break;
 	}
 	////new line and tab
 	//if (c == '\n' || c == '\t')
@@ -1775,6 +1811,18 @@ void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 		InputType = newValue;
 		CaretPositionIndex = 0;
 		UpdateUITextComponent(false);
+	}
+}
+void UUITextInputComponent::SetCustomValidation(UUITextInputCustomValidation* value)
+{
+	if (CustomValidation != value)
+	{
+		CustomValidation = value;
+		if (InputType == ELGUITextInputType::Custom)
+		{
+			CaretPositionIndex = 0;
+			UpdateUITextComponent(false);
+		}
 	}
 }
 void UUITextInputComponent::SetDisplayType(ELGUITextInputDisplayType newValue)

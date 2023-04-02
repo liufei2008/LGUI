@@ -11,13 +11,6 @@ ULGUICanvasCustomClip::ULGUICanvasCustomClip()
 {
 	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 }
-void ULGUICanvasCustomClip::Init()
-{
-	if (bCanExecuteBlueprintEvent)
-	{
-		ReceiveInit();
-	}
-}
 UMaterialInterface* ULGUICanvasCustomClip::GetReplaceMaterial(UMaterialInterface* InMaterial)
 {
 	if (auto FindMatPtr = replaceMaterialMap.Find(InMaterial))

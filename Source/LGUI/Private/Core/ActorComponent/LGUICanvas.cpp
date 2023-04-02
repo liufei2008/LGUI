@@ -83,10 +83,6 @@ void ULGUICanvas::BeginPlay()
 	bNeedToUpdateCustomClipParameter = true;
 	bRectRangeCalculated = false;	
 	bNeedToSortRenderPriority = true;
-	if (IsValid(customClip))
-	{
-		customClip->Init();
-	}
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -2455,26 +2451,15 @@ void ULGUICanvas::SetInheriRectClip(bool newBool)
 }
 void ULGUICanvas::SetCustomClip(ULGUICanvasCustomClip* value)
 {
-	if (!IsValid(value))
-	{
-		return;
-	}
-	bool changed = false;
-	if (clipType != ELGUICanvasClipType::Custom)
-	{
-		clipType = ELGUICanvasClipType::Custom;
-		changed = true;
-	}
 	if (customClip != value)
 	{
 		customClip = value;
-		changed = true;
-	}
-	if (changed)
-	{
-		bClipTypeChanged = true;
-		bNeedToUpdateCustomClipParameter = true;
-		MarkCanvasUpdate(true, true, false);
+		if (clipType == ELGUICanvasClipType::Custom)
+		{
+			bClipTypeChanged = true;
+			bNeedToUpdateCustomClipParameter = true;
+			MarkCanvasUpdate(true, true, false);
+		}
 	}
 }
 
