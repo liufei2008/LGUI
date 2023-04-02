@@ -79,5 +79,8 @@ private:
 	bool bIsInitialized = false;
 public:
 	bool InitCheck();
-	UTexture2D* GetAtlasTexture();
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		UTexture2D* GetAtlasTexture();
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool ReadPixel(const FVector2D& InUV, FColor& OutPixel);
 };

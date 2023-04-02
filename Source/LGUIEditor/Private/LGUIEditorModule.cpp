@@ -42,6 +42,7 @@
 #include "AssetTypeActions/AssetTypeActions_LGUISDFFontData.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
+#include "DetailCustomization/UIBaseRenderableCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
 #include "DetailCustomization/UISpriteCustomization.h"
 #include "DetailCustomization/UITextureCustomization.h"
@@ -239,6 +240,7 @@ void FLGUIEditorModule::StartupModule()
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.RegisterCustomClassLayout(UUIItem::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIItemCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIBaseRenderable::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIBaseRenderableCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteBaseCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUISprite::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUICanvasCustomization::MakeInstance));
@@ -447,6 +449,7 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIBaseRenderable::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUISprite::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());

@@ -2273,8 +2273,9 @@ bool ULGUICanvas::CalculatePointVisibilityOnClip(const FVector& InWorldPoint)
 				bool Result = true;
 				if (auto Pixels = (FColor*)(PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY)))
 				{
-					auto TransparentValue = Pixels[TexPos].R;
-					Result = TransparentValue > (uint8)(clipTextureHitTestThreshold * 255);
+					auto AlphaValueValue = Pixels[TexPos].R;
+					auto AlphaValueValue01 = LGUIUtils::Color255To1_Table[AlphaValueValue];
+					Result = AlphaValueValue01 > clipTextureHitTestThreshold;
 				}
 				PlatformData->Mips[0].BulkData.Unlock();
 				return Result;

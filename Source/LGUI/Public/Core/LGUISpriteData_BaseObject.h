@@ -26,6 +26,18 @@ public:
 	/** This sprite-data is a individal one? Means it will not pack into any atlas texture. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		virtual bool IsIndividual()const PURE_VIRTUAL(ULGUISpriteData_BaseObject::IsIndividual, return false;);
+	/**
+	 * Read pixel value from packed atlas texture.
+	 * @param InUV uv coordinate in atlas texture.
+	 * @param OutPixel result pixel value.
+	 * @return true- successfully read pixel, false- not support read pixel.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		virtual bool ReadPixel(const FVector2D& InUV, FColor& OutPixel)const PURE_VIRTUAL(ULGUISpriteData_BaseObject::ReadPixel, return false;);
+	/**
+	 * Can we read texture's pixel from this sprite object?
+	 */
+	virtual bool SupportReadPixel()const PURE_VIRTUAL(ULGUISpriteData_BaseObject::SupportReadPixel, return false;);
 
 	virtual void AddUISprite(UUISpriteBase* InUISprite) {};
 	virtual void RemoveUISprite(UUISpriteBase* InUISprite) {};
