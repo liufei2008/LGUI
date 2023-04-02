@@ -338,18 +338,90 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 
 bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	if (RaycastType == EUIRenderableRaycastType::Rect)
+	switch (RaycastType)
 	{
+	default:
+	case EUIRenderableRaycastType::Rect:
 		return Super::LineTraceUI(OutHit, Start, End);
-	}
-	else if (RaycastType == EUIRenderableRaycastType::Geometry)
-	{
+		break;
+	case EUIRenderableRaycastType::Geometry:
 		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
-	}
-	else
-	{
+		break;
+	case EUIRenderableRaycastType::VisiblePixel:
+		return LineTraceVisiblePixel(VisiblePixelThreadhold, OutHit, Start, End);
+		break;
+	case EUIRenderableRaycastType::Custom:
 		return LineTraceUICustom(OutHit, Start, End);
+		break;
 	}
+}
+bool UUIBatchGeometryRenderable::LineTraceVisiblePixel(float InAlphaThreshold, FHitResult& OutHit, const FVector& Start, const FVector& End)
+{
+	const auto InverseTf = GetComponentTransform().Inverse();
+	const auto LocalSpaceRayOrigin = InverseTf.TransformPosition(Start);
+	const auto LocalSpaceRayEnd = InverseTf.TransformPosition(End);
+
+	//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false, 5.0f);//just for test
+	//check Line-Plane intersection first, then check Line-Triangle
+	//start and end point must be different side of X plane
+	if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
+	{
+		//triangle hit test
+		//triangle hit test
+		auto& originVertices = geometry->originVertices;
+		auto& vertices = geometry->vertices;
+		auto& triangleIndices = geometry->triangles;
+		const int triangleCount = triangleIndices.Num() / 3;
+		int index = 0;
+		for (int i = 0; i < triangleCount; i++)
+		{
+			auto vertIndex0 = triangleIndices[index++];
+			auto vertIndex1 = triangleIndices[index++];
+			auto vertIndex2 = triangleIndices[index++];
+			auto point0 = (FVector)(originVertices[vertIndex0].Position);
+			auto point1 = (FVector)(originVertices[vertIndex1].Position);
+			auto point2 = (FVector)(originVertices[vertIndex2].Position);
+			FVector OutHitPoint, OutHitNormal;
+			if (FMath::SegmentTriangleIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, point0, point1, point2, OutHitPoint, OutHitNormal))
+			{
+				OutHit.TraceStart = Start;
+				OutHit.TraceEnd = End;
+				OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+				OutHit.Location = GetComponentTransform().TransformPosition(OutHitPoint);
+				OutHit.Normal = GetComponentTransform().TransformVector(OutHitNormal);
+				OutHit.Normal.Normalize();
+				OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+				OutHit.ImpactPoint = OutHit.Location;
+				OutHit.ImpactNormal = OutHit.Normal;
+
+				auto baryCentric = FMath::ComputeBaryCentric2D(OutHitPoint, point0, point1, point2);
+				auto& uv0 = vertices[vertIndex0].TextureCoordinate[0];
+				auto& uv1 = vertices[vertIndex1].TextureCoordinate[0];
+				auto& uv2 = vertices[vertIndex2].TextureCoordinate[0];
+				auto uv = FVector2D(baryCentric.X * uv0 + baryCentric.Y * uv1 + baryCentric.Z * uv2);
+				//get pixel
+				FColor Pixel;
+				if (ReadPixelFromMainTexture(uv, Pixel))
+				{
+					auto AlphaValue = Pixel.A;
+					auto AlphaValue01 = LGUIUtils::Color255To1_Table[AlphaValue];
+					if (AlphaValue01 > InAlphaThreshold)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 void UUIBatchGeometryRenderable::CalculateLocalBounds()

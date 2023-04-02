@@ -68,10 +68,47 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			}
 		}
 	}));
-	UObject* spriteObject;
-	spriteHandle->GetValue(spriteObject);
-	if (spriteObject != nullptr)
+	ULGUISpriteData_BaseObject* spriteObject = nullptr;
+	spriteHandle->GetValue(*(UObject**)&spriteObject);
+	if (IsValid(spriteObject))
 	{
+		EUIRenderableRaycastType raycastType = EUIRenderableRaycastType::Rect;
+		bool bGetRaycastTypeValue = true;
+		for (int i = 0; i < TargetScriptArray.Num(); i++)
+		{
+			if (i == 0)
+			{
+				raycastType = TargetScriptArray[i]->GetRaycastType();
+			}
+			else
+			{
+				if (raycastType != TargetScriptArray[i]->GetRaycastType())
+				{
+					bGetRaycastTypeValue = false;
+					break;
+				}
+			}
+		}
+		if (bGetRaycastTypeValue)
+		{
+			if (raycastType == EUIRenderableRaycastType::VisiblePixel)
+			{
+				if (!spriteObject->SupportReadPixel())
+				{
+					category.AddCustomRow(LOCTEXT("NotSupportVisiblePixelRaycast_Row", "NotSupportVisiblePixelRaycast"))
+						.WholeRowContent()
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.ColorAndOpacity(FLinearColor::Yellow)
+							.Text(LOCTEXT("NotSupportVisiblePixelRaycast_Text", "Use RaycastType of VisiblePixel, but this sprite does not support this type."))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					;
+				}
+			}
+		}
+
 		category.AddCustomRow(LOCTEXT("AdditionalButton", "AdditionalButton"))
 		.ValueContent()
 		[

@@ -201,3 +201,12 @@ UTexture* UUISpriteBase::GetTextureToCreateGeometry()
 	}
 	return nullptr;
 }
+
+bool UUISpriteBase::ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const
+{
+	if (IsValid(sprite))
+	{
+		return sprite->ReadPixel(InUV, OutPixel);
+	}
+	return false;
+}
