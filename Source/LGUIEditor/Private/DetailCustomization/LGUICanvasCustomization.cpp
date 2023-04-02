@@ -349,7 +349,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 						.ToolTipText(LOCTEXT("FixTextureForHitTest_Tooltip", "\
 By default we can't access texture's pixel data, which is required for line trace.\
 Click this button to fix it by change texture settings.\
-LGUI will change CompressionSettings & MipGenSettings\
 "))
 						[
 							SNew(STextBlock)

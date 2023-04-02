@@ -242,7 +242,7 @@ bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Sta
 {
 	if (!IsValid(CustomRaycastObject))
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUIBaseRenderable::LineTraceUIGeometry]EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return false;
 	}
 	const auto InverseTf = GetComponentTransform().Inverse();

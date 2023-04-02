@@ -47,6 +47,8 @@ protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
 
+	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const override;
+
 	bool bHasAddToSprite = false;
 public:
 	void ApplyAtlasTextureChange();

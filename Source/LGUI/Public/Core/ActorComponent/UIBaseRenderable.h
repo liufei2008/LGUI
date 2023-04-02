@@ -34,10 +34,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Raycast"))
 		bool ReceiveRaycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal);
 	/**
-	 * Get hit point pixel value. Only support UI element type which can read pixel value from texture:
-	 *			1. UITexture that use a Texture2D can work perfectly.
-	 *			2. UISprite which use dynamic atlas packing can not work.
-	 *			3. UIText which use dynamic font can not work.
+	 * Get pixel value at hit point.
+	 * Only support UI element type which can read pixel value from texture:
+	 *		1. UISprite which use LGUIStaticSpriteAtlasData can work perfectly.
+	 *		2. UITexture can work with some specific setting.
+	 *		3. UIText which use dynamic font can not work. (Currently all LGUI's built-in font is dynamic)
+	 * Will fallback to Geometry if ui element not support this raycast type.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		static bool GetRaycastPixelFromUIBatchGeometryRenderable(class UUIBatchGeometryRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal);
@@ -67,11 +69,20 @@ UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableRaycastType :uint8
 {
 	/** Hit on rect range */
-	Rect,
+	Rect = 0,
 	/** Hit on actual triangle geometry */
-	Geometry,
+	Geometry = 1,
+	/**
+	 * Hit on main texture's pixel, if the pixel is not transparent then hit test success.
+	 * Only support UI element type which can read pixel value from texture:
+	 *		1. UISprite which use LGUIStaticSpriteAtlasData can work perfectly.
+	 *		2. UITexture can work with some specific setting.
+	 *		3. UIText which use dynamic font can not work. (Currently all LGUI's built-in font is dynamic)
+	 * Will fallback to Geometry if ui element not support this raycast type.
+	 */
+	VisiblePixel = 3,
 	/** Use a user defined UIRenderableCustomRaycast to process the raycast hit. */
-	Custom,
+	Custom = 2,
 };
 
 /** Base class of UI element that can be renderred by LGUICanvas */
@@ -84,6 +95,7 @@ public:
 	UUIBaseRenderable(const FObjectInitializer& ObjectInitializer);
 
 protected:
+	friend class FUIBaseRenderableCustomization;
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 #if WITH_EDITOR
@@ -106,6 +118,9 @@ protected:
 	/** Custom raycast object to handle raycast behaviour when LGUI do raycast hit test. Only valid if RaycastTarget is true and RaycastType is Custom. */
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Custom"))
 		UUIRenderableCustomRaycast* CustomRaycastObject;
+	/** Pixel's alpha value threadhold, if hit a pixel which alpha value is less than this value, then hit test return false. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::VisiblePixel"))
+		float VisiblePixelThreadhold = 0.1f;
 
 	bool LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
 	bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);

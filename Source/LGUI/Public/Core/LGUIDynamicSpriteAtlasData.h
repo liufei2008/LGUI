@@ -17,9 +17,6 @@ USTRUCT()
 struct LGUI_API FLGUIDynamicSpriteAtlasData
 {
 	GENERATED_BODY()
-	/** collection of all UISprite whitch use this atlas to render */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 	/** atlasTexture is the real texture for render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 	UTexture2D* atlasTexture = nullptr;
@@ -28,6 +25,9 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	/** sprites belong to this atlas */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<ULGUISpriteData*> spriteDataArray;
+	/** collection of all UISprite whitch use this atlas to render */
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
+	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 
 	void EnsureAtlasTexture(const FName& packingTag);
 	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);

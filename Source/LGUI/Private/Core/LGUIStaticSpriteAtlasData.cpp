@@ -555,6 +555,11 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 			}
 		}
 
+#if !WITH_EDITOR
+		//empty it to reduce memory usage
+		textureMipData.Empty();
+#endif
+
 		texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 		texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 		texture->SRGB = atlasTextureUseSRGB;
@@ -578,6 +583,24 @@ UTexture2D* ULGUIStaticSpriteAtlasData::GetAtlasTexture()
 {
 	InitCheck();
 	return atlasTexture;
+}
+bool ULGUIStaticSpriteAtlasData::ReadPixel(const FVector2D& InUV, FColor& OutPixel)
+{
+	InitCheck();
+
+	auto PlatformData = atlasTexture->GetPlatformData();
+	if (PlatformData && PlatformData->Mips.Num() > 0)
+	{
+		auto Pixels = (FColor*)(PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
+		{
+			auto uvInFullSize = FIntPoint(InUV.X * textureSize, InUV.Y * textureSize);
+			auto PixelIndex = uvInFullSize.Y * textureSize + uvInFullSize.X;
+			OutPixel = Pixels[PixelIndex];
+		}
+		PlatformData->Mips[0].BulkData.Unlock();
+		return true;
+	}
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -30,6 +30,8 @@ protected:
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual UTexture* GetTextureToCreateGeometry()override;
+
+	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture* GetTexture()const { return texture; }
 
