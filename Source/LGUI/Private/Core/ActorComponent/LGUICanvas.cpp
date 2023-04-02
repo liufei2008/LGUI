@@ -632,9 +632,9 @@ void ULGUICanvas::CheckDefaultMaterials()
 			switch (i)
 			{
 			default:
-			case 0: matPath = TEXT("/LGUI/LGUI_Standard"); break;
-			case 1: matPath = TEXT("/LGUI/LGUI_Standard_RectClip"); break;
-			case 2: matPath = TEXT("/LGUI/LGUI_Standard_TextureClip"); break;
+			case 0: matPath = TEXT("/LGUI/Materials/LGUI_NoClip"); break;
+			case 1: matPath = TEXT("/LGUI/Materials/LGUI_RectClip"); break;
+			case 2: matPath = TEXT("/LGUI/Materials/LGUI_TextureClip"); break;
 			}
 			auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
 			if (!IsValid(mat))

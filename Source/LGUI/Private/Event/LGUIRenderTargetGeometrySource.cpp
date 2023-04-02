@@ -439,7 +439,7 @@ UMaterialInterface* ULGUIRenderTargetGeometrySource::GetMaterial(int32 MaterialI
 	}
 	else
 	{
-		auto MatPath = TEXT("/LGUI/LGUI_RenderTargetMaterial");
+		auto MatPath = TEXT("/LGUI/Materials/LGUI_RenderTargetMaterial");
 		return LoadObject<UMaterialInterface>(NULL, MatPath);
 	}
 
