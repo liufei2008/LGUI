@@ -66,6 +66,29 @@ UTexture* UUITextureBase::GetTextureToCreateGeometry()
 	return texture;
 }
 
+bool UUITextureBase::ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const
+{
+	if (IsValid(texture))
+	{
+		if (auto texture2D = Cast<UTexture2D>(texture))
+		{
+			auto PlatformData = texture2D->GetPlatformData();
+			if (PlatformData && PlatformData->Mips.Num() > 0)
+			{
+				if (auto Pixels = (FColor*)(PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY)))
+				{
+					auto uvInFullSize = FIntPoint(InUV.X * texture2D->GetSizeX(), InUV.Y * texture2D->GetSizeY());
+					auto PixelIndex = uvInFullSize.Y * texture2D->GetSizeX() + uvInFullSize.X;
+					OutPixel = Pixels[PixelIndex];
+				}
+				PlatformData->Mips[0].BulkData.Unlock();
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void UUITextureBase::SetTexture(UTexture* newTexture)
 {
 	if (texture != newTexture)

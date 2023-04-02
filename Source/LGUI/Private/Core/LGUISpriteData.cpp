@@ -553,6 +553,18 @@ void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
 		}
 	}
 }
+bool ULGUISpriteData::ReadPixel(const FVector2D& InUV, FColor& OutPixel)const
+{
+	if (packingAtlas != nullptr)
+	{
+		return packingAtlas->ReadPixel(InUV, OutPixel);
+	}
+	return false;
+}
+bool ULGUISpriteData::SupportReadPixel()const
+{
+	return packingAtlas != nullptr;
+}
 
 ULGUISpriteData* ULGUISpriteData::GetDefaultWhiteSolid()
 {

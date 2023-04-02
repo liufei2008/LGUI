@@ -72,6 +72,8 @@ public:
 	virtual bool IsIndividual()const override;
 	virtual void AddUISprite(UUISpriteBase* InUISprite)override;
 	virtual void RemoveUISprite(UUISpriteBase* InUISprite)override;
+	virtual bool ReadPixel(const FVector2D& InUV, FColor& OutPixel)const override;
+	virtual bool SupportReadPixel()const override;
 	//End ULGUISpriteData_BaseObject interface
 
 	/** initialize sprite data */

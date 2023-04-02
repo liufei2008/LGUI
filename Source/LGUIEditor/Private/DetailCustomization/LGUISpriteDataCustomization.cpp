@@ -35,6 +35,21 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo));
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture));
+	if (IsValid(TargetScriptPtr->packingAtlas))
+	{
+		lguiCategory.AddCustomRow(LOCTEXT("TextureRecommend_Row", "TextureRecommend"))
+		.WholeRowContent()
+		.VAlign(EVerticalAlignment::VAlign_Center)
+		[
+			SNew(STextBlock)
+			.Font(DetailBuilder.GetDetailFont())
+			.AutoWrapText(true)
+			.Text(LOCTEXT("TextureRecommend_Text", "Since this SpriteData use AtlasPacking, \
+it is recommended to move the SpriteTexture to a folder that is \"Directories to nevert cook\", \
+this can reduce the package size, because AtlasPacking already pack this SpriteTexture to a atlas texture. \
+\nIgnore this message if you already make the change."))
+		];
+	}
 	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture_Row", "ReloadTexture"))
 		.ValueContent()
 		[
