@@ -14,14 +14,22 @@ class LGUI_API ULGUICanvasCustomClip : public UObject
 	GENERATED_BODY()
 public:
 	ULGUICanvasCustomClip();
-	/** Called when LGUICanvas process BeginPlay. */
-	virtual void Init();
 	/** Called by LGUICanvas to get the clip material. */
 	virtual UMaterialInterface* GetReplaceMaterial(UMaterialInterface* InMaterial);
-
-	/** Called when set material's clip parameter. */
+	/**
+	 * Called when set material's clip parameter. This is the place to set your clip parameter to material.
+	 * @param InMaterial	Clip material, set your clip parameter to this material.
+	 * @param InCanvas		The LGUICanvas component object reference, which call this function.
+	 * @param InUIItem		The UIItem where the LGUICanvas attach with.
+	 */
 	virtual void ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
-	/** Called when event system do raycast hit test. */
+	/**
+	 * Called when event system do raycast hit test. This is the function that check mouse/ray hit test for interaction.
+	 * @param InWorldPoint	Line trace hit point on UI element's rect area.
+	 * @param InCanvas		The LGUICanvas component object reference, which call this function.
+	 * @param InUIItem		The UIItem where the LGUICanvas attach with.
+	 * @return true if the point is at visible area, false otherwise.
+	 */
 	virtual bool CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
 protected:
 
@@ -30,10 +38,21 @@ protected:
 	/** Called when LGUICanvas process BeginPlay. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
 		void ReceiveInit();
-	/** Called when set material's clip parameter. */
+	/**
+	 * Called when set material's clip parameter. This is the place to set your clip parameter to material.
+	 * @param InMaterial	Clip material, set your clip parameter to this material.
+	 * @param InCanvas		The LGUICanvas component object reference, which call this function.
+	 * @param InUIItem		The UIItem where the LGUICanvas attach with.
+	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ApplyMaterialParameter"), Category = "LGUI")
 		void ReceiveApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
-	/** Called when event system do raycast hit test. */
+	/**
+	 * Called when event system do raycast hit test. This is the function that check mouse/ray hit test for interaction.
+	 * @param InWorldPoint	Line trace hit point on UI element's rect area.
+	 * @param InCanvas		The LGUICanvas component object reference, which call this function.
+	 * @param InUIItem		The UIItem where the LGUICanvas attach with.
+	 * @return true if the point is at visible area, false otherwise.
+	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CheckPointVisible"), Category = "LGUI")
 		bool ReceiveCheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
 
