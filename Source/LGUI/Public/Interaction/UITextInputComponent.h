@@ -34,6 +34,34 @@ DECLARE_DELEGATE_RetVal_TwoParams(bool, FLGUITextInputCustomInputTypeDelegate, c
  */
 DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FLGUITextInputCustomInputTypeDynamicDelegate, const FString&, InString, int, InStartIndex);
 
+UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
+class UUITextInputCustomValidation : public UObject
+{
+	GENERATED_BODY()
+public:
+	UUITextInputCustomValidation();
+	/**
+	 * Verify input string, return true if the input string is good to use, false otherwise.
+	 * @param InTextInput	The UITextInputComponent object reference which call this function.
+	 * @param InString	The will display string value, for check if it is valid. If not, then display origin string value.
+	 * @param InIndexOfInsertedChar	New inserted char index in InString.
+	 * @return true if the input string is good to use, false otherwise.
+	 */
+	virtual bool OnValidateInput(UUITextInputComponent* InTextInput, const FString& InString, int InIndexOfInsertedChar);
+protected:
+	/** use this to tell if the class is compiled from blueprint, only blueprint can execute ReceiveXXX. */
+	bool bCanExecuteBlueprintEvent = false;
+	/**
+	 * Verify input string, return true if the input string is good to use, false otherwise.
+	 * @param InTextInput	The UITextInputComponent object reference which call this function.
+	 * @param InString	The will display string value, for check if it is valid. If not, then display origin string value.
+	 * @param InIndexOfInsertedChar	New inserted char index in InString.
+	 * @return true if the input string is good to use, false otherwise.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnValidateInput"), Category = "LGUI")
+		bool ReceiveOnValidateInput(UUITextInputComponent* InTextInput, const FString& InString, int InIndexOfInsertedChar);
+};
+
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUITextInputType:uint8
 {
@@ -64,8 +92,13 @@ enum class ELGUITextInputType:uint8
 	 * NOTE!!! This type will be deprecate, use DisplayType.Password instead.
 	 */
 	Password = 3,
-	/** Use *SetCustomInputTypeFunction* to check if input is valid. */
+	/**
+	 * Use *SetCustomInputTypeFunction* to check if input is valid.
+	 * NOTE!!! This type will be deprecate, use Custom instead.
+	 */
 	CustomFunction = 4,
+	/** Use a user implemented *CustomValidation* to do custom input check. */
+	Custom = 7,
 };
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUITextInputDisplayType :uint8
@@ -105,6 +138,9 @@ protected:
 		FString Text;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		ELGUITextInputType InputType;
+	/** Use this to do custom validation. Only valid when InputType = Custom */
+	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Input", meta = (EditCondition = "InputType==ELGUITextInputType::Custom"))
+		UUITextInputCustomValidation* CustomValidation = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		ELGUITextInputDisplayType DisplayType = ELGUITextInputDisplayType::Standard;
 	//password display character
@@ -170,6 +206,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		ELGUITextInputType GetInputType()const { return InputType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		UUITextInputCustomValidation* GetCustomValidation()const { return CustomValidation; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		ELGUITextInputDisplayType GetDisplayType()const { return DisplayType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		const FString& GetPasswordChar()const { return PasswordChar; }
@@ -204,6 +242,8 @@ public:
 		bool SetText(const FString& InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetInputType(ELGUITextInputType newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetCustomValidation(UUITextInputCustomValidation* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetDisplayType(ELGUITextInputDisplayType newValue);
 	/** Set password display char. Only allow one char in the value string */

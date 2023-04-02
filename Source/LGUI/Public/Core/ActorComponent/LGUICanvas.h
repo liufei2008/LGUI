@@ -266,7 +266,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool inheritRectClip = true;
 	/**
-	 * Use this to do custom clip.
+	 * Use this to do custom clip. Only valid if clipType = Custom.
 	 * Will fallback to "No Clip" if not assign this value.
 	 */
 	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
@@ -352,7 +352,6 @@ public:
 		void SetClipTexture(UTexture2D* newTexture);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetInheriRectClip(bool newBool);
-	/** Set current clip type as CustomClip, and set the CustomClip object */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetCustomClip(ULGUICanvasCustomClip* value);
 	/** 

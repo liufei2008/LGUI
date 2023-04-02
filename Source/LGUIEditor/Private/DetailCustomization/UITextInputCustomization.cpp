@@ -33,6 +33,14 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Input");
 
+	auto InputTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, InputType));
+	InputTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	ELGUITextInputType InputType;
+	InputTypeHandle->GetValue(*(uint8*)&InputType);
+	if (InputType != ELGUITextInputType::Custom)
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, CustomValidation));
+	}
 	auto DisplayTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, DisplayType));
 	DisplayTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	ELGUITextInputDisplayType DisplayType;
