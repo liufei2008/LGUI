@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "LGUICanvasCustomClip.generated.h"
 
+class UMaterialInterface;
+
 /** Provide ability to do custom clip for LGUICanvas */
 UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULGUICanvasCustomClip : public UObject
