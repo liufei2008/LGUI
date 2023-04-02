@@ -3,6 +3,7 @@
 #include "Core/LGUICanvasCustomClip.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Materials/MaterialInterface.h"
 #include "LTweenManager.h"
 #include "LTweener.h"
 
