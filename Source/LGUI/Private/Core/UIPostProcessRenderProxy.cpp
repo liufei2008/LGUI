@@ -140,7 +140,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FLGUIWorldRenderPSParameter* PSShaderParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
-	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Target;
+	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Resolve;
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);
 
 	GraphBuilder.AddPass(

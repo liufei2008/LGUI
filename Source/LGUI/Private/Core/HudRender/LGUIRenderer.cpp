@@ -420,8 +420,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_FULL:
 		{
 			DepthTextureScaleOffset = FVector4f(
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Resolve->Desc.GetSize().X,
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Resolve->Desc.GetSize().Y,
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -431,8 +431,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_PRIMARY:
 		{
 			DepthTextureScaleOffset = FVector4f(
-				(float)ViewRect.Width() / SceneTextures.Depth.Target->Desc.GetSize().X,//normally ViewRect.Width is half of screen size
-				(float)ViewRect.Height() / SceneTextures.Depth.Target->Desc.GetSize().Y,
+				(float)ViewRect.Width() / SceneTextures.Depth.Resolve->Desc.GetSize().X,//normally ViewRect.Width is half of screen size
+				(float)ViewRect.Height() / SceneTextures.Depth.Resolve->Desc.GetSize().Y,
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -442,8 +442,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_SECONDARY:
 		{
 			DepthTextureScaleOffset = FVector4f(
-				(float)ViewRect.Width() / SceneTextures.Depth.Target->Desc.GetSize().X,
-				(float)ViewRect.Height() / SceneTextures.Depth.Target->Desc.GetSize().Y,
+				(float)ViewRect.Width() / SceneTextures.Depth.Resolve->Desc.GetSize().X,
+				(float)ViewRect.Height() / SceneTextures.Depth.Resolve->Desc.GetSize().Y,
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -564,7 +564,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			case ELGUIHudPrimitiveType::Mesh://render mesh
 			{
 				auto* PassParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
-				PassParameters->SceneDepthTex = SceneTextures.Depth.Target;
+				PassParameters->SceneDepthTex = SceneTextures.Depth.Resolve;
 				PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
 
 				GraphBuilder.AddPass(
