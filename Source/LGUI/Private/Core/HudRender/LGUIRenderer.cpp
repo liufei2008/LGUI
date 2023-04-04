@@ -398,8 +398,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_FULL:
 		{
 			DepthTextureScaleOffset = FVector4(
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthTexture()->GetSizeX(),
+				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthTexture()->GetSizeY(),
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -409,8 +409,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_LEFT_EYE:
 		{
 			DepthTextureScaleOffset = FVector4(
-				(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),//normally ViewRect.Width is half of screen size
-				(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				(float)ViewRect.Width() / SceneContext.GetSceneDepthTexture()->GetSizeX(),//normally ViewRect.Width is half of screen size
+				(float)ViewRect.Height() / SceneContext.GetSceneDepthTexture()->GetSizeY(),
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -420,8 +420,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		case EStereoscopicPass::eSSP_RIGHT_EYE:
 		{
 			DepthTextureScaleOffset = FVector4(
-				(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-				(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+				(float)ViewRect.Width() / SceneContext.GetSceneDepthTexture()->GetSizeX(),
+				(float)ViewRect.Height() / SceneContext.GetSceneDepthTexture()->GetSizeY(),
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -553,7 +553,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthTexture());
 									PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
 
 									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
@@ -582,7 +582,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthTexture());
 									PixelShader->SetDepthFadeParameter(RHICmdList, canvasParamItem.DepthFade);
 									PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
 
