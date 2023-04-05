@@ -1399,7 +1399,7 @@ void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
 
 TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
 {
-	if (auto Instance = GetInstance(InWorld, true))
+	if (auto Instance = GetInstance(InWorld, InCreateIfNotExist))
 	{
 		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
 		{
