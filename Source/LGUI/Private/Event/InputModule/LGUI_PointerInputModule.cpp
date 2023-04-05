@@ -30,7 +30,7 @@ bool ULGUI_PointerInputModule::CheckEventSystem()
 bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult)
 {
 	multiHitResult.Reset();
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
 		auto& AllRaycasterArray = LGUIManagerActor->GetAllRaycasterArray();
 		InPointerEventData->hoverComponentArray.Reset();

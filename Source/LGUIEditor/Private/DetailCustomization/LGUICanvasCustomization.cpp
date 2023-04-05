@@ -52,42 +52,31 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	{
 		if (auto world = TargetScriptArray[0]->GetWorld())
 		{
-			TArray<TWeakObjectPtr<ULGUICanvas>> allCanvasArray;
-			if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
+			if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(world, false))
 			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
+				auto& allCanvasArray = LGUIManagerActor->GetCanvasArray();
+				int screenSpaceCanvasCount = 0;
+				for (auto item : allCanvasArray)
 				{
-					allCanvasArray = ULGUIEditorManagerObject::Instance->GetCanvasArray();
-				}
-			}
-			else
-			{
-				if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
-				{
-					allCanvasArray = LGUIManagerActor->GetCanvasArray();
-				}
-			}
-			int screenSpaceCanvasCount = 0;
-			for (auto item : allCanvasArray)
-			{
-				if (item.IsValid())
-				{
-					if (item->IsRootCanvas())
+					if (item.IsValid())
 					{
-						if (item->GetWorld() == world)
+						if (item->IsRootCanvas())
 						{
-							if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+							if (item->GetWorld() == world)
 							{
-								screenSpaceCanvasCount++;
+								if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+								{
+									screenSpaceCanvasCount++;
+								}
 							}
 						}
 					}
 				}
-			}
-			if (screenSpaceCanvasCount > 1)
-			{
-				auto errMsg = LOCTEXT("MultipleScreenSpaceLGUICanvasError", "Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
-				LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
+				if (screenSpaceCanvasCount > 1)
+				{
+					auto errMsg = LOCTEXT("MultipleScreenSpaceLGUICanvasError", "Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
+					LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
+				}
 			}
 		}
 	}
@@ -422,64 +411,53 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 	{
 		if (auto world = TargetScript->GetWorld())
 		{
-			TArray<TWeakObjectPtr<ULGUICanvas>> itemList;
-			if (world->IsGameWorld())
+			if (auto instance = ALGUIManagerActor::GetInstance(world, false))
 			{
-				if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
-				{
-					itemList = instance->GetCanvasArray();
-				}
-			}
-			else
-			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
-				{
-					itemList = ULGUIEditorManagerObject::Instance->GetCanvasArray();
-				}
-			}
+				auto& itemList = instance->GetCanvasArray();
 
-			FText spaceText;
-			if (TargetScript->IsRenderToScreenSpace())
-			{
-				spaceText = LOCTEXT("ScreenSpaceOverlay", "ScreenSpaceOverlay");
-			}
-			else if (TargetScript->IsRenderToWorldSpace())
-			{
-				if (TargetScript->IsRenderByLGUIRendererOrUERenderer())
+				FText spaceText;
+				if (TargetScript->IsRenderToScreenSpace())
 				{
-					spaceText = LOCTEXT("World Space - LGUI Renderer", "World Space - LGUI Renderer");
+					spaceText = LOCTEXT("ScreenSpaceOverlay", "ScreenSpaceOverlay");
 				}
-				else
+				else if (TargetScript->IsRenderToWorldSpace())
 				{
-					spaceText = LOCTEXT("World Space - UE Renderer", "World Space - UE Renderer");
+					if (TargetScript->IsRenderByLGUIRendererOrUERenderer())
+					{
+						spaceText = LOCTEXT("World Space - LGUI Renderer", "World Space - LGUI Renderer");
+					}
+					else
+					{
+						spaceText = LOCTEXT("World Space - UE Renderer", "World Space - UE Renderer");
+					}
 				}
-			}
-			else if (TargetScript->IsRenderToRenderTarget())
-			{
-				if (IsValid(TargetScript->renderTarget))
+				else if (TargetScript->IsRenderToRenderTarget())
 				{
-					spaceText = FText::Format(LOCTEXT("RenderTarget({0})", "RenderTarget({0})"), FText::FromString(TargetScript->renderTarget->GetName()));
+					if (IsValid(TargetScript->renderTarget))
+					{
+						spaceText = FText::Format(LOCTEXT("RenderTarget({0})", "RenderTarget({0})"), FText::FromString(TargetScript->renderTarget->GetName()));
+					}
+					else
+					{
+						spaceText = LOCTEXT("RenderTarget(NotValid)", "RenderTarget(NotValid)");
+					}
 				}
-				else
-				{
-					spaceText = LOCTEXT("RenderTarget(NotValid)", "RenderTarget(NotValid)");
-				}
-			}
 
-			auto renderMode = TargetScript->GetActualRenderMode();
-			int sortOrderCount = 0;
-			for (auto item : itemList)
-			{
-				if (!item.IsValid())continue;
-				if (item->GetWorld() != world)continue;
-				if (item == TargetScript)continue;
-				if (renderMode != item->GetActualRenderMode())continue;
+				auto renderMode = TargetScript->GetActualRenderMode();
+				int sortOrderCount = 0;
+				for (auto item : itemList)
+				{
+					if (!item.IsValid())continue;
+					if (item->GetWorld() != world)continue;
+					if (item == TargetScript)continue;
+					if (renderMode != item->GetActualRenderMode())continue;
 
-				if (item->GetSortOrder() == TargetScript->GetSortOrder())
-					sortOrderCount++;
+					if (item->GetSortOrder() == TargetScript->GetSortOrder())
+						sortOrderCount++;
+				}
+				auto depthInfo = FText::Format(LOCTEXT("CanvasSortOrderTip", "All LGUICanvas of {0} with same SortOrder count: {1}\n"), spaceText, sortOrderCount);
+				return depthInfo;
 			}
-			auto depthInfo = FText::Format(LOCTEXT("CanvasSortOrderTip", "All LGUICanvas of {0} with same SortOrder count: {1}\n"), spaceText, sortOrderCount);
-			return depthInfo;
 		}
 	}
 	return FText::GetEmpty();
@@ -489,21 +467,9 @@ const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray(UWorld* InWorld)
 {
 	if (IsValid(InWorld))
 	{
-#if WITH_EDITOR
-		if (!InWorld->IsGameWorld())
+		if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(InWorld, false))
 		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				return ULGUIEditorManagerObject::Instance->GetCanvasArray();
-			}
-		}
-		else
-#endif
-		{
-			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(InWorld))
-			{
-				return LGUIManagerActor->GetCanvasArray();
-			}
+			return LGUIManagerActor->GetCanvasArray();
 		}
 	}
 	static TArray<TWeakObjectPtr<ULGUICanvas>> staticArray;//just for the return value

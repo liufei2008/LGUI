@@ -7,6 +7,7 @@
 #include "LGUIEditorModule.h"
 #include "Core/Actor/UIContainerActor.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Utils/LGUIUtils.h"
 
 
 FLGUIPrefabInstanceThumbnailScene::FLGUIPrefabInstanceThumbnailScene()
@@ -47,7 +48,7 @@ FLGUIPrefabThumbnailScene::FLGUIPrefabThumbnailScene()
 }
 void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 {
-	if (CurrentPrefab.IsValid())
+	if (CurrentPrefab.IsValid() && LoadedRootActor == nullptr)
 	{
 		if (auto RootActor = CurrentPrefab->LoadPrefabInEditor(GetWorld(), nullptr))
 		{
@@ -93,6 +94,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			{
 				PreviewActorsBound = FBoxSphereBounds(FBox(FVector(-0.5f, -0.5f, -0.5f), FVector(0.5f, 0.5f, 0.5f)));
 			}
+			LoadedRootActor = RootActor;
 		}
 	}
 }
@@ -140,15 +142,8 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 }
 void FLGUIPrefabThumbnailScene::ClearStaleActors()
 {
-	ULevel* Level = GetWorld()->GetCurrentLevel();
-
-	for (int32 i = NumStartingActors; i < Level->Actors.Num(); ++i)
-	{
-		if (Level->Actors[i])
-		{
-			Level->Actors[i]->Destroy();
-		}
-	}
+	LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor.Get());
+	LoadedRootActor = nullptr;
 }
 bool FLGUIPrefabThumbnailScene::IsValidForVisualization()
 {
@@ -194,6 +189,11 @@ void FLGUIPrefabThumbnailScene::SetPrefab(class ULGUIPrefab* Prefab)
 			return;
 		}
 		ClearStaleActors();
+	}
+	if (CurrentPrefab != Prefab)
+	{
+		static uint32 PrefabThumbnailWorldNameSuffix = 0;
+		this->GetWorld()->Rename(*FString::Printf(TEXT("%s(PrefabThumbnail)_%d"), *Prefab->GetName(), PrefabThumbnailWorldNameSuffix++));
 	}
 	CurrentPrefab = Prefab;
 	CurrentPrefab->ThumbnailDirty = false;

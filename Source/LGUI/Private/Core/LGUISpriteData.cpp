@@ -330,7 +330,7 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 			this->ReloadTexture();
 		}
 
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 }
 bool ULGUISpriteData::CanEditChange(const FProperty* InProperty) const

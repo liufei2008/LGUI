@@ -2036,30 +2036,19 @@ FLGUICanLayoutControlAnchor FUIItemCustomization::GetLayoutControlAnchorValue()c
 	auto World = TargetScriptArray[0]->GetWorld();
 	if (Actor && World)
 	{
-		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
-		if (World->IsGameWorld())
+		if (auto Manager = ALGUIManagerActor::GetInstance(World, false))
 		{
-			if (auto Manager = ALGUIManagerActor::GetLGUIManagerActorInstance(Actor))
-			{
-				AllLayoutArray = Manager->GetAllLayoutArray();
-			}
-		}
-		else
-		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				AllLayoutArray = ULGUIEditorManagerObject::Instance->GetAllLayoutArray();
-			}
-		}
+			auto& AllLayoutArray = Manager->GetAllLayoutArray();
 
-		if (AllLayoutArray.Num() > 0)
-		{
-			for (auto& Item : AllLayoutArray)
+			if (AllLayoutArray.Num() > 0)
 			{
-				FLGUICanLayoutControlAnchor ItemResult;
-				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemResult))
+				for (auto& Item : AllLayoutArray)
 				{
-					Result.Or(ItemResult);
+					FLGUICanLayoutControlAnchor ItemResult;
+					if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemResult))
+					{
+						Result.Or(ItemResult);
+					}
 				}
 			}
 		}
@@ -2075,52 +2064,40 @@ bool FUIItemCustomization::IsAnchorControlledByMultipleLayout(TMap<EAnchorContro
 	auto World = TargetScriptArray[0]->GetWorld();
 	if (Actor && World)
 	{
-		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
-		if (World->IsGameWorld())
+		if (auto Manager = ALGUIManagerActor::GetInstance(World, false))
 		{
-			if (auto Manager = ALGUIManagerActor::GetLGUIManagerActorInstance(Actor))
+			auto AllLayoutArray = Manager->GetAllLayoutArray();
+			if (AllLayoutArray.Num() > 0)
 			{
-				AllLayoutArray = Manager->GetAllLayoutArray();
-			}
-		}
-		else
-		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				AllLayoutArray = ULGUIEditorManagerObject::Instance->GetAllLayoutArray();
-			}
-		}
-
-		if (AllLayoutArray.Num() > 0)
-		{
-			for (auto& Item : AllLayoutArray)
-			{
-				FLGUICanLayoutControlAnchor ItemLayoutControl;
-				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemLayoutControl))
+				for (auto& Item : AllLayoutArray)
 				{
-					if (ItemLayoutControl.bCanControlHorizontalAnchor)
+					FLGUICanLayoutControlAnchor ItemLayoutControl;
+					if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemLayoutControl))
 					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchor).Add(Item.GetObject());
-					}
-					if (ItemLayoutControl.bCanControlHorizontalAnchoredPosition)
-					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchoredPosition).Add(Item.GetObject());
-					}
-					if (ItemLayoutControl.bCanControlHorizontalSizeDelta)
-					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalSizeDelta).Add(Item.GetObject());
-					}
-					if (ItemLayoutControl.bCanControlVerticalAnchor)
-					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchor).Add(Item.GetObject());
-					}
-					if (ItemLayoutControl.bCanControlVerticalAnchoredPosition)
-					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchoredPosition).Add(Item.GetObject());
-					}
-					if (ItemLayoutControl.bCanControlVerticalSizeDelta)
-					{
-						Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalSizeDelta).Add(Item.GetObject());
+						if (ItemLayoutControl.bCanControlHorizontalAnchor)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchor).Add(Item.GetObject());
+						}
+						if (ItemLayoutControl.bCanControlHorizontalAnchoredPosition)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalAnchoredPosition).Add(Item.GetObject());
+						}
+						if (ItemLayoutControl.bCanControlHorizontalSizeDelta)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::HorizontalSizeDelta).Add(Item.GetObject());
+						}
+						if (ItemLayoutControl.bCanControlVerticalAnchor)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchor).Add(Item.GetObject());
+						}
+						if (ItemLayoutControl.bCanControlVerticalAnchoredPosition)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalAnchoredPosition).Add(Item.GetObject());
+						}
+						if (ItemLayoutControl.bCanControlVerticalSizeDelta)
+						{
+							Result.FindOrAdd(EAnchorControlledByLayoutType::VerticalSizeDelta).Add(Item.GetObject());
+						}
 					}
 				}
 			}

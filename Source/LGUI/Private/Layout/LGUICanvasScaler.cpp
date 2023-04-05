@@ -252,18 +252,6 @@ void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 {
-#if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
-	{
-		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
-		{
-			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
-			{
-				return;
-			}
-		}
-	}
-#endif
 	if (CheckCanvas())
 	{
 		if (Canvas->IsRootCanvas())

@@ -300,6 +300,8 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceAsset", "Prefab missing some asset reference!");
 		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 	}
+	static uint32 PrefabEditorWorldNameSuffix = 0;
+	this->GetWorld()->Rename(*FString::Printf(TEXT("%s(PrefabEditor)_%d"), *PrefabBeingEdited->GetName(), PrefabEditorWorldNameSuffix++));
 
 	FLGUIPrefabEditorCommand::Register();
 
@@ -507,7 +509,7 @@ void FLGUIPrefabEditor::OnApply()
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 }
 
@@ -538,6 +540,7 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 			if (ItemActor == PrefabHelperObject->LoadedRootActor)continue;
 			if (ItemActor == RootUIAgentActor)continue;
 			if (GetPreviewScene().IsWorldDefaultActor(ItemActor))continue;
+			if (ItemActor->GetClass() == ALGUIManagerActor::StaticClass())continue;
 			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
 			{
 				auto MsgText = LOCTEXT("Error_AllActor", "All prefab's actors must attach to prefab's root actor!");
