@@ -59,7 +59,6 @@ public:
 	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:
 	static bool InitCheck();
-	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 public:
 	static ULGUIEditorManagerObject* GetInstance(bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
