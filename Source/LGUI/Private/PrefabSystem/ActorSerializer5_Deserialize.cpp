@@ -272,34 +272,15 @@ namespace LGUIPrefabSystem5
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		Time = FDateTime::Now();
 #endif
-#if WITH_EDITOR
-		if (!TargetWorld->IsGameWorld())
+		if (!bIsSubPrefab)
 		{
-			if (!bIsSubPrefab)
+			for (auto item : CreatedActors)
 			{
-				for (auto item : CreatedActors)
-				{
-					ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
-				}
-				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
-				{
-					ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
-				}
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
 			}
-		}
-		else
-#endif
-		{
-			if (!bIsSubPrefab)
+			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 			{
-				for (auto item : CreatedActors)
-				{
-					LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
-				}
-				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
-				{
-					LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
-				}
+				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 			}
 		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -326,16 +307,7 @@ namespace LGUIPrefabSystem5
 #endif
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
-#if WITH_EDITOR
-		if (!TargetWorld->IsGameWorld())
-		{
-
-		}
-		else
-#endif
-		{
-			LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
-		}
+		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -680,28 +652,10 @@ namespace LGUIPrefabSystem5
 				if (LoadedRootActor == nullptr)
 				{
 					LoadedRootActor = NewActor;
-#if WITH_EDITOR
-					if (!TargetWorld->IsGameWorld())
-					{
-						ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
-					}
-					else
-#endif
-					{
-						LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
-					}
+					LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
 				}
 
-#if WITH_EDITOR
-				if (!TargetWorld->IsGameWorld())
-				{
-					ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-				}
-				else
-#endif
-				{
-					LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
-				}
+				LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);

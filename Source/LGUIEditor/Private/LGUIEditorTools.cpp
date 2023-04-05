@@ -915,7 +915,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		GEditor->SelectActor(copiedActor, true, true);
 	}
 	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 }
 void LGUIEditorTools::CopySelectedActors_Impl()
 {
@@ -1071,7 +1071,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	}
 	PrefabHelperObject->SetCanNotifyAttachment(true);
 	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 }
 void LGUIEditorTools::DeleteSelectedActors_Impl()
 {
@@ -1319,7 +1319,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 			}
 		}
 		GEditor->EndTransaction();
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 	else
 	{
@@ -1399,7 +1399,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 			}
 		}
 		GEditor->EndTransaction();
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 	else
 	{
@@ -1440,7 +1440,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 			}
 		}
 		GEditor->EndTransaction();
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 	else
 	{
@@ -1481,7 +1481,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 			}
 		}
 		GEditor->EndTransaction();
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 	else
 	{

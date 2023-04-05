@@ -51,9 +51,10 @@ void UUISelectableComponent::OnRegister()
 {
 	Super::OnRegister();
 #if WITH_EDITOR
+	//Add/Remove selectable inside OnRegister/OnUnregister in edit mode, and inside OnEnable/OnDisable in runtime mode
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		ULGUIEditorManagerObject::AddSelectable(this);
+		ALGUIManagerActor::AddSelectable(this);
 	}
 #endif
 }
@@ -63,7 +64,7 @@ void UUISelectableComponent::OnUnregister()
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		ULGUIEditorManagerObject::RemoveSelectable(this);
+		ALGUIManagerActor::RemoveSelectable(this);
 	}
 #endif
 }
@@ -563,35 +564,9 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)
 {
-#if WITH_EDITOR
-	TArray<TWeakObjectPtr<UUISelectableComponent>> SelectableArray;
-	if (!this->GetWorld()->IsGameWorld())
-	{
-		if (ULGUIEditorManagerObject::Instance != nullptr)
-		{
-			SelectableArray = ULGUIEditorManagerObject::Instance->GetAllSelectableArray();
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-	else
-	{
-		if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
-		{
-			SelectableArray = LGUIManagerActor->GetAllSelectableArray();
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-#else
-	auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld());
+	auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
 	if (LGUIManagerActor == nullptr)return nullptr;
 	const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
-#endif
 
 	auto GetPointOnRectEdge = [](UUIItem* rect, FVector2D dir)
 	{
@@ -677,7 +652,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 }
 UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* WorldContextObject)
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(WorldContextObject->GetWorld()))
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(WorldContextObject->GetWorld(), false))
 	{
 		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
 		if (SelectableArray.Num() > 0)

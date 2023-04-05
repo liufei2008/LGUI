@@ -96,153 +96,16 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
-
-	//draw frame
-	auto Settings = GetDefault<ULGUIEditorSettings>();
-	if (Settings->bDrawHelperFrame)
-	{
-		for (auto& CanvasItem : AllCanvasArray)
-		{
-			auto& UIItemArray = CanvasItem->GetUIItemArray();
-			for (auto& UIItem : UIItemArray)
-			{
-				if (!IsValid(UIItem))continue;
-				if (!IsValid(UIItem->GetWorld()))continue;
-				if (
-					UIItem->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
-																	//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
-					&& UIItem->GetWorld()->WorldType != EWorldType::Game
-					&& UIItem->GetWorld()->WorldType != EWorldType::PIE
-					&& UIItem->GetWorld()->WorldType != EWorldType::EditorPreview
-					)continue;
-
-				ALGUIManagerActor::DrawFrameOnUIItem(UIItem);
-			}
-		}
-	}
-
-	//draw navigation visualizer
-	if (Settings->bDrawSelectableNavigationVisualizer)
-	{
-		for (auto& item : AllSelectableArray)
-		{
-			if (!item.IsValid())continue;
-			if (!IsValid(item->GetWorld()))continue;
-			if (!IsValid(item->GetRootUIComponent()))continue;
-			if (!item->GetRootUIComponent()->GetIsUIActiveInHierarchy())continue;
-			if (
-				item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode object, so only this Editor condition will trigger.
-																//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
-				&& item->GetWorld()->WorldType != EWorldType::Game
-				&& item->GetWorld()->WorldType != EWorldType::PIE
-				&& item->GetWorld()->WorldType != EWorldType::EditorPreview
-				)continue;
-
-			ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get());
-		}
-	}
-
-	bool canUpdateLayout = true;
-	if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
-	{
-		canUpdateLayout = false;
-	}
-
-	if (canUpdateLayout)
-	{
-		for (auto& item : AllLayoutArray)
-		{
-			ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
-		}
-	}
-	
-	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto& item : AllCanvasArray)
-	{
-		if (item.IsValid())
-		{
-			if (item->IsRootCanvas())
-			{
-				if (item->GetWorld() == GWorld)
-				{
-					if (item->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-					{
-						ScreenSpaceOverlayCanvasCount++;
-					}
-				}
-			}
-		}
-	}
-	for (auto& item : AllCanvasArray)
-	{
-		if (item.IsValid())
-		{
-			item->UpdateRootCanvas();
-		}
-	}
-
-	if (ScreenSpaceOverlayCanvasCount > 1)
-	{
-		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
-		{
-			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = LOCTEXT("MultipleLGUICanvasRenderScreenSpaceOverlay", "Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
-			LGUIUtils::EditorNotification(errMsg, 10.0f);
-		}
-	}
-	else
-	{
-		PrevScreenSpaceOverlayCanvasCount = 0;
-	}
-
-	if (EditorTick.IsBound())
-	{
-		EditorTick.Broadcast(DeltaTime);
-	}
-
-	if (AllCanvasArray.Num() > 0)
-	{
-		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
-		{
-			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
-				{
-					auto ASortOrder = A->GetActualSortOrder();
-					auto BSortOrder = B->GetActualSortOrder();
-					if (ASortOrder == BSortOrder)
-					{
-						if (A->GetUIItem() != nullptr && B->GetUIItem() != nullptr)
-						{
-							return A->GetUIItem()->GetFlattenHierarchyIndex() < B->GetUIItem()->GetFlattenHierarchyIndex();
-						}
-					}
-					return ASortOrder < BSortOrder;
-				});
-		}
-		if (bShouldSortLGUIRenderer)
-		{
-			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->AllCanvasArray);
-			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->AllCanvasArray);
-			if (ScreenSpaceOverlayViewExtension.IsValid())
-			{
-				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
-			}
-		}
-		if (bShouldSortWorldSpaceCanvas)
-		{
-			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, this->AllCanvasArray);
-		}
-		if (bShouldSortRenderTargetSpaceCanvas)
-		{
-			ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, this->AllCanvasArray);
-		}
-
-		bShouldSortLGUIRenderer = false;
-		bShouldSortWorldSpaceCanvas = false;
-		bShouldSortRenderTargetSpaceCanvas = false;
-	}
 #endif
 #if WITH_EDITOR
+	for (auto& KeyValue : ALGUIManagerActor::GetWorldToInstanceMap())
+	{
+		if (!KeyValue.Key->IsGameWorld())
+		{
+			KeyValue.Value->Tick(DeltaTime);
+		}
+	}
+
 	CheckEditorViewportIndexAndKey();
 
 	if (bShouldBroadcastLevelActorListChanged)
@@ -274,43 +137,28 @@ void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFuncti
 	}
 }
 
-ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
+ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)
 {
 	if (CreateIfNotValid)
 	{
-		InitCheck(InWorld);
+		InitCheck();
 	}
 	return Instance;
 }
-bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
+bool ULGUIEditorManagerObject::InitCheck()
 {
 	if (Instance == nullptr)
 	{
-		if (IsValid(InWorld))
-		{
-			if (InWorld->IsGameWorld())
-			{
-				auto msg = LOCTEXT("CreateLGUIEditorManagerObjectInGameMode", "[ULGUIEditorManagerObject::InitCheck]Trying to create a LGUIEditorManagerObject in game mode, this is not allowed!");
-				UE_LOG(LGUI, Error, TEXT("%s"), *msg.ToString());
-				LGUIUtils::EditorNotification(msg);
-				return false;
-			}
-			
-			Instance = NewObject<ULGUIEditorManagerObject>();
-			Instance->AddToRoot();
-			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
-			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
-			//reimport asset
-			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
-			//open map
-			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
-			//blueprint recompile
-			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
-		}
-		else
-		{
-			return false;
-		}
+		Instance = NewObject<ULGUIEditorManagerObject>();
+		Instance->AddToRoot();
+		UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
+		Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
+		//reimport asset
+		Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
+		//open map
+		Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
+		//blueprint recompile
+		Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
 	}
 	return true;
 }
@@ -320,50 +168,10 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 #include "PrefabAnimation/LGUIPrefabSequenceObjectReference.h"
 void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 {
-	RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile();
 	FLGUIComponentReference::RefreshAllOnBlueprintRecompile();
 	FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile();
-}
-
-void ULGUIEditorManagerObject::MarkSortLGUIRenderer()
-{
-	bShouldSortLGUIRenderer = true;
-}
-void ULGUIEditorManagerObject::MarkSortWorldSpaceCanvas()
-{
-	bShouldSortWorldSpaceCanvas = true;
-}
-void ULGUIEditorManagerObject::MarkSortRenderTargetSpaceCanvas()
-{
-	bShouldSortRenderTargetSpaceCanvas = true;
-}
-
-TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
-{
-	if (Instance != nullptr)
-	{
-		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
-		{
-			if (InCreateIfNotExist)
-			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
-			}
-		}
-		else
-		{
-			if (!Instance->ScreenSpaceOverlayViewExtension->GetWorld().IsValid())
-			{
-				Instance->ScreenSpaceOverlayViewExtension.Reset();
-				if (InCreateIfNotExist)
-				{
-					Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
-				}
-			}
-		}
-		return Instance->ScreenSpaceOverlayViewExtension;
-	}
-	return nullptr;
 }
 
 void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
@@ -391,7 +199,7 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 			//Refresh ui
 			if (needToRebuildUI)
 			{
-				RefreshAllUI();
+				ALGUIManagerActor::RefreshAllUI();
 			}
 		}
 	}
@@ -449,50 +257,6 @@ void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 	}
 }
 
-void ULGUIEditorManagerObject::RefreshAllUI()
-{
-	struct Local
-	{
-		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
-		{
-			if (!IsValid(UIItem))return;
-			UIItem->CalculateTransformFromAnchor();
-			UIItem->UpdateComponentToWorld();
-			auto& Children = UIItem->GetAttachUIChildren();
-			for (auto& Child : Children)
-			{
-				UpdateComponentToWorldRecursive(Child);
-			}
-		}
-	};
-
-	if (Instance != nullptr)
-	{
-		for (auto& Layout : Instance->AllLayoutArray)
-		{
-			if (Layout.GetObject() != nullptr)
-			{
-				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.GetObject());
-			}
-		}
-		for (auto& RootUIItem : Instance->AllRootUIItemArray)
-		{
-			if (RootUIItem.IsValid())
-			{
-				RootUIItem->MarkAllDirtyRecursive();
-				RootUIItem->ForceRefreshRenderCanvasRecursive();
-				RootUIItem->ForceRefreshUIActiveStateRecursive();
-				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
-				RootUIItem->EditorForceUpdate();
-			}
-		}
-		for (auto& CanvasItem : Instance->AllCanvasArray)
-		{
-			CanvasItem->EnsureDrawcallObjectReference();
-		}
-	}
-}
-
 void ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged()
 {
 	if (Instance != nullptr)
@@ -520,96 +284,6 @@ bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
 	}
 	return false;
 }
-
-const TArray<TWeakObjectPtr<UUIItem>>& ULGUIEditorManagerObject::GetAllRootUIItemArray()
-{
-	return Instance->AllRootUIItemArray;
-}
-
-void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
-{
-	if (Instance != nullptr)
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllCanvasArray.Contains(InCanvas));
-#endif
-		Instance->AllCanvasArray.RemoveSingle(InCanvas);
-	}
-}
-void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
-{
-	if (GetInstance(InCanvas->GetWorld(), true))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllCanvasArray.Contains(InCanvas));
-#endif
-		Instance->AllCanvasArray.AddUnique(InCanvas);
-	}
-}
-
-void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InItem)
-{
-	if (GetInstance(InItem->GetWorld(), true))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllRootUIItemArray.Contains(InItem));
-#endif
-		Instance->AllRootUIItemArray.AddUnique(InItem);
-	}
-}
-void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
-{
-	if (Instance != nullptr)
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllRootUIItemArray.Contains(InItem));
-#endif
-		Instance->AllRootUIItemArray.RemoveSingle(InItem);
-	}
-}
-
-void ULGUIEditorManagerObject::AddSelectable(UUISelectableComponent* InSelectable)
-{
-	if (GetInstance(InSelectable->GetWorld(), true))
-	{
-		auto& AllSelectableArray = Instance->AllSelectableArray;
-		if (AllSelectableArray.Contains(InSelectable))return;
-		AllSelectableArray.Add(InSelectable);
-	}
-}
-void ULGUIEditorManagerObject::RemoveSelectable(UUISelectableComponent* InSelectable)
-{
-	if (GetInstance(InSelectable->GetWorld()))
-	{
-		int32 index;
-		if (Instance->AllSelectableArray.Find(InSelectable, index))
-		{
-			Instance->AllSelectableArray.RemoveAt(index);
-		}
-	}
-}
-
-void ULGUIEditorManagerObject::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
-{
-	if (InitCheck(InItem.GetObject()->GetWorld()))
-	{
-#if !UE_BUILD_SHIPPING
-		check(!Instance->AllLayoutArray.Contains(InItem));
-#endif
-		Instance->AllLayoutArray.AddUnique(InItem);
-	}
-}
-void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
-{
-	if (Instance != nullptr)
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllLayoutArray.Contains(InItem));
-#endif
-		Instance->AllLayoutArray.RemoveSingle(InItem);
-	}
-}
-
 
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 {
@@ -651,55 +325,6 @@ uint32 ULGUIEditorManagerObject::GetViewportKeyFromIndex(int32 InViewportIndex)
 		return *key;
 	}
 	return 0;
-}
-
-void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
-{
-	if (InitCheck(InWorld))
-	{
-		//nothing for edit mode
-	}
-}
-void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
-{
-	if (Instance != nullptr)
-	{
-		auto& LateFunctions = Instance->LateFunctionsAfterPrefabSerialization;
-		for (auto& Function : LateFunctions)
-		{
-			Function();
-		}
-	}
-}
-void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
-{
-	if (Instance != nullptr)
-	{
-		Instance->AllActors_PrefabSystemProcessing.Add(InActor);
-	}
-}
-void ULGUIEditorManagerObject::RemoveActorForPrefabSystem(AActor* InActor)
-{
-	if (Instance != nullptr)
-	{
-		Instance->AllActors_PrefabSystemProcessing.Remove(InActor);
-	}
-}
-bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
-{
-	if (Instance != nullptr)
-	{
-		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
-	}
-	return false;
-}
-
-void ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
-{
-	if (Instance != nullptr)
-	{
-		Instance->LateFunctionsAfterPrefabSerialization.Add(InFunction);
-	}
 }
 
 bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
@@ -1118,35 +743,18 @@ ALGUIManagerActor::ALGUIManagerActor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = ETickingGroup::TG_DuringPhysics;
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-#if WITH_EDITOR
-	FEditorDelegates::BeginPIE.AddLambda([=](const bool isSimulating) {
-		for (auto& keyValue : WorldToInstanceMap)
-		{
-			if (IsValid(keyValue.Value))
-			{
-				LGUIUtils::DestroyActorWithHierarchy(keyValue.Value);//delete any instance before begin play
-			}
-		}
-	});
+#if WITH_EDITORONLY_DATA
+	bListedInSceneOutliner = false;
 #endif
 }
-ALGUIManagerActor* ALGUIManagerActor::GetLGUIManagerActorInstance(UObject* WorldContextObject)
-{
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (auto result = WorldToInstanceMap.Find(world))
-	{
-		return *result;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
+
 void ALGUIManagerActor::BeginPlay()
 {
 	Super::BeginPlay();
 #if WITH_EDITORONLY_DATA
 	bIsPlaying = true;
+	//only show in play mode
+	bListedInSceneOutliner = true;
 #endif
 	//localization
 	onCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ALGUIManagerActor::OnCultureChanged);
@@ -1211,6 +819,9 @@ void ALGUIManagerActor::OnCultureChanged()
 
 ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
 {
+#if WITH_EDITOR
+	ULGUIEditorManagerObject::GetInstance(CreateIfNotValid);
+#endif
 	if (IsValid(InWorld))
 	{
 		if (auto instance = WorldToInstanceMap.Find(InWorld))
@@ -1221,20 +832,11 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 		{
 			if (CreateIfNotValid)
 			{
-#if WITH_EDITOR
-				if (!InWorld->IsGameWorld())
-				{
-					auto msg = LOCTEXT("TryToCreateLGUIManagerActorInEditMode", "[ALGUIManagerActor::GetInstance]Trying to create a LGUIManagerActor in edit mode, this is not allowed!");
-					UE_LOG(LGUI, Error, TEXT("%s"), *msg.ToString());
-					LGUIUtils::EditorNotification(msg);
-					return nullptr;
-				}
-#endif
 				FActorSpawnParameters param = FActorSpawnParameters();
 				param.ObjectFlags = RF_Transient;
 				auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param);
 				WorldToInstanceMap.Add(InWorld, newInstance);
-				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance]No Instance for LGUIManagerActor, create!"));
+				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance] No Instance for LGUIManagerActor in world '%s', create!"), *(InWorld->GetPathName()));
 				newInstance->bExistInInstanceMap = true;
 				return newInstance;
 			}
@@ -1265,6 +867,8 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		{
 			if (this->GetWorld()->WorldType == EWorldType::Game
 				|| this->GetWorld()->WorldType == EWorldType::PIE
+				|| this->GetWorld()->WorldType == EWorldType::Editor
+				|| this->GetWorld()->WorldType == EWorldType::EditorPreview
 				)
 			{
 				for (auto& CanvasItem : AllCanvasArray)
@@ -1275,7 +879,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 						if (!IsValid(UIItem))continue;
 						if (!IsValid(UIItem->GetWorld()))continue;
 
-						ALGUIManagerActor::DrawFrameOnUIItem(UIItem, UIItem->IsScreenSpaceOverlayUI());
+						ALGUIManagerActor::DrawFrameOnUIItem(UIItem, this->GetWorld()->IsGameWorld() ? UIItem->IsScreenSpaceOverlayUI() : false);
 					}
 				}
 			}
@@ -1290,7 +894,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				if (!IsValid(item->GetRootUIComponent()))continue;
 				if (!item->GetRootUIComponent()->GetIsUIActiveInHierarchy())continue;
 
-				ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), item->GetRootUIComponent()->IsScreenSpaceOverlayUI());
+				ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), this->GetWorld()->IsGameWorld() ? item->GetRootUIComponent()->IsScreenSpaceOverlayUI() : false);
 			}
 		}
 	}
@@ -1396,7 +1000,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		SCOPE_CYCLE_COUNTER(STAT_UpdateCanvas);
 		for (auto& item : AllCanvasArray)
 		{
-			if (item.IsValid() && item->IsRootCanvas())
+			if (item.IsValid())
 			{
 				item->UpdateRootCanvas();
 			}
@@ -1682,6 +1286,81 @@ void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
 		{
 			Instance->UpdateLayout();
 		}
+	}
+}
+
+#if WITH_EDITOR
+void ALGUIManagerActor::RefreshAllUI(UWorld* InWorld)
+{
+	struct Local
+	{
+		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
+		{
+			if (!IsValid(UIItem))return;
+			UIItem->CalculateTransformFromAnchor();
+			UIItem->UpdateComponentToWorld();
+			auto& Children = UIItem->GetAttachUIChildren();
+			for (auto& Child : Children)
+			{
+				UpdateComponentToWorldRecursive(Child);
+			}
+		}
+	};
+
+	for (auto& KeyValue : WorldToInstanceMap)
+	{
+		if (InWorld != nullptr)
+		{
+			if (KeyValue.Key != InWorld)
+			{
+				continue;
+			}
+		}
+		auto Instance = KeyValue.Value;
+		for (auto& Layout : Instance->AllLayoutArray)
+		{
+			if (Layout.GetObject() != nullptr)
+			{
+				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.GetObject());
+			}
+		}
+		for (auto& RootUIItem : Instance->AllRootUIItemArray)
+		{
+			if (RootUIItem.IsValid())
+			{
+				RootUIItem->MarkAllDirtyRecursive();
+				RootUIItem->ForceRefreshRenderCanvasRecursive();
+				RootUIItem->ForceRefreshUIActiveStateRecursive();
+				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
+				RootUIItem->EditorForceUpdate();
+			}
+		}
+		for (auto& CanvasItem : Instance->AllCanvasArray)
+		{
+			CanvasItem->EnsureDrawcallObjectReference();
+		}
+	}
+}
+#endif
+
+void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld(), true))
+	{
+#if !UE_BUILD_SHIPPING
+		check(!Instance->AllRootUIItemArray.Contains(InItem));
+#endif
+		Instance->AllRootUIItemArray.AddUnique(InItem);
+	}
+}
+void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld(), false))
+	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->AllRootUIItemArray.Contains(InItem));
+#endif
+		Instance->AllRootUIItemArray.RemoveSingle(InItem);
 	}
 }
 

@@ -69,7 +69,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 		multiHitResult.Reset();
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;
 
-		if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+		if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 		{
 			auto& AllCanvasArray = LGUIManagerActor->GetCanvasArray();
 			for (auto& CanvasItem : AllCanvasArray)

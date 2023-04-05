@@ -86,7 +86,7 @@ void ULGUILifeCycleBehaviour::OnRegister()
 			{
 				if (executeInEditMode)
 				{
-					if (auto Instance = ULGUIEditorManagerObject::GetInstance(this->GetWorld(), true))
+					if (auto Instance = ULGUIEditorManagerObject::GetInstance(true))
 					{
 						EditorTickDelegateHandle = Instance->EditorTick.AddUObject(this, &ULGUILifeCycleBehaviour::Update);
 					}
