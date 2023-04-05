@@ -195,7 +195,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	}
 
 	AActor* ClickHitActor = nullptr;
-	if (ULGUIEditorManagerObject::Instance != nullptr)
+	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
 		FVector RayOrigin, RayDirection;
 		View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
@@ -203,7 +203,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		//find hit UIBatchGeometryRenderable
 		auto LineStart = RayOrigin;
 		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
-		auto& AllCanvasArray = ULGUIEditorManagerObject::Instance->GetCanvasArray();
+		auto& AllCanvasArray = ManagerActor->GetCanvasArray();
 		UUIBaseRenderable* ClickHitUI = nullptr;
 		static TArray<UUIItem*> AllUIItemArray;
 		AllUIItemArray.Reset();

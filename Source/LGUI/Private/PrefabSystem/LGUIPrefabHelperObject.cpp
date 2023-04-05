@@ -67,7 +67,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 
 		if (LoadedRootActor == nullptr)return;
 
-		ULGUIEditorManagerObject::RefreshAllUI();
+		ALGUIManagerActor::RefreshAllUI();
 	}
 }
 #endif
@@ -504,7 +504,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 		ClearInvalidObjectAndGuid();//incase LevelPrefab reference invalid object, eg: delete object in sub-prefab's sub-prefab, and update the prefab in level
 	}
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
 	return AnythingChange;
@@ -618,7 +618,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 {
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
+	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
 
 	if (AttachmentActor.Actor == Actor)
 	{
@@ -649,7 +649,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 {
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
+	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
@@ -1025,7 +1025,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1076,7 +1076,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1160,7 +1160,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 	}
 	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 }
 
 void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInPrefab, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex, bool IsInsideRawArray)
@@ -1361,7 +1361,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1425,7 +1425,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1530,7 +1530,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }

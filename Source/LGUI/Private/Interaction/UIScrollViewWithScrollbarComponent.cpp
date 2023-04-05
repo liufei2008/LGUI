@@ -16,30 +16,12 @@ UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
 void UUIScrollViewWithScrollbarComponent::OnRegister()
 {
 	Super::OnRegister();
-#if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
-	{
-		ULGUIEditorManagerObject::RegisterLGUILayout(this);
-	}
-	else
-#endif
-	{
-		ALGUIManagerActor::RegisterLGUILayout(this);
-	}
+	ALGUIManagerActor::RegisterLGUILayout(this);
 }
 void UUIScrollViewWithScrollbarComponent::OnUnregister()
 {
 	Super::OnUnregister();
-#if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
-	{
-		ULGUIEditorManagerObject::UnregisterLGUILayout(this);
-	}
-	else
-#endif
-	{
-		ALGUIManagerActor::UnregisterLGUILayout(this);
-	}
+	ALGUIManagerActor::UnregisterLGUILayout(this);
 }
 
 void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)

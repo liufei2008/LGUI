@@ -139,9 +139,5 @@ public:
 
 	UPROPERTY(config)
 		bool ShowLGUIColumnInSceneOutliner = true;
-
-	/** Can anchor data change UIItem's location? This is only a helper for converting from LGUI2 to LGUI3 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI Upgrade")
-		bool AnchorControlPosition = true;
 #endif
 };

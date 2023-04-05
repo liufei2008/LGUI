@@ -50,31 +50,12 @@ void UUILayoutBase::PostEditUndo()
 void UUILayoutBase::OnRegister()
 {
     Super::OnRegister();
-#if WITH_EDITOR
-    if (!GetWorld()->IsGameWorld())
-    {
-        MarkNeedRebuildChildrenList();
-        ULGUIEditorManagerObject::RegisterLGUILayout(this);
-    }
-    else
-#endif
-    {
-        ALGUIManagerActor::RegisterLGUILayout(this);
-    }
+    ALGUIManagerActor::RegisterLGUILayout(this);
 }
 void UUILayoutBase::OnUnregister()
 {
     Super::OnUnregister();
-#if WITH_EDITOR
-    if (!GetWorld()->IsGameWorld())
-    {
-        ULGUIEditorManagerObject::UnregisterLGUILayout(this);
-    }
-    else
-#endif
-    {
-        ALGUIManagerActor::UnregisterLGUILayout(this);
-    }
+    ALGUIManagerActor::UnregisterLGUILayout(this);
 }
 
 void UUILayoutBase::OnUpdateLayout_Implementation()

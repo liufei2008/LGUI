@@ -569,16 +569,16 @@ void UUIItem::PostEditUndo()
 
 #if WITH_EDITOR
 	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
-	if (ULGUIEditorManagerObject::Instance != nullptr)
+	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
-		for (auto TempRootUIItem : ULGUIEditorManagerObject::Instance->GetAllRootUIItemArray())
+		for (auto TempRootUIItem : ManagerActor->GetAllRootUIItemArray())
 		{
 			auto OldRenderCanvas = TempRootUIItem->RenderCanvas;
 			TempRootUIItem->RenderCanvas = nullptr;
 			TempRootUIItem->RenewRenderCanvasRecursive(OldRenderCanvas.Get());
 		}
 	}
-	ULGUIEditorManagerObject::RefreshAllUI();
+	ALGUIManagerActor::RefreshAllUI();
 #endif
 }
 
@@ -622,18 +622,6 @@ void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETel
 }
 void UUIItem::CalculateAnchorFromTransform()
 {
-#if WITH_EDITOR
-	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
-	{
-		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
-		{
-			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
-			{
-				return;
-			}
-		}
-	}
-#endif
 	auto TempRelativeLocation = this->GetRelativeLocation();
 	FVector2D CalculatedAnchoredPosition;
 	if (ParentUIItem.IsValid())
@@ -680,30 +668,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		//hierarchy index
 		CheckCacheUIChildren();//check
 		bool bNeedSortChildren = true;
-#if WITH_EDITORONLY_DATA
-		if (!GetWorld()->IsGameWorld())
 		{
-			if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
-			{
-				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
-			}
-			else
-			{
-				if (childUIItem->IsRegistered())
-				{
-					childUIItem->hierarchyIndex = UIChildren.Num();
-					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
-				}
-				else//not registered means is loading from level. then no need to set hierarchy index
-				{
-
-				}
-			}
-		}
-		else
-#endif
-		{
-			auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
+			auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
 			if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
 				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
@@ -751,63 +717,30 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 void UUIItem::OnUIAttachedToParent()
 {
-#if WITH_EDITORONLY_DATA
-	if (!GetWorld()->IsGameWorld())
+	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
+	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
-		if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+		check(ParentUIItem.IsValid());
 		{
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			check(ParentUIItem.IsValid());
-			{
-				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
-					}});
-			}
-		}
-		else
-		{
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			check(ParentUIItem.IsValid());
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
-			}
-
-			if (this->IsRegistered())//not registered means is loading from level.
-			{
-				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
-			}
+			ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+				if (Child.IsValid() && Parent.IsValid())
+				{
+					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+				}});
 		}
 	}
 	else
-#endif
 	{
-		auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
-		if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+		check(ParentUIItem.IsValid());
 		{
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			check(ParentUIItem.IsValid());
-			{
-				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
-					}});
-			}
+			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 		}
-		else
-		{
-			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-			check(ParentUIItem.IsValid());
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
-			}
 
-			if (this->IsRegistered())//not registered means is loading from level.
-			{
-				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
-			}
+		if (this->IsRegistered())//not registered means is loading from level.
+		{
+			this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 		}
 	}
 
@@ -846,59 +779,28 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 
 void UUIItem::OnUIDetachedFromParent()
 {
-#if WITH_EDITORONLY_DATA
-	if (!GetWorld()->IsGameWorld())
+	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
+	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
-		if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		if (ParentUIItem.IsValid())//tell old parent
 		{
-			if (ParentUIItem.IsValid())//tell old parent
-			{
-				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
-					}});
-			}
-		}
-		else
-		{
-			if (ParentUIItem.IsValid())//tell old parent
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-			}
-
-			if (this->IsRegistered())//not registered means is loading from level.
-			{
-				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
-			}
+			ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+				if (Child.IsValid() && Parent.IsValid())
+				{
+					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
+				}});
 		}
 	}
 	else
-#endif
 	{
-		auto ManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetOwner());
-		if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		if (ParentUIItem.IsValid())//tell old parent
 		{
-			if (ParentUIItem.IsValid())//tell old parent
-			{
-				ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-					if (Child.IsValid() && Parent.IsValid())
-					{
-						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
-					}});
-			}
+			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
 		}
-		else
-		{
-			if (ParentUIItem.IsValid())//tell old parent
-			{
-				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-			}
 
-			if (this->IsRegistered())//not registered means is loading from level.
-			{
-				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
-			}
+		if (this->IsRegistered())//not registered means is loading from level.
+		{
+			this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 		}
 	}
 
@@ -1255,13 +1157,10 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 void UUIItem::CheckRootUIItem()
 {
 #if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
+	auto oldRootUIItem = RootUIItem;
+	if (oldRootUIItem == this && oldRootUIItem != nullptr)
 	{
-		auto oldRootUIItem = RootUIItem;
-		if (oldRootUIItem == this && oldRootUIItem != nullptr)
-		{
-			ULGUIEditorManagerObject::RemoveRootUIItem(this);
-		}
+		ALGUIManagerActor::RemoveRootUIItem(this);
 	}
 #endif
 
@@ -1275,12 +1174,9 @@ void UUIItem::CheckRootUIItem()
 	RootUIItem = tempRootUIItem;
 
 #if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
+	if (RootUIItem == this && RootUIItem != nullptr)
 	{
-		if (RootUIItem == this && RootUIItem != nullptr)
-		{
-			ULGUIEditorManagerObject::AddRootUIItem(this);
-		}
+		ALGUIManagerActor::AddRootUIItem(this);
 	}
 #endif
 }
@@ -1301,18 +1197,6 @@ void UUIItem::CalculateTransformFromAnchor()
 }
 void UUIItem::CalculateTransformFromAnchor(bool& OutHorizontalPositionChanged, bool& OutVerticalPositionChanged)
 {
-#if WITH_EDITOR
-	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
-	{
-		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
-		{
-			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
-			{
-				return;
-			}
-		}
-	}
-#endif
 	bCanSetAnchorFromTransform = false;
 	FVector ResultLocation = this->GetRelativeLocation();
 	if (ParentUIItem.IsValid())

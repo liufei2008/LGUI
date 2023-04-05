@@ -59,7 +59,7 @@ this can reduce the package size, because AtlasPacking already pack this SpriteT
 			.OnClicked_Lambda([=]{
 				TargetScriptPtr->ReloadTexture();
 				TargetScriptPtr->MarkPackageDirty();
-				ULGUIEditorManagerObject::RefreshAllUI();
+				ALGUIManagerActor::RefreshAllUI();
 				return FReply::Handled();
 			})
 		];

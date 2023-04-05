@@ -22,6 +22,7 @@ private:
 private:
 	int32 NumStartingActors;
 	TWeakObjectPtr<class ULGUIPrefab> CurrentPrefab;
+	TWeakObjectPtr<class AActor> LoadedRootActor;
 	FText CachedPrefabContent;
 	FBoxSphereBounds PreviewActorsBound;
 	bool bIsUI = false;

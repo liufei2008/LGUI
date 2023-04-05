@@ -286,29 +286,13 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		CallbackBeforeAwake(CreatedRootActor);
 	}
 
-#if WITH_EDITOR
-	if (!TargetWorld->IsGameWorld())
+	for (auto item : CreatedActors)
 	{
-		for (auto item : CreatedActors)
-		{
-			ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
-		}
-		if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
-		{
-			ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
-		}
+		LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
 	}
-	else
-#endif
+	if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 	{
-		for (auto item : CreatedActors)
-		{
-			LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
-		}
-		if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
-		{
-			LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
-		}
+		LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 	}
 
 	auto TimeSpan = FDateTime::Now() - StartTime;

@@ -86,7 +86,7 @@ void ULGUIEventSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void ULGUIEventSystem::ProcessInputEvent()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
 		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
 		if (CurrentInputModule.IsValid())
@@ -156,7 +156,7 @@ void ULGUIEventSystem::BeginDestroy()
 
 void ULGUIEventSystem::ClearEvent()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
 		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
 		if (CurrentInputModule.IsValid())
@@ -341,7 +341,7 @@ void ULGUIEventSystem::SetSelectComponentWithDefault(USceneComponent* InSelectCo
 }
 ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 	{
 		return LGUIManagerActor->GetCurrentInputModule().Get();
 	}
