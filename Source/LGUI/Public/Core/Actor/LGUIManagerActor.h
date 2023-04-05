@@ -50,19 +50,6 @@ public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
 private:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUISelectableComponent>> AllSelectableArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
-
-	bool bShouldSortLGUIRenderer = true;
-	bool bShouldSortWorldSpaceCanvas = true;
-	bool bShouldSortRenderTargetSpaceCanvas = true;
-
 	bool bShouldBroadcastLevelActorListChanged = false;
 #endif
 #if WITH_EDITOR
@@ -71,38 +58,15 @@ private:
 public:
 	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:
-	static bool InitCheck(UWorld* InWorld);
+	static bool InitCheck();
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 public:
-	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
+	static ULGUIEditorManagerObject* GetInstance(bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
 	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
-
-	const TArray<TWeakObjectPtr<UUIItem>>& GetAllRootUIItemArray();
 public:
-	static void AddRootUIItem(UUIItem* InItem);
-	static void RemoveRootUIItem(UUIItem* InItem);
-
-	const TArray<TWeakObjectPtr<UUISelectableComponent>>& GetAllSelectableArray() { return AllSelectableArray; }
-	static void AddSelectable(UUISelectableComponent* InSelectable);
-	static void RemoveSelectable(UUISelectableComponent* InSelectable);
-
-	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return AllCanvasArray; };
-	void MarkSortLGUIRenderer();
-	void MarkSortWorldSpaceCanvas();
-	void MarkSortRenderTargetSpaceCanvas();
-
-	const TArray<TScriptInterface<ILGUILayoutInterface>>& GetAllLayoutArray()const { return AllLayoutArray; }
-
-	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
-
-	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
-	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
-
 	/**
 	 * Editor raycast hit all visible UIBaseRenderable object.
 	 * @param InWorld
@@ -118,28 +82,12 @@ public:
 	);
 private:
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TSet<AActor*> AllActors_PrefabSystemProcessing;
 	/** Functions that wait for prefab serialization complete then execute */
 	TArray<TFunction<void()>> LateFunctionsAfterPrefabSerialization;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 #endif
 	void RefreshOnBlueprintCompiled();
 public:
-	static void BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
-	static void EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
-	static void AddActorForPrefabSystem(AActor* InActor);
-	static void RemoveActorForPrefabSystem(AActor* InActor);
-	static bool IsPrefabSystemProcessingActor(AActor* InActor);
-	/**
-	 * Add a function that execute after prefab system serialization and before Awake called
-	 * @param	InPrefabActor	Current prefab system processing actor
-	 * @param	InFunction		Function to call after prefab system serialization complete and before Awake called
-	 */
-	static void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
-
-	static void RefreshAllUI();
-
 	static void MarkBroadcastLevelActorListChanged();
 private:
 	FDelegateHandle OnAssetReimportDelegateHandle;
@@ -163,7 +111,7 @@ struct FLGUILifeCycleBehaviourArrayContainer
 
 class ILGUICultureChangedInterface;
 
-UCLASS(NotBlueprintable, NotBlueprintType, NotPlaceable)
+UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ALGUIManagerActor : public AActor
 {
 	GENERATED_BODY()
@@ -174,8 +122,8 @@ private:
 	bool bIsPlaying = false;
 #endif
 public:	
-	static ALGUIManagerActor* GetLGUIManagerActorInstance(UObject* WorldContextObject);
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
+	static const TMap<UWorld*, ALGUIManagerActor*>& GetWorldToInstanceMap() { return WorldToInstanceMap; }
 	ALGUIManagerActor();
 	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
@@ -220,6 +168,12 @@ private:
 	void UpdateLayout();
 	bool bNeedUpdateLayout = false;
 public:
+#if WITH_EDITOR
+	static void RefreshAllUI(UWorld* InWorld = nullptr);
+#endif
+	static void AddRootUIItem(UUIItem* InItem);
+	static void RemoveRootUIItem(UUIItem* InItem);
+	const TArray<TWeakObjectPtr<UUIItem>>& GetAllRootUIItemArray()const { return AllRootUIItemArray; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);

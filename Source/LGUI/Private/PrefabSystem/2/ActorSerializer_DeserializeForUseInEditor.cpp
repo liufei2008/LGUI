@@ -30,25 +30,9 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 		if (LoadedRootActor == nullptr)
 		{
 			LoadedRootActor = NewActor;
-#if WITH_EDITOR
-			if (!TargetWorld->IsGameWorld())
-			{
-				ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
-			}
-			else
-#endif
-			{
-				LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
-			}
+			LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
 		}
-		if (!TargetWorld->IsGameWorld())
-		{
-			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-		}
-		else
-		{
-			LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, 0);
-		}
+		LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, 0);
 		CreatedActors.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 

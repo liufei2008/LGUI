@@ -117,17 +117,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasAddToLGUIScreenSpaceRenderer)
 				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-					}
+					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
@@ -156,17 +146,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasSetIntialStateforLGUIWorldSpaceRenderer)
 				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-					}
+					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
@@ -178,7 +158,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			break;
 			}
 		}
-
+		
 		if (CheckUIItem())
 		{
 			if (UpdateCanvasDrawcallRecursive())
@@ -241,16 +221,7 @@ void ULGUICanvas::OnRegister()
 			if (!bHasAddToLGUIManager)
 			{
 				bHasAddToLGUIManager = true;
-#if WITH_EDITOR
-				if (!world->IsGameWorld())
-				{
-					ULGUIEditorManagerObject::AddCanvas(this);
-				}
-				else
-#endif
-				{
-					ALGUIManagerActor::AddCanvas(this);
-				}
+				ALGUIManagerActor::AddCanvas(this);
 			}
 		}
 		//tell UIItem
@@ -269,16 +240,7 @@ void ULGUICanvas::OnUnregister()
 		if (bHasAddToLGUIManager)
 		{
 			bHasAddToLGUIManager = false;
-#if WITH_EDITOR
-			if (!world->IsGameWorld())
-			{
-				ULGUIEditorManagerObject::RemoveCanvas(this);
-			}
-			else
-#endif
-			{
-				ALGUIManagerActor::RemoveCanvas(this);
-			}
+			ALGUIManagerActor::RemoveCanvas(this);
 		}
 	}
 
@@ -347,17 +309,7 @@ void ULGUICanvas::RemoveFromViewExtension()
 	if (bHasAddToLGUIScreenSpaceRenderer)
 	{
 		bHasAddToLGUIScreenSpaceRenderer = false;
-		TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-		if (!GetWorld()->IsGameWorld())
-		{
-			ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-		}
-		else
-#endif
-		{
-			ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-		}
+		auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
 		if (ViewExtension.IsValid())
 		{
 			ViewExtension->ClearScreenSpaceRenderCanvas();
@@ -1508,46 +1460,21 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 		if (bNeedToSortRenderPriority)
 		{
 			bNeedToSortRenderPriority = false;
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
+			if (auto Instance = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
+				switch (this->GetActualRenderMode())
 				{
-					switch (this->GetActualRenderMode())
-					{
-					default:
-					case ELGUIRenderMode::ScreenSpaceOverlay:
-					case ELGUIRenderMode::WorldSpace_LGUI:
-						ULGUIEditorManagerObject::Instance->MarkSortLGUIRenderer();
-						break;
-					case ELGUIRenderMode::WorldSpace:
-						ULGUIEditorManagerObject::Instance->MarkSortWorldSpaceCanvas();
-						break;
-					case ELGUIRenderMode::RenderTarget:
-						ULGUIEditorManagerObject::Instance->MarkSortRenderTargetSpaceCanvas();
-						break;
-					}
-				}
-			}
-			else
-#endif
-			{
-				if (const auto Instance = ALGUIManagerActor::GetLGUIManagerActorInstance(this))
-				{
-					switch (this->GetActualRenderMode())
-					{
-					default:
-					case ELGUIRenderMode::ScreenSpaceOverlay:
-					case ELGUIRenderMode::WorldSpace_LGUI:
-						Instance->MarkSortLGUIRenderer();
-						break;
-					case ELGUIRenderMode::WorldSpace:
-						Instance->MarkSortWorldSpaceCanvas();
-						break;
-					case ELGUIRenderMode::RenderTarget:
-						Instance->MarkSortRenderTargetSpaceCanvas();
-						break;
-					}
+				default:
+				case ELGUIRenderMode::ScreenSpaceOverlay:
+				case ELGUIRenderMode::WorldSpace_LGUI:
+					Instance->MarkSortLGUIRenderer();
+					break;
+				case ELGUIRenderMode::WorldSpace:
+					Instance->MarkSortWorldSpaceCanvas();
+					break;
+				case ELGUIRenderMode::RenderTarget:
+					Instance->MarkSortRenderTargetSpaceCanvas();
+					break;
 				}
 			}
 		}
@@ -1700,67 +1627,27 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			{
 				DrawcallItem->bNeedToAddPostProcessRenderProxyToRender = false;
 				auto uiPostProcessPrimitive = DrawcallItem->PostProcessRenderableObject->GetRenderProxy();
-#if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())
+				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 				{
-					if (GetWorld()->WorldType == EWorldType::EditorPreview)
+					switch (GetActualRenderMode())
 					{
-						//no post process in EditorPreview
-					}
-					else
+					case ELGUIRenderMode::RenderTarget:
 					{
-						if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-						{
-							if (GetWorld()->WorldType != EWorldType::EditorPreview)//editor preview not visible
-							{
-								switch (GetActualRenderMode())
-								{
-								case ELGUIRenderMode::RenderTarget:
-								{
-									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(this->GetRootCanvas()->GetRenderTargetViewExtension());
-								}
-								break;
-								case ELGUIRenderMode::ScreenSpaceOverlay:
-								{
-									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true));
-								}
-								break;
-								case ELGUIRenderMode::WorldSpace_LGUI:
-								{
-									uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetActualSortOrder(), ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true));
-								}
-								break;
-								}
-								uiPostProcessPrimitive->SetVisibility(true);
-							}
-						}
+						uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(this->GetRootCanvas()->GetRenderTargetViewExtension());
 					}
-				}
-				else
-#endif
-				{
-					if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
+					break;
+					case ELGUIRenderMode::ScreenSpaceOverlay:
 					{
-						switch (GetActualRenderMode())
-						{
-						case ELGUIRenderMode::RenderTarget:
-						{
-							uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(this->GetRootCanvas()->GetRenderTargetViewExtension());
-						}
-						break;
-						case ELGUIRenderMode::ScreenSpaceOverlay:
-						{
-							uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ALGUIManagerActor::GetViewExtension(GetWorld(), true));
-						}
-						break;
-						case ELGUIRenderMode::WorldSpace_LGUI:
-						{
-							uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetActualSortOrder(), ALGUIManagerActor::GetViewExtension(GetWorld(), true));
-						}
-						break;
-						}
-						uiPostProcessPrimitive->SetVisibility(true);
+						uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ALGUIManagerActor::GetViewExtension(GetWorld(), true));
 					}
+					break;
+					case ELGUIRenderMode::WorldSpace_LGUI:
+					{
+						uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetActualSortOrder(), ALGUIManagerActor::GetViewExtension(GetWorld(), true));
+					}
+					break;
+					}
+					uiPostProcessPrimitive->SetVisibility(true);
 				}
 			}
 		}
@@ -1788,76 +1675,55 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 		UIMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		UIMesh->SetRelativeTransform(FTransform::Identity);
 
-#if WITH_EDITOR
-		if (!GetWorld()->IsGameWorld())
+		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
-			if (GetWorld()->WorldType == EWorldType::EditorPreview)
+			switch (GetActualRenderMode())
 			{
-				UIMesh->SetSupportUERenderer(true);
-			}
-			else
+			case ELGUIRenderMode::RenderTarget:
 			{
-				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-				{
-					switch (GetActualRenderMode())
-					{
-					case ELGUIRenderMode::RenderTarget:
-					{
-						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, this->GetRootCanvas()->GetRenderTargetViewExtension(), RootCanvas.Get(), false);
-						UIMesh->SetSupportUERenderer(true);
-					}
-					break;
-					case ELGUIRenderMode::ScreenSpaceOverlay:
-					{
-						UIMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-						UIMesh->SetSupportUERenderer(true);
-					}
-					break;
-					case ELGUIRenderMode::WorldSpace_LGUI:
-					{
-						UIMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
-						UIMesh->SetSupportUERenderer(false);
-					}
-					break;
-					}
-				}
-				else
+				UIMesh->SetSupportLGUIRenderer(true, this->GetRootCanvas()->GetRenderTargetViewExtension(), RootCanvas.Get(), false);
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
 				{
 					UIMesh->SetSupportUERenderer(true);
 				}
+				else
+#endif
+				{
+					UIMesh->SetSupportUERenderer(false);
+				}
+			}
+			break;
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+			{
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+					UIMesh->SetSupportUERenderer(true);
+				}
+				else
+#endif
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+					UIMesh->SetSupportUERenderer(false);
+				}
+			}
+			break;
+			case ELGUIRenderMode::WorldSpace_LGUI:
+			{
+				UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), this, true);
+				UIMesh->SetSupportUERenderer(false);
+			}
+			break;
 			}
 		}
 		else
-#endif
 		{
-			if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-			{
-				switch (GetActualRenderMode())
-				{
-				case ELGUIRenderMode::RenderTarget:
-				{
-					UIMesh->SetSupportLGUIRenderer(true, this->GetRootCanvas()->GetRenderTargetViewExtension(), RootCanvas.Get(), false);
-				}
-				break;
-				case ELGUIRenderMode::ScreenSpaceOverlay:
-				{
-					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-				}
-				break;
-				case ELGUIRenderMode::WorldSpace_LGUI:
-				{
-					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), this, true);
-				}
-				break;
-				}
-				UIMesh->SetSupportUERenderer(false);
-			}
-			else
-			{
-				UIMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
-				UIMesh->SetSupportUERenderer(true);
-			}
+			UIMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
+			UIMesh->SetSupportUERenderer(true);
 		}
+
 		UsingUIMeshList.Add(UIMesh);
 		return UIMesh;
 	}
@@ -2509,46 +2375,22 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 			}
 			this->sortOrder = InSortOrder;
 		}
-#if WITH_EDITOR
-		if (!GetWorld()->IsGameWorld())
+
+		if (auto Instance = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
 		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
+			switch (this->GetActualRenderMode())
 			{
-				switch (this->GetActualRenderMode())
-				{
-				default:
-				case ELGUIRenderMode::ScreenSpaceOverlay:
-				case ELGUIRenderMode::WorldSpace_LGUI:
-					ULGUIEditorManagerObject::Instance->MarkSortLGUIRenderer();
-					break;
-				case ELGUIRenderMode::WorldSpace:
-					ULGUIEditorManagerObject::Instance->MarkSortWorldSpaceCanvas();
-					break;
-				case ELGUIRenderMode::RenderTarget:
-					ULGUIEditorManagerObject::Instance->MarkSortRenderTargetSpaceCanvas();
-					break;
-				}
-			}
-		}
-		else
-#endif
-		{
-			if (auto Instance = ALGUIManagerActor::GetLGUIManagerActorInstance(this))
-			{
-				switch (this->GetActualRenderMode())
-				{
-				default:
-				case ELGUIRenderMode::ScreenSpaceOverlay:
-				case ELGUIRenderMode::WorldSpace_LGUI:
-					Instance->MarkSortLGUIRenderer();
-					break;
-				case ELGUIRenderMode::WorldSpace:
-					Instance->MarkSortWorldSpaceCanvas();
-					break;
-				case ELGUIRenderMode::RenderTarget:
-					Instance->MarkSortRenderTargetSpaceCanvas();
-					break;
-				}
+			default:
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+			case ELGUIRenderMode::WorldSpace_LGUI:
+				Instance->MarkSortLGUIRenderer();
+				break;
+			case ELGUIRenderMode::WorldSpace:
+				Instance->MarkSortWorldSpaceCanvas();
+				break;
+			case ELGUIRenderMode::RenderTarget:
+				Instance->MarkSortRenderTargetSpaceCanvas();
+				break;
 			}
 		}
 	}
@@ -3107,17 +2949,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 			{
 				if (RootCanvas->IsRenderToWorldSpace())
 				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-					}
+					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
 					if (ViewExtension.IsValid())
 					{
 						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
@@ -3140,17 +2972,7 @@ void ULGUICanvas::SetDepthFade(float value)
 			{
 				if (RootCanvas->IsRenderToWorldSpace())
 				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), false);
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
-					}
+					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
 					if (ViewExtension.IsValid())
 					{
 						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());

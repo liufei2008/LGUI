@@ -359,9 +359,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 			//clear render target
-#if WITH_EDITOR
-			if (bIsPlaying)
-#endif
 			{
 				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
 				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIHudRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
@@ -459,7 +456,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #if PLATFORM_ANDROID || PLATFORM_IOS
 		IsMobileHDR() ? 0.45454545f : 1.0f;
 #else
-		0.45454545f;
+		bIsRenderToRenderTarget ? 1.0f : 0.45454545f;
 #endif
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
@@ -669,14 +666,21 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0)
 	{
 #if WITH_EDITOR
-		if (!bCanRenderScreenSpace)goto END_LGUI_RENDER;
-		if (bIsPlaying)
+		if (bIsRenderToRenderTarget)
 		{
-			if (!InView.bIsGameView)goto END_LGUI_RENDER;
+
 		}
-		else//editor viewport preview
+		else
 		{
-			if (InView.GetViewKey() != EditorPreview_ViewKey)goto END_LGUI_RENDER;//only preview in specific viewport in editor
+			if (!bCanRenderScreenSpace)goto END_LGUI_RENDER;
+			if (bIsPlaying)
+			{
+				if (!InView.bIsGameView)goto END_LGUI_RENDER;
+			}
+			else//editor viewport preview
+			{
+				if (InView.GetViewKey() != EditorPreview_ViewKey)goto END_LGUI_RENDER;//only preview in specific viewport in editor
+			}
 		}
 #endif
 		TRefCountPtr<IPooledRenderTarget> LGUIScreenSpaceDepthTexture = nullptr;

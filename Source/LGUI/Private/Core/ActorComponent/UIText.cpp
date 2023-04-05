@@ -167,7 +167,6 @@ void UUIText::OnRegister()
 					this->RegisterOnRichTextImageDataChange();
 				}
 			}
-			ULGUIEditorManagerObject::RegisterLGUILayout(this);
 		}
 		else
 #endif
@@ -197,7 +196,6 @@ void UUIText::OnUnregister()
 					this->UnregisterOnRichTextImageDataChange();
 				}
 			}
-			ULGUIEditorManagerObject::UnregisterLGUILayout(this);
 		}
 		else
 #endif
