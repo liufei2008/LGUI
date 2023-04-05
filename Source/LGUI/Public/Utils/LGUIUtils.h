@@ -143,7 +143,7 @@ public:
 	static void LogObjectFlags(UObject* obj);
 
 	static float Color255To1_Table[256];
-	static uint32 LGUITextureNameSuffix;
+	static TAtomic<uint32> LGUITextureNameSuffix;
 private:
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)

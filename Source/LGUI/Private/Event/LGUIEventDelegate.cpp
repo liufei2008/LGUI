@@ -2,6 +2,7 @@
 
 #include "Event/LGUIEventDelegate.h"
 #include "LGUI.h"
+#include "Serialization/MemoryReader.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
