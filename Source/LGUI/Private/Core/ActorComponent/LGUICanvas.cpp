@@ -216,13 +216,10 @@ void ULGUICanvas::OnRegister()
 	Super::OnRegister();
 	if (CheckUIItem())
 	{
-		if (auto world = this->GetWorld())
+		if (!bHasAddToLGUIManager)
 		{
-			if (!bHasAddToLGUIManager)
-			{
-				bHasAddToLGUIManager = true;
-				ALGUIManagerActor::AddCanvas(this);
-			}
+			bHasAddToLGUIManager = true;
+			ALGUIManagerActor::AddCanvas(this);
 		}
 		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
@@ -235,13 +232,10 @@ void ULGUICanvas::OnRegister()
 void ULGUICanvas::OnUnregister()
 {
 	Super::OnUnregister();
-	if (auto world = this->GetWorld())
+	if (bHasAddToLGUIManager)
 	{
-		if (bHasAddToLGUIManager)
-		{
-			bHasAddToLGUIManager = false;
-			ALGUIManagerActor::RemoveCanvas(this);
-		}
+		bHasAddToLGUIManager = false;
+		ALGUIManagerActor::RemoveCanvas(this);
 	}
 
 	//clear

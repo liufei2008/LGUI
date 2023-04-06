@@ -140,19 +140,7 @@ void UUILayoutBase::MarkNeedRebuildChildrenList()
 void UUILayoutBase::MarkNeedRebuildLayout()
 {
     bNeedRebuildLayout = true; 
-    if (auto World = this->GetWorld())
-    {
-#if WITH_EDITOR
-        if (!World->IsGameWorld())
-        {
-
-        }
-        else
-#endif
-        {
-            ALGUIManagerActor::MarkUpdateLayout(World);
-        }
-    }
+    ALGUIManagerActor::MarkUpdateLayout(this->GetWorld());
 }
 
 void UUILayoutBase::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
