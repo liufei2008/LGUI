@@ -43,6 +43,8 @@ struct FLGUIMaterialAccessor
 	FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey);
 	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialPath);
 
+	explicit operator bool() const;
+
 	UMaterialInterface* GetMaterial() const;
 	void SetMaterial(UMaterialInterface* InMaterial) const;
 	UMaterialInstanceDynamic* CreateDynamicMaterial(UMaterialInterface* InMaterial);

@@ -31,6 +31,11 @@ FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHan
 	check(!InObject || Renderable);
 }
 
+FLGUIMaterialAccessor::operator bool() const
+{
+	return Renderable != nullptr;
+}
+
 FString FLGUIMaterialAccessor::ToString() const
 {
 	return FString::Printf(TEXT("CustomUIMaterial %s"), *Renderable->GetPathName());
