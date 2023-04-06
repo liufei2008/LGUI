@@ -172,8 +172,8 @@ void UUIText::OnRegister()
 #endif
 		{
 			ALGUIManagerActor::RegisterLGUICultureChangedEvent(this);
-			ALGUIManagerActor::RegisterLGUILayout(this);
 		}
+		ALGUIManagerActor::RegisterLGUILayout(this);
 	}
 }
 void UUIText::OnUnregister()
@@ -201,8 +201,8 @@ void UUIText::OnUnregister()
 #endif
 		{
 			ALGUIManagerActor::UnregisterLGUICultureChangedEvent(this);
-			ALGUIManagerActor::UnregisterLGUILayout(this);
 		}
+		ALGUIManagerActor::UnregisterLGUILayout(this);
 	}
 }
 void UUIText::OnComponentDestroyed(bool bDestroyingHierarchy)
@@ -671,19 +671,7 @@ void UUIText::ClearCreatedRichTextImageObject()
 void UUIText::MarkTextLayoutDirty()
 {
 	bTextLayoutDirty = true;
-	if (auto World = this->GetWorld())
-	{
-#if WITH_EDITOR
-		if (!World->IsGameWorld())
-		{
-
-		}
-		else
-#endif
-		{
-			ALGUIManagerActor::MarkUpdateLayout(World);
-		}
-	}
+	ALGUIManagerActor::MarkUpdateLayout(this->GetWorld());
 }
 void UUIText::ConditionalMarkTextLayoutDirty()
 {
