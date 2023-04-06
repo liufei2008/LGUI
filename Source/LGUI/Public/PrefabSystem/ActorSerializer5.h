@@ -111,11 +111,29 @@ namespace LGUIPrefabSystem5
 		FGuid ObjectGuid;
 		TArray<uint8> OverrideParameterData;
 		TSet<FName> OverrideParameterNameSet;
+		TArray<FName> OverrideParameterNameArray;
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabOverrideParameterRecordData& Data)
 		{
 			Ar << Data.ObjectGuid;
 			Ar << Data.OverrideParameterData;
-			Ar << Data.OverrideParameterNameSet;
+			if (Ar.IsLoading())
+			{
+				Ar << Data.OverrideParameterNameArray;
+				Data.OverrideParameterNameSet.Reserve(Data.OverrideParameterNameArray.Num());
+				for (auto& Item : Data.OverrideParameterNameArray)
+				{
+					Data.OverrideParameterNameSet.Add(Item);
+				}
+			}
+			else
+			{
+				Data.OverrideParameterNameArray.Reserve(Data.OverrideParameterNameSet.Num());
+				for (auto& Item : Data.OverrideParameterNameSet)
+				{
+					Data.OverrideParameterNameArray.Add(Item);
+				}
+				Ar << Data.OverrideParameterNameArray;
+			}
 			return Ar;
 		}
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabOverrideParameterRecordData& Data)
@@ -123,7 +141,24 @@ namespace LGUIPrefabSystem5
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
 			Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
 			Record << SA_VALUE(TEXT("OverrideParameterData"), Data.OverrideParameterData);
-			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNameSet);
+			if (Record.GetArchiveState().IsLoading())
+			{
+				Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNameArray);
+				Data.OverrideParameterNameSet.Reserve(Data.OverrideParameterNameArray.Num());
+				for (auto& Item : Data.OverrideParameterNameArray)
+				{
+					Data.OverrideParameterNameSet.Add(Item);
+				}
+			}
+			else
+			{
+				Data.OverrideParameterNameArray.Reserve(Data.OverrideParameterNameSet.Num());
+				for (auto& Item : Data.OverrideParameterNameSet)
+				{
+					Data.OverrideParameterNameArray.Add(Item);
+				}
+				Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNameArray);
+			}
 		}
 	};
 
