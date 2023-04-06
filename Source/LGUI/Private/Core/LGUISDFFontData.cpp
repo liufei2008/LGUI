@@ -520,6 +520,7 @@ void ULGUISDFFontData::CheckMaterials()
 				continue;
 			}
 			SDFDefaultMaterials[i] = mat;
+			this->MarkPackageDirty();
 		}
 	}
 }

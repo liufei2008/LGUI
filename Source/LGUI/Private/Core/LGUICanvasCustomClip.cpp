@@ -42,7 +42,7 @@ bool ULGUICanvasCustomClip::CheckPointVisible(const FVector& InWorldPoint, ULGUI
 #include "Materials/MaterialInstanceDynamic.h"
 ULGUICanvasCustomClip_Circle::ULGUICanvasCustomClip_Circle()
 {
-	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle")));
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle")));
 	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_SDF_Font_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle_SDFFont")));
 }
 void ULGUICanvasCustomClip_Circle::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)

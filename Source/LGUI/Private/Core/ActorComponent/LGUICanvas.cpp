@@ -592,6 +592,7 @@ void ULGUICanvas::CheckDefaultMaterials()
 				continue;
 			}
 			DefaultMaterials[i] = mat;
+			this->MarkPackageDirty();
 		}
 	}
 }
