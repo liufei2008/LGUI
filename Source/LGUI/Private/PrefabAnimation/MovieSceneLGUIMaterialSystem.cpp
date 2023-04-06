@@ -24,9 +24,9 @@ FLGUIMaterialAccessor::FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey)
 	, LGUIMaterialHandle(InKey.LGUIMaterialHandle)
 {}
 
-FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InWidgetMaterialPath)
+FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialPath)
 	: Renderable(Cast<UUIBatchGeometryRenderable>(InObject))
-	, LGUIMaterialHandle(MoveTemp(InWidgetMaterialPath))
+	, LGUIMaterialHandle(MoveTemp(InLGUIMaterialPath))
 {
 	check(!InObject || Renderable);
 }
@@ -66,8 +66,8 @@ UMaterialInstanceDynamic* FLGUIMaterialAccessor::CreateDynamicMaterial(UMaterial
 	return MID;
 }
 
-TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialSwitcherStorage> FPreAnimatedWidgetMaterialSwitcherStorage::StorageID;
-TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialParameterStorage> FPreAnimatedWidgetMaterialParameterStorage::StorageID;
+TAutoRegisterPreAnimatedStorageID<FPreAnimatedLGUIMaterialSwitcherStorage> FPreAnimatedLGUIMaterialSwitcherStorage::StorageID;
+TAutoRegisterPreAnimatedStorageID<FPreAnimatedLGUIMaterialParameterStorage> FPreAnimatedLGUIMaterialParameterStorage::StorageID;
 
 } // namespace UE::MovieScene
 
@@ -99,8 +99,8 @@ void UMovieSceneLGUIMaterialSystem::OnLink()
 	FBuiltInComponentTypes*       BuiltInComponents = FBuiltInComponentTypes::Get();
 	FMovieSceneLGUIComponentTypes* LGUIComponents  = FMovieSceneLGUIComponentTypes::Get();
 
-	SystemImpl.MaterialSwitcherStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedWidgetMaterialSwitcherStorage>();
-	SystemImpl.MaterialParameterStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedWidgetMaterialParameterStorage>();
+	SystemImpl.MaterialSwitcherStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedLGUIMaterialSwitcherStorage>();
+	SystemImpl.MaterialParameterStorage = Linker->PreAnimatedState.GetOrCreateStorage<FPreAnimatedLGUIMaterialParameterStorage>();
 
 	SystemImpl.OnLink(Linker, BuiltInComponents->BoundObject, LGUIComponents->LGUIMaterialHandle);
 }
