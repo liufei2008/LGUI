@@ -22,12 +22,12 @@ void UMovieSceneLGUIMaterialTrack::ExtendEntityImpl(UMovieSceneEntitySystemLinke
 	using namespace UE::MovieScene;
 
 	FBuiltInComponentTypes* BuiltInComponents = FBuiltInComponentTypes::Get();
-	FMovieSceneLGUIComponentTypes* WidgetComponents = FMovieSceneLGUIComponentTypes::Get();
+	FMovieSceneLGUIComponentTypes* LGUIComponents = FMovieSceneLGUIComponentTypes::Get();
 
 	// Material parameters are always absolute blends for the time being
 	OutImportedEntity->AddBuilder(
 		FEntityBuilder()
-		.Add(WidgetComponents->LGUIMaterialPath, FLGUIMaterialPath(PropertyName))
+		.Add(LGUIComponents->LGUIMaterialPath, FLGUIMaterialPath(PropertyName))
 		.AddTag(BuiltInComponents->Tags.AbsoluteBlend)
 	);
 }

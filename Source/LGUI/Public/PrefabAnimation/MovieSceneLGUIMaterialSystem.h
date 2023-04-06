@@ -41,7 +41,7 @@ struct FLGUIMaterialAccessor
 	FLGUIMaterialPath LGUIMaterialPath;
 
 	FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey);
-	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialPath InWidgetMaterialPath);
+	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialPath InLGUIMaterialPath);
 
 	UMaterialInterface* GetMaterial() const;
 	void SetMaterial(UMaterialInterface* InMaterial) const;
@@ -49,19 +49,19 @@ struct FLGUIMaterialAccessor
 	FString ToString() const;
 };
 
-using FPreAnimatedWidgetMaterialTraits          = TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
-using FPreAnimatedWidgetMaterialParameterTraits = TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
+using FPreAnimatedLGUIMaterialTraits          = TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
+using FPreAnimatedLGUIMaterialParameterTraits = TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>;
 
-struct FPreAnimatedWidgetMaterialSwitcherStorage
+struct FPreAnimatedLGUIMaterialSwitcherStorage
 	: public TPreAnimatedStateStorage<TPreAnimatedMaterialTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>>
 {
-	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialSwitcherStorage> StorageID;
+	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedLGUIMaterialSwitcherStorage> StorageID;
 };
 
-struct FPreAnimatedWidgetMaterialParameterStorage
+struct FPreAnimatedLGUIMaterialParameterStorage
 	: public TPreAnimatedStateStorage<TPreAnimatedMaterialParameterTraits<FLGUIMaterialAccessor, UObject*, FLGUIMaterialPath>>
 {
-	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedWidgetMaterialParameterStorage> StorageID;
+	static TAutoRegisterPreAnimatedStorageID<FPreAnimatedLGUIMaterialParameterStorage> StorageID;
 };
 
 } // namespace UE::MovieScene
