@@ -190,11 +190,6 @@ void FLGUIPrefabThumbnailScene::SetPrefab(class ULGUIPrefab* Prefab)
 		}
 		ClearStaleActors();
 	}
-	if (CurrentPrefab != Prefab)
-	{
-		static uint32 PrefabThumbnailWorldNameSuffix = 0;
-		this->GetWorld()->Rename(*FString::Printf(TEXT("%s(PrefabThumbnail)_%d"), *Prefab->GetName(), PrefabThumbnailWorldNameSuffix++));
-	}
 	CurrentPrefab = Prefab;
 	CurrentPrefab->ThumbnailDirty = false;
 	if (IsValid(Prefab))
