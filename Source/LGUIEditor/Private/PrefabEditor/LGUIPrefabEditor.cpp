@@ -300,8 +300,6 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 		auto MsgText = LOCTEXT("Error_PrefabMissingReferenceAsset", "Prefab missing some asset reference!");
 		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 	}
-	static uint32 PrefabEditorWorldNameSuffix = 0;
-	this->GetWorld()->Rename(*FString::Printf(TEXT("%s(PrefabEditor)_%d"), *PrefabBeingEdited->GetName(), PrefabEditorWorldNameSuffix++));
 
 	FLGUIPrefabEditorCommand::Register();
 
