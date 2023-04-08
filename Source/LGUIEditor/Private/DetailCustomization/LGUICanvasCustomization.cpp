@@ -74,7 +74,8 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				}
 				if (screenSpaceCanvasCount > 1)
 				{
-					auto errMsg = LOCTEXT("MultipleScreenSpaceLGUICanvasError", "Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
+					auto errMsg = FText::Format(LOCTEXT("MultipleScreenSpaceLGUICanvasError", "[{0}].{1} Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!")
+					, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__);
 					LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
 				}
 			}

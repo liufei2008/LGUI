@@ -48,18 +48,16 @@ FLGUIPrefabThumbnailScene::FLGUIPrefabThumbnailScene()
 }
 void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 {
-	if (CurrentPrefab.IsValid() && LoadedRootActor == nullptr)
+	if (CurrentPrefab.IsValid())
 	{
 		if (auto RootActor = CurrentPrefab->LoadPrefabInEditor(GetWorld(), nullptr))
 		{
 			auto PrefabRootUIItem = Cast<UUIItem>(RootActor->GetRootComponent());
-			UUIItem* RootUIItem = nullptr;
 			
 			if (PrefabRootUIItem)
 			{
 				auto RootCanvas = RootActor->FindComponentByClass<ULGUICanvas>();
 				auto CanvasSize = CurrentPrefab->PrefabDataForPrefabEditor.CanvasSize;
-				auto RenderMode = (ELGUIRenderMode)CurrentPrefab->PrefabDataForPrefabEditor.CanvasRenderMode;
 				auto AgentRootActor = GetWorld()->SpawnActor<AUIContainerActor>();
 				if (!RootCanvas)
 				{
@@ -69,7 +67,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				}
 				RootActor->AttachToComponent(AgentRootActor->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
 				RootCanvas->MarkCanvasUpdate(true, true, true, true);
-				RootCanvas->SetRenderMode(RenderMode);
+				RootCanvas->SetRenderMode(ELGUIRenderMode::WorldSpace);
 
 				if (PrefabRootUIItem)
 				{
@@ -94,7 +92,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			{
 				PreviewActorsBound = FBoxSphereBounds(FBox(FVector(-0.5f, -0.5f, -0.5f), FVector(0.5f, 0.5f, 0.5f)));
 			}
-			LoadedRootActor = RootActor;
 		}
 	}
 }
@@ -140,10 +137,16 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 		GetBoundsRecursive(childComp, OutBounds, IsFirstPrimitive);
 	}
 }
-void FLGUIPrefabThumbnailScene::ClearStaleActors()
+void FLGUIPrefabThumbnailScene::ClearOldActors()
 {
-	LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor.Get());
-	LoadedRootActor = nullptr;
+	auto Level = GetWorld()->GetCurrentLevel();
+	for (int i = NumStartingActors; i < Level->Actors.Num(); i++)
+	{
+		if (Level->Actors[i])
+		{
+			Level->Actors[i]->Destroy();
+		}
+	}
 }
 bool FLGUIPrefabThumbnailScene::IsValidForVisualization()
 {
@@ -177,10 +180,10 @@ void FLGUIPrefabThumbnailScene::GetViewMatrixParameters(const float InFOVDegrees
 }
 void FLGUIPrefabThumbnailScene::SetPrefab(class ULGUIPrefab* Prefab)
 {
-	if (CurrentPrefab.IsStale())
+	if (!CurrentPrefab.IsValid())
 	{
 		CurrentPrefab = nullptr;
-		ClearStaleActors();
+		ClearOldActors();
 	}
 	if (CurrentPrefab.IsValid() && IsValid(Prefab))
 	{
@@ -188,7 +191,7 @@ void FLGUIPrefabThumbnailScene::SetPrefab(class ULGUIPrefab* Prefab)
 		{
 			return;
 		}
-		ClearStaleActors();
+		ClearOldActors();
 	}
 	CurrentPrefab = Prefab;
 	CurrentPrefab->ThumbnailDirty = false;
