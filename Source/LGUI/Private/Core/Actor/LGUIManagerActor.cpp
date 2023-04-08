@@ -982,7 +982,9 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
 		{
 			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = LOCTEXT("MultipleLGUICanvasRenderScreenSpaceOverlay", "Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
+			auto errMsg = FText::Format(LOCTEXT("MultipleLGUICanvasRenderScreenSpaceOverlay", "[{0}].{1} Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!\
+\n	World: {2}, type: {3}")
+			, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__, FText::FromString(this->GetWorld()->GetPathName()), (int)(this->GetWorld()->WorldType));
 			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 			LGUIUtils::EditorNotification(errMsg, 10.0f);
 		}
@@ -1424,13 +1426,14 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		{
 			if (InRaycaster->GetDepth() == item->GetDepth() && InRaycaster->GetTraceChannel() == item->GetTraceChannel())
 			{
-				auto msg = FString(TEXT("\
+				auto errMsg = FText::Format(LOCTEXT("MultipleLGUIBaseRaycasterWithSameDepthAndTraceChannel", "[{0}].{1}\
 \nDetect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
 \neg: Want use mouse to click object A but get object B.\
 \nPlease note:\
 \n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\
-\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace."));
-				UE_LOG(LGUI, Warning, TEXT("\n%s"), *msg);
+\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.")
+, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__);
+				UE_LOG(LGUI, Warning, TEXT("\n%s"), *errMsg.ToString());
 				break;
 			}
 		}

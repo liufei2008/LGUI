@@ -18,11 +18,10 @@ protected:
 	void SpawnPreviewActor();
 	void GetBoundsRecursive(USceneComponent* RootComp, FBoxSphereBounds& OutBounds, bool& IsFirstPrimitive)const;
 private:
-	void ClearStaleActors();
+	void ClearOldActors();
 private:
 	int32 NumStartingActors;
 	TWeakObjectPtr<class ULGUIPrefab> CurrentPrefab;
-	TWeakObjectPtr<class AActor> LoadedRootActor;
 	FText CachedPrefabContent;
 	FBoxSphereBounds PreviewActorsBound;
 	bool bIsUI = false;
