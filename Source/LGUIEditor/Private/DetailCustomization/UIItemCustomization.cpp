@@ -168,7 +168,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					ControlTypeString += FString::Printf(TEXT("		'%s'\n"), *LayoutObjectNameString);
 				}
 			}
-			auto MessageText = FText::Format(LOCTEXT("MultiLayoutControlAnchorInfoText", "Detect multiple layout control this UI's anchor, this may cause issue!\n{0}"), FText::FromString(ControlTypeString));
+			auto MessageText = FText::Format(LOCTEXT("MultiLayoutControlAnchorInfoText", "[{0}].{1} Detect multiple layout control this UI's anchor, this may cause issue!\n{2}")
+				, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__, FText::FromString(ControlTypeString));
 			TransformCategory.AddCustomRow(LOCTEXT("MultiLayoutControlAnchorError", "MultiLayoutControlAnchorError"))
 				.WholeRowContent()
 				[
