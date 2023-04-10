@@ -54,7 +54,7 @@ private:
 #endif
 #if WITH_EDITOR
 private:
-	static TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
+	TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
 public:
 	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:

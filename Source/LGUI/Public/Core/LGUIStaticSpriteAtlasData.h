@@ -67,6 +67,9 @@ public:
 	void CheckSprite();
 	bool PackAtlas();
 	void MarkNotInitialized();
+	/** Return true if some spriteData is invalid */
+	bool CheckInvalidSpriteData()const;
+	void CleanupInvalidSpriteData();
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
@@ -74,9 +77,13 @@ public:
 private:
 	bool PackAtlasTest(uint32 size, TArray<rbp::Rect>& result);
 	bool bWarningIsAlreadyAppearedAtCurrentPackingSession = false;
+	bool bIsYesToAll = false;
+	bool bIsNoToAll = false;
+	bool bIsAddedToDelayedCall = false;
 #endif
 private:
 	bool bIsInitialized = false;
+	virtual void BeginDestroy();
 public:
 	bool InitCheck();
 	UFUNCTION(BlueprintCallable, Category = LGUI)

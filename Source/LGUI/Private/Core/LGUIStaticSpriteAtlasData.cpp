@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "TextureCompiler.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
 
@@ -78,11 +79,12 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 				}
 			}
 
-			bool bIsYesToAll = false;
-			bool bIsNoToAll = false;
 			auto TransferSprite = [=](ULGUISpriteData* spriteData) {
 				spriteData->Modify();
-				spriteData->packingAtlas->RemoveSpriteData(spriteData);
+				if (IsValid(spriteData->packingAtlas))
+				{
+					spriteData->packingAtlas->RemoveSpriteData(spriteData);
+				}
 				spriteData->packingAtlas = this;
 				spriteData->isInitialized = false;
 				spriteData->MarkPackageDirty();
@@ -94,7 +96,7 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 			{
 				if (Item->packingAtlas == nullptr)
 				{
-					Item->packingAtlas = this;
+					TransferSprite(Item);
 				}
 				else
 				{
@@ -131,6 +133,14 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 							KeepOldSprite(Item);
 							break;
 						}
+						auto WeakThis = TWeakObjectPtr<ULGUIStaticSpriteAtlasData>(this);
+						ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+							if (WeakThis.IsValid())
+							{
+								bIsYesToAll = false;
+								bIsNoToAll = false;
+							}
+							}, 0);
 					}
 				}
 			}
@@ -143,9 +153,21 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 				Item->MarkPackageDirty();
 			}
 
-			MarkNotInitialized();
-			InitCheck();
-			MarkPackageDirty();
+			//If we drag sprites to the spriteArray, the PostEditChangeProperty will be called foreach of the dragged sprites which is a long time wait, so we do the pack after the iteration.
+			if (!bIsAddedToDelayedCall)
+			{
+				bIsAddedToDelayedCall = true;
+				auto WeakThis = TWeakObjectPtr<ULGUIStaticSpriteAtlasData>(this);
+				ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+					if (WeakThis.IsValid())
+					{
+						MarkNotInitialized();
+						InitCheck();
+						MarkPackageDirty();
+						bIsAddedToDelayedCall = false;
+					}
+					}, 0);
+			}
 		}
 		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
 		{
@@ -156,13 +178,21 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 }
 void ULGUIStaticSpriteAtlasData::AddSpriteData(ULGUISpriteData* InSpriteData)
 {
-	spriteArray.AddUnique(InSpriteData);
-	MarkNotInitialized();
+	if (!spriteArray.Contains(InSpriteData))
+	{
+		spriteArray.Add(InSpriteData);
+		MarkPackageDirty();
+		MarkNotInitialized();
+	}
 }
 void ULGUIStaticSpriteAtlasData::RemoveSpriteData(ULGUISpriteData* InSpriteData)
 {
-	spriteArray.Remove(InSpriteData);
-	MarkNotInitialized();
+	if (spriteArray.Contains(InSpriteData))
+	{
+		spriteArray.Remove(InSpriteData);
+		MarkPackageDirty();
+		MarkNotInitialized();
+	}
 }
 void ULGUIStaticSpriteAtlasData::AddRenderSprite(UUISpriteBase* InSprite)
 {
@@ -244,6 +274,17 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
 				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "SpriteData's texture is not valid of spriteData: '{0}'"), FText::FromString(spriteDataItem->GetPathName()));
+				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
+				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
+			}
+			return false;
+		}
+		if (spriteDataItem->packingAtlas != this)
+		{
+			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
+			{
+				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
+				auto ErrMsg = FText::Format(LOCTEXT("SpritePackingAtlasError", "SpriteData's packingAtlas is not this one, spriteData '{0}', at index: {1}"), FText::FromString(spriteDataItem->GetPathName()), i);
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -511,7 +552,65 @@ void ULGUIStaticSpriteAtlasData::MarkNotInitialized()
 	bIsInitialized = false;
 	bWarningIsAlreadyAppearedAtCurrentPackingSession = false;
 }
+bool ULGUIStaticSpriteAtlasData::CheckInvalidSpriteData()const
+{
+	for (int i = 0; i < spriteArray.Num(); i++)
+	{
+		ULGUISpriteData* spriteDataItem = spriteArray[i];
+		if (!IsValid(spriteDataItem))
+		{
+			return true;
+		}
+		else if (!IsValid(spriteDataItem->GetSpriteTexture()))
+		{
+			return true;
+		}
+		else if (spriteDataItem->packingAtlas != this)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+void ULGUIStaticSpriteAtlasData::CleanupInvalidSpriteData()
+{
+	auto PrevCount = spriteArray.Num();
+	for (int i = 0; i < spriteArray.Num(); i++)
+	{
+		ULGUISpriteData* spriteDataItem = spriteArray[i];
+		if (!IsValid(spriteDataItem))
+		{
+			spriteArray.RemoveAt(i);
+			i--;
+		}
+		else if (!IsValid(spriteDataItem->GetSpriteTexture()))
+		{
+			spriteArray.RemoveAt(i);
+			i--;
+		}
+		else if (spriteDataItem->packingAtlas != this)
+		{
+			spriteArray.RemoveAt(i);
+			i--;
+		}
+	}
+	if (PrevCount != spriteArray.Num())
+	{
+		this->MarkNotInitialized();
+		this->InitCheck();
+		this->MarkPackageDirty();
+	}
+}
 #endif
+
+void ULGUIStaticSpriteAtlasData::BeginDestroy()
+{
+	for (auto& item : spriteArray)
+	{
+		item->isInitialized = false;
+	}
+	Super::BeginDestroy();
+}
 
 bool ULGUIStaticSpriteAtlasData::InitCheck()
 {
