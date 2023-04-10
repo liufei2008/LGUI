@@ -33,7 +33,7 @@ void ULGUISpriteDataBaseObjectThumbnailRenderer::DrawFrame(class ULGUISpriteData
 		const bool bUseTranslucentBlend = SourceTexture->HasAlphaChannel();
 		DrawGrid(X, Y, Width, Height, Canvas);
 
-		auto SpriteInfo = Sprite->GetSpriteInfo();
+		auto& SpriteInfo = Sprite->GetSpriteInfo();
 		// Draw triangles
 		if (SourceTexture->Resource != nullptr)
 		{
