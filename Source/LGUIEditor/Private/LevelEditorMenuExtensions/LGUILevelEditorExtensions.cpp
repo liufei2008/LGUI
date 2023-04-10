@@ -6,6 +6,8 @@
 #include "LGUIEditorStyle.h"
 #include "LevelEditor.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "LGUIEditorModule.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "FLGUILevelEditorExtensions"
 
@@ -18,57 +20,42 @@ FDelegateHandle LevelEditorMenuExtenderDelegateHandle;
 
 class FLGUILevelEditorExtensions_Impl
 {
-private:
-	static void Deplicate(AActor* InActor)
-	{
-
-	}
-	static void CreateButton(UUIItem* InUIItem)
-	{
-		
-	}
 public:
-	static void CreateHelperButtons(FMenuBuilder& MenuBuilder, UUIItem* InUIItem)
+	static void CreateLGUISubMenu(FMenuBuilder& MenuBuilder)
 	{
-		return;
-		//@todo: make this work!
+		MenuBuilder.AddWidget(
+			FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false, false)
+			, FText::GetEmpty()
+		);
+	}
+	static void CreateHelperButtons(FMenuBuilder& MenuBuilder)
+	{
 		MenuBuilder.BeginSection("LGUI", LOCTEXT("LGUILevelEditorHeading", "LGUI"));
-		if (InUIItem)
 		{
-			FUIAction Action_CreateButton(FExecuteAction::CreateStatic(&FLGUILevelEditorExtensions_Impl::CreateButton, InUIItem));
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("CreateButton", "CreateButton"),
-				LOCTEXT("CreateButton_Tooltip", "Create a button under this UI object"),
-				FSlateIcon(),
-				Action_CreateButton,
-				NAME_None,
-				EUserInterfaceActionType::Button);
-
-			FUIAction Action_Duplicate(FExecuteAction::CreateStatic(&FLGUILevelEditorExtensions_Impl::Deplicate, InUIItem->GetOwner()));
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("DuplicateActor", "DuplicateActor"),
-				LOCTEXT("DuplicateActor_Tooltip", "Duplicate this actor"),
-				FSlateIcon(),
-				Action_Duplicate,
-				NAME_None,
-				EUserInterfaceActionType::Button);
+			MenuBuilder.AddSubMenu(
+				LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
+				FText::GetEmpty(),
+				FNewMenuDelegate::CreateStatic(&FLGUILevelEditorExtensions_Impl::CreateLGUISubMenu),
+				FUIAction(),
+				NAME_None, EUserInterfaceActionType::None
+			);
 		}
+		MenuBuilder.EndSection();
 	}
 	static TSharedRef<FExtender> OnExtendLevelEditorMenu(const TSharedRef<FUICommandList> CommandList, TArray<AActor*> SelectedActors)
 	{
 		TSharedRef<FExtender> Extender(new FExtender());
-
-		if (SelectedActors.Num() == 1)//only support one selection
+		if (SelectedActors.Num() == 1//only support one selection
+			&& IsValid(SelectedActors[0])
+			&& LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(SelectedActors[0])//only show menu with supported actor
+			)
 		{
-			if (auto uiItem = SelectedActors[0]->FindComponentByClass<UUIItem>())
-			{
-				Extender->AddMenuExtension(
-					"ActorType",
-					EExtensionHook::Before,
-					nullptr,
-					FMenuExtensionDelegate::CreateStatic(&FLGUILevelEditorExtensions_Impl::CreateHelperButtons, uiItem)
-				);
-			}
+			Extender->AddMenuExtension(
+				"ActorType",
+				EExtensionHook::Before,
+				nullptr,
+				FMenuExtensionDelegate::CreateStatic(&FLGUILevelEditorExtensions_Impl::CreateHelperButtons)
+			);
 		}
 		return Extender;
 	}
