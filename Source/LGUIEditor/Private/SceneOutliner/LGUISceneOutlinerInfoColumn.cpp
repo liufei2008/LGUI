@@ -67,13 +67,7 @@ namespace LGUISceneOutliner
 		{
 			return SNew(SBox);
 		}
-		auto ActorClassName = actor->GetClass()->GetFName();
-		if (
-			ActorClassName == TEXT("Landscape")
-			|| ActorClassName == TEXT("LandscapeStreamingProxy")
-			|| ActorClassName == TEXT("WorldDataLayers")
-			|| ActorClassName == TEXT("WorldPartitionMiniMap")
-			)
+		if (!LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(actor))
 		{
 			return SNew(SBox);
 		}
