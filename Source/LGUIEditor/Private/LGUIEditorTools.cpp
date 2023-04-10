@@ -2009,6 +2009,21 @@ void LGUIEditorTools::FocusToSelectedUI()
 	}
 }
 
+bool LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(AActor* InActor)
+{
+	auto ActorClassName = InActor->GetClass()->GetFName();
+	if (
+		ActorClassName == TEXT("Landscape")
+		|| ActorClassName == TEXT("LandscapeStreamingProxy")
+		|| ActorClassName == TEXT("WorldDataLayers")
+		|| ActorClassName == TEXT("WorldPartitionMiniMap")
+		)
+	{
+		return false;
+	}
+	return true;
+}
+
 void LGUIEditorTools::ForceGC()
 {
 	GEngine->ForceGarbageCollection();

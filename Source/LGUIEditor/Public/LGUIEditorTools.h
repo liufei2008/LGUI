@@ -65,6 +65,7 @@ public:
 	static int GetDrawcallCount(AActor* InActor);
 	static void FocusToScreenSpaceUI();
 	static void FocusToSelectedUI();
+	static bool IsActorCompatibleWithLGUIToolsMenu(AActor* InActor);
 
 	static TMap<FString, TWeakObjectPtr<class ULGUIPrefab>> CopiedActorPrefabMap;//map ActorLabel to prefab
 	static TWeakObjectPtr<class UActorComponent> CopiedComponent;
