@@ -172,6 +172,7 @@ namespace LGUIPrefabSystem5
 		ActorSerializer serializer;
 		serializer.TargetWorld = OriginRootActor->GetWorld();
 		serializer.MapObjectToGuid = InMapObjectToGuid;
+		serializer.LGUIManagerActor = ALGUIManagerActor::GetInstance(serializer.TargetWorld, true);
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
