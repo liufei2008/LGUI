@@ -124,17 +124,15 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 }
 
 #if WITH_EDITOR
-TArray<TTuple<int, TFunction<void()>>> ULGUIEditorManagerObject::OneShotFunctionsToExecuteInTick;
 
 void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
 {
-	if (ensure(InDelayFrameCount >= 0))
-	{
-		TTuple<int, TFunction<void()>> Item;
-		Item.Key = InDelayFrameCount;
-		Item.Value = InFunction;
-		OneShotFunctionsToExecuteInTick.Add(Item);
-	}
+	InitCheck();
+	InDelayFrameCount = FMath::Max(0, InDelayFrameCount);
+	TTuple<int, TFunction<void()>> Item;
+	Item.Key = InDelayFrameCount;
+	Item.Value = InFunction;
+	Instance->OneShotFunctionsToExecuteInTick.Add(Item);
 }
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)

@@ -280,6 +280,7 @@ void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRe
 {
 	spriteInfo.ApplyUV(InPackedRect.x, InPackedRect.y, InPackedRect.width, InPackedRect.height, InAtlasTextureSizeInv, InAtlasTextureSizeInv);
 	spriteInfo.ApplyBorderUV(InAtlasTextureSizeInv, InAtlasTextureSizeInv);
+	isInitialized = false;
 }
 #if WITH_EDITOR
 void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
@@ -409,6 +410,10 @@ void ULGUISpriteData::InitSpriteData()
 	{
 		if (IsValid(packingAtlas))
 		{
+#if WITH_EDITOR
+			//add it again as check if it exist in packingAtlas
+			packingAtlas->AddSpriteData(this);
+#endif
 			if (packingAtlas->InitCheck())
 			{
 				atlasTexture = packingAtlas->GetAtlasTexture();
