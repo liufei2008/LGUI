@@ -1218,6 +1218,7 @@ bool LGUIEditorTools::CanCopyActor()
 }
 bool LGUIEditorTools::CanPasteActor()
 {
+	if (LGUIEditorTools::CopiedActorPrefabMap.Num() == 0)return false;
 	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
 	for (auto Actor : SelectedActors)
 	{
