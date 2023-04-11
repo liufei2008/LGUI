@@ -16,10 +16,14 @@ class LGUI_API UUIFlexibleGridLayoutElement : public ULGUILifeCycleUIBehaviour
 
 protected:
 	virtual void Awake() override;
+	virtual void OnEnable()override;
+	virtual void OnDisable()override;
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnRegister()override;
+	virtual void OnUnregister()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetRowIndex()const { return RowIndex; }

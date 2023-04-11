@@ -25,11 +25,14 @@ class LGUI_API UUILayoutElement : public ULGUILifeCycleUIBehaviour, public ILGUI
 
 protected:
 	virtual void Awake() override;
-
+	virtual void OnEnable()override;
+	virtual void OnDisable()override;
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
 	//Begin LGUILayoutElement interface
 	virtual ELayoutElementType GetLayoutType_Implementation()const override;
 	virtual float GetConstantSize_Implementation(ELayoutElementSizeType type)const override;

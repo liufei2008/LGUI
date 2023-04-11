@@ -8,12 +8,26 @@
 void UUILayoutElement::Awake()
 {
 	Super::Awake();
+	this->SetCanExecuteUpdate(false);
+}
+
+void UUILayoutElement::OnEnable()
+{
+	Super::OnEnable();
 	if (CheckParentLayout())
 	{
 		ParentLayout->MarkNeedRebuildChildrenList();
 		ParentLayout->MarkNeedRebuildLayout();
 	}
-	this->SetCanExecuteUpdate(false);
+}
+void UUILayoutElement::OnDisable()
+{
+	Super::OnDisable();
+	if (IsValid(ParentLayout))
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
 }
 
 #if WITH_EDITOR
@@ -36,6 +50,24 @@ void UUILayoutElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	}
 }
 #endif
+void UUILayoutElement::OnRegister()
+{
+	Super::OnRegister();
+	if (CheckParentLayout())
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
+}
+void UUILayoutElement::OnUnregister()
+{
+	Super::OnUnregister();
+	if (IsValid(ParentLayout))
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
+}
 
 bool UUILayoutElement::CheckParentLayout()
 {
