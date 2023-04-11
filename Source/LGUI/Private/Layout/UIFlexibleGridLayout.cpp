@@ -27,7 +27,7 @@ void UUIFlexibleGridLayout::PostEditChangeProperty(FPropertyChangedEvent& Proper
 void UUIFlexibleGridLayout::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
 {
 	auto LayoutElement = InActor->FindComponentByClass<UUIFlexibleGridLayoutElement>();
-	if (LayoutElement == nullptr)
+	if (LayoutElement == nullptr || !LayoutElement->GetEnable())
 	{
 		OutLayoutElement = nullptr;
 		OutIgnoreLayout = true;

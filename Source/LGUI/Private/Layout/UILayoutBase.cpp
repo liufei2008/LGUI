@@ -116,9 +116,10 @@ void UUILayoutBase::RebuildChildrenList()const
 
 void UUILayoutBase::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
 {
-    OutLayoutElement = InActor->FindComponentByClass<UUILayoutElement>();
-    if (OutLayoutElement)
+    auto LayoutElement = InActor->FindComponentByClass<UUILayoutElement>();
+    if (LayoutElement != nullptr && LayoutElement->GetEnable())
     {
+        OutLayoutElement = LayoutElement;
         OutIgnoreLayout = ILGUILayoutElementInterface::Execute_GetLayoutType(OutLayoutElement) == ELayoutElementType::IgnoreLayout;
     }
 }

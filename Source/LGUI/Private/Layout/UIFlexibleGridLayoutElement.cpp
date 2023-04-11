@@ -8,12 +8,26 @@
 void UUIFlexibleGridLayoutElement::Awake()
 {
 	Super::Awake();
+	this->SetCanExecuteUpdate(false);
+}
+
+void UUIFlexibleGridLayoutElement::OnEnable()
+{
+	Super::OnEnable();
 	if (CheckParentLayout())
 	{
 		ParentLayout->MarkNeedRebuildChildrenList();
 		ParentLayout->MarkNeedRebuildLayout();
 	}
-	this->SetCanExecuteUpdate(false);
+}
+void UUIFlexibleGridLayoutElement::OnDisable()
+{
+	Super::OnDisable();
+	if (IsValid(ParentLayout))
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
 }
 
 #if WITH_EDITOR
@@ -32,6 +46,25 @@ void UUIFlexibleGridLayoutElement::PostEditChangeProperty(FPropertyChangedEvent&
 	}
 }
 #endif
+
+void UUIFlexibleGridLayoutElement::OnRegister()
+{
+	Super::OnRegister();
+	if (CheckParentLayout())
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
+}
+void UUIFlexibleGridLayoutElement::OnUnregister()
+{
+	Super::OnUnregister();
+	if (IsValid(ParentLayout))
+	{
+		ParentLayout->MarkNeedRebuildChildrenList();
+		ParentLayout->MarkNeedRebuildLayout();
+	}
+}
 
 void UUIFlexibleGridLayoutElement::SetRowIndex(int value)
 {
