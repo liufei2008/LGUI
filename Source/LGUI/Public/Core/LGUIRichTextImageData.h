@@ -7,7 +7,7 @@
 #include "LGUIRichTextImageData_BaseObject.h"
 #include "LGUIRichTextImageData.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FLGUIRichTextImageItemData
 {
 	GENERATED_BODY()
@@ -19,7 +19,7 @@ public:
 		float overrideAnimationFps = -1;
 };
 /** use sprite to render image for UIText */
-UCLASS(NotBlueprintable, NotBlueprintType)
+UCLASS(NotBlueprintable, BlueprintType)
 class LGUI_API ULGUIRichTextImageData :public ULGUIRichTextImageData_BaseObject
 {
 	GENERATED_BODY()
@@ -33,5 +33,17 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetImageMap(const TMap<FName, FLGUIRichTextImageItemData>& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAnimationFps(float value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const TMap<FName, FLGUIRichTextImageItemData>& GetImageMap()const { return imageMap; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		TMap<FName, FLGUIRichTextImageItemData>& GetMutableImageMap() { return imageMap; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetAnimationFps()const { return animationFps; }
+
 	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<class UUIItem*>& inOutCreatedImageObjectArray, bool listImageObjectInEditorOutliner)override;
 };
