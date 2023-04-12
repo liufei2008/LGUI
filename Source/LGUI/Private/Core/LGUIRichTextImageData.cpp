@@ -16,6 +16,15 @@ void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& Prope
 }
 #endif
 
+void ULGUIRichTextImageData::SetImageMap(const TMap<FName, FLGUIRichTextImageItemData>& value)
+{
+	imageMap = value;
+}
+void ULGUIRichTextImageData::SetAnimationFps(float value)
+{
+	animationFps = value;
+}
+
 void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInEditorOutliner)
 {
 	//destroy extra
