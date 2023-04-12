@@ -27,6 +27,8 @@
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUISpriteInfo.h"
 #include "Core/LGUISpriteData_BaseObject.h"
+#include "Core/LGUIRichTextImageData.h"
+#include "Core/LGUIRichTextImageData_BaseObject.h"
 
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
