@@ -59,7 +59,9 @@ bool ULGUISpriteData::InsertTexture(FLGUIDynamicSpriteAtlasData* InAtlasData)
 #else
 	static int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
 #endif
-	float atlasTextureSizeInv = 1.0f / InAtlasData->atlasTexture->GetSizeX();
+	auto SizeX = InAtlasData->atlasTexture->GetSizeX();
+	check(SizeX != 0);
+	float atlasTextureSizeInv = 1.0f / SizeX;
 
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
 	int insertRectWidth = spriteTexture->GetSizeX() + spaceBetweenSprites + spaceBetweenSprites;
@@ -385,9 +387,12 @@ void ULGUISpriteData::ReloadTexture()
 #endif
 
 	atlasTexture = spriteTexture;
-	float atlasTextureWidthInv = 1.0f / atlasTexture->GetSizeX();
-	float atlasTextureHeightInv = 1.0f / atlasTexture->GetSizeY();
-	spriteInfo.ApplyUV(0, 0, atlasTexture->GetSizeX(), atlasTexture->GetSizeY(), atlasTextureWidthInv, atlasTextureHeightInv);
+	auto SizeX = atlasTexture->GetSizeX();
+	auto SizeY = atlasTexture->GetSizeY();
+	check(SizeX != 0 && SizeY != 0);
+	float atlasTextureWidthInv = 1.0f / SizeX;
+	float atlasTextureHeightInv = 1.0f / SizeY;
+	spriteInfo.ApplyUV(0, 0, SizeX, SizeY, atlasTextureWidthInv, atlasTextureHeightInv);
 	spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 }
 
@@ -434,8 +439,11 @@ void ULGUISpriteData::InitSpriteData()
 		else//no need to pack to atlas, so spriteTexture self is the atlas
 		{
 			atlasTexture = spriteTexture;
-			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSizeX();
-			float atlasTextureHeightInv = 1.0f / atlasTexture->GetSizeY();
+			auto SizeX = atlasTexture->GetSizeX();
+			auto SizeY = atlasTexture->GetSizeY();
+			check(SizeX != 0 && SizeY != 0);
+			float atlasTextureWidthInv = 1.0f / SizeX;
+			float atlasTextureHeightInv = 1.0f / SizeY;
 			//spriteInfo.ApplyUV(0, 0, atlasTexture->GetSizeX(), atlasTexture->GetSizeY(), atlasTextureWidthInv, atlasTextureHeightInv);
 			spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 			isInitialized = true;
