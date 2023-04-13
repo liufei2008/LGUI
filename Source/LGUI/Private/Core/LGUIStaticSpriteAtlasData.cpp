@@ -262,7 +262,7 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "SpriteData is not valid in spriteArray at index {0}"), i);
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData is not valid in spriteArray at index {1}"), FText::FromString(this->GetPathName()), i);
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -273,7 +273,7 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "SpriteData's texture is not valid of spriteData: '{0}'"), FText::FromString(spriteDataItem->GetPathName()));
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData's texture is not valid of spriteData: '{1}'"), FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()));
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -284,7 +284,7 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpritePackingAtlasError", "SpriteData's packingAtlas is not this one, spriteData '{0}', at index: {1}"), FText::FromString(spriteDataItem->GetPathName()), i);
+				auto ErrMsg = FText::Format(LOCTEXT("SpritePackingAtlasError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData's packingAtlas is not this one, spriteData '{1}', at index: {2}"), FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()), i);
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
