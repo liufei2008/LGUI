@@ -11,6 +11,10 @@ class LGUI_API ULGUIImageSequencePlayer : public UActorComponent
 public:
 	ULGUIImageSequencePlayer();
 protected:
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool previewInEditor = true;
+#endif
 	/** fps: Frame per second */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float fps = 24;
@@ -23,6 +27,11 @@ protected:
 
 	virtual void BeginPlay()override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+	virtual void OnRegister()override;
+	virtual void OnUnregister()override;
+#if WITH_EDITOR
+	FDelegateHandle editorPlayDelegateHandle;
+#endif
 	FDelegateHandle playDelegateHandle;
 	void UpdateAnimation(float deltaTime);
 	virtual bool CanPlay() { return true; }

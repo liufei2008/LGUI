@@ -73,24 +73,18 @@ void ULGUILifeCycleBehaviour::OnRegister()
 {
 	Super::OnRegister();
 #if WITH_EDITOR
-	if (this->GetWorld())
+	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
-		if (!this->GetWorld()->IsGameWorld())//edit mode
+		bool isInWorld = true;
+		if (this->GetWorld()->GetPathName().StartsWith(TEXT("/Engine/Transient.")))
 		{
-			bool isInWorld = true;
-			if (this->GetWorld()->GetPathName().StartsWith(TEXT("/Engine/Transient.")))
+			isInWorld = false;
+		}
+		if (isInWorld)
+		{
+			if (executeInEditMode)
 			{
-				isInWorld = false;
-			}
-			if (isInWorld)
-			{
-				if (executeInEditMode)
-				{
-					if (auto Instance = ULGUIEditorManagerObject::GetInstance(true))
-					{
-						EditorTickDelegateHandle = Instance->EditorTick.AddUObject(this, &ULGUILifeCycleBehaviour::Update);
-					}
-				}
+				EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
 			}
 		}
 	}
@@ -100,19 +94,10 @@ void ULGUILifeCycleBehaviour::OnUnregister()
 {
 	Super::OnUnregister();
 #if WITH_EDITOR
-	if (this->GetWorld())
+	if (EditorTickDelegateHandle.IsValid())
 	{
-		if (!this->GetWorld()->IsGameWorld())//edit mode
-		{
-			if (EditorTickDelegateHandle.IsValid())
-			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
-				{
-					ULGUIEditorManagerObject::Instance->EditorTick.Remove(EditorTickDelegateHandle);
-				}
-				EditorTickDelegateHandle.Reset();
-			}
-		}
+		ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+		EditorTickDelegateHandle.Reset();
 	}
 #endif
 }

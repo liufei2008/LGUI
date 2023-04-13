@@ -38,14 +38,14 @@ public:
 	virtual bool IsTickableInEditor()const { return Instance == this; }
 	virtual TStatId GetStatId() const override;
 	virtual bool IsEditorOnly()const override { return true; }
-#if WITH_EDITORONLY_DATA
 	//end TickableEditorObject interface
-	FLGUIEditorTickMulticastDelegate EditorTick;
+#if WITH_EDITORONLY_DATA
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
+	FLGUIEditorTickMulticastDelegate EditorTick;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -56,7 +56,9 @@ private:
 private:
 	TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
 public:
-	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
+	static void AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount = 0);
+	static FDelegateHandle RegisterEditorTickFunction(const TFunction<void(float)>& InFunction);
+	static void UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle);
 private:
 	static bool InitCheck();
 public:

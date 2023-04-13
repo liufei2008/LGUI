@@ -11,21 +11,7 @@ void UUISpriteSequencePlayer::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		auto propertyName = Property->GetFName();
-		if (
-			propertyName == GET_MEMBER_NAME_CHECKED(UUISpriteSequencePlayer, preview)
-			)
-		{
-			if (!sprite.IsValid())
-			{
-				sprite = GetOwner()->FindComponentByClass<UUISpriteBase>();
-			}
-			if (sprite.IsValid())
-			{
-				PrepareForPlay();
-				OnUpdateAnimation((spriteSequence.Num() - 1) * preview);
-			}
-		}
+
 	}
 }
 #endif

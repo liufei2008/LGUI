@@ -10,26 +10,15 @@ void UUISpriteSheetTexturePlayer::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		auto propertyName = Property->GetFName();
-		if (
-			propertyName == GET_MEMBER_NAME_CHECKED(UUISpriteSheetTexturePlayer, preview)
-			)
+		if (!texture.IsValid())
 		{
-			if (!texture.IsValid())
+			texture = GetOwner()->FindComponentByClass<UUITexture>();
+		}
+		if (texture.IsValid())
+		{
+			if (!previewInEditor)
 			{
-				texture = GetOwner()->FindComponentByClass<UUITexture>();
-			}
-			if (texture.IsValid())
-			{
-				if (preview < 0)
-				{
-					texture->SetUVRect(FVector4(0, 0, 1, 1));
-				}
-				else
-				{
-					PrepareForPlay();
-					OnUpdateAnimation((widthCount * heightCount) * preview);
-				}
+				texture->SetUVRect(FVector4(0, 0, 1, 1));
 			}
 		}
 	}
