@@ -189,15 +189,17 @@ public:
 };
 
 UCLASS(ClassGroup = LGUI)
-class LGUI_API AUIStaticMeshActor : public AUIBaseActor
+class LGUI_API AUIStaticMeshActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
 	AUIStaticMeshActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIStaticMesh; }
-	FORCEINLINE UUIStaticMesh* GetUIStaticMesh()const { return UIStaticMesh; }
+	virtual UUIItem* GetUIItem()const override { return UIStaticMesh; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIStaticMesh; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIStaticMesh* GetUIStaticMesh()const { return UIStaticMesh; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIStaticMesh* UIStaticMesh;

@@ -16,7 +16,8 @@ public:
 
 	virtual UUIItem* GetUIItem()const override { return UIBackgroundPixelate; }
 	virtual class UUIPostProcessRenderable* GetUIPostProcessRenderable()const override { return UIBackgroundPixelate; }
-	FORCEINLINE UUIBackgroundPixelate* GetUIBackgroundPixelate()const { return UIBackgroundPixelate; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIBackgroundPixelate* GetUIBackgroundPixelate()const { return UIBackgroundPixelate; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIBackgroundPixelate* UIBackgroundPixelate;

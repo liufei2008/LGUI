@@ -86,7 +86,7 @@ public:
 	static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType);
 	static int32 GetPriorityInSceneViewExtension();
 private:
-	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
+	static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };
 
 //@todo:save config in editor

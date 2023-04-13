@@ -39,15 +39,17 @@ public:
 
 
 UCLASS(ClassGroup = LGUI)
-class LGUI_API AUI2DLineChildrenAsPointsActor : public AUIBaseActor
+class LGUI_API AUI2DLineChildrenAsPointsActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
 	AUI2DLineChildrenAsPointsActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIElement; }
-	FORCEINLINE UUI2DLineChildrenAsPoints* Get2DLineChildrenAsPoints()const { return UIElement; }
+	virtual UUIItem* GetUIItem()const override { return UIElement; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIElement; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUI2DLineChildrenAsPoints* Get2DLineChildrenAsPoints()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUI2DLineChildrenAsPoints* UIElement;
