@@ -467,6 +467,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			//delete extra objects
 			for (auto& Item : ExtraObjectsToDelete)
 			{
+				if (!IsValid(Item))continue;
 				if (auto Comp = Cast<UActorComponent>(Item))
 				{
 					Comp->DestroyComponent();
@@ -1201,7 +1202,9 @@ void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, F
 				}
 				FGuid ObjectGuidInPrefab;
 				//find valid guid, get the guid in prefab, with the guid then get object, so that object is the real value
-				if (ObjectGuidInParent.IsValid())
+				if (ObjectGuidInParent.IsValid()
+					&& SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Contains(ObjectGuidInParent)//check if the guid exist in this sub-prefab, because there could be multiple sub-prefabs
+					)
 				{
 					ObjectGuidInPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuidInParent];
 				}
@@ -1234,10 +1237,17 @@ void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, F
 						{
 							auto InfoText = FText::Format(LOCTEXT("ApplyPrefabPropertyValue_MissingConditionWarning", "LGUI have not handle this condition:\nobject: '{0}'\nobjectClass: '{1}'")
 								, FText::FromString(ObjectInParent->GetPathName()), FText::FromString(ObjectClass->GetPathName()));
-							UE_LOG(LGUI, Log, TEXT("%s"), *InfoText.ToString());
+							UE_LOG(LGUI, Warning, TEXT("%s"), *InfoText.ToString());
 							LGUIUtils::EditorNotification(InfoText);
 						}
 					}
+				}
+				else
+				{
+					auto InfoText = FText::Format(LOCTEXT("ApplyPrefabPropertyValue_ReferencingOuterObject", "This property '{0}' is referencing object which is not belongs to this prefab, will ignore it.")
+						, FText::FromString(ObjectProperty->GetPathName()));
+					UE_LOG(LGUI, Log, TEXT("%s"), *InfoText.ToString());
+					LGUIUtils::EditorNotification(InfoText);
 				}
 			}
 		}
