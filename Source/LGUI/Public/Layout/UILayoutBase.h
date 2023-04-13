@@ -86,10 +86,10 @@ protected:
 	bool bNeedRebuildLayout = false;
 	mutable bool bNeedRebuildChildrenList = false;
 
-	FORCEINLINE void ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth);
-	FORCEINLINE void ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight);
-	FORCEINLINE void ApplyUIItemAnchoredPosition(UUIItem* InUIItem, const FVector2D& InAnchoredPosition);
-	FORCEINLINE void ApplyUIItemSizeDelta(UUIItem* InUIItem, const FVector2D& InSizedDelta);
+	void ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth);
+	void ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight);
+	void ApplyUIItemAnchoredPosition(UUIItem* InUIItem, const FVector2D& InAnchoredPosition);
+	void ApplyUIItemSizeDelta(UUIItem* InUIItem, const FVector2D& InSizedDelta);
 private:
 	mutable TArray<FAvaliableChild> LayoutUIItemChildrenArray;
 };

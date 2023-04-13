@@ -189,7 +189,7 @@ public:
 	bool IsRenderToWorldSpace()const;
 	bool IsRenderByLGUIRendererOrUERenderer()const;
 
-	FORCEINLINE UUIItem* GetUIItem()const { return UIItem.Get(); }
+	UUIItem* GetUIItem()const { return UIItem.Get(); }
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }
 

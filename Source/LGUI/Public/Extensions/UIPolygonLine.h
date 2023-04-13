@@ -72,15 +72,17 @@ public:
  * render a polygon line shape
  */
 UCLASS(ClassGroup = LGUI)
-class LGUI_API AUIPolygonLineActor : public AUIBaseActor
+class LGUI_API AUIPolygonLineActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
 	AUIPolygonLineActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIPolygonLine; }
-	FORCEINLINE UUIPolygonLine* GetUIPolygonLine()const { return UIPolygonLine; }
+	virtual UUIItem* GetUIItem()const override { return UIPolygonLine; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIPolygonLine; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIPolygonLine* GetUIPolygonLine()const { return UIPolygonLine; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIPolygonLine* UIPolygonLine;

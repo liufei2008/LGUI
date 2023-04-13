@@ -57,15 +57,17 @@ public:
 
 
 UCLASS(ClassGroup = LGUI)
-class LGUI_API AUIRingActor : public AUIBaseActor
+class LGUI_API AUIRingActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
 	AUIRingActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIElement; }
-	FORCEINLINE UUIRing* Get2DLineRing()const { return UIElement; }
+	virtual UUIItem* GetUIItem()const override { return UIElement; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIElement; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIRing* Get2DLineRing()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIRing* UIElement;
