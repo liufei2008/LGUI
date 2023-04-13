@@ -79,6 +79,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
+	if (EditorTick.IsBound())
+	{
+		EditorTick.Broadcast(DeltaTime);
+	}
 	if (OneShotFunctionsToExecuteInTick.Num() > 0)
 	{
 		for (int i = 0; i < OneShotFunctionsToExecuteInTick.Num(); i++)
@@ -125,7 +129,7 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 
 #if WITH_EDITOR
 
-void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
+void ULGUIEditorManagerObject::AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount)
 {
 	InitCheck();
 	InDelayFrameCount = FMath::Max(0, InDelayFrameCount);
@@ -133,6 +137,18 @@ void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFuncti
 	Item.Key = InDelayFrameCount;
 	Item.Value = InFunction;
 	Instance->OneShotFunctionsToExecuteInTick.Add(Item);
+}
+FDelegateHandle ULGUIEditorManagerObject::RegisterEditorTickFunction(const TFunction<void(float)>& InFunction)
+{
+	InitCheck();
+	return Instance->EditorTick.AddLambda(InFunction);
+}
+void ULGUIEditorManagerObject::UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle)
+{
+	if (Instance != nullptr)
+	{
+		Instance->EditorTick.Remove(InDelegateHandle);
+	}
 }
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)

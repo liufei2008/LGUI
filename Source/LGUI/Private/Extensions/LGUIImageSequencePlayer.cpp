@@ -3,6 +3,7 @@
 #include "Extensions/LGUIImageSequencePlayer.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UITexture.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 ULGUIImageSequencePlayer::ULGUIImageSequencePlayer()
 {
@@ -21,6 +22,33 @@ void ULGUIImageSequencePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	Stop();
+}
+
+void ULGUIImageSequencePlayer::OnRegister()
+{
+	Super::OnRegister();
+#if WITH_EDITOR
+	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
+	{
+		editorPlayDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
+			if (!previewInEditor)return;
+			if (!CanPlay())return;
+			duration = GetDuration();
+			PrepareForPlay();
+			UpdateAnimation(deltaTime);
+			});
+	}
+#endif
+}
+void ULGUIImageSequencePlayer::OnUnregister()
+{
+	Super::OnUnregister();
+#if WITH_EDITOR
+	if (editorPlayDelegateHandle.IsValid())
+	{
+		ULGUIEditorManagerObject::UnregisterEditorTickFunction(editorPlayDelegateHandle);
+	}
+#endif
 }
 
 void ULGUIImageSequencePlayer::Play()
