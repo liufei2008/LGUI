@@ -660,9 +660,9 @@ UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* W
 			auto Selectable = SelectableArray[0].Get();
 			//default selectable is the most "prev" one, so we need to find it
 			TSet<UUISelectableComponent*> FoundSelectables;
-			FoundSelectables.Add(Selectable);
 			while (true)
 			{
+				FoundSelectables.Add(Selectable);
 				//change navigation mode to auto, so we can find selectable only by position (exclude explicit)
 				auto OriginNavigationLeftMode = Selectable->NavigationLeft;
 				auto OriginNavigationUpMode = Selectable->NavigationUp;
