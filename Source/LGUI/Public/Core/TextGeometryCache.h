@@ -58,7 +58,7 @@ struct FUITextCaretProperty
 /** a line of text property */
 struct FUITextLineProperty
 {
-	TArray<FUITextCaretProperty> charPropertyList;
+	TArray<FUITextCaretProperty> caretPropertyList;
 };
 /** for range selection in TextInputComponent */
 struct FUITextSelectionProperty
@@ -174,8 +174,8 @@ private:
 public:
 #pragma region OutputResults
 	FVector2D textRealSize = FVector2D::ZeroVector;
-	/** cached texture property */
-	TArray<FUITextLineProperty> cacheTextPropertyArray;
+	/** line properties, from first line to last one in array */
+	TArray<FUITextLineProperty> cacheLinePropertyArray;
 	/** char properties, from first char to last one in array */
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
 	TArray<FUIText_RichTextCustomTag> cacheRichTextCustomTagArray;

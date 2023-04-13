@@ -163,7 +163,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->textRealSize
 			, this->UIText->GetRenderCanvas()
 			, this->UIText.Get()
-			, this->cacheTextPropertyArray
+			, this->cacheLinePropertyArray
 			, this->cacheCharPropertyArray
 			, this->cacheRichTextCustomTagArray
 			, this->cacheRichTextImageTagArray

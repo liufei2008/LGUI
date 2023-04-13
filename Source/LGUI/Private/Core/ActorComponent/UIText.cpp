@@ -935,7 +935,7 @@ FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineSta
 	SetText(FText::FromString(inString));
 	UpdateCacheTextGeometry();
 	int lineCount = inOutLineEndIndex - inOutLineStartIndex;
-	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 	if (inOutLineEndIndex + 1 >= cacheTextPropertyArray.Num())
 	{
 		inOutLineEndIndex = cacheTextPropertyArray.Num() - 1;
@@ -952,9 +952,9 @@ FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineSta
 			inOutLineEndIndex = inOutLineStartIndex + lineCount;
 		}
 	}
-	inOutCharStartIndex = cacheTextPropertyArray[inOutLineStartIndex].charPropertyList[0].charIndex;
+	inOutCharStartIndex = cacheTextPropertyArray[inOutLineStartIndex].caretPropertyList[0].charIndex;
 	auto& endLine = cacheTextPropertyArray[inOutLineEndIndex];
-	inOutCharEndIndex = endLine.charPropertyList[endLine.charPropertyList.Num() - 1].charIndex;
+	inOutCharEndIndex = endLine.caretPropertyList[endLine.caretPropertyList.Num() - 1].charIndex;
 	return inString.Mid(inOutCharStartIndex, inOutCharEndIndex - inOutCharStartIndex);
 }
 //caret is at left side of char
@@ -1007,10 +1007,10 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 	else
 	{
 		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
+		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 		if (caretPositionIndex == 0)//first char
 		{
-			outCaretPosition = cacheTextPropertyArray[0].charPropertyList[0].caretPosition;
+			outCaretPosition = cacheTextPropertyArray[0].caretPropertyList[0].caretPosition;
 			outCaretPositionLineIndex = 0;
 			outVisibleCharStartIndex = 0;
 		}
@@ -1020,7 +1020,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 			if (lineCount == 1)//only one line
 			{
 				auto& firstLine = cacheTextPropertyArray[0];
-				auto& charProperty = firstLine.charPropertyList[caretPositionIndex];
+				auto& charProperty = firstLine.caretPropertyList[caretPositionIndex];
 				outCaretPosition = charProperty.caretPosition;
 				outCaretPositionLineIndex = 0;
 				outVisibleCharStartIndex = 0;
@@ -1030,15 +1030,15 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 			for (int lineIndex = 0; lineIndex < lineCount; lineIndex ++)
 			{
 				auto& lineItem = cacheTextPropertyArray[lineIndex];
-				int lineCharCount = lineItem.charPropertyList.Num();
+				int lineCharCount = lineItem.caretPropertyList.Num();
 				for (int lineCharIndex = 0; lineCharIndex < lineCharCount; lineCharIndex++)
 				{
-					auto& charItem = lineItem.charPropertyList[lineCharIndex];
+					auto& charItem = lineItem.caretPropertyList[lineCharIndex];
 					if (caretPositionIndex == charItem.charIndex)//found it
 					{
 						outCaretPosition = charItem.caretPosition;
 						outCaretPositionLineIndex = lineIndex;
-						outVisibleCharStartIndex = lineItem.charPropertyList[0].charIndex;
+						outVisibleCharStartIndex = lineItem.caretPropertyList[0].charIndex;
 						return;
 					}
 				}
@@ -1051,18 +1051,18 @@ void UUIText::FindCaret(FVector2D& inOutCaretPosition, int32 inCaretPositionLine
 	if (text.ToString().Len() == 0)//no text
 		return;
 	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 	auto lineCount = cacheTextPropertyArray.Num();//line count
 	outCaretPositionIndex = 0;
 
 	//find nearest char to caret from this line
 	auto& lineItem = cacheTextPropertyArray[inCaretPositionLineIndex];
-	int charPropertyCount = lineItem.charPropertyList.Num();//char count of this line
+	int charPropertyCount = lineItem.caretPropertyList.Num();//char count of this line
 	float nearestDistance = MAX_FLT;
 	int32 nearestIndex = -1;
 	for (int charPropertyIndex = 0; charPropertyIndex < charPropertyCount; charPropertyIndex++)
 	{
-		auto& charItem = lineItem.charPropertyList[charPropertyIndex];
+		auto& charItem = lineItem.caretPropertyList[charPropertyIndex];
 		float distance = FMath::Abs(charItem.caretPosition.X - inOutCaretPosition.X);
 		if (distance <= nearestDistance)
 		{
@@ -1071,7 +1071,7 @@ void UUIText::FindCaret(FVector2D& inOutCaretPosition, int32 inCaretPositionLine
 			outCaretPositionIndex = charItem.charIndex;
 		}
 	}
-	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
+	inOutCaretPosition = lineItem.caretPropertyList[nearestIndex].caretPosition;
 }
 //find caret by position, caret is on left side of char
 void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
@@ -1085,7 +1085,7 @@ void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCa
 	else
 	{
 		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
+		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 
 		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
 		auto localPosition2D = FVector2D(localPosition.Y, localPosition.Z);
@@ -1096,7 +1096,7 @@ void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCa
 		for (int lineIndex = 0; lineIndex < lineCount; lineIndex++)
 		{
 			auto& lineItem = cacheTextPropertyArray[lineIndex];
-			float distance = FMath::Abs(lineItem.charPropertyList[0].caretPosition.Y - localPosition2D.Y);
+			float distance = FMath::Abs(lineItem.caretPropertyList[0].caretPosition.Y - localPosition2D.Y);
 			if (distance <= nearestDistance)
 			{
 				nearestDistance = distance;
@@ -1106,10 +1106,10 @@ void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCa
 		//then find nearest char, only need to compare X
 		nearestDistance = MAX_FLT;
 		auto& nearestLine = cacheTextPropertyArray[outCaretPositionLineIndex];
-		int charCount = nearestLine.charPropertyList.Num();
+		int charCount = nearestLine.caretPropertyList.Num();
 		for (int charIndex = 0; charIndex < charCount; charIndex++)
 		{
-			auto& charItem = nearestLine.charPropertyList[charIndex];
+			auto& charItem = nearestLine.caretPropertyList[charIndex];
 			float distance = FMath::Abs(charItem.caretPosition.X - localPosition2D.X);
 			if (distance <= nearestDistance)
 			{
@@ -1126,7 +1126,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	OutSelectionProeprtyArray.Reset();
 	if (text.ToString().Len() == 0)return;
 	UpdateCacheTextGeometry();
-	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheTextPropertyArray;
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 	//start
 	FVector2D startCaretPosition;
 	int32 startCaretPositionLineIndex;
@@ -1159,7 +1159,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 		//first line
 		FUITextSelectionProperty selectionProperty;
 		selectionProperty.Pos = startCaretPosition;
-		auto& firstLineCharPropertyList = cacheTextPropertyArray[startCaretPositionLineIndex].charPropertyList;
+		auto& firstLineCharPropertyList = cacheTextPropertyArray[startCaretPositionLineIndex].caretPropertyList;
 		auto& firstLineLastCharProperty = firstLineCharPropertyList[firstLineCharPropertyList.Num() - 1];
 		selectionProperty.Size = FMath::RoundToInt(firstLineLastCharProperty.caretPosition.X - startCaretPosition.X);
 		//selectionProperty.Size = (1.0f - this->GetPivot().X) * this->GetWidth() - startCaretPosition.X;
@@ -1168,7 +1168,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 		int middleLineCount = endCaretPositionLineIndex - startCaretPositionLineIndex - 1;
 		for (int i = 0; i < middleLineCount; i++)
 		{
-			auto& charPropertyList = cacheTextPropertyArray[startCaretPositionLineIndex + i + 1].charPropertyList;
+			auto& charPropertyList = cacheTextPropertyArray[startCaretPositionLineIndex + i + 1].caretPropertyList;
 			auto& firstPosition = charPropertyList[0].caretPosition;
 			auto& lasPosition = charPropertyList[charPropertyList.Num() - 1].caretPosition;
 			selectionProperty.Pos = firstPosition;
@@ -1176,7 +1176,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 			OutSelectionProeprtyArray.Add(selectionProperty);
 		}
 		//end line
-		auto& firstPosition = cacheTextPropertyArray[endCaretPositionLineIndex].charPropertyList[0].caretPosition;
+		auto& firstPosition = cacheTextPropertyArray[endCaretPositionLineIndex].caretPropertyList[0].caretPosition;
 		selectionProperty.Pos = firstPosition;
 		selectionProperty.Size = FMath::RoundToInt(endCaretPosition.X - firstPosition.X);
 		OutSelectionProeprtyArray.Add(selectionProperty);

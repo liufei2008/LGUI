@@ -2147,7 +2147,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 #pragma region UIText
 #include "Core/ActorComponent/UIText.h"
 void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart
-	, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& sentenceProperty
+	, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& lineProperty
 )
 {
 	float xOffset = 0;
@@ -2167,7 +2167,7 @@ void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign
 		vertex.Y += xOffset;
 	}
 
-	auto& charList = sentenceProperty.charPropertyList;
+	auto& charList = lineProperty.caretPropertyList;
 	for (auto& item : charList)
 	{
 		item.caretPosition.X += xOffset;
@@ -2210,7 +2210,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, float maxHorizontalWidth, bool kerning
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
-	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+	, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 	, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
 	, ULGUIFontData_BaseObject* font, bool richText, int32 richTextFilterFlags)
 {
@@ -2271,7 +2271,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	float verticalOffset = font->GetVerticalOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 
-	cacheTextPropertyArray.Reset();
+	cacheLinePropertyArray.Reset();
 	cacheCharPropertyArray.Reset();
 	cacheRichTextCustomTagArray.Reset();
 	cacheRichTextImageTagArray.Reset();
@@ -2284,7 +2284,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	int lineUIGeoVertStart = 0;//vertex index in originVertices of current line
 	int currentVisibleCharCount = 0;//visible char count, skip invisible char(\r,\n,\t)
 	int imageStartIndexInCurrentLine = 0;//
-	FUITextLineProperty sentenceProperty;
+	FUITextLineProperty lineProperty;
 	FVector2D caretPosition(0, 0);
 	float halfFontSpaceX = fontSpace.X * 0.5f;
 	int linesCount = 0;//how many lines, default is 1
@@ -2310,6 +2310,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		currentLineWidth -= fontSpace.X;//last char of a line don't need space
 		maxLineWidth = FMath::Max(maxLineWidth, currentLineWidth);
 
+		FUITextCaretProperty caretProperty;
+		caretProperty.caretPosition = caretPosition;
+		caretProperty.charIndex = charIndex;
+		lineProperty.caretPropertyList.Add(caretProperty);
 		if (richText)
 		{
 			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originVertices, imageStartIndexInCurrentLine, cacheRichTextImageTagArray);
@@ -2317,16 +2321,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 		else
 		{
-			FUITextCaretProperty caretProperty;
-			caretProperty.caretPosition = caretPosition;
-			caretProperty.charIndex = charIndex;
-			sentenceProperty.charPropertyList.Add(caretProperty);
-
-			UIGeometry_AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originVertices, sentenceProperty);
-
-			cacheTextPropertyArray.Add(sentenceProperty);
-			sentenceProperty = FUITextLineProperty();
+			UIGeometry_AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originVertices, lineProperty);
 		}
+		cacheLinePropertyArray.Add(lineProperty);
+		lineProperty = FUITextLineProperty();
 		lineUIGeoVertStart = verticesCount;
 
 		currentLineWidth = 0;
@@ -2336,11 +2334,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		linesCount++;
 
 		//set caret position for empty newline
-		if (!richText)
-		{
-			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
-			caretPosition.Y = currentLineOffset.Y;
-		}
+		caretPosition.X = currentLineOffset.X - halfFontSpaceX;
+		caretPosition.Y = currentLineOffset.Y;
 		//store first line height for paragraph align
 		if (linesCount == 1)
 		{
@@ -2587,17 +2582,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		
 		auto charGeo = GetCharGeo(charIndex == 0 ? charCode : prevCharCode, charCode, richText ? richTextParseResult.size : fontSize);
 		//caret property
-		if (!richText)
-		{
-			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
-			caretPosition.Y = currentLineOffset.Y;
-			FUITextCaretProperty caretProperty;
-			caretProperty.caretPosition = caretPosition;
-			caretProperty.charIndex = charIndex;
-			sentenceProperty.charPropertyList.Add(caretProperty);
+		caretPosition.X = currentLineOffset.X - halfFontSpaceX;
+		caretPosition.Y = currentLineOffset.Y;
+		FUITextCaretProperty caretProperty;
+		caretProperty.caretPosition = caretPosition;
+		caretProperty.charIndex = charIndex;
+		lineProperty.caretPropertyList.Add(caretProperty);
 
-			caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
-		}
+		caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
 
 		if (IsSpace(charCode, richTextParseResult))//char is space
 		{
@@ -2846,15 +2838,12 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		break;
 	}
 	//caret property
-	if (!richText)
+	for (auto& linePropertyItem : cacheLinePropertyArray)
 	{
-		for (auto& sentenceItem : cacheTextPropertyArray)
+		for (auto& charItem : linePropertyItem.caretPropertyList)
 		{
-			for (auto& charItem : sentenceItem.charPropertyList)
-			{
-				charItem.caretPosition.X += xOffset;
-				charItem.caretPosition.Y += yOffset;
-			}
+			charItem.caretPosition.X += xOffset;
+			charItem.caretPosition.Y += yOffset;
 		}
 	}
 	//image

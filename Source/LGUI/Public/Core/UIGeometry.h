@@ -189,7 +189,7 @@ public:
 		, float maxHorizontalWidth, bool kerning
 		, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
-		, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+		, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
 		, ULGUIFontData_BaseObject* font, bool richText, int32 richTextFilterFlags);
 #pragma endregion

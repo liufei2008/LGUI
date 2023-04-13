@@ -1091,15 +1091,15 @@ void UUITextInputComponent::UpdateUITextComponent(bool InCaretMovement)
 				//recalculate MaxVisibleLineCount
 				if (OverflowType == ELGUITextInputOverflowType::ClampContent)
 				{
-					auto SingleLineHeight = TextActor->GetUIText()->GetFont()->GetLineHeight(TextActor->GetUIText()->GetFontSize());
-					MaxLineCount = (int)(TextActor->GetUIText()->GetHeight()
-						/ (SingleLineHeight + TextActor->GetUIText()->GetFontSpace().Y));
+					auto SingleLineHeight = uiText->GetFont()->GetLineHeight(uiText->GetFontSize());
+					MaxLineCount = (int)(uiText->GetHeight()
+						/ (SingleLineHeight + uiText->GetFontSpace().Y));
 				}
 				//set to full text, and find CaretPositionLineIndex
-				TextActor->GetUIText()->SetText(FText::FromString(replaceText));
+				uiText->SetText(FText::FromString(replaceText));
 
 				FVector2D caretPosition;
-				TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex, VisibleCharStartIndex);
+				uiText->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex, VisibleCharStartIndex);
 
 				if (VisibleCharStartLineIndex > CaretPositionLineIndex)
 				{
