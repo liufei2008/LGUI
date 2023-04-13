@@ -210,12 +210,11 @@ void ULGUICanvasScaler::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (ULGUIEditorManagerObject::Instance != nullptr)
-		{
-			EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUICanvasScaler::OnEditorTick);
-			EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.AddUObject(this, &ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange);
-			LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);
-		}
+		EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
+			this->OnEditorTick(deltaTime);
+			});
+		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.AddUObject(this, &ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange);
+		LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);
 	}
 #endif
 }
@@ -225,12 +224,9 @@ void ULGUICanvasScaler::OnUnregister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (ULGUIEditorManagerObject::Instance != nullptr)
-		{
-			ULGUIEditorManagerObject::Instance->EditorTick.Remove(EditorTickDelegateHandle);
-			ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.Remove(EditorViewportIndexAndKeyChangeDelegateHandle);
-			ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
-		}
+		ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+		ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.Remove(EditorViewportIndexAndKeyChangeDelegateHandle);
+		ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
 	}
 #endif
 	//reset the canvasScale to default
