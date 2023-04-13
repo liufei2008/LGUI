@@ -75,15 +75,17 @@ public:
  * render a solid polygon shape
  */
 UCLASS(ClassGroup = LGUI)
-class LGUI_API AUIPolygonActor : public AUIBaseActor
+class LGUI_API AUIPolygonActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
 	AUIPolygonActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIPolygon; }
-	FORCEINLINE UUIPolygon* GetUIPolygon()const { return UIPolygon; }
+	virtual UUIItem* GetUIItem()const override { return UIPolygon; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIPolygon; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIPolygon* GetUIPolygon()const { return UIPolygon; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIPolygon* UIPolygon;

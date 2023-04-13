@@ -16,7 +16,8 @@ public:
 
 	virtual UUIItem* GetUIItem()const override { return UIBackgroundBlur; }
 	virtual class UUIPostProcessRenderable* GetUIPostProcessRenderable()const override { return UIBackgroundBlur; }
-	FORCEINLINE UUIBackgroundBlur* GetUIBackgroundBlur()const { return UIBackgroundBlur; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIBackgroundBlur* GetUIBackgroundBlur()const { return UIBackgroundBlur; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		class UUIBackgroundBlur* UIBackgroundBlur;
