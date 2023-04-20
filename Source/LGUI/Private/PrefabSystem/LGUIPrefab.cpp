@@ -155,8 +155,8 @@ AActor* ULGUIPrefab::GetContainerActor()
 	}
 	else
 	{
-		auto RootUICanvasActor = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
-		ContainerActor = RootUICanvasActor;
+		auto RootActor = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
+		ContainerActor = RootActor;
 	}
 	return ContainerActor.Get();
 }
