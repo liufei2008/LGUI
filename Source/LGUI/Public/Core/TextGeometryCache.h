@@ -52,7 +52,7 @@ struct FUITextCaretProperty
 {
 	/** caret position. caret is on left side of char */
 	FVector2f caretPosition = FVector2f::ZeroVector;
-	/** char index in text */
+	/** char index in text, -1 means line end caret */
 	int32 charIndex = 0;
 };
 /** a line of text property */
