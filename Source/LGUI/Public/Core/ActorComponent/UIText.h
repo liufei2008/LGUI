@@ -230,15 +230,30 @@ protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 public:
 #pragma region UITextInputComponent
+	/**
+	 * .
+	 * @param moveType 0-left, 1-right, 2-up, 3-down, 4-start, 5-end
+	 * @return true- data changed
+	 */
+	bool MoveCaret(int32 moveType, int32& inOutCaretPositionIndex, int32& inOutCaretPositionLineIndex, FVector2D& inOutCaretPosition);
+	int GetCharIndexByCaretIndex(int32 inCaretPositionIndex);
+	int GetLastCaret();
 	/** get caret position and line index */
-	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCharStartIndex);
+	void FindCaretByIndex(int32& inOutCaretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCaretStartIndex);
 	/** find current caret position */
 	void FindCaret(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
 	/** find caret index by position */
 	void FindCaretByWorldPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
-	FString GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex);
+	int GetCaretIndexByCharIndex(int32 inCharIndex);
+	bool GetVisibleCharRangeForMultiLine(int32& inOutCaretPositionIndex, int32& inOutCaretPositionLineIndex, int32& inOutVisibleCaretStartLineIndex, int32& inOutVisibleCaretStartIndex, int inMaxLineCount, int32& outVisibleCharStartIndex, int32& outVisibleCharCount);
+	/**
+	 * .
+	 * @return true- value changed
+	 */
+	bool GetVisibleCharRangeForSingleLine(int32& inOutCaretPositionIndex, int32& inOutVisibleCaretStartIndex, float inMaxWidth, int32& outVisibleCharStartIndex, int32& outVisibleCharCount);
 
 	/** range selection */
 	void GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray);
+	const FTextGeometryCache& GetCacheTextGeometryData()const { UpdateCacheTextGeometry(); return CacheTextGeometryData; }
 #pragma endregion UITextInputComponent
 };

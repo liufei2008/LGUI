@@ -33,6 +33,8 @@ namespace LGUIRichTextParser
 		CustomTagMode customTagMode = CustomTagMode::None;
 		FName customTag;
 		FName imageTag;
+
+		int charIndex = 0;
 	};
 	
 	struct RichTextParser

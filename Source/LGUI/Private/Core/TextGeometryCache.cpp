@@ -141,6 +141,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 	}
 	else if (bIsDirty)
 	{
+		if (!this->UIText->GetRenderCanvas())return;
 		bIsDirty = false;
 		bIsColorDirty = false;
 		UIGeometry::UpdateUIText(
