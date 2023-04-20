@@ -113,7 +113,7 @@ enum class ELGUITextInputOverflowType :uint8
 	ClampContent,
 	/**
 	 * Overflow to max limit then clamp content.
-	 * For multiline mode, the max limit is the MaxVisibleLineCount property.
+	 * For multiline mode, the max limit is the MaxLineCount property.
 	 */
 	OverflowToMax,
 };
@@ -182,6 +182,9 @@ protected:
 	/** Automatic activate input when use navigation input and navigate in this. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bAutoActivateInputWhenNavigateIn = false;
+	/** Select all text value when activate input. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		bool bSelectAllWhenActivateInput = true;
 	/** Read only text block, can copy text content, but not editable. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bReadOnly = false;
@@ -321,6 +324,19 @@ public:
 	/** Remove the function set by "SetCustomInputTypeFunction" */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void ClearCustomInputTypeFunction();
+	/**
+	 * Verify input string value and insert the string value to text value at current caret position.
+	 * @param value string value to check and insert.
+	 * @return true- if any char added.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		bool VerifyAndInsertStringAtCaretPosition(const FString& value);
+	/**
+	 * Verify input char value and insert the char value to text value at current caret position.
+	 * @param value char value to check and insert.
+	 * @return true- if verify success and added.
+	 */
+	bool VerifyAndInsertCharAtCaretPosition(TCHAR value);
 private:
 	void BindKeys();
 	void UnbindKeys();
@@ -332,33 +348,31 @@ private:
 	 */
 	bool DeleteSelection(bool InFireEvent = true);
 	void InsertCharAtCaretPosition(TCHAR c);
+	void InsertStringAtCaretPosition(const FString& value);
 	FInputKeyBinding AnyKeyBinding;
 	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
 	bool CheckPlayerController();
 	bool bInputActive = false;
-	//Caret position of full text. caret is on left side of char
-	int CaretPositionIndex = 0;
-	//caret position line index of full text
-	int CaretPositionLineIndex = 0;
 	float NextCaretBlinkTime = 0;
 	float ElapseTime = 0;
 	void BackSpace();
 	void ForwardSpace();
-	void MoveToStart();
-	void MoveToEnd();
-	void MoveLeft(bool withSelection);
-	void MoveRight(bool withSelection);
-	void MoveUp(bool withSelection);
-	void MoveDown(bool withSelection);
+	/**
+	 * .
+	 * @param moveType 0-left, 1-right, 2-up, 3-down, 4-start, 5-end
+	 */
+	void MoveCaret(int32 moveType, bool withSelection);
 	void Copy();
 	void Paste();
 	void Cut();
 	void SelectAll();
 
+	FString GetReplaceText()const;
+
 	void UpdateAfterTextChange(bool InFireEvent = true);
 
 	void FireOnValueChangeEvent();
-	void UpdateUITextComponent(bool InCaretMovement = true);
+	void UpdateUITextComponent();
 	void UpdatePlaceHolderComponent();
 	void UpdateCaretPosition(bool InHideSelection = true);
 	void UpdateCaretPosition(FVector2f InCaretPosition, bool InHideSelection = true);
@@ -370,17 +384,17 @@ private:
 	UPROPERTY(Transient)TArray<TWeakObjectPtr<class UUISprite>> SelectionMaskObjectArray;
 	//range selection
 	TArray<FUITextSelectionProperty> SelectionPropertyArray;
+	//Caret position of full text. caret is on left side of char
+	int CaretPositionIndex = 0;
+	//caret position line index of full text
+	int CaretPositionLineIndex = 0;
 	//in single line mode, will clamp text if out of range. this is left start index of visible char
 	//this property can only modify in UpdateUITextComponent function
-	int VisibleCharStartIndex = 0;
+	int VisibleCaretStartIndex = 0;
 	//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
 	//this property can only modify in UpdateUITextComponent function
-	int VisibleCharStartLineIndex = 0;
+	int VisibleCaretStartLineIndex = 0;
 
-	//mouse position when press, world space
-	FVector3f PressMousePosition = FVector3f(0, 0, 0);
-	//caret position when press, UIText space
-	FVector2f PressCaretPosition = FVector2f(0, 0);
 	int PressCaretPositionIndex = 0, PressCaretPositionLineIndex = 0;
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;

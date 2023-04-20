@@ -928,42 +928,178 @@ void UUIText::GenerateRichTextImageObject()
 
 
 
-FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex)
+
+bool UUIText::MoveCaret(int32 moveType, int32& inOutCaretPositionIndex, int32& inOutCaretPositionLineIndex, FVector2f& inOutCaretPosition)
 {
-	if (inString.Len() == 0)//no text
-		return inString;
-	SetText(FText::FromString(inString));
+	auto originCaretPositionIndex = inOutCaretPositionIndex;
+	auto originCaretPositionLineIndex = inOutCaretPositionLineIndex;
+
 	UpdateCacheTextGeometry();
-	int lineCount = inOutLineEndIndex - inOutLineStartIndex;
-	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
-	if (inOutLineEndIndex + 1 >= cacheTextPropertyArray.Num())
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	//moveType 0-left, 1-right, 2-up, 3-down, 4-start, 5-end
+	switch (moveType)
 	{
-		inOutLineEndIndex = cacheTextPropertyArray.Num() - 1;
-		if (lineCount < cacheTextPropertyArray.Num())
+	case 0:
+	case 1:
+	{
+		if (moveType == 0)
 		{
-			inOutLineStartIndex = inOutLineEndIndex - lineCount;
+			if (inOutCaretPositionIndex > 0)
+			{
+				inOutCaretPositionIndex--;
+			}
+		}
+		else
+		{
+			inOutCaretPositionIndex++;
+		}
+
+		bool foundCaret = false;
+		int totalCaretIndex = 0;
+		for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+		{
+			auto& lineProperty = cacheLinePropertyArray[lineIndex];
+			for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+			{
+				if (totalCaretIndex == inOutCaretPositionIndex)//find caret
+				{
+					inOutCaretPositionLineIndex = lineIndex;
+					inOutCaretPosition = lineProperty.caretPropertyList[caretIndex].caretPosition;
+					//stop loop
+					foundCaret = true;
+					caretIndex = lineProperty.caretPropertyList.Num();
+					lineIndex = cacheLinePropertyArray.Num();
+				}
+				else
+				{
+					totalCaretIndex++;
+				}
+			}
+		}
+		if (!foundCaret)//could be out of range, use last caret
+		{
+			inOutCaretPositionIndex = totalCaretIndex - 1;
+			inOutCaretPositionLineIndex = cacheLinePropertyArray.Num() - 1;
+			auto& lastLineProperty = cacheLinePropertyArray[cacheLinePropertyArray.Num() - 1];
+			inOutCaretPosition = lastLineProperty.caretPropertyList[lastLineProperty.caretPropertyList.Num() - 1].caretPosition;
 		}
 	}
-	if (inOutLineStartIndex < 0)
+	break;
+	case 2:
+	case 3:
 	{
-		inOutLineStartIndex = 0;
-		if (lineCount < cacheTextPropertyArray.Num())
+		if (moveType == 2)
 		{
-			inOutLineEndIndex = inOutLineStartIndex + lineCount;
+			if (inOutCaretPositionLineIndex > 0)
+			{
+				inOutCaretPositionLineIndex--;
+			}
+		}
+		else
+		{
+			if (inOutCaretPositionLineIndex < cacheLinePropertyArray.Num() - 1)
+			{
+				inOutCaretPositionLineIndex++;
+			}
+		}
+		auto& lineProperty = cacheLinePropertyArray[inOutCaretPositionLineIndex];
+		float minDistance = MAX_FLT;
+		int accumulatedCaretIndex = 0;
+		for (int lineIndex = 0; lineIndex < inOutCaretPositionLineIndex; lineIndex++)
+		{
+			accumulatedCaretIndex += cacheLinePropertyArray[lineIndex].caretPropertyList.Num();
+		}
+		auto originCaretPosition = inOutCaretPosition;
+		for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+		{
+			auto& caretProperty = lineProperty.caretPropertyList[caretIndex];
+			auto distance = FMath::Abs(originCaretPosition.X - caretProperty.caretPosition.X);
+			if (distance < minDistance)
+			{
+				minDistance = distance;
+				inOutCaretPositionIndex = accumulatedCaretIndex;
+				inOutCaretPosition = caretProperty.caretPosition;
+			}
+			else//found min distance at prev
+			{
+				break;
+			}
+			accumulatedCaretIndex++;
 		}
 	}
-	inOutCharStartIndex = cacheTextPropertyArray[inOutLineStartIndex].caretPropertyList[0].charIndex;
-	auto& endLine = cacheTextPropertyArray[inOutLineEndIndex];
-	inOutCharEndIndex = endLine.caretPropertyList[endLine.caretPropertyList.Num() - 1].charIndex;
-	return inString.Mid(inOutCharStartIndex, inOutCharEndIndex - inOutCharStartIndex);
+	break;
+	case 4:
+	{
+		inOutCaretPositionIndex = 0;
+		inOutCaretPositionLineIndex = 0;
+		inOutCaretPosition = cacheLinePropertyArray[0].caretPropertyList[0].caretPosition;
+	}
+	break;
+	case 5:
+	{
+		int32 accumulatedCaretIndex = 0;
+		for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+		{
+			accumulatedCaretIndex += cacheLinePropertyArray[lineIndex].caretPropertyList.Num();
+		}
+		inOutCaretPositionIndex = accumulatedCaretIndex - 1;
+		inOutCaretPositionLineIndex = cacheLinePropertyArray.Num() - 1;
+		auto& lastLineProperty = cacheLinePropertyArray[cacheLinePropertyArray.Num() - 1];
+		inOutCaretPosition = lastLineProperty.caretPropertyList[lastLineProperty.caretPropertyList.Num() - 1].caretPosition;
+	}
+	break;
+	}
+	if (originCaretPositionIndex != inOutCaretPositionIndex || originCaretPositionLineIndex != inOutCaretPositionLineIndex)
+	{
+		return true;
+	}
+	return false;
+}
+
+int UUIText::GetCharIndexByCaretIndex(int32 inCaretPositionIndex)
+{
+	UpdateCacheTextGeometry();
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	int accumulatedCaretIndex = 0;
+	for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+		{
+			if (accumulatedCaretIndex == inCaretPositionIndex)//find caret
+			{
+				return lineProperty.caretPropertyList[caretIndex].charIndex;
+			}
+			accumulatedCaretIndex++;
+		}
+	}
+	//not found caret, use last one
+	auto& lastLineProperty = cacheLinePropertyArray[cacheLinePropertyArray.Num() - 1];
+	return lastLineProperty.caretPropertyList[lastLineProperty.caretPropertyList.Num() - 1].charIndex;
+}
+int UUIText::GetLastCaret()
+{
+	UpdateCacheTextGeometry();
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	int totalCaretIndex = 0;
+	for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		totalCaretIndex += lineProperty.caretPropertyList.Num();
+	}
+	return totalCaretIndex - 1;
 }
 //caret is at left side of char
-void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCharStartIndex)
+void UUIText::FindCaretByIndex(int32& inOutCaretPositionIndex, FVector2f& outCaretPosition, int32& outCaretPositionLineIndex, int32& outVisibleCaretStartIndex)
 {
+	UpdateCacheTextGeometry();
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+
+	if (inOutCaretPositionIndex < 0)inOutCaretPositionIndex = 0;
 	outCaretPosition.X = outCaretPosition.Y = 0;
 	outCaretPositionLineIndex = 0;
-	outVisibleCharStartIndex = 0;
-	if (text.ToString().Len() == 0)
+	outVisibleCaretStartIndex = 0;
+	if (cacheLinePropertyArray.Num() == 0)
 	{
 		float pivotOffsetX = this->GetWidth() * (0.5f - this->GetPivot().X);
 		float pivotOffsetY = this->GetHeight() * (0.5f - this->GetPivot().Y);
@@ -1006,42 +1142,44 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2f& outCaretPosi
 	}
 	else
 	{
-		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
-		if (caretPositionIndex == 0)//first char
+		if (inOutCaretPositionIndex == 0)//first char
 		{
-			outCaretPosition = cacheTextPropertyArray[0].caretPropertyList[0].caretPosition;
+			outCaretPosition = cacheLinePropertyArray[0].caretPropertyList[0].caretPosition;
 			outCaretPositionLineIndex = 0;
-			outVisibleCharStartIndex = 0;
+			outVisibleCaretStartIndex = 0;
 		}
 		else//not first char
 		{
-			int lineCount = cacheTextPropertyArray.Num();//line count
-			if (lineCount == 1)//only one line
+			bool foundCaret = false;
+			int accumulatedCaretIndex = 0;
+			for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
 			{
-				auto& firstLine = cacheTextPropertyArray[0];
-				auto& charProperty = firstLine.caretPropertyList[caretPositionIndex];
-				outCaretPosition = charProperty.caretPosition;
-				outCaretPositionLineIndex = 0;
-				outVisibleCharStartIndex = 0;
-				return;
-			}
-			//search all lines, find charIndex == caretPositionIndex
-			for (int lineIndex = 0; lineIndex < lineCount; lineIndex ++)
-			{
-				auto& lineItem = cacheTextPropertyArray[lineIndex];
-				int lineCharCount = lineItem.caretPropertyList.Num();
-				for (int lineCharIndex = 0; lineCharIndex < lineCharCount; lineCharIndex++)
+				auto& lineProperty = cacheLinePropertyArray[lineIndex];
+				for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
 				{
-					auto& charItem = lineItem.caretPropertyList[lineCharIndex];
-					if (caretPositionIndex == charItem.charIndex)//found it
+					if (accumulatedCaretIndex == inOutCaretPositionIndex)//find caret
 					{
-						outCaretPosition = charItem.caretPosition;
 						outCaretPositionLineIndex = lineIndex;
-						outVisibleCharStartIndex = lineItem.caretPropertyList[0].charIndex;
-						return;
+						outCaretPosition = lineProperty.caretPropertyList[caretIndex].caretPosition;
+						outVisibleCaretStartIndex = accumulatedCaretIndex;
+						//stop loop
+						foundCaret = true;
+						caretIndex = lineProperty.caretPropertyList.Num();
+						lineIndex = cacheLinePropertyArray.Num();
+					}
+					else
+					{
+						accumulatedCaretIndex++;
 					}
 				}
+			}
+			if (!foundCaret)//could be out of range
+			{
+				auto& lastLineProperty = cacheLinePropertyArray[cacheLinePropertyArray.Num() - 1];
+				inOutCaretPositionIndex = accumulatedCaretIndex - 1;
+				outCaretPosition = lastLineProperty.caretPropertyList[lastLineProperty.caretPropertyList.Num() - 1].caretPosition;
+				outCaretPositionLineIndex = cacheLinePropertyArray.Num() - 1;
+				outVisibleCaretStartIndex = 0;
 			}
 		}
 	}
@@ -1080,51 +1218,263 @@ void UUIText::FindCaretByWorldPosition(FVector inWorldPosition, FVector2f& outCa
 	{
 		outCaretPositionIndex = 0;
 		int tempVisibleCharStartIndex = 0;
-		FindCaretByIndex(0, outCaretPosition, outCaretPositionLineIndex, tempVisibleCharStartIndex);
+		FindCaretByIndex(outCaretPositionIndex, outCaretPosition, outCaretPositionLineIndex, tempVisibleCharStartIndex);
 	}
 	else
 	{
 		UpdateCacheTextGeometry();
-		auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+		auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 
 		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
 		auto localPosition2D = FVector2f(localPosition.Y, localPosition.Z);
 
 		float nearestDistance = MAX_FLT;
-		int lineCount = cacheTextPropertyArray.Num();
+		int accumulatedCaretIndex = 0;
 		//find the nearest line, only need to compare Y
-		for (int lineIndex = 0; lineIndex < lineCount; lineIndex++)
+		int foundLineIndex = -1;
+		for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
 		{
-			auto& lineItem = cacheTextPropertyArray[lineIndex];
+			auto& lineItem = cacheLinePropertyArray[lineIndex];
 			float distance = FMath::Abs(lineItem.caretPropertyList[0].caretPosition.Y - localPosition2D.Y);
 			if (distance <= nearestDistance)
 			{
 				nearestDistance = distance;
 				outCaretPositionLineIndex = lineIndex;
+				accumulatedCaretIndex += lineItem.caretPropertyList.Num();
+			}
+			else
+			{
+				foundLineIndex = lineIndex - 1;
+				break;
 			}
 		}
+		if (foundLineIndex == -1)
+		{
+			foundLineIndex = cacheLinePropertyArray.Num() - 1;
+		}
+		accumulatedCaretIndex -= cacheLinePropertyArray[foundLineIndex].caretPropertyList.Num();//remove prev line's caret count, because we need to add it when compare X pos
 		//then find nearest char, only need to compare X
 		nearestDistance = MAX_FLT;
-		auto& nearestLine = cacheTextPropertyArray[outCaretPositionLineIndex];
-		int charCount = nearestLine.caretPropertyList.Num();
-		for (int charIndex = 0; charIndex < charCount; charIndex++)
+		auto& nearestLine = cacheLinePropertyArray[outCaretPositionLineIndex];
+		for (int caretIndex = 0; caretIndex < nearestLine.caretPropertyList.Num(); caretIndex++)
 		{
-			auto& charItem = nearestLine.caretPropertyList[charIndex];
-			float distance = FMath::Abs(charItem.caretPosition.X - localPosition2D.X);
+			auto& caretItem = nearestLine.caretPropertyList[caretIndex];
+			float distance = FMath::Abs(caretItem.caretPosition.X - localPosition2D.X);
 			if (distance <= nearestDistance)
 			{
 				nearestDistance = distance;
-				outCaretPositionIndex = charItem.charIndex;
-				outCaretPosition = charItem.caretPosition;
+				outCaretPositionIndex = accumulatedCaretIndex + caretIndex;
+				outCaretPosition = caretItem.caretPosition;
+			}
+			else
+			{
+				break;
 			}
 		}
 	}
 }
 
+int UUIText::GetCaretIndexByCharIndex(int32 inCharIndex)
+{
+	UpdateCacheTextGeometry();
+	int accumulatedCaretIndex = 0;
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+		{
+			if (lineProperty.caretPropertyList[caretIndex].charIndex == inCharIndex)//find char
+			{
+				return accumulatedCaretIndex;
+			}
+			else
+			{
+				accumulatedCaretIndex++;
+			}
+		}
+	}
+	return accumulatedCaretIndex - 1;//not found, return last one
+}
+
+bool UUIText::GetVisibleCharRangeForMultiLine(int32& inOutCaretPositionIndex, int32& inOutCaretPositionLineIndex, int32& inOutVisibleCaretStartLineIndex, int32& inOutVisibleCaretStartIndex, int inMaxLineCount, int32& outVisibleCharStartIndex, int32& outVisibleCharCount)
+{
+	UpdateCacheTextGeometry();
+	auto& cacheLinePropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	int accumulatedCaretIndex = 0;
+	bool foundCaret = false;
+	for (int lineIndex = 0; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		for (int caretIndex = 0; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+		{
+			if (inOutCaretPositionIndex == accumulatedCaretIndex)//find caret
+			{
+				inOutCaretPositionLineIndex = lineIndex;
+				lineIndex = cacheLinePropertyArray.Num();
+				foundCaret = true;
+				break;
+			}
+			else
+			{
+				accumulatedCaretIndex++;
+			}
+		}
+	}
+	if (!foundCaret)//could be last caret
+	{
+		inOutCaretPositionLineIndex = cacheLinePropertyArray.Num() - 1;
+	}
+
+	inOutCaretPositionLineIndex = FMath::Clamp(inOutCaretPositionLineIndex, 0, cacheLinePropertyArray.Num() - 1);
+
+	if (inOutVisibleCaretStartLineIndex > inOutCaretPositionLineIndex)
+	{
+		inOutVisibleCaretStartLineIndex = inOutCaretPositionLineIndex;
+	}
+	if (inOutVisibleCaretStartLineIndex + (inMaxLineCount - 1) < inOutCaretPositionLineIndex)
+	{
+		inOutVisibleCaretStartLineIndex = inOutCaretPositionLineIndex - (inMaxLineCount - 1);
+	}
+
+	int calculatedLineCount = 0;
+	bool outOfRange = false;
+	int VisibleCaretEndLineIndex = inOutCaretPositionLineIndex;
+	//check from CaretLineIndex to VisibleCaretStartLineIndex
+	for (int lineIndex = inOutCaretPositionLineIndex; lineIndex >= 0 && lineIndex >= inOutVisibleCaretStartLineIndex; lineIndex--)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		calculatedLineCount++;
+		if (calculatedLineCount >= inMaxLineCount)
+		{
+			outOfRange = true;
+			inOutVisibleCaretStartLineIndex = lineIndex;
+			break;
+		}
+	}
+	if (!outOfRange)
+	{
+		//check from CaretLineIndex to bottom end
+		for (int lineIndex = inOutCaretPositionLineIndex + 1; lineIndex < cacheLinePropertyArray.Num(); lineIndex++)
+		{
+			auto& lineProperty = cacheLinePropertyArray[lineIndex];
+			calculatedLineCount++;
+			VisibleCaretEndLineIndex++;
+			if (calculatedLineCount >= inMaxLineCount)
+			{
+				outOfRange = true;
+				break;
+			}
+		}
+
+		if (!outOfRange)
+		{
+			//check from VisibleCaretStartLineIndex to top
+			for (int lineIndex = inOutVisibleCaretStartLineIndex - 1; lineIndex >= 0 && lineIndex < cacheLinePropertyArray.Num(); lineIndex--)
+			{
+				auto& lineProperty = cacheLinePropertyArray[lineIndex];
+				calculatedLineCount++;
+				if (calculatedLineCount >= inMaxLineCount)
+				{
+					outOfRange = true;
+					break;
+				}
+				inOutVisibleCaretStartLineIndex--;
+			}
+		}
+	}
+	inOutVisibleCaretStartIndex = 0;
+	for (int lineIndex = 0; lineIndex < inOutVisibleCaretStartLineIndex; lineIndex++)
+	{
+		auto& lineProperty = cacheLinePropertyArray[lineIndex];
+		inOutVisibleCaretStartIndex += lineProperty.caretPropertyList.Num();
+	}
+	auto& startLineProperty = cacheLinePropertyArray[inOutVisibleCaretStartLineIndex];
+	auto& endLineProperty = cacheLinePropertyArray[VisibleCaretEndLineIndex];
+	outVisibleCharStartIndex = startLineProperty.caretPropertyList[0].charIndex;
+	auto lastIndex = endLineProperty.caretPropertyList.Num() - 1;
+	auto lastCharIndex = endLineProperty.caretPropertyList[lastIndex].charIndex;
+	if (lastCharIndex == -1)//-1 means newline break, so use next caret's char index
+	{
+		lastCharIndex = endLineProperty.caretPropertyList[lastIndex - 1].charIndex + 1;
+	}
+	outVisibleCharCount = lastCharIndex - outVisibleCharStartIndex;
+	return outOfRange;
+}
+
+bool UUIText::GetVisibleCharRangeForSingleLine(int32& inOutCaretPositionIndex, int32& inOutVisibleCaretStartIndex, float inMaxWidth, int32& outVisibleCharStartIndex, int32& outVisibleCharCount)
+{
+	UpdateCacheTextGeometry();
+	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
+	auto& lineProperty = cacheTextPropertyArray[0];//just single line
+	inOutCaretPositionIndex = FMath::Clamp(inOutCaretPositionIndex, 0, lineProperty.caretPropertyList.Num() - 1);
+
+	if (inOutVisibleCaretStartIndex > inOutCaretPositionIndex)
+	{
+		inOutVisibleCaretStartIndex = inOutCaretPositionIndex;
+	}
+
+	float calculatedSize = 0;
+	bool outOfRange = false;
+	int VisibleCaretEndIndex = inOutCaretPositionIndex;
+	auto caretPosition = lineProperty.caretPropertyList[inOutCaretPositionIndex].caretPosition;
+	//check from caret to VisibleCaretStartIndex
+	for (int caretIndex = inOutCaretPositionIndex; caretIndex >= 0 && caretIndex >= inOutVisibleCaretStartIndex; caretIndex--)
+	{
+		auto& caretProperty = lineProperty.caretPropertyList[caretIndex];
+		calculatedSize = caretPosition.X - caretProperty.caretPosition.X;
+		if (calculatedSize >= inMaxWidth)
+		{
+			outOfRange = true;
+			inOutVisibleCaretStartIndex = caretIndex + 1;
+			break;
+		}
+	}
+	if (!outOfRange)
+	{
+		//check from caret to right end
+		float tempWidth = calculatedSize;
+		for (int caretIndex = inOutCaretPositionIndex; caretIndex < lineProperty.caretPropertyList.Num(); caretIndex++)
+		{
+			auto& caretProperty = lineProperty.caretPropertyList[caretIndex];
+			auto dist = caretProperty.caretPosition.X - caretPosition.X;
+			tempWidth = calculatedSize + dist;
+			if (tempWidth > inMaxWidth)
+			{
+				outOfRange = true;
+				break;
+			}
+			VisibleCaretEndIndex++;
+		}
+		VisibleCaretEndIndex--;
+		calculatedSize = tempWidth;
+
+		if (!outOfRange)
+		{
+			//check from VisibleCaretStartIndex to left
+			for (int caretIndex = inOutVisibleCaretStartIndex - 1; caretIndex >= 0; caretIndex--)
+			{
+				auto& caretProperty = lineProperty.caretPropertyList[caretIndex];
+				auto dist = caretPosition.X - caretProperty.caretPosition.X;
+				tempWidth = calculatedSize + dist;
+				if (tempWidth >= inMaxWidth)
+				{
+					outOfRange = true;
+					break;
+				}
+				inOutVisibleCaretStartIndex--;
+			}
+			calculatedSize = tempWidth;
+		}
+	}
+	outVisibleCharStartIndex = lineProperty.caretPropertyList[inOutVisibleCaretStartIndex].charIndex;
+	outVisibleCharCount = lineProperty.caretPropertyList[VisibleCaretEndIndex].charIndex - outVisibleCharStartIndex;
+	return outOfRange;
+}
+
 void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray)
 {
 	OutSelectionProeprtyArray.Reset();
-	if (text.ToString().Len() == 0)return;
 	UpdateCacheTextGeometry();
 	auto& cacheTextPropertyArray = CacheTextGeometryData.cacheLinePropertyArray;
 	//start

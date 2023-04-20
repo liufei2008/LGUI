@@ -2304,7 +2304,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	};
 	NewLineMode newLineMode = NewLineMode::None;
 
-	auto NewLine = [&](int32 charIndex)
+	auto NewLine = [&](int32 charIndex, bool withCaret)
 	{
 		//add end caret position
 		currentLineWidth -= fontSpace.X;//last char of a line don't need space
@@ -2312,7 +2312,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		FUITextCaretProperty caretProperty;
 		caretProperty.caretPosition = caretPosition;
-		caretProperty.charIndex = charIndex;
+		caretProperty.charIndex = withCaret ? charIndex : -1;
 		lineProperty.caretPropertyList.Add(caretProperty);
 		if (richText)
 		{
@@ -2498,6 +2498,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			auto charCode = content[charIndex];
 			richTextParseResult.customTag = NAME_None;
 			richTextParseResult.customTagMode = CustomTagMode::None;
+			richTextParseResult.charIndex = charIndex;
 			richTextParser.ClearImageTag();
 			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
 			{
@@ -2529,6 +2530,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 			if (charIndex >= contentLength)break;
 			richTextContent.AppendChar(charCode);
+			richTextParseResult.charIndex = charIndex;
 			richTextPropertyArray.Add(richTextParseResult);
 		}
 		//replace text content with parsed rich text content
@@ -2544,14 +2546,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
 		auto charCode = content[charIndex];
+		auto caretCharIndex = charIndex;
 		if (richText)
 		{
 			richTextParseResult = richTextPropertyArray[charIndex];
+			caretCharIndex = richTextParseResult.charIndex;
 		}
 
 		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
 		{
-			NewLine(charIndex);
+			NewLine(richText ? richTextParseResult.charIndex : charIndex, true);
 			if (charIndex + 1 < contentLength)
 			{
 				auto nextCharCode = content[charIndex + 1];
@@ -2586,7 +2590,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		caretPosition.Y = currentLineOffset.Y;
 		FUITextCaretProperty caretProperty;
 		caretProperty.caretPosition = caretPosition;
-		caretProperty.charIndex = charIndex;
+		caretProperty.charIndex = caretCharIndex;
 		lineProperty.caretPropertyList.Add(caretProperty);
 
 		caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
@@ -2620,7 +2624,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				float maxWidthToCompare = overflowType == UITextOverflowType::HorizontalAndVerticalOverflow ? maxHorizontalWidth : width;
 				if (currentLineOffset.X + spaceNeeded > maxWidthToCompare)
 				{
-					NewLine(charIndex);
+					NewLine(caretCharIndex, false);
 					newLineMode = NewLineMode::Space;
 					continue;
 				}
@@ -2728,7 +2732,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					}
 					else
 					{
-						NewLine(charIndex + 1);
+						NewLine(caretCharIndex + 1, false);
 						newLineMode = NewLineMode::Overflow;
 						continue;
 					}
@@ -2748,7 +2752,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					}
 					else
 					{
-						NewLine(charIndex + 1);
+						NewLine(caretCharIndex + 1, false);
 						newLineMode = NewLineMode::Overflow;
 						continue;
 					}
@@ -2802,7 +2806,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	}
 
 	//last line
-	NewLine(contentLength);
+	NewLine(richText ? text.Len() : contentLength, true); 
 	//remove last line's space Y
 	paragraphHeight -= fontSpace.Y;
 
