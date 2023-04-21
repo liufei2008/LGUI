@@ -34,6 +34,7 @@ class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent
 public:	
 	ULGUIRenderTargetGeometrySource();
 	virtual void BeginPlay()override;
+	virtual void EndPlay(EEndPlayReason::Type Reason)override;
 
 private:
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -74,6 +75,11 @@ private:
 	float ComputeComponentHeight() const;
 	float ComputeComponentThickness() const;
 	bool CheckStaticMesh()const;
+
+	void BeginCheckRenderTarget();
+	void EndCheckRenderTarget();
+	FDelegateHandle CheckRenderTargetTickDelegate;
+	void CheckRenderTargetTick();
 public:
 	/* UPrimitiveComponent Interface */
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;

@@ -14,6 +14,7 @@
 #include "PrimitiveViewRelevance.h"
 #include "PrimitiveSceneProxy.h"
 #include "Components/StaticMeshComponent.h"
+#include "LTweenBPLibrary.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 
@@ -274,6 +275,39 @@ ULGUIRenderTargetGeometrySource::ULGUIRenderTargetGeometrySource()
 void ULGUIRenderTargetGeometrySource::BeginPlay()
 {
 	Super::BeginPlay();
+	BeginCheckRenderTarget();
+}
+void ULGUIRenderTargetGeometrySource::EndPlay(EEndPlayReason::Type Reason)
+{
+	Super::EndPlay(Reason);
+	EndCheckRenderTarget();
+}
+
+void ULGUIRenderTargetGeometrySource::BeginCheckRenderTarget()
+{
+	CheckRenderTargetTickDelegate = ULTweenBPLibrary::RegisterUpdateEvent(this, [=, WeakThis = TWeakObjectPtr<ULGUIRenderTargetGeometrySource>(this)](float deltaTime) {
+		if (WeakThis.IsValid())
+		{
+			WeakThis->CheckRenderTargetTick();
+		}
+		});
+}
+void ULGUIRenderTargetGeometrySource::EndCheckRenderTarget()
+{
+	if (CheckRenderTargetTickDelegate.IsValid())
+	{
+		ULTweenBPLibrary::UnregisterUpdateEvent(this, CheckRenderTargetTickDelegate);
+	}
+}
+void ULGUIRenderTargetGeometrySource::CheckRenderTargetTick()
+{
+	if (IsValid(GetRenderTarget()))
+	{
+		MarkRenderStateDirty();
+		RecreatePhysicsState();
+
+		EndCheckRenderTarget();
+	}
 }
 
 bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
@@ -290,7 +324,10 @@ bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
 				{
 					if (bOverrideStaticMeshMaterial)
 					{
-						StaticMeshComp->SetMaterial(0, MaterialInstance);
+						//delay call, or the bPostTickComponentUpdate check will break
+						ULTweenBPLibrary::DelayFrameCall(this->GetWorld(), 1, [=] {
+							StaticMeshComp->SetMaterial(0, MaterialInstance);
+							});
 					}
 				}
 				return true;
@@ -545,18 +582,10 @@ void ULGUIRenderTargetGeometrySource::SetCanvas(ULGUICanvas* Value)
 {
 	if (TargetCanvasObject.Get() != Value)
 	{
-		if (!Value->IsRootCanvas())
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::SetCanvas]TargetCanvas must be a root canvas!"));
-			return;
-		}
-		if (Value->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Value->GetRenderTarget()))
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIRenderTargetGeometrySource::SetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
-			return;
-		}
 		TargetCanvasObject = Value;
+		BeginCheckRenderTarget();
 		MarkRenderStateDirty();
+		RecreatePhysicsState();
 	}
 }
 
@@ -566,6 +595,7 @@ void ULGUIRenderTargetGeometrySource::SetGeometryMode(ELGUIRenderTargetGeometryM
 	{
 		GeometryMode = Value;
 		MarkRenderStateDirty();
+		RecreatePhysicsState();
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
@@ -574,6 +604,7 @@ void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
 	{
 		Pivot = Value;
 		MarkRenderStateDirty();
+		RecreatePhysicsState();
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
@@ -583,6 +614,7 @@ void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
 		CylinderArcAngle = Value;
 		CylinderArcAngle = FMath::Sign(CylinderArcAngle) * FMath::Clamp(FMath::Abs(CylinderArcAngle), 1.0f, 180.0f);
 		MarkRenderStateDirty();
+		RecreatePhysicsState();
 	}
 }
 
@@ -613,18 +645,16 @@ void ULGUIRenderTargetGeometrySource::SetFlipVerticalOnGLES(bool Value)
 
 FIntPoint ULGUIRenderTargetGeometrySource::GetRenderTargetSize()const
 {
-	if (auto Canvas = GetCanvas())
+	if (auto RenderTarget = GetRenderTarget())
 	{
-		if (auto RenderTarget = GetRenderTarget())
-		{
-			return FIntPoint(RenderTarget->GetSurfaceWidth(), RenderTarget->GetSurfaceHeight());
-		}
+		return FIntPoint(RenderTarget->GetSurfaceWidth(), RenderTarget->GetSurfaceHeight());
 	}
 	return FIntPoint(2, 2);
 }
 
 void ULGUIRenderTargetGeometrySource::UpdateBodySetup(bool bDrawSizeChanged)
 {
+	if (!GetRenderTarget())return;
 	if (!BodySetup || bDrawSizeChanged)
 	{
 		BodySetup = NewObject<UBodySetup>(this);
@@ -661,7 +691,10 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 			{
 				if (CheckStaticMesh())
 				{
-					StaticMeshComp->SetMaterial(0, MaterialInstance);
+					//delay call, or the bPostTickComponentUpdate check will break
+					ULTweenBPLibrary::DelayFrameCall(this, 1, [=] {
+						StaticMeshComp->SetMaterial(0, MaterialInstance);
+						});
 				}
 			}
 		}
@@ -711,7 +744,7 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentWidth() const
 		break;
 
 	case ELGUIRenderTargetGeometryMode::Cylinder:
-		const float ArcAngleRadians = FMath::DegreesToRadians(GetCylinderArcAngle());
+		const float ArcAngleRadians = FMath::DegreesToRadians(CylinderArcAngle);
 		const float Radius = RenderTargetSize.X / ArcAngleRadians;
 		return 2.0f * Radius * FMath::Sin(0.5f * ArcAngleRadians);
 		break;
@@ -746,9 +779,9 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentThickness() const
 		break;
 
 	case ELGUIRenderTargetGeometryMode::Cylinder:
-		const float ArcAngleRadians = FMath::DegreesToRadians(GetCylinderArcAngle());
+		const float ArcAngleRadians = FMath::DegreesToRadians(CylinderArcAngle);
 		const float Radius = RenderTargetSize.X / ArcAngleRadians;
-		return Radius * FMath::Cos(0.5f * ArcAngleRadians);
+		return Radius * (1.0f - FMath::Cos(0.5f * ArcAngleRadians));
 		break;
 	}
 }
