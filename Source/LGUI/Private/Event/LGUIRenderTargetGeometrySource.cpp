@@ -14,6 +14,7 @@
 #include "PrimitiveViewRelevance.h"
 #include "PrimitiveSceneProxy.h"
 #include "Components/StaticMeshComponent.h"
+#include "PhysicsEngine/PhysicsSettings.h"
 #include "LTweenBPLibrary.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
@@ -31,12 +32,11 @@ public:
 	}
 	FLGUIRenderTargetGeometrySource_Sceneproxy(ULGUIRenderTargetGeometrySource* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
-		, ArcAngle(FMath::Max(FMath::DegreesToRadians(FMath::Abs(InComponent->GetCylinderArcAngle())), 0.01f))
-		, ArcAngleSign(FMath::Sign(InComponent->GetCylinderArcAngle()))
-		, Pivot(InComponent->GetPivot())
 		, RenderTarget(InComponent->GetRenderTarget())
 		, MaterialInstance(InComponent->GetMaterialInstance())
 		, GeometryMode(InComponent->GetGeometryMode())
+		, Vertices(InComponent->GetMeshVertices())
+		, Triangles(InComponent->GetMeshIndices())
 	{
 		MaterialRelevance = MaterialInstance->GetRelevance_Concurrent(GetScene().GetFeatureLevel());
 	}
@@ -88,107 +88,14 @@ public:
 				switch (GeometryMode)
 				{
 				case ELGUIRenderTargetGeometryMode::Plane:
-				{
-					float U = -RenderTarget->SizeX * Pivot.X;
-					float V = -RenderTarget->SizeY * Pivot.Y;
-					float UL = RenderTarget->SizeX * (1.0f - Pivot.X);
-					float VL = RenderTarget->SizeY * (1.0f - Pivot.Y);
-
-					int32 VertexIndices[4];
-
-					for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
-					{
-						FDynamicMeshBuilder MeshBuilder(Views[ViewIndex]->GetFeatureLevel());
-
-						if (VisibilityMap & (1 << ViewIndex))
-						{
-							VertexIndices[0] = MeshBuilder.AddVertex(FVector(0, U, V), FVector2D(0, 1), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[1] = MeshBuilder.AddVertex(FVector(0, UL, V), FVector2D(1, 1), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[2] = MeshBuilder.AddVertex(FVector(0, U, VL), FVector2D(0, 0), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-							VertexIndices[3] = MeshBuilder.AddVertex(FVector(0, UL, VL), FVector2D(1, 0), FVector(0, -1, 0), FVector(0, 0, -1), FVector(1, 0, 0), FColor::White);
-
-							MeshBuilder.AddTriangle(VertexIndices[0], VertexIndices[3], VertexIndices[2]);
-							MeshBuilder.AddTriangle(VertexIndices[0], VertexIndices[1], VertexIndices[3]);
-
-							FDynamicMeshBuilderSettings Settings;
-							Settings.bDisableBackfaceCulling = false;
-							Settings.bReceivesDecals = true;
-							Settings.bUseSelectionOutline = true;
-							MeshBuilder.GetMesh(ViewportLocalToWorld, PreviousLocalToWorld, ParentMaterialProxy, SDPG_World, Settings, nullptr, ViewIndex, Collector, FHitProxyId());
-						}
-					}
-				}
-					break;
 				case ELGUIRenderTargetGeometryMode::Cylinder:
 				{
-					const int32 NumSegments = FMath::Lerp(MIN_SEG, MAX_SEG, ArcAngle / PI);
-
-					const float Radius = RenderTarget->SizeX / ArcAngle;
-					const float Apothem = Radius * FMath::Cos(0.5f * ArcAngle);
-					const float ChordLength = 2.0f * Radius * FMath::Sin(0.5f * ArcAngle);
-					const float HalfChordLength = ChordLength * 0.5f;
-
-					const float PivotOffsetX = ChordLength * (0.5 - Pivot.X);
-					const float V = -RenderTarget->SizeY * Pivot.Y;
-					const float VL = RenderTarget->SizeY * (1.0f - Pivot.Y);
-
 					for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 					{
 						FDynamicMeshBuilder MeshBuilder(Views[ViewIndex]->GetFeatureLevel());
 
 						if (VisibilityMap & (1 << ViewIndex))
 						{
-							//@todo: normal and tangent calculate wrong
-							TArray<FDynamicMeshVertex> Vertices;
-							TArray<uint32> Triangles;
-							Vertices.Reserve(2 + NumSegments * 2);
-							Triangles.Reserve(6 * NumSegments);
-							const float RadiansPerStep = ArcAngle / NumSegments;
-							float Angle = -ArcAngle * 0.5f;
-							const FVector CenterPoint = FVector(0, HalfChordLength + PivotOffsetX, V);
-							auto Vert = FDynamicMeshVertex();
-							Vert.Color = FColor::White;
-							Vert.Position = FVector(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
-							auto TangentX2D = FVector2D(CenterPoint) - FVector2D(Vert.Position);
-							TangentX2D.Normalize();
-							auto TangentZ = FVector(TangentX2D, 0);
-							auto TangentY = FVector(0, 0, 1);
-							auto TangentX = FVector::CrossProduct(TangentY, TangentZ);
-							Vert.SetTangents(TangentX, TangentY, TangentZ);
-							Vert.TextureCoordinate[0] = FVector2D(0, 1);
-							Vertices.Add(Vert);
-							Vert.Position.Z = VL;
-							Vert.TextureCoordinate[0] = FVector2D(0, 0);
-							Vertices.Add(Vert);
-
-							float UVInterval = 1.0f / NumSegments;
-							float UVX = 0;
-							int32 TriangleIndex = 0;
-							for (int32 Segment = 0; Segment < NumSegments; Segment++)
-							{
-								Angle += RadiansPerStep;
-								UVX += UVInterval;
-
-								Vert.Position = FVector(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
-								TangentX2D = FVector2D(Vert.Position) - FVector2D(CenterPoint);
-								TangentX2D.Normalize();
-								TangentZ = FVector(TangentX2D, 0);
-								TangentX = FVector::CrossProduct(TangentY, TangentZ);
-								Vert.SetTangents(TangentX, TangentY, TangentZ);
-								Vert.TextureCoordinate[0] = FVector2D(UVX, 1);
-								Vertices.Add(Vert);
-								Vert.Position.Z = VL;
-								Vert.TextureCoordinate[0] = FVector2D(UVX, 0);
-								Vertices.Add(Vert);
-
-								Triangles.Add(TriangleIndex);
-								Triangles.Add(TriangleIndex + 3);
-								Triangles.Add(TriangleIndex + 1);
-								Triangles.Add(TriangleIndex);
-								Triangles.Add(TriangleIndex + 2);
-								Triangles.Add(TriangleIndex + 3);
-								TriangleIndex += 2;
-							}
 							MeshBuilder.AddVertices(Vertices);
 							MeshBuilder.AddTriangles(Triangles);
 
@@ -235,11 +142,6 @@ public:
 		bShadowMapped = false;
 	}
 
-	virtual void OnTransformChanged() override
-	{
-		Origin = GetLocalToWorld().GetOrigin();
-	}
-
 	virtual bool CanBeOccluded() const override
 	{
 		return !MaterialRelevance.bDisableDepthTest;
@@ -248,13 +150,11 @@ public:
 	virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
 
 private:
-	FVector Origin;
-	float ArcAngle;
-	float ArcAngleSign;
-	FVector2D Pivot;
-	UTextureRenderTarget2D* RenderTarget;
+	UTextureRenderTarget2D* RenderTarget = nullptr;
 	UMaterialInstanceDynamic* MaterialInstance = nullptr;
-	ELGUIRenderTargetGeometryMode GeometryMode;
+	ELGUIRenderTargetGeometryMode GeometryMode = ELGUIRenderTargetGeometryMode::Plane;
+	TArray<FDynamicMeshVertex> Vertices;
+	TArray<uint32> Triangles;
 
 	FMaterialRelevance MaterialRelevance;
 };
@@ -303,8 +203,10 @@ void ULGUIRenderTargetGeometrySource::CheckRenderTargetTick()
 {
 	if (IsValid(GetRenderTarget()))
 	{
-		MarkRenderStateDirty();
-		RecreatePhysicsState();
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 
 		EndCheckRenderTarget();
 	}
@@ -422,11 +324,14 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 FBoxSphereBounds ULGUIRenderTargetGeometrySource::CalcBounds(const FTransform& LocalToWorld) const
 {
 	auto RenderTargetSize = GetRenderTargetSize();
-	const FVector Origin = FVector(.5f,
-		-(RenderTargetSize.X * 0.5f) + (RenderTargetSize.X * Pivot.X),
-		-(RenderTargetSize.Y * 0.5f) + (RenderTargetSize.Y * Pivot.Y));
-
-	const FVector BoxExtent = FVector(1.f, RenderTargetSize.X / 2.0f, RenderTargetSize.Y / 2.0f);
+	const float Width = ComputeComponentWidth();
+		const float Height = ComputeComponentHeight();
+		const float Thickness = ComputeComponentThickness();
+		const FVector Origin = FVector(
+			Thickness * 0.5f,
+			Width * (0.5f - Pivot.X),
+			Height * (0.5f - Pivot.Y));
+	auto BoxExtent = FVector(Thickness * 0.5f, Width * 0.5f, Height * 0.5f);
 
 	FBoxSphereBounds NewBounds(Origin, BoxExtent, RenderTargetSize.Size() / 2.0f);
 	NewBounds = NewBounds.TransformBy(LocalToWorld);
@@ -438,7 +343,7 @@ FBoxSphereBounds ULGUIRenderTargetGeometrySource::CalcBounds(const FTransform& L
 }
 UBodySetup* ULGUIRenderTargetGeometrySource::GetBodySetup()
 {
-	UpdateBodySetup();
+	UpdateBodySetup(false);
 	return BodySetup;
 }
 FCollisionShape ULGUIRenderTargetGeometrySource::GetCollisionShape(float Inflation) const
@@ -500,6 +405,192 @@ void ULGUIRenderTargetGeometrySource::GetUsedMaterials(TArray<UMaterialInterface
 int32 ULGUIRenderTargetGeometrySource::GetNumMaterials() const
 {
 	return FMath::Max<int32>(OverrideMaterials.Num(), 1);
+}
+
+bool ULGUIRenderTargetGeometrySource::GetPhysicsTriMeshData(struct FTriMeshCollisionData* CollisionData, bool InUseAllTriData)
+{
+	auto RenderTarget = GetRenderTarget();
+	if (!RenderTarget)return false;
+
+	switch (GeometryMode)
+	{
+	case ELGUIRenderTargetGeometryMode::Plane:
+	case ELGUIRenderTargetGeometryMode::Cylinder:
+	{
+		// See if we should copy UVs
+		bool bCopyUVs = UPhysicsSettings::Get()->bSupportUVFromHitResults;
+		if (bCopyUVs)
+		{
+			CollisionData->UVs.AddZeroed(1); // only one UV channel
+		}
+
+		CollisionData->Vertices.Reserve(Vertices.Num());
+		if (bCopyUVs)
+		{
+			CollisionData->UVs[0].Reserve(Vertices.Num());
+		}
+		for (int i = 0; i < Vertices.Num(); i++)
+		{
+			auto& Vert = Vertices[i];
+			CollisionData->Vertices.Add(Vert.Position);
+			if (bCopyUVs)
+			{
+				CollisionData->UVs[0].Add(Vert.TextureCoordinate[0]);
+			}
+		}
+		CollisionData->Indices.Reserve(Triangles.Num());
+		for (int i = 0; i < Triangles.Num(); i+=3)
+		{
+			FTriIndices Triangle;
+
+			Triangle.v0 = Triangles[i];
+			Triangle.v1 = Triangles[i + 1];
+			Triangle.v2 = Triangles[i + 2];
+			CollisionData->Indices.Add(Triangle);
+		}
+
+		CollisionData->bFlipNormals = true;
+		CollisionData->bDeformableMesh = true;
+		CollisionData->bFastCook = true;
+		return true;
+	}
+	break;
+	case ELGUIRenderTargetGeometryMode::StaticMesh:
+	{
+		return false;
+	}
+	break;
+	}
+	return false;
+}
+bool ULGUIRenderTargetGeometrySource::ContainsPhysicsTriMeshData(bool InUseAllTriData) const
+{
+	if (!GetRenderTarget())return false;
+	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)return false;
+	return true;
+}
+bool ULGUIRenderTargetGeometrySource::WantsNegXTriMesh() 
+{
+	return false; 
+}
+
+void ULGUIRenderTargetGeometrySource::UpdateCollision()
+{
+	UpdateBodySetup(true);
+	RecreatePhysicsState();
+}
+void ULGUIRenderTargetGeometrySource::UpdateMeshData()
+{
+	auto RenderTarget = GetRenderTarget();
+	if (!RenderTarget)return;
+	Vertices.Reset();
+	Triangles.Reset();
+	switch (GeometryMode)
+	{
+	case ELGUIRenderTargetGeometryMode::Plane:
+	{
+		float U = -RenderTarget->SizeX * Pivot.X;
+		float V = -RenderTarget->SizeY * Pivot.Y;
+		float UL = RenderTarget->SizeX * (1.0f - Pivot.X);
+		float VL = RenderTarget->SizeY * (1.0f - Pivot.Y);
+
+		Vertices.Reserve(4);
+		Triangles.Reserve(6);
+
+		auto Vert = FDynamicMeshVertex();
+		Vert.TangentX = FVector(0, -1, 0);
+		Vert.TangentZ = FVector(1, 0, 0);
+		Vert.Color = FColor::White;
+
+		Vert.Position = FVector(0, U, V);
+		Vert.TextureCoordinate[0] = FVector2D(0, 1);
+		Vertices.Add(Vert);
+		Vert.Position = FVector(0, UL, V);
+		Vert.TextureCoordinate[0] = FVector2D(1, 1);
+		Vertices.Add(Vert);
+		Vert.Position = FVector(0, U, VL);
+		Vert.TextureCoordinate[0] = FVector2D(0, 0);
+		Vertices.Add(Vert);
+		Vert.Position = FVector(0, UL, VL);
+		Vert.TextureCoordinate[0] = FVector2D(1, 0);
+		Vertices.Add(Vert);
+
+		Triangles.Add(0);
+		Triangles.Add(3);
+		Triangles.Add(2);
+		Triangles.Add(0);
+		Triangles.Add(1);
+		Triangles.Add(3);
+	}
+	break;
+	case ELGUIRenderTargetGeometryMode::Cylinder:
+	{
+		auto ArcAngle = FMath::Max(FMath::DegreesToRadians(FMath::Abs(GetCylinderArcAngle())), 0.01f);
+		auto ArcAngleSign = FMath::Sign(GetCylinderArcAngle());
+
+		const int32 NumSegments = FMath::Lerp(MIN_SEG, MAX_SEG, ArcAngle / PI);
+
+		const float Radius = RenderTarget->SizeX / ArcAngle;
+		const float Apothem = Radius * FMath::Cos(0.5f * ArcAngle);
+		const float ChordLength = 2.0f * Radius * FMath::Sin(0.5f * ArcAngle);
+		const float HalfChordLength = ChordLength * 0.5f;
+
+		const float PivotOffsetX = ChordLength * (0.5 - Pivot.X);
+		const float V = -RenderTarget->SizeY * Pivot.Y;
+		const float VL = RenderTarget->SizeY * (1.0f - Pivot.Y);
+
+		//@todo: normal and tangent calculate wrong
+		Vertices.Reserve(2 + NumSegments * 2);
+		Triangles.Reserve(6 * NumSegments);
+		const float RadiansPerStep = ArcAngle / NumSegments;
+		float Angle = -ArcAngle * 0.5f;
+		const FVector CenterPoint = FVector(0, HalfChordLength + PivotOffsetX, V);
+		auto Vert = FDynamicMeshVertex();
+		Vert.Color = FColor::White;
+		Vert.Position = FVector(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
+		auto TangentX2D = FVector2D(CenterPoint) - FVector2D(Vert.Position);
+		TangentX2D.Normalize();
+		auto TangentZ = FVector(TangentX2D, 0);
+		auto TangentY = FVector(0, 0, 1);
+		auto TangentX = FVector::CrossProduct(TangentY, TangentZ);
+		Vert.SetTangents(TangentX, TangentY, TangentZ);
+		Vert.TextureCoordinate[0] = FVector2D(0, 1);
+		Vertices.Add(Vert);
+		Vert.Position.Z = VL;
+		Vert.TextureCoordinate[0] = FVector2D(0, 0);
+		Vertices.Add(Vert);
+
+		float UVInterval = 1.0f / NumSegments;
+		float UVX = 0;
+		int32 TriangleIndex = 0;
+		for (int32 Segment = 0; Segment < NumSegments; Segment++)
+		{
+			Angle += RadiansPerStep;
+			UVX += UVInterval;
+
+			Vert.Position = FVector(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
+			TangentX2D = FVector2D(Vert.Position) - FVector2D(CenterPoint);
+			TangentX2D.Normalize();
+			TangentZ = FVector(TangentX2D, 0);
+			TangentX = FVector::CrossProduct(TangentY, TangentZ);
+			Vert.SetTangents(TangentX, TangentY, TangentZ);
+			Vert.TextureCoordinate[0] = FVector2D(UVX, 1);
+			Vertices.Add(Vert);
+			Vert.Position.Z = VL;
+			Vert.TextureCoordinate[0] = FVector2D(UVX, 0);
+			Vertices.Add(Vert);
+
+			Triangles.Add(TriangleIndex);
+			Triangles.Add(TriangleIndex + 3);
+			Triangles.Add(TriangleIndex + 1);
+			Triangles.Add(TriangleIndex);
+			Triangles.Add(TriangleIndex + 2);
+			Triangles.Add(TriangleIndex + 3);
+			TriangleIndex += 2;
+		}
+	}
+	break;
+	}
 }
 
 #if WITH_EDITOR
@@ -584,8 +675,11 @@ void ULGUIRenderTargetGeometrySource::SetCanvas(ULGUICanvas* Value)
 	{
 		TargetCanvasObject = Value;
 		BeginCheckRenderTarget();
-		MarkRenderStateDirty();
-		RecreatePhysicsState();
+
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 
@@ -594,8 +688,11 @@ void ULGUIRenderTargetGeometrySource::SetGeometryMode(ELGUIRenderTargetGeometryM
 	if (GeometryMode != Value)
 	{
 		GeometryMode = Value;
-		MarkRenderStateDirty();
-		RecreatePhysicsState();
+		
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
@@ -603,8 +700,11 @@ void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
 	if (Pivot != Value)
 	{
 		Pivot = Value;
-		MarkRenderStateDirty();
-		RecreatePhysicsState();
+		
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
@@ -613,8 +713,11 @@ void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
 	{
 		CylinderArcAngle = Value;
 		CylinderArcAngle = FMath::Sign(CylinderArcAngle) * FMath::Clamp(FMath::Abs(CylinderArcAngle), 1.0f, 180.0f);
-		MarkRenderStateDirty();
-		RecreatePhysicsState();
+		
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 
@@ -652,14 +755,22 @@ FIntPoint ULGUIRenderTargetGeometrySource::GetRenderTargetSize()const
 	return FIntPoint(2, 2);
 }
 
-void ULGUIRenderTargetGeometrySource::UpdateBodySetup(bool bDrawSizeChanged)
+void ULGUIRenderTargetGeometrySource::UpdateLocalBounds()
+{
+	// Update global bounds
+	UpdateBounds();
+	// Need to send to render thread
+	MarkRenderTransformDirty();
+}
+void ULGUIRenderTargetGeometrySource::UpdateBodySetup(bool bIsDirty)
 {
 	if (!GetRenderTarget())return;
-	if (!BodySetup || bDrawSizeChanged)
+	if (!BodySetup || bIsDirty)
 	{
 		BodySetup = NewObject<UBodySetup>(this);
-		BodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
+		BodySetup->CollisionTraceFlag = CTF_UseDefault;
 		BodySetup->AggGeom.BoxElems.Add(FKBoxElem());
+		BodySetup->bHasCookedCollisionData = false;
 
 		FKBoxElem* BoxElem = BodySetup->AggGeom.BoxElems.GetData();
 
@@ -776,7 +887,7 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentThickness() const
 		return 0.0f;
 		break;
 	case ELGUIRenderTargetGeometryMode::Plane:
-		return 0.01f;
+		return 0.00f;
 		break;
 
 	case ELGUIRenderTargetGeometryMode::Cylinder:
@@ -788,9 +899,7 @@ float ULGUIRenderTargetGeometrySource::ComputeComponentThickness() const
 }
 
 #include "Kismet/GameplayStatics.h"
-bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const FVector& InEnd, const FVector& InDir
-	, FVector2D& OutHitUV, FVector& OutHitPoint, FVector& OutHitNormal, float& OutHitDistance
-)const
+bool ULGUIRenderTargetGeometrySource::LineTraceHitUV(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const
 {
 	switch (GeometryMode)
 	{
@@ -798,162 +907,160 @@ bool ULGUIRenderTargetGeometrySource::LineTraceHit(const FVector& InStart, const
 	case ELGUIRenderTargetGeometryMode::Plane:
 	{
 		auto InverseTf = GetComponentTransform().Inverse();
-		auto LocalSpaceRayOrigin = InverseTf.TransformPosition(InStart);
-		auto LocalSpaceRayEnd = InverseTf.TransformPosition(InEnd);
+		auto LocalHitPoint = InverseTf.TransformPosition(InHitPoint);
 
-		//start and end point must be different side of X plane
-		if (FMath::Sign(LocalSpaceRayOrigin.X) != FMath::Sign(LocalSpaceRayEnd.X))
+		auto RenderTargetSize = this->GetRenderTargetSize();
+		OutHitUV.X = LocalHitPoint.Y / RenderTargetSize.X;
+		OutHitUV.Y = LocalHitPoint.Z / RenderTargetSize.Y;
+		OutHitUV += Pivot;
+
+		return true;
+	}
+	break;
+	case ELGUIRenderTargetGeometryMode::Cylinder:
+	{
+		if (InHitFaceIndex >= 0)
 		{
-			if (LocalSpaceRayOrigin.X > 0 && !bEnableInteractOnBackside)//ray origin is on backside but backside can't interact
+			auto InverseTf = GetComponentTransform().Inverse();
+			auto LocalHitPoint = InverseTf.TransformPosition(InHitPoint);
+			if (Triangles.IsValidIndex(InHitFaceIndex * 3 + 2))
 			{
-				return false;
-			}
-			auto LocalHitPoint = FMath::LinePlaneIntersection(LocalSpaceRayOrigin, LocalSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-			auto RenderTargetSize = this->GetRenderTargetSize();
-			auto LocalSpaceLeft = RenderTargetSize.X * -Pivot.X;
-			auto LocalSpaceRight = RenderTargetSize.X - LocalSpaceLeft;
-			auto LocalSpaceBottom = RenderTargetSize.Y * -Pivot.Y;
-			auto LocalSpaceTop = RenderTargetSize.Y - LocalSpaceBottom;
-			//hit point inside rect area
-			if (LocalHitPoint.Y > LocalSpaceLeft && LocalHitPoint.Y < LocalSpaceRight && LocalHitPoint.Z > LocalSpaceBottom && LocalHitPoint.Z < LocalSpaceTop)
-			{
-				OutHitUV.X = LocalHitPoint.Y / RenderTargetSize.X;
-				OutHitUV.Y = LocalHitPoint.Z / RenderTargetSize.Y;
-				OutHitUV += Pivot;
+				int32 Index0 = Triangles[InHitFaceIndex * 3 + 0];
+				int32 Index1 = Triangles[InHitFaceIndex * 3 + 1];
+				int32 Index2 = Triangles[InHitFaceIndex * 3 + 2];
 
-				OutHitPoint = GetComponentTransform().TransformPosition(LocalHitPoint);
-				OutHitNormal = GetComponentTransform().TransformVector(FVector(-1, 0, 0));
-				OutHitDistance = FVector::Distance(InStart, OutHitPoint);
+				FVector Pos0 = Vertices[Index0].Position;
+				FVector Pos1 = Vertices[Index1].Position;
+				FVector Pos2 = Vertices[Index2].Position;
+
+				FVector2D UV0 = Vertices[Index0].TextureCoordinate[0];
+				FVector2D UV1 = Vertices[Index1].TextureCoordinate[0];
+				FVector2D UV2 = Vertices[Index2].TextureCoordinate[0];
+
+				// Transform hit location from world to local space.
+				// Find barycentric coords
+				FVector BaryCoords = FMath::ComputeBaryCentric2D(LocalHitPoint, Pos0, Pos1, Pos2);
+				// Use to blend UVs
+				OutHitUV = (BaryCoords.X * UV0) + (BaryCoords.Y * UV1) + (BaryCoords.Z * UV2);
+				OutHitUV.Y = 1.0f - OutHitUV.Y;
+				return true;
+			}
+		}
+		else//don't have valid faceIndex, then do traditional hit test
+		{
+			auto InverseTf = GetComponentTransform().Inverse();
+			auto LocalSpaceRayOrigin = InverseTf.TransformPosition(InLineStart);
+			auto LocalSpaceRayEnd = InverseTf.TransformPosition(InLineEnd);
+
+			auto RenderTargetSize = this->GetRenderTargetSize();
+			auto ArcAngle = FMath::DegreesToRadians(FMath::Abs(GetCylinderArcAngle()));
+
+			const int32 NumSegments = FMath::Lerp(MIN_SEG, MAX_SEG, ArcAngle / PI);
+
+			auto Vert0 = Vertices[0];
+			auto Vert1 = Vertices[1];
+			auto Position0 = Vert0.Position;
+			auto Position1 = Vert1.Position;
+
+			float UVInterval = 1.0f / NumSegments;
+			int32 TriangleIndex = 0;
+
+			struct FHitResultContainer
+			{
+				FVector2D UV;
+				FVector HitPoint;
+				float DistSquare;
+				FMatrix RectMatrix;
+			};
+			TArray<FHitResultContainer> MultiHitResult;
+			MultiHitResult.Reset();
+			for (int32 Segment = 0; Segment < NumSegments; Segment++)
+			{
+				auto Vert2 = Vertices[(Segment + 1) * 2];
+				auto Vert3 = Vertices[(Segment + 1) * 2 + 1];
+				auto Position2 = Vert2.Position;
+				auto Position3 = Vert3.Position;
+
+				auto Y = Position2 - Position0;
+				Y.Normalize();
+				auto Z = FVector(0, 0, 1);
+				auto X = FVector::CrossProduct(Y, Z);
+				X.Normalize();
+
+				auto LocalRectMatrix = FMatrix(X, Y, Z, Position0);
+				auto ToLocalRectMatrix = LocalRectMatrix.Inverse();
+
+				auto RectSpaceRayOrigin = ToLocalRectMatrix.TransformPosition(LocalSpaceRayOrigin);
+				auto RectSpaceRayEnd = ToLocalRectMatrix.TransformPosition(LocalSpaceRayEnd);
+				//start and end point must be different side of X plane
+				if (FMath::Sign(RectSpaceRayOrigin.X) != FMath::Sign(RectSpaceRayEnd.X))
+				{
+					if (RectSpaceRayOrigin.X > 0 && !bEnableInteractOnBackside)//ray origin is on backside but backside can't interact
+					{
+						continue;
+					}
+					auto HitPoint = FMath::LinePlaneIntersection(RectSpaceRayOrigin, RectSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+					//hit point inside rect area
+					float Left = 0;
+					float Right = (FVector2D(Position2) - FVector2D(Position0)).Size();
+					float Bottom = 0;
+					float Top = RenderTargetSize.Y;
+					if (HitPoint.Y > Left && HitPoint.Y < Right && HitPoint.Z > Bottom && HitPoint.Z < Top)
+					{
+						FHitResultContainer HitResult;
+						HitResult.UV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
+						HitResult.UV.Y = HitPoint.Z / Top;
+						HitResult.DistSquare = FVector::DistSquared(LocalSpaceRayOrigin, HitPoint);
+						HitResult.HitPoint = HitPoint;
+						HitResult.RectMatrix = LocalRectMatrix;
+
+						MultiHitResult.Add(HitResult);
+					}
+				}
+
+				Position0 = Position2;
+				Position1 = Position3;
+			}
+			if (MultiHitResult.Num() > 0)
+			{
+				MultiHitResult.Sort([](const FHitResultContainer& A, const FHitResultContainer& B) {
+					return A.DistSquare < B.DistSquare;
+					});
+				auto& HitResult = MultiHitResult[0];
+
+				OutHitUV = HitResult.UV;
 
 				return true;
 			}
 		}
 	}
-		break;
-	case ELGUIRenderTargetGeometryMode::Cylinder:
-	{
-		auto InverseTf = GetComponentTransform().Inverse();
-		auto LocalSpaceRayOrigin = InverseTf.TransformPosition(InStart);
-		auto LocalSpaceRayEnd = InverseTf.TransformPosition(InEnd);
-
-		auto RenderTargetSize = this->GetRenderTargetSize();
-		auto ArcAngle = FMath::DegreesToRadians(FMath::Abs(GetCylinderArcAngle()));
-		float ArcAngleSign = FMath::Sign(GetCylinderArcAngle());
-		const float Radius = RenderTargetSize.X / ArcAngle;
-		const float Apothem = Radius * FMath::Cos(0.5f * ArcAngle);
-		const float ChordLength = 2.0f * Radius * FMath::Sin(0.5f * ArcAngle);
-
-		const float PivotOffsetX = ChordLength * (0.5 - Pivot.X);
-		const float V = -RenderTargetSize.Y * Pivot.Y;
-		const float VL = RenderTargetSize.Y * (1.0f - Pivot.Y);
-
-		const int32 NumSegments = FMath::Lerp(MIN_SEG, MAX_SEG, ArcAngle / PI);
-		//calculate every segment as a rect
-		const float RadiansPerStep = ArcAngle / NumSegments;
-		float Angle = -ArcAngle * 0.5f;
-			
-		auto Position0 = FVector(0, Radius * FMath::Sin(Angle) + PivotOffsetX, V);
-		auto Position1 = Position0;
-		Position1.Z = VL;
-
-		float UVInterval = 1.0f / NumSegments;
-		int32 TriangleIndex = 0;
-
-		struct FHitResultContainer
-		{
-			FVector2D UV;
-			FVector HitPoint;
-			float DistSquare;
-			FMatrix RectMatrix;
-		};
-		static TArray<FHitResultContainer> MultiHitResult;
-		MultiHitResult.Reset();
-		for (int32 Segment = 0; Segment < NumSegments; Segment++)
-		{
-			Angle += RadiansPerStep;
-
-			auto Position2 = FVector(ArcAngleSign * (Radius * FMath::Cos(Angle) - Apothem), Radius * FMath::Sin(Angle) + PivotOffsetX, V);
-			auto Position3 = Position2;
-			Position3.Z = VL;
-
-			auto Y = Position2 - Position0;
-			Y.Normalize();
-			auto Z = FVector(0, 0, 1);
-			auto X = FVector::CrossProduct(Y, Z);
-			X.Normalize();
-			
-			auto LocalRectMatrix = FMatrix(X, Y, Z, Position0);
-			auto ToLocalRectMatrix = LocalRectMatrix.Inverse();
-
-			auto RectSpaceRayOrigin = ToLocalRectMatrix.TransformPosition(LocalSpaceRayOrigin);
-			auto RectSpaceRayEnd = ToLocalRectMatrix.TransformPosition(LocalSpaceRayEnd);
-			//start and end point must be different side of X plane
-			if (FMath::Sign(RectSpaceRayOrigin.X) != FMath::Sign(RectSpaceRayEnd.X))
-			{
-				if (RectSpaceRayOrigin.X > 0 && !bEnableInteractOnBackside)//ray origin is on backside but backside can't interact
-				{
-					continue;
-				}
-				auto HitPoint = FMath::LinePlaneIntersection(RectSpaceRayOrigin, RectSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-				//hit point inside rect area
-				float Left = 0;
-				float Right = (FVector2D(Position2) - FVector2D(Position0)).Size();
-				float Bottom = 0;
-				float Top = RenderTargetSize.Y;
-				if (HitPoint.Y > Left && HitPoint.Y < Right && HitPoint.Z > Bottom && HitPoint.Z < Top)
-				{
-					FHitResultContainer HitResult;
-					HitResult.UV.X = Segment * UVInterval + UVInterval * HitPoint.Y / Right;
-					HitResult.UV.Y = HitPoint.Z / Top;
-					HitResult.DistSquare = FVector::DistSquared(InStart, OutHitPoint);
-					HitResult.HitPoint = HitPoint;
-					HitResult.RectMatrix = LocalRectMatrix;
-
-					MultiHitResult.Add(HitResult);
-				}
-			}
-
-			Position0 = Position2;
-			Position1 = Position3;
-		}
-		if (MultiHitResult.Num() > 0)
-		{
-			MultiHitResult.Sort([](const FHitResultContainer& A, const FHitResultContainer& B) {
-				return A.DistSquare < B.DistSquare;
-				});
-			auto& HitResult = MultiHitResult[0];
-
-			OutHitUV = HitResult.UV;
-			OutHitPoint = GetComponentTransform().TransformPosition(HitResult.RectMatrix.TransformPosition(HitResult.HitPoint));
-			OutHitNormal = GetComponentTransform().TransformVector(HitResult.RectMatrix.TransformVector(FVector(-1, 0, 0)));
-			OutHitDistance = FMath::Sqrt(HitResult.DistSquare);
-
-			return true;
-		}
-	}
-		break;
+	break;
 	case ELGUIRenderTargetGeometryMode::StaticMesh:
 	{
 		if (CheckStaticMesh())
 		{
 			FHitResult HitResult;
-			FCollisionQueryParams QueryParams;
-			QueryParams.bTraceComplex = true;
-			QueryParams.bReturnFaceIndex = true;
-			if (StaticMeshComp->LineTraceComponent(HitResult, InStart, InEnd, QueryParams))
+			if (InHitFaceIndex >= 0)
 			{
-				if (UGameplayStatics::FindCollisionUV(HitResult, 0, OutHitUV))
-				{
-					OutHitUV.Y = 1.0f - OutHitUV.Y;
-					OutHitPoint = HitResult.Location;
-					OutHitNormal = HitResult.Normal;
-					OutHitDistance = HitResult.Distance;
-					return true;
-				}
+				HitResult.Component = StaticMeshComp;
+				HitResult.Location = InHitPoint;
+				HitResult.FaceIndex = InHitFaceIndex;
+			}
+			else
+			{
+				FCollisionQueryParams QueryParams;
+				QueryParams.bTraceComplex = true;
+				QueryParams.bReturnFaceIndex = true;
+				StaticMeshComp->LineTraceComponent(HitResult, InLineStart, InLineEnd, QueryParams);
+			}
+			if (UGameplayStatics::FindCollisionUV(HitResult, 0, OutHitUV))
+			{
+				OutHitUV.Y = 1.0f - OutHitUV.Y;
+				return true;
 			}
 		}
 	}
-		break;
+	break;
 	}
 	return false;
 }

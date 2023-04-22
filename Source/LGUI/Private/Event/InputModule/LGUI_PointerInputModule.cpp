@@ -250,6 +250,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	eventData->isExitFiredAtCurrentFrame = false;
 	eventData->isEndDragFiredAtCurrentFrame = false;
 
+	eventData->faceIndex = hitResultContainer.hitResult.FaceIndex;
 	eventData->raycaster = hitResultContainer.raycaster;
 	outHitResult = hitResultContainer.hitResult;
 	outIsHitSomething = lineTraceHitSomething;

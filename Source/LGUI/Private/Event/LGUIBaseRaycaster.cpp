@@ -146,7 +146,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 	return false;
 }
 
-bool ULGUIBaseRaycaster::RaycastWorld(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIBaseRaycaster::RaycastWorld(bool InRequireFaceIndex, ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection))
@@ -155,6 +155,7 @@ bool ULGUIBaseRaycaster::RaycastWorld(ULGUIPointerEventData* InPointerEventData,
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;
 
 		FCollisionQueryParams queryParams = FCollisionQueryParams::DefaultQueryParam;
+		queryParams.bReturnFaceIndex = InRequireFaceIndex;
 		this->GetWorld()->LineTraceMultiByChannel(multiHitResult, OutRayOrigin, OutRayEnd, UEngineTypes::ConvertToCollisionChannel(traceChannel), queryParams);
 
 		int hitCount = multiHitResult.Num();
@@ -166,7 +167,7 @@ bool ULGUIBaseRaycaster::RaycastWorld(ULGUIPointerEventData* InPointerEventData,
 			//	return A.Distance < B.Distance;
 			//});
 			OutHitResult = multiHitResult[0];
-			for (auto item : multiHitResult)
+			for (auto& item : multiHitResult)
 			{
 				OutHoverArray.Add(item.Component.Get());
 			}
