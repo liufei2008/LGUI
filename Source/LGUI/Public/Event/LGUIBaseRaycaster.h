@@ -105,5 +105,5 @@ protected:
 	bool IsHitVisibleUI(class UUIItem* HitUI, const FVector& HitPoint);
 
 	bool RaycastUI(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
-	bool RaycastWorld(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
+	bool RaycastWorld(bool InRequireFaceIndex, ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
 };
