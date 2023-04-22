@@ -68,7 +68,7 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 	case ELGUIInteractionTarget::UI:
 		return Super::RaycastUI(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 	case ELGUIInteractionTarget::World:
-		return Super::RaycastWorld(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
+		return Super::RaycastWorld(bRequireFaceIndex, InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 	case ELGUIInteractionTarget::UIAndWorld:
 	{
 		FVector UIRayOrigin, UIRayDirection, UIRayEnd;
@@ -76,7 +76,7 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 		FHitResult UIHitResult, WorldHitResult;
 		TArray<USceneComponent*> UIHoverArray, WorldHoverArray;
 		auto HitUI = Super::RaycastUI(InPointerEventData, UIRayOrigin, UIRayDirection, UIRayEnd, UIHitResult, UIHoverArray);
-		auto HitWorld = Super::RaycastWorld(InPointerEventData, WorldRayOrigin, WorldRayDirection, WorldRayEnd, WorldHitResult, WorldHoverArray);
+		auto HitWorld = Super::RaycastWorld(bRequireFaceIndex, InPointerEventData, WorldRayOrigin, WorldRayDirection, WorldRayEnd, WorldHitResult, WorldHoverArray);
 		if (HitUI && HitWorld)
 		{
 			if (UIHitResult.Distance <= WorldHitResult.Distance)

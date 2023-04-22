@@ -84,10 +84,8 @@ bool ULGUIRenderTargetInteraction::LineTrace(FHitResultContainerStruct& hitResul
 
 	auto RayEnd = RayOrigin + RayDirection * rayLength;
 
-	FVector2D HitUV; FVector HitPosition, HitNormal; float HitDistance;
-	if (GeometrySource->LineTraceHit(RayOrigin, RayEnd, RayDirection
-		, HitUV, HitPosition, HitNormal, HitDistance
-	))
+	FVector2D HitUV;
+	if (GeometrySource->LineTraceHitUV(InputPointerEventData->faceIndex, InputPointerEventData->worldPoint, RayOrigin, RayEnd, HitUV))
 	{
 		auto ViewProjectionMatrix = TargetCanvas->GetViewProjectionMatrix();
 		FVector2D mousePos01 = HitUV;

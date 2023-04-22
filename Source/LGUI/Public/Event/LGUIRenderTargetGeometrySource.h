@@ -27,7 +27,7 @@ enum class ELGUIRenderTargetGeometryMode : uint8
  * This component can generate a geometry to display LGUI's render target, and perform interaction source for LGUIRenderTargetInteraction component.
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation", Sockets, Base, Lighting, LOD, Mesh))
-class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent
+class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent, public IInterface_CollisionDataProvider
 {
 	GENERATED_BODY()
 	
@@ -68,7 +68,7 @@ private:
 	UPROPERTY(Transient, DuplicateTransient)
 		mutable UMaterialInstanceDynamic* MaterialInstance = nullptr;
 
-	void UpdateBodySetup(bool bDrawSizeChanged = false);
+	void UpdateBodySetup(bool bIsDirty = true);
 	void UpdateMaterialInstance();
 	void UpdateMaterialInstanceParameters();
 	float ComputeComponentWidth() const;
@@ -80,6 +80,12 @@ private:
 	void EndCheckRenderTarget();
 	FDelegateHandle CheckRenderTargetTickDelegate;
 	void CheckRenderTargetTick();
+
+	void UpdateLocalBounds();
+	void UpdateCollision();
+	void UpdateMeshData();
+	TArray<FDynamicMeshVertex> Vertices;
+	TArray<uint32> Triangles;
 public:
 	/* UPrimitiveComponent Interface */
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -94,13 +100,18 @@ public:
 	virtual int32 GetNumMaterials() const override;
 	virtual void GetUsedMaterials(TArray<UMaterialInterface*>& OutMaterials, bool bGetDebugMaterials = false) const override;
 
+	//~ Begin Interface_CollisionDataProvider Interface
+	virtual bool GetPhysicsTriMeshData(struct FTriMeshCollisionData* CollisionData, bool InUseAllTriData) override;
+	virtual bool ContainsPhysicsTriMeshData(bool InUseAllTriData) const override;
+	virtual bool WantsNegXTriMesh() override;
+	//~ End Interface_CollisionDataProvider Interface
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	bool LineTraceHit(const FVector& InStart, const FVector& InEnd, const FVector& InDir
-		, FVector2D& OutHitUV, FVector& OutHitPoint, FVector& OutHitNormal, float& OutHitDistance
-	)const;
+	bool LineTraceHitUV(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
+	const TArray<FDynamicMeshVertex>& GetMeshVertices()const { return Vertices; }
+	const TArray<uint32> GetMeshIndices()const { return Triangles; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUICanvas* GetCanvas()const;
