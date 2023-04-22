@@ -65,6 +65,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIInteractionTarget interactionTarget = ELGUIInteractionTarget::UIAndWorld;
+	/** Will get FaceIndex when line trace world object's mesh. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bRequireFaceIndex = false;
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI")
 		ULGUIWorldSpaceRaycasterSource* RaycasterSourceObject = nullptr;

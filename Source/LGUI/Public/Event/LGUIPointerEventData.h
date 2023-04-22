@@ -62,6 +62,12 @@ public:
 	/** current world space hit normal */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldNormal = FVector(0, 0, 1);
+	/**
+	 * current hit object's triangle face index.
+	 * only valid when raycast hit world space mesh object and LGUIWorldSpaceRaycaster->bRequireFaceIndex is true.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		int32 faceIndex = -1;
 
 	/** pointer scroll event. X for horizontal, Y for vertical */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
