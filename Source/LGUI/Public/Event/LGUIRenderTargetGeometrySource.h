@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/MeshComponent.h"
 #include "LGUIComponentReference.h"
+#include "Interfaces/Interface_CollisionDataProvider.h"
+#include "DynamicMeshBuilder.h"
 #include "LGUIRenderTargetGeometrySource.generated.h"
 
 class ULGUICanvas;
