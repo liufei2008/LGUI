@@ -286,7 +286,8 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	else//if geometry is created, update data
 	{
 		//when use pixel-perfect, the pixel-perfect calculation will take consider transform matrix, so we need to recalculate geometry if pixel-perfect & bTransformChanged
-		bool pixelPerfectAffectTransform = this->GetRenderCanvas()->GetActualPixelPerfect() && bTransformChanged;
+		bool pixelPerfect = this->GetShouldAffectByPixelPerfect() && this->GetRenderCanvas()->GetActualPixelPerfect();
+		bool pixelPerfectAffectTransform = pixelPerfect && bTransformChanged;
 		if (bTriangleChanged || bLocalVertexPositionChanged || pixelPerfectAffectTransform || bColorChanged || bUVChanged)
 		{
 			geometry->Clear();
@@ -302,7 +303,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			OnUpdateGeometry(*(geometry.Get()), bTriangleChanged, bLocalVertexPositionChanged || pixelPerfectAffectTransform, bUVChanged, bColorChanged);
 			ApplyGeometryModifier(bTriangleChanged, bUVChanged, bColorChanged, bLocalVertexPositionChanged);
 			drawcall->bNeedToUpdateVertex = true;
-			if (bLocalVertexPositionChanged)
+			if (bLocalVertexPositionChanged || pixelPerfectAffectTransform)//pixelPerfect is affected by transform, and can affect localVertex calculation
 			{
 				CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
 			}

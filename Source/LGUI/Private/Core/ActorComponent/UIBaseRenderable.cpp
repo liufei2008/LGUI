@@ -107,6 +107,10 @@ void UUIBaseRenderable::OnRegister()
 void UUIBaseRenderable::OnUnregister()
 {
 	Super::OnUnregister();
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkItemTransformOrVertexPositionChanged(this);//call this can remove the reference from canvas
+	}
 }
 
 void UUIBaseRenderable::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
@@ -141,6 +145,7 @@ void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanva
 	{
 		OldCanvas->RemoveUIItem(this);
 		OldCanvas->RemoveUIRenderable(this);
+		OldCanvas->MarkItemTransformOrVertexPositionChanged(this);//call this can remove the reference from canvas
 	}
 	if (IsValid(NewCanvas))
 	{

@@ -156,6 +156,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 		triangles[5] = 3;
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	LGUIGeometrySetArrayNum(vertices, 4);
@@ -177,7 +178,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 			originVertices[2].Position = FVector(0, minX, maxY);
 			originVertices[3].Position = FVector(0, maxX, maxY);
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos(originVertices, 0, 4, renderCanvas, uiComp);
 			}
@@ -260,6 +261,7 @@ void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
 		}
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 16;
@@ -310,7 +312,7 @@ void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,
 			originVertices[15].Position = FVector(0, x3, y3);
 
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
 			}
@@ -413,6 +415,7 @@ void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
 		}
 	}
 	
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 4 * rectangleCount;
@@ -447,7 +450,7 @@ void UIGeometry::UpdateUIRectTiledVertex(UIGeometry* uiGeo,
 				y += spriteInfo.height;
 			}
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
 			}
@@ -524,6 +527,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 		triangles[5] = 3;
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 4;
@@ -555,7 +559,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 				originVertices[3].Position = FVector(0, posMaxX, posMaxY);
 
 				//snap pixel
-				if (renderCanvas->GetActualPixelPerfect())
+				if (pixelPerfect)
 				{
 					AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
 
@@ -685,6 +689,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 		triangles[5] = 3;
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 4;
@@ -713,7 +718,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 			originVertices[2].Position = FVector(0, posMinX, posMaxY);
 			originVertices[3].Position = FVector(0, posMaxX, posMaxY);
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
 
@@ -1104,6 +1109,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 		}
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 5;
@@ -1132,7 +1138,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			originVertices[2].Position = FVector(0, posMinX, posMaxY);
 			originVertices[3].Position = FVector(0, posMaxX, posMaxY);
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos(originVertices, 0, verticesCount - 1, renderCanvas, uiComp);
 
@@ -1661,6 +1667,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 		}
 	}
 
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	auto& vertices = uiGeo->vertices;
 	auto& originVertices = uiGeo->originVertices;
 	auto verticesCount = 10;
@@ -1693,7 +1700,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 			originVertices[6].Position = FVector(0, posMinX, posMaxY);
 			originVertices[8].Position = FVector(0, posMaxX, posMaxY);
 			//snap pixel
-			if (renderCanvas->GetActualPixelPerfect())
+			if (pixelPerfect)
 			{
 				AdjustPixelPerfectPos_For_UIRectFillRadial360(originVertices, renderCanvas, uiComp);
 
@@ -2218,7 +2225,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	float maxFontSize = font->GetFontSizeLimit();
 	fontSize = FMath::Clamp(fontSize, 0.0f, maxFontSize);
-	bool pixelPerfect = font->GetCanAdjustPixelPerfect() && renderCanvas->GetActualPixelPerfect();
+	bool pixelPerfect = font->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float dynamicPixelsPerUnit = renderCanvas->GetActualDynamicPixelsPerUnit() * rootCanvasScale;
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;

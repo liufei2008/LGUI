@@ -72,10 +72,10 @@ public:
 	)override;
 	virtual void PrepareForPushCharData(UUIText* InText)override;
 	virtual uint8 GetRequireAdditionalShaderChannels()override;
-	virtual float GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize);
-	virtual float GetLineHeight(const float& fontSize);
-	virtual float GetVerticalOffset(const float& fontSize);
-	virtual bool GetCanAdjustPixelPerfect() { return false; }
+	virtual float GetKerning(const TCHAR& leftCharIndex, const TCHAR& rightCharIndex, const float& charSize) override;
+	virtual float GetLineHeight(const float& fontSize) override;
+	virtual float GetVerticalOffset(const float& fontSize) override;
+	virtual bool GetShouldAffectByPixelPerfect() override{ return false; }
 	//End ULGUIFontDataBaseObject interface
 protected:
 	float italicSlop; float oneDivideFontSize;

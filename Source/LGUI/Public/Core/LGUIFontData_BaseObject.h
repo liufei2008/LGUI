@@ -99,7 +99,7 @@ public:
 	virtual float GetVerticalOffset(const float& fontSize) { return 0; }
 	virtual float GetFontSizeLimit() { return MAX_FLT; }
 	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; }
-	virtual bool GetCanAdjustPixelPerfect() { return true; }
+	virtual bool GetShouldAffectByPixelPerfect() { return true; }
 
 	/** this is called every time before create a string of char geometry */
 	virtual void PrepareForPushCharData(UUIText* InText) {};
