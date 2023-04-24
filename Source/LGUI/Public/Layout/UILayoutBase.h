@@ -83,8 +83,8 @@ protected:
 	void RebuildChildrenList()const;
 	virtual void GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
-	bool bNeedRebuildLayout = false;
-	mutable bool bNeedRebuildChildrenList = false;
+	bool bNeedRebuildLayout = true;
+	mutable bool bNeedRebuildChildrenList = true;
 
 	void ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth);
 	void ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight);
