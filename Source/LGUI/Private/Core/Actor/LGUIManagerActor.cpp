@@ -150,6 +150,18 @@ void ULGUIEditorManagerObject::UnregisterEditorTickFunction(const FDelegateHandl
 		Instance->EditorTick.Remove(InDelegateHandle);
 	}
 }
+FDelegateHandle ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction)
+{
+	InitCheck();
+	return Instance->EditorViewportIndexAndKeyChange.AddLambda(InFunction);
+}
+void ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle)
+{
+	if (Instance != nullptr)
+	{
+		Instance->EditorViewportIndexAndKeyChange.Remove(InDelegateHandle);
+	}
+}
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)
 {
@@ -834,7 +846,10 @@ void ALGUIManagerActor::OnCultureChanged()
 ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
 {
 #if WITH_EDITOR
-	ULGUIEditorManagerObject::GetInstance(CreateIfNotValid);
+	if (IsValid(InWorld) && !InWorld->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::GetInstance(CreateIfNotValid);
+	}
 #endif
 	if (IsValid(InWorld))
 	{
