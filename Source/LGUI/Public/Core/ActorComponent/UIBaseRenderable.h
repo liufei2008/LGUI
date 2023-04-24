@@ -174,6 +174,8 @@ public:
 	/** Called by LGUICanvas when clip type changed */
 	virtual void UpdateMaterialClipType() {};
 
+	/** will this UI element affect by canvas's pixel perfect property? */
+	virtual bool GetShouldAffectByPixelPerfect()const { return true; };
 	/** return bounds min max point in self local space, for LGUICanvas to tell if geometry overlap with each other. */
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const;
 #if WITH_EDITOR
