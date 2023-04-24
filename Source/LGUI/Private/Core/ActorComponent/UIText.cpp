@@ -307,6 +307,15 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
 }
 
+bool UUIText::GetShouldAffectByPixelPerfect()const
+{
+	if (IsValid(font))
+	{
+		return font->GetShouldAffectByPixelPerfect();
+	}
+	return Super::GetShouldAffectByPixelPerfect();
+}
+
 void UUIText::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InTriangleChanged || InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
