@@ -935,15 +935,12 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				if (OutlinerPtr.IsValid())
 				{
 					OutlinerPtr->FullRefresh();
-					if (ULGUIEditorManagerObject::Instance)
-					{
-						ULGUIEditorManagerObject::Instance->AddOneShotTickFunction([=] {
-							for (auto& Actor : CreatedActorArray)
-							{
-								OutlinerPtr->UnexpandActor(Actor);
-							}
-							}, 1);//delay execute, because the outliner not create actor yet
-					}
+					ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+						for (auto& Actor : CreatedActorArray)
+						{
+							OutlinerPtr->UnexpandActor(Actor);
+						}
+						}, 1);//delay execute, because the outliner not create actor yet
 				}
 			}
 			if (PotentialActorClassesToLoad.Num() > 0)
