@@ -40,12 +40,12 @@ public:
 	virtual bool IsEditorOnly()const override { return true; }
 	//end TickableEditorObject interface
 #if WITH_EDITORONLY_DATA
-	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 	FLGUIEditorTickMulticastDelegate EditorTick;
+	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -59,6 +59,8 @@ public:
 	static void AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount = 0);
 	static FDelegateHandle RegisterEditorTickFunction(const TFunction<void(float)>& InFunction);
 	static void UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle);
+	static FDelegateHandle RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction);
+	static void UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle);
 private:
 	static bool InitCheck();
 public:

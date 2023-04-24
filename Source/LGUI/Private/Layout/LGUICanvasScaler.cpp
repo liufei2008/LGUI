@@ -213,7 +213,9 @@ void ULGUICanvasScaler::OnRegister()
 		EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
 			this->OnEditorTick(deltaTime);
 			});
-		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.AddUObject(this, &ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange);
+		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange([=] {
+			this->OnEditorViewportIndexAndKeyChange();
+			});
 		LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);
 	}
 #endif
@@ -224,8 +226,14 @@ void ULGUICanvasScaler::OnUnregister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
-		ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.Remove(EditorViewportIndexAndKeyChangeDelegateHandle);
+		if (EditorTickDelegateHandle.IsValid())
+		{
+			ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+		}
+		if (EditorViewportIndexAndKeyChangeDelegateHandle.IsValid())
+		{
+			ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(EditorViewportIndexAndKeyChangeDelegateHandle);
+		}
 		ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
 	}
 #endif
