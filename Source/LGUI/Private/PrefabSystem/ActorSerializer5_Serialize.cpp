@@ -62,7 +62,7 @@ namespace LGUIPrefabSystem5
 
 	void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
 	{
-		if (!IsValid(Actor))return;
+		if (!WillSerailizeActorArray.Contains(Actor))return;
 		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab
 		{
 			OutActorSaveData.bIsPrefab = true;
@@ -141,6 +141,7 @@ namespace LGUIPrefabSystem5
 	void ActorSerializer::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{
 		CollectActorRecursive(OriginRootActor);
+		if (!WillSerailizeActorArray.Contains(OriginRootActor))return;//no actor is collected
 		//serailize actor
 		SerializeActorRecursive(OriginRootActor, OutData.SavedActor);
 		//serialize objects and components
@@ -228,6 +229,7 @@ namespace LGUIPrefabSystem5
 	void ActorSerializer::CollectActorRecursive(AActor* Actor)
 	{
 		if (!IsValid(Actor))return;
+		if (Actor->HasAnyFlags(EObjectFlags::RF_Transient))return;
 		//collect actor
 		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
 		{

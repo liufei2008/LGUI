@@ -140,7 +140,7 @@ public:
 		const TArray<FUIText_RichTextImageTag>& GetRichTextImageTagArray()const;
 public:
 	virtual void MarkAllDirty()override;
-protected:
+
 	virtual UTexture* GetTextureToCreateGeometry()override;
 	virtual UMaterialInterface* GetMaterialToCreateGeometry()override;
 
