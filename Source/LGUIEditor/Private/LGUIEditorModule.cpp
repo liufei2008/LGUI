@@ -760,6 +760,7 @@ bool FLGUIEditorModule::CanCreatePrefab()
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (SelectedActor == nullptr)return false;
 	if (!LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(SelectedActor))return false;
+	if (SelectedActor->HasAnyFlags(EObjectFlags::RF_Transient))return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		if (PrefabHelperObject->LoadedRootActor == SelectedActor)
