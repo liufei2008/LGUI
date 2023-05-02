@@ -151,12 +151,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
 		static void LGUIEventDelegate_Float_Unregister(const FLGUIEventDelegate_Float& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
-	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
-	//	static void LGUIEventDelegate_Double_Execute(const FLGUIEventDelegate_Double& InEvent, double InParameter) { InEvent(InParameter); }
-	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Register"))
-	//	static FLGUIDelegateHandleWrapper LGUIEventDelegate_Double_Register(const FLGUIEventDelegate_Double& InEvent, FLGUIEventDelegate_Double_DynamicDelegate InDelegate);
-	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
-	//	static void LGUIEventDelegate_Double_Unregister(const FLGUIEventDelegate_Double& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
+		static void LGUIEventDelegate_Double_Execute(const FLGUIEventDelegate_Double& InEvent, double InParameter) { InEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Register"))
+		static FLGUIDelegateHandleWrapper LGUIEventDelegate_Double_Register(const FLGUIEventDelegate_Double& InEvent, FLGUIEventDelegate_Double_DynamicDelegate InDelegate);
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
+		static void LGUIEventDelegate_Double_Unregister(const FLGUIEventDelegate_Double& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
 	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
 	//	static void LGUIEventDelegate_Int8_Execute(const FLGUIEventDelegate_Int8& InEvent, int8 InParameter) { InEvent(InParameter); }
