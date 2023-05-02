@@ -163,7 +163,7 @@ public:
 	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Register"))
 	//	static FLGUIDelegateHandleWrapper LGUIEventDelegate_Int8_Register(const FLGUIEventDelegate_Int8& InEvent, FLGUIEventDelegate_Int8_DynamicDelegate InDelegate);
 	//UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
-	//	static void LGUIEventDelegate_Int8_Unregister(const FLGUIEventDelegate_Double& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	//	static void LGUIEventDelegate_Int8_Unregister(const FLGUIEventDelegate_Int8& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
 		static void LGUIEventDelegate_UInt8_Execute(const FLGUIEventDelegate_UInt8& InEvent, uint8 InParameter) { InEvent(InParameter); }
