@@ -174,7 +174,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		mutable TArray<FLGUIEventDelegateData> eventList;
 	/** supported parameter type of this event */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
 		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;

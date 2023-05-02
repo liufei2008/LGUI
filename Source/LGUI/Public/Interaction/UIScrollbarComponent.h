@@ -60,8 +60,6 @@ protected:
 		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
 
 	float PressValue = 0;
-
-	virtual void Serialize(FArchive& Ar)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		float GetValue()const { return Value; }
