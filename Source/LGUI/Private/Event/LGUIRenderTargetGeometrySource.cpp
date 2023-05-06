@@ -391,7 +391,13 @@ void ULGUIRenderTargetGeometrySource::SetMaterial(int32 ElementIndex, UMaterialI
 {
 	Super::SetMaterial(ElementIndex, Material);
 	MaterialInstance = nullptr;
-	UpdateMaterialInstance();
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())
+	{
+	}
+	else
+#endif
+		UpdateMaterialInstance();
 }
 
 void ULGUIRenderTargetGeometrySource::GetUsedMaterials(TArray<UMaterialInterface*>& OutMaterials, bool bGetDebugMaterials) const
