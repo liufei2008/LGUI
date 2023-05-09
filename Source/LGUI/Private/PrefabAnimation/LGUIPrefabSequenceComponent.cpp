@@ -11,29 +11,9 @@ ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-class ULGUIFixMovieScene : public UMovieScene
-{
-public:
-	void FixUpAfterPrefabSerialize()
-	{
-		this->UpgradeTimeRanges();
-	}
-};
-
 void ULGUIPrefabSequenceComponent::Awake()
 {
 	Super::Awake();
-
-	if (this->bIsSerializedFromLGUIPrefab)//@todo: get rid of this
-	{
-		for (auto& SequenceItem : SequenceArray)
-		{
-			if (auto MovieScene = SequenceItem->GetMovieScene())
-			{
-				((ULGUIFixMovieScene*)MovieScene)->FixUpAfterPrefabSerialize();
-			}
-		}
-	}
 
 	InitSequencePlayer();
 }
@@ -158,8 +138,7 @@ void ULGUIPrefabSequenceComponent::SetSequenceByName(FName InName)
 
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::AddNewAnimation()
 {
-	auto NewSequence = NewObject<ULGUIPrefabSequence>(this, NAME_None);
-	NewSequence->SetFlags(RF_Public | RF_Transactional);
+	auto NewSequence = NewObject<ULGUIPrefabSequence>(this, NAME_None, RF_Public | RF_Transactional);
 	auto MovieScene = NewSequence->GetMovieScene();
 	SequenceArray.Add(NewSequence);
 	return NewSequence;
@@ -171,6 +150,10 @@ bool ULGUIPrefabSequenceComponent::DeleteAnimationByIndex(int32 InIndex)
 	{
 		UE_LOG(LGUI, Error, TEXT("[ULGUIPrefabSequenceComponent::DeleteAnimationByIndex] Index out of range! Index: %d, ArrayNum: %d"), InIndex, SequenceArray.Num());
 		return false;
+	}
+	if (auto SequenceItem = SequenceArray[InIndex])
+	{
+		SequenceItem->ConditionalBeginDestroy();
 	}
 	SequenceArray.RemoveAt(InIndex);
 	return true;
