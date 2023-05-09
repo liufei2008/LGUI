@@ -184,6 +184,12 @@ namespace LGUIPrefabSystem5
 #endif
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
+		for (auto& KeyValue : ULGUIPrefab::GetDeserializeClassOfObjectMap())
+		{
+			FObjectAndFunction Item;
+			Item.CallbackBeforeAwake = KeyValue.Value;
+			CallbackBeforeAwakeForClassOfObjectMap.Add(KeyValue.Key, Item);
+		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
@@ -267,6 +273,16 @@ namespace LGUIPrefabSystem5
 		if (CallbackBeforeAwake != nullptr)
 		{
 			CallbackBeforeAwake(CreatedRootActor);
+		}
+		if (CallbackBeforeAwakeForClassOfObjectMap.Num() > 0)
+		{
+			for (auto& KeyValue : CallbackBeforeAwakeForClassOfObjectMap)
+			{
+				for (auto& ObjectItem : KeyValue.Value.ObjectArray)
+				{
+					KeyValue.Value.CallbackBeforeAwake(ObjectItem);
+				}
+			}
 		}
 
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -396,6 +412,10 @@ namespace LGUIPrefabSystem5
 					{
 						CreatedNewComponent = NewObject<UActorComponent>(*OuterObjectPtr, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
 						MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewComponent);
+						if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(ObjectClass))
+						{
+							ValuePtr->ObjectArray.Add(CreatedNewComponent);
+						}
 					}
 					else
 					{
@@ -419,6 +439,10 @@ namespace LGUIPrefabSystem5
 						continue;
 					}
 					MapGuidToObject.Add(ObjectData.DefaultSubObjectGuidArray[Index], DefaultSubObject);
+					if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(CreatedNewComponent->GetClass()))
+					{
+						ValuePtr->ObjectArray.Add(CreatedNewComponent);
+					}
 				}
 			}
 		}
@@ -447,6 +471,10 @@ namespace LGUIPrefabSystem5
 					{
 						CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
 						MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
+						if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(ObjectClass))
+						{
+							ValuePtr->ObjectArray.Add(CreatedNewObject);
+						}
 					}
 					else
 					{
@@ -470,6 +498,10 @@ namespace LGUIPrefabSystem5
 						continue;
 					}
 					MapGuidToObject.Add(ObjectData.DefaultSubObjectGuidArray[Index], DefaultSubObject);
+					if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(DefaultSubObject->GetClass()))
+					{
+						ValuePtr->ObjectArray.Add(DefaultSubObject);
+					}
 				}
 			}
 		}
@@ -643,6 +675,10 @@ namespace LGUIPrefabSystem5
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 					bNeedFinishSpawn = true;
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);
+					if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(ActorClass))
+					{
+						ValuePtr->ObjectArray.Add(NewActor);
+					}
 				}
 
 				if (LoadedRootActor == nullptr)
@@ -670,12 +706,20 @@ namespace LGUIPrefabSystem5
 						continue;
 					}
 					MapGuidToObject.Add(InActorData.DefaultSubObjectGuidArray[Index], DefaultSubObject);
+					if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(DefaultSubObject->GetClass()))
+					{
+						ValuePtr->ObjectArray.Add(DefaultSubObject);
+					}
 				}
 				if (auto RootComp = NewActor->GetRootComponent())
 				{
 					if (!MapGuidToObject.Contains(InActorData.RootComponentGuid))//RootComponent could be a BlueprintCreatedComponent, so check it
 					{
 						MapGuidToObject.Add(InActorData.RootComponentGuid, RootComp);
+						if (auto ValuePtr = CallbackBeforeAwakeForClassOfObjectMap.Find(RootComp->GetClass()))
+						{
+							ValuePtr->ObjectArray.Add(RootComp);
+						}
 					}
 				}
 

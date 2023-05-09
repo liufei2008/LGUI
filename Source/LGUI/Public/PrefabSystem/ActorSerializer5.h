@@ -314,6 +314,12 @@ namespace LGUIPrefabSystem5
 
 		TFunction<void()> CallbackBeforeDeserialize = nullptr;
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
+		struct FObjectAndFunction
+		{
+			TFunction<void(UObject*)> CallbackBeforeAwake = nullptr;
+			TArray<UObject*> ObjectArray;
+		};
+		TMap<UClass*, FObjectAndFunction> CallbackBeforeAwakeForClassOfObjectMap;
 
 		/**
 		 * @param	AActor*		SubPrefab's root actor
