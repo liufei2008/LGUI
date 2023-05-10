@@ -60,10 +60,13 @@ private:
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 
 	void ToggleLGUIColumnInfo();
-	bool LGUIColumnInfoChecked();
+	bool IsLGUIColumnInfoChecked();
+
+	void ToggleAnchorTool();
+	bool IsAnchorToolChecked();
 
 	void ToggleDrawHelperFrame();
-	bool GetDrawHelperFrameChecked();
+	bool IsDrawHelperFrameChecked();
 
 	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
 	TWeakObjectPtr<class ULGUIPrefabHelperObject> CurrentPrefabHelperObject;

@@ -7,6 +7,7 @@
 #include "LGUIEditorUtils.h"
 #include "Utils/LGUIUtils.h"
 #include "Interfaces/IPluginManager.h"
+#include "Core/LGUISettings.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
@@ -23,6 +24,7 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 {
 	auto UIItem = Cast<UUIItem>(Component);
 	if (!UIItem)return;
+	if (!GetDefault<ULGUIEditorSettings>()->bShowAnchorTool)return;
 	TargetComp = (UUIItem*)UIItem;
 	if (TargetComp->GetWorld() != View->Family->Scene->GetWorld())return;
 
@@ -90,6 +92,7 @@ bool FUIItemComponentVisualizer::HandleInputKey(FEditorViewportClient* ViewportC
 }
 bool FUIItemComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& DeltaTranslate, FRotator& DeltalRotate, FVector& DeltaScale)
 {
+	if (!GetDefault<ULGUIEditorSettings>()->bShowAnchorTool)return false;
 	if (!TargetComp.IsValid())return false;
 	if (DeltaTranslate.IsZero())return false;
 
