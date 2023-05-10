@@ -27,6 +27,7 @@ void FLGUIEditorCommands::RegisterCommands()
 	UI_COMMAND(ActiveViewportAsLGUIPreview, "Active Viewport as ScreenSpaceUI Preview", "Use current selected active editor viewport for Screen-Space-UI preview", EUserInterfaceActionType::ToggleButton, FInputChord());
 	UI_COMMAND(ToggleLGUIInfoColume, "Show LGUI column in SceneOutliner", "Show LGUI column in SceneOutliner", EUserInterfaceActionType::ToggleButton, FInputChord());
 	UI_COMMAND(ToggleDrawHelperFrame, "Draw helper box on selected UI element", "Draw helper box on selected UI element", EUserInterfaceActionType::ToggleButton, FInputChord());
+	UI_COMMAND(ToggleAnchorTool, "Show Anchor Tool on selected UI element", "Show Anchor Tool on selected UI element", EUserInterfaceActionType::ToggleButton, FInputChord());
 	UI_COMMAND(ForceGC, "ForceGC", "Force garbage collection immediately, this is useful in some test work", EUserInterfaceActionType::Button, FInputChord());
 }
 
