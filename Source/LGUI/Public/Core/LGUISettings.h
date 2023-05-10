@@ -131,6 +131,9 @@ public:
 	 */
 	UPROPERTY(config)
 		bool bDrawHelperFrame = true;
+	/** Show anchor tool on selected UI element. */
+	UPROPERTY(config)
+		bool bShowAnchorTool = true;
 	/**
 	 * Draw navigation visulaizer
 	 */

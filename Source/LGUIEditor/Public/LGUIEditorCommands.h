@@ -29,5 +29,6 @@ public:
 	TSharedPtr<FUICommandInfo> ActiveViewportAsLGUIPreview;
 	TSharedPtr<FUICommandInfo> ToggleLGUIInfoColume;
 	TSharedPtr<FUICommandInfo> ToggleDrawHelperFrame;
+	TSharedPtr<FUICommandInfo> ToggleAnchorTool;
 	TSharedPtr<FUICommandInfo> ForceGC;
 };

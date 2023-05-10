@@ -201,13 +201,19 @@ void FLGUIEditorModule::StartupModule()
 			editorCommand.ToggleLGUIInfoColume,
 			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleLGUIColumnInfo),
 			FCanExecuteAction(),
-			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::LGUIColumnInfoChecked)
+			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::IsLGUIColumnInfoChecked)
 		);
 		PluginCommands->MapAction(
 			editorCommand.ToggleDrawHelperFrame,
 			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleDrawHelperFrame),
 			FCanExecuteAction(),
-			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::GetDrawHelperFrameChecked)
+			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::IsDrawHelperFrameChecked)
+		);
+		PluginCommands->MapAction(
+			editorCommand.ToggleAnchorTool,
+			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleAnchorTool),
+			FCanExecuteAction(),
+			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::IsAnchorToolChecked)
 		);
 		//gc
 		PluginCommands->MapAction(
@@ -222,7 +228,7 @@ void FLGUIEditorModule::StartupModule()
 	}
 	//register SceneOutliner ColumnInfo
 	{
-		ApplyLGUIColumnInfo(LGUIColumnInfoChecked(), false);
+		ApplyLGUIColumnInfo(IsLGUIColumnInfoChecked(), false);
 		//SceneOutliner extension
 		NativeSceneOutlinerExtension = new FLGUINativeSceneOutlinerExtension();
 	}
@@ -1061,6 +1067,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
 			MenuBuilder.AddMenuEntry(commandList.ToggleLGUIInfoColume);
 			MenuBuilder.AddMenuEntry(commandList.ToggleDrawHelperFrame);
+			MenuBuilder.AddMenuEntry(commandList.ToggleAnchorTool);
 			MenuBuilder.AddMenuEntry(commandList.ForceGC);
 		}
 		MenuBuilder.EndSection();
@@ -1396,9 +1403,20 @@ void FLGUIEditorModule::ToggleLGUIColumnInfo()
 
 	ApplyLGUIColumnInfo(LGUIEditorSettings->ShowLGUIColumnInSceneOutliner, true);
 }
-bool FLGUIEditorModule::LGUIColumnInfoChecked()
+bool FLGUIEditorModule::IsLGUIColumnInfoChecked()
 {
 	return GetDefault<ULGUIEditorSettings>()->ShowLGUIColumnInSceneOutliner;
+}
+
+void FLGUIEditorModule::ToggleAnchorTool()
+{
+	auto LGUIEditorSettings = GetMutableDefault<ULGUIEditorSettings>();
+	LGUIEditorSettings->bShowAnchorTool = !LGUIEditorSettings->bShowAnchorTool;
+	LGUIEditorSettings->SaveConfig();
+}
+bool FLGUIEditorModule::IsAnchorToolChecked()
+{
+	return GetDefault<ULGUIEditorSettings>()->bShowAnchorTool;
 }
 
 void FLGUIEditorModule::ToggleDrawHelperFrame()
@@ -1407,7 +1425,7 @@ void FLGUIEditorModule::ToggleDrawHelperFrame()
 	LGUIEditorSettings->bDrawHelperFrame = !LGUIEditorSettings->bDrawHelperFrame;
 	LGUIEditorSettings->SaveConfig();
 }
-bool FLGUIEditorModule::GetDrawHelperFrameChecked()
+bool FLGUIEditorModule::IsDrawHelperFrameChecked()
 {
 	return GetDefault<ULGUIEditorSettings>()->bDrawHelperFrame;
 }
