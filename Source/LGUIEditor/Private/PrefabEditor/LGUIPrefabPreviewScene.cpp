@@ -14,7 +14,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabPreviewScene"
 
-const FString FLGUIPrefabPreviewScene::RootAgentActorName = TEXT("[RootAgent]");
+const FString FLGUIPrefabPreviewScene::RootAgentActorName = TEXT("[temporary_RootAgent]");
 
 FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPreviewScene(CVS)
 {
