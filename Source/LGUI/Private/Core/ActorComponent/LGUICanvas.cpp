@@ -1791,7 +1791,7 @@ FName ULGUICanvas::LGUI_RectClipFeather_MaterialParameterName = FName(TEXT("Rect
 FName ULGUICanvas::LGUI_TextureClip_MaterialParameterName = FName(TEXT("ClipTexture"));
 FName ULGUICanvas::LGUI_TextureClipOffsetAndSize_MaterialParameterName = FName(TEXT("TextureClipOffsetAndSize"));
 
-bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, bool InIncludeMainTexture, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip)
+bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip)
 {
 	if (InClipType == ELGUICanvasClipType::Custom)
 	{
@@ -1807,14 +1807,24 @@ bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial
 	static TArray<FMaterialParameterInfo> ParameterInfos;
 	static TArray<FGuid> ParameterIds;
 	InMaterial->GetAllTextureParameterInfo(ParameterInfos, ParameterIds);
-	auto FoundIndex = ParameterInfos.IndexOfByPredicate([InIncludeMainTexture](const FMaterialParameterInfo& Item)
+	auto FoundIndex = ParameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& Item)
 		{
 			return
-				(InIncludeMainTexture && Item.Name == LGUI_MainTextureMaterialParameterName)
-				|| Item.Name == LGUI_RectClipFeather_MaterialParameterName || Item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName
-				|| Item.Name == LGUI_TextureClip_MaterialParameterName || Item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName
+				Item.Name == LGUI_MainTextureMaterialParameterName
+				|| Item.Name == LGUI_TextureClip_MaterialParameterName
 				;
 		});
+	if (FoundIndex == INDEX_NONE)
+	{
+		InMaterial->GetAllVectorParameterInfo(ParameterInfos, ParameterIds);
+		FoundIndex = ParameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& Item)
+			{
+				return
+					Item.Name == LGUI_RectClipFeather_MaterialParameterName || Item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName
+					|| Item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName
+					;
+			});
+	}
 	return FoundIndex != INDEX_NONE;
 }
 void ULGUICanvas::UpdateDrawcallMaterial_Implement()
@@ -1855,7 +1865,6 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 						SrcMaterial = TempCustomClip->GetReplaceMaterial(SrcMaterial);
 					}
 					auto bContainsLGUIParam = IsMaterialContainsLGUIParameter(SrcMaterial
-						, DrawcallItem->Type == EUIDrawcallType::BatchGeometry//DirectMesh no need to set MainTexture parameter, because main texture is only for UISprite/ UIText/ UITexture. DirectMesh only need clip parameter
 						, TempClipType, TempCustomClip
 					);
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))//if custom material is UMaterialInstanceDynamic then use it directly
