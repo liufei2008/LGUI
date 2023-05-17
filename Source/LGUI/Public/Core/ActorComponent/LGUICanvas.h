@@ -502,7 +502,7 @@ public:
 	static FName LGUI_RectClipFeather_MaterialParameterName;
 	static FName LGUI_TextureClip_MaterialParameterName;
 	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
-	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, bool InIncludeMainTexture, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
+	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 public:
