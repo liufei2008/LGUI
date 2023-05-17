@@ -5,7 +5,7 @@
 #include "UIBatchGeometryRenderable.h"
 #include "Core/ILGUICultureChangedInterface.h"
 #include "Layout/ILGUILayoutInterface.h"
-#include "Core/TextGeometryCache.h"
+#include "Core/LGUITextData.h"
 #include "UIText.generated.h"
 
 

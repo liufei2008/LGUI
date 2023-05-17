@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TextGeometryCache.h"
+#include "LGUITextData.h"
 #include "LGUIRichTextImageData_BaseObject.generated.h"
 
 /** base class for UIText image render */
