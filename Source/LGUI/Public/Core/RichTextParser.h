@@ -3,7 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Utils/LGUIUtils.h"
-#include "TextGeometryCache.h"
+#include "LGUITextData.h"
 
 //a set of helpers to parse rich text
 namespace LGUIRichTextParser

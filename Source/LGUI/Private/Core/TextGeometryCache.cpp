@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/TextGeometryCache.h"
+#include "Core/LGUITextData.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/LGUIRichTextImageData.h"
