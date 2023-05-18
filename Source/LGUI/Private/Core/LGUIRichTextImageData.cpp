@@ -19,10 +19,16 @@ void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& Prope
 void ULGUIRichTextImageData::SetImageMap(const TMap<FName, FLGUIRichTextImageItemData>& value)
 {
 	imageMap = value;
+	OnDataChange.Broadcast();
 }
 void ULGUIRichTextImageData::SetAnimationFps(float value)
 {
 	animationFps = value;
+	OnDataChange.Broadcast();
+}
+void ULGUIRichTextImageData::BroadcastOnDataChange()
+{
+	OnDataChange.Broadcast();
 }
 
 void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInEditorOutliner)

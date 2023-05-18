@@ -252,6 +252,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		IDetailGroup& RichTextGroup = category.AddGroup(FName("RichText"), RichTextHandle->GetPropertyDisplayName());
 		RichTextGroup.HeaderProperty(RichTextHandle);
 		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextTagFilterFlags)));
+		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextCustomStyleData)));
 		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData)));
 		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner)));
 		RichTextGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray)));
@@ -259,6 +260,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	else
 	{
 		category.AddProperty(RichTextHandle);
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextCustomStyleData));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, listRichTextImageObjectInOutliner));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, createdRichTextImageObjectArray));
@@ -284,6 +286,14 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}));
 	richTextImageDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
 		TargetScriptPtr->OnPreChangeRichTextImageDataProperty();
+		}));
+
+	auto richTextCustomStyleDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextCustomStyleData));
+	richTextCustomStyleDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPostChangeRichTextCustomStyleDataProperty();
+		}));
+	richTextCustomStyleDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		TargetScriptPtr->OnPreChangeRichTextCustomStyleDataProperty();
 		}));
 }
 void FUITextCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)

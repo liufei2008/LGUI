@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData_BaseObject.h"
 #include "Core/LGUIRichTextImageData_BaseObject.h"
+#include "Core/LGUIRichTextCustomStyleData.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
@@ -122,6 +123,10 @@ void UUIText::BeginPlay()
 	{
 		this->RegisterOnRichTextImageDataChange();
 	}
+	if (IsValid(richTextCustomStyleData))
+	{
+		this->RegisterOnRichTextCustomStyleDataChange();
+	}
 	visibleCharCount = VisibleCharCountInString(text.ToString());
 }
 
@@ -141,6 +146,10 @@ void UUIText::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (IsValid(richTextImageData))
 	{
 		this->UnregisterOnRichTextImageDataChange();
+	}
+	if (IsValid(richTextCustomStyleData))
+	{
+		this->UnregisterOnRichTextCustomStyleDataChange();
 	}
 }
 
@@ -165,6 +174,13 @@ void UUIText::OnRegister()
 				if (IsValid(richTextImageData))
 				{
 					this->RegisterOnRichTextImageDataChange();
+				}
+			}
+			if (!onRichTextCustomStyleDataChangedDelegateHandle.IsValid())
+			{
+				if (IsValid(richTextCustomStyleData))
+				{
+					this->RegisterOnRichTextCustomStyleDataChange();
 				}
 			}
 		}
@@ -194,6 +210,13 @@ void UUIText::OnUnregister()
 				if (onRichTextImageDataChangedDelegateHandle.IsValid())
 				{
 					this->UnregisterOnRichTextImageDataChange();
+				}
+			}
+			if (IsValid(richTextCustomStyleData))
+			{
+				if (onRichTextCustomStyleDataChangedDelegateHandle.IsValid())
+				{
+					this->UnregisterOnRichTextCustomStyleDataChange();
 				}
 			}
 		}
@@ -297,11 +320,18 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 			bHasAddToFont = true;
 		}
 	}
-	if (!onRichTextImageDataChangedDelegateHandle.IsValid())
+	if (richText && !onRichTextImageDataChangedDelegateHandle.IsValid())
 	{
-		if (richText && IsValid(richTextImageData))
+		if (IsValid(richTextImageData))
 		{
 			this->RegisterOnRichTextImageDataChange();
+		}
+	}
+	if (richText && !onRichTextCustomStyleDataChangedDelegateHandle.IsValid())
+	{
+		if (IsValid(richTextCustomStyleData))
+		{
+			this->RegisterOnRichTextCustomStyleDataChange();
 		}
 	}
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text.ToString());
@@ -483,6 +513,20 @@ void UUIText::OnPostChangeRichTextImageDataProperty()
 		RegisterOnRichTextImageDataChange();
 	}
 }
+void UUIText::OnPreChangeRichTextCustomStyleDataProperty()
+{
+	if (IsValid(richTextCustomStyleData))
+	{
+		UnregisterOnRichTextCustomStyleDataChange();
+	}
+}
+void UUIText::OnPostChangeRichTextCustomStyleDataProperty()
+{
+	if (IsValid(richTextCustomStyleData))
+	{
+		RegisterOnRichTextCustomStyleDataChange();
+	}
+}
 #endif
 void UUIText::RegisterOnRichTextImageDataChange()
 {
@@ -494,6 +538,18 @@ void UUIText::UnregisterOnRichTextImageDataChange()
 {
 	richTextImageData->OnDataChange.Remove(onRichTextImageDataChangedDelegateHandle);
 	onRichTextImageDataChangedDelegateHandle.Reset();
+}
+
+void UUIText::RegisterOnRichTextCustomStyleDataChange()
+{
+	onRichTextCustomStyleDataChangedDelegateHandle = richTextCustomStyleData->OnDataChange.AddWeakLambda(this, [=] {
+		this->MarkVerticesDirty(false, true, true, false);
+		});
+}
+void UUIText::UnregisterOnRichTextCustomStyleDataChange()
+{
+	richTextCustomStyleData->OnDataChange.Remove(onRichTextCustomStyleDataChangedDelegateHandle);
+	onRichTextCustomStyleDataChangedDelegateHandle.Reset();
 }
 
 FVector2D UUIText::GetTextRealSize()const
@@ -664,6 +720,15 @@ void UUIText::SetRichTextImageData(ULGUIRichTextImageData_BaseObject* value)
 		}
 	}
 }
+void UUIText::SetRichTextCustomStyleData(ULGUIRichTextCustomStyleData* value)
+{
+	if (richTextCustomStyleData != value)
+	{
+		MarkVerticesDirty(true, true, true, true);
+		richTextCustomStyleData = value;
+	}
+}
+
 
 void UUIText::ClearCreatedRichTextImageObject()
 {

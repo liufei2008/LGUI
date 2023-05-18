@@ -38,6 +38,7 @@
 #include "AssetTypeActions/AssetTypeActions_LGUIFontData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIPrefab.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIStaticMeshCache.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIRichTextCustomStyleData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUIRichTextImageData.h"
 #include "AssetTypeActions/AssetTypeActions_LGUISDFFontData.h"
 
@@ -327,6 +328,7 @@ void FLGUIEditorModule::StartupModule()
 		TSharedPtr<FAssetTypeActions_Base> FontDataAction = MakeShareable(new FAssetTypeActions_LGUIFontData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> PrefabDataAction = MakeShareable(new FAssetTypeActions_LGUIPrefab(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FAssetTypeActions_LGUIStaticMeshCache(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> RichTextCustomStyleDataAction = MakeShareable(new FAssetTypeActions_LGUIRichTextCustomStyleData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> RichTextImageDataAction = MakeShareable(new FAssetTypeActions_LGUIRichTextImageData(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> SDFFontDataTypeAction = MakeShareable(new FAssetTypeActions_LGUISDFFontData(LGUIAssetCategoryBit));
 		AssetTools.RegisterAssetTypeActions(SpriteDataAction.ToSharedRef());
@@ -334,6 +336,7 @@ void FLGUIEditorModule::StartupModule()
 		AssetTools.RegisterAssetTypeActions(FontDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(PrefabDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(RichTextCustomStyleDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(RichTextImageDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(SDFFontDataTypeAction.ToSharedRef());
 		AssetTypeActionsArray.Add(SpriteDataAction);
@@ -341,6 +344,7 @@ void FLGUIEditorModule::StartupModule()
 		AssetTypeActionsArray.Add(FontDataAction);
 		AssetTypeActionsArray.Add(PrefabDataAction);
 		AssetTypeActionsArray.Add(UIStaticMeshCacheDataAction);
+		AssetTypeActionsArray.Add(RichTextCustomStyleDataAction);
 		AssetTypeActionsArray.Add(RichTextImageDataAction);
 		AssetTypeActionsArray.Add(SDFFontDataTypeAction);
 	}
