@@ -40,8 +40,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TMap<FName, FLGUIRichTextImageItemData>& GetImageMap()const { return imageMap; }
+	/** Get this to directly modify the data. After modify is done, call BroadcastOnDataChange function to notify. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		TMap<FName, FLGUIRichTextImageItemData>& GetMutableImageMap() { return imageMap; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void BroadcastOnDataChange();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAnimationFps()const { return animationFps; }
 
