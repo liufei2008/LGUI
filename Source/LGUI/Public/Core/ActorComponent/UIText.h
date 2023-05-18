@@ -11,6 +11,7 @@
 
 class ULGUIFontData_BaseObject;
 class ULGUIRichTextImageData_BaseObject;
+class ULGUIRichTextCustomStyleData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
@@ -36,10 +37,15 @@ protected:
 	virtual void OnPostChangeFontProperty();
 	virtual void OnPreChangeRichTextImageDataProperty();
 	virtual void OnPostChangeRichTextImageDataProperty();
+	virtual void OnPreChangeRichTextCustomStyleDataProperty();
+	virtual void OnPostChangeRichTextCustomStyleDataProperty();
 #endif
 	void RegisterOnRichTextImageDataChange();
 	void UnregisterOnRichTextImageDataChange();
 	FDelegateHandle onRichTextImageDataChangedDelegateHandle;
+	void RegisterOnRichTextCustomStyleDataChange();
+	void UnregisterOnRichTextCustomStyleDataChange();
+	FDelegateHandle onRichTextCustomStyleDataChangedDelegateHandle;
 #if WITH_EDITORONLY_DATA
 	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
@@ -99,7 +105,7 @@ protected:
 	 * <color=#00ff00>Green text</color>
 	 * <sup>Superscript</sup>
 	 * <sub>Subscript</sub>
-	 * <MyTag>Custom tag</MyTag> use any string as custom tag
+	 * <MyTag>Custom tag</MyTag> use any string as custom tag. custom tag can use for char selection (check TextAnimation usage), and for custom style (check RichTextCustomStyleData)
 	 * <img=smile/> display a image with key "smile" which defined in RichTextImageData property, can be used for emoji. @todo: image size option
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -107,6 +113,9 @@ protected:
 	/** Flags to enable/disable rich text tag. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.EUIText_RichTextTagFilterFlags", EditCondition = "richText"))
 		int32 richTextTagFilterFlags = 0xffffffff;
+	/** rich text custom style data for custom tag and rendering custom style */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
+		ULGUIRichTextCustomStyleData* richTextCustomStyleData = nullptr;
 	/** rich text image data for rendering image inside UIText */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
 		ULGUIRichTextImageData_BaseObject* richTextImageData = nullptr;
@@ -186,6 +195,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") int32 GetRichTextTagFilterFlags()const { return richTextTagFilterFlags; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIRichTextCustomStyleData* GetRichTextCustomStyleData()const { return richTextCustomStyleData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIRichTextImageData_BaseObject* GetRichTextImageData()const { return richTextImageData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
@@ -225,6 +235,8 @@ public:
 		void SetRichTextTagFilterFlags(int32 value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichTextImageData(ULGUIRichTextImageData_BaseObject* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRichTextCustomStyleData(ULGUIRichTextCustomStyleData* value);
 private:
 	void ClearCreatedRichTextImageObject();
 protected:
