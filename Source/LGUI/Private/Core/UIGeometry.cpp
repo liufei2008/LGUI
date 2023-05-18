@@ -2211,6 +2211,7 @@ void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign 
 		item.Position.Y += yOffset;
 	}
 }
+#include "Core/LGUIRichTextCustomStyleData.h"
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 	, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
@@ -2500,6 +2501,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	{
 		FString richTextContent;
 		richTextContent.Reserve(content.Len());
+		auto richTextCustomStyleData = uiComp->GetRichTextCustomStyleData();
+		bool useCustomStyle = IsValid(richTextCustomStyleData);
 		for (int charIndex = 0; charIndex < contentLength; charIndex++)
 		{
 			auto charCode = content[charIndex];
@@ -2538,6 +2541,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			if (charIndex >= contentLength)break;
 			richTextContent.AppendChar(charCode);
 			richTextParseResult.charIndex = charIndex;
+			//convert custom tag to style
+			if (useCustomStyle)
+			{
+				if (auto customStyleItemDataPtr = richTextCustomStyleData->GetDataMap().Find(richTextParseResult.customTag))
+				{
+					customStyleItemDataPtr->ApplyToRichTextParseResult(richTextParseResult);
+				}
+			}
 			richTextPropertyArray.Add(richTextParseResult);
 		}
 		//replace text content with parsed rich text content
