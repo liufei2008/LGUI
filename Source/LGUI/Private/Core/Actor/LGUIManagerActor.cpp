@@ -179,12 +179,15 @@ bool ULGUIEditorManagerObject::InitCheck()
 		Instance->AddToRoot();
 		UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
 		Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
-		//reimport asset
-		Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
 		//open map
 		Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
-		//blueprint recompile
-		Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
+		if (GEditor)
+		{
+			//reimport asset
+			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
+			//blueprint recompile
+			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
+		}
 	}
 	return true;
 }
@@ -846,7 +849,7 @@ void ALGUIManagerActor::OnCultureChanged()
 ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
 {
 #if WITH_EDITOR
-	if (IsValid(InWorld) && !InWorld->IsGameWorld())
+	if (IsValid(InWorld) && (InWorld->WorldType == EWorldType::Editor || InWorld->WorldType == EWorldType::EditorPreview))
 	{
 		ULGUIEditorManagerObject::GetInstance(CreateIfNotValid);
 	}
