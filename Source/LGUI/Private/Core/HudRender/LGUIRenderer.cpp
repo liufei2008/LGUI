@@ -77,7 +77,7 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 		ScreenSpaceRenderParameter.ViewOrigin = ViewLocation;
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
-		ScreenSpaceRenderParameter.ViewProjectionMatrix = ViewProjectionMatrix;
+		ScreenSpaceRenderParameter.ViewProjectionMatrix = FMatrix44f(ViewProjectionMatrix);
 		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RenderCanvas->GetEnableDepthTest();
 	}
 }
@@ -340,7 +340,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
-	
+	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
+
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
 	FTextureRHIRef OriginScreenColorTexture = nullptr;//@todo: can use a normal texture here?
@@ -456,7 +457,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #if PLATFORM_ANDROID || PLATFORM_IOS
 		IsMobileHDR() ? 0.45454545f : 1.0f;
 #else
-		bIsRenderToRenderTarget ? 1.0f : 0.45454545f;
+		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : 0.45454545f;
 #endif
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
@@ -468,19 +469,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		auto GlobalShaderMap = GetGlobalShaderMap(RenderView->GetFeatureLevel());
 
 		const FMinimalSceneTextures& SceneTextures = ((FViewFamilyInfo*)InView.Family)->GetSceneTextures();
-		auto ViewLocation = RenderView->ViewLocation;
-		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView->ViewRotation) * FMatrix(
-			FPlane(0, 0, 1, 0),
-			FPlane(1, 0, 0, 0),
-			FPlane(0, 1, 0, 0),
-			FPlane(0, 0, 0, 1));
 
-		auto ProjectionMatrix = RenderView->SceneViewInitOptions.ProjectionMatrix;
-		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix)*ProjectionMatrix;
-
-		RenderView->SceneViewInitOptions.ViewOrigin = ViewLocation;
-		RenderView->SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-		RenderView->UpdateProjectionMatrix(ProjectionMatrix);
+		RenderView->ViewMatrices = InView.ViewMatrices;
+		RenderView->ViewMatrices.HackRemoveTemporalAAProjectionJitter();
+		auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetViewProjectionMatrix());
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView->SetupCommonViewUniformBufferParameters(
@@ -548,7 +540,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						OriginScreenColorTexture,
 						ScreenColorRenderTargetTexture,
 						GlobalShaderMap,
-						FMatrix44f(ViewProjectionMatrix),
+						ViewProjectionMatrix,
 						true,
 						Primitive.BlendDepth,
 						Primitive.DepthFade,
@@ -663,7 +655,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			});
 	}
 	//Render screen space
-	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0)
+	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0
+		&& bIsMainViewport
+		)
 	{
 #if WITH_EDITOR
 		if (bIsRenderToRenderTarget)
@@ -714,7 +708,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 		RenderView->SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewOrigin;
 		RenderView->SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
-		RenderView->UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);
+		RenderView->SceneViewInitOptions.ProjectionMatrix = ScreenSpaceRenderParameter.ProjectionMatrix;
+		RenderView->ViewMatrices = FViewMatrices(RenderView->SceneViewInitOptions);
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView->SetupCommonViewUniformBufferParameters(
@@ -784,7 +779,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						OriginScreenColorTexture,
 						ScreenColorRenderTargetTexture,
 						GlobalShaderMap,
-						FMatrix44f(ScreenSpaceRenderParameter.ViewProjectionMatrix),
+						ScreenSpaceRenderParameter.ViewProjectionMatrix,
 						/*IsWorldSpace*/false,
 						/*BlendDepthForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
 						/*BlendDepthForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
@@ -895,7 +890,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					GraphicsPSOInit.NumSamples = NumSamples;
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-					VertexShader->SetParameters(RHICmdList, FMatrix44f(ScreenSpaceRenderParameter.ViewProjectionMatrix));
+					VertexShader->SetParameters(RHICmdList, ScreenSpaceRenderParameter.ViewProjectionMatrix);
 					
 					for (auto& LineRenderParameter : HelperLineRenderParameterArray)
 					{
