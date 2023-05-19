@@ -322,6 +322,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
+	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
 
 	FSceneView RenderView(InView);//use a copied view
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
@@ -443,7 +444,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 #if PLATFORM_ANDROID || PLATFORM_IOS
 	IsMobileHDR() ? 0.45454545f : 1.0f;
 #else
-	bIsRenderToRenderTarget ? 1.0f : 0.45454545f;
+	(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : 0.45454545f;
 #endif
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
@@ -453,19 +454,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender_WorldSpace"));
 		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
-		auto ViewLocation = RenderView.ViewLocation;
-		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView.ViewRotation) * FMatrix(
-			FPlane(0, 0, 1, 0),
-			FPlane(1, 0, 0, 0),
-			FPlane(0, 1, 0, 0),
-			FPlane(0, 0, 0, 1));
-		
-		auto ProjectionMatrix = RenderView.SceneViewInitOptions.ProjectionMatrix;
-		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix)*ProjectionMatrix;
-
-		RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
-		RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-		RenderView.UpdateProjectionMatrix(ProjectionMatrix);
+		RenderView.ViewMatrices = InView.ViewMatrices;
+		RenderView.ViewMatrices.HackRemoveTemporalAAProjectionJitter();
+		auto ViewProjectionMatrix = RenderView.ViewMatrices.GetViewProjectionMatrix();
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
@@ -596,7 +587,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		RHICmdList.EndRenderPass();
 	}
 	//Render screen space
-	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0)
+	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0
+		&& bIsMainViewport
+		)
 	{
 #if WITH_EDITOR
 		if (bIsRenderToRenderTarget)
@@ -649,7 +642,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 		RenderView.SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewOrigin;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
-		RenderView.UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);
+		RenderView.SceneViewInitOptions.ProjectionMatrix = ScreenSpaceRenderParameter.ProjectionMatrix;
+		RenderView.ViewMatrices = FViewMatrices(RenderView.SceneViewInitOptions);
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
