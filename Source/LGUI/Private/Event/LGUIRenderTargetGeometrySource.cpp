@@ -185,6 +185,7 @@ void ULGUIRenderTargetGeometrySource::EndPlay(EEndPlayReason::Type Reason)
 
 void ULGUIRenderTargetGeometrySource::BeginCheckRenderTarget()
 {
+	if (CheckRenderTargetTickDelegate.IsValid())return;
 	CheckRenderTargetTickDelegate = ULTweenBPLibrary::RegisterUpdateEvent(this, [=, WeakThis = TWeakObjectPtr<ULGUIRenderTargetGeometrySource>(this)](float deltaTime) {
 		if (WeakThis.IsValid())
 		{
@@ -194,10 +195,9 @@ void ULGUIRenderTargetGeometrySource::BeginCheckRenderTarget()
 }
 void ULGUIRenderTargetGeometrySource::EndCheckRenderTarget()
 {
-	if (CheckRenderTargetTickDelegate.IsValid())
-	{
-		ULTweenBPLibrary::UnregisterUpdateEvent(this, CheckRenderTargetTickDelegate);
-	}
+	if (!CheckRenderTargetTickDelegate.IsValid())return;
+	ULTweenBPLibrary::UnregisterUpdateEvent(this, CheckRenderTargetTickDelegate);
+	CheckRenderTargetTickDelegate.Reset();
 }
 void ULGUIRenderTargetGeometrySource::CheckRenderTargetTick()
 {
@@ -252,7 +252,10 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 	if (GetCanvas())
 	{
 		UpdateMaterialInstance();
-		return new FLGUIRenderTargetGeometrySource_Sceneproxy(this);
+		if (MaterialInstance != nullptr)
+		{
+			return new FLGUIRenderTargetGeometrySource_Sceneproxy(this);
+		}
 	}
 
 #if WITH_EDITOR
@@ -363,7 +366,23 @@ FCollisionShape ULGUIRenderTargetGeometrySource::GetCollisionShape(float Inflati
 void ULGUIRenderTargetGeometrySource::OnRegister()
 {
 	Super::OnRegister();
-
+	if (this->GetWorld() != nullptr)
+	{
+		if (GetMaterial(0) == nullptr)
+		{
+			if (auto PresetMaterial = GetPresetMaterial())
+			{
+				SetMaterial(0, PresetMaterial);
+				this->MarkPackageDirty();
+			}
+		}
+#if WITH_EDITOR
+		if (!this->GetWorld()->IsGameWorld())//only do it in Editor world, because Game world can do it by BeginCheckRenderTarget
+		{
+			UpdateMeshData();
+		}
+#endif
+	}
 }
 void ULGUIRenderTargetGeometrySource::OnUnregister()
 {
@@ -375,17 +394,7 @@ void ULGUIRenderTargetGeometrySource::DestroyComponent(bool bPromoteChildren)
 }
 UMaterialInterface* ULGUIRenderTargetGeometrySource::GetMaterial(int32 MaterialIndex) const
 {
-	if (OverrideMaterials.IsValidIndex(MaterialIndex) && (OverrideMaterials[MaterialIndex] != nullptr))
-	{
-		return OverrideMaterials[MaterialIndex];
-	}
-	else
-	{
-		auto MatPath = TEXT("/LGUI/Materials/LGUI_RenderTargetMaterial");
-		return LoadObject<UMaterialInterface>(NULL, MatPath);
-	}
-
-	return nullptr;
+	return Super::GetMaterial(MaterialIndex);
 }
 void ULGUIRenderTargetGeometrySource::SetMaterial(int32 ElementIndex, UMaterialInterface* Material)
 {
@@ -640,6 +649,11 @@ void ULGUIRenderTargetGeometrySource::PostEditChangeProperty(FPropertyChangedEve
 				TargetCanvasObject = nullptr;
 			}
 		}
+
+		UpdateMeshData();
+		UpdateLocalBounds(); // Update overall bounds
+		UpdateCollision(); // Mark collision as dirty
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 #endif
@@ -801,6 +815,10 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 	if (MaterialInstance == nullptr)
 	{
 		auto SourceMat = GetMaterial(0);
+		if (SourceMat == nullptr)
+		{
+			SourceMat = GetPresetMaterial();
+		}
 		if (SourceMat)
 		{
 			MaterialInstance = UMaterialInstanceDynamic::Create(SourceMat, this);
@@ -832,6 +850,11 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstanceParameters()
 		}
 #endif
 	}
+}
+UMaterialInterface* ULGUIRenderTargetGeometrySource::GetPresetMaterial()const
+{
+	auto MatPath = TEXT("/LGUI/Materials/LGUI_RenderTargetMaterial");
+	return LoadObject<UMaterialInterface>(NULL, MatPath);
 }
 
 UMaterialInstanceDynamic* ULGUIRenderTargetGeometrySource::GetMaterialInstance()const
