@@ -124,7 +124,7 @@ private:
 		FVector ViewOrigin = FVector::ZeroVector;
 		FMatrix ViewRotationMatrix = FMatrix::Identity;
 		FMatrix ProjectionMatrix = FMatrix::Identity;
-		FMatrix ViewProjectionMatrix = FMatrix::Identity;
+		FMatrix44f ViewProjectionMatrix = FMatrix44f::Identity;
 		bool bEnableDepthTest = false;
 
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
