@@ -73,6 +73,7 @@ private:
 	void UpdateBodySetup(bool bIsDirty = true);
 	void UpdateMaterialInstance();
 	void UpdateMaterialInstanceParameters();
+	UMaterialInterface* GetPresetMaterial()const;
 	float ComputeComponentWidth() const;
 	float ComputeComponentHeight() const;
 	float ComputeComponentThickness() const;
