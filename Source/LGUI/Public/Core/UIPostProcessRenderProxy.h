@@ -6,6 +6,7 @@
 #include "Core/LGUISpriteData_BaseObject.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "RHIStaticStates.h"
 
 class UUIPostProcessRenderable;
 enum class ELGUICanvasClipType :uint8;

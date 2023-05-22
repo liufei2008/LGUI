@@ -7,6 +7,7 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "TextureResource.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION

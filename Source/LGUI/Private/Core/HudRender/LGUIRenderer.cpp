@@ -15,6 +15,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "MeshPassProcessor.inl"
 #include "ScenePrivate.h"
+#include "TextureResource.h"
 #if WITH_EDITOR
 #include "Engine/Engine.h"
 #include "Editor/EditorEngine.h"

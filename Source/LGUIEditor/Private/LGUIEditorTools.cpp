@@ -27,6 +27,7 @@
 #include "ActorEditorUtils.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Serialization/ArchiveReplaceObjectRef.h"
+#include "Logging/MessageLog.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 

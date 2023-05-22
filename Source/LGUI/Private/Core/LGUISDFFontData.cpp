@@ -7,6 +7,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
 #include "Materials/MaterialInterface.h"
+#include "TextureResource.h"
 #define SDF_IMPLEMENTATION
 #include "Utils/sdf/sdf.h"
 #if WITH_FREETYPE

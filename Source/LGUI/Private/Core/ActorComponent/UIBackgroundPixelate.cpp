@@ -13,6 +13,7 @@
 #include "Core/LGUISettings.h"
 #include "RenderTargetPool.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "RHIStaticStates.h"
 
 UUIBackgroundPixelate::UUIBackgroundPixelate(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {

@@ -2086,7 +2086,7 @@ void FLGUIEventDelegateCustomization::CreateColorPicker(bool bIsLinearColor, TSh
 		//PickerArgs.OnColorPickerCancelled = FOnColorPickerCancelled::CreateSP(this, &FColorStructCustomization::OnColorPickerCancelled);
 		//PickerArgs.OnInteractivePickBegin = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveBegin);
 		//PickerArgs.OnInteractivePickEnd = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveEnd);
-		PickerArgs.InitialColorOverride = InitialColor;
+		PickerArgs.InitialColor = InitialColor;
 		PickerArgs.ParentWidget = ColorPickerParentWidget;
 		PickerArgs.OptionalOwningDetailsView = ColorPickerParentWidget;
 		FWidgetPath ParentWidgetPath;

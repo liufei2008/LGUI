@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/ActorComponent.h"
+#include "UObject/Package.h"
 
 class UUIItem;
 class ULGUICanvas;

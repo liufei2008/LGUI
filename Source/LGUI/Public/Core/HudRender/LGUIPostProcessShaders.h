@@ -8,6 +8,7 @@
 #include "MaterialShaderType.h"
 #include "MaterialShader.h"
 #include "Engine/Texture2D.h"
+#include "RHIStaticStates.h"
 
 class FLGUIPostProcessShader :public FGlobalShader
 {

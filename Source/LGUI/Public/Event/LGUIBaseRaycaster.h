@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "CollisionQueryParams.h"
 #include "Event/LGUIPointerEventData.h"
+#include "Engine/HitResult.h"
 #include "LGUIBaseRaycaster.generated.h"
 
 /** 

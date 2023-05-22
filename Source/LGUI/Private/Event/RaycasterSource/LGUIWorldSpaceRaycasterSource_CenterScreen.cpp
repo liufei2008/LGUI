@@ -4,6 +4,8 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
+#include "Engine/World.h"
+#include "Engine/GameViewportClient.h"
 
 bool ULGUIWorldSpaceRaycasterSource_CenterScreen::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {

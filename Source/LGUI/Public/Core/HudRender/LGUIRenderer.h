@@ -136,7 +136,7 @@ private:
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
 	//if 'bIsRenderToRenderTarget' is true then we need a render target
-	FTextureRenderTargetResource* RenderTargetResource = nullptr;
+	class FTextureRenderTargetResource* RenderTargetResource = nullptr;
 	//some post process component need to blend origin screen image without UI element
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	

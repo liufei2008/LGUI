@@ -6,6 +6,7 @@
 #include "RenderResource.h"
 #include "PackedNormal.h"
 #include "RenderUtils.h"
+#include "RenderMath.h"
 
 #define LGUI_VERTEX_TEXCOORDINATE_COUNT 4
 

@@ -12,6 +12,9 @@
 #include "LGUI.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Materials/MaterialRenderProxy.h"
+#include "MaterialDomain.h"
+#include "PrimitiveSceneProxy.h"
 
 
 #define LOCTEXT_NAMESPACE "LGUIMeshComponent"

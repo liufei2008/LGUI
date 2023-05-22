@@ -15,6 +15,7 @@
 #include "Widgets/SWindow.h"
 #include "Core/LGUIFontData.h"
 #include "Core/LGUISpriteData.h"
+#include "Engine/GameViewportClient.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION

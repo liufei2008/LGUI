@@ -8,6 +8,7 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "TextureResource.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorStyleSet.h"

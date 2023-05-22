@@ -4,6 +4,8 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
+#include "Engine/World.h"
+#include "Engine/GameViewportClient.h"
 
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 void LGUIWorldSpaceRaycasterSource_Mouse_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)

@@ -14,6 +14,7 @@
 #include "RenderTargetPool.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Rendering/Texture2DResource.h"
+#include "RHIStaticStates.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {

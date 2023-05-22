@@ -16,6 +16,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "LTweenBPLibrary.h"
+#include "Materials/MaterialRenderProxy.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 

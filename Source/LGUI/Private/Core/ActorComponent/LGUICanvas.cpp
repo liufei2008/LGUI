@@ -25,6 +25,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 #include "Core/LGUICanvasCustomClip.h"
+#include "TextureResource.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
