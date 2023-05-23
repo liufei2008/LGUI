@@ -405,8 +405,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
 		if (InView.bIsViewInfo)
 		{
-			auto ViewInfo = (FViewInfo*)&InView;
-			ScreenPercentage = (float)ViewInfo->ViewRect.Width() / ViewRect.Width();
+			auto& ViewInfo = reinterpret_cast<FViewInfo&>(InView);
+			ScreenPercentage = (float)ViewInfo.ViewRect.Width() / ViewRect.Width();
 		}
 		else
 		{
@@ -486,30 +486,53 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 		RenderView->ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
 
+		//process visibility. Can only tell visibility from mesh by PrimitiveComponentId, so what about postprocess? Just add an invisible mesh (sprite, texture, text)
+		TMap<ULGUICanvas*, bool> CanvasVisibilityMap;
+		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
+		{
+			auto HudPrimitive = WorldRenderParameter.HudPrimitive;
+			if (HudPrimitive != nullptr)
+			{
+				if (HudPrimitive->GetPrimitiveType() == ELGUIHudPrimitiveType::Mesh)
+				{
+					if (!CanvasVisibilityMap.Contains(WorldRenderParameter.RenderCanvas))
+					{
+						bool bIsPrimitiveVisible = true;
+						if (InView.ShowOnlyPrimitives.IsSet())
+						{
+							bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(HudPrimitive->GetMeshPrimitiveComponentId());
+						}
+						else
+						{
+							bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(HudPrimitive->GetMeshPrimitiveComponentId());
+						}
+						CanvasVisibilityMap.Add(WorldRenderParameter.RenderCanvas, bIsPrimitiveVisible);
+					}
+				}
+			}
+		}
+
 		//preprocess these data as seqence render, to reduce GraphBuilder.AddPass count
 		TArray<TArray<FWorldSpaceRenderParameter>> RenderSequenceArray;
 		ELGUIHudPrimitiveType PrevPrimitiveType = ELGUIHudPrimitiveType::Mesh;
 		bool bIsFirst = true;
-		for (int PrimitiveIndex = 0; PrimitiveIndex < WorldSpaceRenderCanvasParameterArray.Num(); PrimitiveIndex++)
+		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
 		{
-			auto& WorldRenderParameter = WorldSpaceRenderCanvasParameterArray[PrimitiveIndex];
 			auto HudPrimitive = WorldRenderParameter.HudPrimitive;
 			if (HudPrimitive != nullptr)
 			{
 				if (HudPrimitive->CanRender())
 				{
-					if (bIsFirst)
+					bool bIsPrimitiveVisible = false;//default is not visible
+					if (auto VisibilityPtr = CanvasVisibilityMap.Find(WorldRenderParameter.RenderCanvas))
 					{
-						bIsFirst = false;
-						PrevPrimitiveType = HudPrimitive->GetPrimitiveType();
-						TArray<FWorldSpaceRenderParameter> Sequence;
-						Sequence.Add(WorldRenderParameter);
-						RenderSequenceArray.Add(Sequence);
+						bIsPrimitiveVisible = *VisibilityPtr;
 					}
-					else
+					if (bIsPrimitiveVisible)
 					{
-						if (PrevPrimitiveType != HudPrimitive->GetPrimitiveType())
+						if (bIsFirst)
 						{
+							bIsFirst = false;
 							PrevPrimitiveType = HudPrimitive->GetPrimitiveType();
 							TArray<FWorldSpaceRenderParameter> Sequence;
 							Sequence.Add(WorldRenderParameter);
@@ -517,8 +540,18 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						}
 						else
 						{
-							auto& Sequence = RenderSequenceArray[RenderSequenceArray.Num() - 1];
-							Sequence.Add(WorldRenderParameter);
+							if (PrevPrimitiveType != HudPrimitive->GetPrimitiveType())
+							{
+								PrevPrimitiveType = HudPrimitive->GetPrimitiveType();
+								TArray<FWorldSpaceRenderParameter> Sequence;
+								Sequence.Add(WorldRenderParameter);
+								RenderSequenceArray.Add(Sequence);
+							}
+							else
+							{
+								auto& Sequence = RenderSequenceArray[RenderSequenceArray.Num() - 1];
+								Sequence.Add(WorldRenderParameter);
+							}
 						}
 					}
 				}
