@@ -37,9 +37,11 @@ public:
 	virtual bool CanRender() const = 0;
 	virtual int GetRenderPriority() const = 0;
 	virtual ELGUIHudPrimitiveType GetPrimitiveType()const = 0;
+	virtual class ULGUICanvas* GetCanvas()const = 0;
 
 	//begin mesh interface
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
+	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const = 0;
 	//end mesh interface
 
 	//begin post process interface

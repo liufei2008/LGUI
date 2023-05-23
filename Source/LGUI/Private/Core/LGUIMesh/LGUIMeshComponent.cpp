@@ -157,7 +157,7 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent, void* InCanvasPtr, int32 InCanvasSortOrder)
+	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
@@ -379,7 +379,7 @@ public:
 		{
 			if (IsLGUIRenderToWorld)
 			{
-				LGUIRenderer.Pin()->RemoveWorldSpacePrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
+				LGUIRenderer.Pin()->RemoveWorldSpacePrimitive_RenderThread(RenderCanvasPtr, this);
 			}
 			else
 			{
@@ -615,6 +615,8 @@ public:
 	}
 	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::Mesh; }
 	virtual bool PostProcessRequireOriginScreenColorTexture()const override { return false; }
+	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const override { return GetPrimitiveComponentId(); }
+	virtual ULGUICanvas* GetCanvas()const override { return RenderCanvasPtr; }
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
@@ -668,7 +670,7 @@ private:
 	bool IsSupportLGUIRenderer = false;
 	bool IsLGUIRenderToWorld = false;
 	bool IsSupportUERenderer = true;
-	void* RenderCanvasPtr = nullptr;
+	ULGUICanvas* RenderCanvasPtr = nullptr;
 };
 
 //////////////////////////////////////////////////////////////////////////

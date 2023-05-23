@@ -8,6 +8,7 @@
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "RHIStaticStates.h"
 
+class ULGUICanvas;
 class UUIPostProcessRenderable;
 enum class ELGUICanvasClipType :uint8;
 enum class EUIPostProcessMaskTextureType :uint8;
@@ -28,24 +29,26 @@ private:
 	int32 RenderPriority = 0;
 	bool bIsVisible = true;
 	bool bIsWorld = false;//is world space or screen space
-	void* RenderCanvasPtr = nullptr;
+	ULGUICanvas* RenderCanvasPtr = nullptr;
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 	void SetVisibility(bool value);
 	void AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void AddToLGUIWorldSpaceRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void AddToLGUIWorldSpaceRenderer(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
 	void AddToLGUIScreenSpaceRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void AddToLGUIWorldSpaceRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void AddToLGUIWorldSpaceRenderer_RenderThread(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
 	void RemoveFromLGUIRenderer();
 	void RemoveFromLGUIRenderer_RenderThread(bool isWorld);
 
 	//begin ILGUIHudPrimitive interface
 	virtual bool CanRender() const override { return bIsVisible; };
 	virtual int GetRenderPriority() const override { return RenderPriority; };
+	virtual ULGUICanvas* GetCanvas()const override { return RenderCanvasPtr; }
 
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) override {};
 
 	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::PostProcess; };
+	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const override { return FPrimitiveComponentId(); };
 	//end ILGUIHudPrimitive interface
 private:
 	void SetUITranslucentSortPriority_RenderThread(int value)
