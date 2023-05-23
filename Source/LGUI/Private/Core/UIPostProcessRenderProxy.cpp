@@ -26,7 +26,7 @@ void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRe
 			renderProxy->AddToLGUIScreenSpaceRenderer_RenderThread(InLGUIRenderer);
 		});
 }
-void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
+void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
 {
 	this->bIsWorld = true;
 	this->RenderCanvasPtr = InCanvasPtr;
@@ -49,7 +49,7 @@ void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer_RenderThread(TWeakP
 		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
 	}
 }
-void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
+void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
 {
 	LGUIRenderer = InLGUIRenderer;
 	if (LGUIRenderer.IsValid())
