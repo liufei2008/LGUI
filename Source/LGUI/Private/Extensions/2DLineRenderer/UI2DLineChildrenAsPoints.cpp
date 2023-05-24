@@ -112,7 +112,8 @@ void UUI2DLineChildrenAsPoints::CalculatePoints()
     CurrentPointArray.Reset(pointCount);
     for (int i = 0; i < pointCount; i++)
     {
-        CurrentPointArray.Add(FVector2D(SortedItemArray[i]->GetRelativeLocation()));
+        auto Location3D = SortedItemArray[i]->GetRelativeLocation();
+        CurrentPointArray.Add(FVector2D(Location3D.Y, Location3D.Z));
     }
 }
 
