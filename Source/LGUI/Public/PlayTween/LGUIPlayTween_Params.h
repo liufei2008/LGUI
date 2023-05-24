@@ -25,6 +25,26 @@ protected:
 	}
 };
 
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Double"))
+class LGUI_API ULGUIPlayTween_Double : public ULGUIPlayTween
+{
+	GENERATED_BODY()
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Property")
+		double from = 0.0f;
+	UPROPERTY(EditAnywhere, Category = "Property")
+		double to = 1.0f;
+	/** parameter float is interpolated value from->to */
+	UPROPERTY(EditAnywhere, Category = "Event")
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Double);
+
+	virtual void OnUpdate(float progress)override
+	{
+		onUpdateValue.FireEvent(FMath::Lerp(from, to, progress));
+	}
+};
+
 UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Color"))
 class LGUI_API ULGUIPlayTween_Color : public ULGUIPlayTween
 {
