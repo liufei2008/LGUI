@@ -347,14 +347,7 @@ namespace LGUIPrefabSystem5
 		/** A temperary string for log if is loading or saving prefab (not duplicate). */
 		FString PrefabAssetPath;
 
-		TFunction<void()> CallbackBeforeDeserialize = nullptr;
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
-		struct FObjectAndFunction
-		{
-			TFunction<void(UObject*)> CallbackBeforeAwake = nullptr;
-			TArray<UObject*> ObjectArray;
-		};
-		TMap<UClass*, FObjectAndFunction> CallbackBeforeAwakeForClassOfObjectMap;
 
 		/**
 		 * @param	AActor*		SubPrefab's root actor

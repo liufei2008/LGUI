@@ -138,15 +138,6 @@ public:
 		TArray<FText> ReferenceTextList;
 #pragma endregion Before Prefab-Version 3
 #endif
-private:
-	static TMap<UClass*, TFunction<void(UObject*)>> OnDeserializeClassOfObjectMap;
-public:
-	/**
-	 * If some UObject or Actor or ActorComponent use LGUIPrefab, and want to do custom init when loaded (deserialized) from prefab, then we can use this function to register a callback function for the purpose.
-	 */
-	static void RegisterOnDeserializeObject(UClass* InObjectClass, const TFunction<void(UObject*)>& InFunctionForObjectInstanceAfterDeserialize);
-	static void UnregisterOnDeserializeObject(UClass* InObjectClass);
-	static const TMap<UClass*, TFunction<void(UObject*)>> GetDeserializeClassOfObjectMap() { return OnDeserializeClassOfObjectMap; }
 
 #if WITH_EDITORONLY_DATA
 public:
