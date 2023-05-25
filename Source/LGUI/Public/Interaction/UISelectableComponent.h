@@ -13,14 +13,13 @@
 UENUM(BlueprintType, Category = LGUI)
 enum class UISelectableTransitionType:uint8
 {
-	None				UMETA(DisplayName = "None"),
-	/** In this mode, TransitionActor's color property will be override by this component. */
-	ColorTint			UMETA(DisplayName = "ColorTint"),
-	/** In this mode, TransitionActor's root component need to be a UISpriteBase. */
-	/** Target UISprite's sprite will be override by this component. */
-	SpriteSwap			UMETA(DisplayName = "SpriteSwap"),
+	None,
+	/** In this mode, TransitionActor must be a UIBaseRenderable Actor (UISprite, UITexture, UIText), the color property will be override by this component. */
+	ColorTint,
+	/** In this mode, RootComponent of TransitionActor must be a UISpriteBase Actor. The sprite property will be override by this component. */
+	SpriteSwap,
 	/** You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to this actor */
-	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
+	TransitionComponent,
 };
 UENUM(BlueprintType, Category = LGUI)
 enum class EUISelectableSelectionState :uint8

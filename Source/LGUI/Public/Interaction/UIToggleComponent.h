@@ -15,14 +15,14 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIToggleDynamicDelegate, bool, InBool);
 UENUM(BlueprintType, Category = LGUI)
 enum class UIToggleTransitionType :uint8
 {
-	None				UMETA(DisplayName = "None"),
-	Fade				UMETA(DisplayName = "Fade"),
-	ColorTint			UMETA(DisplayName = "ColorTint"),
+	None,
+	Fade,
+	ColorTint,
 	/**
 	 * You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor.
 	 * Use OnStartCustomTransition event in UISelectableTransitionComponent, and switch "On"/"Off" condition to do the transition.
 	 */
-	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
+	TransitionComponent,
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent))

@@ -90,7 +90,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActor_ColorTint_Tip", "If use ColorTint, Target must have UIItem component"))
+					.Text(LOCTEXT("TransitionActor_ColorTint_Tip", "If use ColorTint, Target must be a UIBaseRenderable Actor (UISprite, UITexture, UIText)"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
@@ -117,7 +117,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActor_SpriteSwap_Tip", "If use SpriteSwap, Target must have UISprite component"))
+					.Text(LOCTEXT("TransitionActor_SpriteSwap_Tip", "If use SpriteSwap, Target must be a UISprite Actor"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
