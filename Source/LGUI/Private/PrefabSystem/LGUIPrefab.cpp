@@ -140,22 +140,6 @@ ULGUIPrefab::ULGUIPrefab()
 
 }
 
-TMap<UClass*, TFunction<void(UObject*)>> ULGUIPrefab::OnDeserializeClassOfObjectMap;
-void ULGUIPrefab::RegisterOnDeserializeObject(UClass* InObjectClass, const TFunction<void(UObject*)>& InFunctionForObjectInstanceAfterDeserialize)
-{
-	if (!OnDeserializeClassOfObjectMap.Contains(InObjectClass))
-	{
-		OnDeserializeClassOfObjectMap.Add(InObjectClass, InFunctionForObjectInstanceAfterDeserialize);
-	}
-}
-void ULGUIPrefab::UnregisterOnDeserializeObject(UClass* InObjectClass)
-{
-	if (OnDeserializeClassOfObjectMap.Contains(InObjectClass))
-	{
-		OnDeserializeClassOfObjectMap.Remove(InObjectClass);
-	}
-}
-
 #if WITH_EDITOR
 AActor* ULGUIPrefab::GetContainerActor()
 {
