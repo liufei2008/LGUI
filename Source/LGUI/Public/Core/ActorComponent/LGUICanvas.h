@@ -124,6 +124,7 @@ public:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostLoad()override;
+	virtual void PostEditUndo()override;
 #endif
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
@@ -220,7 +221,6 @@ protected:
 	float FOVAngle = 90;
 	float NearClipPlane = GNearClippingPlane;
 	float FarClipPlane = GNearClippingPlane;
-	int32 EditorPreview_ViewIndex = 0;
 
 	float CalculateDistanceToCamera()const;
 
