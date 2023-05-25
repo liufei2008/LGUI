@@ -540,6 +540,28 @@ void ULGUICanvas::PostLoad()
 {
 	Super::PostLoad();
 }
+void ULGUICanvas::PostEditUndo()
+{
+	Super::PostEditUndo();
+
+	struct LOCAL
+	{
+		static void RecheckRootCanvasRecursive(ULGUICanvas* Target)
+		{
+			Target->RootCanvas = nullptr;
+			Target->CheckRootCanvas();
+			Target->MarkCanvasUpdate(true, true, true);
+
+			for (auto childCanvas : Target->ChildrenCanvasArray)
+			{
+				RecheckRootCanvasRecursive(childCanvas.Get());
+			}
+		}
+	};
+	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+		LOCAL::RecheckRootCanvasRecursive(this);
+		}, 0);
+}
 #endif
 
 UMaterialInterface** ULGUICanvas::GetMaterials()
