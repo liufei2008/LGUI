@@ -182,16 +182,6 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 			]
 		]
-		.OverrideResetToDefault(FResetToDefaultOverride::Create(
-			TAttribute<bool>::CreateLambda([=]
-				{
-					return hAlignPropertyHandle->CanResetToDefault() || vAlignPropertyHandle->CanResetToDefault();
-				}),
-				FSimpleDelegate::CreateLambda([=]() 
-				{
-					hAlignPropertyHandle->ResetToDefault(); vAlignPropertyHandle->ResetToDefault();
-				})
-		))
 		;
 	}
 

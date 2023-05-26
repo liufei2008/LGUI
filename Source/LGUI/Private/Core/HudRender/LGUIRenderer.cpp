@@ -383,7 +383,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
 		if (InView.bIsViewInfo)
 		{
-			auto& ViewInfo = reinterpret_cast<FViewInfo&>(InView);
+			auto& ViewInfo = static_cast<FViewInfo&>(InView);
 			ScreenPercentage = (float)ViewInfo.ViewRect.Width() / ViewRect.Width();
 		}
 		else
