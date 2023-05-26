@@ -22,7 +22,6 @@
 #include "Engine/Selection.h"
 #include "ToolMenus.h"
 #include "LGUIEditorUtils.h"
-#include "PrefabSystem/ActorSerializer3.h"
 #include "Editor.h"
 #include "EditorStyleSet.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -64,6 +63,8 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 	PrefabHelperObject = nullptr;
 
 	LGUIPrefabEditorInstanceCollection.Remove(this);
+
+	GEditor->SelectNone(true, true);
 }
 
 FLGUIPrefabEditor* FLGUIPrefabEditor::GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab)
