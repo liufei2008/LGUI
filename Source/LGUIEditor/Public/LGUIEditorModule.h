@@ -74,7 +74,6 @@ private:
 	TSharedRef<SDockTab> HandleSpawnDynamicSpriteAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnLGUIPrefabSequenceTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
-	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer = nullptr;
 	void CheckPrefabOverrideDataViewerEntry();
 
