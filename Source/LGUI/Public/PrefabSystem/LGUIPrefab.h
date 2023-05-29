@@ -86,9 +86,11 @@ struct FLGUIPrefabDataForPrefabEditor
 	GENERATED_BODY()
 public:
 	UPROPERTY()
-		FVector ViewLocationForPrefabEditor = FVector::ZeroVector;
+		FVector ViewLocation = FVector::ZeroVector;
 	UPROPERTY()
-		FRotator ViewRotationForPrefabEditor = FRotator::ZeroRotator;
+		FRotator ViewRotation = FRotator::ZeroRotator;
+	UPROPERTY()
+		FVector ViewOrbitLocation = FVector::ZeroVector;
 	UPROPERTY()
 		FIntPoint CanvasSize = FIntPoint(1920, 1080);
 	UPROPERTY()

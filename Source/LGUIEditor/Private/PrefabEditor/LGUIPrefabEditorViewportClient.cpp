@@ -84,9 +84,11 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 
 	FVector InitialViewLocation;
 	FRotator InitialViewRotation;
-	InPrefabEditorPtr.Pin()->GetInitialViewLocationAndRotation(InitialViewLocation, InitialViewRotation);
+	FVector InitialViewOrbitLocation;
+	InPrefabEditorPtr.Pin()->GetInitialViewLocationAndRotation(InitialViewLocation, InitialViewRotation, InitialViewOrbitLocation);
 	SetViewLocation(InitialViewLocation);
 	SetViewRotation(InitialViewRotation);
+	SetLookAtLocation(InitialViewOrbitLocation);
 }
 
 FLGUIPrefabEditorViewportClient::~FLGUIPrefabEditorViewportClient()

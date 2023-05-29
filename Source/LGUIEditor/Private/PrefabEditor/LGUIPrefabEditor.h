@@ -79,7 +79,7 @@ public:
 	bool ActorBelongsToSubPrefab(AActor* InSubPrefabActor);
 	bool ActorIsSubPrefabRoot(AActor* InSubPrefabRootActor);
 	FLGUISubPrefabData GetSubPrefabDataForActor(AActor* InSubPrefabActor);
-	void GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation);
+	void GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation, FVector& OutOrbitLocation);
 
 	void OpenSubPrefab(AActor* InSubPrefabActor);
 	void SelectSubPrefab(AActor* InSubPrefabActor);
