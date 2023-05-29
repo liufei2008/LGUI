@@ -167,7 +167,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			[
 				SNew(SButton)
 				.Text(LOCTEXT("FixPrefabHelperObject", "Fix"))
-				.ToolTipText(LOCTEXT("FixAgentRootActor_Tooltip", "Missing agent objects! This will cause cook & package fail. Click to fix it. Because we can't fix it in cook thread, so you need to do it manually."))
+				.ToolTipText(LOCTEXT("FixAgentRootActor_Tooltip", "Missing agent objects! This may cause cook & package fail. Click to fix it. Because we can't fix it in cook thread, so you need to do it manually."))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreateAgentObjects)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton)

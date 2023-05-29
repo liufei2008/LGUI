@@ -138,6 +138,8 @@ public:
 #if WITH_EDITOR
 	static void NotifyPropertyChanged(UObject* Object, FProperty* Property);
 	static void NotifyPropertyChanged(UObject* Object, FName PropertyName);
+	static void NotifyPropertyPreChange(UObject* Object, FProperty* Property);
+	static void NotifyPropertyPreChange(UObject* Object, FName PropertyName);
 #endif
 
 	static void LogObjectFlags(UObject* obj);
