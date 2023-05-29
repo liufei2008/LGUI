@@ -806,6 +806,7 @@ bool ULGUIPrefabHelperObject::CleanupInvalidLinkToSubPrefabObject()
 }
 
 #pragma region RevertAndApply
+//@todo: maybe this is not necessary? not sure, need to test
 void ULGUIPrefabHelperObject::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
 {
 	if (auto SceneComp = Cast<USceneComponent>(InObject))
