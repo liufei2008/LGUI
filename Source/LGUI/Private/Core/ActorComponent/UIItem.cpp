@@ -718,7 +718,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 void UUIItem::OnUIAttachedToParent()
 {
 	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
 		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
 		check(ParentUIItem.IsValid());
@@ -780,7 +780,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 void UUIItem::OnUIDetachedFromParent()
 {
 	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
 		if (ParentUIItem.IsValid())//tell old parent
 		{
@@ -836,8 +836,16 @@ void UUIItem::OnRegister()
 			//display name
 			if (this->GetOwner()->GetRootComponent() == this)
 			{
-				auto actorLabel = FString(*this->GetOwner()->GetActorLabel());
-				this->displayName = actorLabel;
+				auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
+				if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the displayName should be set from prefab
+				{
+
+				}
+				else
+				{
+					auto actorLabel = FString(*this->GetOwner()->GetActorLabel());
+					this->displayName = actorLabel;
+				}
 			}
 			else
 			{

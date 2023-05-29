@@ -150,23 +150,22 @@ void LGUIUtils::NotifyPropertyChanged(UObject* Object, FProperty* Property)
 {
 	if (!IsValid(Object))
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::NotifyPropertyChanged]InValid object!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid object!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 	if (Property == nullptr)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::NotifyPropertyChanged]InValid property!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid property!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 
+	FEditPropertyChain PropertyChain;
+	PropertyChain.AddHead(Property);//@todo: how to build property chain?
 	TArray<UObject*> ModifiedObjects;
 	ModifiedObjects.Add(Object);
 	FPropertyChangedEvent PropertyChangedEvent(Property, EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
-	Object->PostEditChangeProperty(PropertyChangedEvent);
-	FEditPropertyChain PropertyChain;
-	PropertyChain.AddHead(Property);
 	FPropertyChangedChainEvent PropertyChangedChainEvent(PropertyChain, PropertyChangedEvent);
 	Object->PostEditChangeChainProperty(PropertyChangedChainEvent);
 }
@@ -174,6 +173,30 @@ void LGUIUtils::NotifyPropertyChanged(UObject* Object, FName PropertyName)
 {
 	auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
 	NotifyPropertyChanged(Object, Property);
+}
+void LGUIUtils::NotifyPropertyPreChange(UObject* Object, FProperty* Property)
+{
+	if (!IsValid(Object))
+	{
+		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid object!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
+	if (Property == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid property!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		return;
+	}
+
+	FEditPropertyChain PropertyChain;
+	PropertyChain.AddHead(Property);//@todo: how to build property chain?
+	Object->PreEditChange(PropertyChain);
+}
+void LGUIUtils::NotifyPropertyPreChange(UObject* Object, FName PropertyName)
+{
+	auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
+	NotifyPropertyPreChange(Object, Property);
 }
 #endif
 

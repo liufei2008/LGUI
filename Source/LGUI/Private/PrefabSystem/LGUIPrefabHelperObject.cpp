@@ -1013,6 +1013,8 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArr
 		{
 			if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 			{
+				//notify
+				LGUIUtils::NotifyPropertyPreChange(InObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 				//set to default value
 				RevertPrefabPropertyValue(InObject, Property, InObject, ObjectInPrefab, SubPrefabData);
 				//delete item
@@ -1065,6 +1067,8 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 
 		if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), InPropertyName))
 		{
+			//notify
+			LGUIUtils::NotifyPropertyPreChange(InObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 			//set to default value
 			RevertPrefabPropertyValue(InObject, Property, InObject, ObjectInPrefab, SubPrefabData);
 			//delete item
@@ -1142,6 +1146,8 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 				NamesToClear.Add(PropertyName);
 				if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 				{
+					//notify
+					LGUIUtils::NotifyPropertyPreChange(SourceObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 					//set to default value
 					RevertPrefabPropertyValue(InObject, Property, SourceObject, ObjectInPrefab, SubPrefabData);
 					//notify
