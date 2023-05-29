@@ -71,7 +71,7 @@ public:
 	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
 	AActor* GetSubPrefabRootActor(AActor* InSubPrefabActor);
 	/** For parent prefab. When parent prefab want to apply override parameter to subprefab, but the parameter belongs to subprefab's subprefab, then we need to mark override parameter for subprefab. */
-	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
 
 	/** If sub prefab changed, then update parent prefab */
@@ -82,10 +82,10 @@ public:
 	void RevertPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
 	void ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
 
-	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
 	void RevertAllPrefabOverride(UObject* InObject);
-	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
 	void ApplyAllOverrideToPrefab(UObject* InObject);
 

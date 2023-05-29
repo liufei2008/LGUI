@@ -9,8 +9,8 @@
 
 namespace LGUIPrefabSystem
 {
-	FLGUIDuplicateOverrideParameterObjectWriter::FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
-		: FLGUIOverrideParameterObjectWriter(Bytes, InSerializer, InSkipPropertyNames)
+	FLGUIDuplicateOverrideParameterObjectWriter::FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
+		: FLGUIOverrideParameterObjectWriter(Bytes, InSerializer, InOverridePropertyNames)
 	{
 		
 	}
@@ -50,8 +50,8 @@ namespace LGUIPrefabSystem
 
 
 
-	FLGUIDuplicateOverrideParameterObjectReader::FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
-		: FLGUIOverrideParameterObjectReader(Bytes, InSerializer, InSkipPropertyNames)
+	FLGUIDuplicateOverrideParameterObjectReader::FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
+		: FLGUIOverrideParameterObjectReader(Bytes, InSerializer, InOverridePropertyNames)
 	{
 
 	}

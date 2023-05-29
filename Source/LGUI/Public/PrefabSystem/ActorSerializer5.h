@@ -110,12 +110,12 @@ namespace LGUIPrefabSystem5
 	public:
 		FGuid ObjectGuid;
 		TArray<uint8> OverrideParameterData;
-		TSet<FName> OverrideParameterNameSet;
+		TArray<FName> OverrideParameterNames;
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabOverrideParameterRecordData& Data)
 		{
 			Ar << Data.ObjectGuid;
 			Ar << Data.OverrideParameterData;
-			Ar << Data.OverrideParameterNameSet;
+			Ar << Data.OverrideParameterNames;
 			return Ar;
 		}
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabOverrideParameterRecordData& Data)
@@ -123,7 +123,7 @@ namespace LGUIPrefabSystem5
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
 			Record << SA_VALUE(TEXT("ObjectGuid"), Data.ObjectGuid);
 			Record << SA_VALUE(TEXT("OverrideParameterData"), Data.OverrideParameterData);
-			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNameSet);
+			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNames);
 		}
 	};
 
@@ -332,8 +332,8 @@ namespace LGUIPrefabSystem5
 		 * Writer and Reader for serialize or deserialize
 		 * @param	UObject*	Object to serialize/deserialize
 		 * @param	TArray<uint8>&	Data buffer
-		 * @param	TSet<FName>&	Member properties to filter
+		 * @param	TArray<FName>&	Member properties to filter
 		 */
-		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
+		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
 	};
 }

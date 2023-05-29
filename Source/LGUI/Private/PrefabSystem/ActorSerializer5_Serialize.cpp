@@ -51,8 +51,8 @@ namespace LGUIPrefabSystem5
 			LGUIPrefabSystem::FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			LGUIPrefabSystem::FLGUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNameSet);
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
+			LGUIPrefabSystem::FLGUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
 			Writer.DoSerialize(InObject);
 		};
 		serializer.SerializeActor(OriginRootActor, InPrefab);
@@ -76,11 +76,11 @@ namespace LGUIPrefabSystem5
 				auto SubPrefabObject = DataItem.Object.Get();
 				if (MapObjectToGuid.Contains(SubPrefabObject))
 				{
-					WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
+					WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyNames);
 					FLGUIPrefabOverrideParameterRecordData RecordDataItem;
 					RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
 					RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
-					RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
+					RecordDataItem.OverrideParameterNames = DataItem.MemberPropertyNames;
 					OutActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
 				}
 			}
