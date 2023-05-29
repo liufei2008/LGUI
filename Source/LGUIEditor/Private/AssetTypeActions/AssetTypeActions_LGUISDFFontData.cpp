@@ -29,7 +29,7 @@ uint32 FAssetTypeActions_LGUISDFFontData::GetCategories()
 
 FText FAssetTypeActions_LGUISDFFontData::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUISDFFontDataAsset", "LGUI SDF Font");
+	return LOCTEXT("Name", "LGUI SDF Font");
 }
 
 UClass* FAssetTypeActions_LGUISDFFontData::GetSupportedClass()const

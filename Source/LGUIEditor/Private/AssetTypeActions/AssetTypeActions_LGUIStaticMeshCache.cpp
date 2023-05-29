@@ -29,7 +29,7 @@ uint32 FAssetTypeActions_LGUIStaticMeshCache::GetCategories()
 
 FText FAssetTypeActions_LGUIStaticMeshCache::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIStaticMeshCacheDataAsset", "LGUI StaticMesh Cache");
+	return LOCTEXT("Name", "LGUI StaticMesh Cache");
 }
 
 UClass* FAssetTypeActions_LGUIStaticMeshCache::GetSupportedClass()const
