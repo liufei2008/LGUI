@@ -83,7 +83,6 @@ int32 ULGUISettings::GetPriorityInSceneViewExtension()
 
 #if WITH_EDITOR
 FSimpleMulticastDelegate ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange;
-FSimpleMulticastDelegate ULGUIEditorSettings::LGUIEditorSetting_PreserveHierarchyStateChange;
 void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -117,10 +116,6 @@ void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 				GEditor->BroadcastLevelActorListChanged();//refresh Outliner menu
 			}
 		}
-		else if (MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, PreserveHierarchyState))
-		{
-			LGUIEditorSetting_PreserveHierarchyStateChange.Broadcast();
-		}
 	}
 }
 void ULGUIEditorSettings::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
@@ -138,13 +133,5 @@ void ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(int32 value)
 	{
 		LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
 	}
-}
-bool ULGUIEditorSettings::GetPreserveHierarchyState()
-{
-	return GetDefault<ULGUIEditorSettings>()->PreserveHierarchyState;
-}
-float ULGUIEditorSettings::GetDelayRestoreHierarchyTime()
-{
-	return GetDefault<ULGUIEditorSettings>()->DelayRestoreHierarchyTime;
 }
 #endif
