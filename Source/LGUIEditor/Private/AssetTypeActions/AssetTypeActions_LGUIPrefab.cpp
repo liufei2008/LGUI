@@ -13,7 +13,7 @@
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "LGUIEditorModule.h"
 
-#define LOCTEXT_NAMESPACE "LGUIPrefabTypeAction"
+#define LOCTEXT_NAMESPACE "AssetTypeActions_LGUIPrefab"
 
 FAssetTypeActions_LGUIPrefab::FAssetTypeActions_LGUIPrefab(EAssetTypeCategories::Type InAssetType)
 : FAssetTypeActions_Base(), AssetType(InAssetType)
@@ -23,7 +23,7 @@ FAssetTypeActions_LGUIPrefab::FAssetTypeActions_LGUIPrefab(EAssetTypeCategories:
 
 FText FAssetTypeActions_LGUIPrefab::GetName() const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIPrefabDataAsset", "LGUI Prefab");
+	return LOCTEXT("Name", "LGUI Prefab");
 }
 
 UClass* FAssetTypeActions_LGUIPrefab::GetSupportedClass() const
