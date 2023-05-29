@@ -397,9 +397,9 @@ TArray<AActor*> FLGUIPrefabEditor::GetAllActors()
 	return AllActors;
 }
 
-void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)
+void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation, FVector& OutOrbitLocation)
 {
-	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor == FRotator::ZeroRotator)
+	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocation == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotation == FRotator::ZeroRotator)
 	{
 		auto SceneBounds = this->GetAllObjectsBounds();
 		OutLocation = FVector(-SceneBounds.SphereRadius, SceneBounds.Origin.Y, SceneBounds.Origin.Z);
@@ -407,9 +407,10 @@ void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, 
 	}
 	else
 	{
-		OutLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor;
-		OutRotation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor;
+		OutLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocation;
+		OutRotation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotation;
 	}
+	OutOrbitLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewOrbitLocation;
 }
 
 void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
@@ -466,8 +467,9 @@ void FLGUIPrefabEditor::OnApply()
 	{
 		//save view location and rotation
 		auto ViewTransform = ViewportPtr->GetViewportClient()->GetViewTransform();
-		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor = ViewTransform.GetLocation();
-		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor = ViewTransform.GetRotation();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocation = ViewTransform.GetLocation();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotation = ViewTransform.GetRotation();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewOrbitLocation = ViewTransform.GetLookAt();
 		if (auto RootAgentActor = GetPreviewScene().GetRootAgentActor())
 		{
 			if (auto UIItem = Cast<UUIItem>(RootAgentActor->GetRootComponent()))
