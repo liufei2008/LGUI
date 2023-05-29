@@ -66,12 +66,12 @@ namespace LGUIPrefabSystem3
 	public:
 		FGuid ObjectGuid;
 		TArray<uint8> OverrideParameterData;
-		TSet<FName> OverrideParameterNameSet;
+		TArray<FName> OverrideParameterNames;
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabOverrideParameterRecordData& Data)
 		{
 			Ar << Data.ObjectGuid;
 			Ar << Data.OverrideParameterData;
-			Ar << Data.OverrideParameterNameSet;
+			Ar << Data.OverrideParameterNames;
 			return Ar;
 		}
 	};
@@ -233,9 +233,9 @@ namespace LGUIPrefabSystem3
 		 * Writer and Reader for serialize or deserialize
 		 * @param	UObject*	Object to serialize/deserialize
 		 * @param	TArray<uint8>&	Data buffer
-		 * @param	TSet<FName>&	Member properties to filter
+		 * @param	TArray<FName>&	Member properties to filter
 		 */
-		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
+		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
 		/** Duplicate actor */
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 	};

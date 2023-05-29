@@ -63,14 +63,14 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 			DisplayName = Actor->GetActorLabel() + TEXT(".") + Component->GetName();
 		}
 
-		TSet<FName> FilteredMemeberPropertyNameSet = DataItem.MemberPropertyName;
+		auto FilteredMemeberPropertyNames = DataItem.MemberPropertyNames;
 		if (i == 0)
 		{
 			if (auto UIItem = Cast<UUIItem>(DataItem.Object.Get()))
 			{
 				for (auto& Name : UUIItem::PersistentOverridePropertyNameSet)
 				{
-					FilteredMemeberPropertyNameSet.Remove(Name);
+					FilteredMemeberPropertyNames.Remove(Name);
 				}
 			}
 		}
@@ -111,7 +111,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				[
 					PropertyCustomizationHelpers::MakeResetButton(
 						FSimpleDelegate::CreateLambda([=]() {
-							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
+							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
 							AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
 						, LOCTEXT("RevertObjectAllParameterSet", "Click to revert all parameters of this object to prefab's default value.")
@@ -129,7 +129,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				[
 					PropertyCustomizationHelpers::MakeUseSelectedButton(
 						FSimpleDelegate::CreateLambda([=]() {
-							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
+							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
 							AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
 						, LOCTEXT("ApplyObjectParameterSet", "Click to apply all parameters of this object to prefab's default value.")
@@ -138,7 +138,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 			]
 		]
 		;
-		for (auto& PropertyName : DataItem.MemberPropertyName)
+		for (auto& PropertyName : DataItem.MemberPropertyNames)
 		{
 			auto Property = FindFProperty<FProperty>(DataItem.Object->GetClass(), PropertyName);
 			auto HorizontalBox = SNew(SHorizontalBox);

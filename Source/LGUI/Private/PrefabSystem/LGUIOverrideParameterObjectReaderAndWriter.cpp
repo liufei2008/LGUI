@@ -8,7 +8,7 @@
 
 namespace LGUIPrefabSystem
 {
-	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -164,7 +164,7 @@ namespace LGUIPrefabSystem
 	}
 
 
-	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -287,7 +287,7 @@ namespace LGUIPrefabSystem
 
 
 
-	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TArray<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
@@ -325,7 +325,7 @@ namespace LGUIPrefabSystem
 	}
 
 
-	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TArray<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{

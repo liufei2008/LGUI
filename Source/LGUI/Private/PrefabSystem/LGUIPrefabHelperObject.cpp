@@ -238,16 +238,16 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 				}
 
 				TSet<FName> NamesToClear;
-				for (auto& PropertyName : DataItem.MemberPropertyName)
+				for (auto& PropertyName : DataItem.MemberPropertyNames)
 				{
 					if (FilterNameSet.Contains(PropertyName))continue;
 					NamesToClear.Add(PropertyName);
 				}
 				for (auto& PropertyName : NamesToClear)
 				{
-					DataItem.MemberPropertyName.Remove(PropertyName);
+					DataItem.MemberPropertyNames.RemoveSwap(PropertyName);
 				}
-				if (DataItem.MemberPropertyName.Num() == 0)
+				if (DataItem.MemberPropertyNames.Num() == 0)
 				{
 					SubPrefabData.ObjectOverrideParameterArray.RemoveAt(i);
 					i--;
@@ -331,7 +331,7 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor
 	return nullptr;
 }
 
-void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InObject, const TArray<FName>& InPropertyNames)
 {
 	AActor* Actor = Cast<AActor>(InObject);
 	UActorComponent* Component = Cast<UActorComponent>(InObject);
@@ -347,7 +347,7 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 	{
 		if (Actor == KeyValue.Key || Actor->IsAttachedTo(KeyValue.Key))
 		{
-			KeyValue.Value.AddMemberProperty(InObject, InPropertyNameSet);
+			KeyValue.Value.AddMemberProperty(InObject, InPropertyNames);
 		}
 	}
 }
@@ -976,7 +976,7 @@ void ULGUIPrefabHelperObject::RevertPrefabPropertyValue(UObject* ContextObject, 
 		Property->CopyCompleteValue_InContainer(ContainerPointerInSrc, ContainerPointerInPrefab);
 	}
 }
-void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
 	InObject->Modify();
@@ -1009,7 +1009,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 
 	bCanCollectProperty = false;
 	{
-		for (auto& PropertyName : InPropertyNameSet)
+		for (auto& PropertyName : InPropertyNames)
 		{
 			if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 			{
@@ -1136,7 +1136,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			CopyRootObjectParentAnchorData(SourceObject, ObjectInPrefab);
 
 			TSet<FName> NamesToClear;
-			for (auto& PropertyName : DataItem.MemberPropertyName)
+			for (auto& PropertyName : DataItem.MemberPropertyNames)
 			{
 				if (FilterNameSet.Contains(PropertyName))continue;
 				NamesToClear.Add(PropertyName);
@@ -1150,7 +1150,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			}
 			for (auto& PropertyName : NamesToClear)
 			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
+				DataItem.MemberPropertyNames.Remove(PropertyName);
 			}
 		}
 		RemoveAllMemberPropertyFromSubPrefab(Actor);
@@ -1308,7 +1308,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, F
 		Property->CopyCompleteValue_InContainer(ContainerPointerInPrefab, ContainerPointerInSrc);
 	}
 }
-void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperties", "Apply Prefab Override: {0}"), FText::FromString(InObject->GetName())));
 	InObject->Modify();
@@ -1345,7 +1345,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 
 	bCanCollectProperty = false;
 	{
-		for (auto& PropertyName : InPropertyNameSet)
+		for (auto& PropertyName : InPropertyNames)
 		{
 			if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 			{
@@ -1363,7 +1363,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 		if (bAnythingDirty)
 		{
 			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
-			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, InPropertyNameSet);
+			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, InPropertyNames);
 
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
@@ -1499,7 +1499,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			if (auto ObjectInPrefab = FindOriginObjectInSourcePrefab(SourceObject))
 			{
 				TSet<FName> NamesToClear;
-				for (auto& PropertyName : DataItem.MemberPropertyName)
+				for (auto& PropertyName : DataItem.MemberPropertyNames)
 				{
 					if (FilterNameSet.Contains(PropertyName))continue;
 					NamesToClear.Add(PropertyName);
@@ -1512,11 +1512,11 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 					}
 				}
 				//mark on sub prefab, because the object could belongs to subprefab's subprefab.
-				SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, DataItem.MemberPropertyName);
+				SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, DataItem.MemberPropertyNames);
 
 				for (auto& PropertyName : NamesToClear)
 				{
-					DataItem.MemberPropertyName.Remove(PropertyName);
+					DataItem.MemberPropertyNames.Remove(PropertyName);
 				}
 			}
 			else//if not find OriginObject, means the SourceObject is newly created (added new component) @todo: automatic add component to origin prefab

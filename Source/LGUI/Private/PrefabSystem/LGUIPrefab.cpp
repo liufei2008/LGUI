@@ -33,20 +33,20 @@ void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyNa
 	{
 		FLGUIPrefabOverrideParameterData DataItem;
 		DataItem.Object = InObject;
-		DataItem.MemberPropertyName.Add(InPropertyName);
+		DataItem.MemberPropertyNames.Add(InPropertyName);
 		ObjectOverrideParameterArray.Add(DataItem);
 	}
 	else
 	{
 		auto& DataItem = ObjectOverrideParameterArray[Index];
-		if (!DataItem.MemberPropertyName.Contains(InPropertyName))
+		if (!DataItem.MemberPropertyNames.Contains(InPropertyName))
 		{
-			DataItem.MemberPropertyName.Add(InPropertyName);
+			DataItem.MemberPropertyNames.Add(InPropertyName);
 		}
 	}
 }
 
-void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, const TArray<FName>& InPropertyNames)
 {
 	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
 		return Item.Object == InObject;
@@ -55,17 +55,17 @@ void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, const TSet<FName>&
 	{
 		FLGUIPrefabOverrideParameterData DataItem;
 		DataItem.Object = InObject;
-		DataItem.MemberPropertyName = InPropertyNameSet;
+		DataItem.MemberPropertyNames = InPropertyNames;
 		ObjectOverrideParameterArray.Add(DataItem);
 	}
 	else
 	{
 		auto& DataItem = ObjectOverrideParameterArray[Index];
-		for (auto& NameItem : InPropertyNameSet)
+		for (auto& NameItem : InPropertyNames)
 		{
-			if (!DataItem.MemberPropertyName.Contains(NameItem))
+			if (!DataItem.MemberPropertyNames.Contains(NameItem))
 			{
-				DataItem.MemberPropertyName.Add(NameItem);
+				DataItem.MemberPropertyNames.Add(NameItem);
 			}
 		}
 	}
@@ -79,11 +79,11 @@ void FLGUISubPrefabData::RemoveMemberProperty(UObject* InObject, FName InPropert
 	if (Index != INDEX_NONE)
 	{
 		auto& DataItem = ObjectOverrideParameterArray[Index];
-		if (DataItem.MemberPropertyName.Contains(InPropertyName))
+		if (DataItem.MemberPropertyNames.Contains(InPropertyName))
 		{
-			DataItem.MemberPropertyName.Remove(InPropertyName);
+			DataItem.MemberPropertyNames.Remove(InPropertyName);
 		}
-		if (DataItem.MemberPropertyName.Num() <= 0)
+		if (DataItem.MemberPropertyNames.Num() <= 0)
 		{
 			ObjectOverrideParameterArray.RemoveAt(Index);
 		}
@@ -117,7 +117,7 @@ bool FLGUISubPrefabData::CheckParameters()
 		{
 			TSet<FName> PropertyNamesToRemove;
 			auto Object = DataItem.Object;
-			for (auto PropertyName : DataItem.MemberPropertyName)
+			for (auto PropertyName : DataItem.MemberPropertyNames)
 			{
 				auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
 				if (Property == nullptr)
@@ -127,7 +127,7 @@ bool FLGUISubPrefabData::CheckParameters()
 			}
 			for (auto PropertyName : PropertyNamesToRemove)
 			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
+				DataItem.MemberPropertyNames.Remove(PropertyName);
 				AnythingChanged = true;
 			}
 		}

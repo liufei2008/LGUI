@@ -47,7 +47,7 @@ public:
 		TWeakObjectPtr<UObject> Object;
 	/** UObject's member property name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TSet<FName> MemberPropertyName;
+		TArray<FName> MemberPropertyNames;
 };
 
 USTRUCT(NotBlueprintType)
@@ -70,7 +70,7 @@ public:
 #endif
 public:
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
-	void AddMemberProperty(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void AddMemberProperty(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
 	void RemoveMemberProperty(UObject* InObject);
 	/** 

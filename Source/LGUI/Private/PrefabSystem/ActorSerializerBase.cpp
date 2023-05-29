@@ -134,7 +134,7 @@ namespace LGUIPrefabSystem
 		for (auto& DataItem : InData)
 		{
 			TArray<uint8> ObjectOverrideData;
-			FLGUIImmediateOverrideParameterObjectWriter Writer(DataItem.Object.Get(), ObjectOverrideData, *this, DataItem.MemberPropertyName);
+			FLGUIImmediateOverrideParameterObjectWriter Writer(DataItem.Object.Get(), ObjectOverrideData, *this, DataItem.MemberPropertyNames);
 			MapObjectToOverrideDatas.Add(DataItem.Object.Get(), ObjectOverrideData);
 		}
 		return MapObjectToOverrideDatas;
@@ -152,7 +152,7 @@ namespace LGUIPrefabSystem
 					});
 				if (Index != INDEX_NONE)
 				{
-					FLGUIImmediateOverrideParameterObjectReader Reader(KeyValue.Key, KeyValue.Value, *this, InNameSetData[Index].MemberPropertyName);
+					FLGUIImmediateOverrideParameterObjectReader Reader(KeyValue.Key, KeyValue.Value, *this, InNameSetData[Index].MemberPropertyNames);
 				}
 			}
 		}
