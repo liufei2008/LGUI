@@ -29,7 +29,7 @@ uint32 FAssetTypeActions_LGUIRichTextCustomStyleData::GetCategories()
 
 FText FAssetTypeActions_LGUIRichTextCustomStyleData::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIRichTextCustomStyleDataAsset", "LGUI RichText Custom Style Data");
+	return LOCTEXT("Name", "LGUI RichText Custom Style Data");
 }
 
 UClass* FAssetTypeActions_LGUIRichTextCustomStyleData::GetSupportedClass()const

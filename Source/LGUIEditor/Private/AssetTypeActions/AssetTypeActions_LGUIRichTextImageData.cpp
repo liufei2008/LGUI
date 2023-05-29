@@ -29,7 +29,7 @@ uint32 FAssetTypeActions_LGUIRichTextImageData::GetCategories()
 
 FText FAssetTypeActions_LGUIRichTextImageData::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIRichTextImageDataAsset", "LGUI RichText Image Data");
+	return LOCTEXT("Name", "LGUI RichText Image Data");
 }
 
 UClass* FAssetTypeActions_LGUIRichTextImageData::GetSupportedClass()const

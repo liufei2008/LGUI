@@ -29,7 +29,7 @@ uint32 FAssetTypeActions_LGUIStaticSpriteAtlasData::GetCategories()
 
 FText FAssetTypeActions_LGUIStaticSpriteAtlasData::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIStaticSpriteAtlasDataAsset", "LGUI Static Sprite Atlas Data");
+	return LOCTEXT("Name", "LGUI Static Sprite Atlas Data");
 }
 
 UClass* FAssetTypeActions_LGUIStaticSpriteAtlasData::GetSupportedClass()const
