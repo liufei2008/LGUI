@@ -316,7 +316,8 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	}
 	if (geometry->vertices.Num() >= LGUI_MAX_VERTEX_COUNT)
 	{
-		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleDdrawcall", "[UUIBatchGeometryRenderable::UpdateGeometry] Too many vertex ({0}) in single UI element: {1}")
+		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleDdrawcall", "{0} Too many vertex ({1}) in single UI element: {2}")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
 			, geometry->vertices.Num()
 #if WITH_EDITOR
 			, FText::FromString(this->GetOwner()->GetActorLabel())
@@ -552,7 +553,7 @@ void ULGUIGeometryHelper::AddVertexSimple(FVector position, FColor color, FVecto
 		|| uv0.ContainsNaN()
 		)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexFull]Vertex data contains NaN!."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%s Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 #endif
@@ -576,7 +577,7 @@ void ULGUIGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2
 		|| uv3.ContainsNaN()
 		)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexFull]Vertex data contains NaN!."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 #endif
@@ -603,7 +604,7 @@ void ULGUIGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 		|| vertex.uv3.ContainsNaN()
 		)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexStruct]Vertex data contains NaN!."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 #endif
@@ -624,7 +625,7 @@ void ULGUIGeometryHelper::AddTriangle(int index0, int index1, int index2)
 	int vertCount = UIGeo->vertices.Num();
 	if (index0 >= vertCount || index1 >= vertCount || index2 >= vertCount)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddTriangle]Triangle index reference out of vertex range."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Triangle index reference out of vertex range."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 #endif
@@ -642,13 +643,13 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 	{
 		if (i >= vertCount)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Triangle index reference out of vertex range."));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Triangle index reference out of vertex range."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return;
 		}
 	}
 	if ((InIndices.Num() % 3) != 0)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Indices count must be multiple of 3."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Indices count must be multiple of 3."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 	for (auto& vertex : InVertices)
@@ -662,7 +663,7 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 			|| vertex.uv3.ContainsNaN()
 			)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Vertex data contains NaN!."));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			break;
 		}
 	}
@@ -697,7 +698,7 @@ void ULGUIGeometryHelper::AddVertexTriangleStream(const TArray<FLGUIGeometryVert
 #if !UE_BUILD_SHIPPING
 	if ((InVertexTriangleStream.Num() % 3) != 0)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexTriangleStream]Indices count must be multiple of 3."));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Indices count must be multiple of 3."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 	for (auto& vertex : InVertexTriangleStream)
@@ -711,7 +712,7 @@ void ULGUIGeometryHelper::AddVertexTriangleStream(const TArray<FLGUIGeometryVert
 			|| vertex.uv3.ContainsNaN()
 			)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexTriangleStream]Vertex data contains NaN!."));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return;
 		}
 	}

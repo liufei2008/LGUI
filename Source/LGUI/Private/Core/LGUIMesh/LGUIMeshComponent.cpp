@@ -685,7 +685,9 @@ void ULGUIMeshComponent::CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 	{
 		if (MeshSection->vertices.Num() > LGUI_MAX_VERTEX_COUNT)
 		{
-			auto errorMsg = FText::Format(LOCTEXT("TooManyTrianglesInSingleDdrawcall", "[ULGUIMeshComponent] Too many vertices ({0}) in single drawcall! This will cause issue!"), MeshSection->vertices.Num());
+			auto errorMsg = FText::Format(LOCTEXT("TooManyTrianglesInSingleDdrawcall", "{0} Too many vertices ({1}) in single drawcall! This will cause issue!")
+				, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+				, MeshSection->vertices.Num());
 			LGUIUtils::EditorNotification(errorMsg, 10);
 			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 		}

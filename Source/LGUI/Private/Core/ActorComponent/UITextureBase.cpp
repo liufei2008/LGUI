@@ -48,7 +48,8 @@ UTexture* UUITextureBase::GetDefaultWhiteTexture()
 	auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
 	if (!IsValid(defaultWhiteSolid))
 	{
-		auto errMsg = LOCTEXT("MissingDefaultContent", "[UUITextureBase::GetDefaultWhiteTexture] Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+		auto errMsg = FText::Format(LOCTEXT("MissingDefaultContent", "{0} Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
 		UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(errMsg, 10);
@@ -110,7 +111,7 @@ void UUITextureBase::SetSizeFromTexture()
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUITextureBase::SetSizeFromTexture]texture is null!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Texture is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 

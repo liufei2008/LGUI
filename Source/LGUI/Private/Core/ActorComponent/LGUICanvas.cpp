@@ -2359,7 +2359,8 @@ void ULGUICanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 {
 	if (FMath::Abs(this->sortOrder + InAdditionalValue) > MAX_int16)
 	{
-		auto errorMsg = LOCTEXT("SortOrderOutOfRange", "[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767");
+		auto errorMsg = FText::Format(LOCTEXT("SortOrderOutOfRange", "{0} sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
 		UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(errorMsg);
@@ -2392,7 +2393,8 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 		{
 			if (FMath::Abs(InSortOrder) > MAX_int16)
 			{
-				auto errorMsg = LOCTEXT("SortOrderOutOfRange", "[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767");
+				auto errorMsg = FText::Format(LOCTEXT("SortOrderOutOfRange", "{0} sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767")
+					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
 				UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 #if WITH_EDITOR
 				LGUIUtils::EditorNotification(errorMsg);
@@ -2467,7 +2469,7 @@ void ULGUICanvas::SetDefaultMaterials(const TArray<UMaterialInterface*>& InMater
 {
 	if (InMaterialArray.Num() < (int)ELGUICanvasClipType::Custom)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::SetDefaultMaterials] InMaterialArray's count must be %d"), (int)ELGUICanvasClipType::Custom);
+		UE_LOG(LGUI, Error, TEXT("[%s].%d InMaterialArray's count must be %d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, (int)ELGUICanvasClipType::Custom);
 		return;
 	}
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
@@ -2791,7 +2793,7 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()const
 	{
 		if (!CheckUIItem())
 		{
-			UE_LOG(LGUI, Error, TEXT("[LGUICanvas::GetViewProjectionMatrix]UIItem not valid!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d UIItem not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return cacheViewProjectionMatrix;
 		}
 		bIsViewProjectionMatrixDirty = false;
