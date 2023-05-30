@@ -110,7 +110,7 @@ void UUISpriteBase::SetSizeFromSpriteData()
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUISpriteBase::SetSizeFromSpriteData]sprite is null!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Sprite is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 

@@ -1375,7 +1375,7 @@ void UUIItem::SetAnchorMin(FVector2D Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorMin]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 void UUIItem::SetAnchorMax(FVector2D Value)
@@ -1417,7 +1417,7 @@ void UUIItem::SetAnchorMax(FVector2D Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorMax]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 
@@ -1445,7 +1445,7 @@ void UUIItem::SetHorizontalAndVerticalAnchorMinMax(FVector2D MinValue, FVector2D
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetHorizontalAndVerticalAnchorMinMax]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 
@@ -1490,7 +1490,7 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bK
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetHorizontalAnchorMinMax]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bKeepRelativeLocation)
@@ -1534,7 +1534,7 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bKee
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetVerticalAnchorMinMax]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 
@@ -1696,7 +1696,7 @@ void UUIItem::SetAnchorLeft(float Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorLeft]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 void UUIItem::SetAnchorTop(float Value)
@@ -1727,7 +1727,7 @@ void UUIItem::SetAnchorTop(float Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorTop]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 void UUIItem::SetAnchorRight(float Value)
@@ -1758,7 +1758,7 @@ void UUIItem::SetAnchorRight(float Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorRight]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 void UUIItem::SetAnchorBottom(float Value)
@@ -1789,7 +1789,7 @@ void UUIItem::SetAnchorBottom(float Value)
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorBottom]This function only valid if UIItem have parent!"))
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d This function only valid if UIItem have parent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)
 	}
 }
 
@@ -1872,7 +1872,7 @@ UUIItem* UUIItem::GetAttachUIChild(int index)const
 {
 	if (index < 0 || index >= UIChildren.Num())
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUIItem::GetAttachUIChild]index:%d out of range[%d, %d]"), index, 0, UIChildren.Num() - 1);
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Index:%d out of range[%d, %d]"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, index, 0, UIChildren.Num() - 1);
 		return nullptr;
 	}
 	return UIChildren[index];
