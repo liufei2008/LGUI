@@ -262,7 +262,9 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData is not valid in spriteArray at index {1}"), FText::FromString(this->GetPathName()), i);
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataError", "{0} Packing atlas for LGUIStaticSpriteAtlasData: '{1}', but SpriteData is not valid in spriteArray at index {2}")
+					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+					, FText::FromString(this->GetPathName()), i);
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -273,7 +275,9 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData's texture is not valid of spriteData: '{1}'"), FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()));
+				auto ErrMsg = FText::Format(LOCTEXT("SpriteDataTextureError", "{0} Packing atlas for LGUIStaticSpriteAtlasData: '{1}', but SpriteData's texture is not valid of spriteData: '{2}'")
+					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+					, FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()));
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -284,7 +288,9 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 			if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 			{
 				bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-				auto ErrMsg = FText::Format(LOCTEXT("SpritePackingAtlasError", "Packing atlas for LGUIStaticSpriteAtlasData: '{0}', but SpriteData's packingAtlas is not this one, spriteData '{1}', at index: {2}"), FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()), i);
+				auto ErrMsg = FText::Format(LOCTEXT("SpritePackingAtlasError", "{0} Packing atlas for LGUIStaticSpriteAtlasData: '{1}', but SpriteData's packingAtlas is not this one, spriteData '{2}', at index: {3}")
+					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+					, FText::FromString(this->GetPathName()), FText::FromString(spriteDataItem->GetPathName()), i);
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrMsg.ToString());
 				LGUIUtils::EditorNotification(ErrMsg, 10.0f);
 			}
@@ -305,7 +311,8 @@ bool ULGUIStaticSpriteAtlasData::PackAtlas()
 		if (!bWarningIsAlreadyAppearedAtCurrentPackingSession)
 		{
 			bWarningIsAlreadyAppearedAtCurrentPackingSession = true;
-			auto ErrMsg = FText::Format(LOCTEXT("AtlasSizeTooLargeError", "Package sprite atlas fail! Atlas texture size {0} larger than {1}: {2}! Please remove some large size sprite, or split to multiple atlas.")
+			auto ErrMsg = FText::Format(LOCTEXT("AtlasSizeTooLargeError", "{0} Package sprite atlas fail! Atlas texture size {1} larger than {2}: {3}! Please remove some large size sprite, or split to multiple atlas.")
+				, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
 				, packSize
 				, FText::FromName(GET_MEMBER_NAME_CHECKED(ULGUIStaticSpriteAtlasData, maxAtlasTextureSize))
 				, maxAtlasTextureSize);

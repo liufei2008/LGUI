@@ -242,26 +242,29 @@ PACK_AND_INSERT:
 	else//all area cannot fit the texture, then expend texture size
 	{
 		int32 newTextureSize = atlasData->GetWillExpendTextureSize();
-		UE_LOG(LGUI, Log, TEXT("[PackageSprite]Insert texture:%s expend size to %d"), *(spriteTexture->GetPathName()), newTextureSize);
+		UE_LOG(LGUI, Log, TEXT("[%s].%d Insert texture:%s expend size to %d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(spriteTexture->GetPathName()), newTextureSize);
 		if (newTextureSize > WARNING_ATLAS_SIZE)
 		{
-			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
+			auto warningMsg = FText::Format(LOCTEXT("PackageSprite_AtlasSize_Warning", "{0} Trying to insert texture:{1}, result to expend size to:{2} larger than the preferred maximun texture size:{3}!\
 \nTry reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to split your atlasTexture.\
 \nAlso remember to dispose unused atlas by call function DisposeAtlasByPackingTag from LGUIDynamicSpriteAtlasManager.\
 ")
-				, *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
-			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
+				, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+				, FText::FromString(spriteTexture->GetPathName())
+				, newTextureSize, WARNING_ATLAS_SIZE);
+			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg.ToString());
 #if WITH_EDITOR
-			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+			LGUIUtils::EditorNotification(warningMsg);
 #endif
 		}
-		if ((uint32)newTextureSize >= GetMax2DTextureDimension())
+		if ((uint32)newTextureSize > GetMax2DTextureDimension())
 		{
-			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result too large size that not supported! Maximun texture size is:%d.")
-, *(spriteTexture->GetPathName()), GetMax2DTextureDimension());
-			UE_LOG(LGUI, Error, TEXT("%s"), *warningMsg);
+			auto warningMsg = FText::Format(LOCTEXT("PackageSprite_AtlasSize_Error", "{0} Trying to insert texture:{1}, result too large size that not supported! Maximun texture size is:{2}.")
+				, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+				, FText::FromString(spriteTexture->GetPathName()), GetMax2DTextureDimension());
+			UE_LOG(LGUI, Error, TEXT("%s"), *warningMsg.ToString());
 #if WITH_EDITOR
-			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+			LGUIUtils::EditorNotification(warningMsg);
 #endif
 			return false;
 		}
@@ -427,12 +430,12 @@ void ULGUISpriteData::InitSpriteData()
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData] PackingAtlas:%s pack error, will fallback to use PackingTag!"), *(packingAtlas->GetPathName()));
+				UE_LOG(LGUI, Error, TEXT("[%s].%d PackingAtlas:%s pack error, will fallback to use PackingTag!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(packingAtlas->GetPathName()));
 			}
 		}
 		if (spriteTexture == nullptr)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d SpriteData:%s spriteTexture is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetPathName()));
 			return;
 		}
 		if (!packingTag.IsNone())//need to pack to atlas
@@ -446,7 +449,7 @@ void ULGUISpriteData::InitSpriteData()
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ULGUISpriteData::InitSpriteData]PackageSprite fail. Will automatically clear packingTag to make it valid."));
+				UE_LOG(LGUI, Warning, TEXT("[%s].%d PackageSprite fail. Will automatically clear packingTag to make it valid."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 				packingTag = NAME_None;
 				this->MarkPackageDirty();
 				isInitialized = false;
@@ -496,7 +499,7 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 {
 	if (!IsValid(inSpriteTexture))
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::CreateLGUISpriteData]Input texture not valid!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Input texture not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return nullptr;
 	}
 	// check size
@@ -506,10 +509,11 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
 		if (inSpriteTexture->GetSizeX() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSizeY() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
-			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::CreateLGUISpriteData]Target texture width or height is too large! Consider use UITexture to render this texture."));
-			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
+			auto warningMsg = FText::Format(LOCTEXT("CreateLGUISpriteData_Size_Warning", "{0} Target texture width or height is too large! Consider use UITexture to render this texture.")
+				, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
+			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg.ToString());
 #if WITH_EDITOR
-			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+			LGUIUtils::EditorNotification(warningMsg);
 #endif
 		}
 		// Apply setting for sprite creation
@@ -584,7 +588,8 @@ ULGUISpriteData* ULGUISpriteData::GetDefaultWhiteSolid()
 	static auto defaultWhiteSolid = LoadObject<ULGUISpriteData>(NULL, TEXT("/LGUI/LGUIPreset_WhiteSolid"));
 	if (defaultWhiteSolid == nullptr)
 	{
-		auto errMsg = LOCTEXT("MissingDefaultContent", "[LGUISpriteData::GetDefaultWhiteSolid] Load default sprite error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+		auto errMsg = FText::Format(LOCTEXT("MissingDefaultContent", "{0} Load default sprite error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
 		UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(errMsg, 10);

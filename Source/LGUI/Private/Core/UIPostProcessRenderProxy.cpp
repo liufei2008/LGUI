@@ -46,7 +46,7 @@ void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer_RenderThread(TWeakP
 	}
 	else
 	{
-		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
+		UE_LOG(LGUI, Log, TEXT("[%s].%d Trying add to LGUIRenderer but the LGUIRenderer is not valid."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
@@ -58,7 +58,7 @@ void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(ULGUICa
 	}
 	else
 	{
-		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
+		UE_LOG(LGUI, Log, TEXT("[%s].%d Trying add to LGUIRenderer but the LGUIRenderer is not valid."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FUIPostProcessRenderProxy::RemoveFromLGUIRenderer()

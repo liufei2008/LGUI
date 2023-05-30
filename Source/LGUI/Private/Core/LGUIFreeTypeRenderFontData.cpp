@@ -70,7 +70,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 	error = FT_Init_FreeType(&library);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, error:%s"), *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return;
 	}
 
@@ -86,7 +86,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, have no face!"), *(this->GetName()));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, have no face!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()));
 		}
 #endif
 	};
@@ -103,7 +103,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			{
 				if (!FFileHelper::LoadFileToArray(tempFontBinaryArray, *unrealFont->GetFontFilename()))
 				{
-					UE_LOG(LGUI, Warning, TEXT("failed to load or process '%s'"), *unrealFont->GetFontFilename());
+					UE_LOG(LGUI, Warning, TEXT("[%s].%d Failed to load or process '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *unrealFont->GetFontFilename());
 					return;
 				}
 				else
@@ -114,7 +114,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, trying to load Unreal's font face, but not valid!"), *(this->GetName()));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, trying to load Unreal's font face, but not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()));
 			return;
 		}
 	}
@@ -129,11 +129,11 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 			{
 				if (fontBinaryArray.Num() > 0 && !useExternalFileOrEmbedInToUAsset)
 				{
-					UE_LOG(LGUI, Warning, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist! Will use cache data"), *(this->GetName()), *FontFilePathStr);
+					UE_LOG(LGUI, Warning, TEXT("[%s].%d Font:%s, file: \"%s\" not exist! Will use cache data"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), *FontFilePathStr);
 				}
 				else
 				{
-					UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
+					UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, file: \"%s\" not exist!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), *FontFilePathStr);
 					return;
 				}
 			}
@@ -161,7 +161,7 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 				auto FontFilePathStr = useRelativeFilePath ? FPaths::ProjectDir() + fontFilePath : fontFilePath;
 				if (!FPaths::FileExists(*FontFilePathStr))
 				{
-					UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, file: \"%s\" not exist!"), *(this->GetName()), *FontFilePathStr);
+					UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, file: \"%s\" not exist!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), *FontFilePathStr);
 					return;
 				}
 
@@ -178,13 +178,13 @@ void ULGUIFreeTypeRenderFontData::InitFreeType()
 
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[InitFreeType]font:%s, error:%s"), *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		face = nullptr;
 		return;
 	}
 	else
 	{
-		UE_LOG(LGUI, Log, TEXT("[InitFreeType]success, font:%s"), *(this->GetName()));
+		UE_LOG(LGUI, Log, TEXT("[%s].%d Success, font:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()));
 		alreadyInitialized = true;
 		hasKerning = FT_HAS_KERNING(face) != 0;
 
@@ -210,11 +210,11 @@ void ULGUIFreeTypeRenderFontData::DeinitFreeType()
 		auto error = FT_Done_FreeType(library);
 		if (error)
 		{
-			UE_LOG(LGUI, Error, TEXT("[DeintFreeType]font:%s, error:%s"), *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Font:%s, error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		}
 		else
 		{
-			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]success, font:%s"), *(this->GetName()));
+			UE_LOG(LGUI, Log, TEXT("[%s].%d Success, font:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(this->GetName()));
 		}
 	}
 	face = nullptr;
@@ -299,14 +299,14 @@ float ULGUIFreeTypeRenderFontData::GetKerning(const TCHAR& leftCharIndex, const 
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return 0;
 	}
 	FT_Vector kerning;
 	error = FT_Get_Kerning(face, FT_Get_Char_Index(face, leftCharIndex), FT_Get_Char_Index(face, rightCharIndex), FT_KERNING_DEFAULT, &kerning);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[GetKerning] FT_Get_Kerning error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d FT_Get_Kerning error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return 0;
 	}
 	return kerning.x >> 6;
@@ -321,7 +321,7 @@ float ULGUIFreeTypeRenderFontData::GetLineHeight(const float& fontSize)
 	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[GetLineHeight] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return fontSize;
 	}
 	return lineHeightType == ELGUIDynamicFontLineHeightType::FromFontFace ? (face->size->metrics.height >> 6) : fontSize;
@@ -336,7 +336,7 @@ float ULGUIFreeTypeRenderFontData::GetVerticalOffset(const float& fontSize)
 	auto error = FT_Set_Pixel_Sizes(face, 0, fontSize);
 	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("[GetVerticalOffset] FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return 0;
 	}
 	return -((face->size->metrics.ascender + face->size->metrics.descender) >> 6) * 0.5f;
@@ -385,7 +385,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 			else
 			{
 				newTextureSize = textureSize + textureSize;
-				UE_LOG(LGUI, Log, TEXT("[ULGUIFontData::GetCharData]Expend font texture size to:%d"), newTextureSize);
+				UE_LOG(LGUI, Log, TEXT("[%s].%d Expend font texture size to:%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, newTextureSize);
 				//expend by multiply 2
 				calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects, rectPackCellSize);
 				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
