@@ -359,7 +359,7 @@ void ULGUILifeCycleBehaviour::Call_Awake()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Awake] Should never reach this point!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Should never reach this point!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -367,7 +367,7 @@ void ULGUILifeCycleBehaviour::Call_Awake()
 #if !UE_BUILD_SHIPPING
 	if (bIsAwakeCalled)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Awake] Awake already executed!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Awake already executed!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -385,7 +385,7 @@ void ULGUILifeCycleBehaviour::Call_Start()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Start] Should never reach this point!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Should never reach this point!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -393,7 +393,7 @@ void ULGUILifeCycleBehaviour::Call_Start()
 #if !UE_BUILD_SHIPPING
 	if (bIsStartCalled)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_Start] Start already executed!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Start already executed!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -407,7 +407,7 @@ void ULGUILifeCycleBehaviour::Call_OnEnable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnEnable] Should never reach this point!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Should never reach this point!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -415,7 +415,7 @@ void ULGUILifeCycleBehaviour::Call_OnEnable()
 #if !UE_BUILD_SHIPPING
 	if (bIsEnableCalled)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnEnable] OnEnable already executed!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d OnEnable already executed!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -442,7 +442,7 @@ void ULGUILifeCycleBehaviour::Call_OnDisable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnDisable] Should never reach this point!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Should never reach this point!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -450,7 +450,7 @@ void ULGUILifeCycleBehaviour::Call_OnDisable()
 #if !UE_BUILD_SHIPPING
 	if (!bIsEnableCalled)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::Call_OnDisable] OnEnable not executed!"));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d OnEnable not executed!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
@@ -484,12 +484,12 @@ USceneComponent* ULGUILifeCycleBehaviour::GetRootSceneComponent()const
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]RootComponent not exist in owner actor!"));
+				UE_LOG(LGUI, Error, TEXT("[%s].%d RootComponent not exist in owner actor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			}
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]Owner is not valid!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Owner is not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		}
 	}
 	return RootComp.Get();

@@ -513,7 +513,8 @@ void ULGUISDFFontData::CheckMaterials()
 			auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
 			if (mat == nullptr)
 			{
-				auto errMsg = LOCTEXT("MissingDefaultContent", "[ULGUISDFFontData::CheckMaterials] Load material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.");
+				auto errMsg = FText::Format(LOCTEXT("MissingDefaultContent", "{0} Load material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue.")
+					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
 				UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 #if WITH_EDITOR
 				LGUIUtils::EditorNotification(errMsg, 10);
