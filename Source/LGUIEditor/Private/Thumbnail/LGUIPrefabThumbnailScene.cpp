@@ -99,6 +99,7 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 {
 	if (!IsValid(RootComp))return;
 	if (RootComp->IsA<UUIItemEditorHelperComp>())return;
+	if (RootComp->IsVisualizationComponent())return;
 	FBoxSphereBounds Bounds;
 	bool bIsValidBounds = false;
 	if (RootComp->IsRegistered())
@@ -166,7 +167,7 @@ void FLGUIPrefabThumbnailScene::GetViewMatrixParameters(const float InFOVDegrees
 {
 	const float HalfFOVRadians = FMath::DegreesToRadians<float>(InFOVDegrees) * 0.5f;
 
-	const float PreviewSize = PreviewActorsBound.SphereRadius;
+	const float PreviewSize = PreviewActorsBound.SphereRadius * 1.2f;
 	const float BoundsZOffset = GetBoundsZOffset(PreviewActorsBound);
 	const float TargetDistance = PreviewSize / FMath::Tan(HalfFOVRadians);
 
