@@ -151,7 +151,7 @@ FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
 		FBox Box; bool bIsValidBox = false;
 		if (auto SceneComp = Cast<USceneComponent>(KeyValue.Value))
 		{
-			if (SceneComp->IsRegistered())
+			if (SceneComp->IsRegistered() && !SceneComp->IsVisualizationComponent())
 			{
 				if (auto UIItem = Cast<UUIItem>(SceneComp))
 				{
@@ -392,18 +392,26 @@ TArray<AActor*> FLGUIPrefabEditor::GetAllActors()
 
 void FLGUIPrefabEditor::GetInitialViewLocationAndRotation(FVector& OutLocation, FRotator& OutRotation, FVector& OutOrbitLocation)
 {
-	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocation == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotation == FRotator::ZeroRotator)
+	auto& PrefabEditorData = PrefabBeingEdited->PrefabDataForPrefabEditor;
+	auto SceneBounds = this->GetAllObjectsBounds();
+	if (PrefabEditorData.ViewLocation == FVector::ZeroVector && PrefabEditorData.ViewRotation == FRotator::ZeroRotator)
 	{
-		auto SceneBounds = this->GetAllObjectsBounds();
-		OutLocation = FVector(-SceneBounds.SphereRadius, SceneBounds.Origin.Y, SceneBounds.Origin.Z);
+		OutLocation = FVector(-SceneBounds.SphereRadius * 1.2f, SceneBounds.Origin.Y, SceneBounds.Origin.Z);
 		OutRotation = FRotator::ZeroRotator;
 	}
 	else
 	{
-		OutLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocation;
-		OutRotation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotation;
+		OutLocation = PrefabEditorData.ViewLocation;
+		OutRotation = PrefabEditorData.ViewRotation;
 	}
-	OutOrbitLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewOrbitLocation;
+	if (PrefabEditorData.ViewOrbitLocation == FVector::ZeroVector)
+	{
+		OutOrbitLocation = SceneBounds.Origin;
+	}
+	else
+	{
+		OutOrbitLocation = PrefabEditorData.ViewOrbitLocation;
+	}
 }
 
 void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
