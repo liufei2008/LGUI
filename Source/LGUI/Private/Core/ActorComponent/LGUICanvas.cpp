@@ -104,6 +104,8 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTa
 	return RenderTargetViewExtension;
 }
 
+#define UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode WITH_EDITOR && 0
+
 void ULGUICanvas::UpdateRootCanvas()
 {
 	CheckRootCanvas();
@@ -112,7 +114,15 @@ void ULGUICanvas::UpdateRootCanvas()
 		bool bIsRenderTargetRenderer = false;
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
-			switch (GetActualRenderMode())
+			auto ActualRenderMode = GetActualRenderMode();
+#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
+			if (!GetWorld()->IsGameWorld())//edit mode
+			{
+				if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+					ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+			}
+#endif
+			switch (ActualRenderMode)
 			{
 			case ELGUIRenderMode::ScreenSpaceOverlay:
 			{
@@ -1647,7 +1657,15 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				auto uiPostProcessPrimitive = DrawcallItem->PostProcessRenderableObject->GetRenderProxy();
 				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 				{
-					switch (GetActualRenderMode())
+					auto ActualRenderMode = GetActualRenderMode();
+#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
+					if (!GetWorld()->IsGameWorld())//edit mode
+					{
+						if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+							ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+					}
+#endif
+					switch (ActualRenderMode)
 					{
 					case ELGUIRenderMode::RenderTarget:
 					{
@@ -1695,7 +1713,15 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
-			switch (GetActualRenderMode())
+			auto ActualRenderMode = GetActualRenderMode();
+#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
+			if (!GetWorld()->IsGameWorld())//edit mode
+			{
+				if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+					ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+			}
+#endif
+			switch (ActualRenderMode)
 			{
 			case ELGUIRenderMode::RenderTarget:
 			{
