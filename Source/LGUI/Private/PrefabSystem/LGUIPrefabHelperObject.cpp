@@ -692,10 +692,13 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 			}, 1);
 	}
 
-	ULGUIEditorManagerObject::AddOneShotTickFunction([this]() {
-		if (CleanupInvalidLinkToSubPrefabObject())
+	ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
+		if (Object.IsValid())
 		{
-			this->Modify();
+			if (Object->CleanupInvalidLinkToSubPrefabObject())
+			{
+				Object->Modify();
+			}
 		}
 		}, 1);
 }
