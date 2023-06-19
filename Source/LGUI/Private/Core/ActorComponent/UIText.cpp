@@ -112,7 +112,7 @@ void UUIText::BeginPlay()
 	if (IsValid(font))
 	{
 		font->InitFont();
-		CheckFontAdditionalShaderChannels();
+		CheckAdditionalShaderChannels();//@todo: looks this line is not necessary
 		if (!bHasAddToFont)
 		{
 			font->AddUIText(this);
@@ -259,7 +259,7 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 		font = ULGUIFontData_BaseObject::GetDefaultFont();
 	}
 	font->InitFont();
-	CheckFontAdditionalShaderChannels();
+	CheckAdditionalShaderChannels();
 	return font->GetFontTexture();
 }
 
@@ -276,7 +276,7 @@ UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
 			font = ULGUIFontData_BaseObject::GetDefaultFont();
 		}
 		font->InitFont();
-		CheckFontAdditionalShaderChannels();
+		CheckAdditionalShaderChannels();
 		auto CanvasClipType = ELGUICanvasClipType::None;
 		if (this->GetRenderCanvas() != nullptr)
 		{
@@ -290,7 +290,7 @@ UMaterialInterface* UUIText::GetMaterialToCreateGeometry()
 	}
 }
 
-void UUIText::CheckFontAdditionalShaderChannels()
+void UUIText::CheckAdditionalShaderChannels()
 {
 	if (RenderCanvas.IsValid())
 	{
