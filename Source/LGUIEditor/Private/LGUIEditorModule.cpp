@@ -50,6 +50,7 @@
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "DetailCustomization/UITextCustomization.h"
 #include "DetailCustomization/UITextureBaseCustomization.h"
+#include "DetailCustomization/UIProceduralRectCustomization.h"
 #include "DetailCustomization/LGUISpriteDataCustomization.h"
 #include "DetailCustomization/LGUIStaticSpriteAtlasDataCustomization.h"
 #include "DetailCustomization/LGUIFreeTypeRenderFontDataCustomization.h"
@@ -253,6 +254,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUICanvasCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIText::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureBaseCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIProceduralRect::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIProceduralRectCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITexture::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPostProcessRenderableCustomization::MakeInstance));
 
@@ -465,6 +467,7 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIProceduralRect::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIPostProcessRenderable::StaticClass()->GetFName());
 
 		PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());

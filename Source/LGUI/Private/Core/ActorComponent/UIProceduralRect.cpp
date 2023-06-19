@@ -9,6 +9,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
+#include "Core/ActorComponent/UITextureBase.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -65,7 +66,11 @@ void UUIProceduralRect::EditorForceUpdate()
 UTexture* UUIProceduralRect::GetTextureToCreateGeometry()
 {
 	CheckAdditionalShaderChannels();
-	return Super::GetTextureToCreateGeometry();
+	if (!IsValid(BlockData.Texture))
+	{
+		BlockData.Texture = UUITextureBase::GetDefaultWhiteTexture();
+	}
+	return BlockData.Texture;
 }
 UMaterialInterface* UUIProceduralRect::GetMaterialToCreateGeometry()
 {
