@@ -1112,6 +1112,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUISpriteActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextureActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIProceduralRectActor::StaticClass());
 
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Button"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Toggle"));

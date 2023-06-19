@@ -1930,6 +1930,14 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 							RenderMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							RenderMat->SetFlags(RF_Transient);
 							DrawcallItem->DrawcallMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallMeshSection.Pin(), RenderMat.Get());
+							if (DrawcallItem->DirectMeshRenderableObject.IsValid())
+							{
+								DrawcallItem->DirectMeshRenderableObject->OnMaterialInstanceDynamicCreated((UMaterialInstanceDynamic*)RenderMat.Get());
+							}
+							for (auto& RenderObjectItem : DrawcallItem->RenderObjectList)
+							{
+								RenderObjectItem->OnMaterialInstanceDynamicCreated((UMaterialInstanceDynamic*)RenderMat.Get());
+							}
 						}
 						else//if custom material not contains LGUI parameters, then use it directly
 						{

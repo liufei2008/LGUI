@@ -159,7 +159,7 @@ public:
 	virtual void UpdateMaterialClipType()override;
 	virtual void OnCultureChanged_Implementation()override;
 
-	void CheckFontAdditionalShaderChannels();
+	void CheckAdditionalShaderChannels();
 public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
