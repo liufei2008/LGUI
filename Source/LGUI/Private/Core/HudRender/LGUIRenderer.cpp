@@ -762,7 +762,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
 
 								RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.Elements[0].NumPrimitives, Mesh.Elements[0].NumInstances);
 							}
 						}
 					}break;

@@ -173,6 +173,8 @@ public:
 	virtual void UpdateGeometry() {};
 	/** Called by LGUICanvas when clip type changed */
 	virtual void UpdateMaterialClipType() {};
+	/** Called by LGUICanvas after create MaterialInstanceDynamic for this object or it's drawcall */
+	virtual void OnMaterialInstanceDynamicCreated(class UMaterialInstanceDynamic* mat) {};
 
 	/** will this UI element affect by canvas's pixel perfect property? */
 	virtual bool GetShouldAffectByPixelPerfect()const { return true; };

@@ -89,6 +89,7 @@ public:
 	void InitFromLGUIHudVertexData(TArray<FLGUIMeshVertex>& Vertices)
 	{
 		auto LightMapIndex = 0;
+		VertexBuffers.StaticMeshVertexBuffer.SetUseFullPrecisionUVs(true);
 		if (Vertices.Num())
 		{
 			VertexBuffers.PositionVertexBuffer.Init(Vertices.Num());

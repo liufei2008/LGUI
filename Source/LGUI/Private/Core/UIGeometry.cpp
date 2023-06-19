@@ -219,6 +219,110 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 		}
 	}
 }
+void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
+	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur,
+	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
+	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
+)
+{
+	auto& triangles = uiGeo->triangles;
+	LGUIGeometrySetArrayNum(triangles, bOuterShadow ? 12 : 6);
+	if (InTriangleChanged)
+	{
+		triangles[0] = 0;
+		triangles[1] = 3;
+		triangles[2] = 2;
+		triangles[3] = 0;
+		triangles[4] = 1;
+		triangles[5] = 3;
+
+		if (bOuterShadow)
+		{
+			triangles[6] = 4;
+			triangles[7] = 7;
+			triangles[8] = 6;
+			triangles[9] = 4;
+			triangles[10] = 5;
+			triangles[11] = 7;
+		}
+	}
+
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelPerfect() && renderCanvas->GetActualPixelPerfect();
+	auto& vertices = uiGeo->vertices;
+	auto& originVertices = uiGeo->originVertices;
+	LGUIGeometrySetArrayNum(vertices, bOuterShadow ? 8 : 4);
+	LGUIGeometrySetArrayNum(originVertices, bOuterShadow ? 8 : 4);
+	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+	{
+		if (InVertexPositionChanged)
+		{
+			//offset and size
+			float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+			CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
+			//positions
+			float minX = -halfW + pivotOffsetX;
+			float minY = -halfH + pivotOffsetY;
+			float maxX = halfW + pivotOffsetX;
+			float maxY = halfH + pivotOffsetY;
+			if (bOuterShadow)
+			{
+				originVertices[4].Position = FVector3f(0, minX, minY);
+				originVertices[5].Position = FVector3f(0, maxX, minY);
+				originVertices[6].Position = FVector3f(0, minX, maxY);
+				originVertices[7].Position = FVector3f(0, maxX, maxY);
+
+				minX += outerShadowOffset.X;
+				minY += outerShadowOffset.Y;
+				maxX += outerShadowOffset.X;
+				maxY += outerShadowOffset.Y;
+				float additionalShadowSize = outerShadowSize + outerShadowBlur * 0.5f;
+				minX -= additionalShadowSize;
+				maxX += additionalShadowSize;
+				minY -= additionalShadowSize;
+				maxY += additionalShadowSize;
+				originVertices[0].Position = FVector3f(0, minX, minY);
+				originVertices[1].Position = FVector3f(0, maxX, minY);
+				originVertices[2].Position = FVector3f(0, minX, maxY);
+				originVertices[3].Position = FVector3f(0, maxX, maxY);
+			}
+			else
+			{
+				originVertices[0].Position = FVector3f(0, minX, minY);
+				originVertices[1].Position = FVector3f(0, maxX, minY);
+				originVertices[2].Position = FVector3f(0, minX, maxY);
+				originVertices[3].Position = FVector3f(0, maxX, maxY);
+			}
+			//snap pixel
+			if (pixelPerfect)
+			{
+				int startIndex = 0;
+				if (bOuterShadow)
+					startIndex = 4;
+				AdjustPixelPerfectPos(originVertices, startIndex, startIndex + 4, renderCanvas, uiComp);
+			}
+		}
+
+		if (InVertexUVChanged)
+		{
+			vertices[0].TextureCoordinate[0] = spriteInfo.GetUV0();
+			vertices[1].TextureCoordinate[0] = spriteInfo.GetUV1();
+			vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
+			vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
+			if (bOuterShadow)
+			{
+				vertices[4].TextureCoordinate[0] = vertices[0].TextureCoordinate[0];
+				vertices[5].TextureCoordinate[0] = vertices[1].TextureCoordinate[0];
+				vertices[6].TextureCoordinate[0] = vertices[2].TextureCoordinate[0];
+				vertices[7].TextureCoordinate[0] = vertices[3].TextureCoordinate[0];
+			}
+		}
+
+		if (InVertexColorChanged)
+		{
+			UpdateUIColor(uiGeo, color);
+		}
+	}
+}
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 void UIGeometry::UpdateUIRectBorderVertex(UIGeometry* uiGeo, bool fillCenter,

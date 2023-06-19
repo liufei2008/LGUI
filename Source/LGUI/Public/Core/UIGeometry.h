@@ -134,6 +134,11 @@ public:
 		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
+	static void UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
+		bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur,
+		const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
+		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
+	);
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 public:
