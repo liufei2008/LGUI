@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UITextureBase.h"
+#include "UIBatchGeometryRenderable.h"
 #include "UIProceduralRect.generated.h"
 
 UENUM(BlueprintType)
@@ -22,66 +22,68 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector4f CornerRadius = FVector4f::One();
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
+		UTexture* Texture = nullptr;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="Texture"))
 		EUIProceduralRectTextureScaleMode TextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName = "Color"))
 		FColor GradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f GradientCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
 		FVector2f GradientRadius = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float GradientRotation = 0;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bBorder = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Width"))
 		float BorderWidth = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bBorderGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
+		bool bBorderGradient = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderGradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f BorderGradientCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
 		FVector2f BorderGradientRadius = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float BorderGradientRotation = 0;
 		
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bInnerShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor InnerShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
 		float InnerShadowSize = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur"))
 		float InnerShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
 		FVector2f InnerShadowOffset = FVector2f(1, 1);
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bRadialFill = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f RadialFillCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillRotation = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillAngle = 270;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bOuterShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor OuterShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size", ClampMin = "0.0"))
 		float OuterShadowSize = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur", ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
 		FVector2f OuterShadowOffset = FVector2f(0, 0);
 
 	void FillData(uint8* Data)
@@ -225,7 +227,7 @@ public:
 };
 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIProceduralRect : public UUITextureBase
+class LGUI_API UUIProceduralRect : public UUIBatchGeometryRenderable
 {
 	GENERATED_BODY()
 
@@ -242,7 +244,9 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 protected:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	friend class FUIProceduralRectCustomization;
+
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		class ULGUIProceduralRectData* ProceduralRectData = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FUIProceduralRectBlockData BlockData;
