@@ -28,7 +28,7 @@ public:
 		EUIProceduralRectTextureScaleMode TextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bGradient = false;
+		bool bEnableGradient = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName = "Color"))
 		FColor GradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
@@ -39,13 +39,13 @@ public:
 		float GradientRotation = 0;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bBorder = false;
+		bool bEnableBorder = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Width"))
 		float BorderWidth = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
-		bool bBorderGradient = false;
+		bool bEnableBorderGradient = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderGradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
@@ -56,7 +56,7 @@ public:
 		float BorderGradientRotation = 0;
 		
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bInnerShadow = false;
+		bool bEnableInnerShadow = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor InnerShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
@@ -67,7 +67,7 @@ public:
 		FVector2f InnerShadowOffset = FVector2f(1, 1);
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bRadialFill = false;
+		bool bEnableRadialFill = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f RadialFillCenter = FVector2f(0.5f, 0.5f);
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
@@ -76,7 +76,7 @@ public:
 		float RadialFillAngle = 270;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bOuterShadow = false;
+		bool bEnableOuterShadow = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor OuterShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size", ClampMin = "0.0"))
@@ -90,7 +90,7 @@ public:
 	{
 		int DataOffset = 0;
 
-		uint8 BoolAsByte = PackBoolToByte(bGradient, bBorder, bBorderGradient, bInnerShadow, bRadialFill, false, false, false);
+		uint8 BoolAsByte = PackBoolToByte(bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false, false);
 		Fill4BytesToData(Data
 			, BoolAsByte
 			, (uint8)TextureScaleMode
@@ -262,10 +262,82 @@ protected:
 	//virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
+	virtual void MarkAllDirty()override;
 
 	void CheckAdditionalShaderChannels();
 	void OnDataTextureChanged(class UTexture2D* Texture);
 	FDelegateHandle OnDataTextureChangedDelegateHandle;
+	uint8 bNeedUpdateBlockData : 1;
 public:
-	
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FUIProceduralRectBlockData& GetBlockData()const { return BlockData; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBlockData(const FUIProceduralRectBlockData& value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetCornerRadius(const FVector4f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetTexture(UTexture* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetTextureScaleMode(EUIProceduralRectTextureScaleMode value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableGradient(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGradientColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGradientCenter(const FVector2f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGradientRadius(const FVector2f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGradientRotation(float value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableBorder(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderWidth(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableBorderGradient(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderGradientColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderGradientCenter(const FVector2f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderGradientRadius(const FVector2f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBorderGradientRotation(float value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableInnerShadow(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetInnerShadowColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetInnerShadowSize(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetInnerShadowBlur(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetInnerShadowOffset(const FVector2f& value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableRadialFill(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRadialFillCenter(const FVector2f& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRadialFillRotation(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRadialFillAngle(float value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableOuterShadow(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOuterShadowColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOuterShadowSize(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOuterShadowBlur(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOuterShadowOffset(const FVector2f& value);
 };
