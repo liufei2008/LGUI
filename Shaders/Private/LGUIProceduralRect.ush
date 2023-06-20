@@ -134,22 +134,22 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
     float4 _CornerRadius;
     float2 _QuadSize;
     
-    half _Gradient;
+    half _EnableGradient;
     half4 _GradientColor;
     float2 _GradientCenter;
     float2 _GradientRadius;
     float _GradientRotation;
     
-    half _Border;
+    half _EnableBorder;
     float _BorderWidth;
-    half _BorderGradient;
+    half _EnableBorderGradient;
     half4 _BorderColor;
     half4 _BorderGradientColor;
     float2 _BorderGradientCenter;
     float2 _BorderGradientRadius;
     float _BorderGradientRotation;
 
-    half _InnerShadow;
+    half _EnableInnerShadow;
     half4 _InnerShadowColor;
     float _InnerShadowSize;
     float _InnerShadowBlur;
@@ -160,7 +160,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
     float _OuterShadowSize;
     float _OuterShadowBlur;
 
-    float _RadialFill;
+    half _EnableRadialFill;
     float2 _RadialFillCenter;
     float _RadialFillAngle;
     float _RadialFillRotation;
@@ -176,11 +176,11 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         uint BoolValues = (ByteUint >> 24) & 0x000000ff;
         _TextureScaleMode = (ByteUint >> 16) & 0x000000ff;
         
-        _Gradient = (BoolValues >> 7);
-        _Border = (BoolValues >> 6) & 1;
-        _BorderGradient = (BoolValues >> 5) & 1;
-        _InnerShadow = (BoolValues >> 4) & 1;
-        _RadialFill = (BoolValues >> 3) & 1;
+        _EnableGradient = (BoolValues >> 7);
+        _EnableBorder = (BoolValues >> 6) & 1;
+        _EnableBorderGradient = (BoolValues >> 5) & 1;
+        _EnableInnerShadow = (BoolValues >> 4) & 1;
+        _EnableRadialFill = (BoolValues >> 3) & 1;
         
         _QuadSize = LGUI_ReadFloat2(DataTex, Position);
         _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
@@ -242,7 +242,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));
         color = MainTexColor * MainColor;
 
-        if (_Gradient)
+        if (_EnableGradient)
         {
             float gradientLerpAlpha = RadialGradient(UV0, _QuadSize, _GradientCenter.xy, _GradientRadius.xy, _GradientRotation);
             color = lerp(color, _GradientColor * MainTexColor, gradientLerpAlpha);
@@ -250,7 +250,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
 
         float dOuter = sdRoundRect(fragCoord, _QuadSize, _CornerRadius);
         float dInner = sdRoundRect(fragCoord, _QuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
-        if (_InnerShadow)
+        if (_EnableInnerShadow)
         {
             float2 quadSize = _QuadSize - _InnerShadowSize;
             float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
@@ -260,10 +260,10 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
             color.rgb = lerp(color.rgb, _InnerShadowColor.rgb, innerShadow);
         }
 
-        if (_Border)
+        if (_EnableBorder)
         {
             float4 borderColor = _BorderColor;
-            if (_BorderGradient)
+            if (_EnableBorderGradient)
             {
                 float borderGradientLerpAlpha = RadialGradient(UV0, _QuadSize, _BorderGradientCenter.xy, _BorderGradientRadius.xy, _BorderGradientRotation);
                 borderColor = lerp(borderColor, _BorderGradientColor, borderGradientLerpAlpha);
@@ -275,7 +275,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         color.a *= dOuter;
     }
 
-    if (_RadialFill && _RadialFillAngle < 360.0f)
+    if (_EnableRadialFill && _RadialFillAngle < 360.0f)
     {
         float2 uv = float2(UV0.x, UV0.y * _QuadSize.y / _QuadSize.x);
         float2 center = float2(_RadialFillCenter.x, _RadialFillCenter.y * _QuadSize.y / _QuadSize.x);
