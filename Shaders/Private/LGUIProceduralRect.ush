@@ -214,18 +214,18 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
     
     float4 color;
 
-    float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * _QuadSize;
     if (_OuterShadow)
     {
+        float2 quadSize = _QuadSize + _OuterShadowSize + _OuterShadowBlur;
+        float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
         color = _OuterShadowColor;
-        float2 quadSize = _QuadSize;
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
-        //cornerRadius = clamp(cornerRadius, min(_OuterShadowBlur, _CornerRadius), max(_OuterShadowBlur, _CornerRadius));
         float outerShadow = sdRoundRectOuterShadow(fragCoord, quadSize, cornerRadius, _OuterShadowBlur);
         color.a *= outerShadow;
     }
     else
     {
+        float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * _QuadSize;
         float2 stretchUV = UV0;
         float2 fitUV = UV0;
         float2 envelopUV = UV0;
@@ -252,8 +252,8 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         float dInner = sdRoundRect(fragCoord, _QuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
         if (_InnerShadow)
         {
-            float2 quadSize = _QuadSize - (_InnerShadowSize - _InnerShadowBlur * 0.5f);
-            float4 cornerRadius = _CornerRadius - (_InnerShadowSize - _InnerShadowBlur * 0.5f) + _InnerShadowBlur;
+            float2 quadSize = _QuadSize - _InnerShadowSize;
+            float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
             cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
             float innerShadow = sdRoundRectInnerShadow(fragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
             innerShadow *= _InnerShadowColor.a;

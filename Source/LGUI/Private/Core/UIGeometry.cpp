@@ -275,7 +275,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				minY += outerShadowOffset.Y;
 				maxX += outerShadowOffset.X;
 				maxY += outerShadowOffset.Y;
-				float additionalShadowSize = outerShadowSize + outerShadowBlur * 0.5f;
+				float additionalShadowSize = outerShadowSize + outerShadowBlur;
 				minX -= additionalShadowSize;
 				maxX += additionalShadowSize;
 				minY -= additionalShadowSize;
