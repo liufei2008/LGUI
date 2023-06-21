@@ -218,6 +218,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
     {
         float2 quadSize = _QuadSize + _OuterShadowSize + _OuterShadowBlur;
         float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
+        _OuterShadowColor.rgb = pow(_OuterShadowColor.rgb, 2.2f);
         color = _OuterShadowColor;
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
         float outerShadow = sdRoundRectOuterShadow(fragCoord, quadSize, cornerRadius, _OuterShadowBlur);
@@ -245,6 +246,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         if (_EnableGradient)
         {
             float gradientLerpAlpha = RadialGradient(UV0, _QuadSize, _GradientCenter.xy, _GradientRadius.xy, _GradientRotation);
+            _GradientColor.rgb = pow(_GradientColor.rgb, 2.2f);
             color = lerp(color, _GradientColor * MainTexColor, gradientLerpAlpha);
         }
 
@@ -257,15 +259,18 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
             cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
             float innerShadow = sdRoundRectInnerShadow(fragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
             innerShadow *= _InnerShadowColor.a;
+            _InnerShadowColor.rgb = pow(_InnerShadowColor.rgb, 2.2f);
             color.rgb = lerp(color.rgb, _InnerShadowColor.rgb, innerShadow);
         }
 
         if (_EnableBorder)
         {
+            _BorderColor.rgb = pow(_BorderColor.rgb, 2.2f);
             float4 borderColor = _BorderColor;
             if (_EnableBorderGradient)
             {
                 float borderGradientLerpAlpha = RadialGradient(UV0, _QuadSize, _BorderGradientCenter.xy, _BorderGradientRadius.xy, _BorderGradientRotation);
+                _BorderGradientColor.rgb = pow(_BorderGradientColor.rgb, 2.2f);
                 borderColor = lerp(borderColor, _BorderGradientColor, borderGradientLerpAlpha);
             }
             float borderLerpAlpha = borderColor.a * (1.0f - dInner);
