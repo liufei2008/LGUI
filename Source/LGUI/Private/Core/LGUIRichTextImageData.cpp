@@ -7,6 +7,7 @@
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Engine/World.h"
 
 #if WITH_EDITOR
 void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

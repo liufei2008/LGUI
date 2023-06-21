@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Core/LGUIMeshVertex.h"
+#include "RHI.h"
 
 
 void FLGUIMeshVertexDeclaration::InitRHI()
