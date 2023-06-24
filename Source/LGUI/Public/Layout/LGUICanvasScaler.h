@@ -83,7 +83,7 @@ protected:
 		LGUIScreenMatchMode ScreenMatchMode = LGUIScreenMatchMode::MatchWidthOrHeight;
 
 	bool CheckCanvas();
-	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;
+	UPROPERTY(Transient) TObjectPtr<class ULGUICanvas> Canvas = nullptr;
 	void SetCanvasProperties();
 
 	/** Current viewport size*/

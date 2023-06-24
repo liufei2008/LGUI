@@ -13,7 +13,7 @@ struct FLGUIRichTextImageItemData
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<class ULGUISpriteData_BaseObject*> frames;
+		TArray<TObjectPtr<class ULGUISpriteData_BaseObject>> frames;
 	/** use this value as animation-fps, -1 means not override */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float overrideAnimationFps = -1;

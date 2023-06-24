@@ -839,8 +839,8 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		{
 			Parent = Actor->GetAttachParentActor()->GetRootComponent();
 		}
-		TMap<AActor*, FLGUISubPrefabData> DuplicatedSubPrefabMap;
-		TMap<FGuid, UObject*> OutMapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> DuplicatedSubPrefabMap;
+		TMap<FGuid, TObjectPtr<UObject>> OutMapGuidToObject;
 		TMap<UObject*, FGuid> InMapObjectToGuid;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
@@ -850,7 +850,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 			}
 			PrefabHelperObject->SetCanNotifyAttachment(false);
 			struct LOCAL {
-				static void CollectSubPrefabActors(AActor* InActor, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
+				static void CollectSubPrefabActors(AActor* InActor, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
 				{
 					if (InSubPrefabMap.Contains(InActor))
 					{
@@ -897,7 +897,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 			copiedActor = LGUIPrefabSystem5::ActorSerializer::DuplicateActorForEditor(Actor, Parent, PrefabHelperObject->SubPrefabMap, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
 			for (auto& KeyValue : DuplicatedSubPrefabMap)
 			{
-				TMap<FGuid, UObject*> SubMapGuidToObject;
+				TMap<FGuid, TObjectPtr<UObject>> SubMapGuidToObject;
 				for (auto& MapGuidItem : KeyValue.Value.MapObjectGuidFromParentPrefabToSubPrefab)
 				{
 					SubMapGuidToObject.Add(MapGuidItem.Value, OutMapGuidToObject[MapGuidItem.Key]);
@@ -938,7 +938,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
 		TMap<UObject*, FGuid> InOutMapObjectToGuid;
-		TMap<AActor*, FLGUISubPrefabData> InSubPrefabMap;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> InSubPrefabMap;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
 			InSubPrefabMap = PrefabHelperObject->SubPrefabMap;
@@ -948,7 +948,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 				PrefabHelperObject->Modify();
 			}
 			struct LOCAL {
-				static void CollectSubPrefabActors(AActor* InActor, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
+				static void CollectSubPrefabActors(AActor* InActor, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
 				{
 					if (InSubPrefabMap.Contains(InActor))
 					{
@@ -1048,13 +1048,13 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		if (KeyValuePair.Value.IsValid())
 		{
-			TMap<FGuid, UObject*> OutMapGuidToObject;
-			TMap<AActor*, FLGUISubPrefabData> LoadedSubPrefabMap;
+			TMap<FGuid, TObjectPtr<UObject>> OutMapGuidToObject;
+			TMap<TObjectPtr<AActor>, FLGUISubPrefabData> LoadedSubPrefabMap;
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(parentComp->GetOwner(), KeyValuePair.Key, parentComp->GetWorld());
 			auto copiedActor = KeyValuePair.Value->LoadPrefabInEditor(parentComp->GetWorld(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
 			for (auto& KeyValue : LoadedSubPrefabMap)
 			{
-				TMap<FGuid, UObject*> SubMapGuidToObject;
+				TMap<FGuid, TObjectPtr<UObject>> SubMapGuidToObject;
 				for (auto& MapGuidItem : KeyValue.Value.MapObjectGuidFromParentPrefabToSubPrefab)
 				{
 					SubMapGuidToObject.Add(MapGuidItem.Value, OutMapGuidToObject[MapGuidItem.Key]);
@@ -1631,7 +1631,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 							}
 							return Result;
 						}
-						static void CollectSubPrefab(AActor* InActor, TMap<AActor*, FLGUISubPrefabData>& InOutSubPrefabMap, ULGUIPrefabHelperObject* InPrefabHelperObject, const TMap<UObject*, FGuid>& InMapObjectToGuid)
+						static void CollectSubPrefab(AActor* InActor, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InOutSubPrefabMap, ULGUIPrefabHelperObject* InPrefabHelperObject, const TMap<UObject*, FGuid>& InMapObjectToGuid)
 						{
 							if (InPrefabHelperObject->IsActorBelongsToSubPrefab(InActor))
 							{
@@ -1651,7 +1651,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 							}
 						}
 					};
-					TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+					TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 					TMap<UObject*, FGuid> MapObjectToGuid;
 					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab first step, just collect guid and sub prefab
 					LOCAL::CollectSubPrefab(selectedActor, SubPrefabMap, PrefabHelperObjectWhichManageThisActor, MapObjectToGuid);
@@ -1663,7 +1663,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 					OutPrefab->RefreshAgentObjectsInPreviewWorld();
 
 					//make it as subprefab
-					TMap<FGuid, UObject*> MapGuidToObject;
+					TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 					for (auto KeyValue : MapObjectToGuid)
 					{
 						MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);

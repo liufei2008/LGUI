@@ -33,7 +33,7 @@ public:
 	static ULTweenManager* GetLTweenInstance(UObject* WorldContextObject);
 private:
 	/** current active tweener collection*/
-	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
+	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
 	bool existInInstanceMap = false;
 	void OnTick(float DeltaTime);
 	LTweenUpdateMulticastDelegate updateEvent;

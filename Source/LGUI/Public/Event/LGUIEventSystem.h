@@ -75,7 +75,7 @@ public:
 		ULGUIBaseInputModule* GetCurrentInputModule();
 
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		mutable TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
+		mutable TMap<int, TObjectPtr<ULGUIPointerEventData>> pointerEventDataMap;
 	/**
 	 * Get PointerEventData by given pointerID.
 	 * @param	pointerID	0 for mouse input, touch id for touch input
@@ -207,5 +207,5 @@ public:
 	ALGUIEventSystemActor();
 protected:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class ULGUIEventSystem* EventSystem;
+		TObjectPtr<class ULGUIEventSystem> EventSystem;
 };

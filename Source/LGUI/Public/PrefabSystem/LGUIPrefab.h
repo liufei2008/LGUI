@@ -56,10 +56,10 @@ struct LGUI_API FLGUISubPrefabData
 	GENERATED_BODY()
 public:
 	FLGUISubPrefabData();
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefab* PrefabAsset = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, UObject*> MapGuidToObject;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
 	/** For level editor, to tell if this prefab is latest version. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab = FDateTime(0);
@@ -124,10 +124,10 @@ private:
 public:
 	/** put actural UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		TArray<UObject*> ReferenceAssetList;
+		TArray<TObjectPtr<UObject>> ReferenceAssetList;
 	/** put actural UClass in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		TArray<UClass*> ReferenceClassList;
+		TArray<TObjectPtr<UClass>> ReferenceClassList;
 	/** put actural FName in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FName> ReferenceNameList;
@@ -176,10 +176,10 @@ public:
 
 	/** build version for ReferenceAssetList */
 	UPROPERTY()
-		TArray<UObject*> ReferenceAssetListForBuild;
+		TArray<TObjectPtr<UObject>> ReferenceAssetListForBuild;
 	/** build version for ReferenceClassList */
 	UPROPERTY()
-		TArray<UClass*> ReferenceClassListForBuild;
+		TArray<TObjectPtr<UClass>> ReferenceClassListForBuild;
 	/** build version for ReferenceNameList */
 	UPROPERTY()
 		TArray<FName> ReferenceNameListForBuild;
@@ -190,14 +190,14 @@ public:
 		TArray<uint8> BinaryDataForBuild;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Instanced, Transient)
-		class UThumbnailInfo* ThumbnailInfo;
+		TObjectPtr<class UThumbnailInfo> ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
 	UPROPERTY()
 		FLGUIPrefabDataForPrefabEditor PrefabDataForPrefabEditor;
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
+		TObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
 #endif
 public:
 	/**
@@ -239,7 +239,7 @@ public:
 	 * LoadPrefab and keep reference of source objects.
 	 */
 	AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent = true
 	);
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
@@ -272,7 +272,7 @@ public:
 	virtual bool IsEditorOnly()const override;
 
 	void SavePrefab(AActor* RootActor
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse = true
 	);
 	/**
@@ -283,6 +283,6 @@ public:
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
-	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, UObject*>& OutMapGuidToObject, bool SetRelativeTransformToIdentity = true);
+	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject, bool SetRelativeTransformToIdentity = true);
 #endif
 };

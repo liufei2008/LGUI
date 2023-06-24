@@ -34,14 +34,14 @@ protected:
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* HelperActor = nullptr;
+		TObjectPtr<AActor> HelperActor = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (AllowAbstract = "true"))
 		TSubclassOf<UActorComponent> HelperClass;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
+		TObjectPtr<UObject> TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
 										//And, if use UActorComponent here, then reference just missing
 public:
 	AActor* GetActor()const;

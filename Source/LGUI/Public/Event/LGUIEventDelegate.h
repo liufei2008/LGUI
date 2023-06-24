@@ -111,16 +111,16 @@ private:
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* HelperActor = nullptr;
+		TObjectPtr<AActor> HelperActor = nullptr;
 	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		UClass* HelperClass = nullptr;
+		TObjectPtr<UClass> HelperClass = nullptr;
 	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* TargetObject = nullptr;
+		TObjectPtr<UObject> TargetObject = nullptr;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName functionName;
@@ -133,14 +133,14 @@ private:
 		TArray<uint8> ParamBuffer;
 	/** Object reference, can reference actor/class/asset */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* ReferenceObject = nullptr;
+		TObjectPtr<UObject> ReferenceObject = nullptr;
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool UseNativeParameter = false;
 private:
-	UPROPERTY(Transient) UFunction* CacheFunction = nullptr;
-	UPROPERTY(Transient) UObject* CacheTarget = nullptr;
+	UPROPERTY(Transient) TObjectPtr<UFunction> CacheFunction = nullptr;
+	UPROPERTY(Transient) TObjectPtr<UObject> CacheTarget = nullptr;
 public:
 	void Execute();
 	void Execute(void* InParam, LGUIEventDelegateParameterType InParameterType);

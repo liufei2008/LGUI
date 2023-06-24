@@ -19,7 +19,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent
 	)
 	{
@@ -105,8 +105,8 @@ namespace LGUIPrefabSystem3
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, AActor* InParentLoadedRootActor
 		, int32& InOutActorIndex
-		, TMap<FGuid, UObject*>& InMapGuidToObject
-		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
+		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
+		, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
 	)
 	{
 		ActorSerializer serializer;
@@ -414,7 +414,7 @@ namespace LGUIPrefabSystem3
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
 					SubPrefabData.PrefabAsset = SubPrefabAsset;
-					TMap<FGuid, UObject*>& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
+					TMap<FGuid, TObjectPtr<UObject>>& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
 					if (auto ValuePtr = MapGuidToObject.Find(InActorData.ActorGuid))
 					{
 						auto SubPrefabRootActorGuid = InActorData.MapObjectGuidFromParentPrefabToSubPrefab[InActorData.ActorGuid];
@@ -434,7 +434,7 @@ namespace LGUIPrefabSystem3
 						, LoadedRootActor
 						, this->ActorIndexInPrefab
 						, SubMapGuidToObject
-						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
+						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
 							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
 							for (auto& KeyValue : InSubMapGuidToObject)
 							{

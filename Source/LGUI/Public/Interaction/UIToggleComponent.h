@@ -48,7 +48,7 @@ protected:
 	UPROPERTY(Transient) TWeakObjectPtr<class UUISelectableTransitionComponent> ToggleTransitionComp = nullptr;
 	bool CheckTarget();
 #pragma region Transition
-	UPROPERTY(Transient) class ULTweener* ToggleTransitionTweener = nullptr;
+	UPROPERTY(Transient) TObjectPtr<class ULTweener> ToggleTransitionTweener = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		float OnAlpha = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")

@@ -20,7 +20,7 @@ protected:
 		bool bPlayNextWhenCycleComplete = false;
 	/** Play tween array sequentially, one after one. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
-		TArray<class ULGUIPlayTween*> playTweenArray;
+		TArray<TObjectPtr<class ULGUIPlayTween>> playTweenArray;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 

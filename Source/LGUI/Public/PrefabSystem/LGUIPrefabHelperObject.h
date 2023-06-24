@@ -22,20 +22,20 @@ public:
 
 	/** Prefab object asset, null means this is a level prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefab* PrefabAsset = nullptr;
+		TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
 	/** Root actor of this prefab, null means this is a level prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		AActor* LoadedRootActor = nullptr;
+		TObjectPtr<AActor> LoadedRootActor = nullptr;
 	/** Map from guid to object, include all subprefab's object. Note object guid is not equals to subprefab's same object's guid. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 	/** Map to sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 #if WITH_EDITORONLY_DATA
 	/** Broken actor-subprefab collection, only for level's subprefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TSet<AActor*> MissingPrefab;
+		TSet<TObjectPtr<AActor>> MissingPrefab;
 #endif
 
 #if WITH_EDITOR
@@ -91,7 +91,7 @@ public:
 
 	void RefreshSubPrefabVersion(AActor* InSubPrefabRootActor);
 
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
 	void RemoveSubPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);

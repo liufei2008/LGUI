@@ -100,11 +100,11 @@ private:
 #if WITH_EDITORONLY_DATA
 	/** The mesh data asset from which the vector art is sourced */
 	UPROPERTY(EditAnywhere, Category = "Vector Art")
-		UStaticMesh* MeshAsset;
+		TObjectPtr<UStaticMesh> MeshAsset;
 
 	/** The material which we are using, or the material from with the MIC was constructed. */
 	UPROPERTY(Transient)
-		UMaterialInterface* SourceMaterial;
+		TObjectPtr<UMaterialInterface> SourceMaterial;
 #endif
 
 	/** @see GetVertexData() */
@@ -117,7 +117,7 @@ private:
 
 	/** @see GetMaterial() */
 	UPROPERTY()
-		UMaterialInterface* Material;
+		TObjectPtr<UMaterialInterface> Material;
 };
 
 UENUM(BlueprintType, Category = LGUI)
@@ -143,11 +143,11 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		ULGUIStaticMeshCacheData* meshCache;
+		TObjectPtr<ULGUIStaticMeshCacheData> meshCache;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::NotAffectByUIColor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UMaterialInterface* ReplaceMaterial;
+		TObjectPtr<UMaterialInterface> ReplaceMaterial;
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
@@ -202,6 +202,6 @@ public:
 		UUIStaticMesh* GetUIStaticMesh()const { return UIStaticMesh; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIStaticMesh* UIStaticMesh;
+		TObjectPtr<class UUIStaticMesh> UIStaticMesh;
 
 };

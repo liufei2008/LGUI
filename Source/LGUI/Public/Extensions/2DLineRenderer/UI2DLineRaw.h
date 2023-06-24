@@ -49,6 +49,6 @@ public:
 		UUI2DLineRaw* Get2DLineRaw()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUI2DLineRaw* UIElement;
+		TObjectPtr<class UUI2DLineRaw> UIElement;
 
 };

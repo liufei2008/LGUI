@@ -21,7 +21,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse
 	)
 	{

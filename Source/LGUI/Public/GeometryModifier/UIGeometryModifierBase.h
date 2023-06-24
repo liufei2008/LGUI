@@ -132,7 +132,7 @@ public:
 		OutColor = true;
 	}
 protected:
-	UPROPERTY(Transient) ULGUIGeometryModifierHelper* GeometryModifierHelper = nullptr;
+	UPROPERTY(Transient) TObjectPtr<ULGUIGeometryModifierHelper> GeometryModifierHelper = nullptr;
 	/**
 	 * Modify UI geometry's vertex and triangle.
 	 */

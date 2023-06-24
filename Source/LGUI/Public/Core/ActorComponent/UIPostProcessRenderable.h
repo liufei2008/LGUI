@@ -50,7 +50,7 @@ protected:
 	friend class FUIPostProcessRenderableCustomization;
 	/** Use maskTexture's red channel to mask out blur result. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UTexture2D* maskTexture;
+		TObjectPtr<UTexture2D> maskTexture;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUIPostProcessMaskTextureType MaskTextureType = EUIPostProcessMaskTextureType::Simple;
 	UPROPERTY(EditAnywhere, Category = "LGUI")

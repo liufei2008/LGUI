@@ -37,10 +37,10 @@ private:
 
 	/** Generated atlas texture. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		UTexture2D* atlasTexture = nullptr;
+		TObjectPtr<UTexture2D> atlasTexture = nullptr;
 	/** Collected sprite array to pack. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<ULGUISpriteData*> spriteArray;
+		TArray<TObjectPtr<ULGUISpriteData>> spriteArray;
 #if WITH_EDITORONLY_DATA
 	TArray<ULGUISpriteData*> prevSpriteArray;
 	/** collection of all UISprite whitch use this atlas to render */

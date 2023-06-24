@@ -19,12 +19,12 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	GENERATED_BODY()
 	/** atlasTexture is the real texture for render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-	UTexture2D* atlasTexture = nullptr;
+	TObjectPtr<UTexture2D> atlasTexture = nullptr;
 	/** information needed when insert a sprite */
 	rbp::MaxRectsBinPack atlasBinPack;
 	/** sprites belong to this atlas */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-	TArray<ULGUISpriteData*> spriteDataArray;
+	TArray<TObjectPtr<ULGUISpriteData>> spriteDataArray;
 	/** collection of all UISprite whitch use this atlas to render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
 	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;

@@ -70,7 +70,7 @@ protected:
 		bool bRequireFaceIndex = false;
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI")
-		ULGUIWorldSpaceRaycasterSource* RaycasterSourceObject = nullptr;
+		TObjectPtr<ULGUIWorldSpaceRaycasterSource> RaycasterSourceObject = nullptr;
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 public:
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) override;

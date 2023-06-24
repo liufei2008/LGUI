@@ -85,6 +85,6 @@ public:
 		UUIPolygonLine* GetUIPolygonLine()const { return UIPolygonLine; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIPolygonLine* UIPolygonLine;
+		TObjectPtr<class UUIPolygonLine> UIPolygonLine;
 
 };

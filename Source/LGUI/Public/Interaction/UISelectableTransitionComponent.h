@@ -17,7 +17,7 @@ protected:
 	virtual void Awake()override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
-		TArray<ULTweener*> TweenerCollection;
+		TArray<TObjectPtr<ULTweener>> TweenerCollection;
 
 	/** 
 	 * Called when UISelectableComponent's transition state = normal.

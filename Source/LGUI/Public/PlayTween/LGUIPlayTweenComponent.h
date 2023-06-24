@@ -14,7 +14,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool playOnStart = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
-		class ULGUIPlayTween* playTween;
+		TObjectPtr<class ULGUIPlayTween> playTween;
 
 	virtual void BeginPlay() override;
 public:

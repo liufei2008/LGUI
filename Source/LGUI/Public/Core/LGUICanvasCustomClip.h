@@ -58,7 +58,7 @@ protected:
 
 	/** Map from standard none-clip material to clip material */
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		TMap<UMaterialInterface*, UMaterialInterface*> replaceMaterialMap;
+		TMap<TObjectPtr<UMaterialInterface>, TObjectPtr<UMaterialInterface>> replaceMaterialMap;
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable)

@@ -22,7 +22,7 @@ protected:
 		bool flipDirection = false;
 	FLTweenDelegateHandleWrapper delegateHandle;
 	virtual void OnUpdate(float deltaTime);
-	UPROPERTY(Transient)class UUIText* uiText;
+	UPROPERTY(Transient)TObjectPtr<class UUIText> uiText;
 public:
 	virtual void Init()override;
 	virtual void Deinit()override;

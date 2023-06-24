@@ -35,7 +35,7 @@ protected:
 		int maxDownSampleLevel = 6;
 	/** Use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UTexture2D* strengthTexture;
+		TObjectPtr<UTexture2D> strengthTexture;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetBlurStrength() const { return blurStrength; }

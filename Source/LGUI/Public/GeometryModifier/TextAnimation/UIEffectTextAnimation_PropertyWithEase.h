@@ -17,7 +17,7 @@ private:
 		LTweenEase easeType = LTweenEase::InOutSine;
 	/** Only valid if easeType = CurveFloat. Use CurveFloat to control the animation. */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == LTweenEase::CurveFloat"))
-		UCurveFloat* easeCurve;
+		TObjectPtr<UCurveFloat> easeCurve;
 	FLTweenFunction easeFunc;
 	float EaseCurveFunction(float c, float b, float t, float d);
 protected:
