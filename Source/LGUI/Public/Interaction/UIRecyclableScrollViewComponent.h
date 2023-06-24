@@ -126,7 +126,7 @@ protected:
 		FVector2D Space = FVector2D::ZeroVector;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		TScriptInterface<IUIRecyclableScrollViewDataSource> GetDataSource()const { return DataSource; }
+		TScriptInterface<IUIRecyclableScrollViewDataSource> GetDataSource()const { return DataSource.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		int GetRows()const { return Rows; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
