@@ -65,15 +65,15 @@ public:
 protected:
 	/** Selector defines the method to select characters in text */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
-		UUIEffectTextAnimation_Selector* selector;
+		TObjectPtr<UUIEffectTextAnimation_Selector> selector;
 	/** Properties defines which property will affect and how it affect */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
-		TArray<UUIEffectTextAnimation_Property*> properties;
+		TArray<TObjectPtr<UUIEffectTextAnimation_Property>> properties;
 	/** This is just a agent to selector's offset property, for Sequencer access it. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		mutable float selectorOffset = 0.0f;
 
-	UPROPERTY(Transient)class UUIText* uiText;
+	UPROPERTY(Transient)TObjectPtr<class UUIText> uiText;
 	FUIEffectTextAnimation_SelectResult selection;
 	bool CheckUIText();
 	virtual void BeginPlay()override;

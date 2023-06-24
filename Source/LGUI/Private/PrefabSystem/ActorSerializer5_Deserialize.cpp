@@ -22,7 +22,7 @@ UE_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem5
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent
 	)
 	{
@@ -149,8 +149,8 @@ namespace LGUIPrefabSystem5
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, AActor* InParentLoadedRootActor
 		, int32& InOutActorIndex
-		, TMap<FGuid, UObject*>& InMapGuidToObject
-		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
+		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
+		, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
 	)
 	{
 		ActorSerializer serializer;
@@ -525,7 +525,7 @@ namespace LGUIPrefabSystem5
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
 					SubPrefabData.PrefabAsset = SubPrefabAsset;
-					TMap<FGuid, UObject*>& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
+					auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
 					if (auto ValuePtr = MapGuidToObject.Find(InActorData.ObjectGuid))
 					{
 						auto SubPrefabRootActorGuid = InActorData.MapObjectGuidFromParentPrefabToSubPrefab[InActorData.ObjectGuid];
@@ -543,7 +543,7 @@ namespace LGUIPrefabSystem5
 					}
 
 					auto NewOnSubPrefabFinishDeserializeFunction =
-						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
+						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
 						//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
 						for (auto& KeyValue : InSubMapGuidToObject)
 						{

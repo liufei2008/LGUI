@@ -20,6 +20,6 @@ public:
 		UUIBackgroundBlur* GetUIBackgroundBlur()const { return UIBackgroundBlur; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIBackgroundBlur* UIBackgroundBlur;
+		TObjectPtr<class UUIBackgroundBlur> UIBackgroundBlur;
 	
 };

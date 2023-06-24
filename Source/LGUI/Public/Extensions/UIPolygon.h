@@ -88,6 +88,6 @@ public:
 		UUIPolygon* GetUIPolygon()const { return UIPolygon; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIPolygon* UIPolygon;
+		TObjectPtr<class UUIPolygon> UIPolygon;
 
 };

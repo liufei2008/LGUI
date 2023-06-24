@@ -17,7 +17,7 @@ class LGUI_API ULGUI_PointerInputModule : public ULGUIBaseInputModule
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(Transient)class ULGUIEventSystem* eventSystem = nullptr;
+	UPROPERTY(Transient)TObjectPtr<class ULGUIEventSystem> eventSystem = nullptr;
 	bool CheckEventSystem();
 	struct FHitResultContainerStruct
 	{

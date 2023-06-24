@@ -26,7 +26,7 @@ protected:
 	virtual void BeginPlay()override;
 	friend class FUITextureBaseCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UTexture* texture = nullptr;
+		TObjectPtr<UTexture> texture = nullptr;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual UTexture* GetTextureToCreateGeometry()override;

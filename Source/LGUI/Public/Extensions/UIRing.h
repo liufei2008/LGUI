@@ -70,6 +70,6 @@ public:
 		UUIRing* Get2DLineRing()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIRing* UIElement;
+		TObjectPtr<class UUIRing> UIElement;
 
 };

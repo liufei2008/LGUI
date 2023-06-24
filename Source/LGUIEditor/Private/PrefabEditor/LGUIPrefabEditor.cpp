@@ -923,8 +923,8 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				PrefabHelperObject->SetCanNotifyAttachment(false);
 				for (auto& PrefabAsset : PrefabsToLoad)
 				{
-					TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
-					TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+					TMap<FGuid, TObjectPtr<UObject>> SubPrefabMapGuidToObject;
+					TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
 					auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
 						, CurrentSelectedActor->GetRootComponent()
 						, SubPrefabMapGuidToObject, SubSubPrefabMap

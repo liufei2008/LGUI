@@ -62,7 +62,7 @@ protected:
 		bool bIgnoreLayout;
 
 	UPROPERTY(Transient)
-		class UUIFlexibleGridLayout* ParentLayout = nullptr;
+		TObjectPtr<class UUIFlexibleGridLayout> ParentLayout = nullptr;
 
 	bool CheckParentLayout();
 };

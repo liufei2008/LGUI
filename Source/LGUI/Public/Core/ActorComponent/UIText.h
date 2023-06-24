@@ -59,7 +59,7 @@ public:
 protected:
 	friend class FUITextCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		ULGUIFontData_BaseObject* font;
+		TObjectPtr<ULGUIFontData_BaseObject> font;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine="true"))
 		FText text = FText::FromString(TEXT("New Text"));
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "2", ClampMax = "200"))
@@ -115,13 +115,13 @@ protected:
 		int32 richTextTagFilterFlags = 0xffffffff;
 	/** rich text custom style data for custom tag and rendering custom style */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
-		ULGUIRichTextCustomStyleData* richTextCustomStyleData = nullptr;
+		TObjectPtr<ULGUIRichTextCustomStyleData> richTextCustomStyleData = nullptr;
 	/** rich text image data for rendering image inside UIText */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "richText"))
-		ULGUIRichTextImageData_BaseObject* richTextImageData = nullptr;
+		TObjectPtr<ULGUIRichTextImageData_BaseObject> richTextImageData = nullptr;
 	/** created object for rich text image */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
-		TArray<class UUIItem*> createdRichTextImageObjectArray;
+		TArray<TObjectPtr<class UUIItem>> createdRichTextImageObjectArray;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		bool listRichTextImageObjectInOutliner = false;

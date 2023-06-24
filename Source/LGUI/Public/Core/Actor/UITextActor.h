@@ -20,5 +20,5 @@ public:
 		UUIText* GetUIText()const { return UIText; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		UUIText* UIText;
+		TObjectPtr<UUIText> UIText;
 };

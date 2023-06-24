@@ -140,7 +140,7 @@ protected:
 		ELGUITextInputType InputType;
 	/** Use this to do custom validation. Only valid when InputType = Custom */
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Input", meta = (EditCondition = "InputType==ELGUITextInputType::Custom"))
-		UUITextInputCustomValidation* CustomValidation = nullptr;
+		TObjectPtr<UUITextInputCustomValidation> CustomValidation = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		ELGUITextInputDisplayType DisplayType = ELGUITextInputDisplayType::Standard;
 	//password display character
@@ -350,7 +350,7 @@ private:
 	void InsertCharAtCaretPosition(TCHAR c);
 	void InsertStringAtCaretPosition(const FString& value);
 	FInputKeyBinding AnyKeyBinding;
-	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
+	UPROPERTY(Transient) TObjectPtr<APlayerController> PlayerController = nullptr;
 	bool CheckPlayerController();
 	bool bInputActive = false;
 	float NextCaretBlinkTime = 0;

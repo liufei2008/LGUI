@@ -65,10 +65,10 @@ private:
 
 	/** The body setup of the displayed quad */
 	UPROPERTY(Transient, DuplicateTransient)
-		class UBodySetup* BodySetup = nullptr;
+		TObjectPtr<class UBodySetup> BodySetup = nullptr;
 	/** The dynamic instance of the material that the render target is attached to */
 	UPROPERTY(Transient, DuplicateTransient)
-		mutable UMaterialInstanceDynamic* MaterialInstance = nullptr;
+		mutable TObjectPtr<UMaterialInstanceDynamic> MaterialInstance = nullptr;
 
 	void UpdateBodySetup(bool bIsDirty = true);
 	void UpdateMaterialInstance();

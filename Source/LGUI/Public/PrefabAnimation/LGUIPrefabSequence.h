@@ -44,7 +44,7 @@ private:
 	
 	/** Pointer to the movie scene that controls this animation. */
 	UPROPERTY(Instanced)
-	UMovieScene* MovieScene;
+	TObjectPtr<UMovieScene> MovieScene;
 
 	/** Collection of object references. */
 	UPROPERTY()

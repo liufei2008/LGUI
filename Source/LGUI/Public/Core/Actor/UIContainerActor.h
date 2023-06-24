@@ -17,5 +17,5 @@ public:
 	virtual UUIItem* GetUIItem()const override{ return UIItem; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UUIItem* UIItem;
+		TObjectPtr<class UUIItem> UIItem;
 };

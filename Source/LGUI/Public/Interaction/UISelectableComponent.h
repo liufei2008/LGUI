@@ -85,7 +85,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		UISelectableTransitionType Transition;
 
-	UPROPERTY(Transient)class ULTweener* TransitionTweener = nullptr;
+	UPROPERTY(Transient)TObjectPtr<class ULTweener> TransitionTweener = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		FColor NormalColor = FColor(255, 255, 255, 255);
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
@@ -98,13 +98,13 @@ protected:
 		float FadeDuration = 0.2f;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData_BaseObject* NormalSprite;
+		TObjectPtr<ULGUISpriteData_BaseObject> NormalSprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData_BaseObject* HighlightedSprite;
+		TObjectPtr<ULGUISpriteData_BaseObject> HighlightedSprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData_BaseObject* PressedSprite;
+		TObjectPtr<ULGUISpriteData_BaseObject> PressedSprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData_BaseObject* DisabledSprite;
+		TObjectPtr<ULGUISpriteData_BaseObject> DisabledSprite;
 
 	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
 	void ApplySelectionState(bool immediateSet);

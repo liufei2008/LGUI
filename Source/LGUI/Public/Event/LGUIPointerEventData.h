@@ -49,13 +49,13 @@ public:
 
 	/** enterred component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		USceneComponent* enterComponent = nullptr;
+		TObjectPtr<USceneComponent> enterComponent = nullptr;
 	/** a stack list for store enterred component. the latest enter one stay at num-1, first stay at 0. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		TArray<USceneComponent*> enterComponentStack;
+		TArray<TObjectPtr<USceneComponent>> enterComponentStack;
 	/** a collection that current pointer hoverring objects. the top most one stay at index 0 in array. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		TArray<USceneComponent*> hoverComponentArray;
+		TArray<TObjectPtr<USceneComponent>> hoverComponentArray;
 	/** current world space hit point */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldPoint = FVector(0, 0, 0);
@@ -74,14 +74,14 @@ public:
 		FVector2D scrollAxisValue = FVector2D::ZeroVector;
 	/** current raycaster */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseRaycaster* raycaster;
+		TObjectPtr<ULGUIBaseRaycaster> raycaster;
 	/** mouse input type */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		EMouseButtonType mouseButtonType = EMouseButtonType::Left;
 
 	/** hit component when press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		USceneComponent* pressComponent = nullptr;
+		TObjectPtr<USceneComponent> pressComponent = nullptr;
 	/** world space hit point when press and hit something */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressWorldPoint = FVector(0, 0, 0);
@@ -102,7 +102,7 @@ public:
 		FTransform pressWorldToLocalTransform;
 	/** raycaster when press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseRaycaster* pressRaycaster;
+		TObjectPtr<ULGUIBaseRaycaster> pressRaycaster;
 	/** the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float clickTime;
@@ -118,7 +118,7 @@ public:
 		bool isDragging = false;
 	/** current dragging component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		USceneComponent* dragComponent = nullptr;
+		TObjectPtr<USceneComponent> dragComponent = nullptr;
 
 	ELGUIEventFireType enterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 	ELGUIEventFireType pressComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;

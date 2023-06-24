@@ -39,7 +39,7 @@ protected:
 
 	TWeakObjectPtr<ULGUICanvas> TargetCanvas = nullptr;
 	TWeakObjectPtr<ULGUIRenderTargetGeometrySource> GeometrySource = nullptr;
-	UPROPERTY(Transient) ULGUIPointerEventData* PointerEventData = nullptr;
+	UPROPERTY(Transient) TObjectPtr<ULGUIPointerEventData> PointerEventData = nullptr;
 	TWeakObjectPtr<ULGUIPointerEventData> InputPointerEventData = nullptr;
 
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;

@@ -23,7 +23,7 @@ protected:
 		LTweenEase easeType = LTweenEase::Linear;
 	/** only valid if easeType=CurveFloat */
 	UPROPERTY(EditAnywhere, Category = "Property", meta=(EditCondition = "easeType == LTweenEase::CurveFloat"))
-		UCurveFloat* easeCurve;
+		TObjectPtr<UCurveFloat> easeCurve;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float duration = 0.5f;
 	UPROPERTY(EditAnywhere, Category = "Property")
@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
 	UPROPERTY(Transient)
-		ULTweener* tweener;
+		TObjectPtr<ULTweener> tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;
 	FLGUIMulticastInt32Delegate onCycleComplete_Delegate;
 public:

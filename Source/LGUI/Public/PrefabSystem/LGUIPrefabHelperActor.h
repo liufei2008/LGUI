@@ -26,9 +26,9 @@ public:
 public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefab* PrefabAsset = nullptr;
+		TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		AActor* LoadedRootActor = nullptr;
+		TObjectPtr<AActor> LoadedRootActor = nullptr;
 #endif
 #if WITH_EDITOR
 	void LoadPrefab(USceneComponent* InParent);
@@ -73,6 +73,6 @@ public:
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
+		TObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
 #endif
 };

@@ -9,8 +9,8 @@ class LTWEEN_API ULTweenerSequence:public ULTweener
 {
 	GENERATED_BODY()
 private:
-	UPROPERTY(VisibleAnywhere, Category = LTween)TArray<ULTweener*> tweenerList;
-	UPROPERTY(VisibleAnywhere, Category = LTween)TArray<ULTweener*> finishedTweenerList;
+	UPROPERTY(VisibleAnywhere, Category = LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
+	UPROPERTY(VisibleAnywhere, Category = LTween)TArray<TObjectPtr<ULTweener>> finishedTweenerList;
 	float lastTweenStartTime = 0;
 public:
 	/**

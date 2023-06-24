@@ -65,9 +65,9 @@ struct FUIRecyclableScrollViewCellContainer
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UActorComponent* CellComponent = nullptr;
+		TObjectPtr<UActorComponent> CellComponent = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UUIItem* UIItem = nullptr;
+		TObjectPtr<UUIItem> UIItem = nullptr;
 };
 
 UENUM(BlueprintType)
@@ -98,7 +98,7 @@ protected:
 protected:
 	/** Use a Actor which implement UIRecyclableScrollViewDataSource interface. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
-		UObject* DataSource;
+		TObjectPtr<UObject> DataSource;
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
 		EUIRecyclableScrollViewCellTemplateType CellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
 	/**
@@ -106,13 +106,13 @@ protected:
 	 * Only valid if CellTemplateType is Actor.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
-		AUIBaseActor* CellTemplate;
+		TObjectPtr<AUIBaseActor> CellTemplate;
 	/**
 	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
 	 * Only valid if CellTemplateType is Prefab.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
-		class ULGUIPrefab* CellTemplatePrefab;
+		TObjectPtr<class ULGUIPrefab> CellTemplatePrefab;
 	/** When use horizontal scroll, this can set the row count in every cell. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Horizontal"))
 		uint16 Rows = 1;

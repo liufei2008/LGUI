@@ -34,7 +34,7 @@ private:
 	 * Donot modify spriteTexture's setting unless you know what you doing
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		UTexture2D* spriteTexture;
+		TObjectPtr<UTexture2D> spriteTexture;
 	/** Information needed for render this sprite */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FLGUISpriteInfo spriteInfo;
@@ -44,7 +44,7 @@ private:
 	 * Support mipmaps.
 	 */
 	UPROPERTY(EditAnywhere, Category = "AtlasPacking")
-		ULGUIStaticSpriteAtlasData* packingAtlas = nullptr;
+		TObjectPtr<ULGUIStaticSpriteAtlasData> packingAtlas = nullptr;
 	/**
 	 * Sprites that have same packingTag will be packed into same atlas at runtime. If packingTag is None, then the UISprite which render this LGUISpriteData will be treated as a UITexture.
 	 * Not support mipmaps.
@@ -57,7 +57,7 @@ private:
 		bool useEdgePixelPadding = true;
 private:
 	bool isInitialized = false;
-	UPROPERTY(Transient)UTexture2D * atlasTexture = nullptr;
+	UPROPERTY(Transient)TObjectPtr<UTexture2D> atlasTexture = nullptr;
 	bool PackageSprite();
 	bool InsertTexture(FLGUIDynamicSpriteAtlasData* InAtlasData);
 	void CheckSpriteTexture();
