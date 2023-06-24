@@ -17,6 +17,7 @@ class ULGUIPrefabSequencePlayer;
 UCLASS(Blueprintable, ClassGroup=LGUI, hidecategories=(Collision, Cooking, Activation), meta=(BlueprintSpawnableComponent))
 class LGUI_API ULGUIPrefabSequenceComponent
 	: public ULGUILifeCycleBehaviour
+	, public IMovieSceneSequenceActor
 {
 public:
 	GENERATED_BODY()
@@ -63,6 +64,8 @@ public:
 
 	void FixEditorHelpers();
 #endif
+	// IMovieSceneSequenceActor interface
+	virtual void TickFromSequenceTickManager(float DeltaSeconds) override;
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))

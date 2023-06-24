@@ -15,13 +15,12 @@ void ULGUIPrefabSequenceComponent::Awake()
 {
 	Super::Awake();
 
+	this->SetCanExecuteUpdate(false);
 	InitSequencePlayer();
 }
 void ULGUIPrefabSequenceComponent::Start()
 {
 	Super::Start();
-
-	this->SetCanExecuteUpdate(true);
 
 	if (PlaybackSettings.bAutoPlay)
 	{
@@ -36,6 +35,11 @@ void ULGUIPrefabSequenceComponent::OnDestroy()
 	if (SequencePlayer)
 	{
 		SequencePlayer->Stop();
+		
+		if (UMovieSceneSequenceTickManager* TickManager = SequencePlayer->GetTickManager())
+		{
+			TickManager->UnregisterSequenceActor(GetOwner(), this);
+		}
 	}
 }
 
@@ -43,11 +47,6 @@ void ULGUIPrefabSequenceComponent::OnDestroy()
 void ULGUIPrefabSequenceComponent::Update(float DeltaSeconds)
 {
 	Super::Update(DeltaSeconds);
-
-	if (SequencePlayer)
-	{
-		SequencePlayer->Update(DeltaSeconds);
-	}
 }
 
 #if WITH_EDITOR
@@ -109,12 +108,23 @@ ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByIndex(int32 InIn
 
 void ULGUIPrefabSequenceComponent::InitSequencePlayer()
 {
+	if (!SequencePlayer)
+	{
+		SequencePlayer = NewObject<ULGUIPrefabSequencePlayer>(this, "SequencePlayer");
+		SequencePlayer->SetPlaybackClient(this);
+
+		// Initialize this player for tick as soon as possible to ensure that a persistent
+		// reference to the tick manager is maintained
+		SequencePlayer->InitializeForTick(this);
+
+		UMovieSceneSequenceTickManager* TickManager = SequencePlayer->GetTickManager();
+		if (ensure(TickManager))
+		{
+			TickManager->RegisterSequenceActor(GetOwner(), this);
+		}
+	}
 	if (auto CurrentSequence = GetCurrentSequence())
 	{
-		if (!SequencePlayer)
-		{
-			SequencePlayer = NewObject<ULGUIPrefabSequencePlayer>(this, "SequencePlayer");
-		}
 		SequencePlayer->Initialize(CurrentSequence, PlaybackSettings);
 	}
 }
@@ -133,6 +143,14 @@ void ULGUIPrefabSequenceComponent::SetSequenceByName(FName InName)
 	{
 		CurrentSequenceIndex = FoundIndex;
 		InitSequencePlayer();
+	}
+}
+
+void ULGUIPrefabSequenceComponent::TickFromSequenceTickManager(float DeltaSeconds)
+{
+	if (SequencePlayer)
+	{
+		SequencePlayer->UpdateAsync(DeltaSeconds);
 	}
 }
 
