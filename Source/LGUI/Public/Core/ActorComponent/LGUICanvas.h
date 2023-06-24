@@ -82,7 +82,7 @@ struct FLGUIMaterialArrayContainer
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		TArray<UMaterialInstanceDynamic*> MaterialList;
+		TArray<TObjectPtr<UMaterialInstanceDynamic>> MaterialList;
 };
 
 class FTransform2D;
@@ -209,7 +209,7 @@ protected:
 	/** nearest up parent Canvas */
 	UPROPERTY(Transient) TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	
-	UMaterialInterface** GetMaterials();
+	TObjectPtr<UMaterialInterface>* GetMaterials();
 	void CheckDefaultMaterials();
 
 	UPROPERTY(Transient) mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
@@ -229,7 +229,7 @@ protected:
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
 	/** Render to RenderTargets. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UTextureRenderTarget2D* renderTarget;
+		TObjectPtr<UTextureRenderTarget2D> renderTarget;
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
@@ -258,7 +258,7 @@ protected:
 		FMargin clipRectOffset = FMargin(0);
 	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UTexture2D* clipTexture = nullptr;
+		TObjectPtr<UTexture2D> clipTexture = nullptr;
 	/** Threshold for line trace interaction test, if transparent value less then this threshold then hit test return false. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float clipTextureHitTestThreshold = 0.1f;
@@ -270,7 +270,7 @@ protected:
 	 * Will fallback to "No Clip" if not assign this value.
 	 */
 	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
-		ULGUICanvasCustomClip* customClip;
+		TObjectPtr<ULGUICanvasCustomClip> customClip;
 
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
@@ -285,7 +285,7 @@ protected:
 
 	/** Default materials, for render default UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::Custom];
+		TObjectPtr<UMaterialInterface> DefaultMaterials[(int)ELGUICanvasClipType::Custom];
 
 	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
@@ -559,9 +559,9 @@ private:
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas.
 	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<UUIItem*> UIRenderableList;//Use UIItem instead of UIBaseRenderable, because we need UIItem to get sub-canvas.
+	TArray<TObjectPtr<UUIItem>> UIRenderableList;//Use UIItem instead of UIBaseRenderable, because we need UIItem to get sub-canvas.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<UUIItem*> UIItemList;//All UIItem that belongs to this canvas
+	TArray<TObjectPtr<UUIItem>> UIItemList;//All UIItem that belongs to this canvas
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);

@@ -25,7 +25,7 @@ protected:
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
-	UPROPERTY(Transient)TArray<UUIItem*> SortedItemArray;
+	UPROPERTY(Transient)TArray<TObjectPtr<UUIItem>> SortedItemArray;
 	void RebuildChildrenList();
 
 	virtual void CalculatePoints()override;
@@ -52,6 +52,6 @@ public:
 		UUI2DLineChildrenAsPoints* Get2DLineChildrenAsPoints()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUI2DLineChildrenAsPoints* UIElement;
+		TObjectPtr<class UUI2DLineChildrenAsPoints> UIElement;
 
 };

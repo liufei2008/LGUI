@@ -240,13 +240,13 @@ namespace LGUIPrefabSystem5
 		 * LoadPrefab and keep reference of objects.
 		 */
 		static AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+			, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
 			, bool InSetHierarchyIndexForRootComponent = true
 		);
 
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
 		);
 		
@@ -261,18 +261,18 @@ namespace LGUIPrefabSystem5
 		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
 		 */
 		static AActor* DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
-			, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 			, const TMap<UObject*, FGuid>& InMapObjectToGuid
-			, TMap<AActor*, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
-			, TMap<FGuid, UObject*>& OutMapGuidToObject
+			, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+			, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject
 		);
 
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, AActor* InParentRootActor
 			, int32& InOutActorIndex
-			, TMap<FGuid, UObject*>& InMapGuidToObject
-			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
+			, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
+			, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
 		);
 
 	private:
@@ -286,7 +286,7 @@ namespace LGUIPrefabSystem5
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 
 		TArray<AActor*> CreatedActors;//collect for created actors
 
@@ -319,7 +319,7 @@ namespace LGUIPrefabSystem5
 		 * @param	const TMap<FGuid, UObject*>&	SubPrefab's map guid to all object
 		 * @param	const TArray<AActor*>&		SubPrefab's all created actor
 		 */
-		TFunction<void(AActor*, const TMap<FGuid, UObject*>&, const TArray<AActor*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
+		TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
 
 		/**
 		 * Writer and Reader for serialize or deserialize

@@ -526,7 +526,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 
 #if WITH_EDITOR
 AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
-	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+	, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
 	, bool InSetHierarchyIndexForRootComponent
 )
 {
@@ -620,7 +620,7 @@ void ULGUIPrefab::CopyDataTo(ULGUIPrefab* TargetPrefab)
 #endif
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
-	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse
 )
 {
@@ -637,8 +637,8 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	{
 	case ELGUIPrefabVersion::ObjectName:
 	{
-		TMap<FGuid, UObject*> MapGuidToObject;
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
@@ -646,8 +646,8 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	break;
 	case ELGUIPrefabVersion::NestedDefaultSubObject:
 	{
-		TMap<FGuid, UObject*> MapGuidToObject;
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
@@ -655,8 +655,8 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	break;
 	case ELGUIPrefabVersion::BuildinFArchive:
 	{
-		TMap<FGuid, UObject*> MapGuidToObject;
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
@@ -672,7 +672,7 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	return LoadedRootActor;
 }
 
-AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, UObject*>& OutMapGuidToObject, bool SetRelativeTransformToIdentity)
+AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject, bool SetRelativeTransformToIdentity)
 {
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)

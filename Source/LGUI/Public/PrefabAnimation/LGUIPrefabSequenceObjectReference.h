@@ -63,7 +63,7 @@ public:
 private:
 
 	UPROPERTY()
-	UObject* Object = nullptr;
+	TObjectPtr<UObject> Object = nullptr;
 
 #if WITH_EDITORONLY_DATA
 	/** HelperActor's actor label/ */
@@ -74,10 +74,10 @@ private:
 		FString HelperActorPath;
 	/** Editor helper actor, for direct reference actor. */
 	UPROPERTY()
-		AActor* HelperActor = nullptr;
+		TObjectPtr<AActor> HelperActor = nullptr;
 	/** Editor helper, target object class. If class is actor then Object is HelperActor, if class is ActorComponent then Object is the component. */
 	UPROPERTY()
-		UClass* HelperClass = nullptr;
+		TObjectPtr<UClass> HelperClass = nullptr;
 	/** Editor helper, if Object is actor component and HelperActor have multiple components, then select by component name. */
 	UPROPERTY()
 		FName HelperComponentName;

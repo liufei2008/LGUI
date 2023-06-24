@@ -18,7 +18,7 @@ protected:
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class UUISpriteBase> sprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<ULGUISpriteData_BaseObject*> spriteSequence;
+		TArray<TObjectPtr<ULGUISpriteData_BaseObject>> spriteSequence;
 	/** should also set size to sprite-data? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool snapSpriteSize = true;

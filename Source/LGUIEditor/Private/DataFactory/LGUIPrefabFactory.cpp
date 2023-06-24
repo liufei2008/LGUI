@@ -24,8 +24,8 @@ UObject* ULGUIPrefabFactory::FactoryCreateNew(UClass* Class, UObject* InParent, 
 		NewAsset->bIsPrefabVariant = true;
 		ULGUIPrefabHelperObject* HelperObject = NewObject<ULGUIPrefabHelperObject>(GetTransientPackage());
 		HelperObject->PrefabAsset = NewAsset;
-		TMap<FGuid, UObject*> MapGuidToObject;
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		HelperObject->LoadedRootActor = SourcePrefab->LoadPrefabWithExistingObjects(ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage(), nullptr, MapGuidToObject, SubPrefabMap);
 		FLGUISubPrefabData SubPrefabData;
 		SubPrefabData.PrefabAsset = SourcePrefab;

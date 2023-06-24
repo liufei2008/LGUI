@@ -156,7 +156,7 @@ protected:
 	friend class FUIGeometryRenderableCustomization;
 	/** Use custom material to render this element */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UMaterialInterface* CustomUIMaterial = nullptr;
+		TObjectPtr<UMaterialInterface> CustomUIMaterial = nullptr;
 
 	/** texture for render this UI element */
 	virtual UTexture* GetTextureToCreateGeometry();
@@ -199,5 +199,5 @@ private:
 	FVector LocalMinPoint3D = FVector::ZeroVector, LocalMaxPoint3D = FVector::ZeroVector;
 #endif
 	void CalculateLocalBounds();
-	UPROPERTY(Transient)ULGUIGeometryHelper* GeometryHelper = nullptr;
+	UPROPERTY(Transient)TObjectPtr<ULGUIGeometryHelper> GeometryHelper = nullptr;
 };

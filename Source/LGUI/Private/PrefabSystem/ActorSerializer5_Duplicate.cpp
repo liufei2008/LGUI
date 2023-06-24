@@ -149,10 +149,10 @@ namespace LGUIPrefabSystem5
 	}
 
 	AActor* ActorSerializer::DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
-		, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+		, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, const TMap<UObject*, FGuid>& InMapObjectToGuid
-		, TMap<AActor*, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
-		, TMap<FGuid, UObject*>& OutMapGuidToObject
+		, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+		, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject
 	)
 	{
 		if (!OriginRootActor)

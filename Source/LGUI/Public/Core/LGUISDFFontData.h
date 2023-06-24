@@ -37,7 +37,7 @@ public:
 private:
 	/** Use these material to render SDF font for UIText, include clip material. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
-		UMaterialInterface* SDFDefaultMaterials[(int)ELGUICanvasClipType::Custom];
+		TObjectPtr<UMaterialInterface> SDFDefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Font size when render glyph. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "16", UIMax = "100"))
 		int FontSize = 32;

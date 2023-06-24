@@ -117,7 +117,7 @@ protected:
 		EUIRenderableRaycastType RaycastType = EUIRenderableRaycastType::Rect;
 	/** Custom raycast object to handle raycast behaviour when LGUI do raycast hit test. Only valid if RaycastTarget is true and RaycastType is Custom. */
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Custom"))
-		UUIRenderableCustomRaycast* CustomRaycastObject;
+		TObjectPtr<UUIRenderableCustomRaycast> CustomRaycastObject;
 	/** Pixel's alpha value threadhold, if hit a pixel which alpha value is less than this value, then hit test return false. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::VisiblePixel"))
 		float VisiblePixelThreadhold = 0.1f;

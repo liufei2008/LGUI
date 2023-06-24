@@ -72,9 +72,9 @@ protected:
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
 
 	UPROPERTY(VisibleAnywhere, Instanced, Category= Playback)
-		TArray<ULGUIPrefabSequence*> SequenceArray;
+		TArray<TObjectPtr<ULGUIPrefabSequence>> SequenceArray;
 	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
 	UPROPERTY(transient)
-		ULGUIPrefabSequencePlayer* SequencePlayer;
+		TObjectPtr<ULGUIPrefabSequencePlayer> SequencePlayer;
 };

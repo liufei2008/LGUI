@@ -434,7 +434,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			}
 
 			//refresh sub-prefab's object
-			TMap<AActor*, FLGUISubPrefabData> TempSubSubPrefabMap;
+			TMap<TObjectPtr<AActor>, FLGUISubPrefabData> TempSubSubPrefabMap;
 			auto AttachParentActor = SubPrefabRootActor->GetAttachParentActor();
 			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
 				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
@@ -1491,7 +1491,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			}
 			else
 			{
-				return (UObject*)nullptr;
+				return (TObjectPtr<UObject>)nullptr;
 			}
 		};
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
@@ -1563,7 +1563,7 @@ void ULGUIPrefabHelperObject::RefreshSubPrefabVersion(AActor* InSubPrefabRootAct
 	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
 }
 
-void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
+void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
@@ -1788,11 +1788,11 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 				Info.FadeOutDuration = 0.0f;
 				Info.ExpireDuration = 0.0f;
 				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateToNewPrefabButton", "Update"), LOCTEXT("UpdateToNewPrefabButton_Tooltip", "Update the prefab to new.")
-					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateClicked, KeyValue.Key)));
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateClicked, KeyValue.Key.Get())));
 				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateAllToNewPrefabButton", "Update All"), LOCTEXT("UpdateToAllNewPrefabButton_Tooltip", "Update all prefabs to new.")
 					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked)));
 				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissButton", "Dismiss"), LOCTEXT("DismissButton_Tooltip", "Dismiss this notification")
-					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissClicked, KeyValue.Key)));
+					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissClicked, KeyValue.Key.Get())));
 				Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissAllButton", "Dismiss All"), LOCTEXT("DismissAllButton_Tooltip", "Dismiss all notifications")
 					, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked)));
 

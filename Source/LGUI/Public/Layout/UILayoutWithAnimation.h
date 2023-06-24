@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="AnimationType==EUILayoutChangePositionAnimationType::EaseAnimation"))
 		float AnimationDuration = 0.3f;
 	UPROPERTY(Transient)
-		TArray<class ULTweener*> TweenerArray;
+		TArray<TObjectPtr<class ULTweener>> TweenerArray;
 
 	bool bIsAnimationPlaying = false;
 	bool bShouldRebuildLayoutAfterAnimation = false;

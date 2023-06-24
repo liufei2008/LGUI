@@ -62,7 +62,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool useExternalFileOrEmbedInToUAsset = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		class UFontFace* unrealFont;
+		TObjectPtr<class UFontFace> unrealFont;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int fontFace = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -89,11 +89,11 @@ protected:
 
 	/** Texture of this font */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		UTexture2D* texture;
+		TObjectPtr<UTexture2D> texture;
 
 	/** if not find char in current font, LGUI will search the char in this font array until find it. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<ULGUIFreeTypeRenderFontData*> fallbackFontArray;
+		TArray<TObjectPtr<ULGUIFreeTypeRenderFontData>> fallbackFontArray;
 
 	virtual void FinishDestroy()override;
 

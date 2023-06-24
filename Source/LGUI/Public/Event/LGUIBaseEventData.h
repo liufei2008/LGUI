@@ -56,7 +56,7 @@ class LGUI_API ULGUIBaseEventData :public UObject
 public:
 	/** current selected component. when call Deselect interface, this is also the new selected component*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		USceneComponent* selectedComponent = nullptr;
+		TObjectPtr<USceneComponent> selectedComponent = nullptr;
 	/** event type*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		EPointerEventType eventType = EPointerEventType::Click;

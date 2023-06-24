@@ -67,7 +67,7 @@ namespace LGUIPrefabSystem
 		uint32 ArEngineNetVer = 0;
 		uint32 ArGameNetVer = 0;
 
-		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 		TMap<UObject*, FGuid> MapObjectToGuid;
 
 	protected:

@@ -140,7 +140,7 @@ protected:
 	/** root in hierarchy */
 	mutable TWeakObjectPtr<UUIItem> RootUIItem = nullptr;//don't mark this Transactional, because undo or redo will call register/unregister, which will trigger check RootUIItem
 	/** UI children array, sorted by hierarchy index */
-	UPROPERTY(Transient) TArray<UUIItem*> UIChildren;
+	UPROPERTY(Transient) TArray<TObjectPtr<UUIItem>> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
 	void CheckCacheUIChildren();
 #pragma region AnchorData
@@ -471,7 +471,7 @@ public:
 public:
 #if WITH_EDITORONLY_DATA
 	/** This is a helper component for calculate bounds, so we can double click to focus on this UIItem */
-	UPROPERTY(Transient, NonTransactional)class UUIItemEditorHelperComp* HelperComp = nullptr;//@todo: better way to replace this?
+	UPROPERTY(Transient, NonTransactional)TObjectPtr<class UUIItemEditorHelperComp> HelperComp = nullptr;//@todo: better way to replace this?
 #endif
 };
 
@@ -489,9 +489,9 @@ public:
 #if WITH_EDITOR
 	virtual FPrimitiveSceneProxy* CreateSceneProxy()override;
 #endif
-	UPROPERTY(Transient)UUIItem* Parent = nullptr;
+	UPROPERTY(Transient)TObjectPtr<UUIItem> Parent = nullptr;
 	virtual UBodySetup* GetBodySetup()override;
 	UPROPERTY(Transient)
-		class UBodySetup* BodySetup;
+		TObjectPtr<class UBodySetup> BodySetup;
 	void UpdateBodySetup();
 };

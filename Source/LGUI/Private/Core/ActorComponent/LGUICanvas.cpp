@@ -574,7 +574,7 @@ void ULGUICanvas::PostEditUndo()
 }
 #endif
 
-UMaterialInterface** ULGUICanvas::GetMaterials()
+TObjectPtr<UMaterialInterface>* ULGUICanvas::GetMaterials()
 {
 	if(IsRootCanvas())
 	{

@@ -380,8 +380,8 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	TMap<FGuid, UObject*> MapGuidToObject;
-	TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+	TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 	auto RootActor= Prefab->LoadPrefabWithExistingObjects(World, nullptr
 		, MapGuidToObject, SubPrefabMap
 	);

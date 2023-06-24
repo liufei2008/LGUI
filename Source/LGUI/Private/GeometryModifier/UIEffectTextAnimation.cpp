@@ -114,13 +114,10 @@ void UUIEffectTextAnimation::SetSelector(UUIEffectTextAnimation_Selector* value)
 }
 void UUIEffectTextAnimation::SetProperties(const TArray<UUIEffectTextAnimation_Property*>& value)
 {
-	if (properties != value)
+	properties = value;
+	if (CheckUIText())
 	{
-		properties = value;
-		if (CheckUIText())
-		{
-			uiText->MarkVerticesDirty(true, true, true, true);
-		}
+		uiText->MarkVerticesDirty(true, true, true, true);
 	}
 }
 void UUIEffectTextAnimation::SetProperty(int index, UUIEffectTextAnimation_Property* value)
