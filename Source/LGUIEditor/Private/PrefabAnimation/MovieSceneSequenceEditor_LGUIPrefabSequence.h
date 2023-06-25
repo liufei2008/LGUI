@@ -11,4 +11,6 @@ struct FMovieSceneSequenceEditor_LGUIPrefabSequence : FMovieSceneSequenceEditor
 	{
 		return true;
 	}
+	virtual UBlueprint* GetBlueprintForSequence(UMovieSceneSequence* InSequence) const override;
+	virtual UBlueprint* CreateBlueprintForSequence(UMovieSceneSequence* InSequence) const override;
 };
