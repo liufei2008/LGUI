@@ -12,6 +12,20 @@ class ULGUIPrefabSequence;
 class ULGUIPrefabSequencePlayer;
 
 /**
+ * Only use this as blueprint, because MovieScene need blueprint to handle event callback.
+ * Not working yet.
+ */
+UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable, DefaultToInstanced, EditInlineNew)
+class LGUI_API ULGUIPrefabSequenceBlueprint : public UObject
+{
+	GENERATED_BODY()
+public:
+	/** Called when LGUIPrefabSequenceComponent process Start */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
+		void ReceiveInit(class ULGUIPrefabSequenceComponent* InComp);
+};
+
+/**
  * Movie scene animation embedded within LGUIPrefab.
  */
 UCLASS(Blueprintable, ClassGroup=LGUI, hidecategories=(Collision, Cooking, Activation), meta=(BlueprintSpawnableComponent))
@@ -56,6 +70,7 @@ public:
 	virtual void OnDestroy() override;
 	virtual void Update(float DeltaTime) override;
 #if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
 	virtual void PreSave(class FObjectPreSaveContext SaveContext)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
@@ -66,6 +81,8 @@ public:
 #endif
 	// IMovieSceneSequenceActor interface
 	virtual void TickFromSequenceTickManager(float DeltaSeconds) override;
+	UBlueprint* GetSequenceBlueprint()const;
+	UObject* GetSequenceBlueprintInstance()const { return SequenceBlueprint; }
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))
@@ -75,6 +92,13 @@ protected:
 		TArray<TObjectPtr<ULGUIPrefabSequence>> SequenceArray;
 	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
+	/**
+	 * Create a blueprint that use LGUIPrefabSequenceBlueprint as parent class and use it here.
+	 * Not working yet.
+	 */
+	UPROPERTY(/*EditAnywhere, Category = Playback, Instanced*/)
+		TObjectPtr<ULGUIPrefabSequenceBlueprint> SequenceBlueprint = nullptr;
+
 	UPROPERTY(transient)
 		TObjectPtr<ULGUIPrefabSequencePlayer> SequencePlayer;
 };

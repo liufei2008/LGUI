@@ -22,6 +22,10 @@ void ULGUIPrefabSequenceComponent::Start()
 {
 	Super::Start();
 
+	if (IsValid(SequenceBlueprint))
+	{
+		SequenceBlueprint->ReceiveInit(this);
+	}
 	if (PlaybackSettings.bAutoPlay)
 	{
 		SequencePlayer->Play();
@@ -50,6 +54,11 @@ void ULGUIPrefabSequenceComponent::Update(float DeltaSeconds)
 }
 
 #if WITH_EDITOR
+void ULGUIPrefabSequenceComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+}
 void ULGUIPrefabSequenceComponent::PreDuplicate(FObjectDuplicationParameters& DupParams)
 {
 	Super::PreDuplicate(DupParams);
@@ -84,6 +93,18 @@ void ULGUIPrefabSequenceComponent::FixEditorHelpers()
 	}
 }
 #endif
+
+UBlueprint* ULGUIPrefabSequenceComponent::GetSequenceBlueprint()const
+{
+	if (SequenceBlueprint)
+	{
+		if (auto GeneratedClass = Cast<UBlueprintGeneratedClass>(SequenceBlueprint->GetClass()))
+		{
+			return Cast<UBlueprint>(GeneratedClass->ClassGeneratedBy);
+		}
+	}
+	return nullptr;
+}
 
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByName(FName InName) const
 {
