@@ -120,8 +120,8 @@ bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackC
 		return false;
 	}
 
-	AActor* ActorContext = CastChecked<AActor>(InPlaybackContext);
-	AActor* Actor = Cast<AActor>(&Object);
+	AActor* ActorContext = InPlaybackContext->GetTypedOuter<AActor>();
+	AActor* Actor = Object.GetTypedOuter<AActor>();
 	if (Actor == nullptr)
 	{
 		if (auto Component = Cast<UActorComponent>(&Object))
@@ -133,7 +133,7 @@ bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackC
 	if (Actor != nullptr)
 	{
 		return Actor->GetLevel() == ActorContext->GetLevel()
-			&& (Actor == InPlaybackContext || Actor->IsAttachedTo(ActorContext))//only allow actor self or child actor
+			&& (Actor == ActorContext || Actor->IsAttachedTo(ActorContext))//only allow actor self or child actor
 			;
 	}
 
@@ -163,6 +163,12 @@ UObject* ULGUIPrefabSequence::GetParentObject(UObject* Object) const
 void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 {
 	ObjectReferences.RemoveBinding(ObjectId);
+}
+
+UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
+{
+	auto SequenceBlueprint = CastChecked<ULGUIPrefabSequenceBlueprint>(Player.GetPlaybackContext());
+	return SequenceBlueprint;
 }
 
 #if WITH_EDITOR

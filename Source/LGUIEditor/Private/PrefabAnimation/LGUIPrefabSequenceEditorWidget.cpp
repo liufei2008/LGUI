@@ -21,6 +21,7 @@
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorTools.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabAnimation/LGUIPrefabSequenceComponent.h"
 #include "Selection.h"
 #include "Core/Actor/UIBaseActor.h"
 
@@ -230,17 +231,8 @@ public:
 		ULGUIPrefabSequence* LocalLGUIPrefabSequence = GetLGUIPrefabSequence();
 		if (LocalLGUIPrefabSequence)
 		{
-			if (AActor* Actor = LocalLGUIPrefabSequence->GetTypedOuter<AActor>())
-			{
-				return Actor;
-			}
-			else if (UBlueprintGeneratedClass* GeneratedClass = LocalLGUIPrefabSequence->GetTypedOuter<UBlueprintGeneratedClass>())
-			{
-				if (GeneratedClass->SimpleConstructionScript)
-				{
-					return GeneratedClass->SimpleConstructionScript->GetComponentEditorActorInstance();
-				}
-			}
+			auto Component = LocalLGUIPrefabSequence->GetTypedOuter<ULGUIPrefabSequenceComponent>();
+			return Component->GetSequenceBlueprintInstance();
 		}
 		
 		return nullptr;
@@ -350,8 +342,8 @@ public:
 		Sequencer->GetSelectionChangedObjectGuids().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::SyncSelectedWidgetsWithSequencerSelection);
 
 		FLevelEditorSequencerIntegrationOptions Options;
-		Options.bRequiresLevelEvents = true;
-		Options.bRequiresActorEvents = false;
+		Options.bRequiresLevelEvents = false;
+		Options.bRequiresActorEvents = true;
 		Options.bForceRefreshDetails = false;
 
 		FLevelEditorSequencerIntegration::Get().AddSequencer(Sequencer.ToSharedRef(), Options);
