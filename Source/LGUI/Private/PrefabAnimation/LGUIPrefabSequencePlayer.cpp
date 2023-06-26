@@ -12,7 +12,7 @@ UObject* ULGUIPrefabSequencePlayer::GetPlaybackContext() const
 	if (PrefabSequence)
 	{
 		auto Component = PrefabSequence->GetTypedOuter<ULGUIPrefabSequenceComponent>();
-		return Component->GetSequenceBlueprintInstance();
+		return Component->GetOwner();
 	}
 
 	return nullptr;

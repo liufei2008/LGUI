@@ -93,23 +93,20 @@ void ULGUIPrefabSequence::PostInitProperties()
 
 void ULGUIPrefabSequence::BindPossessableObject(const FGuid& ObjectId, UObject& PossessedObject, UObject* Context)
 {
-	if (CanPossessObject(PossessedObject, Context))
+	FLGUIPrefabSequenceObjectReference ObjectRef;
+	AActor* ActorContext = CastChecked<AActor>(Context);
+	AActor* Actor = Cast<AActor>(&PossessedObject);
+	if (Actor == nullptr)
 	{
-		FLGUIPrefabSequenceObjectReference ObjectRef;
-		AActor* ActorContext = CastChecked<AActor>(Context);
-		AActor* Actor = Cast<AActor>(&PossessedObject);
-		if (Actor == nullptr)
+		if (auto Component = Cast<UActorComponent>(&PossessedObject))
 		{
-			if (auto Component = Cast<UActorComponent>(&PossessedObject))
-			{
-				Actor = Component->GetOwner();
-			}
+			Actor = Component->GetOwner();
 		}
-		check(Actor != nullptr);
-		if (FLGUIPrefabSequenceObjectReference::CreateForObject(Actor, &PossessedObject, ObjectRef))
-		{
-			ObjectReferences.CreateBinding(ObjectId, ObjectRef);
-		}
+	}
+	check(Actor != nullptr);
+	if (FLGUIPrefabSequenceObjectReference::CreateForObject(Actor, &PossessedObject, ObjectRef))
+	{
+		ObjectReferences.CreateBinding(ObjectId, ObjectRef);
 	}
 }
 
@@ -120,7 +117,7 @@ bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackC
 		return false;
 	}
 
-	AActor* ActorContext = InPlaybackContext->GetTypedOuter<AActor>();
+	AActor* ActorContext = CastChecked<AActor>(InPlaybackContext);
 	AActor* Actor = Object.GetTypedOuter<AActor>();
 	if (Actor == nullptr)
 	{
@@ -167,8 +164,8 @@ void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 
 UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
 {
-	auto SequenceBlueprint = CastChecked<ULGUIPrefabSequenceBlueprint>(Player.GetPlaybackContext());
-	return SequenceBlueprint;
+	auto Actor = CastChecked<AActor>(Player.GetPlaybackContext());
+	return Actor;
 }
 
 #if WITH_EDITOR

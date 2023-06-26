@@ -232,7 +232,7 @@ public:
 		if (LocalLGUIPrefabSequence)
 		{
 			auto Component = LocalLGUIPrefabSequence->GetTypedOuter<ULGUIPrefabSequenceComponent>();
-			return Component->GetSequenceBlueprintInstance();
+			return Component->GetOwner();
 		}
 		
 		return nullptr;
