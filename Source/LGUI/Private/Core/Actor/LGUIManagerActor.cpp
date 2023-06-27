@@ -442,7 +442,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
 			if (IsScreenSpace)
 			{
-				ALGUIManagerActor::DrawDebugBoxOnScreenSpace(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+				ALGUIManagerActor::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
 			}
 			else
 			{
@@ -510,7 +510,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 
 		if (IsScreenSpace)
 		{
-			ALGUIManagerActor::DrawDebugBoxOnScreenSpace(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
+			ALGUIManagerActor::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
 		}
 		else
 		{
@@ -569,7 +569,7 @@ void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVecto
 			new(Lines) FLGUIHelperLineVertex(InControlPoints[3], InColor);
 			new(Lines) FLGUIHelperLineVertex(InArrowPointB, InColor);
 
-			ViewExtension->AddLineRender(FHelperLineRenderParameter(Lines));
+			ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
 		}
 	}
 	else
@@ -761,7 +761,38 @@ void ALGUIManagerActor::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const
 		new(Lines) FLGUIHelperLineVertex(Center + Start, Color);
 		new(Lines) FLGUIHelperLineVertex(Center + End, Color);
 
-		ViewExtension->AddLineRender(FHelperLineRenderParameter(Lines));
+		ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
+	}
+}
+void ALGUIManagerActor::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
+{
+	auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+	if (ViewExtension.IsValid())
+	{
+		TArray<FLGUIHelperLineVertex> Lines;
+
+		FTransform const Transform(Rotation);
+		FVector Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
+		FVector End = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+
+		Start = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
+		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+
+		ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
 	}
 }
 #endif
