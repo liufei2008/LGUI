@@ -60,17 +60,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor InnerShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
-		float InnerShadowSize = 4;
+		float InnerShadowSize = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur"))
 		float InnerShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
-		FVector2f InnerShadowOffset = FVector2f(1, 1);
+		FVector2f InnerShadowOffset = FVector2f(0, 0);
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bEnableRadialFill = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f RadialFillCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation"))
 		float RadialFillRotation = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillAngle = 270;
@@ -79,8 +79,8 @@ public:
 		bool bEnableOuterShadow = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor OuterShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size", ClampMin = "0.0"))
-		float OuterShadowSize = 4;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
+		float OuterShadowSize = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur", ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))

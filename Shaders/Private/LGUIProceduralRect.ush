@@ -247,7 +247,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
         {
             float gradientLerpAlpha = RadialGradient(UV0, _QuadSize, _GradientCenter.xy, _GradientRadius.xy, _GradientRotation);
             _GradientColor.rgb = pow(_GradientColor.rgb, 2.2f);
-            color = lerp(color, _GradientColor * MainTexColor, gradientLerpAlpha);
+            color = lerp(_GradientColor * MainTexColor, color, gradientLerpAlpha);
         }
 
         float dOuter = sdRoundRect(fragCoord, _QuadSize, _CornerRadius);
@@ -271,7 +271,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
             {
                 float borderGradientLerpAlpha = RadialGradient(UV0, _QuadSize, _BorderGradientCenter.xy, _BorderGradientRadius.xy, _BorderGradientRotation);
                 _BorderGradientColor.rgb = pow(_BorderGradientColor.rgb, 2.2f);
-                borderColor = lerp(borderColor, _BorderGradientColor, borderGradientLerpAlpha);
+                borderColor = lerp(_BorderGradientColor, borderColor, borderGradientLerpAlpha);
             }
             float borderLerpAlpha = borderColor.a * (1.0f - dInner);
             color.rgb = lerp(color.rgb * color.a, borderColor.rgb, borderLerpAlpha);
