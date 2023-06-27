@@ -1156,9 +1156,9 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 }
 
 #if WITH_EDITOR
-void FLGUIHudRenderer::AddLineRender(const FHelperLineRenderParameter& InLineParameter)
+void FLGUIHudRenderer::AddLineRender(const FLGUIHelperLineRenderParameter& InLineParameter)
 {
-	FHelperLineRenderParameter* Buffer = new FHelperLineRenderParameter(InLineParameter);
+	auto Buffer = new FLGUIHelperLineRenderParameter(InLineParameter);
 	auto ViewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddLineRender)(
 		[ViewExtension, Buffer](FRHICommandListImmediate& RHICmdList)
