@@ -27,10 +27,10 @@ public:
 
 #if WITH_EDITOR
 /** Parameters for render editor helper line */
-struct FHelperLineRenderParameter
+struct FLGUIHelperLineRenderParameter
 {
 public:
-	FHelperLineRenderParameter(const TArray<FLGUIHelperLineVertex>& InLinePoints)
+	FLGUIHelperLineRenderParameter(const TArray<FLGUIHelperLineVertex>& InLinePoints)
 	{
 		LinePoints = InLinePoints;
 	}
@@ -160,9 +160,9 @@ private:
 #endif
 #if WITH_EDITOR
 private:
-	TArray<FHelperLineRenderParameter> HelperLineRenderParameterArray;
+	TArray<FLGUIHelperLineRenderParameter> HelperLineRenderParameterArray;
 public:
-	void AddLineRender(const FHelperLineRenderParameter& InLineParameter);
+	void AddLineRender(const FLGUIHelperLineRenderParameter& InLineParameter);
 #endif
 };
 
