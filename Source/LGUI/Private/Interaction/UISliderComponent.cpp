@@ -301,9 +301,7 @@ void UUISliderComponent::ApplyValueToUI()
             }
             if (CheckFill())
             {
-                auto AnchorMax = Fill->GetAnchorMax();
-                AnchorMax.X = value01;
-                Fill->SetAnchorMax(AnchorMax);
+                Fill->SetHorizontalAnchorMinMax(FVector2D(0, value01));
             }
         }
         break;
@@ -316,9 +314,7 @@ void UUISliderComponent::ApplyValueToUI()
             }
             if (CheckFill())
             {
-                auto AnchorMin = Fill->GetAnchorMin();
-                AnchorMin.X = 1.0f - value01;
-                Fill->SetAnchorMax(AnchorMin);
+                Fill->SetHorizontalAnchorMinMax(FVector2D(1.0f - value01, 1));
             }
         }
         break;
@@ -330,9 +326,7 @@ void UUISliderComponent::ApplyValueToUI()
             }
             if (CheckFill())
             {
-                auto AnchorMax = Fill->GetAnchorMax();
-                AnchorMax.Y = value01;
-                Fill->SetAnchorMax(AnchorMax);
+                Fill->SetVerticalAnchorMinMax(FVector2D(0, value01));
             }
         }
         break;
@@ -341,13 +335,11 @@ void UUISliderComponent::ApplyValueToUI()
             if (CheckHandle())
             {
                 float invValue01 = 1.0f - value01;
-                Handle->SetVerticalAnchorMinMax(FVector2D(value01, value01));
+                Handle->SetVerticalAnchorMinMax(FVector2D(invValue01, invValue01));
             }
             if (CheckFill())
             {
-                auto AnchorMin = Fill->GetAnchorMin();
-                AnchorMin.Y = 1.0f - value01;
-                Fill->SetAnchorMax(AnchorMin);
+                Fill->SetVerticalAnchorMinMax(FVector2D(1.0f - value01, 1));
             }
         }
         break;
