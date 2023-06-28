@@ -1349,10 +1349,10 @@ void UUIItem::SetAnchorMin(FVector2D Value)
 			//SetAnchorLeft
 			{
 				auto CurrentRight = this->GetAnchorRight();
-				auto CalculatedWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - CurrentRight - CurrentLeft;
+				CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - CurrentRight - CurrentLeft;
 				//SetWidth
 				{
-					auto CalculatedSizeDeltaX = CalculatedWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
+					auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
 					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
 				}
 				this->AnchorData.AnchoredPosition.X = FMath::Lerp(CurrentLeft, -CurrentRight, this->AnchorData.Pivot.X);
@@ -1361,10 +1361,10 @@ void UUIItem::SetAnchorMin(FVector2D Value)
 			//SetAnchorBottom
 			{
 				auto CurrentTop = this->GetAnchorTop();
-				auto CalculatedHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - CurrentTop - CurrentBottom;
+				CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - CurrentTop - CurrentBottom;
 				//SetHeight
 				{
-					auto CalculatedSizeDeltaY = CalculatedHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
+					auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
 					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
 				}
 				this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -CurrentTop, this->AnchorData.Pivot.Y);
