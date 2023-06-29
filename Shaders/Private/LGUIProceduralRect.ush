@@ -128,7 +128,7 @@ float RadialGradient(float2 uv, float2 quadSize, float2 center, float2 radius, f
     return distToCenter;
 }
 
-float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, Texture2D DataTex, inout float3 Color, inout float Alpha)
+float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, Texture2D DataTex, inout float3 Color, inout float Alpha)
 {
     half _TextureScaleMode;
     float4 _CornerRadius;
@@ -241,6 +241,7 @@ float LGUI_CalculateBuffer(float4 MainTexColor, float4 MainColor, float2 UV0, fl
             envelopUV.x = (envelopUV.x - 0.5f) * _QuadSize.x / _QuadSize.y + 0.5f;
         }
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));
+        float4 MainTexColor = MainTex.Sample(MainTexSampler, texUV);
         color = MainTexColor * MainColor;
 
         if (_EnableGradient)
