@@ -230,6 +230,14 @@ protected:
 	/** Render to RenderTargets. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTextureRenderTarget2D* renderTarget;
+#if WITH_EDITORONLY_DATA
+	/**
+	 * When in eidt mode, show the Screen-Space-Overlay UI with LGUIRenderer.
+	 * LGUIRenderer can show the color and texture at final result, not affect by post process.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool previewWithLGUIRenderer = false;
+#endif
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
