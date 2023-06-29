@@ -104,8 +104,6 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTa
 	return RenderTargetViewExtension;
 }
 
-#define UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode WITH_EDITOR && 0
-
 void ULGUICanvas::UpdateRootCanvas()
 {
 	CheckRootCanvas();
@@ -115,11 +113,14 @@ void ULGUICanvas::UpdateRootCanvas()
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
 			auto ActualRenderMode = GetActualRenderMode();
-#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
-			if (!GetWorld()->IsGameWorld())//edit mode
+#if WITH_EDITOR
+			if (previewWithLGUIRenderer)
 			{
-				if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-					ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+				if (!GetWorld()->IsGameWorld())//edit mode
+				{
+					if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+						ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+				}
 			}
 #endif
 			switch (ActualRenderMode)
@@ -1658,11 +1659,14 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 				{
 					auto ActualRenderMode = GetActualRenderMode();
-#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
-					if (!GetWorld()->IsGameWorld())//edit mode
+#if WITH_EDITOR
+					if (previewWithLGUIRenderer)
 					{
-						if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-							ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+						if (!GetWorld()->IsGameWorld())//edit mode
+						{
+							if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+								ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+						}
 					}
 #endif
 					switch (ActualRenderMode)
@@ -1714,11 +1718,14 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 		{
 			auto ActualRenderMode = GetActualRenderMode();
-#if UseLGUIRenderer_for_ScreenSpaceOverlay_InEditMode
-			if (!GetWorld()->IsGameWorld())//edit mode
+#if WITH_EDITOR
+			if (previewWithLGUIRenderer)
 			{
-				if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-					ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+				if (!GetWorld()->IsGameWorld())//edit mode
+				{
+					if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+						ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+				}
 			}
 #endif
 			switch (ActualRenderMode)
