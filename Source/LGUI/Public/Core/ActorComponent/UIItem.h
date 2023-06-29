@@ -396,7 +396,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastTarget = false;
 	/** traceChannel for line trace of EventSystem interaction */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta=(EditCondition="bRaycastTarget"))
 		TEnumAsByte<ETraceTypeQuery> traceChannel = TraceTypeQuery3;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
