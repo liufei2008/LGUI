@@ -50,10 +50,114 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	BlockDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIProceduralRectCustomization::ForceRefresh, &DetailBuilder));
 	
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData));
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 	auto ColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
-	//auto TextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.Texture));
 	auto& BodyGroup = LGUICategory.AddGroup(TEXT("Body"), LOCTEXT("Body", "Body"), false, true);
-	BodyGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius)));
+	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
+	auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius));
+	auto CornerRadiusXHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.X));
+	auto CornerRadiusYHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.Y));
+	auto CornerRadiusZHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.Z));
+	auto CornerRadiusWHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.W));
+	auto CornerRadiusPropertyIsEnabledFunction = [=] {
+		bool bUniformSetCornerRadius = false;
+		UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+		return !bUniformSetCornerRadius;
+	};
+	BodyGroup.AddWidgetRow()
+	.PropertyHandleList({ CornerRadiusHandle })
+	.NameContent()
+	[
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(CornerRadiusHandle->GetPropertyDisplayName())
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(FMargin(4.0f, 0.0f, 0.0f, 0.0f))
+		[
+			SNew(SCheckBox)
+			.IsChecked_Lambda([=] {
+				bool bUniformSetCornerRadius = false;
+				UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+				return bUniformSetCornerRadius ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+				})
+			.OnCheckStateChanged_Lambda([=](ECheckBoxState NewState){
+				bool bUniformSetCornerRadius = (NewState == ECheckBoxState::Checked) ? true : false;
+				UniformSetCornerRadiusHandle->SetValue(bUniformSetCornerRadius);
+				})
+			.Style(FAppStyle::Get(), "TransparentCheckBox")
+			.ToolTipText(LOCTEXT("UniformSetCornerRadiusToolTip", "When locked, corner radius will all set with x value"))
+			[
+				SNew(SImage)
+				.Image_Lambda([=] {
+					bool bUniformSetCornerRadius = false;
+					UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+					return bUniformSetCornerRadius ? FAppStyle::GetBrush(TEXT("Icons.Lock")) : FAppStyle::GetBrush(TEXT("Icons.Unlock"));
+					})
+				.ColorAndOpacity(FSlateColor::UseForeground())
+			]
+		]
+	]
+	.ValueContent()
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		[
+			CornerRadiusXHandle->CreatePropertyValueWidget()
+		]
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.IsEnabled_Lambda(CornerRadiusPropertyIsEnabledFunction)
+			[
+				CornerRadiusYHandle->CreatePropertyValueWidget()
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.IsEnabled_Lambda(CornerRadiusPropertyIsEnabledFunction)
+			[
+				CornerRadiusZHandle->CreatePropertyValueWidget()
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.IsEnabled_Lambda(CornerRadiusPropertyIsEnabledFunction)
+			[
+				CornerRadiusWHandle->CreatePropertyValueWidget()
+			]
+		]
+	]
+	;
+	CornerRadiusXHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		bool bUniformSetCornerRadius = false;
+		UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+		if (bUniformSetCornerRadius)
+		{
+			float CornerRadiusX;
+			CornerRadiusXHandle->GetValue(CornerRadiusX);
+			CornerRadiusYHandle->SetValue(CornerRadiusX);
+			CornerRadiusZHandle->SetValue(CornerRadiusX);
+			CornerRadiusWHandle->SetValue(CornerRadiusX);
+		}
+		}));
+
 	BodyGroup.AddPropertyRow(ColorHandle);
 	BodyGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bSoftEdge)));
 	auto GradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient));

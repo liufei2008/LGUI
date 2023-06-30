@@ -253,6 +253,10 @@ protected:
 		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FUIProceduralRectBlockData BlockData;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bUniformSetCornerRadius = true;
+#endif
 
 	FIntVector2 DataStartPosition = FIntVector2(0, 0);
 	static FName DataTextureParameterName;
