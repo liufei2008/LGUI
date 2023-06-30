@@ -36,12 +36,12 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	int32 GetWillExpendTextureSize()const;
 	void CheckSprite(const FName& packingTag);
 
-	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
+	class FLGUIAtlasTextureExpandEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
 	{
 		friend struct FLGUIDynamicSpriteAtlasData;
 	};
 	/** atlas texture size may change when dynamic packing, this event will be called when that happen. */
-	FLGUIAtlasTextureExpendEvent OnTextureSizeExpanded;
+	FLGUIAtlasTextureExpandEvent OnTextureSizeExpanded;
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType)
