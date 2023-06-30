@@ -42,7 +42,7 @@ protected:
 
 	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData_BaseObject* sprite;
+		ULGUISpriteData_BaseObject* sprite = nullptr;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
