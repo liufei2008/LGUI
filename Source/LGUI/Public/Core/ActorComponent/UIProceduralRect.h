@@ -21,9 +21,12 @@ public:
 		FVector2f QuadSize = FVector2f::Zero();
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector4f CornerRadius = FVector4f::One();
+	/** Prevent edge aliasing, useful when in 3d. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bSoftEdge = true;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UTexture* Texture = nullptr;
+		TObjectPtr<UTexture> Texture = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="Texture"))
 		EUIProceduralRectTextureScaleMode TextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 
@@ -90,7 +93,7 @@ public:
 	{
 		int DataOffset = 0;
 
-		uint8 BoolAsByte = PackBoolToByte(bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false, false);
+		uint8 BoolAsByte = PackBoolToByte(bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false);
 		Fill4BytesToData(Data
 			, BoolAsByte
 			, (uint8)TextureScaleMode
@@ -247,7 +250,7 @@ protected:
 	friend class FUIProceduralRectCustomization;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-		class ULGUIProceduralRectData* ProceduralRectData = nullptr;
+		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FUIProceduralRectBlockData BlockData;
 
@@ -279,6 +282,8 @@ public:
 		void SetCornerRadius(const FVector4f& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTexture(UTexture* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSoftEdge(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTextureScaleMode(EUIProceduralRectTextureScaleMode value);
 

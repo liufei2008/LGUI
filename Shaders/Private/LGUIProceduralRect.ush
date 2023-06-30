@@ -93,7 +93,6 @@ float sdRoundRectInnerShadow(float2 p, float2 b, float4 r, float shadowSize)
 
     d = saturate((0.0 - d) / shadowSize);
     d = 1 - d;
-    // d = sin(d * HALF_PI - HALF_PI) + 1;
     d = smoothstep(0, 1, d);
     return d;
 }
@@ -107,7 +106,6 @@ float sdRoundRectOuterShadow(float2 p, float2 b, float4 r, float shadowSize)
 
     d = saturate((0.0 - d) / shadowSize);
     // d = 1 - d;
-    //d = sin(d * HALF_PI - HALF_PI) + 1;
     d = smoothstep(0, 1, d);
     return d;
 }
@@ -133,6 +131,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     half _TextureScaleMode;
     float4 _CornerRadius;
     float2 _QuadSize;
+    half _SoftEdge;
     
     half _EnableGradient;
     half4 _GradientColor;
@@ -176,11 +175,12 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         uint BoolValues = (ByteUint >> 24) & 0x000000ff;
         _TextureScaleMode = (ByteUint >> 16) & 0x000000ff;
         
-        _EnableGradient = (BoolValues >> 7);
-        _EnableBorder = (BoolValues >> 6) & 1;
-        _EnableBorderGradient = (BoolValues >> 5) & 1;
-        _EnableInnerShadow = (BoolValues >> 4) & 1;
-        _EnableRadialFill = (BoolValues >> 3) & 1;
+        _SoftEdge = (BoolValues >> 7) & 1;
+        _EnableGradient = (BoolValues >> 6) & 1;
+        _EnableBorder = (BoolValues >> 5) & 1;
+        _EnableBorderGradient = (BoolValues >> 4) & 1;
+        _EnableInnerShadow = (BoolValues >> 3) & 1;
+        _EnableRadialFill = (BoolValues >> 2) & 1;
         
         _QuadSize = LGUI_ReadFloat2(DataTex, Position);
         _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
@@ -227,6 +227,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     else
     {
         float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * _QuadSize;
+        float2 softEdgeFragCoord = fragCoord * (1.0f + 1.0f / _QuadSize); //offset 1 pixel to make edge smooth
+        fragCoord = lerp(fragCoord, softEdgeFragCoord, _SoftEdge);
         float2 stretchUV = UV0;
         float2 fitUV = UV0;
         float2 envelopUV = UV0;
