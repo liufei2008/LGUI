@@ -19,10 +19,10 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::Custom];
+		TObjectPtr<UMaterialInterface> DefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Texture to fill buffer data, and decode to buffer in shader. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		UTexture2D* Texture = nullptr;
+		TObjectPtr<UTexture2D> Texture = nullptr;
 
 	//how many bytes in single block
 	int BlockSizeInByte = 4;

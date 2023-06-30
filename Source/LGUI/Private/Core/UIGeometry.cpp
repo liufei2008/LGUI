@@ -220,7 +220,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 	}
 }
 void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
-	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur,
+	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
 	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
@@ -287,6 +287,13 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			}
 			else
 			{
+				if (bSoftEdge)
+				{
+					minX -= 1;
+					maxX += 1;
+					minY -= 1;
+					maxY += 1;
+				}
 				originVertices[0].Position = FVector3f(0, minX, minY);
 				originVertices[1].Position = FVector3f(0, maxX, minY);
 				originVertices[2].Position = FVector3f(0, minX, maxY);

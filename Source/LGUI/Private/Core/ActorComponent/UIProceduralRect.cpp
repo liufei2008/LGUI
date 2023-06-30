@@ -158,7 +158,7 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 {
 	static FLGUISpriteInfo SimpleRectSpriteData;
 	UIGeometry::UpdateUIProceduralRectSimpleVertex(&InGeo,
-		this->BlockData.bEnableOuterShadow, this->BlockData.OuterShadowOffset, this->BlockData.OuterShadowSize, this->BlockData.OuterShadowBlur,
+		this->BlockData.bEnableOuterShadow, this->BlockData.OuterShadowOffset, this->BlockData.OuterShadowSize, this->BlockData.OuterShadowBlur, this->BlockData.bSoftEdge,
 		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SimpleRectSpriteData, RenderCanvas.Get(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 	);
@@ -227,6 +227,12 @@ void UUIProceduralRect::SetTexture(UTexture* value)
 		BlockData.Texture = UUITextureBase::GetDefaultWhiteTexture();
 	}
 	MarkTextureDirty();
+}
+void UUIProceduralRect::SetSoftEdge(bool value)
+{
+	BlockData.bSoftEdge = value;
+	bNeedUpdateBlockData = true;
+	MarkVerticesDirty(false, true, false, false);
 }
 void UUIProceduralRect::SetTextureScaleMode(EUIProceduralRectTextureScaleMode value)
 {
