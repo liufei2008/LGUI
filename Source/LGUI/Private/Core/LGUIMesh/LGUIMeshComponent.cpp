@@ -553,15 +553,10 @@ public:
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
-		FColoredMaterialRenderProxy* WireframeMaterialInstance = NULL;
+		FMaterialRenderProxy* WireframeMaterialInstance = NULL;
 		if (bWireframe)
 		{
-			WireframeMaterialInstance = new FColoredMaterialRenderProxy(
-				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy() : NULL,
-				FLinearColor(0, 0.5f, 1.f)
-			);
-
-			Collector->RegisterOneFrameMaterialProxy(WireframeMaterialInstance);
+			WireframeMaterialInstance = GEngine->WireframeMaterial->GetRenderProxy();
 		}
 
 		ResultArray.Reserve(Sections.Num());
