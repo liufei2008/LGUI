@@ -287,6 +287,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTexture(UTexture* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSizeFromTexture();
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSoftEdge(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTextureScaleMode(EUIProceduralRectTextureScaleMode value);
