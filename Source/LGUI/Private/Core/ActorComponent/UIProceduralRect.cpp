@@ -228,6 +228,18 @@ void UUIProceduralRect::SetTexture(UTexture* value)
 	}
 	MarkTextureDirty();
 }
+void UUIProceduralRect::SetSizeFromTexture()
+{
+	if (IsValid(BlockData.Texture))
+	{
+		SetWidth(BlockData.Texture->GetSurfaceWidth());
+		SetHeight(BlockData.Texture->GetSurfaceHeight());
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Texture is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+	}
+}
 void UUIProceduralRect::SetSoftEdge(bool value)
 {
 	BlockData.bSoftEdge = value;
