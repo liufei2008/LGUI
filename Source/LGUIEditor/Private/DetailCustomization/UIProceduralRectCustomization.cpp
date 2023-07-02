@@ -163,6 +163,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto GradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient));
 	auto& GradientGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient), GradientHandle->GetPropertyDisplayName(), true);
 	GradientGroup.HeaderRow()
+		.PropertyHandleList({ GradientHandle })
 		.NameContent()
 		[
 			GradientHandle->CreatePropertyNameWidget()
@@ -176,12 +177,54 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientCenter)));
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRadius)));
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRotation)));
-	BodyGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.Texture)));
-	BodyGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.TextureScaleMode)));
+	auto TextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.Texture));
+	auto& TextureGroup = BodyGroup.AddGroup(TEXT("Texture"), LOCTEXT("Texture", "Texture"), true);
+	TextureGroup.HeaderRow()
+		.PropertyHandleList({ TextureHandle })
+		.NameContent()
+		[
+			TextureHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		[
+			TextureHandle->CreatePropertyValueWidget()
+		]
+	;
+	TextureGroup.AddWidgetRow()
+		.ValueContent()
+		[
+			SNew(SButton)
+			.HAlign(EHorizontalAlignment::HAlign_Center)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("SnapSize_Button", "Snap Size"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			.OnClicked_Lambda([=]()
+			{
+				GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UIProceduralRect texture snap size"));
+				for (auto item : TargetScriptArray)
+				{
+					if (item.IsValid())
+					{
+						item->Modify();
+						item->SetSizeFromTexture();
+						LGUIUtils::NotifyPropertyChanged(item.Get(), UUIItem::GetAnchorDataPropertyName());
+						item->EditorForceUpdate();
+					}
+				}
+				GEditor->EndTransaction();
+				return FReply::Handled();
+			})
+		]
+	;
+	TextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.TextureScaleMode)));
 
 	auto BorderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorder));
 	auto& BorderGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorder), BorderHandle->GetPropertyDisplayName(), false, true);
 	BorderGroup.HeaderRow()
+		.PropertyHandleList({ BorderHandle })
 		.NameContent()
 		[
 			BorderHandle->CreatePropertyNameWidget()
@@ -197,6 +240,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto BorderGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorderGradient));
 	auto& BorderGradientGroup = BorderGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorderGradient), BorderGradientHandle->GetPropertyDisplayName(), true);
 	BorderGradientGroup.HeaderRow()
+		.PropertyHandleList({ BorderGradientHandle })
 		.NameContent()
 		[
 			BorderGradientHandle->CreatePropertyNameWidget()
@@ -214,6 +258,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto InnerShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableInnerShadow));
 	auto& InnerShadowGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorder), InnerShadowHandle->GetPropertyDisplayName(), false, true);
 	InnerShadowGroup.HeaderRow()
+		.PropertyHandleList({ InnerShadowHandle })
 		.NameContent()
 		[
 			InnerShadowHandle->CreatePropertyNameWidget()
@@ -231,6 +276,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto OuterShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableOuterShadow));
 	auto& OuterShadowGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableOuterShadow), OuterShadowHandle->GetPropertyDisplayName(), false, true);
 	OuterShadowGroup.HeaderRow()
+		.PropertyHandleList({ OuterShadowHandle })
 		.NameContent()
 		[
 			OuterShadowHandle->CreatePropertyNameWidget()
@@ -248,6 +294,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto RadialFillHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableRadialFill));
 	auto& RadialFillGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableRadialFill), RadialFillHandle->GetPropertyDisplayName(), false, true);
 	RadialFillGroup.HeaderRow()
+		.PropertyHandleList({ RadialFillHandle })
 		.NameContent()
 		[
 			RadialFillHandle->CreatePropertyNameWidget()
