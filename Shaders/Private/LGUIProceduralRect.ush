@@ -126,6 +126,16 @@ float RadialGradient(float2 uv, float2 quadSize, float2 center, float2 radius, f
     return distToCenter;
 }
 
+half4 BlendPremul(half4 bottom, half4 top)
+{
+    half3 outColor;
+    half outA = top.a + bottom.a * (1.0f - top.a);
+    outColor = (top.rgb * top.a + bottom.rgb * bottom.a * (1.0f - top.a)) / outA;
+    if (outA == 0)
+        outColor.rgb = 0;
+    return half4(outColor, outA);
+}
+
 float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, Texture2D DataTex, inout float3 Color, inout float Alpha)
 {
     half _TextureScaleMode;
@@ -158,6 +168,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     half4 _OuterShadowColor;
     float _OuterShadowSize;
     float _OuterShadowBlur;
+    float2 _OuterShadowOffset;
 
     half _EnableRadialFill;
     float2 _RadialFillCenter;
@@ -209,6 +220,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         _OuterShadowColor = LGUI_ReadColor(DataTex, Position);
         _OuterShadowSize = LGUI_ReadFloat(DataTex, Position);
         _OuterShadowBlur = LGUI_ReadFloat(DataTex, Position);
+        _OuterShadowOffset = LGUI_ReadFloat2(DataTex, Position);
+
     }
     
     
@@ -223,12 +236,14 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
         float outerShadow = sdRoundRectOuterShadow(fragCoord, quadSize, cornerRadius, _OuterShadowBlur);
         color.a *= outerShadow;
+        float dOuter = sdRoundRect(fragCoord + float2(_OuterShadowOffset.x, -_OuterShadowOffset.y), _QuadSize, _CornerRadius);
+        color.a *= 1.0f - dOuter;
+        
+        UV0 += float2(_OuterShadowOffset.x, -_OuterShadowOffset.y) / (quadSize * 2); //offset uv for RadialFill
     }
     else
     {
         float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * _QuadSize;
-        float2 softEdgeFragCoord = fragCoord * (1.0f + 1.0f / _QuadSize); //offset 1 pixel to make edge smooth
-        fragCoord = lerp(fragCoord, softEdgeFragCoord, _SoftEdge);
         float2 stretchUV = UV0;
         float2 fitUV = UV0;
         float2 envelopUV = UV0;
@@ -261,9 +276,9 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
             float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
             cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
             float innerShadow = sdRoundRectInnerShadow(fragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
-            innerShadow *= _InnerShadowColor.a;
             _InnerShadowColor.rgb = pow(_InnerShadowColor.rgb, 2.2f);
-            color.rgb = lerp(color.rgb, _InnerShadowColor.rgb, innerShadow);
+            _InnerShadowColor.a *= innerShadow;
+            color = BlendPremul(color, _InnerShadowColor);
         }
 
         if (_EnableBorder)
@@ -276,9 +291,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
                 _BorderGradientColor.rgb = pow(_BorderGradientColor.rgb, 2.2f);
                 borderColor = lerp(_BorderGradientColor, borderColor, borderGradientLerpAlpha);
             }
-            float borderLerpAlpha = borderColor.a * (1.0f - dInner);
-            color.rgb = lerp(color.rgb * color.a, borderColor.rgb, borderLerpAlpha);
-            color.a = lerp(color.a, borderColor.a, borderLerpAlpha);
+            borderColor.a *= (1.0f - dInner);
+            color = BlendPremul(color, borderColor);
         }
         color.a *= dOuter;
     }

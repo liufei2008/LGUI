@@ -127,7 +127,7 @@ public:
 		FillColorToData(Data, OuterShadowColor, DataOffset);
 		FillFloatToData(Data, OuterShadowSize, DataOffset);
 		FillFloatToData(Data, OuterShadowBlur, DataOffset);
-		//FillVector2ToData(Data, OuterShadowOffset, DataOffset);//OuterShadowOffset is stored in vertex position
+		FillVector2ToData(Data, OuterShadowOffset, DataOffset);
 	}
 	static constexpr int DataCountInBytes()
 	{
@@ -161,7 +161,7 @@ public:
 			+ 4
 			+ 4
 			+ 4
-			//+ 8
+			+ 8
 			;
 		return result;
 	}
