@@ -225,6 +225,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
+	//@todo: use a 9-sliced mesh for OuterShadow to reduce overdraw
 	auto& triangles = uiGeo->triangles;
 	LGUIGeometrySetArrayNum(triangles, bOuterShadow ? 12 : 6);
 	if (InTriangleChanged)
@@ -266,10 +267,20 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			float maxY = halfH + pivotOffsetY;
 			if (bOuterShadow)
 			{
-				originVertices[4].Position = FVector3f(0, minX, minY);
-				originVertices[5].Position = FVector3f(0, maxX, minY);
-				originVertices[6].Position = FVector3f(0, minX, maxY);
-				originVertices[7].Position = FVector3f(0, maxX, maxY);
+				if (bSoftEdge)//offset 1 pixel to make edge smooth
+				{
+					originVertices[4].Position = FVector3f(0, minX - 1, minY - 1);
+					originVertices[5].Position = FVector3f(0, maxX + 1, minY - 1);
+					originVertices[6].Position = FVector3f(0, minX - 1, maxY + 1);
+					originVertices[7].Position = FVector3f(0, maxX + 1, maxY + 1);
+				}
+				else
+				{
+					originVertices[4].Position = FVector3f(0, minX, minY);
+					originVertices[5].Position = FVector3f(0, maxX, minY);
+					originVertices[6].Position = FVector3f(0, minX, maxY);
+					originVertices[7].Position = FVector3f(0, maxX, maxY);
+				}
 
 				minX += outerShadowOffset.X;
 				minY += outerShadowOffset.Y;
@@ -287,7 +298,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			}
 			else
 			{
-				if (bSoftEdge)
+				if (bSoftEdge)//offset 1 pixel to make edge smooth
 				{
 					minX -= 1;
 					maxX += 1;
@@ -310,17 +321,38 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 		}
 
 		if (InVertexUVChanged)
-		{
-			vertices[0].TextureCoordinate[0] = spriteInfo.GetUV0();
-			vertices[1].TextureCoordinate[0] = spriteInfo.GetUV1();
-			vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
-			vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
+		{			
+			int vertStartIndex = 0;
 			if (bOuterShadow)
 			{
-				vertices[4].TextureCoordinate[0] = vertices[0].TextureCoordinate[0];
-				vertices[5].TextureCoordinate[0] = vertices[1].TextureCoordinate[0];
-				vertices[6].TextureCoordinate[0] = vertices[2].TextureCoordinate[0];
-				vertices[7].TextureCoordinate[0] = vertices[3].TextureCoordinate[0];
+				vertices[0].TextureCoordinate[0] = spriteInfo.GetUV0();
+				vertices[1].TextureCoordinate[0] = spriteInfo.GetUV1();
+				vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
+				vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
+				vertStartIndex = 4;
+			}
+			
+			if (bSoftEdge)//since vertex is offset 1 pixel, we need to offset uv to make one pixel back
+			{
+				auto UV0 = spriteInfo.GetUV0();
+				auto UV3 = spriteInfo.GetUV3();
+				float onePixelUVWidth = 1.0f / width;
+				float onePixelUVHeight = 1.0f / height;
+				UV0.X -= onePixelUVWidth;
+				UV3.X += onePixelUVWidth;
+				UV0.Y += onePixelUVHeight;
+				UV3.Y -= onePixelUVHeight;
+				vertices[vertStartIndex].TextureCoordinate[0] = FVector2f(UV0.X, UV0.Y);
+				vertices[vertStartIndex + 1].TextureCoordinate[0] = FVector2f(UV3.X, UV0.Y);
+				vertices[vertStartIndex + 2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
+				vertices[vertStartIndex + 3].TextureCoordinate[0] = FVector2f(UV3.X, UV3.Y);
+			}
+			else
+			{
+				vertices[vertStartIndex].TextureCoordinate[0] = spriteInfo.GetUV0();
+				vertices[vertStartIndex + 1].TextureCoordinate[0] = spriteInfo.GetUV1();
+				vertices[vertStartIndex + 2].TextureCoordinate[0] = spriteInfo.GetUV2();
+				vertices[vertStartIndex + 3].TextureCoordinate[0] = spriteInfo.GetUV3();
 			}
 		}
 
