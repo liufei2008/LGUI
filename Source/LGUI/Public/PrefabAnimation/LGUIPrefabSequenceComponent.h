@@ -77,9 +77,9 @@ public:
 	virtual void PostLoad()override;
 
 	void FixEditorHelpers();
-#endif
 	UBlueprint* GetSequenceBlueprint()const;
 	UObject* GetSequenceBlueprintInstance()const { return SequenceBlueprint; }
+#endif
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))

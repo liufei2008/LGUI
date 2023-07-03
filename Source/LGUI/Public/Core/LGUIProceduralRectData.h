@@ -53,7 +53,7 @@ public:
 	 */
 	FIntVector2 RegisterBuffer();
 	void UnregisterBuffer(const FIntVector2& InPosition);
-	void UpdateBlock(const FIntVector2& InPosition, void* InData);
+	void UpdateBlock(const FIntVector2& InPosition, uint8* InData);
 
 	UTexture2D* GetDataTexture()const { return Texture; }
 	UMaterialInterface* GetMaterial(ELGUICanvasClipType clipType);

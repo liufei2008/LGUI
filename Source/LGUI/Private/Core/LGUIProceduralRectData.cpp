@@ -152,7 +152,7 @@ void ULGUIProceduralRectData::UnregisterBuffer(const FIntVector2& InPosition)
 {
 	NotUsingPositionArray.Add(InPosition);
 }
-void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, void* InData)
+void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, uint8* InData)
 {
 	if (Texture->GetResource())
 	{
@@ -165,7 +165,7 @@ void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, void* I
 					0,
 					FUpdateTextureRegion2D(InPosition.X, InPosition.Y, 0, 0, BlockPixelCount, 1),
 					BlockSizeInByte,
-					static_cast<const uint8*>(InData)
+					InData
 				);
 				delete InData;
 			});
