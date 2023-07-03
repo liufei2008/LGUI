@@ -607,7 +607,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							{
 								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
-								auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView->GetFeatureLevel());
+								auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
+								if (!Material)return;
 
 								FLGUIHudRenderer::SetGraphicPipelineState(RenderView->GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
@@ -850,7 +851,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							{
 								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
-								auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView->GetFeatureLevel());
+								auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
+								if (!Material)return;
 
 								TShaderRef<FLGUIHudRenderVS> VertexShader;
 								TShaderRef<FLGUIHudRenderPS> PixelShader;
