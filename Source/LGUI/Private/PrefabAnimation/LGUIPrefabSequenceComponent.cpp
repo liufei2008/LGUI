@@ -92,7 +92,6 @@ void ULGUIPrefabSequenceComponent::FixEditorHelpers()
 		}
 	}
 }
-#endif
 
 UBlueprint* ULGUIPrefabSequenceComponent::GetSequenceBlueprint()const
 {
@@ -105,6 +104,7 @@ UBlueprint* ULGUIPrefabSequenceComponent::GetSequenceBlueprint()const
 	}
 	return nullptr;
 }
+#endif
 
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByName(FName InName) const
 {

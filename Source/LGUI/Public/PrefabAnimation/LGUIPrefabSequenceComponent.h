@@ -78,11 +78,11 @@ public:
 	virtual void PostLoad()override;
 
 	void FixEditorHelpers();
+	UBlueprint* GetSequenceBlueprint()const;
+	UObject* GetSequenceBlueprintInstance()const { return SequenceBlueprint; }
 #endif
 	// IMovieSceneSequenceActor interface
 	virtual void TickFromSequenceTickManager(float DeltaSeconds) override;
-	UBlueprint* GetSequenceBlueprint()const;
-	UObject* GetSequenceBlueprintInstance()const { return SequenceBlueprint; }
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))
