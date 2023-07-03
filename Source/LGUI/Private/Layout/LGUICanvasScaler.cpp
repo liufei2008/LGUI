@@ -13,6 +13,7 @@
 #endif
 #include "Engine/TextureRenderTarget2D.h"
 #include "UnrealClient.h"
+#include "Engine/GameViewportClient.h"
 
 
 ULGUICanvasScaler::ULGUICanvasScaler()
