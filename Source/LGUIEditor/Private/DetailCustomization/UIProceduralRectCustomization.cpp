@@ -155,8 +155,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData));
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
-	auto ColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
-	auto& BodyGroup = LGUICategory.AddGroup(TEXT("Body"), LOCTEXT("Body", "Body"), false, true);
+
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 	auto CornerRadiusUnitModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadiusUnitMode));
 	auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius));
@@ -169,7 +168,20 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
 		return !bUniformSetCornerRadius;
 	};
-	BodyGroup.AddWidgetRow()
+
+	CornerRadiusXHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		bool bUniformSetCornerRadius = false;
+		UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+		if (bUniformSetCornerRadius)
+		{
+			float CornerRadiusX;
+			CornerRadiusXHandle->GetValue(CornerRadiusX);
+			CornerRadiusYHandle->SetValue(CornerRadiusX);
+			CornerRadiusZHandle->SetValue(CornerRadiusX);
+			CornerRadiusWHandle->SetValue(CornerRadiusX);
+		}
+		}));
+	LGUICategory.AddCustomRow(LOCTEXT("CornerRadius", "CornerRadius"), false)
 	.PropertyHandleList({ CornerRadiusHandle })
 	.NameContent()
 	[
@@ -261,21 +273,24 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	]
 	;
-	CornerRadiusXHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-		bool bUniformSetCornerRadius = false;
-		UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
-		if (bUniformSetCornerRadius)
-		{
-			float CornerRadiusX;
-			CornerRadiusXHandle->GetValue(CornerRadiusX);
-			CornerRadiusYHandle->SetValue(CornerRadiusX);
-			CornerRadiusZHandle->SetValue(CornerRadiusX);
-			CornerRadiusWHandle->SetValue(CornerRadiusX);
-		}
-		}));
+	LGUICategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bSoftEdge)));
 
+	auto BodyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBody));
+	auto& BodyGroup = LGUICategory.AddGroup(TEXT("Body"), LOCTEXT("Body", "Body"), false, true);
+	BodyGroup.HeaderRow()
+		.PropertyHandleList({ BodyHandle })
+		.NameContent()
+		[
+			BodyHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		[
+			BodyHandle->CreatePropertyValueWidget()
+		]
+	;
+
+	auto ColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
 	BodyGroup.AddPropertyRow(ColorHandle);
-	BodyGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bSoftEdge)));
 	auto GradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient));
 	auto& GradientGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient), GradientHandle->GetPropertyDisplayName(), true);
 	GradientGroup.HeaderRow()
