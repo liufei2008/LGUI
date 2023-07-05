@@ -220,6 +220,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 	}
 }
 void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
+	bool bEnableBody,
 	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
 	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -281,6 +282,13 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 					originVertices[6].Position = FVector3f(0, minX, maxY);
 					originVertices[7].Position = FVector3f(0, maxX, maxY);
 				}
+				if (!bEnableBody)//if disable body, then hide vertices
+				{
+					originVertices[4].Position = FVector3f::ZeroVector;
+					originVertices[5].Position = FVector3f::ZeroVector;
+					originVertices[6].Position = FVector3f::ZeroVector;
+					originVertices[7].Position = FVector3f::ZeroVector;
+				}
 
 				minX += outerShadowOffset.X;
 				minY += outerShadowOffset.Y;
@@ -309,6 +317,14 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				originVertices[1].Position = FVector3f(0, maxX, minY);
 				originVertices[2].Position = FVector3f(0, minX, maxY);
 				originVertices[3].Position = FVector3f(0, maxX, maxY);
+
+				if (!bEnableBody)//if disable body, then hide vertices
+				{
+					originVertices[0].Position = FVector3f::ZeroVector;
+					originVertices[1].Position = FVector3f::ZeroVector;
+					originVertices[2].Position = FVector3f::ZeroVector;
+					originVertices[3].Position = FVector3f::ZeroVector;
+				}
 			}
 			//snap pixel
 			if (pixelPerfect)

@@ -24,7 +24,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 {
 	int DataOffset = 0;
 
-	uint8 BoolAsByte = PackBoolToByte(bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false);
+	uint8 BoolAsByte = PackBoolToByte(bEnableBody, bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false);
 	Fill4BytesToData(Data
 		, BoolAsByte
 		, (uint8)TextureScaleMode
@@ -361,8 +361,9 @@ void UUIProceduralRect::OnDataTextureChanged(class UTexture2D* Texture)
 void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	static FLGUISpriteInfo SimpleRectSpriteData;
-	UIGeometry::UpdateUIProceduralRectSimpleVertex(&InGeo,
-		this->BlockData.bEnableOuterShadow
+	UIGeometry::UpdateUIProceduralRectSimpleVertex(&InGeo
+		, this->BlockData.bEnableBody || this->BlockData.bEnableBorder || this->BlockData.bEnableInnerShadow
+		, this->BlockData.bEnableOuterShadow
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowOffset, BlockData.OuterShadowOffsetUnitMode, this->GetWidth(), this->GetHeight())
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowSize, BlockData.OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowBlur, BlockData.OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
@@ -427,6 +428,12 @@ void UUIProceduralRect::SetCornerRadius(const FVector4f& value)
 	BlockData.CornerRadius = value;
 	bNeedUpdateBlockData = true;
 }
+void UUIProceduralRect::SetEnableBody(bool value)
+{
+	BlockData.bEnableBody = value;
+	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();//if disable body, then just hide body's vertices
+}
 void UUIProceduralRect::SetTexture(UTexture* value)
 {
 	BlockData.Texture = value;
@@ -452,7 +459,7 @@ void UUIProceduralRect::SetSoftEdge(bool value)
 {
 	BlockData.bSoftEdge = value;
 	bNeedUpdateBlockData = true;
-	MarkVerticesDirty(false, true, false, false);
+	MarkVertexPositionDirty();
 }
 void UUIProceduralRect::SetTextureScaleMode(EUIProceduralRectTextureScaleMode value)
 {
@@ -490,6 +497,7 @@ void UUIProceduralRect::SetEnableBorder(bool value)
 {
 	BlockData.bEnableBorder = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 void UUIProceduralRect::SetBorderWidth(float value)
 {
@@ -531,6 +539,7 @@ void UUIProceduralRect::SetEnableInnerShadow(bool value)
 {
 	BlockData.bEnableInnerShadow = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 void UUIProceduralRect::SetInnerShadowColor(const FColor& value)
 {
