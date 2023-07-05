@@ -7,6 +7,7 @@
 #include "Event/LGUIWorldSpaceRaycaster.h"
 #include "Event/LGUIRenderTargetGeometrySource.h"
 #include "Event/LGUIScreenSpaceRaycaster.h"
+#include "Engine/World.h"
 
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
