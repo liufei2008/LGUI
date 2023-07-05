@@ -45,6 +45,110 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		return;
 	}
 
+	auto CreateUnitSelector = [=](TSharedRef<IPropertyHandle> PropertyHandle) {
+		const FMargin OuterPadding(2, 0);
+		const FMargin ContentPadding(2);
+		return
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(EVerticalAlignment::VAlign_Center)
+		.Padding(OuterPadding)
+		[
+			SNew( SCheckBox )
+			.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+			.ToolTipText(LOCTEXT("Value_Tooltip", "Use direct value"))
+			.Padding(ContentPadding)
+			.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState){
+				PropertyHandle->SetValue((uint8)EUIProceduralRectUnitMode::Value);
+				})
+			.IsChecked_Lambda([=] {
+				uint8 Value;
+				PropertyHandle->GetValue(Value);
+				return Value == (uint8)EUIProceduralRectUnitMode::Value ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+				})
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("Value", "V"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+		]
+
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(EVerticalAlignment::VAlign_Center)
+		.Padding(OuterPadding)
+		[
+			SNew(SCheckBox)
+			.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+			.ToolTipText(LOCTEXT("Percentage_Tooltip", "Use percentage of rect width and height"))
+			.Padding(ContentPadding)
+			.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState) {
+			PropertyHandle->SetValue((uint8)EUIProceduralRectUnitMode::Percentage);
+				})
+			.IsChecked_Lambda([=] {
+				uint8 Value;
+				PropertyHandle->GetValue(Value);
+				return Value == (uint8)EUIProceduralRectUnitMode::Percentage ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+				})
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("Percentage", "%"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+		]
+		;
+	};
+
+	auto CreateVectorPropertyWithUnitMode = [&](FName PropertyName, IDetailGroup& Group) {
+		auto PropertyHandle = DetailBuilder.GetProperty(PropertyName);
+		auto PropertyUnitHandle = DetailBuilder.GetProperty(FName(*(PropertyName.ToString() + TEXT("UnitMode"))));
+		auto ValueHorizontalBox = SNew(SHorizontalBox);
+		uint32 NumChildren = 0;
+		PropertyHandle->GetNumChildren(NumChildren);
+		if (NumChildren == 0)
+		{
+			ValueHorizontalBox->AddSlot()
+			[
+				PropertyHandle->CreatePropertyValueWidget()
+			];
+		}
+		else
+		{
+			for (uint32 i = 0; i < NumChildren; i++)
+			{
+				ValueHorizontalBox->AddSlot()
+					[
+						PropertyHandle->GetChildHandle(i)->CreatePropertyValueWidget()
+					];
+			}
+		}
+		Group.AddWidgetRow()
+		.PropertyHandleList({ PropertyHandle })
+		.NameContent()
+		[
+			SNew(SBox)
+			.MinDesiredWidth(1000)
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				[
+					PropertyHandle->CreatePropertyNameWidget()
+				]
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Right)
+				[
+					CreateUnitSelector(PropertyUnitHandle)
+				]
+			]
+		]
+		.ValueContent()
+		[
+			ValueHorizontalBox
+		]
+	;
+	};
+
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 	auto BlockDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData));
 	BlockDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIProceduralRectCustomization::ForceRefresh, &DetailBuilder));
@@ -54,6 +158,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto ColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
 	auto& BodyGroup = LGUICategory.AddGroup(TEXT("Body"), LOCTEXT("Body", "Body"), false, true);
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
+	auto CornerRadiusUnitModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadiusUnitMode));
 	auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius));
 	auto CornerRadiusXHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.X));
 	auto CornerRadiusYHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius.Y));
@@ -68,39 +173,50 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	.PropertyHandleList({ CornerRadiusHandle })
 	.NameContent()
 	[
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.VAlign(VAlign_Center)
+		SNew(SBox)
+		.MinDesiredWidth(1000)
 		[
-			SNew(STextBlock)
-			.Text(CornerRadiusHandle->GetPropertyDisplayName())
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		+SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(FMargin(4.0f, 0.0f, 0.0f, 0.0f))
-		[
-			SNew(SCheckBox)
-			.IsChecked_Lambda([=] {
-				bool bUniformSetCornerRadius = false;
-				UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
-				return bUniformSetCornerRadius ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-				})
-			.OnCheckStateChanged_Lambda([=](ECheckBoxState NewState){
-				bool bUniformSetCornerRadius = (NewState == ECheckBoxState::Checked) ? true : false;
-				UniformSetCornerRadiusHandle->SetValue(bUniformSetCornerRadius);
-				})
-			.Style(FAppStyle::Get(), "TransparentCheckBox")
-			.ToolTipText(LOCTEXT("UniformSetCornerRadiusToolTip", "When locked, corner radius will all set with x value"))
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.VAlign(VAlign_Center)
 			[
-				SNew(SImage)
-				.Image_Lambda([=] {
+				SNew(STextBlock)
+				.Text(CornerRadiusHandle->GetPropertyDisplayName())
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(FMargin(4.0f, 0.0f, 0.0f, 0.0f))
+			[
+				SNew(SCheckBox)
+				.IsChecked_Lambda([=] {
 					bool bUniformSetCornerRadius = false;
 					UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
-					return bUniformSetCornerRadius ? FAppStyle::GetBrush(TEXT("Icons.Lock")) : FAppStyle::GetBrush(TEXT("Icons.Unlock"));
+					return bUniformSetCornerRadius ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 					})
-				.ColorAndOpacity(FSlateColor::UseForeground())
+				.OnCheckStateChanged_Lambda([=](ECheckBoxState NewState){
+					bool bUniformSetCornerRadius = (NewState == ECheckBoxState::Checked) ? true : false;
+					UniformSetCornerRadiusHandle->SetValue(bUniformSetCornerRadius);
+					})
+				.Style(FAppStyle::Get(), "TransparentCheckBox")
+				.ToolTipText(LOCTEXT("UniformSetCornerRadiusToolTip", "When locked, corner radius will all set with x value"))
+				[
+					SNew(SImage)
+					.Image_Lambda([=] {
+						bool bUniformSetCornerRadius = false;
+						UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
+						return bUniformSetCornerRadius ? FAppStyle::GetBrush(TEXT("Icons.Lock")) : FAppStyle::GetBrush(TEXT("Icons.Unlock"));
+						})
+					.ColorAndOpacity(FSlateColor::UseForeground())
+				]
+			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.HAlign(HAlign_Right)
+			.Padding(FMargin(4.0f, 0.0f, 0.0f, 0.0f))
+			[
+				CreateUnitSelector(CornerRadiusUnitModeHandle)
 			]
 		]
 	]
@@ -174,8 +290,8 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	;
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientColor)));
-	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientCenter)));
-	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRadius)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientCenter), GradientGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRadius), GradientGroup);
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRotation)));
 	auto TextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.Texture));
 	auto& TextureGroup = BodyGroup.AddGroup(TEXT("Texture"), LOCTEXT("Texture", "Texture"), true);
@@ -234,7 +350,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 			BorderHandle->CreatePropertyValueWidget()
 		]
 	;
-	BorderGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderWidth)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderWidth), BorderGroup);
 	BorderGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderColor)));
 
 	auto BorderGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorderGradient));
@@ -251,8 +367,8 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	;
 	BorderGradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientColor)));
-	BorderGradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientCenter)));
-	BorderGradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientRadius)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientCenter), BorderGradientGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientRadius), BorderGradientGroup);
 	BorderGradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BorderGradientRotation)));
 
 	auto InnerShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableInnerShadow));
@@ -269,9 +385,9 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	;
 	InnerShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowColor)));
-	InnerShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowSize)));
-	InnerShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowBlur)));
-	InnerShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowOffset)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowSize), InnerShadowGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowBlur), InnerShadowGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.InnerShadowOffset), InnerShadowGroup);
 
 	auto OuterShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableOuterShadow));
 	auto& OuterShadowGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableOuterShadow), OuterShadowHandle->GetPropertyDisplayName(), false, true);
@@ -287,9 +403,9 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	;
 	OuterShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowColor)));
-	OuterShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowSize)));
-	OuterShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowBlur)));
-	OuterShadowGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowOffset)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowSize), OuterShadowGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowBlur), OuterShadowGroup);
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.OuterShadowOffset), OuterShadowGroup);
 
 	auto RadialFillHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableRadialFill));
 	auto& RadialFillGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableRadialFill), RadialFillHandle->GetPropertyDisplayName(), false, true);
@@ -304,7 +420,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 			RadialFillHandle->CreatePropertyValueWidget()
 		]
 	;
-	RadialFillGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillCenter)));
+	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillCenter), RadialFillGroup);
 	RadialFillGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillRotation)));
 	RadialFillGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillAngle)));
 }

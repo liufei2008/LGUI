@@ -112,17 +112,17 @@ float sdRoundRectOuterShadow(float2 p, float2 b, float4 r, float shadowSize)
 
 float RadialGradient(float2 uv, float2 quadSize, float2 center, float2 radius, float rotation)
 {
-    uv = float2(uv.x, (uv.y - 0.5f) * quadSize.y / quadSize.x + 0.5f);
+    float2 fragCoord = uv * quadSize;
     rotation = radians(rotation);
     float cosAngle = cos(rotation);
     float sinAngle = sin(rotation);
     float2x2 rotationMatrix = float2x2(cosAngle, sinAngle, -sinAngle, cosAngle);
-    uv = mul(rotationMatrix, uv - 0.5f) + 0.5f;
-                
-    uv = (uv - 0.5f) / radius * 0.5f + 0.5f;
-    float distToCenter = distance(uv, center) * 2.0f;
+    fragCoord = mul(rotationMatrix, fragCoord - center) + center;
+
+    fragCoord.x = (fragCoord.x - center.x) * radius.y / radius.x + center.x;
+    float distToCenter = distance(fragCoord, center);
+    distToCenter /= radius.y;
     distToCenter = saturate(distToCenter);
-    distToCenter = smoothstep(0, 1, distToCenter);
     return distToCenter;
 }
 
@@ -136,7 +136,7 @@ half4 BlendPremul(half4 bottom, half4 top)
     return half4(outColor, outA);
 }
 
-float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, Texture2D DataTex, inout float3 Color, inout float Alpha)
+float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, float2 UV3, Texture2D DataTex, inout float3 Color, inout float Alpha)
 {
     half _TextureScaleMode;
     float4 _CornerRadius;
@@ -226,24 +226,32 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     
     
     float4 color;
-
+    _GradientCenter.y = _QuadSize.y - _GradientCenter.y;
+    _BorderGradientCenter.y = _QuadSize.y - _BorderGradientCenter.y;
+    _InnerShadowOffset.y = -_InnerShadowOffset.y;
+    _OuterShadowOffset.y = -_OuterShadowOffset.y;
+    _RadialFillCenter.y = _QuadSize.y - _RadialFillCenter.y;
     if (_OuterShadow)
     {
-        float2 quadSize = _QuadSize + _OuterShadowSize + _OuterShadowBlur;
-        float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
+        float2 sdQuadSize = _QuadSize * 0.5f;
+        float2 quadSize = sdQuadSize + _OuterShadowSize + _OuterShadowBlur;
+        float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
         _OuterShadowColor.rgb = pow(_OuterShadowColor.rgb, 2.2f);
         color = _OuterShadowColor;
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
-        float outerShadow = sdRoundRectOuterShadow(fragCoord, quadSize, cornerRadius, _OuterShadowBlur);
+        float outerShadow = sdRoundRectOuterShadow(sdFragCoord, quadSize, cornerRadius, _OuterShadowBlur);
         color.a *= outerShadow;
-        float dOuter = sdRoundRect(fragCoord + float2(_OuterShadowOffset.x, -_OuterShadowOffset.y), _QuadSize, _CornerRadius);
-        color.a *= 1.0f - dOuter;
+        float dOuter = sdRoundRect(sdFragCoord + _OuterShadowOffset, sdQuadSize, _CornerRadius);
+        if (1.0f - dOuter <= 0.0f)
+            color.a = 0;
         
-        UV0 += float2(_OuterShadowOffset.x, -_OuterShadowOffset.y) / (quadSize * 2); //offset uv for RadialFill
+        UV0 = UV3;//use UV3 for RadialFill calculation
+        UV0 += _OuterShadowOffset / _QuadSize; //offset uv for RadialFill
     }
     else
     {
-        float2 fragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * _QuadSize;
+        float2 sdQuadSize = _QuadSize * 0.5f;
+        float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * sdQuadSize;
         float2 stretchUV = UV0;
         float2 fitUV = UV0;
         float2 envelopUV = UV0;
@@ -268,14 +276,14 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
             color = lerp(_GradientColor * MainTexColor, color, gradientLerpAlpha);
         }
 
-        float dOuter = sdRoundRect(fragCoord, _QuadSize, _CornerRadius);
-        float dInner = sdRoundRect(fragCoord, _QuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
+        float dOuter = sdRoundRect(sdFragCoord, sdQuadSize, _CornerRadius);
+        float dInner = sdRoundRect(sdFragCoord, sdQuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
         if (_EnableInnerShadow)
         {
-            float2 quadSize = _QuadSize - _InnerShadowSize;
+            float2 quadSize = sdQuadSize - _InnerShadowSize;
             float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
             cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
-            float innerShadow = sdRoundRectInnerShadow(fragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
+            float innerShadow = sdRoundRectInnerShadow(sdFragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
             _InnerShadowColor.rgb = pow(_InnerShadowColor.rgb, 2.2f);
             _InnerShadowColor.a *= innerShadow;
             color = BlendPremul(color, _InnerShadowColor);
@@ -299,9 +307,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
 
     if (_EnableRadialFill && _RadialFillAngle < 360.0f)
     {
-        float2 uv = float2(UV0.x, UV0.y * _QuadSize.y / _QuadSize.x);
-        float2 center = float2(_RadialFillCenter.x, _RadialFillCenter.y * _QuadSize.y / _QuadSize.x);
-        float2 centerToPixelDiff = uv - center;
+        float2 fragCoord = UV0 * _QuadSize;
+        float2 centerToPixelDiff = fragCoord - _RadialFillCenter;
         float2 centerToPixelVector = normalize(centerToPixelDiff);
 
         float rotation = radians(_RadialFillRotation + _RadialFillAngle * 0.5f + 180.0f);
