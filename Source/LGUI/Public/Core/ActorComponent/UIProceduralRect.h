@@ -12,6 +12,14 @@ enum class EUIProceduralRectTextureScaleMode: uint8
 	Fit,
 	Envelop,
 };
+UENUM(BlueprintType)
+enum class EUIProceduralRectUnitMode : uint8
+{
+	/** Absolute value */
+	Value			UMETA(DisplayName="V"),
+	/** Percent with rect's size from 0 to 100 */
+	Percentage		UMETA(DisplayName="%"),
+};
 USTRUCT(BlueprintType)
 struct FUIProceduralRectBlockData
 {
@@ -21,6 +29,8 @@ public:
 		FVector2f QuadSize = FVector2f::Zero();
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector4f CornerRadius = FVector4f::One();
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode CornerRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	/** Prevent edge aliasing, useful when in 3d. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bSoftEdge = true;
@@ -35,9 +45,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName = "Color"))
 		FColor GradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
-		FVector2f GradientCenter = FVector2f(0.5f, 0.5f);
+		FVector2f GradientCenter = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode GradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
-		FVector2f GradientRadius = FVector2f(0.5f, 0.5f);
+		FVector2f GradientRadius = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode GradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float GradientRotation = 0;
 
@@ -45,6 +59,8 @@ public:
 		bool bEnableBorder = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Width"))
 		float BorderWidth = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode BorderWidthUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
@@ -52,9 +68,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor BorderGradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
-		FVector2f BorderGradientCenter = FVector2f(0.5f, 0.5f);
+		FVector2f BorderGradientCenter = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode BorderGradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
-		FVector2f BorderGradientRadius = FVector2f(0.5f, 0.5f);
+		FVector2f BorderGradientRadius = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode BorderGradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float BorderGradientRotation = 0;
 		
@@ -64,15 +84,23 @@ public:
 		FColor InnerShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
 		float InnerShadowSize = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode InnerShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur"))
 		float InnerShadowBlur = 4;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode InnerShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
 		FVector2f InnerShadowOffset = FVector2f(0, 0);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode InnerShadowOffsetUnitMode = EUIProceduralRectUnitMode::Percentage;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bEnableRadialFill = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
-		FVector2f RadialFillCenter = FVector2f(0.5f, 0.5f);
+		FVector2f RadialFillCenter = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode RadialFillCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation"))
 		float RadialFillRotation = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
@@ -84,95 +112,23 @@ public:
 		FColor OuterShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
 		float OuterShadowSize = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode OuterShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur", ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
 		FVector2f OuterShadowOffset = FVector2f(0, 0);
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIProceduralRectUnitMode OuterShadowOffsetUnitMode = EUIProceduralRectUnitMode::Percentage;
 
-	void FillData(uint8* Data)
-	{
-		int DataOffset = 0;
+	void FillData(uint8* Data, float width, float height);
+	float GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
+	FVector2f GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight);
+	static constexpr int DataCountInBytes();
 
-		uint8 BoolAsByte = PackBoolToByte(bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false);
-		Fill4BytesToData(Data
-			, BoolAsByte
-			, (uint8)TextureScaleMode
-			, 0, 0
-			, DataOffset);
-
-		FillVector2ToData(Data, QuadSize, DataOffset);
-		FillVector4ToData(Data, CornerRadius, DataOffset);
-
-		FillColorToData(Data, GradientColor, DataOffset);
-		FillVector2ToData(Data, GradientCenter, DataOffset);
-		FillVector2ToData(Data, GradientRadius, DataOffset);
-		FillFloatToData(Data, GradientRotation, DataOffset);
-
-		FillFloatToData(Data, BorderWidth, DataOffset);
-		FillColorToData(Data, BorderColor, DataOffset);
-		FillColorToData(Data, BorderGradientColor, DataOffset);
-		FillVector2ToData(Data, BorderGradientCenter, DataOffset);
-		FillVector2ToData(Data, BorderGradientRadius, DataOffset);
-		FillFloatToData(Data, BorderGradientRotation, DataOffset);
-
-		FillColorToData(Data, InnerShadowColor, DataOffset);
-		FillFloatToData(Data, InnerShadowSize, DataOffset);
-		FillFloatToData(Data, InnerShadowBlur, DataOffset);
-		FillVector2ToData(Data, InnerShadowOffset, DataOffset);
-
-		FillVector2ToData(Data, RadialFillCenter, DataOffset);
-		FillFloatToData(Data, RadialFillRotation, DataOffset);
-		FillFloatToData(Data, RadialFillAngle, DataOffset);
-
-		FillColorToData(Data, OuterShadowColor, DataOffset);
-		FillFloatToData(Data, OuterShadowSize, DataOffset);
-		FillFloatToData(Data, OuterShadowBlur, DataOffset);
-		FillVector2ToData(Data, OuterShadowOffset, DataOffset);
-	}
-	static constexpr int DataCountInBytes()
-	{
-		const int result =
-			4
-
-			+ 8
-			+ 16
-
-			+ 4
-			+ 8
-			+ 8
-			+ 4
-
-			+ 4
-			+ 4
-			+ 4
-			+ 8
-			+ 8
-			+ 4
-
-			+ 4
-			+ 4
-			+ 4
-			+ 8
-
-			+ 8
-			+ 4
-			+ 4
-
-			+ 4
-			+ 4
-			+ 4
-			+ 8
-			;
-		return result;
-	}
-
-	void FillColorToData(uint8* Data, const FColor& InValue, int& InOutDataOffset)
-	{
-		auto ColorUint = InValue.ToPackedRGBA();
-		int ByteCount = 4;
-		FMemory::Memcpy(Data + InOutDataOffset, &ColorUint, ByteCount);
-		InOutDataOffset += ByteCount;
-	}
+	void FillColorToData(uint8* Data, const FColor& InValue, int& InOutDataOffset);
 	uint8 PackBoolToByte(
 		bool v0
 		, bool v1
@@ -182,51 +138,58 @@ public:
 		, bool v5
 		, bool v6
 		, bool v7
-	)
-	{
-		uint8 Result;
-		Result =
-			((v0 ? 1 : 0) << 7)
-			| ((v1 ? 1 : 0) << 6)
-			| ((v2 ? 1 : 0) << 5)
-			| ((v3 ? 1 : 0) << 4)
-			| ((v4 ? 1 : 0) << 3)
-			| ((v5 ? 1 : 0) << 2)
-			| ((v6 ? 1 : 0) << 1)
-			| ((v7 ? 1 : 0) << 0)
-			;
-		return Result;
+	);
+	void Fill4BytesToData(uint8* Data, uint8 InValue0, uint8 InValue1, uint8 InValue2, uint8 InValue3, int& InOutDataOffset);
+	void FillFloatToData(uint8* Data, const float& InValue, int& InOutDataOffset);
+	void FillVector2ToData(uint8* Data, const FVector2f& InValue, int& InOutDataOffset);
+	void FillVector4ToData(uint8* Data, const FVector4f& InValue, int& InOutDataOffset);
+
+
+#define OnFloatUnitModeChanged(Property, AdditionalScale)\
+	void On##Property##UnitModeChanged(float width, float height)\
+	{\
+		if (Property##UnitMode == EUIProceduralRectUnitMode::Value)\
+		{\
+			Property = Property * 0.01f * (width < height ? width : height) * AdditionalScale;\
+		}\
+		else\
+		{\
+			Property = Property * 100.0f / (width < height ? width : height) / AdditionalScale;\
+		}\
 	}
-	void Fill4BytesToData(uint8* Data, uint8 InValue0, uint8 InValue1, uint8 InValue2, uint8 InValue3, int& InOutDataOffset)
-	{
-		int ByteCount = 4;
-		uint32 DataAsUint =
-			(InValue0 << 24)
-			| (InValue1 << 16)
-			| (InValue2 << 8)
-			| (InValue3 << 0)
-			;
-		FMemory::Memcpy(Data + InOutDataOffset, &DataAsUint, ByteCount);
-		InOutDataOffset += ByteCount;
+
+#define OnVector2UnitModeChanged(Property)\
+	void On##Property##UnitModeChanged(float width, float height)\
+	{\
+		if (Property##UnitMode == EUIProceduralRectUnitMode::Value)\
+		{\
+			Property.X = Property.X * 0.01f * width;\
+			Property.Y = Property.Y * 0.01f * height;\
+		}\
+		else\
+		{\
+			Property.X = Property.X * 100.0f / width;\
+			Property.Y = Property.Y * 100.0f / height;\
+		}\
 	}
-	void FillFloatToData(uint8* Data, const float& InValue, int& InOutDataOffset)
-	{
-		int ByteCount = 4;
-		FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
-		InOutDataOffset += ByteCount;
-	}
-	void FillVector2ToData(uint8* Data, const FVector2f& InValue, int& InOutDataOffset)
-	{
-		int ByteCount = 8;
-		FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
-		InOutDataOffset += ByteCount;
-	}
-	void FillVector4ToData(uint8* Data, const FVector4f& InValue, int& InOutDataOffset)
-	{
-		int ByteCount = 16;
-		FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
-		InOutDataOffset += ByteCount;
-	}
+
+	void OnCornerRadiusUnitModeChanged(float width, float height);
+	OnVector2UnitModeChanged(GradientCenter);
+	OnVector2UnitModeChanged(GradientRadius);
+
+	OnFloatUnitModeChanged(BorderWidth, 0.5f);
+	OnVector2UnitModeChanged(BorderGradientCenter);
+	OnVector2UnitModeChanged(BorderGradientRadius);
+
+	OnFloatUnitModeChanged(InnerShadowSize, 0.5f);
+	OnFloatUnitModeChanged(InnerShadowBlur, 0.5f);
+	OnVector2UnitModeChanged(InnerShadowOffset);
+
+	OnVector2UnitModeChanged(RadialFillCenter);
+
+	OnFloatUnitModeChanged(OuterShadowSize, 0.5f);
+	OnFloatUnitModeChanged(OuterShadowBlur, 0.5f);
+	OnVector2UnitModeChanged(OuterShadowOffset);
 };
 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))

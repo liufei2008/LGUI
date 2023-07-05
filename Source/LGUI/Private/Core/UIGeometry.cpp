@@ -325,10 +325,24 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			int vertStartIndex = 0;
 			if (bOuterShadow)
 			{
-				vertices[0].TextureCoordinate[0] = spriteInfo.GetUV0();
-				vertices[1].TextureCoordinate[0] = spriteInfo.GetUV1();
-				vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
-				vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
+				auto UV0 = spriteInfo.GetUV0();
+				auto UV3 = spriteInfo.GetUV3();
+				vertices[0].TextureCoordinate[0] = FVector2f(UV0.X, UV0.Y);
+				vertices[1].TextureCoordinate[0] = FVector2f(UV3.X, UV0.Y);
+				vertices[2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
+				vertices[3].TextureCoordinate[0] = FVector2f(UV3.X, UV3.Y);
+
+				float additionalUVWidth = (outerShadowSize + outerShadowBlur) / width;
+				float additionalUVHeight = (outerShadowSize + outerShadowBlur) / height;
+				UV0.X -= additionalUVWidth;
+				UV3.X += additionalUVWidth;
+				UV0.Y += additionalUVHeight;
+				UV3.Y -= additionalUVHeight;
+				vertices[0].TextureCoordinate[3] = FVector2f(UV0.X, UV0.Y);
+				vertices[1].TextureCoordinate[3] = FVector2f(UV3.X, UV0.Y);
+				vertices[2].TextureCoordinate[3] = FVector2f(UV0.X, UV3.Y);
+				vertices[3].TextureCoordinate[3] = FVector2f(UV3.X, UV3.Y);
+
 				vertStartIndex = 4;
 			}
 			

@@ -10,12 +10,185 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UITextureBase.h"
+#include "Core/Actor/LGUIManagerActor.h"
+#include "Utils/LGUIUtils.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
 #define LOCTEXT_NAMESPACE "UIProceduralRect"
+
+
+void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height)
+{
+	int DataOffset = 0;
+
+	uint8 BoolAsByte = PackBoolToByte(bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false, false);
+	Fill4BytesToData(Data
+		, BoolAsByte
+		, (uint8)TextureScaleMode
+		, 0, 0
+		, DataOffset);
+
+	FillVector2ToData(Data, QuadSize, DataOffset);
+	
+#define GetFloatValueWithUnit(PropertyName, AdditionalScale) PropertyName##UnitMode == EUIProceduralRectUnitMode::Value ? PropertyName : (PropertyName * 0.01f * (width < height ? width : height) * AdditionalScale)
+
+	auto GetVector2ValueWithUnit2 = [=](const FVector2f& value, EUIProceduralRectUnitMode unitMode) {
+		if (unitMode == EUIProceduralRectUnitMode::Value)
+			return value;
+		else
+			return value * 0.01f * (width < height ? width : height);
+	};
+
+	FillVector4ToData(Data, GetFloatValueWithUnit(CornerRadius, 0.5f), DataOffset);
+
+	FillColorToData(Data, GradientColor, DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(GradientCenter, GradientCenterUnitMode, width, height), DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(GradientRadius, GradientRadiusUnitMode, width, height), DataOffset);
+	FillFloatToData(Data, GradientRotation, DataOffset);
+
+	FillFloatToData(Data, GetValueWithUnitMode(BorderWidth, BorderWidthUnitMode, width, height, 0.5f), DataOffset);
+	FillColorToData(Data, BorderColor, DataOffset);
+	FillColorToData(Data, BorderGradientColor, DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(BorderGradientCenter, BorderGradientCenterUnitMode, width, height), DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(BorderGradientRadius, BorderGradientRadiusUnitMode, width, height), DataOffset);
+	FillFloatToData(Data, BorderGradientRotation, DataOffset);
+
+	FillColorToData(Data, InnerShadowColor, DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowSize, InnerShadowSizeUnitMode, width, height, 0.5f), DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowBlur, InnerShadowBlurUnitMode, width, height, 0.5f), DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(InnerShadowOffset, InnerShadowOffsetUnitMode, width, height), DataOffset);
+
+	FillVector2ToData(Data, GetValueWithUnitMode(RadialFillCenter, RadialFillCenterUnitMode, width, height), DataOffset);
+	FillFloatToData(Data, RadialFillRotation, DataOffset);
+	FillFloatToData(Data, RadialFillAngle, DataOffset);
+
+	FillColorToData(Data, OuterShadowColor, DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, width, height, 0.5f), DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, width, height, 0.5f), DataOffset);
+	FillVector2ToData(Data, GetValueWithUnitMode(OuterShadowOffset, OuterShadowOffsetUnitMode, width, height), DataOffset);
+}
+
+float FUIProceduralRectBlockData::GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
+{
+	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
+}
+FVector2f FUIProceduralRectBlockData::GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight)
+{
+	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * FVector2f(RectWidth, RectHeight));
+}
+
+constexpr int FUIProceduralRectBlockData::DataCountInBytes()
+{
+	const int result =
+		4
+
+		+ 8
+		+ 16
+
+		+ 4
+		+ 8
+		+ 8
+		+ 4
+
+		+ 4
+		+ 4
+		+ 4
+		+ 8
+		+ 8
+		+ 4
+
+		+ 4
+		+ 4
+		+ 4
+		+ 8
+
+		+ 8
+		+ 4
+		+ 4
+
+		+ 4
+		+ 4
+		+ 4
+		+ 8
+		;
+	return result;
+}
+
+void FUIProceduralRectBlockData::FillColorToData(uint8* Data, const FColor& InValue, int& InOutDataOffset)
+{
+	auto ColorUint = InValue.ToPackedRGBA();
+	int ByteCount = 4;
+	FMemory::Memcpy(Data + InOutDataOffset, &ColorUint, ByteCount);
+	InOutDataOffset += ByteCount;
+}
+uint8 FUIProceduralRectBlockData::PackBoolToByte(
+	bool v0
+	, bool v1
+	, bool v2
+	, bool v3
+	, bool v4
+	, bool v5
+	, bool v6
+	, bool v7
+)
+{
+	uint8 Result;
+	Result =
+		((v0 ? 1 : 0) << 7)
+		| ((v1 ? 1 : 0) << 6)
+		| ((v2 ? 1 : 0) << 5)
+		| ((v3 ? 1 : 0) << 4)
+		| ((v4 ? 1 : 0) << 3)
+		| ((v5 ? 1 : 0) << 2)
+		| ((v6 ? 1 : 0) << 1)
+		| ((v7 ? 1 : 0) << 0)
+		;
+	return Result;
+}
+void FUIProceduralRectBlockData::Fill4BytesToData(uint8* Data, uint8 InValue0, uint8 InValue1, uint8 InValue2, uint8 InValue3, int& InOutDataOffset)
+{
+	int ByteCount = 4;
+	uint32 DataAsUint =
+		(InValue0 << 24)
+		| (InValue1 << 16)
+		| (InValue2 << 8)
+		| (InValue3 << 0)
+		;
+	FMemory::Memcpy(Data + InOutDataOffset, &DataAsUint, ByteCount);
+	InOutDataOffset += ByteCount;
+}
+void FUIProceduralRectBlockData::FillFloatToData(uint8* Data, const float& InValue, int& InOutDataOffset)
+{
+	int ByteCount = 4;
+	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
+	InOutDataOffset += ByteCount;
+}
+void FUIProceduralRectBlockData::FillVector2ToData(uint8* Data, const FVector2f& InValue, int& InOutDataOffset)
+{
+	int ByteCount = 8;
+	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
+	InOutDataOffset += ByteCount;
+}
+void FUIProceduralRectBlockData::FillVector4ToData(uint8* Data, const FVector4f& InValue, int& InOutDataOffset)
+{
+	int ByteCount = 16;
+	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
+	InOutDataOffset += ByteCount;
+}
+void FUIProceduralRectBlockData::OnCornerRadiusUnitModeChanged(float width, float height)
+{
+	if (CornerRadiusUnitMode == EUIProceduralRectUnitMode::Value)//from percentage to value
+	{
+		CornerRadius = CornerRadius * 0.01f * (width < height ? width : height) * 0.5f;
+	}
+	else//from value to percentage
+	{
+		CornerRadius = CornerRadius * 100.0f / (width < height ? width : height) * 2.0f;
+	}
+}
 
 FName UUIProceduralRect::DataTextureParameterName = TEXT("DataTexture");
 
@@ -56,7 +229,36 @@ void UUIProceduralRect::OnUnregister()
 #if WITH_EDITOR
 void UUIProceduralRect::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+
+#define SetUnitChange(Property)\
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(FUIProceduralRectBlockData, Property##UnitMode))\
+	{\
+		this->BlockData.On##Property##UnitModeChanged(this->GetWidth(), this->GetHeight());\
+	}
+
+
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		auto PropertyName = Property->GetFName();
+		SetUnitChange(CornerRadius)
+		else SetUnitChange(GradientCenter)
+		else SetUnitChange(GradientRadius)
+
+		else SetUnitChange(BorderWidth)
+		else SetUnitChange(BorderGradientCenter)
+		else SetUnitChange(BorderGradientRadius)
+
+		else SetUnitChange(InnerShadowSize)
+		else SetUnitChange(InnerShadowBlur)
+		else SetUnitChange(InnerShadowOffset)
+
+		else SetUnitChange(RadialFillCenter)
+
+		else SetUnitChange(OuterShadowSize)
+		else SetUnitChange(OuterShadowBlur)
+		else SetUnitChange(OuterShadowOffset)
+	}
 }
 void UUIProceduralRect::EditorForceUpdate()
 {
@@ -123,8 +325,10 @@ void UUIProceduralRect::CheckAdditionalShaderChannels()
 		auto flags =
 			//UV1: data position 2d
 			//UV2.x: bIsOuterShadow
+			//UV3: outer shadow's full uv
 			(1 << (int)ELGUICanvasAdditionalChannelType::UV1)
 			| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
+			| (1 << (int)ELGUICanvasAdditionalChannelType::UV3)
 			;
 #if WITH_EDITOR
 		auto originFlags = RenderCanvas->GetActualAdditionalShaderChannelFlags();
@@ -158,7 +362,11 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 {
 	static FLGUISpriteInfo SimpleRectSpriteData;
 	UIGeometry::UpdateUIProceduralRectSimpleVertex(&InGeo,
-		this->BlockData.bEnableOuterShadow, this->BlockData.OuterShadowOffset, this->BlockData.OuterShadowSize, this->BlockData.OuterShadowBlur, this->BlockData.bSoftEdge,
+		this->BlockData.bEnableOuterShadow
+		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowOffset, BlockData.OuterShadowOffsetUnitMode, this->GetWidth(), this->GetHeight())
+		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowSize, BlockData.OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
+		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowBlur, BlockData.OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
+		, this->BlockData.bSoftEdge,
 		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SimpleRectSpriteData, RenderCanvas.Get(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 	);
@@ -192,13 +400,13 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 	{
 		bNeedUpdateBlockData = false;
 
-		BlockData.QuadSize.X = this->GetWidth() * 0.5f;
-		BlockData.QuadSize.Y = this->GetHeight() * 0.5f;
+		BlockData.QuadSize.X = this->GetWidth();
+		BlockData.QuadSize.Y = this->GetHeight();
 
 		auto BlockSize = ProceduralRectData->GetBlockSizeInByte();
 		uint8* BlockBuffer = new uint8[BlockSize];
 		FMemory::Memzero(BlockBuffer, BlockSize);
-		BlockData.FillData(BlockBuffer);
+		BlockData.FillData(BlockBuffer, this->GetWidth(), this->GetHeight());
 		ProceduralRectData->UpdateBlock(DataStartPosition, BlockBuffer);
 	}
 }
