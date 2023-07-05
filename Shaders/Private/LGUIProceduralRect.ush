@@ -143,6 +143,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     float2 _QuadSize;
     half _SoftEdge;
     
+    half _EnableBody;
     half _EnableGradient;
     half4 _GradientColor;
     float2 _GradientCenter;
@@ -186,12 +187,13 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         uint BoolValues = (ByteUint >> 24) & 0x000000ff;
         _TextureScaleMode = (ByteUint >> 16) & 0x000000ff;
         
-        _SoftEdge = (BoolValues >> 7) & 1;
-        _EnableGradient = (BoolValues >> 6) & 1;
-        _EnableBorder = (BoolValues >> 5) & 1;
-        _EnableBorderGradient = (BoolValues >> 4) & 1;
-        _EnableInnerShadow = (BoolValues >> 3) & 1;
-        _EnableRadialFill = (BoolValues >> 2) & 1;
+        _EnableBody = (BoolValues >> 7) & 1;
+        _SoftEdge = (BoolValues >> 6) & 1;
+        _EnableGradient = (BoolValues >> 5) & 1;
+        _EnableBorder = (BoolValues >> 4) & 1;
+        _EnableBorderGradient = (BoolValues >> 3) & 1;
+        _EnableInnerShadow = (BoolValues >> 2) & 1;
+        _EnableRadialFill = (BoolValues >> 1) & 1;
         
         _QuadSize = LGUI_ReadFloat2(DataTex, Position);
         _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
@@ -242,8 +244,17 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         float outerShadow = sdRoundRectOuterShadow(sdFragCoord, quadSize, cornerRadius, _OuterShadowBlur);
         color.a *= outerShadow;
         float dOuter = sdRoundRect(sdFragCoord + _OuterShadowOffset, sdQuadSize, _CornerRadius);
-        if (1.0f - dOuter <= 0.0f)
-            color.a = 0;
+        dOuter = 1.0f - dOuter;
+        if (_EnableBody || _EnableBorder || _EnableInnerShadow)//if enable body, make it no smooth, because smooth can show a thin transparent line between body and outshadow
+        {
+            color.a *= sign(dOuter);
+            if (dOuter <= 0.0f)
+                color.a = 0;
+        }
+        else//if no body, then make it smooth
+        {
+            color.a *= dOuter;
+        }
         
         UV0 = UV3;//use UV3 for RadialFill calculation
         UV0 += _OuterShadowOffset / _QuadSize; //offset uv for RadialFill
@@ -275,6 +286,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
             _GradientColor.rgb = pow(_GradientColor.rgb, 2.2f);
             color = lerp(_GradientColor * MainTexColor, color, gradientLerpAlpha);
         }
+        color.a *= _EnableBody;
 
         float dOuter = sdRoundRect(sdFragCoord, sdQuadSize, _CornerRadius);
         float dInner = sdRoundRect(sdFragCoord, sdQuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
