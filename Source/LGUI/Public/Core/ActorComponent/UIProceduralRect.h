@@ -92,10 +92,12 @@ public:
 		float InnerShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUIProceduralRectUnitMode InnerShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
-		FVector2f InnerShadowOffset = FVector2f(0, 0);
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
+		float InnerShadowAngle = 45;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Distance"))
+		float InnerShadowDistance = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUIProceduralRectUnitMode InnerShadowOffsetUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode InnerShadowDistanceUnitMode = EUIProceduralRectUnitMode::Value;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "RadialFill"))
 		bool bEnableRadialFill = false;
@@ -120,14 +122,18 @@ public:
 		float OuterShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Offset"))
-		FVector2f OuterShadowOffset = FVector2f(0, 0);
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
+		float OuterShadowAngle = 135;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Distance"))
+		float OuterShadowDistance = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUIProceduralRectUnitMode OuterShadowOffsetUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode OuterShadowDistanceUnitMode = EUIProceduralRectUnitMode::Value;
 
 	void FillData(uint8* Data, float width, float height);
 	float GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
 	FVector2f GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight);
+	FVector2f GetInnerShadowOffset(float RectWidth, float RectHeight);
+	FVector2f GetOuterShadowOffset(float RectWidth, float RectHeight);
 	static constexpr int DataCountInBytes();
 
 	void FillColorToData(uint8* Data, const FColor& InValue, int& InOutDataOffset);
@@ -185,13 +191,13 @@ public:
 
 	OnFloatUnitModeChanged(InnerShadowSize, 0.5f);
 	OnFloatUnitModeChanged(InnerShadowBlur, 0.5f);
-	OnVector2UnitModeChanged(InnerShadowOffset);
+	OnFloatUnitModeChanged(InnerShadowDistance, 0.5f);
 
 	OnVector2UnitModeChanged(RadialFillCenter);
 
 	OnFloatUnitModeChanged(OuterShadowSize, 0.5f);
 	OnFloatUnitModeChanged(OuterShadowBlur, 0.5f);
-	OnVector2UnitModeChanged(OuterShadowOffset);
+	OnFloatUnitModeChanged(OuterShadowDistance, 0.5f);
 };
 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
@@ -297,7 +303,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetInnerShadowBlur(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetInnerShadowOffset(const FVector2f& value);
+		void SetInnerShadowAngle(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetInnerShadowDistance(float value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEnableRadialFill(bool value);
@@ -317,5 +325,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetOuterShadowBlur(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetOuterShadowOffset(const FVector2f& value);
+		void SetOuterShadowAngle(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOuterShadowDistance(float value);
 };
