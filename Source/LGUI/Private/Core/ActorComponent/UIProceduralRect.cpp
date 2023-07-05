@@ -59,7 +59,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	FillColorToData(Data, InnerShadowColor, DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowSize, InnerShadowSizeUnitMode, width, height, 0.5f), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowBlur, InnerShadowBlurUnitMode, width, height, 0.5f), DataOffset);
-	FillVector2ToData(Data, GetValueWithUnitMode(InnerShadowOffset, InnerShadowOffsetUnitMode, width, height), DataOffset);
+	FillVector2ToData(Data, GetInnerShadowOffset(width, height), DataOffset);
 
 	FillVector2ToData(Data, GetValueWithUnitMode(RadialFillCenter, RadialFillCenterUnitMode, width, height), DataOffset);
 	FillFloatToData(Data, RadialFillRotation, DataOffset);
@@ -68,7 +68,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	FillColorToData(Data, OuterShadowColor, DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, width, height, 0.5f), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, width, height, 0.5f), DataOffset);
-	FillVector2ToData(Data, GetValueWithUnitMode(OuterShadowOffset, OuterShadowOffsetUnitMode, width, height), DataOffset);
+	FillVector2ToData(Data, GetOuterShadowOffset(width, height), DataOffset);
 }
 
 float FUIProceduralRectBlockData::GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
@@ -80,39 +80,62 @@ FVector2f FUIProceduralRectBlockData::GetValueWithUnitMode(const FVector2f& Sour
 	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * FVector2f(RectWidth, RectHeight));
 }
 
+FVector2f FUIProceduralRectBlockData::GetInnerShadowOffset(float RectWidth, float RectHeight)
+{
+	float AngleRadian = FMath::DegreesToRadians(InnerShadowAngle);
+	float Sin = FMath::Sin(AngleRadian);
+	float Cos = FMath::Cos(AngleRadian);
+	float Distance = GetValueWithUnitMode(InnerShadowDistance, InnerShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
+	return FVector2f(Sin, Cos) * Distance;
+}
+FVector2f FUIProceduralRectBlockData::GetOuterShadowOffset(float RectWidth, float RectHeight)
+{
+	float AngleRadian = FMath::DegreesToRadians(OuterShadowAngle);
+	float Sin = FMath::Sin(AngleRadian);
+	float Cos = FMath::Cos(AngleRadian);
+	float Distance = GetValueWithUnitMode(OuterShadowDistance, OuterShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
+	return FVector2f(Sin, Cos) * Distance;
+}
+
 constexpr int FUIProceduralRectBlockData::DataCountInBytes()
 {
 	const int result =
-		4
+		4//bool and enum
 
-		+ 8
-		+ 16
+		+ 8//quad size
+		+ 16//corner radius
 
-		+ 4
-		+ 8
-		+ 8
-		+ 4
+		//gradient
+		+ 4//color
+		+ 8//center
+		+ 8//radius
+		+ 4//rotation
 
-		+ 4
-		+ 4
-		+ 4
-		+ 8
-		+ 8
-		+ 4
+		//border
+		+ 4//width
+		+ 4//color
+		//border gradient
+		+ 4//color
+		+ 8//center
+		+ 8//radius
+		+ 4//rotation
 
-		+ 4
-		+ 4
-		+ 4
-		+ 8
+		//inner shadow
+		+ 4//color
+		+ 4//size
+		+ 4//blur
+		+ 8//offset, this is not angle & distance, we calculate offset result here
 
-		+ 8
-		+ 4
-		+ 4
+		//radial fill
+		+ 8//center
+		+ 4//rotation
+		+ 4//angle
 
-		+ 4
-		+ 4
-		+ 4
-		+ 8
+		//outer shadow
+		+ 4//color
+		+ 4//size
+		+ 4//blur
+		+ 8//offset, this is not angle & distance, we calculate offset result here
 		;
 	return result;
 }
@@ -251,13 +274,13 @@ void UUIProceduralRect::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 		else SetUnitChange(InnerShadowSize)
 		else SetUnitChange(InnerShadowBlur)
-		else SetUnitChange(InnerShadowOffset)
+		else SetUnitChange(InnerShadowDistance)
 
 		else SetUnitChange(RadialFillCenter)
 
 		else SetUnitChange(OuterShadowSize)
 		else SetUnitChange(OuterShadowBlur)
-		else SetUnitChange(OuterShadowOffset)
+		else SetUnitChange(OuterShadowDistance)
 	}
 }
 void UUIProceduralRect::EditorForceUpdate()
@@ -364,7 +387,7 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 	UIGeometry::UpdateUIProceduralRectSimpleVertex(&InGeo
 		, this->BlockData.bEnableBody || this->BlockData.bEnableBorder || this->BlockData.bEnableInnerShadow
 		, this->BlockData.bEnableOuterShadow
-		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowOffset, BlockData.OuterShadowOffsetUnitMode, this->GetWidth(), this->GetHeight())
+		, this->BlockData.GetOuterShadowOffset(this->GetWidth(), this->GetHeight())
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowSize, BlockData.OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowBlur, BlockData.OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
 		, this->BlockData.bSoftEdge,
@@ -427,6 +450,7 @@ void UUIProceduralRect::SetCornerRadius(const FVector4f& value)
 {
 	BlockData.CornerRadius = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetEnableBody(bool value)
 {
@@ -465,32 +489,38 @@ void UUIProceduralRect::SetTextureScaleMode(EUIProceduralRectTextureScaleMode va
 {
 	BlockData.TextureScaleMode = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 
 void UUIProceduralRect::SetEnableGradient(bool value)
 {
 	BlockData.bEnableGradient = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetGradientColor(const FColor& value)
 {
 	BlockData.GradientColor = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetGradientCenter(const FVector2f& value)
 {
 	BlockData.GradientCenter = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetGradientRadius(const FVector2f& value)
 {
 	BlockData.GradientRadius = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetGradientRotation(float value)
 {
 	BlockData.GradientRotation = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 
 void UUIProceduralRect::SetEnableBorder(bool value)
@@ -503,36 +533,43 @@ void UUIProceduralRect::SetBorderWidth(float value)
 {
 	BlockData.BorderWidth = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderColor(const FColor& value)
 {
 	BlockData.BorderColor = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetEnableBorderGradient(bool value)
 {
 	BlockData.bEnableBorderGradient = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderGradientColor(const FColor& value)
 {
 	BlockData.BorderGradientColor = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderGradientCenter(const FVector2f& value)
 {
 	BlockData.BorderGradientCenter = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderGradientRadius(const FVector2f& value)
 {
 	BlockData.BorderGradientRadius = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderGradientRotation(float value)
 {
 	BlockData.BorderGradientRotation = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 
 void UUIProceduralRect::SetEnableInnerShadow(bool value)
@@ -545,42 +582,56 @@ void UUIProceduralRect::SetInnerShadowColor(const FColor& value)
 {
 	BlockData.InnerShadowColor = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetInnerShadowSize(float value)
 {
 	BlockData.InnerShadowSize = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetInnerShadowBlur(float value)
 {
 	BlockData.InnerShadowBlur = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
-void UUIProceduralRect::SetInnerShadowOffset(const FVector2f& value)
+void UUIProceduralRect::SetInnerShadowAngle(float value)
 {
-	BlockData.InnerShadowOffset = value;
+	BlockData.InnerShadowAngle = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
+}
+void UUIProceduralRect::SetInnerShadowDistance(float value)
+{
+	BlockData.InnerShadowDistance = value;
+	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 
 void UUIProceduralRect::SetEnableRadialFill(bool value)
 {
 	BlockData.bEnableRadialFill = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetRadialFillCenter(const FVector2f& value)
 {
 	BlockData.RadialFillCenter = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetRadialFillRotation(float value)
 {
 	BlockData.RadialFillRotation = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 void UUIProceduralRect::SetRadialFillAngle(float value)
 {
 	BlockData.RadialFillAngle = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 
 void UUIProceduralRect::SetEnableOuterShadow(bool value)
@@ -592,21 +643,31 @@ void UUIProceduralRect::SetOuterShadowColor(const FColor& value)
 {
 	BlockData.OuterShadowColor = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetOuterShadowSize(float value)
 {
 	BlockData.OuterShadowSize = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetOuterShadowBlur(float value)
 {
 	BlockData.OuterShadowBlur = value;
 	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
-void UUIProceduralRect::SetOuterShadowOffset(const FVector2f& value)
+void UUIProceduralRect::SetOuterShadowAngle(float value)
 {
-	BlockData.OuterShadowOffset = value;
+	BlockData.OuterShadowAngle = value;
 	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
+}
+void UUIProceduralRect::SetOuterShadowDistance(float value)
+{
+	BlockData.OuterShadowDistance = value;
+	bNeedUpdateBlockData = true;
+	MarkVertexPositionDirty();
 }
 
 #undef LOCTEXT_NAMESPACE
