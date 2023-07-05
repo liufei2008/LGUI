@@ -422,9 +422,9 @@ void UUIProceduralRect::SetBlockData(const FUIProceduralRectBlockData& value)
 	MarkAllDirty();
 }
 
-void UUIProceduralRect::SetCornerRadius(const FVector4f& value)
+void UUIProceduralRect::SetCornerRadius(const FVector4& value)
 {
-	BlockData.CornerRadius = value;
+	BlockData.CornerRadius = (FVector4f)value;
 	bNeedUpdateBlockData = true;
 }
 void UUIProceduralRect::SetTexture(UTexture* value)
@@ -470,14 +470,14 @@ void UUIProceduralRect::SetGradientColor(const FColor& value)
 	BlockData.GradientColor = value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetGradientCenter(const FVector2f& value)
+void UUIProceduralRect::SetGradientCenter(const FVector2D& value)
 {
-	BlockData.GradientCenter = value;
+	BlockData.GradientCenter = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetGradientRadius(const FVector2f& value)
+void UUIProceduralRect::SetGradientRadius(const FVector2D& value)
 {
-	BlockData.GradientRadius = value;
+	BlockData.GradientRadius = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
 void UUIProceduralRect::SetGradientRotation(float value)
@@ -511,14 +511,14 @@ void UUIProceduralRect::SetBorderGradientColor(const FColor& value)
 	BlockData.BorderGradientColor = value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetBorderGradientCenter(const FVector2f& value)
+void UUIProceduralRect::SetBorderGradientCenter(const FVector2D& value)
 {
-	BlockData.BorderGradientCenter = value;
+	BlockData.BorderGradientCenter = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetBorderGradientRadius(const FVector2f& value)
+void UUIProceduralRect::SetBorderGradientRadius(const FVector2D& value)
 {
-	BlockData.BorderGradientRadius = value;
+	BlockData.BorderGradientRadius = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
 void UUIProceduralRect::SetBorderGradientRotation(float value)
@@ -547,9 +547,9 @@ void UUIProceduralRect::SetInnerShadowBlur(float value)
 	BlockData.InnerShadowBlur = value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetInnerShadowOffset(const FVector2f& value)
+void UUIProceduralRect::SetInnerShadowOffset(const FVector2D& value)
 {
-	BlockData.InnerShadowOffset = value;
+	BlockData.InnerShadowOffset = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
 
@@ -558,9 +558,9 @@ void UUIProceduralRect::SetEnableRadialFill(bool value)
 	BlockData.bEnableRadialFill = value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetRadialFillCenter(const FVector2f& value)
+void UUIProceduralRect::SetRadialFillCenter(const FVector2D& value)
 {
-	BlockData.RadialFillCenter = value;
+	BlockData.RadialFillCenter = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
 void UUIProceduralRect::SetRadialFillRotation(float value)
@@ -594,9 +594,9 @@ void UUIProceduralRect::SetOuterShadowBlur(float value)
 	BlockData.OuterShadowBlur = value;
 	bNeedUpdateBlockData = true;
 }
-void UUIProceduralRect::SetOuterShadowOffset(const FVector2f& value)
+void UUIProceduralRect::SetOuterShadowOffset(const FVector2D& value)
 {
-	BlockData.OuterShadowOffset = value;
+	BlockData.OuterShadowOffset = (FVector2f)value;
 	bNeedUpdateBlockData = true;
 }
 

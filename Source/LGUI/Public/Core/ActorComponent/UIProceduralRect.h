@@ -246,7 +246,7 @@ public:
 		void SetBlockData(const FUIProceduralRectBlockData& value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetCornerRadius(const FVector4f& value);
+		void SetCornerRadius(const FVector4& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTexture(UTexture* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -261,9 +261,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGradientColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientCenter(const FVector2f& value);
+		void SetGradientCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientRadius(const FVector2f& value);
+		void SetGradientRadius(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGradientRotation(float value);
 
@@ -278,9 +278,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBorderGradientColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBorderGradientCenter(const FVector2f& value);
+		void SetBorderGradientCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBorderGradientRadius(const FVector2f& value);
+		void SetBorderGradientRadius(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBorderGradientRotation(float value);
 
@@ -293,12 +293,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetInnerShadowBlur(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetInnerShadowOffset(const FVector2f& value);
+		void SetInnerShadowOffset(const FVector2D& value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEnableRadialFill(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetRadialFillCenter(const FVector2f& value);
+		void SetRadialFillCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRadialFillRotation(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -313,5 +313,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetOuterShadowBlur(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetOuterShadowOffset(const FVector2f& value);
+		void SetOuterShadowOffset(const FVector2D& value);
 };
