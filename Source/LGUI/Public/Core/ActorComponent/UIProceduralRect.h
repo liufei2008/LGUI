@@ -35,12 +35,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bSoftEdge = true;
 
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Body"))
+		bool bEnableBody = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<UTexture> Texture = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="Texture"))
 		EUIProceduralRectTextureScaleMode TextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
 		bool bEnableGradient = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName = "Color"))
 		FColor GradientColor = FColor::Black;
@@ -55,7 +57,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float GradientRotation = 0;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Border"))
 		bool bEnableBorder = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Width"))
 		float BorderWidth = 0;
@@ -78,7 +80,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
 		float BorderGradientRotation = 0;
 		
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "InnerShadow"))
 		bool bEnableInnerShadow = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor InnerShadowColor = FColor::Black;
@@ -95,7 +97,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUIProceduralRectUnitMode InnerShadowOffsetUnitMode = EUIProceduralRectUnitMode::Percentage;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "RadialFill"))
 		bool bEnableRadialFill = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
 		FVector2f RadialFillCenter = FVector2f(50, 50);
@@ -106,7 +108,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillAngle = 270;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "OuterShadow"))
 		bool bEnableOuterShadow = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
 		FColor OuterShadowColor = FColor::Black;
@@ -247,6 +249,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCornerRadius(const FVector4& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnableBody(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTexture(UTexture* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
