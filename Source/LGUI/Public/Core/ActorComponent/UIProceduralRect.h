@@ -41,7 +41,7 @@ public:
 		FColor BodyColor = FColor::White;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Texture", DisplayThumbnail = "false"))
 		TObjectPtr<UTexture> BodyTexture = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="Texture"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="BodyTexture"))
 		EUIProceduralRectTextureScaleMode BodyTextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
 		bool bEnableGradient = false;
