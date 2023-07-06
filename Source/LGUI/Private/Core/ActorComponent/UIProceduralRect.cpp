@@ -27,7 +27,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	uint8 BoolAsByte = PackBoolToByte(bEnableBody, bSoftEdge, bEnableGradient, bEnableBorder, bEnableBorderGradient, bEnableInnerShadow, bEnableRadialFill, false);
 	Fill4BytesToData(Data
 		, BoolAsByte
-		, (uint8)TextureScaleMode
+		, (uint8)BodyTextureScaleMode
 		, 0, 0
 		, DataOffset);
 
@@ -43,6 +43,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	};
 
 	FillVector4ToData(Data, GetFloatValueWithUnit(CornerRadius, 0.5f), DataOffset);
+	FillColorToData(Data, BodyColor, DataOffset);
 
 	FillColorToData(Data, GradientColor, DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(GradientCenter, GradientCenterUnitMode, width, height), DataOffset);
@@ -104,6 +105,7 @@ constexpr int FUIProceduralRectBlockData::DataCountInBytes()
 
 		+ 8//quad size
 		+ 16//corner radius
+		+ 4//body color
 
 		//gradient
 		+ 4//color
@@ -292,11 +294,11 @@ void UUIProceduralRect::EditorForceUpdate()
 UTexture* UUIProceduralRect::GetTextureToCreateGeometry()
 {
 	CheckAdditionalShaderChannels();
-	if (!IsValid(BlockData.Texture))
+	if (!IsValid(BlockData.BodyTexture))
 	{
-		BlockData.Texture = UUITextureBase::GetDefaultWhiteTexture();
+		BlockData.BodyTexture = UUITextureBase::GetDefaultWhiteTexture();
 	}
-	return BlockData.Texture;
+	return BlockData.BodyTexture;
 }
 UMaterialInterface* UUIProceduralRect::GetMaterialToCreateGeometry()
 {
@@ -458,21 +460,21 @@ void UUIProceduralRect::SetEnableBody(bool value)
 	bNeedUpdateBlockData = true;
 	MarkVertexPositionDirty();//if disable body, then just hide body's vertices
 }
-void UUIProceduralRect::SetTexture(UTexture* value)
+void UUIProceduralRect::SetBodyTexture(UTexture* value)
 {
-	BlockData.Texture = value;
-	if (BlockData.Texture == nullptr)
+	BlockData.BodyTexture = value;
+	if (BlockData.BodyTexture == nullptr)
 	{
-		BlockData.Texture = UUITextureBase::GetDefaultWhiteTexture();
+		BlockData.BodyTexture = UUITextureBase::GetDefaultWhiteTexture();
 	}
 	MarkTextureDirty();
 }
-void UUIProceduralRect::SetSizeFromTexture()
+void UUIProceduralRect::SetSizeFromBodyTexture()
 {
-	if (IsValid(BlockData.Texture))
+	if (IsValid(BlockData.BodyTexture))
 	{
-		SetWidth(BlockData.Texture->GetSurfaceWidth());
-		SetHeight(BlockData.Texture->GetSurfaceHeight());
+		SetWidth(BlockData.BodyTexture->GetSurfaceWidth());
+		SetHeight(BlockData.BodyTexture->GetSurfaceHeight());
 	}
 	else
 	{
@@ -485,9 +487,9 @@ void UUIProceduralRect::SetSoftEdge(bool value)
 	bNeedUpdateBlockData = true;
 	MarkVertexPositionDirty();
 }
-void UUIProceduralRect::SetTextureScaleMode(EUIProceduralRectTextureScaleMode value)
+void UUIProceduralRect::SetBodyTextureScaleMode(EUIProceduralRectTextureScaleMode value)
 {
-	BlockData.TextureScaleMode = value;
+	BlockData.BodyTextureScaleMode = value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
@@ -669,6 +671,28 @@ void UUIProceduralRect::SetOuterShadowDistance(float value)
 	bNeedUpdateBlockData = true;
 	MarkVertexPositionDirty();
 }
+
+#define FunctionSetPropertyUnitMode(Property)\
+void UUIProceduralRect::Set##Property##UnitMode(EUIProceduralRectUnitMode value)\
+{\
+	BlockData.Property##UnitMode = value;\
+	bNeedUpdateBlockData = true;\
+	MarkCanvasUpdate(false, false, false, false);\
+}
+
+FunctionSetPropertyUnitMode(CornerRadius);
+FunctionSetPropertyUnitMode(GradientCenter);
+FunctionSetPropertyUnitMode(GradientRadius);
+FunctionSetPropertyUnitMode(BorderWidth);
+FunctionSetPropertyUnitMode(BorderGradientCenter);
+FunctionSetPropertyUnitMode(BorderGradientRadius);
+FunctionSetPropertyUnitMode(InnerShadowSize);
+FunctionSetPropertyUnitMode(InnerShadowBlur);
+FunctionSetPropertyUnitMode(InnerShadowDistance);
+FunctionSetPropertyUnitMode(RadialFillCenter);
+FunctionSetPropertyUnitMode(OuterShadowSize);
+FunctionSetPropertyUnitMode(OuterShadowBlur);
+FunctionSetPropertyUnitMode(OuterShadowDistance);
 
 #undef LOCTEXT_NAMESPACE
 

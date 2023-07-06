@@ -156,6 +156,9 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData));
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 
+	auto TintColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
+	LGUICategory.AddProperty(TintColorHandle);
+
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 	auto CornerRadiusUnitModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadiusUnitMode));
 	auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius));
@@ -289,8 +292,8 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		]
 	;
 
-	auto ColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
-	BodyGroup.AddPropertyRow(ColorHandle);
+	auto BodyColorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BodyColor));
+	BodyGroup.AddPropertyRow(BodyColorHandle);
 	auto GradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient));
 	auto& GradientGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableGradient), GradientHandle->GetPropertyDisplayName(), true);
 	GradientGroup.HeaderRow()
@@ -308,7 +311,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientCenter), GradientGroup);
 	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRadius), GradientGroup);
 	GradientGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.GradientRotation)));
-	auto TextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.Texture));
+	auto TextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BodyTexture));
 	auto& TextureGroup = BodyGroup.AddGroup(TEXT("Texture"), LOCTEXT("Texture", "Texture"), true);
 	TextureGroup.HeaderRow()
 		.PropertyHandleList({ TextureHandle })
@@ -340,7 +343,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 					if (item.IsValid())
 					{
 						item->Modify();
-						item->SetSizeFromTexture();
+						item->SetSizeFromBodyTexture();
 						LGUIUtils::NotifyPropertyChanged(item.Get(), UUIItem::GetAnchorDataPropertyName());
 						item->EditorForceUpdate();
 					}
@@ -350,7 +353,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 			})
 		]
 	;
-	TextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.TextureScaleMode)));
+	TextureGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.BodyTextureScaleMode)));
 
 	auto BorderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorder));
 	auto& BorderGroup = LGUICategory.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.bEnableBorder), BorderHandle->GetPropertyDisplayName(), false, true);
