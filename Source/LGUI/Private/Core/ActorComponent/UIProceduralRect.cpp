@@ -458,7 +458,13 @@ void UUIProceduralRect::SetEnableBody(bool value)
 {
 	BlockData.bEnableBody = value;
 	bNeedUpdateBlockData = true;
-	MarkVertexPositionDirty();//if disable body, then just hide body's vertices
+	MarkVertexPositionDirty();
+}
+void UUIProceduralRect::SetBodyColor(const FColor& value)
+{
+	BlockData.BodyColor = value;
+	bNeedUpdateBlockData = true;
+	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBodyTexture(UTexture* value)
 {
@@ -693,6 +699,89 @@ FunctionSetPropertyUnitMode(RadialFillCenter);
 FunctionSetPropertyUnitMode(OuterShadowSize);
 FunctionSetPropertyUnitMode(OuterShadowBlur);
 FunctionSetPropertyUnitMode(OuterShadowDistance);
+
+
+#pragma region TweenAnimation
+#include "LTweenManager.h"
+ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float delay, LTweenEase ease)
+{
+	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateWeakLambda(this, [=] {
+		return this->BlockData.BodyColor;
+		}), FLTweenColorSetterFunction::CreateWeakLambda(this, [=](FColor value) {
+			this->SetBodyColor(value);
+			}), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float delay, LTweenEase ease)
+{
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {
+		return LGUIUtils::Color255To1_Table[this->BlockData.BodyColor.A];
+		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+			auto BodyColor = this->BlockData.BodyColor;
+			BodyColor.A = (uint8)(value * 255.0f);
+			this->SetBodyColor(BodyColor);
+			}), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+
+#define FunctionPropertyAnimation(Property, EndValueType, GetterAndSetterType)\
+ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration, float delay, LTweenEase ease)\
+{\
+	return ULTweenManager::To(this, FLTween##GetterAndSetterType##GetterFunction::CreateWeakLambda(this, [=] {\
+		return (EndValueType)this->BlockData.Property;\
+		}), FLTween##GetterAndSetterType##SetterFunction::CreateWeakLambda(this, [=](EndValueType value) {\
+			this->Set##Property(value);\
+			}), endValue, duration)\
+		->SetDelay(delay)->SetEase(ease);\
+}
+
+#define FunctionAlphaAnimation(Property, Function)\
+ULTweener* UUIProceduralRect::Function##AlphaTo(float endValue, float duration, float delay, LTweenEase ease)\
+{\
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {\
+		return LGUIUtils::Color255To1_Table[this->BlockData.BodyColor.A];\
+		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {\
+			auto PropertyValue = this->BlockData.Property;\
+			PropertyValue.A = (uint8)(value * 255.0f);\
+			this->Set##Property(PropertyValue);\
+			}), endValue, duration)\
+		->SetDelay(delay)->SetEase(ease);\
+}
+
+FunctionPropertyAnimation(GradientColor, FColor, Color);
+FunctionAlphaAnimation(GradientColor, Gradient);
+FunctionPropertyAnimation(GradientCenter, FVector2D, Vector2D);
+FunctionPropertyAnimation(GradientRadius, FVector2D, Vector2D);
+FunctionPropertyAnimation(GradientRotation, float, Float);
+
+FunctionPropertyAnimation(BorderWidth, float, Float);
+FunctionPropertyAnimation(BorderColor, FColor, Color);
+FunctionAlphaAnimation(BorderColor, Border);
+FunctionPropertyAnimation(BorderGradientColor, FColor, Color);
+FunctionAlphaAnimation(BorderGradientColor, BorderGradient);
+FunctionPropertyAnimation(BorderGradientCenter, FVector2D, Vector2D);
+FunctionPropertyAnimation(BorderGradientRadius, FVector2D, Vector2D);
+FunctionPropertyAnimation(BorderGradientRotation, float, Float);
+
+FunctionPropertyAnimation(InnerShadowColor, FColor, Color);
+FunctionAlphaAnimation(InnerShadowColor, InnerShadow);
+FunctionPropertyAnimation(InnerShadowSize, float, Float);
+FunctionPropertyAnimation(InnerShadowBlur, float, Float);
+FunctionPropertyAnimation(InnerShadowAngle, float, Float);
+FunctionPropertyAnimation(InnerShadowDistance, float, Float);
+
+FunctionPropertyAnimation(RadialFillCenter, FVector2D, Vector2D);
+FunctionPropertyAnimation(RadialFillRotation, float, Float);
+FunctionPropertyAnimation(RadialFillAngle, float, Float);
+
+FunctionPropertyAnimation(OuterShadowColor, FColor, Color);
+FunctionAlphaAnimation(OuterShadowColor, OuterShadow);
+FunctionPropertyAnimation(OuterShadowSize, float, Float);
+FunctionPropertyAnimation(OuterShadowBlur, float, Float);
+FunctionPropertyAnimation(OuterShadowAngle, float, Float);
+FunctionPropertyAnimation(OuterShadowDistance, float, Float);
+
+#pragma endregion
 
 #undef LOCTEXT_NAMESPACE
 
