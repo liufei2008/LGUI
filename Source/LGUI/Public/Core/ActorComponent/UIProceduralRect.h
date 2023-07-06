@@ -261,6 +261,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEnableBody(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBodyColor(const FColor& value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBodyTexture(UTexture* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSizeFromBodyTexture();
@@ -274,11 +276,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGradientColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientCenter(const FVector2f& value);
+		void SetGradientCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGradientCenterUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientRadius(const FVector2f& value);
+		void SetGradientRadius(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetGradientRadiusUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -297,11 +299,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBorderGradientColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBorderGradientCenter(const FVector2f& value);
+		void SetBorderGradientCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBorderGradientCenterUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBorderGradientRadius(const FVector2f& value);
+		void SetBorderGradientRadius(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBorderGradientRadiusUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -329,7 +331,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEnableRadialFill(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetRadialFillCenter(const FVector2f& value);
+		void SetRadialFillCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRadialFillCenterUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -355,4 +357,71 @@ public:
 		void SetOuterShadowDistance(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetOuterShadowDistanceUnitMode(EUIProceduralRectUnitMode value);
+
+#pragma region TweenAnimation
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BodyColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BodyAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* GradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* GradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* GradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* GradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* GradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderWidthTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderGradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderGradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderGradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderGradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* BorderGradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowSizeTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowBlurTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* InnerShadowDistanceTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* RadialFillCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* RadialFillRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* RadialFillAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowSizeTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowBlurTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* OuterShadowDistanceTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+#pragma endregion
 };
