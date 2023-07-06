@@ -67,7 +67,9 @@ half4 LGUI_ReadColor(Texture2D DataTex, inout int3 Position)
 {
     uint ColorUint = asuint(DataTex.Load(Position).r);
     Position.x += 1;
-    return LGUI_UnpackUintColor(ColorUint);
+    half4 Color = LGUI_UnpackUintColor(ColorUint);
+    Color.rgb = pow(Color.rgb, 2.2);
+    return Color;
 }
 
 // reference from https://www.shadertoy.com/view/4tGGRm
@@ -144,6 +146,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     half _SoftEdge;
     
     half _EnableBody;
+    half4 _BodyColor;
     half _EnableGradient;
     half4 _GradientColor;
     float2 _GradientCenter;
@@ -198,6 +201,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         _QuadSize = LGUI_ReadFloat2(DataTex, Position);
         _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
         
+        _BodyColor = LGUI_ReadColor(DataTex, Position);
         _GradientColor = LGUI_ReadColor(DataTex, Position);
         _GradientCenter = LGUI_ReadFloat2(DataTex, Position);
         _GradientRadius = LGUI_ReadFloat2(DataTex, Position);
@@ -248,8 +252,6 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         if (_EnableBody || _EnableBorder || _EnableInnerShadow)//if enable body, make it no smooth, because smooth can show a thin transparent line between body and outshadow
         {
             color.a *= sign(dOuter);
-            if (dOuter <= 0.0f)
-                color.a = 0;
         }
         else//if no body, then make it smooth
         {
@@ -278,7 +280,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         }
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));
         float4 MainTexColor = MainTex.Sample(MainTexSampler, texUV);
-        color = MainTexColor * MainColor;
+        color = MainTexColor * _BodyColor;
 
         if (_EnableGradient)
         {
@@ -336,8 +338,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         d = saturate(d);
         color.a *= d;
     }
-    Color = color.rgb;
-    Alpha = color.a;
+    Color = color.rgb * MainColor.rgb;
+    Alpha = color.a * MainColor.a;
     
     return 1;
 }
