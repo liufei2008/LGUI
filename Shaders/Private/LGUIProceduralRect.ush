@@ -231,95 +231,98 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     }
     
     
-    float4 color;
     _GradientCenter.y = _QuadSize.y - _GradientCenter.y;
     _BorderGradientCenter.y = _QuadSize.y - _BorderGradientCenter.y;
     _InnerShadowOffset.y = -_InnerShadowOffset.y;
     _OuterShadowOffset.y = -_OuterShadowOffset.y;
     _RadialFillCenter.y = _QuadSize.y - _RadialFillCenter.y;
-    if (_OuterShadow)
+    
+    half4 outerShadowColor;
+    //outer shadow
     {
         float2 sdQuadSize = _QuadSize * 0.5f;
         float2 quadSize = sdQuadSize + _OuterShadowSize + _OuterShadowBlur;
         float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
-        _OuterShadowColor.rgb = pow(_OuterShadowColor.rgb, 2.2f);
-        color = _OuterShadowColor;
+        outerShadowColor = _OuterShadowColor;
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
         float outerShadow = sdRoundRectOuterShadow(sdFragCoord, quadSize, cornerRadius, _OuterShadowBlur);
-        color.a *= outerShadow;
+        outerShadowColor.a *= outerShadow;
         float dOuter = sdRoundRect(sdFragCoord + _OuterShadowOffset, sdQuadSize, _CornerRadius);
         dOuter = 1.0f - dOuter;
-        if (_EnableBody || _EnableBorder || _EnableInnerShadow)//if enable body, make it no smooth, because smooth can show a thin transparent line between body and outshadow
-        {
-            color.a *= sign(dOuter);
-        }
-        else//if no body, then make it smooth
-        {
-            color.a *= dOuter;
-        }
+        half bodyVisible = sign(_EnableBody + _EnableBorder + _EnableInnerShadow); //is body visible?
+        outerShadowColor.a *= lerp(
+        dOuter // if body not visible, make it smooth
+        , sign(dOuter) //if body is visible, make it no smooth, because smooth can show a thin transparent line between body and outshadow
+        , bodyVisible);
         
-        UV0 = UV3;//use UV3 for RadialFill calculation
-        UV0 += _OuterShadowOffset / _QuadSize; //offset uv for RadialFill
+        UV0 = lerp(
+        UV0
+        , UV3 //use UV3 for RadialFill calculation
+        + _OuterShadowOffset / _QuadSize //offset uv for RadialFill
+        , _OuterShadow);
     }
-    else
+    
+    half4 color;
+    //inner body
     {
         float2 sdQuadSize = _QuadSize * 0.5f;
         float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * sdQuadSize;
+        
         float2 stretchUV = UV0;
         float2 fitUV = UV0;
         float2 envelopUV = UV0;
-        if (_QuadSize.x > _QuadSize.y)
         {
-            fitUV.x = (fitUV.x - 0.5f) * _QuadSize.x / _QuadSize.y + 0.5f;
-            envelopUV.y = (envelopUV.y - 0.5f) * _QuadSize.y / _QuadSize.x + 0.5f;
+            float fitUVX = (UV0.x - 0.5f) * _QuadSize.x / _QuadSize.y + 0.5f;
+            float fitUVY = (UV0.y - 0.5f) * _QuadSize.y / _QuadSize.x + 0.5f;
+            half lerpAlpha = saturate(sign(_QuadSize.x - _QuadSize.y));
+            fitUV = lerp(float2(UV0.x, fitUVY), float2(fitUVX, UV0.y), lerpAlpha);
+            envelopUV = lerp(float2(fitUVX, UV0.y), float2(UV0.x, fitUVY), lerpAlpha);
         }
-        else
-        {
-            fitUV.y = (fitUV.y - 0.5f) * _QuadSize.y / _QuadSize.x + 0.5f;
-            envelopUV.x = (envelopUV.x - 0.5f) * _QuadSize.x / _QuadSize.y + 0.5f;
-        }
+        
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));
         float4 MainTexColor = MainTex.Sample(MainTexSampler, texUV);
         color = MainTexColor * _BodyColor;
 
-        if (_EnableGradient)
+        half4 gradientColor;
         {
             float gradientLerpAlpha = RadialGradient(UV0, _QuadSize, _GradientCenter.xy, _GradientRadius.xy, _GradientRotation);
-            _GradientColor.rgb = pow(_GradientColor.rgb, 2.2f);
-            color = lerp(_GradientColor * MainTexColor, color, gradientLerpAlpha);
+            gradientColor = lerp(_GradientColor * MainTexColor, color, gradientLerpAlpha);
+            color = lerp(color, gradientColor, _EnableGradient);
         }
+        
         color.a *= _EnableBody;
 
         float dOuter = sdRoundRect(sdFragCoord, sdQuadSize, _CornerRadius);
         float dInner = sdRoundRect(sdFragCoord, sdQuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
-        if (_EnableInnerShadow)
+        half4 innerShadowColor;
         {
             float2 quadSize = sdQuadSize - _InnerShadowSize;
             float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
             cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
             float innerShadow = sdRoundRectInnerShadow(sdFragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
-            _InnerShadowColor.rgb = pow(_InnerShadowColor.rgb, 2.2f);
             _InnerShadowColor.a *= innerShadow;
-            color = BlendPremul(color, _InnerShadowColor);
+            innerShadowColor = BlendPremul(color, _InnerShadowColor);
+            color = lerp(color, innerShadowColor, _EnableInnerShadow);
         }
 
-        if (_EnableBorder)
+        half4 borderColor;
         {
-            _BorderColor.rgb = pow(_BorderColor.rgb, 2.2f);
-            float4 borderColor = _BorderColor;
-            if (_EnableBorderGradient)
+            borderColor = _BorderColor;
+            half4 borderGradientColor;
             {
                 float borderGradientLerpAlpha = RadialGradient(UV0, _QuadSize, _BorderGradientCenter.xy, _BorderGradientRadius.xy, _BorderGradientRotation);
-                _BorderGradientColor.rgb = pow(_BorderGradientColor.rgb, 2.2f);
-                borderColor = lerp(_BorderGradientColor, borderColor, borderGradientLerpAlpha);
+                borderGradientColor = lerp(_BorderGradientColor, borderColor, borderGradientLerpAlpha);
+                borderColor = lerp(borderColor, borderGradientColor, _EnableBorderGradient);
             }
             borderColor.a *= (1.0f - dInner);
-            color = BlendPremul(color, borderColor);
+            borderColor = BlendPremul(color, borderColor);
+            color = lerp(color, borderColor, _EnableBorder);
         }
         color.a *= dOuter;
     }
+    color = lerp(color, outerShadowColor, 1.0f * _OuterShadow);
 
-    if (_EnableRadialFill && _RadialFillAngle < 360.0f)
+    float radialFillAlpha;
     {
         float2 fragCoord = UV0 * _QuadSize;
         float2 centerToPixelDiff = fragCoord - _RadialFillCenter;
@@ -336,7 +339,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
                     
         d /= fwidth(d);
         d = saturate(d);
-        color.a *= d;
+        radialFillAlpha = color.a * d;
+        color.a = lerp(color.a, radialFillAlpha, _EnableRadialFill);
     }
     Color = color.rgb * MainColor.rgb;
     Alpha = color.a * MainColor.a;
