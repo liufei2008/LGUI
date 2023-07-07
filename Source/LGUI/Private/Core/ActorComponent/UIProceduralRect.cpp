@@ -59,7 +59,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 
 	FillColorToData(Data, InnerShadowColor, DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowSize, InnerShadowSizeUnitMode, width, height, 0.5f), DataOffset);
-	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowBlur, InnerShadowBlurUnitMode, width, height, 0.5f), DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowBlur, InnerShadowBlurUnitMode, width, height, 1.0f), DataOffset);
 	FillVector2ToData(Data, GetInnerShadowOffset(width, height), DataOffset);
 
 	FillVector2ToData(Data, GetValueWithUnitMode(RadialFillCenter, RadialFillCenterUnitMode, width, height), DataOffset);
@@ -68,7 +68,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 
 	FillColorToData(Data, OuterShadowColor, DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, width, height, 0.5f), DataOffset);
-	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, width, height, 0.5f), DataOffset);
+	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, width, height, 1.0f), DataOffset);
 	FillVector2ToData(Data, GetOuterShadowOffset(width, height), DataOffset);
 }
 
@@ -391,7 +391,7 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		, this->BlockData.bEnableOuterShadow
 		, this->BlockData.GetOuterShadowOffset(this->GetWidth(), this->GetHeight())
 		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowSize, BlockData.OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
-		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowBlur, BlockData.OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
+		, this->BlockData.GetValueWithUnitMode(BlockData.OuterShadowBlur, BlockData.OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 1)
 		, this->BlockData.bSoftEdge,
 		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SimpleRectSpriteData, RenderCanvas.Get(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged

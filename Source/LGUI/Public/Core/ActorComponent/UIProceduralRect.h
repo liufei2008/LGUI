@@ -191,13 +191,13 @@ public:
 	OnVector2UnitModeChanged(BorderGradientRadius);
 
 	OnFloatUnitModeChanged(InnerShadowSize, 0.5f);
-	OnFloatUnitModeChanged(InnerShadowBlur, 0.5f);
+	OnFloatUnitModeChanged(InnerShadowBlur, 1.0f);
 	OnFloatUnitModeChanged(InnerShadowDistance, 0.5f);
 
 	OnVector2UnitModeChanged(RadialFillCenter);
 
 	OnFloatUnitModeChanged(OuterShadowSize, 0.5f);
-	OnFloatUnitModeChanged(OuterShadowBlur, 0.5f);
+	OnFloatUnitModeChanged(OuterShadowBlur, 1.0f);
 	OnFloatUnitModeChanged(OuterShadowDistance, 0.5f);
 };
 
