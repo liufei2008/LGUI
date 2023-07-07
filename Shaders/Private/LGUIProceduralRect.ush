@@ -241,7 +241,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     //outer shadow
     {
         float2 sdQuadSize = _QuadSize * 0.5f;
-        float2 quadSize = sdQuadSize + _OuterShadowSize + _OuterShadowBlur;
+        float2 quadSize = sdQuadSize + _OuterShadowSize + _OuterShadowBlur * 0.5f;
         float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * (quadSize);
         outerShadowColor = _OuterShadowColor;
         float4 cornerRadius = _CornerRadius + _OuterShadowSize + _OuterShadowBlur;
