@@ -294,7 +294,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				minY += outerShadowOffset.Y;
 				maxX += outerShadowOffset.X;
 				maxY += outerShadowOffset.Y;
-				float additionalShadowSize = outerShadowSize + outerShadowBlur;
+				float additionalShadowSize = outerShadowSize + outerShadowBlur * 0.5f;
 				minX -= additionalShadowSize;
 				maxX += additionalShadowSize;
 				minY -= additionalShadowSize;
@@ -348,8 +348,9 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				vertices[2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
 				vertices[3].TextureCoordinate[0] = FVector2f(UV3.X, UV3.Y);
 
-				float additionalUVWidth = (outerShadowSize + outerShadowBlur) / width;
-				float additionalUVHeight = (outerShadowSize + outerShadowBlur) / height;
+				float additionalShadowSize = outerShadowSize + outerShadowBlur * 0.5f;
+				float additionalUVWidth = additionalShadowSize / width;
+				float additionalUVHeight = additionalShadowSize / height;
 				UV0.X -= additionalUVWidth;
 				UV3.X += additionalUVWidth;
 				UV0.Y += additionalUVHeight;
