@@ -296,9 +296,9 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         float dInner = sdRoundRect(sdFragCoord, sdQuadSize - _BorderWidth, _CornerRadius - _BorderWidth);
         half4 innerShadowColor;
         {
-            float2 quadSize = sdQuadSize - _InnerShadowSize;
-            float4 cornerRadius = _CornerRadius - _InnerShadowSize + _InnerShadowBlur;
-            cornerRadius = clamp(cornerRadius, min(_InnerShadowBlur, _CornerRadius), max(_InnerShadowBlur, _CornerRadius));
+            float2 quadSize = sdQuadSize - _InnerShadowSize + _InnerShadowBlur * 0.5f;
+            float4 cornerRadius = _CornerRadius + _InnerShadowBlur * 0.5f - _InnerShadowSize;
+            cornerRadius = max(cornerRadius, _InnerShadowBlur);
             float innerShadow = sdRoundRectInnerShadow(sdFragCoord - _InnerShadowOffset.xy, quadSize, cornerRadius, _InnerShadowBlur);
             _InnerShadowColor.a *= innerShadow;
             innerShadowColor = BlendPremul(color, _InnerShadowColor);
