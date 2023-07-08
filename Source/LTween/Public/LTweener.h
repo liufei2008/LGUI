@@ -29,8 +29,8 @@ DECLARE_DELEGATE_OneParam(FLTweenLinearColorSetterFunction, FLinearColor);
 DECLARE_DELEGATE_RetVal(FVector2D, FLTweenVector2DGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenVector2DSetterFunction, FVector2D);
 
-DECLARE_DELEGATE_RetVal(FVector, FLTweenVector4GetterFunction);
-DECLARE_DELEGATE_OneParam(FLTweenVector4SetterFunction, FVector);
+DECLARE_DELEGATE_RetVal(FVector4, FLTweenVector4GetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenVector4SetterFunction, FVector4);
 
 DECLARE_DELEGATE_RetVal(FQuat, FLTweenQuaternionGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenQuaternionSetterFunction, const FQuat&);
