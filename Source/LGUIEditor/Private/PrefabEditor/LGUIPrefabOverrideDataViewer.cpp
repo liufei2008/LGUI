@@ -141,6 +141,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 		for (auto& PropertyName : DataItem.MemberPropertyName)
 		{
 			auto Property = FindFProperty<FProperty>(DataItem.Object->GetClass(), PropertyName);
+			if (!Property)continue;
 			auto HorizontalBox = SNew(SHorizontalBox);
 			HorizontalBox->AddSlot()
 			.AutoWidth()
