@@ -43,21 +43,21 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	};
 
 	FillVector4ToData(Data, GetFloatValueWithUnit(CornerRadius, 0.5f), DataOffset);
-	FillColorToData(Data, BodyColor, DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(BodyColor), DataOffset);
 
-	FillColorToData(Data, GradientColor, DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(GradientColor), DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(GradientCenter, GradientCenterUnitMode, width, height), DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(GradientRadius, GradientRadiusUnitMode, width, height), DataOffset);
 	FillFloatToData(Data, GradientRotation, DataOffset);
 
 	FillFloatToData(Data, GetValueWithUnitMode(BorderWidth, BorderWidthUnitMode, width, height, 0.5f), DataOffset);
-	FillColorToData(Data, BorderColor, DataOffset);
-	FillColorToData(Data, BorderGradientColor, DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(BorderColor), DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(BorderGradientColor), DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(BorderGradientCenter, BorderGradientCenterUnitMode, width, height), DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(BorderGradientRadius, BorderGradientRadiusUnitMode, width, height), DataOffset);
 	FillFloatToData(Data, BorderGradientRotation, DataOffset);
 
-	FillColorToData(Data, InnerShadowColor, DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(InnerShadowColor), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowSize, InnerShadowSizeUnitMode, width, height, 0.5f), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(InnerShadowBlur, InnerShadowBlurUnitMode, width, height, 1.0f), DataOffset);
 	FillVector2ToData(Data, GetInnerShadowOffset(width, height), DataOffset);
@@ -66,7 +66,7 @@ void FUIProceduralRectBlockData::FillData(uint8* Data, float width, float height
 	FillFloatToData(Data, RadialFillRotation, DataOffset);
 	FillFloatToData(Data, RadialFillAngle, DataOffset);
 
-	FillColorToData(Data, OuterShadowColor, DataOffset);
+	FillColorToData(Data, LGUIUtils::GetGammaAdjustedColor(OuterShadowColor), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, width, height, 0.5f), DataOffset);
 	FillFloatToData(Data, GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, width, height, 1.0f), DataOffset);
 	FillVector2ToData(Data, GetOuterShadowOffset(width, height), DataOffset);
