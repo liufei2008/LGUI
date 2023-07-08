@@ -156,11 +156,6 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData));
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 
-	auto TintColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
-	TintColorHandle->SetPropertyDisplayName(LOCTEXT("TintColor", "Tint Color"));
-	TintColorHandle->SetToolTipText(LOCTEXT("TintColorTooltip", "Known as \"Color\" property in other UI elements. This can tint all color of this UI element. Usually only set alpha value."));
-	LGUICategory.AddProperty(TintColorHandle);
-
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius));
 	auto CornerRadiusUnitModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadiusUnitMode));
 	auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.CornerRadius));
@@ -445,6 +440,11 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillCenter), RadialFillGroup);
 	RadialFillGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillRotation)));
 	RadialFillGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BlockData.RadialFillAngle)));
+
+	auto TintColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
+	TintColorHandle->SetPropertyDisplayName(LOCTEXT("TintColor", "Tint Color"));
+	TintColorHandle->SetToolTipText(LOCTEXT("TintColorTooltip", "Known as \"Color\" property in other UI elements. This can tint all color of this UI element. Usually only set alpha value."));
+	LGUICategory.AddProperty(TintColorHandle);
 }
 void FUIProceduralRectCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
