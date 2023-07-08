@@ -68,7 +68,6 @@ half4 LGUI_ReadColor(Texture2D DataTex, inout int3 Position)
     uint ColorUint = asuint(DataTex.Load(Position).r);
     Position.x += 1;
     half4 Color = LGUI_UnpackUintColor(ColorUint);
-    Color.rgb = pow(Color.rgb, 2.2);
     return Color;
 }
 
