@@ -20,114 +20,131 @@ enum class EUIProceduralRectUnitMode : uint8
 	/** Percent with rect's size from 0 to 100 */
 	Percentage		UMETA(DisplayName="%"),
 };
-USTRUCT(BlueprintType)
-struct FUIProceduralRectBlockData
+
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API UUIProceduralRect : public UUIBatchGeometryRenderable
 {
 	GENERATED_BODY()
+
 public:
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+	UUIProceduralRect(const FObjectInitializer& ObjectInitializer);
+
+#if WITH_EDITOR
+	virtual void EditorForceUpdate() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+protected:
+	virtual void BeginPlay()override;
+
+	virtual void OnRegister()override;
+	virtual void OnUnregister()override;
+protected:
+	friend class FUIProceduralRectCustomization;
+
+#pragma region BlockData
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-ProceduralRect")
 		FVector2f QuadSize = FVector2f::Zero();
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FVector4f CornerRadius = FVector4f::One();
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode CornerRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	/** Prevent edge aliasing, useful when in 3d. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bSoftEdge = true;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Body"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableBody = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BodyColor = FColor::White;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Texture", DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<UTexture> BodyTexture = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName="ScaleMode", EditCondition="BodyTexture"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (EditCondition = "BodyTexture"))
 		EUIProceduralRectTextureScaleMode BodyTextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
-		bool bEnableGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName = "Color"))
-		FColor GradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
-		FVector2f GradientCenter = FVector2f(50, 50);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUIProceduralRectUnitMode GradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
-		FVector2f GradientRadius = FVector2f(50, 50);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUIProceduralRectUnitMode GradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
-		float GradientRotation = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		bool bEnableBodyGradient = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		FColor BodyGradientColor = FColor::Black;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		FVector2f BodyGradientCenter = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		EUIProceduralRectUnitMode BodyGradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		FVector2f BodyGradientRadius = FVector2f(50, 50);
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		EUIProceduralRectUnitMode BodyGradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+		float BodyGradientRotation = 0;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Border"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableBorder = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Width"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float BorderWidth = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BorderWidthUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BorderColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Gradient"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableBorderGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BorderGradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FVector2f BorderGradientCenter = FVector2f(50, 50);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BorderGradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Radius"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FVector2f BorderGradientRadius = FVector2f(50, 50);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BorderGradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation", ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float BorderGradientRotation = 0;
-		
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "InnerShadow"))
+
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableInnerShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor InnerShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float InnerShadowSize = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode InnerShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float InnerShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode InnerShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float InnerShadowAngle = 45;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Distance"))
-		float InnerShadowDistance = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		float InnerShadowDistance = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode InnerShadowDistanceUnitMode = EUIProceduralRectUnitMode::Value;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "RadialFill"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableRadialFill = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Center"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FVector2f RadialFillCenter = FVector2f(50, 50);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode RadialFillCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Rotation"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float RadialFillRotation = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillAngle = 270;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "OuterShadow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableOuterShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Color"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor OuterShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Size"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float OuterShadowSize = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode OuterShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Blur", ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Angle", ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float OuterShadowAngle = 135;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "Distance"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float OuterShadowDistance = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode OuterShadowDistanceUnitMode = EUIProceduralRectUnitMode::Value;
 
 	void FillData(uint8* Data, float width, float height);
@@ -183,8 +200,8 @@ public:
 	}
 
 	void OnCornerRadiusUnitModeChanged(float width, float height);
-	OnVector2UnitModeChanged(GradientCenter);
-	OnVector2UnitModeChanged(GradientRadius);
+	OnVector2UnitModeChanged(BodyGradientCenter);
+	OnVector2UnitModeChanged(BodyGradientRadius);
 
 	OnFloatUnitModeChanged(BorderWidth, 0.5f);
 	OnVector2UnitModeChanged(BorderGradientCenter);
@@ -199,36 +216,17 @@ public:
 	OnFloatUnitModeChanged(OuterShadowSize, 0.5f);
 	OnFloatUnitModeChanged(OuterShadowBlur, 1.0f);
 	OnFloatUnitModeChanged(OuterShadowDistance, 0.5f);
-};
 
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIProceduralRect : public UUIBatchGeometryRenderable
-{
-	GENERATED_BODY()
-
-public:
-	UUIProceduralRect(const FObjectInitializer& ObjectInitializer);
-
-#if WITH_EDITOR
-	virtual void EditorForceUpdate() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-protected:
-	virtual void BeginPlay()override;
-
-	virtual void OnRegister()override;
-	virtual void OnUnregister()override;
-protected:
-	friend class FUIProceduralRectCustomization;
-
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FUIProceduralRectBlockData BlockData;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bUniformSetCornerRadius = true;
 #endif
+
+#pragma endregion
+
+
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
 
 	FIntVector2 DataStartPosition = FIntVector2(0, 0);
 	static FName DataTextureParameterName;
@@ -249,13 +247,110 @@ protected:
 	uint8 bNeedUpdateBlockData : 1;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FUIProceduralRectBlockData& GetBlockData()const { return BlockData; }
+		const FVector4f& GetCornerRadius()const { return CornerRadius; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetCornerRadiusUnitMode()const { return CornerRadiusUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetEnableBody()const { return bEnableBody; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetBodyColor()const { return BodyColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UTexture* GetBodyTexture()const { return BodyTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectTextureScaleMode GetBodyTextureScaleMode()const { return BodyTextureScaleMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetSoftEdge()const { return bSoftEdge; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBlockData(const FUIProceduralRectBlockData& value);
+		bool GetEnableBodyGradient()const { return bEnableBodyGradient; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetBodyGradientColor()const { return BodyGradientColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector2f& GetBodyGradientCenter()const { return BodyGradientCenter; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetBodyGradientCenterUnitMode()const { return BodyGradientCenterUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector2f& GetBodyGradientRadius()const { return BodyGradientRadius; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetBodyGradientRadiusUnitMode()const { return BodyGradientRadiusUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetBodyGradientRotation()const { return BodyGradientRotation; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetCornerRadius(const FVector4f& value);
+		bool GetEnableBorder()const { return bEnableBorder; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetBorderWidth()const { return BorderWidth; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetBorderWidthUnitMode()const { return BorderWidthUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetBorderColor()const { return BorderColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetEnableBorderGradient()const { return bEnableBorderGradient; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetBorderGradientColor()const { return BorderGradientColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector2f& GetBorderGradientCenter()const { return BorderGradientCenter; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetBorderGradientCenterUnitMode()const { return CornerRadiusUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector2f& GetBorderGradientRadius()const { return BorderGradientRadius; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetBorderGradientRadiusUnitMode()const { return BorderGradientRadiusUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetBorderGradientRotation()const { return BorderGradientRotation; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetEnableInnerShadow()const { return bEnableInnerShadow; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetInnerShadowColor()const { return InnerShadowColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetInnerShadowSize()const { return InnerShadowSize; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetInnerShadowSizeUnitMode()const { return InnerShadowSizeUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetInnerShadowBlur()const { return InnerShadowBlur; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetInnerShadowBlurUnitMode()const { return InnerShadowBlurUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetInnerShadowAngle()const { return InnerShadowAngle; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetInnerShadowDistance()const { return InnerShadowDistance; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetInnerShadowDistanceUnitMode()const { return InnerShadowDistanceUnitMode; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetEnableRadialFill()const { return bEnableRadialFill; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FVector2f& GetRadialFillCenter()const { return RadialFillCenter; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetRadialFillCenterUnitMode()const { return RadialFillCenterUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetRadialFillRotation()const { return RadialFillRotation; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetRadialFillAngle()const { return RadialFillAngle; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetEnableOuterShadow()const { return bEnableOuterShadow; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const FColor& GetOuterShadowColor()const { return OuterShadowColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetOuterShadowSize()const { return OuterShadowSize; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetOuterShadowSizeUnitMode()const { return OuterShadowSizeUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetOuterShadowBlur()const { return OuterShadowBlur; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetOuterShadowBlurUnitMode()const { return OuterShadowBlurUnitMode; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetOuterShadowAngle()const { return OuterShadowAngle; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetOuterShadowDistance()const { return OuterShadowDistance; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralRectUnitMode GetOuterShadowDistanceUnitMode()const { return OuterShadowDistanceUnitMode; }
+
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetCornerRadius(const FVector4& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCornerRadiusUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -272,19 +367,19 @@ public:
 		void SetSoftEdge(bool value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetEnableGradient(bool value);
+		void SetEnableBodyGradient(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientColor(const FColor& value);
+		void SetBodyGradientColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientCenter(const FVector2D& value);
+		void SetBodyGradientCenter(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientCenterUnitMode(EUIProceduralRectUnitMode value);
+		void SetBodyGradientCenterUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientRadius(const FVector2D& value);
+		void SetBodyGradientRadius(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientRadiusUnitMode(EUIProceduralRectUnitMode value);
+		void SetBodyGradientRadiusUnitMode(EUIProceduralRectUnitMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGradientRotation(float value);
+		void SetBodyGradientRotation(float value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEnableBorder(bool value);
@@ -360,19 +455,22 @@ public:
 
 #pragma region TweenAnimation
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		ULTweener* CornerRadiusTo(FVector4 endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* BodyColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* BodyAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* GradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		ULTweener* BodyGradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* GradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		ULTweener* BodyGradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* GradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		ULTweener* BodyGradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* GradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		ULTweener* BodyGradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* GradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		ULTweener* BodyGradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		ULTweener* BorderWidthTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
