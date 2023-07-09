@@ -105,11 +105,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float InnerShadowSize = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		EUIProceduralRectUnitMode InnerShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode InnerShadowSizeUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float InnerShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		EUIProceduralRectUnitMode InnerShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode InnerShadowBlurUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float InnerShadowAngle = 45;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
@@ -135,11 +135,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float OuterShadowSize = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		EUIProceduralRectUnitMode OuterShadowSizeUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode OuterShadowSizeUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float OuterShadowAngle = 135;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
