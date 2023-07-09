@@ -72,7 +72,7 @@ bool ULGUIProceduralRectData::ExpandTexture()
 	CreateTexture();
 
 	//copy existing data
-	ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
+	ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectUpdateAndCopyDataTexture)(
 		[OldTexture, NewTexture = Texture, OldTextureSize](FRHICommandListImmediate& RHICmdList)
 		{
 			FRHICopyTextureInfo CopyInfo;
@@ -84,6 +84,7 @@ bool ULGUIProceduralRectData::ExpandTexture()
 				((FTexture2DResource*)NewTexture->GetResource())->GetTexture2DRHI(),
 				CopyInfo
 			);
+			RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
 			OldTexture->RemoveFromRoot();//ready for gc
 		});
 	// right top quater as not using position
