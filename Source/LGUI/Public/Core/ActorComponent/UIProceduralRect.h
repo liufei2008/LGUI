@@ -78,9 +78,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableBorder = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		float BorderWidth = 0;
+		float BorderWidth = 2;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		EUIProceduralRectUnitMode BorderWidthUnitMode = EUIProceduralRectUnitMode::Percentage;
+		EUIProceduralRectUnitMode BorderWidthUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BorderColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
@@ -141,7 +141,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode OuterShadowBlurUnitMode = EUIProceduralRectUnitMode::Value;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
-		float OuterShadowAngle = 135;
+		float OuterShadowAngle = 45;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		float OuterShadowDistance = 4;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")

@@ -83,15 +83,15 @@ FVector2f UUIProceduralRect::GetValueWithUnitMode(const FVector2f& SourceValue, 
 
 FVector2f UUIProceduralRect::GetInnerShadowOffset(float RectWidth, float RectHeight)
 {
-	float AngleRadian = FMath::DegreesToRadians(InnerShadowAngle);
+	float AngleRadian = FMath::DegreesToRadians(InnerShadowAngle + 90);
 	float Sin = FMath::Sin(AngleRadian);
 	float Cos = FMath::Cos(AngleRadian);
 	float Distance = GetValueWithUnitMode(InnerShadowDistance, InnerShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
-	return FVector2f(Sin, Cos) * Distance;
+	return FVector2f(Sin, Cos) * -Distance;
 }
 FVector2f UUIProceduralRect::GetOuterShadowOffset(float RectWidth, float RectHeight)
 {
-	float AngleRadian = FMath::DegreesToRadians(OuterShadowAngle);
+	float AngleRadian = FMath::DegreesToRadians(OuterShadowAngle + 90);
 	float Sin = FMath::Sin(AngleRadian);
 	float Cos = FMath::Cos(AngleRadian);
 	float Distance = GetValueWithUnitMode(OuterShadowDistance, OuterShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
