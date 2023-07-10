@@ -140,7 +140,6 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
-				MarkLayoutDirty();
 			}
 		}
 		else
@@ -148,9 +147,9 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
-				MarkLayoutDirty();
 			}
 		}
+		MarkLayoutDirty();
 	}
 }
 void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
@@ -165,7 +164,6 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
-				MarkLayoutDirty();
 			}
 		}
 		else
@@ -173,9 +171,9 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
 				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
-				MarkLayoutDirty();
 			}
 		}
+		MarkLayoutDirty();
 	}
 }
 
