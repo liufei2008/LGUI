@@ -5,6 +5,8 @@
 #include "Utils/LGUIUtils.h"
 #include "Rendering/Texture2DResource.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "TextureResource.h"
+#include "Engine/Texture2D.h"
 
 #define LOCTEXT_NAMESPACE "LGUIProceduralRectData"
 
