@@ -145,7 +145,6 @@ public:
 	static void LogObjectFlags(UObject* obj);
 
 	static float Color255To1_Table[256];
-	static uint8 ColorAdjustGamma_Table[256];
 	static TAtomic<uint32> LGUITextureNameSuffix;
 private:
 	template<class T>
@@ -200,5 +199,4 @@ private:
 public:
 	static FColor ColorHSVDataToColorRGB(const FVector& InHSVColor);
 	static FVector ColorRGBToColorHSVData(const FColor& InRGBColor);
-	static FColor GetGammaAdjustedColor(const FColor& value);
 };
