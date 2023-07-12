@@ -31,6 +31,12 @@ public:
 	 * @return true if the point is at visible area, false otherwise.
 	 */
 	virtual bool CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
+	/**
+	 * Called before LGUICanvas decide to create MaterialInstanceDynamic or not, depend on this return value.
+	 * @param InMaterial The material to check.
+	 * @return true- If the material contains this clip type's parameter.
+	 */
+	virtual bool MaterialContainsClipParameter(UMaterialInterface* InMaterial);
 protected:
 
 	/** use this to tell if the class is compiled from blueprint, only blueprint can execute ReceiveXXX. */
@@ -55,6 +61,13 @@ protected:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CheckPointVisible"), Category = "LGUI")
 		bool ReceiveCheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem);
+	/**
+	 * Called before LGUICanvas decide to create MaterialInstanceDynamic or not, depend on this return value.
+	 * @param InMaterial The material to check.
+	 * @return true- If the material contains this clip type's parameter.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "MaterialContainsClipParameter"), Category = "LGUI")
+		bool ReceiveMaterialContainsClipParameter(UMaterialInterface* InMaterial);
 
 	/** Map from standard none-clip material to clip material */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -69,12 +82,12 @@ public:
 	ULGUICanvasCustomClip_Circle();
 	virtual void ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)override;
 	virtual bool CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)override;
+	virtual bool MaterialContainsClipParameter(UMaterialInterface* InMaterial)override;
 private:
 	/** 1- full radius size, 0- zero radius */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (UIMin=0.0, UIMax = 1.0))
 		float sizeMultiply = 1.0f;
-	TWeakObjectPtr<UMaterialInstanceDynamic> cacheMaterial = nullptr;
-	FLinearColor cacheParam_CenterAndSize;
+	static FName CenterAndSizeParameterName;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetSizeMultiply()const { return sizeMultiply; }

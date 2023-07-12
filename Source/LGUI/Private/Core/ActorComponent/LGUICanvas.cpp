@@ -1852,7 +1852,7 @@ bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial
 	{
 		if (IsValid(InCustomClip))
 		{
-			return true;
+			return InCustomClip->MaterialContainsClipParameter(InMaterial);
 		}
 		else
 		{
@@ -1924,10 +1924,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 					);
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))//if custom material is UMaterialInstanceDynamic then use it directly
 					{
-						if (bContainsLGUIParam)
-						{
-							RenderMat = (UMaterialInstanceDynamic*)SrcMaterial;
-						}
+						RenderMat = SrcMaterial;
 						DrawcallItem->DrawcallMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallMeshSection.Pin(), SrcMaterial);
 					}
 					else//if custom material is not UMaterialInstanceDynamic
@@ -2056,7 +2053,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				case EUIDrawcallType::DirectMesh:
 				{
 					auto RenderMaterial = DrawcallItem->RenderMaterial;
-					if (RenderMaterial.IsValid())
+					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
 					{
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetTextureParameterValue(LGUI_TextureClip_MaterialParameterName, TempClipTexture);
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetVectorParameterValue(LGUI_TextureClipOffsetAndSize_MaterialParameterName, TempTextureClipOffsetAndSize);
@@ -2080,8 +2077,6 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 			if (bNeedToSetClipParameter
 				|| this->bNeedToUpdateCustomClipParameter)
 			{
-				auto OffsetAndSize = this->GetTextureClipOffsetAndSize();
-
 				switch (DrawcallItem->Type)
 				{
 				default:
@@ -2089,7 +2084,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				case EUIDrawcallType::DirectMesh:
 				{
 					auto RenderMaterial = DrawcallItem->RenderMaterial;
-					if (RenderMaterial.IsValid())
+					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
 					{
 						TempCustomClip->ApplyMaterialParameter((UMaterialInstanceDynamic*)RenderMaterial.Get(), this, UIItem.Get());
 					}

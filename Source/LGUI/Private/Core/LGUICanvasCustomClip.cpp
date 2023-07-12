@@ -37,9 +37,19 @@ bool ULGUICanvasCustomClip::CheckPointVisible(const FVector& InWorldPoint, ULGUI
 	}
 	return false;
 }
+bool ULGUICanvasCustomClip::MaterialContainsClipParameter(UMaterialInterface* InMaterial)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		return ReceiveMaterialContainsClipParameter(InMaterial);
+	}
+	return false;
+}
 
 
+FName ULGUICanvasCustomClip_Circle::CenterAndSizeParameterName = FName(TEXT("LGUI_CircleClip_CenterAndSize"));
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Core/UIDrawcall.h"
 ULGUICanvasCustomClip_Circle::ULGUICanvasCustomClip_Circle()
 {
 	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle")));
@@ -48,9 +58,8 @@ ULGUICanvasCustomClip_Circle::ULGUICanvasCustomClip_Circle()
 void ULGUICanvasCustomClip_Circle::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
 {
 	auto LocalSpaceCenter = InUIItem->GetLocalSpaceCenter();
-	cacheParam_CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, InUIItem->GetWidth() * sizeMultiply, InUIItem->GetHeight() * sizeMultiply);
-	cacheMaterial = InMaterial;
-	cacheMaterial->SetVectorParameterValue(FName(TEXT("CenterAndSize")), cacheParam_CenterAndSize);
+	auto CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, InUIItem->GetWidth() * sizeMultiply, InUIItem->GetHeight() * sizeMultiply);
+	InMaterial->SetVectorParameterValue(CenterAndSizeParameterName, CenterAndSize);
 }
 bool ULGUICanvasCustomClip_Circle::CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
 {
@@ -60,14 +69,37 @@ bool ULGUICanvasCustomClip_Circle::CheckPointVisible(const FVector& InWorldPoint
 	auto d = ((LocalPoint2D - LocalSpaceCenter2D) / FVector2D(InUIItem->GetWidth() * sizeMultiply, InUIItem->GetHeight() * sizeMultiply) * 2).Size();
 	return d <= 1;
 }
+bool ULGUICanvasCustomClip_Circle::MaterialContainsClipParameter(UMaterialInterface* InMaterial)
+{
+	static TArray<FMaterialParameterInfo> ParameterInfos;
+	static TArray<FGuid> ParameterIds;
+	InMaterial->GetAllVectorParameterInfo(ParameterInfos, ParameterIds);
+	auto FoundIndex = ParameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& Item)
+		{
+			return Item.Name == CenterAndSizeParameterName;
+		});
+	return FoundIndex != INDEX_NONE;
+}
 void ULGUICanvasCustomClip_Circle::SetSizeMultiply(float value)
 {
 	if (sizeMultiply != value)
 	{
 		sizeMultiply = value;
-		if (cacheMaterial.IsValid())
+		if (auto Canvas = this->GetTypedOuter<ULGUICanvas>())
 		{
-			cacheMaterial->SetVectorParameterValue(FName(TEXT("CenterAndSize")), cacheParam_CenterAndSize);
+			if (auto UIItem = Canvas->GetUIItem())
+			{
+				auto LocalSpaceCenter = UIItem->GetLocalSpaceCenter();
+				auto CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, UIItem->GetWidth() * sizeMultiply, UIItem->GetHeight() * sizeMultiply);
+				auto& DrawcallList = Canvas->GetUIDrawcallList();
+				for (auto& Item : DrawcallList)
+				{
+					if (Item->bMaterialContainsLGUIParameter)
+					{
+						((UMaterialInstanceDynamic*)Item->RenderMaterial.Get())->SetVectorParameterValue(CenterAndSizeParameterName, CenterAndSize);
+					}
+				}
+			}
 		}
 	}
 }
