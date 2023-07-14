@@ -16,6 +16,7 @@
 #include "MeshPassProcessor.inl"
 #include "ScenePrivate.h"
 #include "TextureResource.h"
+#include "Engine/TextureRenderTarget2D.h"
 #if WITH_EDITOR
 #include "Engine/Engine.h"
 #include "Editor/EditorEngine.h"

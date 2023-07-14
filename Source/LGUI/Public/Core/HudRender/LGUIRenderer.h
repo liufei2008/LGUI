@@ -80,7 +80,7 @@ public:
 	void ClearScreenSpaceRenderCanvas();
 
 	void SetRenderToRenderTarget(bool InValue);
-	void UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget);
+	void UpdateRenderTargetRenderer(class UTextureRenderTarget2D* InRenderTarget);
 
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
