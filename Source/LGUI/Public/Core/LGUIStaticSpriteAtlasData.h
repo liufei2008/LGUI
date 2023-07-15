@@ -10,6 +10,7 @@
 
 class ULGUISpriteData;
 class UUISpriteBase;
+class IUISpriteRenderableInterface;
 
 //Static packing sprite into atlas
 UCLASS(NotBlueprintable, NotBlueprintType, Experimental)
@@ -45,7 +46,7 @@ private:
 	TArray<ULGUISpriteData*> prevSpriteArray;
 	/** collection of all UISprite whitch use this atlas to render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
-		TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
+		TArray<TScriptInterface<IUISpriteRenderableInterface>> renderSpriteArray;
 #endif
 	/**
 	 * Store texture mip data, so we can recreate atlas texture with this data.
@@ -61,8 +62,8 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	void AddSpriteData(ULGUISpriteData* InSpriteData);
 	void RemoveSpriteData(ULGUISpriteData* InSpriteData);
-	void AddRenderSprite(UUISpriteBase* InSprite);
-	void RemoveRenderSprite(UUISpriteBase* InSprite);
+	void AddRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite);
+	void RemoveRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite);
 	/** Check sprite and render sprite, remove not valid. */
 	void CheckSprite();
 	bool PackAtlas();

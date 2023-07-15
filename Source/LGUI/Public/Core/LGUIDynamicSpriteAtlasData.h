@@ -10,7 +10,7 @@
 
 
 class ULGUISpriteData;
-class UUISpriteBase;
+class IUISpriteRenderableInterface;
 
 /** Data container for dyanmically generated sprite atlas */
 USTRUCT()
@@ -27,7 +27,7 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	TArray<ULGUISpriteData*> spriteDataArray;
 	/** collection of all UISprite whitch use this atlas to render */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
+	TArray<TScriptInterface<IUISpriteRenderableInterface>> renderSpriteArray;
 
 	void EnsureAtlasTexture(const FName& packingTag);
 	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);

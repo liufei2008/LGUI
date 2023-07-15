@@ -520,7 +520,7 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2
 	return result;
 }
 
-void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
+void ULGUISpriteData::AddUISprite(TScriptInterface<class IUISpriteRenderableInterface> InUISprite)
 {
 	if (IsValid(packingAtlas))
 	{
@@ -537,7 +537,7 @@ void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
 		spriteArray.AddUnique(InUISprite);
 	}
 }
-void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
+void ULGUISpriteData::RemoveUISprite(TScriptInterface<class IUISpriteRenderableInterface> InUISprite)
 {
 	if (IsValid(packingAtlas))
 	{

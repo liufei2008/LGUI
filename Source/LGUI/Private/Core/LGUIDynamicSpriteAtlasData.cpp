@@ -9,6 +9,7 @@
 #include "Core/LGUISpriteData.h"
 #include "Utils/LGUIUtils.h"
 #include "Rendering/Texture2DResource.h"
+#include "Core/IUISpriteRenderableInterface.h"
 
 
 void FLGUIDynamicSpriteAtlasData::EnsureAtlasTexture(const FName& packingTag)
@@ -90,7 +91,7 @@ int32 FLGUIDynamicSpriteAtlasData::ExpendTextureSize(const FName& packingTag)
 	//tell UISprite to scale down uv
 	for (auto itemSprite : this->renderSpriteArray)
 	{
-		if (itemSprite.IsValid())
+		if (IsValid(itemSprite.GetObject()))
 		{
 			itemSprite->ApplyAtlasTextureScaleUp();
 		}
@@ -135,7 +136,7 @@ void FLGUIDynamicSpriteAtlasData::CheckSprite(const FName& packingTag)
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
-		if (itemSprite.IsValid())
+		if (IsValid(itemSprite.GetObject()))
 		{
 			if (!IsValid(itemSprite->GetSprite()))
 			{

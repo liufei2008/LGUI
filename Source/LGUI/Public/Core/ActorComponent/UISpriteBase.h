@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIBatchGeometryRenderable.h"
+#include "Core/IUISpriteRenderableInterface.h"
 #include "UISpriteBase.generated.h"
 
 class ULGUISpriteData_BaseObject;
@@ -12,6 +13,7 @@ class ULGUISpriteData_BaseObject;
  */
 UCLASS(ClassGroup = (LGUI), Abstract, NotBlueprintable)
 class LGUI_API UUISpriteBase : public UUIBatchGeometryRenderable
+	, public IUISpriteRenderableInterface
 {
 	GENERATED_BODY()
 
@@ -50,11 +52,14 @@ protected:
 	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const override;
 
 	bool bHasAddToSprite = false;
-public:
-	void ApplyAtlasTextureChange();
-	void ApplyAtlasTextureScaleUp();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUISpriteData_BaseObject* GetSprite()const { return sprite; }
+public:
+
+#pragma region UISpriteRenderableInterface
+	ULGUISpriteData_BaseObject* GetSprite()const { return sprite; }
+	void ApplyAtlasTextureScaleUp();
+	void ApplyAtlasTextureChange();
+#pragma endregion
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSize = true);
