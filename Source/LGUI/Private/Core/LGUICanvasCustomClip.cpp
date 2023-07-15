@@ -47,13 +47,15 @@ bool ULGUICanvasCustomClip::MaterialContainsClipParameter(UMaterialInterface* In
 }
 
 
-FName ULGUICanvasCustomClip_Circle::CenterAndSizeParameterName = FName(TEXT("LGUI_CircleClip_CenterAndSize"));
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
+
+FName ULGUICanvasCustomClip_Circle::CenterAndSizeParameterName = FName(TEXT("LGUI_CircleClip_CenterAndSize"));
 ULGUICanvasCustomClip_Circle::ULGUICanvasCustomClip_Circle()
 {
 	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle")));
 	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_SDF_Font_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle_SDFFont")));
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_ProceduralRect_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_Circle/LGUICustomClip_Circle_ProceduralRect")));
 }
 void ULGUICanvasCustomClip_Circle::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
 {
@@ -101,5 +103,143 @@ void ULGUICanvasCustomClip_Circle::SetSizeMultiply(float value)
 				}
 			}
 		}
+	}
+}
+
+
+FName ULGUICanvasCustomClip_RoundedRect::CenterAndSizeParameterName = FName(TEXT("LGUI_RoundedRectClip_CenterAndSize"));
+FName ULGUICanvasCustomClip_RoundedRect::CornerRadiusParameterName = FName(TEXT("LGUI_RoundedRectClip_CornerRadius"));
+ULGUICanvasCustomClip_RoundedRect::ULGUICanvasCustomClip_RoundedRect()
+{
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_RoundedRect/LGUICustomClip_RoundedRect")));
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_SDF_Font_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_RoundedRect/LGUICustomClip_RoundedRect_SDFFont")));
+	replaceMaterialMap.Add(LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LGUI_ProceduralRect_NoClip")), LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/CustomClip_RoundedRect/LGUICustomClip_RoundedRect_ProceduralRect")));
+}
+void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
+{
+	auto LocalSpaceCenter = InUIItem->GetLocalSpaceCenter();
+	auto CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, InUIItem->GetWidth(), InUIItem->GetHeight());
+	auto TempCornerRadius = GetCornerRadiusWithUnitMode(InUIItem->GetWidth(), InUIItem->GetHeight(), 0.5f);
+	ApplyMaterialParameter(InMaterial, CenterAndSize, TempCornerRadius);
+}
+void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, const FLinearColor& InCenterAndSize, const FLinearColor& InConerRadius)
+{
+	InMaterial->SetVectorParameterValue(CenterAndSizeParameterName, InCenterAndSize);
+	InMaterial->SetVectorParameterValue(CornerRadiusParameterName, FLinearColor(InConerRadius.G, InConerRadius.R, InConerRadius.A, InConerRadius.B));//change the order so it is the same as UIProceduralRect
+}
+FVector4f ULGUICanvasCustomClip_RoundedRect::GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale)
+{
+	return CornerRadiusUnitMode == ELGUICanvasCustomClip_RoundedRect_UnitMode::Value ? CornerRadius : (CornerRadius * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
+}
+
+bool ULGUICanvasCustomClip_RoundedRect::CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
+{
+	return true;
+}
+bool ULGUICanvasCustomClip_RoundedRect::MaterialContainsClipParameter(UMaterialInterface* InMaterial)
+{
+	static TArray<FMaterialParameterInfo> ParameterInfos;
+	static TArray<FGuid> ParameterIds;
+	InMaterial->GetAllVectorParameterInfo(ParameterInfos, ParameterIds);
+	auto FoundIndex = ParameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& Item)
+		{
+			return
+				Item.Name == CenterAndSizeParameterName
+				|| Item.Name == CornerRadiusParameterName
+				;
+		});
+	return FoundIndex != INDEX_NONE;
+}
+
+void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameterOnCanvas()
+{
+	if (auto Canvas = this->GetTypedOuter<ULGUICanvas>())
+	{
+		if (auto UIItem = Canvas->GetUIItem())
+		{
+			auto LocalSpaceCenter = UIItem->GetLocalSpaceCenter();
+			auto CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, UIItem->GetWidth(), UIItem->GetHeight());
+			auto TempCornerRadius = GetCornerRadiusWithUnitMode(UIItem->GetWidth(), UIItem->GetHeight(), 1.0f);
+			auto& DrawcallList = Canvas->GetUIDrawcallList();
+			for (auto& Item : DrawcallList)
+			{
+				if (Item->bMaterialContainsLGUIParameter)
+				{
+					ApplyMaterialParameter((UMaterialInstanceDynamic*)Item->RenderMaterial.Get(), CenterAndSize, TempCornerRadius);
+				}
+			}
+		}
+	}
+}
+
+#if WITH_EDITOR
+void ULGUICanvasCustomClip_RoundedRect::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		auto PropertyName = Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, CornerRadiusUnitMode))
+		{
+			if (auto Canvas = this->GetTypedOuter<ULGUICanvas>())
+			{
+				if (auto UIItem = Canvas->GetUIItem())
+				{
+					this->OnCornerRadiusUnitModeChanged(UIItem->GetWidth(), UIItem->GetHeight());
+				}
+			}
+		}
+		else if (PropertyName == TEXT("X"))
+		{
+			if (bUniformSetCornerRadius)
+			{
+				CornerRadius.Y = CornerRadius.Z = CornerRadius.W = CornerRadius.X;
+			}
+		}
+	}
+}
+bool ULGUICanvasCustomClip_RoundedRect::CanEditChange(const FProperty* InProperty)const
+{
+	if (
+		InProperty->GetFName() == TEXT("Y")
+		|| InProperty->GetFName() == TEXT("Z")
+		|| InProperty->GetFName() == TEXT("W")
+		)
+	{
+		if (bUniformSetCornerRadius)
+		{
+			return false;
+		}
+	}
+	return Super::CanEditChange(InProperty);
+}
+#endif
+
+void ULGUICanvasCustomClip_RoundedRect::OnCornerRadiusUnitModeChanged(float width, float height)
+{
+	if (CornerRadiusUnitMode == ELGUICanvasCustomClip_RoundedRect_UnitMode::Value)//from percentage to value
+	{
+		CornerRadius = CornerRadius * 0.01f * (width < height ? width : height) * 0.5f;
+	}
+	else//from value to percentage
+	{
+		CornerRadius = CornerRadius * 100.0f / (width < height ? width : height) * 2.0f;
+	}
+}
+
+void ULGUICanvasCustomClip_RoundedRect::SetCornerRadius(const FVector4f& value)
+{
+	if (CornerRadius != value)
+	{
+		CornerRadius = value;
+		ApplyMaterialParameterOnCanvas();
+	}
+}
+void ULGUICanvasCustomClip_RoundedRect::SetCornerRadiusUnitMode(ELGUICanvasCustomClip_RoundedRect_UnitMode value)
+{
+	if (CornerRadiusUnitMode != value)
+	{
+		CornerRadiusUnitMode = value;
+		ApplyMaterialParameterOnCanvas();
 	}
 }

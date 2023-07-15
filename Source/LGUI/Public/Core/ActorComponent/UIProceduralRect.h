@@ -15,7 +15,7 @@ enum class EUIProceduralRectTextureScaleMode: uint8
 UENUM(BlueprintType)
 enum class EUIProceduralRectUnitMode : uint8
 {
-	/** Absolute value */
+	/** Direct value */
 	Value			UMETA(DisplayName="V"),
 	/** Percent with rect's size from 0 to 100 */
 	Percentage		UMETA(DisplayName="%"),
@@ -149,6 +149,7 @@ protected:
 
 	void FillData(uint8* Data, float width, float height);
 	float GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
+	FVector4f GetValueWithUnitMode(const FVector4f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
 	FVector2f GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight);
 	FVector2f GetInnerShadowOffset(float RectWidth, float RectHeight);
 	FVector2f GetOuterShadowOffset(float RectWidth, float RectHeight);
@@ -217,13 +218,12 @@ protected:
 	OnFloatUnitModeChanged(OuterShadowBlur, 1.0f);
 	OnFloatUnitModeChanged(OuterShadowDistance, 0.5f);
 
+#pragma endregion
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bUniformSetCornerRadius = true;
 #endif
-
-#pragma endregion
-
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
