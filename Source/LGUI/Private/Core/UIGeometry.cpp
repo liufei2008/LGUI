@@ -222,7 +222,9 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 	bool bEnableBody,
 	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
-	const float& width, const float& height, const FVector2f& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
+	const float& width, const float& height, const FVector2f& pivot, 
+	const FLGUISpriteInfo& uniformSpriteInfo, const FLGUISpriteInfo& spriteInfo,
+	ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -260,7 +262,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 		{
 			//offset and size
 			float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-			CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
+			CalculateOffsetAndSize(width, height, pivot, uniformSpriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 			//positions
 			float minX = -halfW + pivotOffsetX;
 			float minY = -halfH + pivotOffsetY;
@@ -341,8 +343,8 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			int vertStartIndex = 0;
 			if (bOuterShadow)
 			{
-				auto UV0 = spriteInfo.GetUV0();
-				auto UV3 = spriteInfo.GetUV3();
+				auto UV0 = uniformSpriteInfo.GetUV0();
+				auto UV3 = uniformSpriteInfo.GetUV3();
 				vertices[0].TextureCoordinate[0] = FVector2f(UV0.X, UV0.Y);
 				vertices[1].TextureCoordinate[0] = FVector2f(UV3.X, UV0.Y);
 				vertices[2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
@@ -365,8 +367,8 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			
 			if (bSoftEdge)//since vertex is offset 1 pixel, we need to offset uv to make one pixel back
 			{
-				auto UV0 = spriteInfo.GetUV0();
-				auto UV3 = spriteInfo.GetUV3();
+				auto UV0 = uniformSpriteInfo.GetUV0();
+				auto UV3 = uniformSpriteInfo.GetUV3();
 				float onePixelUVWidth = 1.0f / width;
 				float onePixelUVHeight = 1.0f / height;
 				UV0.X -= onePixelUVWidth;
@@ -380,11 +382,16 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			}
 			else
 			{
-				vertices[vertStartIndex].TextureCoordinate[0] = spriteInfo.GetUV0();
-				vertices[vertStartIndex + 1].TextureCoordinate[0] = spriteInfo.GetUV1();
-				vertices[vertStartIndex + 2].TextureCoordinate[0] = spriteInfo.GetUV2();
-				vertices[vertStartIndex + 3].TextureCoordinate[0] = spriteInfo.GetUV3();
+				vertices[vertStartIndex].TextureCoordinate[0] = uniformSpriteInfo.GetUV0();
+				vertices[vertStartIndex + 1].TextureCoordinate[0] = uniformSpriteInfo.GetUV1();
+				vertices[vertStartIndex + 2].TextureCoordinate[0] = uniformSpriteInfo.GetUV2();
+				vertices[vertStartIndex + 3].TextureCoordinate[0] = uniformSpriteInfo.GetUV3();
 			}
+			//uv3 store the info for sampling texture and sprite
+			vertices[vertStartIndex].TextureCoordinate[3] = spriteInfo.GetUV0();
+			vertices[vertStartIndex + 1].TextureCoordinate[3] = spriteInfo.GetUV1();
+			vertices[vertStartIndex + 2].TextureCoordinate[3] = spriteInfo.GetUV2();
+			vertices[vertStartIndex + 3].TextureCoordinate[3] = spriteInfo.GetUV3();
 		}
 
 		if (InVertexColorChanged)

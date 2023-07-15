@@ -70,8 +70,8 @@ public:
 	virtual UTexture2D * GetAtlasTexture()override;
 	virtual const FLGUISpriteInfo& GetSpriteInfo()override;
 	virtual bool IsIndividual()const override;
-	virtual void AddUISprite(UUISpriteBase* InUISprite)override;
-	virtual void RemoveUISprite(UUISpriteBase* InUISprite)override;
+	virtual void AddUISprite(TScriptInterface<class IUISpriteRenderableInterface> InUISprite)override;
+	virtual void RemoveUISprite(TScriptInterface<class IUISpriteRenderableInterface> InUISprite)override;
 	virtual bool ReadPixel(const FVector2D& InUV, FColor& OutPixel)const override;
 	virtual bool SupportReadPixel()const override;
 	//End ULGUISpriteData_BaseObject interface

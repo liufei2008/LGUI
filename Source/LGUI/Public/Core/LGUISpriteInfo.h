@@ -70,6 +70,8 @@ public:
 	auto GetUV2()const { return FVector2f(uv0X, uv3Y); }
 	auto GetUV3()const { return FVector2f(uv3X, uv3Y); }
 
+	auto GetUVCenter()const { return FVector2f((uv3X - uv0X) * 0.5f + uv0X, (uv0Y - uv3Y) * 0.5f + uv3Y); }
+
 	uint16 GetSourceWidth()const { return width + paddingLeft + paddingRight; }
 	uint16 GetSourceHeight()const { return height + paddingTop + paddingBottom; }
 	

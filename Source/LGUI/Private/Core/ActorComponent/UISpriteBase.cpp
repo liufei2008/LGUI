@@ -29,10 +29,13 @@ void UUISpriteBase::BeginPlay()
 void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	if (IsValid(sprite))
+	if (bHasAddToSprite)
 	{
-		sprite->RemoveUISprite(this);
-		bHasAddToSprite = false;
+		if (IsValid(sprite))
+		{
+			sprite->RemoveUISprite(this);
+			bHasAddToSprite = false;
+		}
 	}
 }
 
@@ -137,10 +140,13 @@ void UUISpriteBase::OnUnregister()
 #if WITH_EDITOR
 	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (IsValid(sprite))
+		if (bHasAddToSprite)
 		{
-			sprite->RemoveUISprite(this);
-			bHasAddToSprite = false;
+			if (IsValid(sprite))
+			{
+				sprite->RemoveUISprite(this);
+				bHasAddToSprite = false;
+			}
 		}
 	}
 #endif
