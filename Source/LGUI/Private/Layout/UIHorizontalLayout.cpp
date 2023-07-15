@@ -16,8 +16,8 @@ void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizo
     if (child->GetIsUIActiveInHierarchy())
     {
         if (horizontalPositionChanged || verticalPositionChanged
-            || (ExpendChildrenWidth && widthChanged)
-            || (ExpendChildrenHeight && heightChanged)
+            || (ExpandChildrenWidth && widthChanged)
+            || (ExpandChildrenHeight && heightChanged)
             )
         {
 			MarkNeedRebuildLayout();
@@ -49,19 +49,19 @@ void UUIHorizontalLayout::SetAlign(ELGUILayoutAlignmentType value)
         MarkNeedRebuildLayout();
     }
 }
-void UUIHorizontalLayout::SetExpendChildrenWidth(bool value)
+void UUIHorizontalLayout::SetExpandChildrenWidth(bool value)
 {
-    if (ExpendChildrenWidth != value)
+    if (ExpandChildrenWidth != value)
     {
-        ExpendChildrenWidth = value;
+        ExpandChildrenWidth = value;
         MarkNeedRebuildLayout();
     }
 }
-void UUIHorizontalLayout::SetExpendChildrenHeight(bool value)
+void UUIHorizontalLayout::SetExpandChildrenHeight(bool value)
 {
-    if (ExpendChildrenHeight != value)
+    if (ExpandChildrenHeight != value)
     {
-        ExpendChildrenHeight = value;
+        ExpandChildrenHeight = value;
         MarkNeedRebuildLayout();
     }
 }
@@ -113,7 +113,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     int childrenCount = uiChildrenList.Num();
     float childHeight = rectSize.Y;
     childrenWidthList.Reset(childrenCount);
-    if (ExpendChildrenWidth)
+    if (ExpandChildrenWidth)
     {
         float sizeWithoutSpacing = rectSize.X - Spacing * (childrenCount - 1);
         float autoSizeChildrenSize = sizeWithoutSpacing; //collect all children's size which is autosize or without layout element
@@ -257,7 +257,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     {
         auto uiItem = uiChildrenList[i].uiItem;
         float childWidth;
-        if (ExpendChildrenWidth)
+        if (ExpandChildrenWidth)
         {
             childWidth = childrenWidthList[i];
             ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
@@ -271,7 +271,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
             childWidth *= uiItem->GetRelativeScale3D().Y;
         }
 
-        if (ExpendChildrenHeight)
+        if (ExpandChildrenHeight)
         {
             ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
         }
@@ -335,12 +335,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
         tempActuralHorizontalRange += Spacing * (childrenCount - 1);
     }
     ActuralRange = tempActuralHorizontalRange;
-    if (WidthFitToChildren && !ExpendChildrenWidth)
+    if (WidthFitToChildren && !ExpandChildrenWidth)
     {
         auto thisWidth = tempActuralHorizontalRange + Padding.Left + Padding.Right;
         ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
     }
-    if (HeightFitToChildren && !ExpendChildrenHeight)
+    if (HeightFitToChildren && !ExpandChildrenHeight)
     {
         tempVerticalMinSize += Padding.Bottom + Padding.Top;
         tempVerticalMaxSize += Padding.Bottom + Padding.Top;
@@ -357,8 +357,8 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
 {
     if (this->GetRootUIComponent() == InUIItem)
     {
-        OutResult.bCanControlHorizontalSizeDelta = (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
-        OutResult.bCanControlVerticalSizeDelta = (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && this->GetEnable();
+        OutResult.bCanControlHorizontalSizeDelta = (!GetExpandChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = (!GetExpandChildrenHeight() && GetHeightFitToChildren()) && this->GetEnable();
         return true;
     }
     else
@@ -375,8 +375,8 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
         OutResult.bCanControlVerticalAnchor = this->GetEnable();
         OutResult.bCanControlHorizontalAnchoredPosition = this->GetEnable();
         OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
-        OutResult.bCanControlHorizontalSizeDelta = GetExpendChildrenWidth() && this->GetEnable();
-        OutResult.bCanControlVerticalSizeDelta = GetExpendChildrenHeight() && this->GetEnable();
+        OutResult.bCanControlHorizontalSizeDelta = GetExpandChildrenWidth() && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = GetExpandChildrenHeight() && this->GetEnable();
         if (auto LayoutElementComp = Cast<UUILayoutElement>(LayoutElementInterface))
         {
             if (LayoutElementComp->GetConstantSizeType() == EUILayoutElement_ConstantSizeType::UseUIItemSize)
