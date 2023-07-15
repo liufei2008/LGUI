@@ -45,9 +45,9 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		return;
 	}
 
+	const FMargin OuterPadding(2, 0);
+	const FMargin ContentPadding(2);
 	auto CreateUnitSelector = [=](TSharedRef<IPropertyHandle> PropertyHandle) {
-		const FMargin OuterPadding(2, 0);
-		const FMargin ContentPadding(2);
 		return
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -318,18 +318,109 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 	AddVectorPropertyRowToGroup(BodyGradientCenter, Center, BodyGradientGroup);
 	AddVectorPropertyRowToGroup(BodyGradientRadius, Radius, BodyGradientGroup);
 	AddPropertyRowToGroup(BodyGradientRotation, Rotation, BodyGradientGroup);
+
+	EUIProceduralBodyTextureMode BodyTextureMode;
+	auto BodyTextureModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTextureMode));
+	BodyTextureModeHandle->GetValue(*(uint8*)&BodyTextureMode);
+	BodyTextureModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {
+		DetailBuilder.ForceRefreshDetails();
+		}));
 	auto BodyTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture));
 	BodyTextureHandle->SetPropertyDisplayName(LOCTEXT("BodyTexture_DisplayName", "Texture"));
-	auto& TextureGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture), BodyTextureHandle->GetPropertyDisplayName(), true);
+	auto BodySpriteTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture));
+	BodySpriteTextureHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		for (auto item : TargetScriptArray)
+		{
+			if (item.IsValid())
+			{
+				item->OnPreChangeSpriteProperty();
+			}
+		}
+		}));
+	BodySpriteTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		for (auto item : TargetScriptArray)
+		{
+			if (item.IsValid())
+			{
+				item->OnPostChangeSpriteProperty();
+			}
+		}
+		}));
+	BodySpriteTextureHandle->SetPropertyDisplayName(LOCTEXT("BodySpriteTexture_DisplayName", "Sprite"));
+	auto& TextureGroup = BodyTextureMode == EUIProceduralBodyTextureMode::Texture
+		? BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture), BodyTextureHandle->GetPropertyDisplayName(), true)
+		: BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture), BodySpriteTextureHandle->GetPropertyDisplayName(), true)
+		;
+	auto TempBodyTextureHandle = BodyTextureMode == EUIProceduralBodyTextureMode::Texture ? BodyTextureHandle : BodySpriteTextureHandle;
 	TextureGroup.HeaderRow()
-		.PropertyHandleList({ BodyTextureHandle })
+		.PropertyHandleList({ TempBodyTextureHandle })
 		.NameContent()
 		[
-			BodyTextureHandle->CreatePropertyNameWidget()
+			SNew(SBox)
+			.MinDesiredWidth(1000)
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				[
+					TempBodyTextureHandle->CreatePropertyNameWidget()
+				]
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Right)
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					.Padding(OuterPadding)
+					[
+						SNew( SCheckBox )
+						.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+						.ToolTipText(LOCTEXT("Texture_Tooltip", "Use texture"))
+						.Padding(ContentPadding)
+						.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState){
+							BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Texture);
+							})
+						.IsChecked_Lambda([=] {
+							uint8 Value;
+							BodyTextureModeHandle->GetValue(Value);
+							return Value == (uint8)EUIProceduralBodyTextureMode::Texture ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+							})
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("Texture", "T"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					]
+
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					.Padding(OuterPadding)
+					[
+						SNew(SCheckBox)
+						.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+						.ToolTipText(LOCTEXT("Sprite_Tooltip", "Use sprite"))
+						.Padding(ContentPadding)
+						.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState) {
+							BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Sprite);
+							})
+						.IsChecked_Lambda([=] {
+							uint8 Value;
+							BodyTextureModeHandle->GetValue(Value);
+							return Value == (uint8)EUIProceduralBodyTextureMode::Sprite ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+							})
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("Sprite", "S"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					]
+				]
+			]
 		]
 		.ValueContent()
 		[
-			BodyTextureHandle->CreatePropertyValueWidget()
+			TempBodyTextureHandle->CreatePropertyValueWidget()
 		]
 	;
 	TextureGroup.AddWidgetRow()

@@ -147,6 +147,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
     
     half _EnableBody;
     half4 _BodyColor;
+    float2 _TextureUVCenter;
     half _EnableGradient;
     half4 _GradientColor;
     float2 _GradientCenter;
@@ -199,9 +200,11 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         _EnableRadialFill = (BoolValues >> 1) & 1;
         
         _QuadSize = LGUI_ReadFloat2(DataTex, Position);
-        _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
         
+        _CornerRadius = LGUI_ReadFloat4(DataTex, Position);
         _BodyColor = LGUI_ReadColor(DataTex, Position);
+        _TextureUVCenter = LGUI_ReadFloat2(DataTex, Position);
+        
         _GradientColor = LGUI_ReadColor(DataTex, Position);
         _GradientCenter = LGUI_ReadFloat2(DataTex, Position);
         _GradientRadius = LGUI_ReadFloat2(DataTex, Position);
@@ -268,15 +271,15 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         float2 sdQuadSize = _QuadSize * 0.5f;
         float2 sdFragCoord = (UV0 * 2.0f - float2(1.0f, 1.0f)) * sdQuadSize;
         
-        float2 stretchUV = UV0;
-        float2 fitUV = UV0;
-        float2 envelopUV = UV0;
+        float2 stretchUV = UV3;
+        float2 fitUV = UV3;
+        float2 envelopUV = UV3;
         {
-            float fitUVX = (UV0.x - 0.5f) * _QuadSize.x / _QuadSize.y + 0.5f;
-            float fitUVY = (UV0.y - 0.5f) * _QuadSize.y / _QuadSize.x + 0.5f;
+            float fitUVX = (UV3.x - _TextureUVCenter.x) * _QuadSize.x / _QuadSize.y + _TextureUVCenter.x;
+            float fitUVY = (UV3.y - _TextureUVCenter.y) * _QuadSize.y / _QuadSize.x + _TextureUVCenter.y;
             half lerpAlpha = saturate(sign(_QuadSize.x - _QuadSize.y));
-            fitUV = lerp(float2(UV0.x, fitUVY), float2(fitUVX, UV0.y), lerpAlpha);
-            envelopUV = lerp(float2(fitUVX, UV0.y), float2(UV0.x, fitUVY), lerpAlpha);
+            fitUV = lerp(float2(UV3.x, fitUVY), float2(fitUVX, UV3.y), lerpAlpha);
+            envelopUV = lerp(float2(fitUVX, UV3.y), float2(UV3.x, fitUVY), lerpAlpha);
         }
         
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));

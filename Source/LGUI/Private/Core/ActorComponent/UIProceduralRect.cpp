@@ -12,6 +12,8 @@
 #include "Core/ActorComponent/UITextureBase.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/LGUISpriteData.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -35,6 +37,9 @@ void UUIProceduralRect::FillData(uint8* Data, float width, float height)
 
 	FillVector4ToData(Data, GetValueWithUnitMode(CornerRadius, CornerRadiusUnitMode, width, height, 0.5f), DataOffset);
 	FillColorToData(Data, BodyColor, DataOffset);
+	FillVector2ToData(Data
+		, (BodyTextureMode == EUIProceduralBodyTextureMode::Sprite && IsValid(BodySpriteTexture)) ? FVector2f(BodySpriteTexture->GetSpriteInfo().GetUVCenter()) : FVector2f(0.5f, 0.5f)
+		, DataOffset);
 
 	FillColorToData(Data, BodyGradientColor, DataOffset);
 	FillVector2ToData(Data, GetValueWithUnitMode(BodyGradientCenter, BodyGradientCenterUnitMode, width, height), DataOffset);
@@ -101,6 +106,7 @@ constexpr int UUIProceduralRect::DataCountInBytes()
 		+ 8//quad size
 		+ 16//corner radius
 		+ 4//body color
+		+ 8//body texture's uv's center point
 
 		//gradient
 		+ 4//color
@@ -221,6 +227,26 @@ UUIProceduralRect::UUIProceduralRect(const FObjectInitializer& ObjectInitializer
 void UUIProceduralRect::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!bHasAddToSprite)
+	{
+		if (IsValid(BodySpriteTexture))
+		{
+			BodySpriteTexture->AddUISprite(this);
+			bHasAddToSprite = true;
+		}
+	}
+}
+void UUIProceduralRect::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	if (bHasAddToSprite)
+	{
+		if (IsValid(BodySpriteTexture))
+		{
+			BodySpriteTexture->RemoveUISprite(this);
+			bHasAddToSprite = false;
+		}
+	}
 }
 
 void UUIProceduralRect::OnRegister()
@@ -234,6 +260,19 @@ void UUIProceduralRect::OnRegister()
 	ProceduralRectData->Init(DataCountInBytes());
 	DataStartPosition = ProceduralRectData->RegisterBuffer();
 	OnDataTextureChangedDelegateHandle = ProceduralRectData->OnDataTextureChange.AddUObject(this, &UUIProceduralRect::OnDataTextureChanged);
+#if WITH_EDITOR
+	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
+	{
+		if (!bHasAddToSprite)
+		{
+			if (IsValid(BodySpriteTexture))
+			{
+				BodySpriteTexture->AddUISprite(this);
+				bHasAddToSprite = true;
+			}
+		}
+	}
+#endif
 }
 void UUIProceduralRect::OnUnregister()
 {
@@ -244,6 +283,19 @@ void UUIProceduralRect::OnUnregister()
 		ProceduralRectData->OnDataTextureChange.Remove(OnDataTextureChangedDelegateHandle);
 		OnDataTextureChangedDelegateHandle.Reset();
 	}
+#if WITH_EDITOR
+	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
+	{
+		if (bHasAddToSprite)
+		{
+			if (IsValid(BodySpriteTexture))
+			{
+				BodySpriteTexture->RemoveUISprite(this);
+				bHasAddToSprite = false;
+			}
+		}
+	}
+#endif
 }
 
 #if WITH_EDITOR
@@ -278,22 +330,65 @@ void UUIProceduralRect::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		else SetUnitChange(OuterShadowSize)
 		else SetUnitChange(OuterShadowBlur)
 		else SetUnitChange(OuterShadowDistance)
+
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTextureMode))
+		{
+			MarkTextureDirty();
+			MarkUVDirty();
+		}
 	}
 }
 void UUIProceduralRect::EditorForceUpdate()
 {
 	Super::EditorForceUpdate();
 }
+
+void UUIProceduralRect::OnPreChangeSpriteProperty()
+{
+	if (IsValid(BodySpriteTexture))
+	{
+		BodySpriteTexture->RemoveUISprite(this);
+		bHasAddToSprite = false;
+	}
+}
+void UUIProceduralRect::OnPostChangeSpriteProperty()
+{
+	if (IsValid(BodySpriteTexture))
+	{
+		BodySpriteTexture->AddUISprite(this);
+		bHasAddToSprite = true;
+	}
+}
 #endif
+
+void UUIProceduralRect::OnBeforeCreateOrUpdateGeometry()
+{
+	
+}
 
 UTexture* UUIProceduralRect::GetTextureToCreateGeometry()
 {
 	CheckAdditionalShaderChannels();
-	if (!IsValid(this->BodyTexture))
+	if (BodyTextureMode == EUIProceduralBodyTextureMode::Texture)
 	{
-		this->BodyTexture = UUITextureBase::GetDefaultWhiteTexture();
+		if (!IsValid(this->BodyTexture))
+		{
+			this->BodyTexture = UUITextureBase::GetDefaultWhiteTexture();
+		}
+		return this->BodyTexture;
 	}
-	return this->BodyTexture;
+	else
+	{
+		if (!IsValid(BodySpriteTexture))
+		{
+			BodySpriteTexture = ULGUISpriteData::GetDefaultWhiteSolid();
+		}
+		if (IsValid(BodySpriteTexture) && IsValid(BodySpriteTexture->GetAtlasTexture()))
+		{
+			return BodySpriteTexture->GetAtlasTexture();
+		}
+	}
+	return nullptr;
 }
 UMaterialInterface* UUIProceduralRect::GetMaterialToCreateGeometry()
 {
@@ -345,7 +440,7 @@ void UUIProceduralRect::CheckAdditionalShaderChannels()
 		auto flags =
 			//UV1: data position 2d
 			//UV2.x: bIsOuterShadow
-			//UV3: outer shadow's full uv
+			//UV3: outer shadow's full uv, or BodySpriteTexture's uv
 			(1 << (int)ELGUICanvasAdditionalChannelType::UV1)
 			| (1 << (int)ELGUICanvasAdditionalChannelType::UV2)
 			| (1 << (int)ELGUICanvasAdditionalChannelType::UV3)
@@ -388,7 +483,9 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		, this->GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
 		, this->GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 1)
 		, this->bSoftEdge,
-		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SimpleRectSpriteData, RenderCanvas.Get(), this, GetFinalColor(),
+		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot())
+		, SimpleRectSpriteData, IsValid(BodySpriteTexture) ? BodySpriteTexture->GetSpriteInfo() : SimpleRectSpriteData
+		, RenderCanvas.Get(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 	);
 
@@ -437,6 +534,49 @@ void UUIProceduralRect::OnAnchorChange(bool InPivotChange, bool InWidthChange, b
 	Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
 }
 
+void UUIProceduralRect::ApplyAtlasTextureChange()
+{
+	if (BodyTextureMode != EUIProceduralBodyTextureMode::Sprite)return;
+	check(BodySpriteTexture);
+	geometry->texture = BodySpriteTexture->GetAtlasTexture();
+	if (RenderCanvas.IsValid())
+	{
+		if (drawcall.IsValid())
+		{
+			drawcall->Texture = geometry->texture;
+			drawcall->bTextureChanged = true;
+		}
+	}
+	MarkCanvasUpdate(true, true, false);
+}
+void UUIProceduralRect::ApplyAtlasTextureScaleUp()
+{
+	if (BodyTextureMode != EUIProceduralBodyTextureMode::Sprite)return;
+	check(BodySpriteTexture);
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() != 0)
+	{
+		for (int i = 0; i < vertices.Num(); i++)
+		{
+			auto& uv = vertices[i];
+			uv.TextureCoordinate[0].X *= 0.5f;
+			uv.TextureCoordinate[0].Y *= 0.5f;
+		}
+	}
+	geometry->texture = BodySpriteTexture->GetAtlasTexture();
+	if (RenderCanvas.IsValid())
+	{
+		if (drawcall.IsValid())
+		{
+			drawcall->Texture = geometry->texture;
+			drawcall->bTextureChanged = true;
+			drawcall->bNeedToUpdateVertex = true;
+		}
+	}
+	MarkVerticesDirty(false, true, true, false);
+	MarkCanvasUpdate(true, true, false);
+}
+
 void UUIProceduralRect::SetCornerRadius(const FVector4& value)
 {
 	CornerRadius = (FVector4f)value;
@@ -464,16 +604,63 @@ void UUIProceduralRect::SetBodyTexture(UTexture* value)
 	}
 	MarkTextureDirty();
 }
+void UUIProceduralRect::SetBodySpriteTexture(ULGUISpriteData_BaseObject* value)
+{
+	if (this->BodySpriteTexture != value)
+	{
+		this->BodySpriteTexture = value;
+		if ((!IsValid(BodySpriteTexture) || !IsValid(value))
+			|| (BodySpriteTexture->GetAtlasTexture() != value->GetAtlasTexture()))
+		{
+			//remove from old
+			if (IsValid(BodySpriteTexture))
+			{
+				BodySpriteTexture->RemoveUISprite(this);
+				bHasAddToSprite = false;
+			}
+			//add to new
+			if (IsValid(value))
+			{
+				value->AddUISprite(this);
+				bHasAddToSprite = true;
+			}
+			MarkTextureDirty();
+		}
+		BodySpriteTexture = value;
+		MarkUVDirty();
+	}
+}
+void UUIProceduralRect::SetBodyTextureMode(EUIProceduralBodyTextureMode value)
+{
+	this->BodyTextureMode = value;
+	MarkTextureDirty();
+	MarkUVDirty();
+}
 void UUIProceduralRect::SetSizeFromBodyTexture()
 {
-	if (IsValid(this->BodyTexture))
+	if (BodyTextureMode == EUIProceduralBodyTextureMode::Sprite)
 	{
-		SetWidth(this->BodyTexture->GetSurfaceWidth());
-		SetHeight(this->BodyTexture->GetSurfaceHeight());
+		if (IsValid(this->BodySpriteTexture))
+		{
+			SetWidth(this->BodySpriteTexture->GetSpriteInfo().GetSourceWidth());
+			SetHeight(this->BodySpriteTexture->GetSpriteInfo().GetSourceHeight());
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Sprite is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[%s].%d Texture is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		if (IsValid(this->BodyTexture))
+		{
+			SetWidth(this->BodyTexture->GetSurfaceWidth());
+			SetHeight(this->BodyTexture->GetSurfaceHeight());
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Texture is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 	}
 }
 void UUIProceduralRect::SetSoftEdge(bool value)

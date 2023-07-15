@@ -7,6 +7,7 @@
 #include "TextureCompiler.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Core/IUISpriteRenderableInterface.h"
 
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
 
@@ -194,11 +195,11 @@ void ULGUIStaticSpriteAtlasData::RemoveSpriteData(ULGUISpriteData* InSpriteData)
 		MarkNotInitialized();
 	}
 }
-void ULGUIStaticSpriteAtlasData::AddRenderSprite(UUISpriteBase* InSprite)
+void ULGUIStaticSpriteAtlasData::AddRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite)
 {
 	renderSpriteArray.AddUnique(InSprite);
 }
-void ULGUIStaticSpriteAtlasData::RemoveRenderSprite(UUISpriteBase* InSprite)
+void ULGUIStaticSpriteAtlasData::RemoveRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite)
 {
 	renderSpriteArray.Remove(InSprite);
 }
@@ -222,7 +223,7 @@ void ULGUIStaticSpriteAtlasData::CheckSprite()
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
-		if (itemSprite.IsValid())
+		if (IsValid(itemSprite.GetObject()))
 		{
 			if (!IsValid(itemSprite->GetSprite()))
 			{
@@ -683,7 +684,7 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 #if WITH_EDITOR
 		for (auto& sprite : renderSpriteArray)
 		{
-			if (sprite.IsValid())
+			if (IsValid(sprite.GetObject()))
 			{
 				sprite->ApplyAtlasTextureChange();
 			}

@@ -9,6 +9,7 @@
 #include "LGUISpriteData_BaseObject.generated.h"
 
 class UUISpriteBase;
+class IUISpriteRenderableInterface;
 
 /**
  * Base class for sprite data.
@@ -39,8 +40,8 @@ public:
 	 */
 	virtual bool SupportReadPixel()const PURE_VIRTUAL(ULGUISpriteData_BaseObject::SupportReadPixel, return false;);
 
-	virtual void AddUISprite(UUISpriteBase* InUISprite) {};
-	virtual void RemoveUISprite(UUISpriteBase* InUISprite) {};
+	virtual void AddUISprite(TScriptInterface<IUISpriteRenderableInterface> InUISprite) {};
+	virtual void RemoveUISprite(TScriptInterface<IUISpriteRenderableInterface> InUISprite) {};
 
 //#if WITH_EDITOR
 //	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;

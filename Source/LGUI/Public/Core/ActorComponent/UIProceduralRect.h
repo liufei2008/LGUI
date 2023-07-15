@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIBatchGeometryRenderable.h"
+#include "Core/IUISpriteRenderableInterface.h"
 #include "UIProceduralRect.generated.h"
 
 UENUM(BlueprintType)
@@ -20,9 +21,18 @@ enum class EUIProceduralRectUnitMode : uint8
 	/** Percent with rect's size from 0 to 100 */
 	Percentage		UMETA(DisplayName="%"),
 };
+UENUM(BlueprintType)
+enum class EUIProceduralBodyTextureMode : uint8
+{
+	Texture,
+	Sprite,
+};
+
+class ULGUISpriteData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIProceduralRect : public UUIBatchGeometryRenderable
+	, public IUISpriteRenderableInterface
 {
 	GENERATED_BODY()
 
@@ -32,9 +42,14 @@ public:
 #if WITH_EDITOR
 	virtual void EditorForceUpdate() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+protected:
+	virtual void OnPreChangeSpriteProperty();
+	virtual void OnPostChangeSpriteProperty();
 #endif
 protected:
 	virtual void BeginPlay()override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
@@ -56,8 +71,12 @@ protected:
 		bool bEnableBody = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BodyColor = FColor::White;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+		EUIProceduralBodyTextureMode BodyTextureMode = EUIProceduralBodyTextureMode::Texture;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
-		TObjectPtr<UTexture> BodyTexture = nullptr;
+		TObjectPtr<class UTexture> BodyTexture = nullptr;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
+		TObjectPtr<ULGUISpriteData_BaseObject> BodySpriteTexture = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (EditCondition = "BodyTexture"))
 		EUIProceduralRectTextureScaleMode BodyTextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
@@ -231,6 +250,7 @@ protected:
 	FIntVector2 DataStartPosition = FIntVector2(0, 0);
 	static FName DataTextureParameterName;
 
+	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
 	virtual UMaterialInterface* GetMaterialToCreateGeometry()override;
 	virtual void UpdateMaterialClipType()override;
@@ -245,7 +265,14 @@ protected:
 	void OnDataTextureChanged(class UTexture2D* Texture);
 	FDelegateHandle OnDataTextureChangedDelegateHandle;
 	uint8 bNeedUpdateBlockData : 1;
+	uint8 bHasAddToSprite : 1;
 public:
+#pragma region UISpriteRenderableInterface
+	ULGUISpriteData_BaseObject* GetSprite()const { return BodySpriteTexture; }
+	void ApplyAtlasTextureScaleUp();
+	void ApplyAtlasTextureChange();
+#pragma endregion
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector4 GetCornerRadius()const { return (FVector4)CornerRadius; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -256,6 +283,10 @@ public:
 		const FColor& GetBodyColor()const { return BodyColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UTexture* GetBodyTexture()const { return BodyTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		ULGUISpriteData_BaseObject* GetBodySpriteTexture()const { return BodySpriteTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUIProceduralBodyTextureMode GetBodyTextureMode()const { return BodyTextureMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectTextureScaleMode GetBodyTextureScaleMode()const { return BodyTextureScaleMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -359,6 +390,11 @@ public:
 		void SetBodyColor(const FColor& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBodyTexture(UTexture* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBodySpriteTexture(ULGUISpriteData_BaseObject* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetBodyTextureMode(EUIProceduralBodyTextureMode value);
+	/** Set size from current body texutre or sprite */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSizeFromBodyTexture();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
