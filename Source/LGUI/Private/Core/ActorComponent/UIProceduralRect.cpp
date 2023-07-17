@@ -32,17 +32,8 @@ void UUIProceduralRect::FillData(uint8* Data, float width, float height)
 		, DataOffset);
 
 	FillVector2ToData(Data, QuadSize, DataOffset);
-	
-#define GetFloatValueWithUnit(PropertyName, AdditionalScale) PropertyName##UnitMode == EUIProceduralRectUnitMode::Value ? PropertyName : (PropertyName * 0.01f * (width < height ? width : height) * AdditionalScale)
 
-	auto GetVector2ValueWithUnit2 = [=](const FVector2f& value, EUIProceduralRectUnitMode unitMode) {
-		if (unitMode == EUIProceduralRectUnitMode::Value)
-			return value;
-		else
-			return value * 0.01f * (width < height ? width : height);
-	};
-
-	FillVector4ToData(Data, GetFloatValueWithUnit(CornerRadius, 0.5f), DataOffset);
+	FillVector4ToData(Data, GetValueWithUnitMode(CornerRadius, CornerRadiusUnitMode, width, height, 0.5f), DataOffset);
 	FillColorToData(Data, BodyColor, DataOffset);
 
 	FillColorToData(Data, BodyGradientColor, DataOffset);
@@ -73,6 +64,10 @@ void UUIProceduralRect::FillData(uint8* Data, float width, float height)
 }
 
 float UUIProceduralRect::GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
+{
+	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
+}
+FVector4f UUIProceduralRect::GetValueWithUnitMode(const FVector4f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
 {
 	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
 }
