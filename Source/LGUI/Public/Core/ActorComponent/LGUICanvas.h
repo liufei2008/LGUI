@@ -190,6 +190,7 @@ public:
 	bool IsRenderToWorldSpace()const;
 	bool IsRenderByLGUIRendererOrUERenderer()const;
 
+	/** Return UIItem component which this LGUICanvas attach to. */
 	UUIItem* GetUIItem()const { return UIItem.Get(); }
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }
@@ -579,6 +580,7 @@ private:
 	TMap<UUIBaseRenderable*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
 	void GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, FLGUICacheTransformContainer& outResult);
+	const TArray<TSharedPtr<UUIDrawcall>>& GetUIDrawcallList()const { return UIDrawcallList; }
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
 	static void CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
