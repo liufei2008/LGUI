@@ -138,7 +138,7 @@ half4 BlendPremul(half4 bottom, half4 top)
     return half4(outColor, outA);
 }
 
-float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float4 MainColor, float2 UV0, float2 UV1, float2 UV2, float2 UV3, Texture2D DataTex, inout float3 Color, inout float Alpha)
+float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float2 UV0, float2 UV1, float2 UV2, float2 UV3, Texture2D DataTex, inout float3 Color, inout float Alpha)
 {
     half _TextureScaleMode;
     float4 _CornerRadius;
@@ -345,8 +345,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         radialFillAlpha = color.a * d;
         color.a = lerp(color.a, radialFillAlpha, _EnableRadialFill);
     }
-    Color = color.rgb * MainColor.rgb;
-    Alpha = color.a * MainColor.a;
+    Color = color.rgb;
+    Alpha = color.a;
     
     return 1;
 }
