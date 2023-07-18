@@ -7,8 +7,8 @@
 
 DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
 
-DECLARE_DELEGATE_OneParam(LTweenUpdateDelegate, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(LTweenUpdateMulticastDelegate, float);
+DECLARE_DELEGATE_OneParam(FLTweenUpdateDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLTweenUpdateMulticastDelegate, float);
 
 
 DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
@@ -59,7 +59,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenerFloatDynamicDelegate, float, InProgres
  * Animation curve type
  */
 UENUM(BlueprintType, Category = LTween)
-enum class LTweenEase :uint8
+enum class ELTweenEase :uint8
 {
 	Linear,
 	InQuad,
@@ -96,7 +96,7 @@ enum class LTweenEase :uint8
  * Loop type
  */
 UENUM(BlueprintType, Category = LGUI)
-enum class LTweenLoop :uint8
+enum class ELTweenLoop :uint8
 {
 	/** Play once, not loop */
 	Once, 
@@ -130,7 +130,7 @@ protected:
 	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
 	TWeakObjectPtr<UCurveFloat> curveFloat = nullptr;
 	/** loop type */
-	LTweenLoop loopType = LTweenLoop::Once;
+	ELTweenLoop loopType = ELTweenLoop::Once;
 	/** max loop count when loop type is Restart/Yoyo/Incremental */
 	int32 maxLoopCount = 0;
 	/** current completed cycle count */
@@ -155,7 +155,7 @@ protected:
 	/** if use loop, this will call every time after tween complete in every cycle */
 	FSimpleDelegate onCycleCompleteCpp;
 	/** call every frame after animation starts */
-	LTweenUpdateDelegate onUpdateCpp;
+	FLTweenUpdateDelegate onUpdateCpp;
 	/** call once when animation starts */
 	FSimpleDelegate onStartCpp;
 public:
@@ -164,7 +164,7 @@ public:
 	 * Has no effect if the Tween has already started.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* SetEase(LTweenEase easetype);
+		ULTweener* SetEase(ELTweenEase easetype);
 	/** set ease to CurveFloat and use CurveFloat as animation function, horizontal is time (0-1),vertical is value (0-1) */
 	UE_DEPRECATED(4.23, "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead."))
@@ -177,7 +177,7 @@ public:
 		virtual ULTweener* SetDelay(float newDelay);
 	UE_DEPRECATED(4.23, "SetLoopType not valid anymore, use SetLoop instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetLoopType not valid anymore, use SetLoop instead."))
-		virtual ULTweener* SetLoopType(LTweenLoop newLoopType)
+		virtual ULTweener* SetLoopType(ELTweenLoop newLoopType)
 	{
 		return SetLoop(newLoopType, -1);
 	}
@@ -188,7 +188,7 @@ public:
 	 * @param newLoopCount	number of cycles to play (-1 for infinite)
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		virtual ULTweener* SetLoop(LTweenLoop newLoopType, int32 newLoopCount = 1);
+		virtual ULTweener* SetLoop(ELTweenLoop newLoopType, int32 newLoopCount = 1);
 	UE_DEPRECATED(4.23, "GetLoopCount not valid anymore, use GetLoopCycleCount instead.")
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "GetLoopCount not valid anymore, use GetLoopCycleCount instead."))
 		int32 GetLoopCount() { return loopCycleCount; }
@@ -272,7 +272,7 @@ public:
 	}
 
 	/** execute every frame if animation is playing */
-	ULTweener* OnUpdate(const LTweenUpdateDelegate& newUpdate)
+	ULTweener* OnUpdate(const FLTweenUpdateDelegate& newUpdate)
 	{
 		this->onUpdateCpp = newUpdate;
 		return this;

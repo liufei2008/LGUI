@@ -879,7 +879,7 @@ FunctionSetPropertyUnitMode(OuterShadowDistance);
 
 #pragma region TweenAnimation
 #include "LTweenManager.h"
-ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float delay, LTweenEase ease)
+ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
 {
 	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateWeakLambda(this, [=] {
 		return this->BodyColor;
@@ -888,7 +888,7 @@ ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float
 			}), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {
 		return LGUIUtils::Color255To1_Table[this->BodyColor.A];
@@ -901,7 +901,7 @@ ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float 
 }
 
 #define FunctionPropertyAnimation(Property, EndValueType, GetterAndSetterType)\
-ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration, float delay, LTweenEase ease)\
+ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration, float delay, ELTweenEase ease)\
 {\
 	return ULTweenManager::To(this, FLTween##GetterAndSetterType##GetterFunction::CreateWeakLambda(this, [=] {\
 		return (EndValueType)this->Property;\
@@ -912,7 +912,7 @@ ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration
 }
 
 #define FunctionAlphaAnimation(Property, Function)\
-ULTweener* UUIProceduralRect::Function##AlphaTo(float endValue, float duration, float delay, LTweenEase ease)\
+ULTweener* UUIProceduralRect::Function##AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)\
 {\
 	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {\
 		return LGUIUtils::Color255To1_Table[this->BodyColor.A];\

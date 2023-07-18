@@ -248,12 +248,12 @@ void UUIPolygon::SetVertexOffsetArray(const TArray<float>& value)
 		UE_LOG(LGUI, Error, TEXT("[UUIPolygon::SetVertexOffsetArray]Array count not equal! VertexOffsetArray:%d, value:%d"), VertexOffsetArray.Num(), value.Num());
 	}
 }
-ULTweener* UUIPolygon::StartAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, LTweenEase easeType /* = LTweenEase::OutCubic */)
+ULTweener* UUIPolygon::StartAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, ELTweenEase easeType /* = ELTweenEase::OutCubic */)
 {
 	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetStartAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
-ULTweener* UUIPolygon::EndAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, LTweenEase easeType /* = LTweenEase::OutCubic */)
+ULTweener* UUIPolygon::EndAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, ELTweenEase easeType /* = ELTweenEase::OutCubic */)
 {
 	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetEndAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
