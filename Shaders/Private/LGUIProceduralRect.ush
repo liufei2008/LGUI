@@ -3,17 +3,29 @@
 #define PI 3.14159265359f
 #endif
 
+#ifndef INV_PI
+#define INV_PI 0.31830988618379f
+#endif
+
 #ifndef HALF_PI
 #define HALF_PI 1.57079632679f
+#endif
+
+#ifndef INV_255
+#define INV_255 0.00392156862745f
+#endif
+
+#ifndef INV_360
+#define INV_360 0.00277777777777f
 #endif
 
 half4 LGUI_UnpackUintColor(uint colorUint)
 {
     half4 ResultColor;
-    ResultColor.r = ((colorUint >> 24) & 0x000000ff) / 255.0;
-    ResultColor.g = ((colorUint >> 16) & 0x000000ff) / 255.0;
-    ResultColor.b = ((colorUint >> 8) & 0x000000ff) / 255.0;
-    ResultColor.a = ((colorUint >> 0) & 0x000000ff) / 255.0;
+    ResultColor.r = ((colorUint >> 24) & 0x000000ff) * INV_255;
+    ResultColor.g = ((colorUint >> 16) & 0x000000ff) * INV_255;
+    ResultColor.b = ((colorUint >> 8) & 0x000000ff) * INV_255;
+    ResultColor.a = ((colorUint >> 0) & 0x000000ff) * INV_255;
     return ResultColor;
 }
 half4 LGUI_UnpackBytes(uint value)
@@ -337,8 +349,8 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         float2x2 rotationMatrix = float2x2(cosAngle, sinAngle, -sinAngle, cosAngle);
         centerToPixelVector = mul(rotationMatrix, centerToPixelVector);
         float angle = atan2(centerToPixelVector.y, centerToPixelVector.x);
-        float d = abs(angle / PI);
-        d += _RadialFillAngle / 360.0f - 1.0f;
+        float d = abs(angle * INV_PI);
+        d += _RadialFillAngle * INV_360 - 1.0f;
                     
         d /= fwidth(d);
         d = saturate(d);
