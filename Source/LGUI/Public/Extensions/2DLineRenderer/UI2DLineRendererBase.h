@@ -85,5 +85,5 @@ public:
 		void SetLineWidthOffset(float newValue);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		class ULTweener* LineWidthTo(float endValue, float duration, float delay = 0.0f, LTweenEase easeType = LTweenEase::OutCubic);
+		class ULTweener* LineWidthTo(float endValue, float duration, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 };

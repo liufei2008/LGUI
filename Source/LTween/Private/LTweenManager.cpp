@@ -345,7 +345,7 @@ ULTweenerSequence* ULTweenManager::CreateSequence(UObject* WorldContextObject)
 	return tweener;
 }
 
-FDelegateHandle ULTweenManager::RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
+FDelegateHandle ULTweenManager::RegisterUpdateEvent(UObject* WorldContextObject, const FLTweenUpdateDelegate& update)
 {
 	auto Instance = GetLTweenInstance(WorldContextObject);
 	if (!IsValid(Instance))return FDelegateHandle();

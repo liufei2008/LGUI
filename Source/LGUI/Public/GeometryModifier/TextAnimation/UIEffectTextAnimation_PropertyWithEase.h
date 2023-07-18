@@ -14,9 +14,9 @@ private:
 	friend class FUIEffectTextAnimationPropertyCustomization;
 	/** Animation type, same as LTween ease */
 	UPROPERTY(EditAnywhere, Category = "Property")
-		LTweenEase easeType = LTweenEase::InOutSine;
+		ELTweenEase easeType = ELTweenEase::InOutSine;
 	/** Only valid if easeType = CurveFloat. Use CurveFloat to control the animation. */
-	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == LTweenEase::CurveFloat"))
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == ELTweenEase::CurveFloat"))
 		TObjectPtr<UCurveFloat> easeCurve;
 	FLTweenFunction easeFunc;
 	float EaseCurveFunction(float c, float b, float t, float d);
@@ -27,12 +27,12 @@ protected:
 #endif
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		LTweenEase GetEaseType()const { return easeType; }
+		ELTweenEase GetEaseType()const { return easeType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UCurveFloat* GetCurveFloat()const { return easeCurve; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetEaseType(LTweenEase value);
+		void SetEaseType(ELTweenEase value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetEaseCurve(UCurveFloat* value);
 };

@@ -101,7 +101,7 @@ void UUIDropdownComponent::Show()
 	ListRoot->GetUIItem()->SetIsUIActive(true);
 	if (CanvasGroupOnListRoot.IsValid())
 	{
-		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(1, 0.3f, 0, LTweenEase::OutCubic);
+		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(1, 0.3f, 0, ELTweenEase::OutCubic);
 	}
 	auto canvasOnListRoot = ListRoot->FindComponentByClass<ULGUICanvas>();
 	if (!IsValid(canvasOnListRoot))
@@ -293,7 +293,7 @@ void UUIDropdownComponent::Hide()
 	if (CanvasGroupOnListRoot.IsValid())
 	{
 		auto ListRootUIItem = ListRoot->GetUIItem();
-		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(0, 0.3f, 0, LTweenEase::InCubic)->OnComplete(FSimpleDelegate::CreateWeakLambda(CanvasGroupOnListRoot.Get(), [ListRootUIItem] {
+		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(0, 0.3f, 0, ELTweenEase::InCubic)->OnComplete(FSimpleDelegate::CreateWeakLambda(CanvasGroupOnListRoot.Get(), [ListRootUIItem] {
 			ListRootUIItem->SetIsUIActive(false);
 			}));
 	}

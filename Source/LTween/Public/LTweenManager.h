@@ -36,7 +36,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
 	bool existInInstanceMap = false;
 	void OnTick(float DeltaTime);
-	LTweenUpdateMulticastDelegate updateEvent;
+	FLTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
 public:
 	/** Use "CustomTick" instead of UE4's default Tick to control your tween animations. Call "DisableTick" function to disable UE4's default Tick function, then call this CustomTick function.*/
@@ -98,6 +98,6 @@ public:
 
 	static class ULTweenerSequence* CreateSequence(UObject* WorldContextObject);
 
-	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
+	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const FLTweenUpdateDelegate& update);
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle);
 };

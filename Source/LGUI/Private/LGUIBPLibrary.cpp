@@ -207,7 +207,7 @@ void ULGUIBPLibrary::K2_LGUICompRef_GetComponent(const FLGUIComponentReference& 
 #pragma region LTween
 
 #pragma region UIItem
-ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -216,7 +216,7 @@ ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float durati
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -226,7 +226,7 @@ ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float durat
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -235,7 +235,7 @@ ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, f
 	}
 	return ULTweenManager::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -247,7 +247,7 @@ ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValu
 	return ULTweenManager::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -256,7 +256,7 @@ ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, fl
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -268,7 +268,7 @@ ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::HorizontalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::HorizontalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -277,7 +277,7 @@ ULTweener* ULGUIBPLibrary::HorizontalAnchoredPositionTo(UUIItem* target, float e
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHorizontalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHorizontalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::VerticalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::VerticalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -286,7 +286,7 @@ ULTweener* ULGUIBPLibrary::VerticalAnchoredPositionTo(UUIItem* target, float end
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetVerticalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetVerticalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AnchoredPositionTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchoredPositionTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -295,7 +295,7 @@ ULTweener* ULGUIBPLibrary::AnchoredPositionTo(UUIItem* target, FVector2D endValu
 	}
 	return ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -305,7 +305,7 @@ ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float du
 	return ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetPivot), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetPivot), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -314,7 +314,7 @@ ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float d
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorLeft), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorLeft), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -323,7 +323,7 @@ ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float 
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorRight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorRight), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -332,7 +332,7 @@ ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float du
 	}
 	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorTop), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorTop), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AnchorBottomTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorBottomTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -461,36 +461,36 @@ void ULGUIBPLibrary::GetSpriteBorderUV(const FLGUISpriteInfo& SpriteInfo, float&
 }
 
 
-ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, float duration, float delay, ELTweenEase ease)
 {
 	return ULTweenBPLibrary::LocalPositionTo(target, endValue, duration, delay, ease);
 }
 
-ULTweener* ULGUIBPLibrary::AnchorOffsetXTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorOffsetXTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return HorizontalAnchoredPositionTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return VerticalAnchoredPositionTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
 	return AnchoredPositionTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::StretchLeftTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::StretchLeftTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return AnchorLeftTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::StretchRightTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::StretchRightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return AnchorRightTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::StretchTopTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::StretchTopTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return AnchorTopTo(target, endValue, duration, delay, ease);
 }
-ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	return AnchorBottomTo(target, endValue, duration, delay, ease);
 }

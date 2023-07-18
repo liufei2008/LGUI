@@ -42,13 +42,13 @@ ULTweenerSequence* ULTweenerSequence::Insert(UObject* WorldContextObject, float 
 		UE_LOG(LTween, Error, TEXT("[%s].%d tweener already contains in the list"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return this;
 	}
-	if (tweener->loopType != LTweenLoop::Once && tweener->maxLoopCount == -1)
+	if (tweener->loopType != ELTweenLoop::Once && tweener->maxLoopCount == -1)
 	{
 		UE_LOG(LTween, Error, TEXT("[%s].%d infinite tweener is not supported in sequence, will convert to 1"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		tweener->maxLoopCount = 1;
 	}
 	ULTweenManager::RemoveTweener(WorldContextObject, tweener);
-	int loopCount = tweener->loopType == LTweenLoop::Once ? 1 : tweener->maxLoopCount;
+	int loopCount = tweener->loopType == ELTweenLoop::Once ? 1 : tweener->maxLoopCount;
 	float tweenerTime = tweener->delay + tweener->duration * loopCount;
 	tweener->SetDelay(tweener->delay + timePosition);
 	tweenerList.Add(tweener);
@@ -82,13 +82,13 @@ ULTweenerSequence* ULTweenerSequence::Prepend(UObject* WorldContextObject, ULTwe
 		UE_LOG(LTween, Error, TEXT("[%s].%d tweener already contains in the list"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return this;
 	}
-	if (tweener->loopType != LTweenLoop::Once && tweener->maxLoopCount == -1)
+	if (tweener->loopType != ELTweenLoop::Once && tweener->maxLoopCount == -1)
 	{
 		UE_LOG(LTween, Error, TEXT("[%s].%d infinite tweener is not supported in sequence, will convert to 1"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		tweener->maxLoopCount = 1;
 	}
 	ULTweenManager::RemoveTweener(WorldContextObject, tweener);
-	int loopCount = tweener->loopType == LTweenLoop::Once ? 1 : tweener->maxLoopCount;
+	int loopCount = tweener->loopType == ELTweenLoop::Once ? 1 : tweener->maxLoopCount;
 	float inputDuration = tweener->delay + tweener->duration * loopCount;
 	//offset others 
 	for (auto& item : tweenerList)
@@ -190,7 +190,7 @@ void ULTweenerSequence::SetValueForYoyo()
 	this->reverseTween = !this->reverseTween;//reverse it again, so it will keep value false, because we only need to reverse tweenerList
 	for (auto& item : finishedTweenerList)
 	{
-		if (item->loopType != LTweenLoop::Yoyo)//if it is already yoyo, then we no need to change reverseTween for it
+		if (item->loopType != ELTweenLoop::Yoyo)//if it is already yoyo, then we no need to change reverseTween for it
 		{
 			item->reverseTween = !item->reverseTween;
 		}
@@ -199,7 +199,7 @@ void ULTweenerSequence::SetValueForYoyo()
 		item->elapseTime = 0;
 		item->loopCycleCount = 0;
 		//flip tweener
-		int loopCount = item->loopType == LTweenLoop::Once ? 1 : item->maxLoopCount;
+		int loopCount = item->loopType == ELTweenLoop::Once ? 1 : item->maxLoopCount;
 		float tweenerDelay = duration - (item->delay + item->duration * loopCount);
 		item->delay = tweenerDelay;
 
@@ -234,7 +234,7 @@ void ULTweenerSequence::Restart()
 	//reset parameter and value to start
 	{
 		//reset parameter to initial
-		if (this->loopType == LTweenLoop::Yoyo)
+		if (this->loopType == ELTweenLoop::Yoyo)
 		{
 			if (loopCycleCount % 2 != 0)//this means current is yoyo back, then we should reverse it
 			{
@@ -282,7 +282,7 @@ void ULTweenerSequence::Goto(float timePoint)
 	//reset parameter to start, then goto timepoint. these line should be same as lines in "Restart"
 	{
 		//reset parameter to initial
-		if (this->loopType == LTweenLoop::Yoyo)
+		if (this->loopType == ELTweenLoop::Yoyo)
 		{
 			if (loopCycleCount % 2 != 0)//mean current is yoyo back, should reverse it
 			{

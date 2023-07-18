@@ -60,7 +60,7 @@ void ULGUIImageSequencePlayer::Play()
 		elapsedTime = 0.0f;
 		duration = GetDuration();
 		PrepareForPlay();
-		playDelegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, LTweenUpdateDelegate::CreateUObject(this, &ULGUIImageSequencePlayer::UpdateAnimation));
+		playDelegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, FLTweenUpdateDelegate::CreateUObject(this, &ULGUIImageSequencePlayer::UpdateAnimation));
 		UpdateAnimation(0);
 	}
 	if (isPaused)

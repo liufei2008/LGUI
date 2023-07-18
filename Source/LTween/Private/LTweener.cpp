@@ -8,96 +8,96 @@ ULTweener::ULTweener()
 {
 	tweenFunc.BindStatic(&ULTweener::OutCubic);//OutCubic default animation curve function
 }
-ULTweener* ULTweener::SetEase(LTweenEase easetype)
+ULTweener* ULTweener::SetEase(ELTweenEase easetype)
 {
 	if (elapseTime > 0 || startToTween)return this;
 	switch (easetype)
 	{
-	case LTweenEase::Linear:
+	case ELTweenEase::Linear:
 		tweenFunc.BindStatic(&ULTweener::Linear);
 		break;
-	case LTweenEase::InQuad:
+	case ELTweenEase::InQuad:
 		tweenFunc.BindStatic(&ULTweener::InQuad);
 		break;
-	case LTweenEase::OutQuad:
+	case ELTweenEase::OutQuad:
 		tweenFunc.BindStatic(&ULTweener::OutQuad);
 		break;
-	case LTweenEase::InOutQuad:
+	case ELTweenEase::InOutQuad:
 		tweenFunc.BindStatic(&ULTweener::InOutQuad);
 		break;
-	case LTweenEase::InCubic:
+	case ELTweenEase::InCubic:
 		tweenFunc.BindStatic(&ULTweener::InCubic);
 		break;
-	case LTweenEase::OutCubic:
+	case ELTweenEase::OutCubic:
 		tweenFunc.BindStatic(&ULTweener::OutCubic);
 		break;
-	case LTweenEase::InOutCubic:
+	case ELTweenEase::InOutCubic:
 		tweenFunc.BindStatic(&ULTweener::InOutCubic);
 		break;
-	case LTweenEase::InQuart:
+	case ELTweenEase::InQuart:
 		tweenFunc.BindStatic(&ULTweener::InQuart);
 		break;
-	case LTweenEase::OutQuart:
+	case ELTweenEase::OutQuart:
 		tweenFunc.BindStatic(&ULTweener::OutQuart);
 		break;
-	case LTweenEase::InOutQuart:
+	case ELTweenEase::InOutQuart:
 		tweenFunc.BindStatic(&ULTweener::InOutQuart);
 		break;
-	case LTweenEase::InSine:
+	case ELTweenEase::InSine:
 		tweenFunc.BindStatic(&ULTweener::InSine);
 		break;
-	case LTweenEase::OutSine:
+	case ELTweenEase::OutSine:
 		tweenFunc.BindStatic(&ULTweener::OutSine);
 		break;
-	case LTweenEase::InOutSine:
+	case ELTweenEase::InOutSine:
 		tweenFunc.BindStatic(&ULTweener::InOutSine);
 		break;
-	case LTweenEase::InExpo:
+	case ELTweenEase::InExpo:
 		tweenFunc.BindStatic(&ULTweener::InExpo);
 		break;
-	case LTweenEase::OutExpo:
+	case ELTweenEase::OutExpo:
 		tweenFunc.BindStatic(&ULTweener::OutExpo);
 		break;
-	case LTweenEase::InOutExpo:
+	case ELTweenEase::InOutExpo:
 		tweenFunc.BindStatic(&ULTweener::InOutExpo);
 		break;
-	case LTweenEase::InCirc:
+	case ELTweenEase::InCirc:
 		tweenFunc.BindStatic(&ULTweener::InCirc);
 		break;
-	case LTweenEase::OutCirc:
+	case ELTweenEase::OutCirc:
 		tweenFunc.BindStatic(&ULTweener::OutCirc);
 		break;
-	case LTweenEase::InOutCirc:
+	case ELTweenEase::InOutCirc:
 		tweenFunc.BindStatic(&ULTweener::InOutCirc);
 		break;
-	case LTweenEase::InElastic:
+	case ELTweenEase::InElastic:
 		tweenFunc.BindStatic(&ULTweener::InElastic);
 		break;
-	case LTweenEase::OutElastic:
+	case ELTweenEase::OutElastic:
 		tweenFunc.BindStatic(&ULTweener::OutElastic);
 		break;
-	case LTweenEase::InOutElastic:
+	case ELTweenEase::InOutElastic:
 		tweenFunc.BindStatic(&ULTweener::InOutElastic);
 		break;
-	case LTweenEase::InBack:
+	case ELTweenEase::InBack:
 		tweenFunc.BindStatic(&ULTweener::InBack);
 		break;
-	case LTweenEase::OutBack:
+	case ELTweenEase::OutBack:
 		tweenFunc.BindStatic(&ULTweener::OutBack);
 		break;
-	case LTweenEase::InOutBack:
+	case ELTweenEase::InOutBack:
 		tweenFunc.BindStatic(&ULTweener::InOutBack);
 		break;
-	case LTweenEase::InBounce:
+	case ELTweenEase::InBounce:
 		tweenFunc.BindStatic(&ULTweener::InBounce);
 		break;
-	case LTweenEase::OutBounce:
+	case ELTweenEase::OutBounce:
 		tweenFunc.BindStatic(&ULTweener::OutBounce);
 		break;
-	case LTweenEase::InOutBounce:
+	case ELTweenEase::InOutBounce:
 		tweenFunc.BindStatic(&ULTweener::InOutBounce);
 		break;
-	case LTweenEase::CurveFloat:
+	case ELTweenEase::CurveFloat:
 		tweenFunc.BindUObject(this, &ULTweener::CurveFloat);
 		break;
 	}
@@ -113,7 +113,7 @@ ULTweener* ULTweener::SetDelay(float newDelay)
 	}
 	return this;
 }
-ULTweener* ULTweener::SetLoop(LTweenLoop newLoopType, int32 newLoopCount)
+ULTweener* ULTweener::SetLoop(ELTweenLoop newLoopType, int32 newLoopCount)
 {
 	if (elapseTime > 0 || startToTween)return this;
 	this->loopType = newLoopType;
@@ -124,7 +124,7 @@ ULTweener* ULTweener::SetEaseCurve(UCurveFloat* newCurve)
 {
 	if (IsValid(newCurve))
 	{
-		SetEase(LTweenEase::CurveFloat);
+		SetEase(ELTweenEase::CurveFloat);
 		curveFloat = newCurve;
 	}
 	else
@@ -172,7 +172,7 @@ bool ULTweener::ToNextWithElapsedTime(float InElapseTime)
 			TweenAndApplyValue(reverseTween ? 0 : duration);
 			onUpdateCpp.ExecuteIfBound(1.0f);
 			onCycleCompleteCpp.ExecuteIfBound();
-			if (loopType == LTweenLoop::Once)
+			if (loopType == ELTweenLoop::Once)
 			{
 				onCompleteCpp.ExecuteIfBound();
 				returnValue = false;
@@ -197,18 +197,18 @@ bool ULTweener::ToNextWithElapsedTime(float InElapseTime)
 			}
 			switch (loopType)
 			{
-			case LTweenLoop::Restart:
+			case ELTweenLoop::Restart:
 			{
 				SetValueForRestart();
 			}
 			break;
-			case LTweenLoop::Yoyo:
+			case ELTweenLoop::Yoyo:
 			{
 				reverseTween = !reverseTween;
 				SetValueForYoyo();
 			}
 			break;
-			case LTweenLoop::Incremental:
+			case ELTweenLoop::Incremental:
 			{
 				SetValueForIncremental();
 			}
