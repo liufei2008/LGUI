@@ -54,7 +54,7 @@ protected:
 		UE_LOG(LTween, Error, TEXT("[LTweenerFrame::SetDelay]LTweenerFrame does not support delay!"));
 		return this;
 	}
-	virtual ULTweener* SetLoop(LTweenLoop newLoopType, int32 newLoopCount)override
+	virtual ULTweener* SetLoop(ELTweenLoop newLoopType, int32 newLoopCount)override
 	{
 		UE_LOG(LTween, Error, TEXT("[LTweenerFrame::SetLoop]LTweenerFrame does not support loop!"));
 		return this;
