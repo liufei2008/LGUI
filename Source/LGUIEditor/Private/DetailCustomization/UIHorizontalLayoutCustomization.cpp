@@ -32,12 +32,12 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, Padding));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, Spacing));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, Align));
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpandChildrenWidth));
-	auto ExpandChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpandChildrenWidth));
-	ExpandChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	bool ExpandChildrenWidth;
-	ExpandChildrenWidthHandle->GetValue(ExpandChildrenWidth);
-	if (ExpandChildrenWidth == false)
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenWidth));
+	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenWidth));
+	ExpendChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenWidth;
+	ExpendChildrenWidthHandle->GetValue(ExpendChildrenWidth);
+	if (ExpendChildrenWidth == false)
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren)));
 	}
@@ -45,12 +45,12 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren));
 	}
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpandChildrenHeight));
-	auto ExpandChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpandChildrenHeight));
-	ExpandChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
-	bool ExpandChildrenHeight;
-	ExpandChildrenHeightHandle->GetValue(ExpandChildrenHeight);
-	if (ExpandChildrenHeight == false)
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
+	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
+	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenHeight;
+	ExpendChildrenHeightHandle->GetValue(ExpendChildrenHeight);
+	if (ExpendChildrenHeight == false)
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildren)));
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, HeightFitToChildrenFromMinToMax)));
