@@ -32,12 +32,12 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Padding));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Spacing));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Align));
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildrenHeight));
-	auto ExpandChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildrenHeight));
-	ExpandChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	bool ExpandChildrenHeight;
-	ExpandChildrenHeightHandle->GetValue(ExpandChildrenHeight);
-	if (ExpandChildrenHeight == false)
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
+	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
+	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenHeight;
+	ExpendChildrenHeightHandle->GetValue(ExpendChildrenHeight);
+	if (ExpendChildrenHeight == false)
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren)));
 	}
@@ -45,12 +45,12 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren));
 	}
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildrenWidth));
-	auto ExpandChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildrenWidth));
-	ExpandChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
-	bool ExpandChildrenWidth;
-	ExpandChildrenWidthHandle->GetValue(ExpandChildrenWidth);
-	if (ExpandChildrenWidth == false)
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
+	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
+	ExpendChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenWidth;
+	ExpendChildrenWidthHandle->GetValue(ExpendChildrenWidth);
+	if (ExpendChildrenWidth == false)
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, WidthFitToChildren)));
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, WidthFitToChildrenFromMinToMax)));

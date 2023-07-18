@@ -24,9 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ELGUILayoutAlignmentType GetAlign()const { return Align; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetExpandChildrenWidth()const { return ExpandChildrenWidth; }
+		bool GetExpendChildrenWidth()const { return ExpendChildrenWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetExpandChildrenHeight()const { return ExpandChildrenHeight; }
+		bool GetExpendChildrenHeight()const { return ExpendChildrenHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetHeightFitToChildren()const { return HeightFitToChildren; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -44,9 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAlign(ELGUILayoutAlignmentType value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetExpandChildrenWidth(bool value);
+		void SetExpendChildrenWidth(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetExpandChildrenHeight(bool value);
+		void SetExpendChildrenHeight(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHeightFitToChildren(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -66,9 +66,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUILayoutAlignmentType Align = ELGUILayoutAlignmentType::UpperLeft;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool ExpandChildrenWidth = false;
+		bool ExpendChildrenWidth = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool ExpandChildrenHeight = false;
+		bool ExpendChildrenHeight = false;
 	/** this object's height set to all children's range */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
