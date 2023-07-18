@@ -11,92 +11,92 @@ const FLTweenFunction& UUIEffectTextAnimation_PropertyWithEase::GetEaseFunction(
 	if (easeFunc.IsBound())return easeFunc;
 	switch (easeType)
 	{
-	case LTweenEase::Linear:
+	case ELTweenEase::Linear:
 		easeFunc.BindStatic(&ULTweener::Linear);
 		break;
-	case LTweenEase::InQuad:
+	case ELTweenEase::InQuad:
 		easeFunc.BindStatic(&ULTweener::InQuad);
 		break;
-	case LTweenEase::OutQuad:
+	case ELTweenEase::OutQuad:
 		easeFunc.BindStatic(&ULTweener::OutQuad);
 		break;
-	case LTweenEase::InOutQuad:
+	case ELTweenEase::InOutQuad:
 		easeFunc.BindStatic(&ULTweener::InOutQuad);
 		break;
-	case LTweenEase::InCubic:
+	case ELTweenEase::InCubic:
 		easeFunc.BindStatic(&ULTweener::InCubic);
 		break;
-	case LTweenEase::OutCubic:
+	case ELTweenEase::OutCubic:
 		easeFunc.BindStatic(&ULTweener::OutCubic);
 		break;
-	case LTweenEase::InOutCubic:
+	case ELTweenEase::InOutCubic:
 		easeFunc.BindStatic(&ULTweener::InOutCubic);
 		break;
-	case LTweenEase::InQuart:
+	case ELTweenEase::InQuart:
 		easeFunc.BindStatic(&ULTweener::InQuart);
 		break;
-	case LTweenEase::OutQuart:
+	case ELTweenEase::OutQuart:
 		easeFunc.BindStatic(&ULTweener::OutQuart);
 		break;
-	case LTweenEase::InOutQuart:
+	case ELTweenEase::InOutQuart:
 		easeFunc.BindStatic(&ULTweener::InOutQuart);
 		break;
-	case LTweenEase::InSine:
+	case ELTweenEase::InSine:
 		easeFunc.BindStatic(&ULTweener::InSine);
 		break;
-	case LTweenEase::OutSine:
+	case ELTweenEase::OutSine:
 		easeFunc.BindStatic(&ULTweener::OutSine);
 		break;
 	default:
-	case LTweenEase::InOutSine:
+	case ELTweenEase::InOutSine:
 		easeFunc.BindStatic(&ULTweener::InOutSine);
 		break;
-	case LTweenEase::InExpo:
+	case ELTweenEase::InExpo:
 		easeFunc.BindStatic(&ULTweener::InExpo);
 		break;
-	case LTweenEase::OutExpo:
+	case ELTweenEase::OutExpo:
 		easeFunc.BindStatic(&ULTweener::OutExpo);
 		break;
-	case LTweenEase::InOutExpo:
+	case ELTweenEase::InOutExpo:
 		easeFunc.BindStatic(&ULTweener::InOutExpo);
 		break;
-	case LTweenEase::InCirc:
+	case ELTweenEase::InCirc:
 		easeFunc.BindStatic(&ULTweener::InCirc);
 		break;
-	case LTweenEase::OutCirc:
+	case ELTweenEase::OutCirc:
 		easeFunc.BindStatic(&ULTweener::OutCirc);
 		break;
-	case LTweenEase::InOutCirc:
+	case ELTweenEase::InOutCirc:
 		easeFunc.BindStatic(&ULTweener::InOutCirc);
 		break;
-	case LTweenEase::InElastic:
+	case ELTweenEase::InElastic:
 		easeFunc.BindStatic(&ULTweener::InElastic);
 		break;
-	case LTweenEase::OutElastic:
+	case ELTweenEase::OutElastic:
 		easeFunc.BindStatic(&ULTweener::OutElastic);
 		break;
-	case LTweenEase::InOutElastic:
+	case ELTweenEase::InOutElastic:
 		easeFunc.BindStatic(&ULTweener::InOutElastic);
 		break;
-	case LTweenEase::InBack:
+	case ELTweenEase::InBack:
 		easeFunc.BindStatic(&ULTweener::InBack);
 		break;
-	case LTweenEase::OutBack:
+	case ELTweenEase::OutBack:
 		easeFunc.BindStatic(&ULTweener::OutBack);
 		break;
-	case LTweenEase::InOutBack:
+	case ELTweenEase::InOutBack:
 		easeFunc.BindStatic(&ULTweener::InOutBack);
 		break;
-	case LTweenEase::InBounce:
+	case ELTweenEase::InBounce:
 		easeFunc.BindStatic(&ULTweener::InBounce);
 		break;
-	case LTweenEase::OutBounce:
+	case ELTweenEase::OutBounce:
 		easeFunc.BindStatic(&ULTweener::OutBounce);
 		break;
-	case LTweenEase::InOutBounce:
+	case ELTweenEase::InOutBounce:
 		easeFunc.BindStatic(&ULTweener::InOutBounce);
 		break;
-	case LTweenEase::CurveFloat:
+	case ELTweenEase::CurveFloat:
 		easeFunc.BindUObject(this, &UUIEffectTextAnimation_PropertyWithEase::EaseCurveFunction);
 		break;
 	}
@@ -128,7 +128,7 @@ void UUIEffectTextAnimation_PropertyWithEase::PostEditChangeProperty(FPropertyCh
 }
 #endif
 
-void UUIEffectTextAnimation_PropertyWithEase::SetEaseType(LTweenEase value)
+void UUIEffectTextAnimation_PropertyWithEase::SetEaseType(ELTweenEase value)
 {
 	if (easeType != value)
 	{
@@ -145,7 +145,7 @@ void UUIEffectTextAnimation_PropertyWithEase::SetEaseCurve(UCurveFloat* value)
 	if (easeCurve != value)
 	{
 		easeCurve = value;
-		if (easeType == LTweenEase::CurveFloat)
+		if (easeType == ELTweenEase::CurveFloat)
 		{
 			if (auto uiText = GetUIText())
 			{

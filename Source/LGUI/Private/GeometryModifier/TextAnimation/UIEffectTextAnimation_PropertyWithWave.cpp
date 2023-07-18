@@ -8,7 +8,7 @@
 void UUIEffectTextAnimation_PropertyWithWave::Init()
 {
 	uiText = GetUIText();
-	delegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, LTweenUpdateDelegate::CreateUObject(this, &UUIEffectTextAnimation_PropertyWithWave::OnUpdate));
+	delegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, FLTweenUpdateDelegate::CreateUObject(this, &UUIEffectTextAnimation_PropertyWithWave::OnUpdate));
 }
 void UUIEffectTextAnimation_PropertyWithWave::Deinit()
 {

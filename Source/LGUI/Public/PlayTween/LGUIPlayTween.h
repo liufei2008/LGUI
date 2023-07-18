@@ -15,14 +15,14 @@ class LGUI_API ULGUIPlayTween : public UObject
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Property")
-		LTweenLoop loopType = LTweenLoop::Once;
+		ELTweenLoop loopType = ELTweenLoop::Once;
 	/** number of cycles to play (-1 for infinite) */
-	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "loopType != LTweenLoop::Once"))
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "loopType != ELTweenLoop::Once"))
 		int32 loopCount = -1;
 	UPROPERTY(EditAnywhere, Category = "Property")
-		LTweenEase easeType = LTweenEase::Linear;
+		ELTweenEase easeType = ELTweenEase::Linear;
 	/** only valid if easeType=CurveFloat */
-	UPROPERTY(EditAnywhere, Category = "Property", meta=(EditCondition = "easeType == LTweenEase::CurveFloat"))
+	UPROPERTY(EditAnywhere, Category = "Property", meta=(EditCondition = "easeType == ELTweenEase::CurveFloat"))
 		UCurveFloat* easeCurve;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float duration = 0.5f;

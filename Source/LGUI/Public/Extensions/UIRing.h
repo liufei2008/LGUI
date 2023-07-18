@@ -50,9 +50,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetSegment(int newValue);
 
 	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
-		ULTweener* StartAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase easeType = LTweenEase::OutCubic);
+		ULTweener* StartAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
-		ULTweener* EndAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase easeType = LTweenEase::OutCubic);
+		ULTweener* EndAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 };
 
 
