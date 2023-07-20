@@ -460,6 +460,106 @@ void UUIProceduralRect::CheckAdditionalShaderChannels()
 	}
 }
 
+bool UUIProceduralRect::LineTraceUI_CheckCornerRadius(const FVector2D& InLocalHitPoint)
+{
+	auto TempCornerRadius = GetValueWithUnitMode(CornerRadius, CornerRadiusUnitMode, this->GetWidth(), this->GetHeight(), 0.5f);
+	auto HalfWidth = this->GetWidth() * 0.5f;
+	auto HalfHeight = this->GetHeight() * 0.5f;
+	auto MinSize = FMath::Min(HalfWidth, HalfHeight);
+	TempCornerRadius.X = FMath::Min(TempCornerRadius.X, MinSize);
+	TempCornerRadius.Y = FMath::Min(TempCornerRadius.Y, MinSize);
+	TempCornerRadius.Z = FMath::Min(TempCornerRadius.Z, MinSize);
+	TempCornerRadius.W = FMath::Min(TempCornerRadius.W, MinSize);
+	if (InLocalHitPoint.X > 0 && InLocalHitPoint.Y < 0)//right bottom area of rect
+	{
+		auto Radius = TempCornerRadius.X;
+		auto CenterPos = FVector2D(this->GetLocalSpaceRight() - Radius, this->GetLocalSpaceBottom() + Radius);
+		if (InLocalHitPoint.X > CenterPos.X && InLocalHitPoint.Y < CenterPos.Y)
+		{
+			if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	else if (InLocalHitPoint.X > 0 && InLocalHitPoint.Y > 0)//right top area of rect
+	{
+		auto Radius = TempCornerRadius.Y;
+		auto CenterPos = FVector2D(this->GetLocalSpaceRight() - Radius, this->GetLocalSpaceTop() - Radius);
+		if (InLocalHitPoint.X > CenterPos.X && InLocalHitPoint.Y > CenterPos.Y)
+		{
+			if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	else if (InLocalHitPoint.X < 0 && InLocalHitPoint.Y > 0)//left top area of rect
+	{
+		auto Radius = TempCornerRadius.Z;
+		auto CenterPos = FVector2D(this->GetLocalSpaceLeft() + Radius, this->GetLocalSpaceTop() - Radius);
+		if (InLocalHitPoint.X < CenterPos.X && InLocalHitPoint.Y > CenterPos.Y)
+		{
+			if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	else if (InLocalHitPoint.X < 0 && InLocalHitPoint.Y < 0)//left bottom area of rect
+	{
+		auto Radius = TempCornerRadius.W;
+		auto CenterPos = FVector2D(this->GetLocalSpaceLeft() + Radius, this->GetLocalSpaceBottom() + Radius);
+		if (InLocalHitPoint.X < CenterPos.X && InLocalHitPoint.Y < CenterPos.Y)
+		{
+			if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	return true;
+}
+bool UUIProceduralRect::LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End)
+{
+	auto inverseTf = GetComponentTransform().Inverse();
+	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
+	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
+
+	//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false);//just for test
+	//start and end point must be different side of X plane
+	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	{
+		auto result = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+		//hit point inside rect area
+		if (result.Y > GetLocalSpaceLeft() && result.Y < GetLocalSpaceRight() && result.Z > GetLocalSpaceBottom() && result.Z < GetLocalSpaceTop())
+		{
+			OutHit.TraceStart = Start;
+			OutHit.TraceEnd = End;
+			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+			OutHit.Location = GetComponentTransform().TransformPosition(result);
+			OutHit.Normal = GetComponentTransform().TransformVector(FVector(1, 0, 0));
+			OutHit.Normal.Normalize();
+			OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+			OutHit.ImpactPoint = OutHit.Location;
+			OutHit.ImpactNormal = OutHit.Normal;
+
+			//check corner radius
+			if (bRaycastSupportCornerRadius)
+			{
+				return LineTraceUI_CheckCornerRadius(FVector2D(result.Y, result.Z));
+			}
+
+			return true;
+		}
+	}
+	return false;
+}
+
 void UUIProceduralRect::OnDataTextureChanged(class UTexture2D* Texture)
 {
 	geometry->texture = GetTextureToCreateGeometry();
@@ -876,6 +976,10 @@ FunctionSetPropertyUnitMode(OuterShadowSize);
 FunctionSetPropertyUnitMode(OuterShadowBlur);
 FunctionSetPropertyUnitMode(OuterShadowDistance);
 
+void UUIProceduralRect::SetRaycastSupportCornerRadius(bool value)
+{
+	bRaycastSupportCornerRadius = value;
+}
 
 #pragma region TweenAnimation
 #include "LTweenManager.h"

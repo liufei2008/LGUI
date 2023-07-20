@@ -444,6 +444,7 @@ protected:
 
 	/** find root UIItem of hierarchy */
 	void CheckRootUIItem();
+	virtual bool LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End);
 public:
 #pragma region TweenAnimation
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")

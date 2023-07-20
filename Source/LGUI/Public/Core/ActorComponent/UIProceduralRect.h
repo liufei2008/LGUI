@@ -246,6 +246,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
+	/** When do raycast interaction, will the CornerRadius be considerred? Only support RaycastType.Rect. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Rect"))
+		bool bRaycastSupportCornerRadius = true;
 
 	FIntVector2 DataStartPosition = FIntVector2(0, 0);
 	static FName DataTextureParameterName;
@@ -266,6 +269,9 @@ protected:
 	FDelegateHandle OnDataTextureChangedDelegateHandle;
 	uint8 bNeedUpdateBlockData : 1;
 	uint8 bHasAddToSprite : 1;
+protected:
+	bool LineTraceUI_CheckCornerRadius(const FVector2D& InLocalHitPoint);
+	virtual bool LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 public:
 #pragma region UISpriteRenderableInterface
 	ULGUISpriteData_BaseObject* GetSprite()const { return BodySpriteTexture; }
@@ -379,6 +385,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetOuterShadowDistanceUnitMode()const { return OuterShadowDistanceUnitMode; }
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetRaycastSupportCornerRadius()const { return bRaycastSupportCornerRadius; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCornerRadius(const FVector4& value);
@@ -488,6 +496,9 @@ public:
 		void SetOuterShadowDistance(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetOuterShadowDistanceUnitMode(EUIProceduralRectUnitMode value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRaycastSupportCornerRadius(bool value);
 
 #pragma region TweenAnimation
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
