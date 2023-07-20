@@ -54,7 +54,7 @@ void FLGUIDynamicSpriteAtlasData::CreateAtlasTexture(const FName& packingTag, in
 		auto newTexture = texture;
 		if (oldTexture->GetResource() != nullptr && newTexture->GetResource() != nullptr)
 		{
-			ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
+			ENQUEUE_RENDER_COMMAND(FLGUIDynamicSpriteAtlas_CopyAtlasTexture)(
 				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
 				FRHICopyTextureInfo CopyInfo;
