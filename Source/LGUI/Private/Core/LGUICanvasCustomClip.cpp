@@ -125,16 +125,85 @@ void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstance
 void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, const FLinearColor& InCenterAndSize, const FLinearColor& InConerRadius)
 {
 	InMaterial->SetVectorParameterValue(CenterAndSizeParameterName, InCenterAndSize);
-	InMaterial->SetVectorParameterValue(CornerRadiusParameterName, FLinearColor(InConerRadius.G, InConerRadius.R, InConerRadius.A, InConerRadius.B));//change the order so it is the same as UIProceduralRect
+	InMaterial->SetVectorParameterValue(CornerRadiusParameterName, InConerRadius);
 }
 FVector4f ULGUICanvasCustomClip_RoundedRect::GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale)
 {
-	return CornerRadiusUnitMode == ELGUICanvasCustomClip_RoundedRect_UnitMode::Value ? CornerRadius : (CornerRadius * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
+	auto Result = CornerRadiusUnitMode == ELGUICanvasCustomClip_RoundedRect_UnitMode::Value ? CornerRadius : (CornerRadius * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
+	Result = FVector4f(Result.Y, Result.X, Result.W, Result.Z);//change the order so it is the same as UIProceduralRect
+	return Result;
 }
 
 bool ULGUICanvasCustomClip_RoundedRect::CheckPointVisible(const FVector& InWorldPoint, class ULGUICanvas* InCanvas, class UUIItem* InUIItem)
 {
-	return true;
+	auto LocalPoint = InUIItem->GetComponentTransform().InverseTransformPosition(InWorldPoint);
+	if (LocalPoint.Y > InUIItem->GetLocalSpaceLeft() && LocalPoint.Y < InUIItem->GetLocalSpaceRight() && LocalPoint.Z > InUIItem->GetLocalSpaceBottom() && LocalPoint.Z < InUIItem->GetLocalSpaceTop())
+	{
+		auto InLocalHitPoint = FVector2D(LocalPoint.Y, LocalPoint.Z);
+		auto TempCornerRadius = GetCornerRadiusWithUnitMode(InUIItem->GetWidth(), InUIItem->GetHeight(), 0.5f);
+		TempCornerRadius = FVector4f(TempCornerRadius.Y, TempCornerRadius.X, TempCornerRadius.W, TempCornerRadius.Z);//flip vertical
+		auto HalfWidth = InUIItem->GetWidth() * 0.5f;
+		auto HalfHeight = InUIItem->GetHeight() * 0.5f;
+		auto MinSize = FMath::Min(HalfWidth, HalfHeight);
+		TempCornerRadius.X = FMath::Min(TempCornerRadius.X, MinSize);
+		TempCornerRadius.Y = FMath::Min(TempCornerRadius.Y, MinSize);
+		TempCornerRadius.Z = FMath::Min(TempCornerRadius.Z, MinSize);
+		TempCornerRadius.W = FMath::Min(TempCornerRadius.W, MinSize);
+		if (InLocalHitPoint.X > 0 && InLocalHitPoint.Y < 0)//right bottom area of rect
+		{
+			auto Radius = TempCornerRadius.X;
+			auto CenterPos = FVector2D(InUIItem->GetLocalSpaceRight() - Radius, InUIItem->GetLocalSpaceBottom() + Radius);
+			if (InLocalHitPoint.X > CenterPos.X && InLocalHitPoint.Y < CenterPos.Y)
+			{
+				if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else if (InLocalHitPoint.X > 0 && InLocalHitPoint.Y > 0)//right top area of rect
+		{
+			auto Radius = TempCornerRadius.Y;
+			auto CenterPos = FVector2D(InUIItem->GetLocalSpaceRight() - Radius, InUIItem->GetLocalSpaceTop() - Radius);
+			if (InLocalHitPoint.X > CenterPos.X && InLocalHitPoint.Y > CenterPos.Y)
+			{
+				if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else if (InLocalHitPoint.X < 0 && InLocalHitPoint.Y > 0)//left top area of rect
+		{
+			auto Radius = TempCornerRadius.Z;
+			auto CenterPos = FVector2D(InUIItem->GetLocalSpaceLeft() + Radius, InUIItem->GetLocalSpaceTop() - Radius);
+			if (InLocalHitPoint.X < CenterPos.X && InLocalHitPoint.Y > CenterPos.Y)
+			{
+				if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else if (InLocalHitPoint.X < 0 && InLocalHitPoint.Y < 0)//left bottom area of rect
+		{
+			auto Radius = TempCornerRadius.W;
+			auto CenterPos = FVector2D(InUIItem->GetLocalSpaceLeft() + Radius, InUIItem->GetLocalSpaceBottom() + Radius);
+			if (InLocalHitPoint.X < CenterPos.X && InLocalHitPoint.Y < CenterPos.Y)
+			{
+				if (FVector2D::DistSquared(InLocalHitPoint, CenterPos) > Radius * Radius)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return true;
+	}
+	return false;
 }
 bool ULGUICanvasCustomClip_RoundedRect::MaterialContainsClipParameter(UMaterialInterface* InMaterial)
 {

@@ -122,8 +122,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::VisiblePixel"))
 		float VisiblePixelThreadhold = 0.1f;
 
-	bool LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
-	bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);
+	virtual bool LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
+	virtual bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);
 
     virtual void ApplyUIActiveState(bool InStateChange) override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
