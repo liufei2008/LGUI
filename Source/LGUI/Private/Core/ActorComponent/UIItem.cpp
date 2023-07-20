@@ -2033,6 +2033,11 @@ void UUIItem::SetTraceChannel(TEnumAsByte<ETraceTypeQuery> InTraceChannel)
 
 bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
+	return LineTraceUIRect(OutHit, Start, End);
+}
+
+bool UUIItem::LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End)
+{
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);

@@ -344,7 +344,7 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 	{
 	default:
 	case EUIRenderableRaycastType::Rect:
-		return Super::LineTraceUI(OutHit, Start, End);
+		return LineTraceUIRect(OutHit, Start, End);
 		break;
 	case EUIRenderableRaycastType::Geometry:
 		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
