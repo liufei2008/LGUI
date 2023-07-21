@@ -10,6 +10,7 @@
 #include "Utils/LGUIUtils.h"
 #include "Rendering/Texture2DResource.h"
 #include "Core/IUISpriteRenderableInterface.h"
+#include "RenderingThread.h"
 
 
 void FLGUIDynamicSpriteAtlasData::EnsureAtlasTexture(const FName& packingTag)

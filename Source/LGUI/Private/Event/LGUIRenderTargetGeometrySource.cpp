@@ -17,6 +17,7 @@
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "LTweenBPLibrary.h"
 #include "Materials/MaterialRenderProxy.h"
+#include "SceneInterface.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 

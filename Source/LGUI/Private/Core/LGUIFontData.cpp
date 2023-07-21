@@ -3,6 +3,8 @@
 #include "Core/LGUIFontData.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIText.h"
+#include "TextureResource.h"
+#include "Engine/Texture2D.h"
 #if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
