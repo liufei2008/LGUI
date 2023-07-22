@@ -39,7 +39,7 @@ void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
-void UUISpriteBase::ApplyAtlasTextureChange()
+void UUISpriteBase::ApplyAtlasTextureChange_Implementation()
 {
 	geometry->texture = sprite->GetAtlasTexture();
 	if (RenderCanvas.IsValid())
@@ -52,7 +52,7 @@ void UUISpriteBase::ApplyAtlasTextureChange()
 	}
 	MarkCanvasUpdate(true, true, false);
 }
-void UUISpriteBase::ApplyAtlasTextureScaleUp()
+void UUISpriteBase::ApplyAtlasTextureScaleUp_Implementation()
 {
 	auto& vertices = geometry->vertices;
 	if (vertices.Num() != 0)

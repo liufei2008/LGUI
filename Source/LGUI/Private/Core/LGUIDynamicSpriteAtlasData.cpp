@@ -93,7 +93,7 @@ int32 FLGUIDynamicSpriteAtlasData::ExpendTextureSize(const FName& packingTag)
 	{
 		if (IsValid(itemSprite.GetObject()))
 		{
-			itemSprite->ApplyAtlasTextureScaleUp();
+			IUISpriteRenderableInterface::Execute_ApplyAtlasTextureScaleUp(itemSprite.GetObject());
 		}
 	}
 	//callback function
@@ -138,13 +138,13 @@ void FLGUIDynamicSpriteAtlasData::CheckSprite(const FName& packingTag)
 		auto itemSprite = this->renderSpriteArray[i];
 		if (IsValid(itemSprite.GetObject()))
 		{
-			if (!IsValid(itemSprite->GetSprite()))
+			if (!IsValid(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
 			{
 				this->renderSpriteArray.RemoveAt(i);
 			}
 			else
 			{
-				if (auto spriteData = Cast<ULGUISpriteData>(itemSprite->GetSprite()))
+				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
 				{
 					if (spriteData->GetPackingTag() != packingTag)
 					{
