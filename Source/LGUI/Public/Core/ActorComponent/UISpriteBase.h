@@ -56,9 +56,9 @@ protected:
 public:
 
 #pragma region UISpriteRenderableInterface
-	ULGUISpriteData_BaseObject* GetSprite()const { return sprite; }
-	void ApplyAtlasTextureScaleUp();
-	void ApplyAtlasTextureChange();
+	virtual ULGUISpriteData_BaseObject* GetSprite_Implementation()const override{ return sprite; }
+	virtual void ApplyAtlasTextureScaleUp_Implementation()override;
+	virtual void ApplyAtlasTextureChange_Implementation()override;
 #pragma endregion
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
