@@ -634,7 +634,7 @@ void UUIProceduralRect::OnAnchorChange(bool InPivotChange, bool InWidthChange, b
 	Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
 }
 
-void UUIProceduralRect::ApplyAtlasTextureChange()
+void UUIProceduralRect::ApplyAtlasTextureChange_Implementation()
 {
 	if (BodyTextureMode != EUIProceduralBodyTextureMode::Sprite)return;
 	check(BodySpriteTexture);
@@ -649,7 +649,7 @@ void UUIProceduralRect::ApplyAtlasTextureChange()
 	}
 	MarkCanvasUpdate(true, true, false);
 }
-void UUIProceduralRect::ApplyAtlasTextureScaleUp()
+void UUIProceduralRect::ApplyAtlasTextureScaleUp_Implementation()
 {
 	if (BodyTextureMode != EUIProceduralBodyTextureMode::Sprite)return;
 	check(BodySpriteTexture);

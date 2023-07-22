@@ -225,13 +225,13 @@ void ULGUIStaticSpriteAtlasData::CheckSprite()
 		auto itemSprite = this->renderSpriteArray[i];
 		if (IsValid(itemSprite.GetObject()))
 		{
-			if (!IsValid(itemSprite->GetSprite()))
+			if (!IsValid(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
 			{
 				this->renderSpriteArray.RemoveAt(i);
 			}
 			else
 			{
-				if (auto spriteData = Cast<ULGUISpriteData>(itemSprite->GetSprite()))
+				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
 				{
 					if (spriteData->GetPackingAtlas() != this)
 					{
@@ -686,7 +686,7 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 		{
 			if (IsValid(sprite.GetObject()))
 			{
-				sprite->ApplyAtlasTextureChange();
+				IUISpriteRenderableInterface::Execute_ApplyAtlasTextureChange(sprite.GetObject());
 			}
 		}
 #endif
