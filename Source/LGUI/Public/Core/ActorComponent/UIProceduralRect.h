@@ -274,7 +274,7 @@ protected:
 	virtual bool LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 public:
 #pragma region UISpriteRenderableInterface
-	virtual ULGUISpriteData_BaseObject* GetSprite_Implementation()const override { return BodySpriteTexture; }
+	virtual ULGUISpriteData_BaseObject* SpriteRenderableGetSprite_Implementation()const override { return BodySpriteTexture; }
 	virtual void ApplyAtlasTextureScaleUp_Implementation()override;
 	virtual void ApplyAtlasTextureChange_Implementation()override;
 #pragma endregion
