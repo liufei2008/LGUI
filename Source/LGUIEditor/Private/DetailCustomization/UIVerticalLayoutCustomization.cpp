@@ -32,21 +32,9 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Padding));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Spacing));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, Align));
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
-	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenHeight));
-	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	bool ExpendChildrenHeight;
-	ExpendChildrenHeightHandle->GetValue(ExpendChildrenHeight);
-	if (ExpendChildrenHeight == false)
-	{
-		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren)));
-	}
-	else
-	{
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren));
-	}
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
-	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpendChildrenWidth));
+
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildWidthArea));
+	auto ExpendChildrenWidthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildWidthArea));
 	ExpendChildrenWidthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	bool ExpendChildrenWidth;
 	ExpendChildrenWidthHandle->GetValue(ExpendChildrenWidth);
@@ -61,18 +49,39 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, WidthFitToChildrenFromMinToMax));
 	}
 
-	auto animationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationType));
-	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	switch (TargetScriptPtr->AnimationType)
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildHeightArea));
+	auto ExpendChildrenHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ExpandChildHeightArea));
+	ExpendChildrenHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	bool ExpendChildrenHeight;
+	ExpendChildrenHeightHandle->GetValue(ExpendChildrenHeight);
+	if (ExpendChildrenHeight == false)
+	{
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren)));
+	}
+	else
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren));
+	}
+
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ControlChildWidth));
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, ControlChildHeight));
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, UseChildScaleOnHeight));
+
+	auto AnimationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationType), UUILayoutWithAnimation::StaticClass());
+	category.AddProperty(AnimationTypeHandle);
+	AnimationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	EUILayoutChangePositionAnimationType AnimationType;
+	AnimationTypeHandle->GetValue(*(uint8*)&AnimationType);
+	switch (AnimationType)
 	{
 	case EUILayoutChangePositionAnimationType::Immediately:
 	{
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass());
 	}
 	break;
 	case EUILayoutChangePositionAnimationType::EaseAnimation:
 	{
-
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass()));
 	}
 	break;
 	}

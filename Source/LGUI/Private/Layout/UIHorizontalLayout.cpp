@@ -16,8 +16,8 @@ void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizo
     if (child->GetIsUIActiveInHierarchy())
     {
         if (horizontalPositionChanged || verticalPositionChanged
-            || (ExpendChildrenWidth && widthChanged)
-            || (ExpendChildrenHeight && heightChanged)
+            || (ExpandChildWidthArea && widthChanged)
+            || (ExpandChildHeightArea && heightChanged)
             )
         {
 			MarkNeedRebuildLayout();
@@ -49,19 +49,19 @@ void UUIHorizontalLayout::SetAlign(ELGUILayoutAlignmentType value)
         MarkNeedRebuildLayout();
     }
 }
-void UUIHorizontalLayout::SetExpendChildrenWidth(bool value)
+void UUIHorizontalLayout::SetExpandChildWidthArea(bool value)
 {
-    if (ExpendChildrenWidth != value)
+    if (ExpandChildWidthArea != value)
     {
-        ExpendChildrenWidth = value;
+        ExpandChildWidthArea = value;
         MarkNeedRebuildLayout();
     }
 }
-void UUIHorizontalLayout::SetExpendChildrenHeight(bool value)
+void UUIHorizontalLayout::SetExpandChildHeightArea(bool value)
 {
-    if (ExpendChildrenHeight != value)
+    if (ExpandChildHeightArea != value)
     {
-        ExpendChildrenHeight = value;
+        ExpandChildHeightArea = value;
         MarkNeedRebuildLayout();
     }
 }
@@ -89,6 +89,31 @@ void UUIHorizontalLayout::SetHeightFitToChildrenFromMinToMax(float value)
         MarkNeedRebuildChildrenList();
     }
 }
+void UUIHorizontalLayout::SetUseChildScaleOnWidth(bool value)
+{
+    if (UseChildScaleOnWidth != value)
+    {
+        UseChildScaleOnWidth = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIHorizontalLayout::SetControlChildWidth(bool value)
+{
+    if (ControlChildWidth != value)
+    {
+        ControlChildWidth = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIHorizontalLayout::SetControlChildHeight(bool value)
+{
+    if (ControlChildHeight != value)
+    {
+        ControlChildHeight = value;
+        MarkNeedRebuildLayout();
+    }
+}
+
 
 void UUIHorizontalLayout::OnRebuildLayout()
 {
@@ -112,14 +137,15 @@ void UUIHorizontalLayout::OnRebuildLayout()
     const auto& uiChildrenList = GetLayoutUIItemChildren();
     int childrenCount = uiChildrenList.Num();
     float childHeight = rectSize.Y;
-    childrenWidthList.Reset(childrenCount);
-    if (ExpendChildrenWidth)
+    childrenWidthList.SetNumUninitialized(childrenCount);
+    if (ExpandChildWidthArea)
     {
         float sizeWithoutSpacing = rectSize.X - Spacing * (childrenCount - 1);
-        float autoSizeChildrenSize = sizeWithoutSpacing; //collect all children's size which is autosize or without layout element
+        float autoSizeChildrenTotalWidth = sizeWithoutSpacing; //collect all children's size which is autosize or without layout element
         int autoSizeChildrenCount = 0;
-        for (auto item : uiChildrenList)
+        for (int i = 0; i < childrenCount; i++)
         {
+            auto& item = uiChildrenList[i];
             float tempChildWidth = 0;
             if (item.layoutElement.IsValid())
             {
@@ -141,53 +167,120 @@ void UUIHorizontalLayout::OnRebuildLayout()
             {
                 autoSizeChildrenCount++;
             }
-            if (UseChildrenScaleOnWidth)
+            if (UseChildScaleOnWidth)
             {
                 tempChildWidth *= item.uiItem->GetRelativeScale3D().Y;
             }
-            autoSizeChildrenSize -= tempChildWidth;
-            childrenWidthList.Add(tempChildWidth);
+            autoSizeChildrenTotalWidth -= tempChildWidth;
+            childrenWidthList[i].AreaWidth = tempChildWidth;
+            childrenWidthList[i].Width = tempChildWidth;
         }
-        float autoSizeChildWidth = 0;
-        if (UseChildrenScaleOnWidth)
-        {
-            float autoSizeChildrenScaleSum = 0;
-            for (int i = 0; i < childrenCount; i++)
-            {
-                auto item = uiChildrenList[i];
-                if (item.layoutElement != nullptr)
-                {
-                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
-                    if (layoutType == ELayoutElementType::AutoSize)
-                    {
-                        autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Y;
-                    }
-                }
-                else
-                {
-                    autoSizeChildrenScaleSum += item.uiItem->GetRelativeScale3D().Y;
-                }
-            }
-            autoSizeChildWidth = autoSizeChildrenSize / autoSizeChildrenScaleSum;
-        }
-        else
-        {
-            autoSizeChildWidth = autoSizeChildrenSize / autoSizeChildrenCount;
-        }
+
+        float autoSizeChildScaleSum = 0;
         for (int i = 0; i < childrenCount; i++)
         {
-            auto item = uiChildrenList[i];
+            auto& item = uiChildrenList[i];
+            bool bCanCollectSize = false;
             if (item.layoutElement != nullptr)
             {
                 auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
-                if (layoutType == ELayoutElementType::AutoSize)
-                {
-                    childrenWidthList[i] = autoSizeChildWidth;
-                }
+                bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
             }
             else
             {
-                childrenWidthList[i] = autoSizeChildWidth;
+                bCanCollectSize = true;
+            }
+            if (bCanCollectSize)
+            {
+                autoSizeChildScaleSum += UseChildScaleOnWidth ? item.uiItem->GetRelativeScale3D().Y : 1.0f;
+            }
+        }
+
+        if (ControlChildWidth)
+        {
+            float childAverangeWidth = autoSizeChildrenTotalWidth / autoSizeChildScaleSum;
+            for (int i = 0; i < childrenCount; i++)
+            {
+                auto& item = uiChildrenList[i];
+                bool bCanSetSize = false;
+                if (item.layoutElement != nullptr)
+                {
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    bCanSetSize = layoutType == ELayoutElementType::AutoSize;
+                }
+                else
+                {
+                    bCanSetSize = true;
+                }
+                if (bCanSetSize)
+                {
+                    auto childWidth = childAverangeWidth;
+                    childrenWidthList[i].Width = childWidth;
+                    if (UseChildScaleOnWidth)
+                    {
+                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                    }
+                    childrenWidthList[i].AreaWidth = childWidth;
+                }
+            }
+        }
+        else
+        {
+            float autoSizeChildSizeSum = 0;
+            for (int i = 0; i < childrenCount; i++)
+            {
+                auto& item = uiChildrenList[i];
+                bool bCanCollectSize = false;
+                if (item.layoutElement != nullptr)
+                {
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
+                }
+                else
+                {
+                    bCanCollectSize = true;
+                }
+                if (bCanCollectSize)
+                {
+                    auto childWidth = item.uiItem->GetWidth();
+                    if (UseChildScaleOnWidth)
+                    {
+                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                    }
+                    autoSizeChildSizeSum += childWidth;
+                }
+            }
+
+            auto extraChildWidthTotal = autoSizeChildrenTotalWidth - autoSizeChildSizeSum;
+            for (int i = 0; i < childrenCount; i++)
+            {
+                auto& item = uiChildrenList[i];
+                bool bCanCollectSize = false;
+                if (item.layoutElement != nullptr)
+                {
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
+                }
+                else
+                {
+                    bCanCollectSize = true;
+                }
+                if (bCanCollectSize)
+                {
+                    auto childWidth = item.uiItem->GetWidth();
+                    float extraChildWidth;
+                    if (UseChildScaleOnWidth)
+                    {
+                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                        extraChildWidth = extraChildWidthTotal * item.uiItem->GetRelativeScale3D().Y / autoSizeChildScaleSum;
+                    }
+                    else
+                    {
+                        extraChildWidth = extraChildWidthTotal / autoSizeChildrenCount;
+                    }
+                    childrenWidthList[i].AreaWidth = childWidth + extraChildWidth;
+                    childrenWidthList[i].Width = childWidth;
+                }
             }
         }
     }
@@ -208,9 +301,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
             float totalWidth = 0;
             for (int i = 0; i < childrenCount; i++)
             {
-                auto uiItem = uiChildrenList[i].uiItem;
+                auto& uiItem = uiChildrenList[i].uiItem;
                 auto itemWidth = uiItem->GetWidth();
-                if (UseChildrenScaleOnWidth)
+                if (UseChildScaleOnWidth)
                 {
                     itemWidth *= uiItem->GetRelativeScale3D().Y;
                 }
@@ -227,9 +320,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
             float totalWidth = 0;
             for (int i = 0; i < childrenCount; i++)
             {
-                auto uiItem = uiChildrenList[i].uiItem;
+                auto& uiItem = uiChildrenList[i].uiItem;
                 auto itemWidth = uiItem->GetWidth();
-                if (UseChildrenScaleOnWidth)
+                if (UseChildScaleOnWidth)
                 {
                     itemWidth *= uiItem->GetRelativeScale3D().Y;
                 }
@@ -239,6 +332,31 @@ void UUIHorizontalLayout::OnRebuildLayout()
             startPosition.X += (rectSize.X - totalWidth);
         }
         break;
+        }
+
+        for (int i = 0; i < childrenCount; i++)
+        {
+            auto& item = uiChildrenList[i];
+            bool bCanCollectSize = false;
+            if (item.layoutElement != nullptr)
+            {
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
+            }
+            else
+            {
+                bCanCollectSize = true;
+            }
+            if (bCanCollectSize)
+            {
+                auto childWidth = item.uiItem->GetWidth();
+                childrenWidthList[i].Width = childWidth;
+                if (UseChildScaleOnWidth)
+                {
+                    childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                }
+                childrenWidthList[i].AreaWidth = childWidth;
+            }
         }
     }
 
@@ -256,24 +374,22 @@ void UUIHorizontalLayout::OnRebuildLayout()
     for (int i = 0; i < childrenCount; i++)
     {
         auto uiItem = uiChildrenList[i].uiItem;
-        float childWidth;
-        if (ExpendChildrenWidth)
+        float childWidthArea = childrenWidthList[i].AreaWidth;
+        float childWidth = childrenWidthList[i].Width;
+        if (ExpandChildWidthArea)
         {
-            childWidth = childrenWidthList[i];
-            ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
-        }
-        else
-        {
-            childWidth = uiItem->GetWidth();
-        }
-        if (UseChildrenScaleOnWidth)
-        {
-            childWidth *= uiItem->GetRelativeScale3D().Y;
+            if (ControlChildWidth)
+            {
+                ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
+            }
         }
 
-        if (ExpendChildrenHeight)
+        if (ExpandChildHeightArea)
         {
-            ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
+            if (ControlChildHeight)
+            {
+                ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
+            }
         }
         else
         {
@@ -305,22 +421,61 @@ void UUIHorizontalLayout::OnRebuildLayout()
             }
         }
 
-        float anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
-        float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
         auto AnchorMin = uiItem->GetAnchorMin();
         auto AnchorMax = uiItem->GetAnchorMax();
-        if (AnchorMin.Y != AnchorMax.Y || AnchorMin.X != AnchorMax.X)//custom anchor not support
+        if (AnchorMin.X != AnchorMax.X)//custom anchor not support
         {
-            AnchorMin = FVector2D(0, 1);
-            AnchorMax = FVector2D(0, 1);
-            uiItem->SetHorizontalAndVerticalAnchorMinMax(AnchorMin, AnchorMax, true, true);
+            uiItem->SetHorizontalAnchorMinMax(FVector2D(0, 0), true, true);
+        }
+        if (ExpandChildHeightArea || ControlChildHeight)
+        {
+            if (AnchorMin.Y != AnchorMax.Y)
+            {
+                uiItem->SetVerticalAnchorMinMax(FVector2D(1, 1), true, true);
+            }
+        }
+        float anchorOffsetX = posX + uiItem->GetPivot().X * childWidthArea;
+        float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
+        if (ExpandChildWidthArea)
+        {
+            switch (Align)
+            {
+            case ELGUILayoutAlignmentType::UpperLeft:
+            case ELGUILayoutAlignmentType::MiddleLeft:
+            case ELGUILayoutAlignmentType::LowerLeft:
+            {
+                anchorOffsetX += (childWidthArea - childWidth) * (0.0f - uiItem->GetPivot().X);
+            }
+            break;
+            case ELGUILayoutAlignmentType::UpperCenter:
+            case ELGUILayoutAlignmentType::MiddleCenter:
+            case ELGUILayoutAlignmentType::LowerCenter:
+            {
+                anchorOffsetX += (childWidthArea - childWidth) * (0.5f - uiItem->GetPivot().X);
+            }
+            break;
+            case ELGUILayoutAlignmentType::UpperRight:
+            case ELGUILayoutAlignmentType::MiddleRight:
+            case ELGUILayoutAlignmentType::LowerRight:
+            {
+                anchorOffsetX += (childWidthArea - childWidth) * (1.0f - uiItem->GetPivot().X);
+            }
+            break;
+            }
+        }
+        if (ControlChildHeight)
+        {
+            anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
+        }
+        else
+        {
+            anchorOffsetY = uiItem->GetAnchoredPosition().Y;
         }
         anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
-        anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
         ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 
-        posX += childWidth + Spacing;
-        tempActuralHorizontalRange += childWidth;
+        posX += childWidthArea + Spacing;
+        tempActuralHorizontalRange += childWidthArea;
         if (tempVerticalMinSize > childHeight)
         {
             tempVerticalMinSize = childHeight;
@@ -335,12 +490,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
         tempActuralHorizontalRange += Spacing * (childrenCount - 1);
     }
     ActuralRange = tempActuralHorizontalRange;
-    if (WidthFitToChildren && !ExpendChildrenWidth)
+    if (WidthFitToChildren && !ExpandChildWidthArea)
     {
         auto thisWidth = tempActuralHorizontalRange + Padding.Left + Padding.Right;
         ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
     }
-    if (HeightFitToChildren && !ExpendChildrenHeight)
+    if (HeightFitToChildren && !ExpandChildHeightArea)
     {
         tempVerticalMinSize += Padding.Bottom + Padding.Top;
         tempVerticalMaxSize += Padding.Bottom + Padding.Top;
@@ -357,8 +512,8 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
 {
     if (this->GetRootUIComponent() == InUIItem)
     {
-        OutResult.bCanControlHorizontalSizeDelta = (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
-        OutResult.bCanControlVerticalSizeDelta = (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && this->GetEnable();
+        OutResult.bCanControlHorizontalSizeDelta = (!ExpandChildWidthArea && WidthFitToChildren) && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = (!ExpandChildHeightArea && HeightFitToChildren) && this->GetEnable();
         return true;
     }
     else
@@ -372,11 +527,11 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
             return true;
         }
         OutResult.bCanControlHorizontalAnchor = this->GetEnable();
-        OutResult.bCanControlVerticalAnchor = this->GetEnable();
+        OutResult.bCanControlVerticalAnchor = this->GetEnable() && (ExpandChildHeightArea || ControlChildHeight);
         OutResult.bCanControlHorizontalAnchoredPosition = this->GetEnable();
-        OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
-        OutResult.bCanControlHorizontalSizeDelta = GetExpendChildrenWidth() && this->GetEnable();
-        OutResult.bCanControlVerticalSizeDelta = GetExpendChildrenHeight() && this->GetEnable();
+        OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable() && (ExpandChildHeightArea || ControlChildHeight);
+        OutResult.bCanControlHorizontalSizeDelta = ExpandChildWidthArea && ControlChildWidth && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = ExpandChildHeightArea && ControlChildHeight && this->GetEnable();
         if (auto LayoutElementComp = Cast<UUILayoutElement>(LayoutElementInterface))
         {
             if (LayoutElementComp->GetConstantSizeType() == EUILayoutElement_ConstantSizeType::UseUIItemSize)
