@@ -128,6 +128,10 @@ bool ULGUIPrefabSequence::CanPossessObject(UObject& Object, UObject* InPlaybackC
 		{
 			Actor = Component->GetOwner();
 		}
+		if (Actor == nullptr)
+		{
+			Actor = Object.GetTypedOuter<AActor>();
+		}
 	}
 
 	if (Actor != nullptr)
