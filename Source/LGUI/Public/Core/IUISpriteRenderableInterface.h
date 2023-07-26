@@ -16,10 +16,10 @@ class LGUI_API IUISpriteRenderableInterface
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI")
-		ULGUISpriteData_BaseObject* GetSprite()const;
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
+		ULGUISpriteData_BaseObject* SpriteRenderableGetSprite()const;
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
 		void ApplyAtlasTextureChange();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
 		void ApplyAtlasTextureScaleUp();
 };
