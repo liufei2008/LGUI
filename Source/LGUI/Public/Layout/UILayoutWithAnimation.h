@@ -24,7 +24,6 @@ class LGUI_API UUILayoutWithAnimation : public UUILayoutBase
 
 protected:
 
-	friend class FUIGridLayoutCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="AnimationType==EUILayoutChangePositionAnimationType::EaseAnimation"))
