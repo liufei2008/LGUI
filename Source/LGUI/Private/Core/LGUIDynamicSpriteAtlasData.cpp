@@ -138,13 +138,13 @@ void FLGUIDynamicSpriteAtlasData::CheckSprite(const FName& packingTag)
 		auto itemSprite = this->renderSpriteArray[i];
 		if (IsValid(itemSprite.GetObject()))
 		{
-			if (!IsValid(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
+			if (!IsValid(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
 			{
 				this->renderSpriteArray.RemoveAt(i);
 			}
 			else
 			{
-				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_GetSprite(itemSprite.GetObject())))
+				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
 				{
 					if (spriteData->GetPackingTag() != packingTag)
 					{
