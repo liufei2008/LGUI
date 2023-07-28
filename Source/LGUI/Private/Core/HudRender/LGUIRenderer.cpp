@@ -454,11 +454,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 	float ColorCorrectionValue =
-#if PLATFORM_ANDROID || PLATFORM_IOS
-		IsMobileHDR() ? 0.45454545f : 1.0f;
-#else
 		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : 0.45454545f;
-#endif
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{

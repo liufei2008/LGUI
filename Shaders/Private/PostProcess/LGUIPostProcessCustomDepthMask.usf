@@ -37,9 +37,6 @@ SamplerState _MobileCustomStencilTexSampler;
 float4 MobileCustomDepthStencilMaskPS(SimpleVSToPS input) : SV_Target0
 {
     float2 stencilUV = input.uv;
-#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
-	stencilUV.y = 1.0 - stencilUV.y;
-#endif
     float stencilFloat = _MobileCustomStencilTex.Sample(_MobileCustomStencilTexSampler, stencilUV).r * 255.0;
     int stencil = floor(stencilFloat + 0.5);
     float lerpValue = _StencilValue == stencil ? 1 : 0;
