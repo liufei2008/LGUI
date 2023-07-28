@@ -755,7 +755,7 @@ void ULGUIRenderTargetGeometrySource::SetFlipVerticalOnGLES(bool Value)
 	if (bFlipVerticalOnGLES != Value)
 	{
 		bFlipVerticalOnGLES = Value;
-#if PLATFORM_ANDROID
+#if PLATFORM_ANDROID && 0//UE5.1 don't need this
 		if (MaterialInstance != nullptr)
 		{
 			auto ShaderPlatform = GShaderPlatformForFeatureLevel[GetWorld()->FeatureLevel];
@@ -844,7 +844,7 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstanceParameters()
 	if (MaterialInstance)
 	{
 		MaterialInstance->SetTextureParameterValue(PARAMETER_NAME_MAINTEXTURE, GetRenderTarget());
-#if PLATFORM_ANDROID
+#if PLATFORM_ANDROID && 0//UE5.1 don't need this
 		auto ShaderPlatform = GShaderPlatformForFeatureLevel[GetWorld()->FeatureLevel];
 		if (ShaderPlatform == EShaderPlatform::SP_OPENGL_ES3_1_ANDROID)
 		{

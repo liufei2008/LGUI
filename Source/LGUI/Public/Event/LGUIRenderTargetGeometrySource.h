@@ -56,6 +56,7 @@ private:
 		bool bEnableInteractOnBackside = false;
 	/**
 	 * Android GLES is flipped, so we flip it back. This just set the material property "FlipY".
+	 * No need for UE5.1 and upward
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bFlipVerticalOnGLES = true;

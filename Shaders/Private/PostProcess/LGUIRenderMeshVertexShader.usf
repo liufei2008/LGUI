@@ -28,8 +28,4 @@ void RenderMeshVS(
 #if LGUI_BLEND_DEPTH
     v2p.screenPosition = v2p.position;
 #endif
-#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
-	v2p.uv.y = 1.0f - v2p.uv.y;
-    v2p.position.y *= -1.0f;
-#endif
 }
