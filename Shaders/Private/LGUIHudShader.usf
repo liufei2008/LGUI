@@ -46,7 +46,7 @@ FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 T
 	}
 #endif
 
-#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
+#if COMPILER_GLSL_ES3_1 && !MOBILE_EMULATION
 	VertexColor.rgba = VertexColor.bgra;
 #endif
 	
@@ -133,10 +133,6 @@ void MainVS(
 	);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
-
-#if !OUTPUT_MOBILE_HDR && COMPILER_GLSL_ES3_1
-	Output.Position.y *= -1;
-#endif
 }
 
 
@@ -193,11 +189,6 @@ void MainPS(
 )
 {
 	ResolvedView = ResolveView();
-
-#if COMPILER_GLSL_ES3_1 && !OUTPUT_MOBILE_HDR && !MOBILE_EMULATION
-	// LDR Mobile needs screen vertical flipped
-	SvPosition.y = ResolvedView.BufferSizeAndInvSize.y - SvPosition.y - 1;
-#endif
 
 	FMaterialPixelParameters MaterialParameters = GetMaterialPixelParameters(Interpolants, SvPosition);
 	FPixelMaterialInputs PixelMaterialInputs;
