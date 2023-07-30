@@ -24,103 +24,12 @@
 #include "PrefabAnimation/LGUIPrefabSequenceComponent.h"
 #include "Selection.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "LevelEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 
 DECLARE_DELEGATE_OneParam(FPrefabAnimationOnComponentSelected, TSharedPtr<FSCSEditorTreeNode>);
 DECLARE_DELEGATE_RetVal_OneParam(bool, FPrefabAnimationIsComponentValid, UActorComponent*);
-
-
-class FFakeToolkitHost : public IToolkitHost
-{
-
-public:
-
-	FFakeToolkitHost()
-	{
-		SAssignNew(ParentWiget, STextBlock);
-		//SAssignNew(DockTabStack, SDockTabStack);
-	}
-	virtual ~FFakeToolkitHost()
-	{
-	}
-
-	/** Gets a widget that can be used to parent a modal window or pop-up to.  You shouldn't be using this widget for
-		anything other than parenting, as the type of widget and behavior/lifespan is completely up to the host. */
-	virtual TSharedRef< class SWidget > GetParentWidget() override
-	{
-		return ParentWiget.ToSharedRef();
-	}
-
-	/** Brings this toolkit host's window (and tab, if it has one), to the front */
-	virtual void BringToFront()
-	{
-	}
-
-	/** Gets a tab stack to place a new tab for the specified toolkit area */
-	virtual TSharedRef< class SDockTabStack > GetTabSpot(const EToolkitTabSpot::Type TabSpot)
-	{
-		return TSharedPtr<SDockTabStack>().ToSharedRef();
-	}
-
-	/** Access the toolkit host's tab manager */
-	virtual TSharedPtr< class FTabManager > GetTabManager() const
-	{
-		return FGlobalTabmanager::Get();
-	}
-
-	/** Called when a toolkit is opened within this host */
-	virtual void OnToolkitHostingStarted(const TSharedRef< class IToolkit >& Toolkit)
-	{
-
-	}
-
-	/** Called when a toolkit is no longer being hosted within this host */
-	virtual void OnToolkitHostingFinished(const TSharedRef< class IToolkit >& Toolkit)
-	{
-	}
-
-	/** @return For world-centric toolkit hosts, gets the UWorld associated with this host */
-	virtual class UWorld* GetWorld() const
-	{
-		return nullptr;
-	}
-
-	/** Returns the mode manager for this toolkit host. For standalone toolkits */
-	virtual FEditorModeTools& GetEditorModeManager() const
-	{
-		return *EditorModeManager.Get();
-	}
-
-	/** Returns the common actions implementation for this toolkit host */
-	virtual UTypedElementCommonActions* GetCommonActions() const
-	{
-		return nullptr;
-	}
-
-	/** Returns the status bar name that can be used with UStatusBarSubsystem to display messages
-		in the status bar of this toolkit host. Should return NAME_None if not applicable. */
-	virtual FName GetStatusBarName()const
-	{
-		return NAME_None;
-	}
-
-	/** Gets a multicast delegate which is executed whenever the toolkit host's active viewport changes. */
-	virtual FOnActiveViewportChanged& OnActiveViewportChanged()
-	{
-		return OnActiveViewportChangedDelegate;
-	}
-
-protected:
-	TSharedPtr< class SWidget > ParentWiget;
-	//TSharedPtr< class SDockTabStack > DockTabStack;
-private:
-	/** The editor mode manager */
-	TSharedPtr<FEditorModeTools> EditorModeManager;
-
-	/** A delegate which is called any time the LevelEditor's active viewport changes. */
-	FOnActiveViewportChanged OnActiveViewportChangedDelegate;
-};
 
 
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
@@ -139,6 +48,7 @@ public:
 	{
 		if (Sequencer.IsValid())
 		{
+			Sequencer->SetShowCurveEditor(false);
 			FLevelEditorSequencerIntegration::Get().RemoveSequencer(Sequencer.ToSharedRef());
 			Sequencer->Close();
 			Sequencer = nullptr;
@@ -195,7 +105,7 @@ public:
 		];
 
 		GEditor->RegisterForUndo(this);
-		ToolkitHost = MakeShared<FFakeToolkitHost>();
+		ToolkitHost = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor").GetFirstLevelEditor();
 
 		// Register sequencer menu extenders.
 		ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
@@ -303,6 +213,7 @@ public:
 		{
 			if (Sequencer.IsValid())
 			{
+				Sequencer->SetShowCurveEditor(false);
 				FLevelEditorSequencerIntegration::Get().RemoveSequencer(Sequencer.ToSharedRef());
 				Sequencer->Close();
 				Sequencer = nullptr;
