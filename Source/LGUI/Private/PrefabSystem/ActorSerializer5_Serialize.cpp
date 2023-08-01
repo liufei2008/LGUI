@@ -63,7 +63,7 @@ namespace LGUIPrefabSystem5
 	void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
 	{
 		if (!IsValid(Actor))return;
-		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab
+		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab's actor is not collected in WillSerailizeActorArray
 		{
 			OutActorSaveData.bIsPrefab = true;
 			OutActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
@@ -88,6 +88,7 @@ namespace LGUIPrefabSystem5
 		}
 		else
 		{
+			if (!WillSerailizeActorArray.Contains(Actor))return;
 			auto ActorGuid = MapObjectToGuid[Actor];
 
 			OutActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
