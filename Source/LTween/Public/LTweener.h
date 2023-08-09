@@ -10,6 +10,12 @@ DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, 
 DECLARE_DELEGATE_OneParam(FLTweenUpdateDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLTweenUpdateMulticastDelegate, float);
 
+#ifndef LTweenUpdateDelegate
+#define LTweenUpdateDelegate DEPRECATED_MACRO(5.0, "LTweenUpdateDelegate has been renamed to FLTweenUpdateDelegate") FLTweenUpdateDelegate
+#endif
+#ifndef LTweenUpdateMulticastDelegate
+#define LTweenUpdateMulticastDelegate DEPRECATED_MACRO(5.0, "LTweenUpdateMulticastDelegate has been renamed to FLTweenUpdateMulticastDelegate") FLTweenUpdateMulticastDelegate
+#endif
 
 DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenFloatSetterFunction, float);
@@ -92,6 +98,11 @@ enum class ELTweenEase :uint8
 	/** Use CurveFloat to animate, only range 0-1 is valid. If use this you must assign curveFloat, or fallback to Linear. */
 	CurveFloat,
 };
+
+#ifndef LTweenEase
+#define LTweenEase DEPRECATED_MACRO(5.0, "LTweenEase has been renamed to ELTweenEase") ELTweenEase
+#endif
+
 /**
  * Loop type
  */
@@ -107,6 +118,10 @@ enum class ELTweenLoop :uint8
 	/** Continuously increments the tween at the end of each loop cycle (A to B, B to B+(A-B), and so on). */
 	Incremental,
 };
+
+#ifndef LTweenLoop
+#define LTweenLoop DEPRECATED_MACRO(5.0, "LTweenLoop has been renamed to ELTweenLoop") ELTweenLoop
+#endif
 
 class UCurveFloat;
 
