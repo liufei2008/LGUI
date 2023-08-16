@@ -137,6 +137,10 @@ public:
 	{
 		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
+	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration)
+	{
+		return ULTweenManager::VirtualTo(WorldContextObject, duration);
+	}
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FTweenerSimpleDynamicDelegate delayComplete)
