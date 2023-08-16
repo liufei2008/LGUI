@@ -1296,33 +1296,24 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		ETraceTypeQuery LGUITraceTypeQuery;
+		auto bIsTraceTypeQueryValid = CreateTraceChannel_BasicSetup(LGUITraceTypeQuery);
+
 		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
+		if (bIsTraceTypeQueryValid)
+		{
+			SetTraceChannel(actor, LGUITraceTypeQuery);
+			SetTraceChannelToParent_Recursive(actor);
+		}
 		if (auto selectedActor = GetFirstSelectedActor())
 		{
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(actor, true, true);
-
-		bool haveEventSystem = false;
-		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
-		{
-			haveEventSystem = true;
-			break;
-		}
-		if (!haveEventSystem)
-		{
-			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
-			{
-				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
-			}
-			else
-			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup] Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
-			}
-		}
+		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
 		ALGUIManagerActor::RefreshAllUI();
 	}
@@ -1337,33 +1328,24 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		ETraceTypeQuery LGUITraceTypeQuery;
+		auto bIsTraceTypeQueryValid = CreateTraceChannel_BasicSetup(LGUITraceTypeQuery);
+
 		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - UE Renderer")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
+		if (bIsTraceTypeQueryValid)
+		{
+			SetTraceChannel(actor, LGUITraceTypeQuery);
+			SetTraceChannelToParent_Recursive(actor);
+		}
 		if (auto selectedActor = GetFirstSelectedActor())
 		{
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(actor, true, true);
-		
-		bool haveEventSystem = false;
-		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
-		{
-			haveEventSystem = true;
-			break;
-		}
-		if (!haveEventSystem)
-		{
-			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
-			{
-				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
-			}
-			else
-			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
-			}
-		}
+		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
 		ALGUIManagerActor::RefreshAllUI();
 	}
@@ -1378,33 +1360,24 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		ETraceTypeQuery LGUITraceTypeQuery;
+		auto bIsTraceTypeQueryValid = CreateTraceChannel_BasicSetup(LGUITraceTypeQuery);
+
 		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - LGUI Renderer")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
+		if (bIsTraceTypeQueryValid)
+		{
+			SetTraceChannel(actor, LGUITraceTypeQuery);
+			SetTraceChannelToParent_Recursive(actor);
+		}
 		if (auto selectedActor = GetFirstSelectedActor())
 		{
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(actor, true, true);
-
-		bool haveEventSystem = false;
-		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
-		{
-			haveEventSystem = true;
-			break;
-		}
-		if (!haveEventSystem)
-		{
-			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
-			{
-				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
-			}
-			else
-			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
-			}
-		}
+		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
 		ALGUIManagerActor::RefreshAllUI();
 	}
@@ -1413,6 +1386,155 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issue."), *prefabPath);
 	}
 }
+void LGUIEditorTools::CreatePresetEventSystem_BasicSetup()
+{
+	bool haveEventSystem = false;
+	for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
+	{
+		haveEventSystem = true;
+		break;
+	}
+	if (!haveEventSystem)
+	{
+		if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
+		{
+			GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
+		}
+		else
+		{
+			UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issue."));
+		}
+	}
+}
+PRAGMA_DISABLE_OPTIMIZATION
+bool LGUIEditorTools::CreateTraceChannel_BasicSetup(ETraceTypeQuery& OutTraceTypeQuery)
+{
+	enum class ELGUIChannelErrorType
+	{
+		NoError,
+		NoLGUIChannel,
+		ChannelIsNotTrace,
+	};
+	const auto DefaultChannelResponsesName = FName(TEXT("DefaultChannelResponses"));
+	auto OnLGUIChannel = [=](const TFunction<void(FByteProperty*, void*)>& OnDefaultResponseProperty, ECollisionChannel& OutChannel) {
+		auto DefaultChannelResponses_Property = FindFProperty<FArrayProperty>(UCollisionProfile::StaticClass(), DefaultChannelResponsesName);
+		auto CollisionProfile = UCollisionProfile::Get();
+		FScriptArrayHelper ArrayHelper(DefaultChannelResponses_Property, DefaultChannelResponses_Property->ContainerPtrToValuePtr<void>(CollisionProfile));
+		for (int i = 0; i < ArrayHelper.Num(); i++)
+		{
+			if (auto StructProperty = CastField<FStructProperty>(DefaultChannelResponses_Property->Inner))
+			{
+				auto StructPtr = StructProperty->ContainerPtrToValuePtr<uint8>(ArrayHelper.GetRawPtr(i));
+				FByteProperty* ChannelProperty = nullptr;
+				FNameProperty* DisplayNameProperty = nullptr;
+				FByteProperty* DefaultResponseProperty = nullptr;
+				FBoolProperty* TraceTypeProperty = nullptr;
+				for (TFieldIterator<FProperty> It(StructProperty->Struct); It; ++It)
+				{
+					if (It->GetFName() == TEXT("Name"))
+					{
+						if (auto NameProperty = CastField<FNameProperty>(*It))
+						{
+							DisplayNameProperty = NameProperty;
+						}
+					}
+					else if (It->GetFName() == TEXT("Channel"))
+					{
+						if (auto ByteProperty = CastField<FByteProperty>(*It))
+						{
+							ChannelProperty = ByteProperty;
+						}
+					}
+					else if (It->GetFName() == TEXT("DefaultResponse"))
+					{
+						if (auto ByteProperty = CastField<FByteProperty>(*It))
+						{
+							DefaultResponseProperty = ByteProperty;
+						}
+					}
+					else if (It->GetFName() == TEXT("bTraceType"))
+					{
+						if (auto BoolProperty = CastField<FBoolProperty>(*It))
+						{
+							TraceTypeProperty = BoolProperty;
+						}
+					}
+				}
+				if (DisplayNameProperty != nullptr && DefaultResponseProperty != nullptr && TraceTypeProperty != nullptr && ChannelProperty != nullptr)
+				{
+					if (DisplayNameProperty->GetPropertyValue_InContainer(StructPtr) == TEXT("LGUI"))
+					{
+						if (TraceTypeProperty->GetPropertyValue_InContainer(StructPtr) == true)
+						{
+							OnDefaultResponseProperty(DefaultResponseProperty, StructPtr);
+							OutChannel = (ECollisionChannel)ChannelProperty->GetPropertyValue_InContainer(StructPtr);
+							return ELGUIChannelErrorType::NoError;
+						}
+						else
+						{
+							return ELGUIChannelErrorType::ChannelIsNotTrace;
+						}
+					}
+				}
+			}
+		}
+		return ELGUIChannelErrorType::NoLGUIChannel;
+	};
+	auto GetLGUIChannelResponse = [=](ECollisionResponse& Response, ECollisionChannel& OutChannelIndex) {
+		return OnLGUIChannel([&](FByteProperty* DefaultResponseProperty, void* StructPtr) {
+			DefaultResponseProperty->GetValue_InContainer(StructPtr, (uint8*)&Response);
+			}, OutChannelIndex);
+	};
+	auto SetLGUIChannelResponse = [=](ECollisionChannel& OutChannelIndex) {
+		return OnLGUIChannel([](FByteProperty* DefaultResponseProperty, void* StructPtr) {
+			auto Response = ECollisionResponse::ECR_Ignore;
+			DefaultResponseProperty->SetValue_InContainer(StructPtr, (uint8)Response);
+			}, OutChannelIndex);
+	};
+
+	ECollisionResponse Response = ECollisionResponse::ECR_MAX;
+	ECollisionChannel TraceChannel = ECollisionChannel::ECC_MAX;
+	auto ChannelErrorType = GetLGUIChannelResponse(Response, TraceChannel);
+	switch (ChannelErrorType)
+	{
+	case ELGUIChannelErrorType::NoError:
+	{
+		if (Response != ECollisionResponse::ECR_Ignore)
+		{
+			auto Message = LOCTEXT("RecommandLGUITraceChannelSettings", "It is recommanded to set \"Default Response\" of LGUI trace channel to \"Ignore\".");
+			FMessageDialog::Open(EAppMsgType::Ok, Message);
+			auto CollisionProfile = UCollisionProfile::Get();
+			OutTraceTypeQuery = CollisionProfile->ConvertToTraceType(TraceChannel);
+			return true;
+		}
+		else
+		{
+			auto CollisionProfile = UCollisionProfile::Get();
+			OutTraceTypeQuery = CollisionProfile->ConvertToTraceType(TraceChannel);
+			return true;
+		}
+	}
+	break;
+	case ELGUIChannelErrorType::NoLGUIChannel:
+	{
+		auto Message = LOCTEXT("RecommandCreateLGUITraceChannel", "It is recommanded to create a specific trace channel for LGUI, with name \"LGUI\", and default response \"Ignore\".");
+		FMessageDialog::Open(EAppMsgType::Ok, Message);
+	}
+	break;
+	case ELGUIChannelErrorType::ChannelIsNotTrace:
+	{
+		auto Message = LOCTEXT("LGUIChannelIsNotTraceType", "\
+Trying to use \"LGUI\" as trace channel, but detect a collision channel with name \"LGUI\"!\n\
+It is recommanded to create a specific trace channel for LGUI, with name \"LGUI\", and default response \"Ignore\".\
+");
+		FMessageDialog::Open(EAppMsgType::Ok, Message);
+	}
+	break;
+	}
+	return false;
+}
+PRAGMA_ENABLE_OPTIMIZATION
+
 void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass)
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Attach Component to Actor")));
@@ -1923,16 +2045,7 @@ void LGUIEditorTools::SetTraceChannelToParent(AActor* InActor)
 		{
 			if (auto parentUIComp = Cast<UUIItem>(parentComp))
 			{
-				TArray<UUIItem*> components;
-				InActor->GetComponents<UUIItem>(components);
-				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI SetTraceChannelToParent")));
-				for (auto compItem : components)
-				{
-					compItem->Modify();
-					compItem->SetTraceChannel(parentUIComp->GetTraceChannel());
-					LGUIUtils::NotifyPropertyChanged(compItem, UUIItem::GetTraceChannelPropertyName());
-				}
-				GEditor->EndTransaction();
+				SetTraceChannel(InActor, parentUIComp->GetTraceChannel());
 			}
 		}
 	}
@@ -1945,6 +2058,17 @@ void LGUIEditorTools::SetTraceChannelToParent_Recursive(AActor* InActor)
 	for (auto itemActor : childrenActors)
 	{
 		SetTraceChannelToParent_Recursive(itemActor);
+	}
+}
+void LGUIEditorTools::SetTraceChannel(AActor* InActor, ETraceTypeQuery InTraceTypeQuery)
+{
+	TArray<UUIItem*> Components;
+	InActor->GetComponents<UUIItem>(Components);
+	for (auto CompItem : Components)
+	{
+		CompItem->Modify();
+		CompItem->SetTraceChannel(InTraceTypeQuery);
+		LGUIUtils::NotifyPropertyChanged(CompItem, UUIItem::GetTraceChannelPropertyName());
 	}
 }
 

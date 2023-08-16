@@ -46,6 +46,8 @@ public:
 	static void CreateScreenSpaceUI_BasicSetup();
 	static void CreateWorldSpaceUIUERenderer_BasicSetup();
 	static void CreateWorldSpaceUILGUIRenderer_BasicSetup();
+	static void CreatePresetEventSystem_BasicSetup();
+	static bool CreateTraceChannel_BasicSetup(ETraceTypeQuery& OutTraceTypeQuery);
 	static void AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass);
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
@@ -75,6 +77,7 @@ public:
 	static void MakeCurrentLevel(AActor* InActor);
 	static void SetTraceChannelToParent(AActor* InActor);
 	static void SetTraceChannelToParent_Recursive(AActor* InActor);
+	static void SetTraceChannel(AActor* InActor, ETraceTypeQuery InTraceTypeQuery);
 
 	static void ForceGC();
 };
