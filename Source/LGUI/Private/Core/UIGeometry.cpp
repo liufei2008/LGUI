@@ -338,7 +338,7 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			}
 		}
 
-		if (InVertexUVChanged)
+		if (InVertexUVChanged || bSoftEdge)
 		{			
 			int vertStartIndex = 0;
 			if (bOuterShadow)
