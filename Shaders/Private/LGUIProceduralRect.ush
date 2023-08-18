@@ -355,8 +355,10 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         d /= fwidth(d);
         d = saturate(d);
         radialFillAlpha = color.a * d;
-        color.a = lerp(color.a, radialFillAlpha, _EnableRadialFill);
+        color.a = lerp(color.a, radialFillAlpha, _EnableRadialFill * sign(max(0, 360.0f - _RadialFillAngle)));
     }
+    color.a *= sign(abs(_QuadSize.x)) * sign(abs(_QuadSize.y));//if size is 0
+
     Color = color.rgb;
     Alpha = color.a;
     

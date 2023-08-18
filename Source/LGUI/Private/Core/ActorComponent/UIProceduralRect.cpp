@@ -33,7 +33,7 @@ void UUIProceduralRect::FillData(uint8* Data, float width, float height)
 		, 0, 0
 		, DataOffset);
 
-	FillVector2ToData(Data, QuadSize, DataOffset);
+	FillVector2ToData(Data, FVector2f(width, height), DataOffset);
 
 	FillVector4ToData(Data, GetValueWithUnitMode(CornerRadius, CornerRadiusUnitMode, width, height, 0.5f), DataOffset);
 	FillColorToData(Data, BodyColor, DataOffset);
@@ -617,9 +617,6 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 	if (bNeedUpdateBlockData)
 	{
 		bNeedUpdateBlockData = false;
-
-		QuadSize.X = this->GetWidth();
-		QuadSize.Y = this->GetHeight();
 
 		auto BlockSize = ProceduralRectData->GetBlockSizeInByte();
 		uint8* BlockBuffer = new uint8[BlockSize];

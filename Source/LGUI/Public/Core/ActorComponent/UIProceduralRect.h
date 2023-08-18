@@ -57,8 +57,6 @@ protected:
 	friend class FUIProceduralRectCustomization;
 
 #pragma region BlockData
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-ProceduralRect")
-		FVector2f QuadSize = FVector2f::Zero();
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FVector4f CornerRadius = FVector4f::One();
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
