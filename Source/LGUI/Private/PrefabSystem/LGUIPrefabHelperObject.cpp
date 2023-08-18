@@ -545,7 +545,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 	if (InObject->GetWorld() == this->GetPrefabWorld())
 	{
 		auto PropertyName = InMemberProperty->GetFName();
-		AActor* PropertyActor = nullptr;
+		AActor* PropertyActorInSubPrefab = nullptr;
 		if (auto Actor = Cast<AActor>(InObject))
 		{
 			if (auto ObjectProperty = CastField<FObjectPropertyBase>(InMemberProperty))
@@ -557,7 +557,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 			}
 			if (IsActorBelongsToSubPrefab(Actor))
 			{
-				PropertyActor = Actor;
+				PropertyActorInSubPrefab = Actor;
 			}
 		}
 		if (auto Component = Cast<UActorComponent>(InObject))
@@ -577,40 +577,44 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 					}
 					if (bFindObjectInGuidMap)
 					{
-						PropertyActor = Actor;
+						PropertyActorInSubPrefab = Actor;
 					}
 				}
 			}
 		}
-		else if(PropertyActor != nullptr//if drag in level editor, then property change event will notify actor, so we need to collect property on actor's root component
+		else if(PropertyActorInSubPrefab != nullptr//if drag in level editor, then property change event will notify actor, so we need to collect property on actor's root component
 			&& (PropertyName == USceneComponent::GetRelativeLocationPropertyName()
 				|| PropertyName == USceneComponent::GetRelativeRotationPropertyName()
 				|| PropertyName == USceneComponent::GetRelativeScale3DPropertyName()
 				)
 			)
 		{
-			InObject = PropertyActor->GetRootComponent();
+			InObject = PropertyActorInSubPrefab->GetRootComponent();
 		}
-		if (PropertyActor)//only allow actor or component's member property
+		if (PropertyActorInSubPrefab)//only allow actor or component's member property
 		{
 			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
 			if (Property != nullptr)
 			{
 				SetAnythingDirty();
-				AddMemberPropertyToSubPrefab(PropertyActor, InObject, PropertyName);
+				AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, PropertyName);
 				if (auto UIItem = Cast<UUIItem>(InObject))
 				{
 					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
 					{
-						AddMemberPropertyToSubPrefab(PropertyActor, InObject, UUIItem::GetAnchorDataPropertyName());
+						AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, UUIItem::GetAnchorDataPropertyName());
 					}
 					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
 					{
-						AddMemberPropertyToSubPrefab(PropertyActor, InObject, USceneComponent::GetRelativeLocationPropertyName());
+						AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, USceneComponent::GetRelativeLocationPropertyName());
 					}
 				}
 				//refresh override parameter
 			}
+		}
+		else
+		{
+			SetAnythingDirty();
 		}
 	}
 }
