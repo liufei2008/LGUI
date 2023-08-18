@@ -20,6 +20,6 @@ public:
 		UUIProceduralRect* GetUIProceduralRect()const { return UIProceduralRect; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UUIProceduralRect* UIProceduralRect;
+		TObjectPtr<UUIProceduralRect> UIProceduralRect;
 	
 };

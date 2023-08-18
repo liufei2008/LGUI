@@ -397,8 +397,9 @@ FLGUIEventDelegateData::~FLGUIEventDelegateData()
 }
 void FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile()
 {
-	for (auto Item : AllEventDelegateDataArray)
+	for (int i = 0; i < AllEventDelegateDataArray.Num(); i++)
 	{
+		auto& Item = AllEventDelegateDataArray[i];
 		Item->RefreshOnBlueprintRecompile();
 	}
 }
