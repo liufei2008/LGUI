@@ -20,6 +20,6 @@ public:
 		UUIBackgroundPixelate* GetUIBackgroundPixelate()const { return UIBackgroundPixelate; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<class UUIBackgroundPixelate> UIBackgroundPixelate;
+		TObjectPtr<UUIBackgroundPixelate> UIBackgroundPixelate;
 	
 };

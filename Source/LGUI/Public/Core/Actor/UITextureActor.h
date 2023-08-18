@@ -20,6 +20,6 @@ public:
 		UUITexture* GetUITexture()const { return UITexture; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<class UUITexture> UITexture;
+		TObjectPtr<UUITexture> UITexture;
 	
 };
