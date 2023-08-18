@@ -20,6 +20,6 @@ public:
 		UUISprite* GetUISprite()const { return UISprite; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<class UUISprite> UISprite;
+		TObjectPtr<UUISprite> UISprite;
 	
 };
