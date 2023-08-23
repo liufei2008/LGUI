@@ -970,7 +970,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			bShouldUpdateOnCultureChanged = false;
 			for (auto& item : AllCultureChangedArray)
 			{
-				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.GetObject());
+				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.Get());
 			}
 		}
 	}
@@ -1318,14 +1318,14 @@ void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICu
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
-		Instance->AllCultureChangedArray.AddUnique(InItem);
+		Instance->AllCultureChangedArray.AddUnique(InItem.GetObject());
 	}
 }
 void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
-		Instance->AllCultureChangedArray.RemoveSingle(InItem);
+		Instance->AllCultureChangedArray.RemoveSingle(InItem.GetObject());
 	}
 }
 
@@ -1339,7 +1339,7 @@ void ALGUIManagerActor::UpdateLayout()
 		bNeedUpdateLayout = false;
 		for (auto& item : AllLayoutArray)
 		{
-			ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
+			ILGUILayoutInterface::Execute_OnUpdateLayout(item.Get());
 		}
 	}
 }
@@ -1384,9 +1384,9 @@ void ALGUIManagerActor::RefreshAllUI(UWorld* InWorld)
 		auto Instance = KeyValue.Value;
 		for (auto& Layout : Instance->AllLayoutArray)
 		{
-			if (Layout.GetObject() != nullptr)
+			if (Layout.IsValid())
 			{
-				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.GetObject());
+				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.Get());
 			}
 		}
 		for (auto& RootUIItem : Instance->AllRootUIItemArray)
@@ -1562,9 +1562,9 @@ void ALGUIManagerActor::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->AllLayoutArray.Contains(InItem));
+		check(!Instance->AllLayoutArray.Contains(InItem.GetObject()));
 #endif
-		Instance->AllLayoutArray.AddUnique(InItem);
+		Instance->AllLayoutArray.AddUnique(InItem.GetObject());
 	}
 }
 void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
@@ -1572,9 +1572,9 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->AllLayoutArray.Contains(InItem));
+		check(Instance->AllLayoutArray.Contains(InItem.GetObject()));
 #endif
-		Instance->AllLayoutArray.RemoveSingle(InItem);
+		Instance->AllLayoutArray.RemoveSingle(InItem.GetObject());
 	}
 }
 void ALGUIManagerActor::MarkUpdateLayout(UWorld* InWorld)
