@@ -142,10 +142,12 @@ private:
 		TWeakObjectPtr<ULGUIBaseInputModule> CurrentInputModule = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUISelectableComponent>> AllSelectableArray;
+	//ILGUILayoutInterface
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
+		TArray<TWeakObjectPtr<UObject>> AllLayoutArray;
+	//ILGUICultureChangedInterface
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUICultureChangedInterface>> AllCultureChangedArray;
+		TArray<TWeakObjectPtr<UObject>> AllCultureChangedArray;
 
 	bool bShouldSortLGUIRenderer = true;
 	bool bShouldSortWorldSpaceCanvas = true;
@@ -195,7 +197,7 @@ public:
 	void MarkSortRenderTargetSpaceCanvas();
 	static void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InAllCanvasArray);
 
-	const TArray<TScriptInterface<ILGUILayoutInterface>>& GetAllLayoutArray()const { return AllLayoutArray; }
+	const TArray<TWeakObjectPtr<UObject>>& GetAllLayoutArray()const { return AllLayoutArray; }
 
 	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
