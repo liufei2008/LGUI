@@ -25,9 +25,9 @@ struct LGUI_API FLGUIDynamicSpriteAtlasData
 	/** sprites belong to this atlas */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<TObjectPtr<ULGUISpriteData>> spriteDataArray;
-	/** collection of all UISprite whitch use this atlas to render */
+	/** collection of all objects that use this atlas to render. Object must implement IUISpriteRenderableInterface. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
-	TArray<TScriptInterface<IUISpriteRenderableInterface>> renderSpriteArray;
+	TArray<TWeakObjectPtr<UObject>> renderSpriteArray;
 
 	void EnsureAtlasTexture(const FName& packingTag);
 	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);

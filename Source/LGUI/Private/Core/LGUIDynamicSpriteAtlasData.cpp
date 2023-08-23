@@ -92,9 +92,9 @@ int32 FLGUIDynamicSpriteAtlasData::ExpendTextureSize(const FName& packingTag)
 	//tell UISprite to scale down uv
 	for (auto itemSprite : this->renderSpriteArray)
 	{
-		if (IsValid(itemSprite.GetObject()))
+		if (itemSprite.IsValid())
 		{
-			IUISpriteRenderableInterface::Execute_ApplyAtlasTextureScaleUp(itemSprite.GetObject());
+			IUISpriteRenderableInterface::Execute_ApplyAtlasTextureScaleUp(itemSprite.Get());
 		}
 	}
 	//callback function
@@ -137,15 +137,15 @@ void FLGUIDynamicSpriteAtlasData::CheckSprite(const FName& packingTag)
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
-		if (IsValid(itemSprite.GetObject()))
+		if (itemSprite.IsValid())
 		{
-			if (!IsValid(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
+			if (!IsValid(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.Get())))
 			{
 				this->renderSpriteArray.RemoveAt(i);
 			}
 			else
 			{
-				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
+				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.Get())))
 				{
 					if (spriteData->GetPackingTag() != packingTag)
 					{

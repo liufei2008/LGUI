@@ -550,7 +550,7 @@ void ULGUISpriteData::AddUISprite(TScriptInterface<class IUISpriteRenderableInte
 	{
 		InitSpriteData();
 		auto& spriteArray = ULGUIDynamicSpriteAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
-		spriteArray.AddUnique(InUISprite);
+		spriteArray.AddUnique(InUISprite.GetObject());
 	}
 }
 void ULGUISpriteData::RemoveUISprite(TScriptInterface<class IUISpriteRenderableInterface> InUISprite)
@@ -566,7 +566,7 @@ void ULGUISpriteData::RemoveUISprite(TScriptInterface<class IUISpriteRenderableI
 	{
 		if (auto spriteData = ULGUIDynamicSpriteAtlasManager::Find(packingTag))
 		{
-			spriteData->renderSpriteArray.RemoveSingle(InUISprite);
+			spriteData->renderSpriteArray.RemoveSingle(InUISprite.GetObject());
 		}
 	}
 }

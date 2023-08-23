@@ -197,11 +197,11 @@ void ULGUIStaticSpriteAtlasData::RemoveSpriteData(ULGUISpriteData* InSpriteData)
 }
 void ULGUIStaticSpriteAtlasData::AddRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite)
 {
-	renderSpriteArray.AddUnique(InSprite);
+	renderSpriteArray.AddUnique(InSprite.GetObject());
 }
 void ULGUIStaticSpriteAtlasData::RemoveRenderSprite(TScriptInterface<IUISpriteRenderableInterface> InSprite)
 {
-	renderSpriteArray.Remove(InSprite);
+	renderSpriteArray.Remove(InSprite.GetObject());
 }
 void ULGUIStaticSpriteAtlasData::CheckSprite()
 {
@@ -223,15 +223,15 @@ void ULGUIStaticSpriteAtlasData::CheckSprite()
 	for (int i = this->renderSpriteArray.Num() - 1; i >= 0; i--)
 	{
 		auto itemSprite = this->renderSpriteArray[i];
-		if (IsValid(itemSprite.GetObject()))
+		if (itemSprite.IsValid())
 		{
-			if (!IsValid(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
+			if (!IsValid(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.Get())))
 			{
 				this->renderSpriteArray.RemoveAt(i);
 			}
 			else
 			{
-				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.GetObject())))
+				if (auto spriteData = Cast<ULGUISpriteData>(IUISpriteRenderableInterface::Execute_SpriteRenderableGetSprite(itemSprite.Get())))
 				{
 					if (spriteData->GetPackingAtlas() != this)
 					{
@@ -684,9 +684,9 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 #if WITH_EDITOR
 		for (auto& sprite : renderSpriteArray)
 		{
-			if (IsValid(sprite.GetObject()))
+			if (sprite.IsValid())
 			{
-				IUISpriteRenderableInterface::Execute_ApplyAtlasTextureChange(sprite.GetObject());
+				IUISpriteRenderableInterface::Execute_ApplyAtlasTextureChange(sprite.Get());
 			}
 		}
 #endif
