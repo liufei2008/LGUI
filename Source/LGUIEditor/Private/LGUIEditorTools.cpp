@@ -1482,7 +1482,7 @@ void LGUIEditorTools::CreatePresetEventSystem_BasicSetup()
 		}
 	}
 }
-PRAGMA_DISABLE_OPTIMIZATION
+
 bool LGUIEditorTools::CreateTraceChannel_BasicSetup(ETraceTypeQuery& OutTraceTypeQuery)
 {
 	enum class ELGUIChannelErrorType
@@ -1609,7 +1609,6 @@ It is recommanded to create a specific trace channel for LGUI, with name \"LGUI\
 	}
 	return false;
 }
-PRAGMA_ENABLE_OPTIMIZATION
 
 void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass)
 {
