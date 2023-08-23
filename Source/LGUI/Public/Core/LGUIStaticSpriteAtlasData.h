@@ -44,9 +44,9 @@ private:
 		TArray<ULGUISpriteData*> spriteArray;
 #if WITH_EDITORONLY_DATA
 	TArray<ULGUISpriteData*> prevSpriteArray;
-	/** collection of all UISprite whitch use this atlas to render */
+	/** collection of all objects that use this atlas to render. Object must implement IUISpriteRenderableInterface. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
-		TArray<TScriptInterface<IUISpriteRenderableInterface>> renderSpriteArray;
+		TArray<TWeakObjectPtr<UObject>> renderSpriteArray;
 #endif
 	/**
 	 * Store texture mip data, so we can recreate atlas texture with this data.
