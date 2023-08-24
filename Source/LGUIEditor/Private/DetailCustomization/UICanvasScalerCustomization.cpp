@@ -79,20 +79,20 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 
 				DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, UIScaleMode))
 					->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] { DetailBuilder.ForceRefreshDetails(); }));
-				if (TargetScriptPtr->UIScaleMode == LGUIScaleMode::ScaleWithScreenSize)
+				if (TargetScriptPtr->UIScaleMode == ELGUICanvasScaleMode::ScaleWithScreenSize)
 				{
 					lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ReferenceResolution));
 					DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ScreenMatchMode))
 						->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] { DetailBuilder.ForceRefreshDetails(); }));
 					switch (TargetScriptPtr->ScreenMatchMode)
 					{
-					case LGUIScreenMatchMode::Expand:
-					case LGUIScreenMatchMode::Shrink:
+					case ELGUICanvasScreenMatchMode::Expand:
+					case ELGUICanvasScreenMatchMode::Shrink:
 					{
 						
 					}
 					break;
-					case LGUIScreenMatchMode::MatchWidthOrHeight:
+					case ELGUICanvasScreenMatchMode::MatchWidthOrHeight:
 					{
 						auto matchProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, MatchFromWidthToHeight));
 						lguiCategory.AddCustomRow(LOCTEXT("MatchSlider", "MatchSlider"))
@@ -157,7 +157,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 					}
 					lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ScreenMatchMode));
 				}
-				else if (TargetScriptPtr->UIScaleMode == LGUIScaleMode::ConstantPixelSize)
+				else if (TargetScriptPtr->UIScaleMode == ELGUICanvasScaleMode::ConstantPixelSize)
 				{
 					needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ReferenceResolution));
 					needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ScreenMatchMode));

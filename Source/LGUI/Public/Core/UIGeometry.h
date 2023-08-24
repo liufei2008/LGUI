@@ -168,7 +168,7 @@ public:
 #pragma region UISprite_Fill_Radial90
 public:
 	static void UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
-		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial90 originType
 		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
@@ -176,7 +176,7 @@ public:
 #pragma region UISprite_Fill_Radial180
 public:
 	static void UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
-		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial180 originType
 		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
@@ -184,7 +184,7 @@ public:
 #pragma region UISprite_Fill_Radial360
 public:
 	static void UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2f& pivot
-		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial360 originType
 		, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
@@ -193,9 +193,9 @@ public:
 public:
 	static void UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 		, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
-		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+		, EUITextParagraphHorizontalAlign paragraphHAlign, EUITextParagraphVerticalAlign paragraphVAlign, EUITextOverflowType overflowType
 		, float maxHorizontalWidth, bool kerning
-		, UITextFontStyle fontStyle, FVector2f& textRealSize
+		, EUITextFontStyle fontStyle, FVector2f& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray

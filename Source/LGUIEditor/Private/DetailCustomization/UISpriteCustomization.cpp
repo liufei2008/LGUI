@@ -41,8 +41,8 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	auto spriteTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, type));
 	category.AddProperty(spriteTypeHandle);
 	spriteTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISpriteCustomization::ForceRefresh, &DetailBuilder));
-	UISpriteType spriteType = TargetScriptPtr->type;
-	if (spriteType == UISpriteType::Sliced || spriteType == UISpriteType::SlicedFrame)
+	EUISpriteType spriteType = TargetScriptPtr->type;
+	if (spriteType == EUISpriteType::Sliced || spriteType == EUISpriteType::SlicedFrame)
 	{
 		if (TargetScriptPtr->sprite != nullptr)
 		{
@@ -61,40 +61,40 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 			}
 		}
 	}
-	else if (spriteType == UISpriteType::Filled)
+	else if (spriteType == EUISpriteType::Filled)
 	{
 		auto fillMethodProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillMethod));
 		fillMethodProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISpriteCustomization::ForceRefresh, &DetailBuilder));
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, fillMethodProperty);
-		UISpriteFillMethod fillMethod = TargetScriptPtr->fillMethod;
+		EUISpriteFillMethod fillMethod = TargetScriptPtr->fillMethod;
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOrigin));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
 		switch (fillMethod)
 		{
-		case UISpriteFillMethod::Horizontal:
-		case UISpriteFillMethod::Vertical:
+		case EUISpriteFillMethod::Horizontal:
+		case EUISpriteFillMethod::Vertical:
 			break;
-		case UISpriteFillMethod::Radial90:
+		case EUISpriteFillMethod::Radial90:
 		{
-			TargetScriptPtr->fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)TargetScriptPtr->fillOrigin;
+			TargetScriptPtr->fillOriginType_Radial90 = (EUISpriteFillOriginType_Radial90)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
-		case UISpriteFillMethod::Radial180:
+		case EUISpriteFillMethod::Radial180:
 		{
-			TargetScriptPtr->fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)TargetScriptPtr->fillOrigin;
+			TargetScriptPtr->fillOriginType_Radial180 = (EUISpriteFillOriginType_Radial180)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
-		case UISpriteFillMethod::Radial360:
+		case EUISpriteFillMethod::Radial360:
 		{
-			TargetScriptPtr->fillOriginType_Radial360 = (UISpriteFillOriginType_Radial360)TargetScriptPtr->fillOrigin;
+			TargetScriptPtr->fillOriginType_Radial360 = (EUISpriteFillOriginType_Radial360)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
@@ -105,7 +105,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillAmount)));
 	}
 
-	if (spriteType != UISpriteType::Filled)
+	if (spriteType != EUISpriteType::Filled)
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillMethod));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOrigin));

@@ -12,30 +12,41 @@ class ULGUIRichTextImageData;
 
 
 UENUM(BlueprintType, Category = LGUI)
-enum class UITextParagraphHorizontalAlign : uint8
+enum class EUITextParagraphHorizontalAlign : uint8
 {
 	Left,
 	Center,
 	Right,
 };
+#ifndef UITextParagraphHorizontalAlign
+#define UITextParagraphHorizontalAlign DEPRECATED_MACRO(5.0, "UITextParagraphHorizontalAlign has been renamed to EUITextParagraphHorizontalAlign") EUITextParagraphHorizontalAlign
+#endif
+
 UENUM(BlueprintType, Category = LGUI)
-enum class UITextParagraphVerticalAlign : uint8
+enum class EUITextParagraphVerticalAlign : uint8
 {
 	Top,
 	Middle,
 	Bottom,
 };
+#ifndef UITextParagraphVerticalAlign
+#define UITextParagraphVerticalAlign DEPRECATED_MACRO(5.0, "UITextParagraphVerticalAlign has been renamed to EUITextParagraphVerticalAlign") EUITextParagraphVerticalAlign
+#endif
+
 UENUM(BlueprintType, Category = LGUI)
-enum class UITextFontStyle :uint8
+enum class EUITextFontStyle :uint8
 {
 	None,
 	Bold,
 	Italic,
 	BoldAndItalic,
 };
+#ifndef UITextFontStyle
+#define UITextFontStyle DEPRECATED_MACRO(5.0, "UITextFontStyle has been renamed to EUITextFontStyle") EUITextFontStyle
+#endif
 
 UENUM(BlueprintType, Category = LGUI)
-enum class UITextOverflowType :uint8
+enum class EUITextOverflowType :uint8
 {
 	/** chars will go out of rect range horizontally */
 	HorizontalOverflow = 0,
@@ -46,6 +57,9 @@ enum class UITextOverflowType :uint8
 	/** remove chars on right if out of range */
 	ClampContent = 2,
 };
+#ifndef UITextOverflowType
+#define UITextOverflowType DEPRECATED_MACRO(5.0, "UITextOverflowType has been renamed to EUITextOverflowType") EUITextOverflowType
+#endif
 
 /** single char property */
 struct FUITextCaretProperty
@@ -135,12 +149,12 @@ public:
 		float InCanvasGroupAlpha,
 		FVector2f InFontSpace,
 		float InFontSize,
-		UITextParagraphHorizontalAlign InParagraphHAlign,
-		UITextParagraphVerticalAlign InParagraphVAlign,
-		UITextOverflowType InOverflowType,
+		EUITextParagraphHorizontalAlign InParagraphHAlign,
+		EUITextParagraphVerticalAlign InParagraphVAlign,
+		EUITextOverflowType InOverflowType,
 		float InMaxHorizontalWidth,
 		bool InUseKerning,
-		UITextFontStyle InFontStyle,
+		EUITextFontStyle InFontStyle,
 		bool InRichText,
 		int32 InRichTextFilterFlags,
 		ULGUIFontData_BaseObject* InFont
@@ -156,12 +170,12 @@ private:
 	float canvasGroupAlpha = 1.0f;
 	FVector2f fontSpace = FVector2f::ZeroVector;
 	float fontSize = 0;
-	UITextParagraphHorizontalAlign paragraphHAlign = UITextParagraphHorizontalAlign::Left;
-	UITextParagraphVerticalAlign paragraphVAlign = UITextParagraphVerticalAlign::Bottom;
-	UITextOverflowType overflowType = UITextOverflowType::HorizontalOverflow;
+	EUITextParagraphHorizontalAlign paragraphHAlign = EUITextParagraphHorizontalAlign::Left;
+	EUITextParagraphVerticalAlign paragraphVAlign = EUITextParagraphVerticalAlign::Bottom;
+	EUITextOverflowType overflowType = EUITextOverflowType::HorizontalOverflow;
 	float maxHorizontalWidth = 100;
 	bool useKerning = false;
-	UITextFontStyle fontStyle = UITextFontStyle::None;
+	EUITextFontStyle fontStyle = EUITextFontStyle::None;
 	bool richText = false;
 	int32 richTextFilterFlags = 0xffffffff;
 	TWeakObjectPtr<ULGUIFontData_BaseObject> font = nullptr;
