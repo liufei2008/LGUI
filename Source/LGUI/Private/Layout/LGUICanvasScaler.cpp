@@ -123,18 +123,18 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					//adjust size
 					switch (UIScaleMode)
 					{
-					case LGUIScaleMode::ConstantPixelSize:
+					case ELGUICanvasScaleMode::ConstantPixelSize:
 					{
 						canvasUIItem->SetWidth(ViewportSize.X);
 						canvasUIItem->SetHeight(ViewportSize.Y);
 						canvasScale = 1.0f;
 					}
 					break;
-					case LGUIScaleMode::ScaleWithScreenSize:
+					case ELGUICanvasScaleMode::ScaleWithScreenSize:
 					{
 						switch (ScreenMatchMode)
 						{
-						case LGUIScreenMatchMode::MatchWidthOrHeight:
+						case ELGUICanvasScreenMatchMode::MatchWidthOrHeight:
 						{
 							float matchWidth_PreferredWidth = ReferenceResolution.X;
 							float matchWidth_PreferredHeight = ReferenceResolution.X * ViewportSize.Y / ViewportSize.X;
@@ -150,8 +150,8 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							canvasScale = FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight);
 						}
 						break;
-						case LGUIScreenMatchMode::Expand:
-						case LGUIScreenMatchMode::Shrink:
+						case ELGUICanvasScreenMatchMode::Expand:
+						case ELGUICanvasScreenMatchMode::Shrink:
 						{
 							float resultWidth = ViewportSize.X, resultHeight = ViewportSize.Y;
 
@@ -159,13 +159,13 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							float referenceAspect = ReferenceResolution.X / ReferenceResolution.Y;
 							if (screenAspect > referenceAspect)//screen width > reference width
 							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								if (ScreenMatchMode == ELGUICanvasScreenMatchMode::Shrink)
 								{
 									resultHeight = ReferenceResolution.Y;
 									resultWidth = resultHeight * screenAspect;
 									canvasScale = (float)ViewportSize.Y / resultHeight;
 								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								else if (ScreenMatchMode == ELGUICanvasScreenMatchMode::Expand)
 								{
 									resultWidth = ReferenceResolution.X;
 									resultHeight = resultWidth / screenAspect;
@@ -174,13 +174,13 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							}
 							else//screen height > reference height
 							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								if (ScreenMatchMode == ELGUICanvasScreenMatchMode::Shrink)
 								{
 									resultWidth = ReferenceResolution.X;
 									resultHeight = resultWidth / screenAspect;
 									canvasScale = (float)ViewportSize.X / resultWidth;
 								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								else if (ScreenMatchMode == ELGUICanvasScreenMatchMode::Expand)
 								{
 									resultHeight = ReferenceResolution.Y;
 									resultWidth = resultHeight * screenAspect;
@@ -488,7 +488,7 @@ void ULGUICanvasScaler::SetFarClipPlane(float value)
 	}
 }
 
-void ULGUICanvasScaler::SetUIScaleMode(LGUIScaleMode value)
+void ULGUICanvasScaler::SetUIScaleMode(ELGUICanvasScaleMode value)
 {
 	if (UIScaleMode != value)
 	{
@@ -512,7 +512,7 @@ void ULGUICanvasScaler::SetMatchFromWidthToHeight(float value)
 		OnViewportParameterChanged();
 	}
 }
-void ULGUICanvasScaler::SetScreenMatchMode(LGUIScreenMatchMode value)
+void ULGUICanvasScaler::SetScreenMatchMode(ELGUICanvasScreenMatchMode value)
 {
 	if (ScreenMatchMode != value)
 	{
@@ -526,12 +526,12 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromViewportToLGUICanvas(const FVect
 	switch (UIScaleMode)
 	{
 	default:
-	case LGUIScaleMode::ConstantPixelSize:
+	case ELGUICanvasScaleMode::ConstantPixelSize:
 	{
 		return FVector2D(position.X, ViewportSize.Y - position.Y);
 	}
 	break;
-	case LGUIScaleMode::ScaleWithScreenSize:
+	case ELGUICanvasScaleMode::ScaleWithScreenSize:
 	{
 		return FVector2D(position.X, ViewportSize.Y - position.Y) / Canvas->canvasScale;
 	}
@@ -543,12 +543,12 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVect
 	switch (UIScaleMode)
 	{
 	default:
-	case LGUIScaleMode::ConstantPixelSize:
+	case ELGUICanvasScaleMode::ConstantPixelSize:
 	{
 		return FVector2D(position.X, ViewportSize.Y - position.Y);
 	}
 	break;
-	case LGUIScaleMode::ScaleWithScreenSize:
+	case ELGUICanvasScaleMode::ScaleWithScreenSize:
 	{
 		return FVector2D(position.X * Canvas->canvasScale, ViewportSize.Y - position.Y * Canvas->canvasScale);
 	}

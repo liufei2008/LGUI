@@ -77,8 +77,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextLeft", "Align Text Left"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Left)
-					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Left)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Left)
+					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Left)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("HorizontalAlignment_Left"))
@@ -93,8 +93,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextCenter", "Align Text Center"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Center)
-					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Center)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Center)
+					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Center)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("HorizontalAlignment_Center"))
@@ -109,8 +109,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("AlignTextRight", "Align Text Right"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Right)
-					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, UITextParagraphHorizontalAlign::Right)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Right)
+					.IsChecked(this, &FUITextCustomization::GetHorizontalAlignmentCheckState, hAlignPropertyHandle, EUITextParagraphHorizontalAlign::Right)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("HorizontalAlignment_Right"))
@@ -141,8 +141,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignTop", "Vertically Align Top"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Top)
-					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Top)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Top)
+					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Top)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("VerticalAlignment_Top"))
@@ -157,8 +157,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignMiddle", "Vertically Align Middle"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Middle)
-					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Middle)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Middle)
+					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Middle)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("VerticalAlignment_Center"))
@@ -173,8 +173,8 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
 					.ToolTipText(LOCTEXT("VAlignBottom", "Vertically Align Bottom"))
 					.Padding(ContentPadding)
-					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, UITextParagraphVerticalAlign::Bottom)
-					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, UITextParagraphVerticalAlign::Bottom)
+					.OnCheckStateChanged(this, &FUITextCustomization::HandleVerticalAlignmentCheckStateChanged, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Bottom)
+					.IsChecked(this, &FUITextCustomization::GetVerticalAlignmentCheckState, vAlignPropertyHandle, EUITextParagraphVerticalAlign::Bottom)
 					[
 						SNew(SImage)
 						.Image(FAppStyle::GetBrush("VerticalAlignment_Bottom"))
@@ -202,10 +202,10 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	auto AdjustHeightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 	AdjustHeightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextCustomization::ForceRefresh, &DetailBuilder));
 
-	UITextOverflowType OverflowType;
+	EUITextOverflowType OverflowType;
 	OverflowTypeHandle->GetValue(*(uint8*)&OverflowType);
 	TArray<FName> needToHidePropertyName;
-	if (OverflowType == UITextOverflowType::HorizontalOverflow)
+	if (OverflowType == EUITextOverflowType::HorizontalOverflow)
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeight));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
@@ -217,7 +217,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
 		}
 	}
-	else if (OverflowType == UITextOverflowType::VerticalOverflow)
+	else if (OverflowType == EUITextOverflowType::VerticalOverflow)
 	{
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidth));
 		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustWidthRange));
@@ -229,7 +229,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIText, adjustHeightRange));
 		}
 	}
-	else if (OverflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+	else if (OverflowType == EUITextOverflowType::HorizontalAndVerticalOverflow)
 	{
 		bool AdjustWidth;
 		AdjustWidthHandle->GetValue(AdjustWidth);
@@ -313,15 +313,15 @@ void FUITextCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 		DetailBuilder->ForceRefreshDetails();
 	}
 }
-void FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphHorizontalAlign ToAlignment)
+void FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, EUITextParagraphHorizontalAlign ToAlignment)
 {
 	PropertyHandle->SetValue((uint8)ToAlignment);
 }
-void FUITextCustomization::HandleVerticalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphVerticalAlign ToAlignment)
+void FUITextCustomization::HandleVerticalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, EUITextParagraphVerticalAlign ToAlignment)
 {
 	PropertyHandle->SetValue((uint8)ToAlignment);
 }
-ECheckBoxState FUITextCustomization::GetHorizontalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphHorizontalAlign ForAlignment) const
+ECheckBoxState FUITextCustomization::GetHorizontalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, EUITextParagraphHorizontalAlign ForAlignment) const
 {
 	uint8 Value;
 	if (PropertyHandle->GetValue(Value) == FPropertyAccess::Result::Success)
@@ -331,7 +331,7 @@ ECheckBoxState FUITextCustomization::GetHorizontalAlignmentCheckState(TSharedRef
 
 	return ECheckBoxState::Unchecked;
 }
-ECheckBoxState FUITextCustomization::GetVerticalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphVerticalAlign ForAlignment) const
+ECheckBoxState FUITextCustomization::GetVerticalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, EUITextParagraphVerticalAlign ForAlignment) const
 {
 	uint8 Value;
 	if (PropertyHandle->GetValue(Value) == FPropertyAccess::Result::Success)
