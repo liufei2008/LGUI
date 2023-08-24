@@ -70,28 +70,28 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D space = FVector2D(0, 0);
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UITextParagraphHorizontalAlign hAlign = UITextParagraphHorizontalAlign::Center;
+		EUITextParagraphHorizontalAlign hAlign = EUITextParagraphHorizontalAlign::Center;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UITextParagraphVerticalAlign vAlign = UITextParagraphVerticalAlign::Middle;
+		EUITextParagraphVerticalAlign vAlign = EUITextParagraphVerticalAlign::Middle;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UITextOverflowType overflowType = UITextOverflowType::VerticalOverflow;
+		EUITextOverflowType overflowType = EUITextOverflowType::VerticalOverflow;
 	/** adjust AnchorData width to true text content width */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::HorizontalOverflow||overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustWidth = false;
 	/** adjust when width in this range: adjustWidthRange.X < width < adjustWidthRange.Y, Zero means no range limit */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::HorizontalOverflow||overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		FVector2D adjustWidthRange = FVector2D::ZeroVector;
 	/** adjust AnchorData height to true text content height */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::VerticalOverflow||overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustHeight = false;
 	/** adjust when height in this range: adjustHeightRange.X < height < adjustHeightRange.Y, Zero means no range limit */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow||overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::VerticalOverflow||overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		FVector2D adjustHeightRange = FVector2D::ZeroVector;
 	/** if overflowType is HorizontalAndVerticalOverflow, this parameter will limit width for horizontal overflow */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalAndVerticalOverflow"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		float maxHorizontalWidth = 100;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UITextFontStyle fontStyle = UITextFontStyle::None;
+		EUITextFontStyle fontStyle = EUITextFontStyle::None;
 	/**
 	 * rich text support, eg:
 	 * <b>Bold</b>
@@ -186,19 +186,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetFontSize()const { return size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetUseKerning()const { return useKerning; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") EUITextOverflowType GetOverflowType()const { return overflowType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetAdjustWidthRange()const { return adjustWidthRange; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetAdjustHeightRange()const { return adjustHeightRange; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetMaxHorizontalWidth()const { return maxHorizontalWidth; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") EUITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") int32 GetRichTextTagFilterFlags()const { return richTextTagFilterFlags; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIRichTextCustomStyleData* GetRichTextCustomStyleData()const { return richTextCustomStyleData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIRichTextImageData_BaseObject* GetRichTextImageData()const { return richTextImageData; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") EUITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") EUITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetTextRealSize()const;
 	UE_DEPRECATED(4.24, "Use GetTextRealSize instead")
@@ -216,11 +216,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontSpace(FVector2D newSpace);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign newHAlign);
+		void SetParagraphHorizontalAlignment(EUITextParagraphHorizontalAlign newHAlign);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAlign);
+		void SetParagraphVerticalAlignment(EUITextParagraphVerticalAlign newVAlign);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetOverflowType(UITextOverflowType newOverflowType);
+		void SetOverflowType(EUITextOverflowType newOverflowType);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAdjustWidth(bool newAdjustWidth);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -228,7 +228,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaxHorizontalWidth(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetFontStyle(UITextFontStyle newFontStyle);
+		void SetFontStyle(EUITextFontStyle newFontStyle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

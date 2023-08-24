@@ -622,25 +622,25 @@ void UUIText::SetFontSpace(FVector2D newSpace) {
 		space = newSpace;
 	}
 }
-void UUIText::SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign newHAlign) {
+void UUIText::SetParagraphHorizontalAlignment(EUITextParagraphHorizontalAlign newHAlign) {
 	if (hAlign != newHAlign)
 	{
 		MarkVertexPositionDirty();
 		hAlign = newHAlign;
 	}
 }
-void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAlign) {
+void UUIText::SetParagraphVerticalAlignment(EUITextParagraphVerticalAlign newVAlign) {
 	if (vAlign != newVAlign)
 	{
 		MarkVertexPositionDirty();
 		vAlign = newVAlign;
 	}
 }
-void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
+void UUIText::SetOverflowType(EUITextOverflowType newOverflowType) {
 	if (overflowType != newOverflowType)
 	{
-		if (overflowType == UITextOverflowType::ClampContent
-			|| newOverflowType == UITextOverflowType::ClampContent
+		if (overflowType == EUITextOverflowType::ClampContent
+			|| newOverflowType == EUITextOverflowType::ClampContent
 			)
 			MarkVerticesDirty(true, true, true, true);
 		else
@@ -670,11 +670,11 @@ void UUIText::SetMaxHorizontalWidth(float value)
 		MarkVertexPositionDirty();
 	}
 }
-void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
+void UUIText::SetFontStyle(EUITextFontStyle newFontStyle) {
 	if (fontStyle != newFontStyle)
 	{
-		if ((fontStyle == UITextFontStyle::None || fontStyle == UITextFontStyle::Italic)
-			&& (newFontStyle == UITextFontStyle::None || newFontStyle == UITextFontStyle::Italic))//these only affect vertex position
+		if ((fontStyle == EUITextFontStyle::None || fontStyle == EUITextFontStyle::Italic)
+			&& (newFontStyle == EUITextFontStyle::None || newFontStyle == EUITextFontStyle::Italic))//these only affect vertex position
 		{
 			MarkVertexPositionDirty();
 		}
@@ -750,21 +750,21 @@ void UUIText::MarkTextLayoutDirty()
 }
 void UUIText::ConditionalMarkTextLayoutDirty()
 {
-	if (overflowType == UITextOverflowType::HorizontalOverflow)
+	if (overflowType == EUITextOverflowType::HorizontalOverflow)
 	{
 		if (adjustWidth)
 		{
 			MarkTextLayoutDirty();
 		}
 	}
-	else if (overflowType == UITextOverflowType::VerticalOverflow)
+	else if (overflowType == EUITextOverflowType::VerticalOverflow)
 	{
 		if (adjustHeight)
 		{
 			MarkTextLayoutDirty();
 		}
 	}
-	else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+	else if (overflowType == EUITextOverflowType::HorizontalAndVerticalOverflow)
 	{
 		if (adjustWidth)
 		{
@@ -787,21 +787,21 @@ void UUIText::OnUpdateLayout_Implementation()
 		{
 			bTextLayoutDirty = false;
 			auto tempAdjustWidth = false, tempAdjustHeight = false;
-			if (overflowType == UITextOverflowType::HorizontalOverflow)
+			if (overflowType == EUITextOverflowType::HorizontalOverflow)
 			{
 				if (adjustWidth)
 				{
 					tempAdjustWidth = true;
 				}
 			}
-			else if (overflowType == UITextOverflowType::VerticalOverflow)
+			else if (overflowType == EUITextOverflowType::VerticalOverflow)
 			{
 				if (adjustHeight)
 				{
 					tempAdjustHeight = true;
 				}
 			}
-			else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+			else if (overflowType == EUITextOverflowType::HorizontalAndVerticalOverflow)
 			{
 				if (adjustWidth)
 				{
@@ -837,7 +837,7 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 {
 	if (this == InUIItem)
 	{
-		if (overflowType == UITextOverflowType::HorizontalOverflow)
+		if (overflowType == EUITextOverflowType::HorizontalOverflow)
 		{
 			if (adjustWidth)
 			{
@@ -850,7 +850,7 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 				return true;
 			}
 		}
-		else if (overflowType == UITextOverflowType::VerticalOverflow)
+		else if (overflowType == EUITextOverflowType::VerticalOverflow)
 		{
 			if (adjustHeight)
 			{
@@ -863,7 +863,7 @@ bool UUIText::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, 
 				return true;
 			}
 		}
-		else if (overflowType == UITextOverflowType::HorizontalAndVerticalOverflow)
+		else if (overflowType == EUITextOverflowType::HorizontalAndVerticalOverflow)
 		{
 			if (adjustWidth)
 			{
@@ -1180,17 +1180,17 @@ void UUIText::FindCaretByIndex(int32& inOutCaretPositionIndex, FVector2D& outCar
 		float pivotOffsetY = this->GetHeight() * (0.5f - this->GetPivot().Y);
 		switch (hAlign)
 		{
-		case UITextParagraphHorizontalAlign::Left:
+		case EUITextParagraphHorizontalAlign::Left:
 		{
 			outCaretPosition.X = pivotOffsetX - this->GetWidth() * 0.5f;
 		}
 			break;
-		case UITextParagraphHorizontalAlign::Center:
+		case EUITextParagraphHorizontalAlign::Center:
 		{
 			outCaretPosition.X = pivotOffsetX;
 		}
 			break;
-		case UITextParagraphHorizontalAlign::Right:
+		case EUITextParagraphHorizontalAlign::Right:
 		{
 			outCaretPosition.X = pivotOffsetX + this->GetWidth() * 0.5f;
 		}
@@ -1198,17 +1198,17 @@ void UUIText::FindCaretByIndex(int32& inOutCaretPositionIndex, FVector2D& outCar
 		}
 		switch (vAlign)
 		{
-		case UITextParagraphVerticalAlign::Top:
+		case EUITextParagraphVerticalAlign::Top:
 		{
 			outCaretPosition.Y = pivotOffsetY + this->GetHeight() * 0.5f - size * 0.5f;//fixed offset
 		}
 			break;
-		case UITextParagraphVerticalAlign::Middle:
+		case EUITextParagraphVerticalAlign::Middle:
 		{
 			outCaretPosition.Y = pivotOffsetY;
 		}
 			break;
-		case UITextParagraphVerticalAlign::Bottom:
+		case EUITextParagraphVerticalAlign::Bottom:
 		{
 			outCaretPosition.Y = pivotOffsetY - this->GetHeight() * 0.5f + size * 0.5f;//fixed offset
 		}

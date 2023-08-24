@@ -126,7 +126,7 @@ void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 	if (TextActor != nullptr)
 	{
-		TextActor->GetUIText()->SetOverflowType(bAllowMultiLine ? UITextOverflowType::VerticalOverflow : UITextOverflowType::HorizontalOverflow);
+		TextActor->GetUIText()->SetOverflowType(bAllowMultiLine ? EUITextOverflowType::VerticalOverflow : EUITextOverflowType::HorizontalOverflow);
 		if (!TextActor->GetUIText()->GetText().IsCultureInvariant())
 		{
 			TextActor->GetUIText()->SetText(FText::AsCultureInvariant(Text));

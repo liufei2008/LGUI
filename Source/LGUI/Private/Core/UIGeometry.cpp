@@ -852,7 +852,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(UIGeometry* uiGeo, con
 #pragma endregion
 #pragma region UISprite_Fill_Radial90
 void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
-	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial90 originType
 	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
@@ -911,7 +911,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 		}
 		switch (originType)
 		{
-		case UISpriteFillOriginType_Radial90::BottomLeft:
+		case EUISpriteFillOriginType_Radial90::BottomLeft:
 		{
 			if (flipDirection)
 			{
@@ -979,7 +979,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial90::TopLeft:
+		case EUISpriteFillOriginType_Radial90::TopLeft:
 		{
 			if (flipDirection)
 			{
@@ -1047,7 +1047,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial90::TopRight:
+		case EUISpriteFillOriginType_Radial90::TopRight:
 		{
 			if (flipDirection)
 			{
@@ -1115,7 +1115,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial90::BottomRight:
+		case EUISpriteFillOriginType_Radial90::BottomRight:
 		{
 			if (flipDirection)
 			{
@@ -1215,7 +1215,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(UIGeometry* uiGeo, const float& 
 #pragma endregion
 #pragma region UISprite_Fill_Radial180
 void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
-	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial180 originType
 	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
@@ -1227,7 +1227,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 	{
 		switch (originType)
 		{
-		case UISpriteFillOriginType_Radial180::Bottom:
+		case EUISpriteFillOriginType_Radial180::Bottom:
 		{
 			triangles[0] = 4;
 			triangles[1] = 2;
@@ -1242,7 +1242,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			triangles[8] = 3;
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Left:
+		case EUISpriteFillOriginType_Radial180::Left:
 		{
 			triangles[0] = 4;
 			triangles[1] = 3;
@@ -1257,7 +1257,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			triangles[8] = 1;
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Top:
+		case EUISpriteFillOriginType_Radial180::Top:
 		{
 			triangles[0] = 4;
 			triangles[1] = 1;
@@ -1272,7 +1272,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			triangles[8] = 0;
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Right:
+		case EUISpriteFillOriginType_Radial180::Right:
 		{
 			triangles[0] = 4;
 			triangles[1] = 0;
@@ -1331,7 +1331,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 		}
 		switch (originType)
 		{
-		case UISpriteFillOriginType_Radial180::Bottom:
+		case EUISpriteFillOriginType_Radial180::Bottom:
 		{
 			if (flipDirection)
 			{
@@ -1437,7 +1437,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Left:
+		case EUISpriteFillOriginType_Radial180::Left:
 		{
 			if (flipDirection)
 			{
@@ -1543,7 +1543,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Top:
+		case EUISpriteFillOriginType_Radial180::Top:
 		{
 			if (flipDirection)
 			{
@@ -1650,7 +1650,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial180::Right:
+		case EUISpriteFillOriginType_Radial180::Right:
 		{
 			if (flipDirection)
 			{
@@ -1789,7 +1789,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(UIGeometry* uiGeo, const float&
 #pragma endregion
 #pragma region UISprite_Fill_Radial360
 void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float& width, const float& height, const FVector2D& pivot
-	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, EUISpriteFillOriginType_Radial360 originType
 	, ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
@@ -1833,16 +1833,16 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 
 		switch (originType)
 		{
-		case UISpriteFillOriginType_Radial360::Bottom:
+		case EUISpriteFillOriginType_Radial360::Bottom:
 			triangles[1] = 9;
 			break;
-		case UISpriteFillOriginType_Radial360::Right:
+		case EUISpriteFillOriginType_Radial360::Right:
 			triangles[19] = 9;
 			break;
-		case UISpriteFillOriginType_Radial360::Top:
+		case EUISpriteFillOriginType_Radial360::Top:
 			triangles[13] = 9;
 			break;
-		case UISpriteFillOriginType_Radial360::Left:
+		case EUISpriteFillOriginType_Radial360::Left:
 			triangles[7] = 9;
 			break;
 		}
@@ -1933,7 +1933,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 		};
 		switch (originType)
 		{
-		case UISpriteFillOriginType_Radial360::Bottom:
+		case EUISpriteFillOriginType_Radial360::Bottom:
 		{
 			originVertices[9].Position = originVertices[1].Position;
 			vertices[9].TextureCoordinate[0] = vertices[1].TextureCoordinate[0];
@@ -2025,7 +2025,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial360::Right:
+		case EUISpriteFillOriginType_Radial360::Right:
 		{
 			originVertices[9].Position = originVertices[5].Position;
 			vertices[9].TextureCoordinate[0] = vertices[5].TextureCoordinate[0];
@@ -2117,7 +2117,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial360::Top:
+		case EUISpriteFillOriginType_Radial360::Top:
 		{
 			originVertices[9].Position = originVertices[7].Position;
 			vertices[9].TextureCoordinate[0] = vertices[7].TextureCoordinate[0];
@@ -2209,7 +2209,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 			}
 		}
 		break;
-		case UISpriteFillOriginType_Radial360::Left:
+		case EUISpriteFillOriginType_Radial360::Left:
 		{
 			originVertices[9].Position = originVertices[3].Position;
 			vertices[9].TextureCoordinate[0] = vertices[3].TextureCoordinate[0];
@@ -2334,17 +2334,17 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(UIGeometry* uiGeo, const float&
 
 #pragma region UIText
 #include "Core/ActorComponent/UIText.h"
-void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart
+void UIGeometry_AlignUITextLineVertex(EUITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart
 	, TArray<FLGUIOriginVertexData>& vertices, FUITextLineProperty& lineProperty
 )
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
 	{
-	case UITextParagraphHorizontalAlign::Center:
+	case EUITextParagraphHorizontalAlign::Center:
 		xOffset = -lineWidth * 0.5f;
 		break;
-	case UITextParagraphHorizontalAlign::Right:
+	case EUITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
 		break;
 	}
@@ -2361,7 +2361,7 @@ void UIGeometry_AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign
 		item.caretPosition.X += xOffset;
 	}
 }
-void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart
+void UIGeometry_AlignUITextLineVertexForRichText(EUITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart
 	, TArray<FLGUIOriginVertexData>& vertices
 	, int lineImageStartIndex, TArray<FUIText_RichTextImageTag>& imageArray
 )
@@ -2369,10 +2369,10 @@ void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign 
 	float xOffset = 0;
 	switch (pivotHAlign)
 	{
-	case UITextParagraphHorizontalAlign::Center:
+	case EUITextParagraphHorizontalAlign::Center:
 		xOffset = -lineWidth * 0.5f;
 		break;
-	case UITextParagraphHorizontalAlign::Right:
+	case EUITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
 		break;
 	}
@@ -2395,9 +2395,9 @@ void UIGeometry_AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign 
 #include "Core/LGUIRichTextCustomStyleData.h"
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2D& pivot
 	, const FColor& color, uint8 canvasGroupAlpha, const FVector2D& fontSpace, UIGeometry* uiGeo, float fontSize
-	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+	, EUITextParagraphHorizontalAlign paragraphHAlign, EUITextParagraphVerticalAlign paragraphVAlign, EUITextOverflowType overflowType
 	, float maxHorizontalWidth, bool kerning
-	, UITextFontStyle fontStyle, FVector2D& textRealSize
+	, EUITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 	, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
@@ -2446,15 +2446,15 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	if (richText)
 	{
 		richTextParser.Clear();
-		bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-		bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+		bool bold = fontStyle == EUITextFontStyle::Bold || fontStyle == EUITextFontStyle::BoldAndItalic;
+		bool italic = fontStyle == EUITextFontStyle::Italic || fontStyle == EUITextFontStyle::BoldAndItalic;
 		richTextParser.Prepare(fontSize, color, canvasGroupAlpha, bold, italic, richTextFilterFlags, richTextParseResult);
 	}
 	else
 	{
 		richTextParseResult.color = color;
-		richTextParseResult.bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-		richTextParseResult.italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+		richTextParseResult.bold = fontStyle == EUITextFontStyle::Bold || fontStyle == EUITextFontStyle::BoldAndItalic;
+		richTextParseResult.italic = fontStyle == EUITextFontStyle::Italic || fontStyle == EUITextFontStyle::BoldAndItalic;
 		richTextParseResult.size = fontSize;
 	}
 
@@ -2796,8 +2796,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 		if (IsSpace(charCode, richTextParseResult))//char is space
 		{
-			if (overflowType == UITextOverflowType::VerticalOverflow//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
-				|| overflowType == UITextOverflowType::HorizontalAndVerticalOverflow
+			if (overflowType == EUITextOverflowType::VerticalOverflow//char is space and UIText can have multi line, then we need to calculate if the following words can fit the rest space, if not means new line
+				|| overflowType == EUITextOverflowType::HorizontalAndVerticalOverflow
 				)
 			{
 				auto prevCharCodeOfForwardChar = prevCharCode;
@@ -2820,7 +2820,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					forwardVisibleCharIndex++;
 					prevCharCodeOfForwardChar = charCodeOfForwardChar;
 				}
-				float maxWidthToCompare = overflowType == UITextOverflowType::HorizontalAndVerticalOverflow ? maxHorizontalWidth : width;
+				float maxWidthToCompare = overflowType == EUITextOverflowType::HorizontalAndVerticalOverflow ? maxHorizontalWidth : width;
 				if (currentLineOffset.X + spaceNeeded > maxWidthToCompare)
 				{
 					NewLine(caretCharIndex, false);
@@ -2913,12 +2913,12 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		{
 			switch (overflowType)
 			{
-			case UITextOverflowType::HorizontalOverflow:
+			case EUITextOverflowType::HorizontalOverflow:
 			{
 				//no need to do anything
 			}
 			break;
-			case UITextOverflowType::VerticalOverflow:
+			case EUITextOverflowType::VerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
@@ -2938,7 +2938,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 			}
 			break;
-			case UITextOverflowType::HorizontalAndVerticalOverflow:
+			case EUITextOverflowType::HorizontalAndVerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
@@ -2958,7 +2958,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 			}
 			break;
-			case UITextOverflowType::ClampContent:
+			case EUITextOverflowType::ClampContent:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				if (hasClampContent)continue;
@@ -3017,26 +3017,26 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float xOffset = pivotOffsetX;
 	switch (paragraphHAlign)
 	{
-	case UITextParagraphHorizontalAlign::Left:
+	case EUITextParagraphHorizontalAlign::Left:
 		xOffset += -width * 0.5f;
 		break;
-	case UITextParagraphHorizontalAlign::Center:
+	case EUITextParagraphHorizontalAlign::Center:
 
 		break;
-	case UITextParagraphHorizontalAlign::Right:
+	case EUITextParagraphHorizontalAlign::Right:
 		xOffset += width * 0.5f;
 		break;
 	}
 	float yOffset = pivotOffsetY - firstLineHeight * 0.5f;
 	switch (paragraphVAlign)
 	{
-	case UITextParagraphVerticalAlign::Top:
+	case EUITextParagraphVerticalAlign::Top:
 		yOffset += height * 0.5f;
 		break;
-	case UITextParagraphVerticalAlign::Middle:
+	case EUITextParagraphVerticalAlign::Middle:
 		yOffset += paragraphHeight * 0.5f;
 		break;
-	case UITextParagraphVerticalAlign::Bottom:
+	case EUITextParagraphVerticalAlign::Bottom:
 		yOffset += paragraphHeight - height * 0.5f;
 		break;
 	}
