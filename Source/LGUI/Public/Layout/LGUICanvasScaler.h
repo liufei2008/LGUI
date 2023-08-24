@@ -9,15 +9,20 @@
 #include "LGUICanvasScaler.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
-enum class LGUIScaleMode:uint8
+enum class ELGUICanvasScaleMode:uint8
 {
 	/** 1 unit is 1 pixel render in screen*/
 	ConstantPixelSize,
 	/** scale UI with reference resolution and screen resolution*/
 	ScaleWithScreenSize,
 };
+
+#ifndef LGUIScaleMode
+#define LGUIScaleMode UE_DEPRECATED_MACRO(5.0, "LGUIScaleMode has been renamed to ELGUICanvasScaleMode") ELGUICanvasScaleMode
+#endif
+
 UENUM(BlueprintType, Category = LGUI)
-enum class LGUIScreenMatchMode :uint8
+enum class ELGUICanvasScreenMatchMode :uint8
 {
 	/** Use "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI*/
 	MatchWidthOrHeight,
@@ -26,6 +31,11 @@ enum class LGUIScreenMatchMode :uint8
 	/** if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then shrink size and scale UI*/
 	Shrink,
 };
+
+#ifndef LGUIScreenMatchMode
+#define LGUIScreenMatchMode UE_DEPRECATED_MACRO(5.0, "LGUIScreenMatchMode has been renamed to ELGUICanvasScreenMatchMode") ELGUICanvasScreenMatchMode
+#endif
+
 /**
  * Put this on a actor with LGUICanvas component. Use this to scale UI element to adapt different screen resolution.
  * One hierarchy should only have one UICanvasScalar.
@@ -74,13 +84,13 @@ protected:
 		float FarClipPlane = 10000;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIScaleMode UIScaleMode = LGUIScaleMode::ConstantPixelSize;
+		ELGUICanvasScaleMode UIScaleMode = ELGUICanvasScaleMode::ConstantPixelSize;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D ReferenceResolution = FVector2D(1280, 720);
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0", DisplayName = "Match"))
 		float MatchFromWidthToHeight = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIScreenMatchMode ScreenMatchMode = LGUIScreenMatchMode::MatchWidthOrHeight;
+		ELGUICanvasScreenMatchMode ScreenMatchMode = ELGUICanvasScreenMatchMode::MatchWidthOrHeight;
 
 	bool CheckCanvas();
 	UPROPERTY(Transient) TObjectPtr<class ULGUICanvas> Canvas = nullptr;
@@ -109,22 +119,22 @@ public:
 		void SetFarClipPlane(float value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		LGUIScaleMode GetUIScaleMode() { return UIScaleMode; }
+		ELGUICanvasScaleMode GetUIScaleMode() { return UIScaleMode; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D GetReferenceResolution() { return ReferenceResolution; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetMatchFromWidthToHeight() { return MatchFromWidthToHeight; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		LGUIScreenMatchMode GetScreenMatchMode() { return ScreenMatchMode; }
+		ELGUICanvasScreenMatchMode GetScreenMatchMode() { return ScreenMatchMode; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetUIScaleMode(LGUIScaleMode value);
+		void SetUIScaleMode(ELGUICanvasScaleMode value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetReferenceResolution(FVector2D value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetMatchFromWidthToHeight(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetScreenMatchMode(LGUIScreenMatchMode value);
+		void SetScreenMatchMode(ELGUICanvasScreenMatchMode value);
 
 	/** By default, LGUICanvasScaler only update when needed(eg. viewport size change). Use this function to force update. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)

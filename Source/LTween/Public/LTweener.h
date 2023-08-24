@@ -12,10 +12,10 @@ DECLARE_DELEGATE_OneParam(FLTweenUpdateDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLTweenUpdateMulticastDelegate, float);
 
 #ifndef LTweenUpdateDelegate
-#define LTweenUpdateDelegate DEPRECATED_MACRO(5.0, "LTweenUpdateDelegate has been renamed to FLTweenUpdateDelegate") FLTweenUpdateDelegate
+#define LTweenUpdateDelegate UE_DEPRECATED_MACRO(5.0, "LTweenUpdateDelegate has been renamed to FLTweenUpdateDelegate") FLTweenUpdateDelegate
 #endif
 #ifndef LTweenUpdateMulticastDelegate
-#define LTweenUpdateMulticastDelegate DEPRECATED_MACRO(5.0, "LTweenUpdateMulticastDelegate has been renamed to FLTweenUpdateMulticastDelegate") FLTweenUpdateMulticastDelegate
+#define LTweenUpdateMulticastDelegate UE_DEPRECATED_MACRO(5.0, "LTweenUpdateMulticastDelegate has been renamed to FLTweenUpdateMulticastDelegate") FLTweenUpdateMulticastDelegate
 #endif
 
 DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
@@ -101,7 +101,7 @@ enum class ELTweenEase :uint8
 };
 
 #ifndef LTweenEase
-#define LTweenEase DEPRECATED_MACRO(5.0, "LTweenEase has been renamed to ELTweenEase") ELTweenEase
+#define LTweenEase UE_DEPRECATED_MACRO(5.0, "LTweenEase has been renamed to ELTweenEase") ELTweenEase
 #endif
 
 /**
@@ -121,7 +121,7 @@ enum class ELTweenLoop :uint8
 };
 
 #ifndef LTweenLoop
-#define LTweenLoop DEPRECATED_MACRO(5.0, "LTweenLoop has been renamed to ELTweenLoop") ELTweenLoop
+#define LTweenLoop UE_DEPRECATED_MACRO(5.0, "LTweenLoop has been renamed to ELTweenLoop") ELTweenLoop
 #endif
 
 class UCurveFloat;
