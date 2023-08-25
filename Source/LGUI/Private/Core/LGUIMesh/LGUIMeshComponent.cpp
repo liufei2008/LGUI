@@ -389,7 +389,7 @@ public:
 
 	/** Called on render thread to assign new dynamic data */
 	void UpdateSection_RenderThread(FLGUIMeshVertex* MeshVertexData, const int32& NumVerts
-		, FLGUIIndexType* MeshIndexData, const uint32& IndexDataLength
+		, FLGUIMeshIndexBufferType* MeshIndexData, const uint32& IndexDataLength
 		, const int8& AdditionalChannelFlags
 		, FLGUIMeshProxySection* Section)
 	{
@@ -722,7 +722,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 		{
 			TArray<FLGUIMeshVertex> VertexBufferData;
 			int32 NumVerts;
-			TArray<FLGUIIndexType> IndexBufferData;
+			TArray<FLGUIMeshIndexBufferType> IndexBufferData;
 			uint32 IndexBufferDataLength;
 			int8 AdditionalShaderChannelFlags;
 			FLGUIMeshProxySection* Section;
@@ -737,7 +737,7 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 		UpdateData->NumVerts = NumVerts;
 		UpdateData->SceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		const int32 NumIndices = InMeshSection->triangles.Num();
-		const uint32 IndexBufferDataLength = NumIndices * sizeof(FLGUIIndexType);
+		const uint32 IndexBufferDataLength = NumIndices * sizeof(FLGUIMeshIndexBufferType);
 		UpdateData->IndexBufferData.AddUninitialized(NumIndices);
 		FMemory::Memcpy(UpdateData->IndexBufferData.GetData(), InMeshSection->triangles.GetData(), IndexBufferDataLength);
 		UpdateData->IndexBufferDataLength = IndexBufferDataLength;

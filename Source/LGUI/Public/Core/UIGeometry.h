@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UISprite.h"
-#include "Core/LGUIIndexBuffer.h"
+#include "Core/LGUIMeshIndex.h"
 #include "Core/LGUIMeshVertex.h"
 
 struct FLGUISpriteInfo;
@@ -49,7 +49,7 @@ public:
 	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originVertices/originNormals/originTangents
 	TArray<FLGUIMeshVertex> vertices;
 	//triangle indices
-	TArray<FLGUIIndexType> triangles;
+	TArray<FLGUIMeshIndexBufferType> triangles;
 
 	TWeakObjectPtr<UTexture> texture = nullptr;
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;
@@ -98,7 +98,7 @@ public:
 			Target->triangles.SetNumUninitialized(triangles.Num());
 			triangleCountChanged = true;
 		}
-		FMemory::Memcpy(Target->triangles.GetData(), triangles.GetData(), triangles.Num() * sizeof(FLGUIIndexType));
+		FMemory::Memcpy(Target->triangles.GetData(), triangles.GetData(), triangles.Num() * sizeof(FLGUIMeshIndexBufferType));
 
 		return verticesCountChanged || triangleCountChanged;
 	}
