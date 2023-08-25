@@ -3,7 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/Texture.h"
-#include "Core/LGUIIndexBuffer.h"
+#include "Core/LGUIMeshIndex.h"
 #include "Core/UIQuadTree.h"
 
 class UUIPostProcessRenderable;
@@ -77,7 +77,7 @@ public:
 
 	TWeakObjectPtr<class ULGUICanvas> ChildCanvas;//insert point to sort child canvas
 public:
-	void GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
+	void GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIMeshIndexBufferType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
 	bool CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount);
 };

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Components/MeshComponent.h"
-#include "Core/LGUIIndexBuffer.h"
+#include "Core/LGUIMeshIndex.h"
 #include "Core/LGUIMeshVertex.h"
 #include "DynamicMeshBuilder.h"
 #include "LGUIMeshComponent.generated.h"
@@ -11,7 +11,7 @@
 class FLGUIMeshProxySection;
 struct FLGUIMeshSection
 {
-	TArray<FLGUIIndexType> triangles;
+	TArray<FLGUIMeshIndexBufferType> triangles;
 	TArray<FLGUIMeshVertex> vertices;
 
 	int prevVertexCount = 0;
