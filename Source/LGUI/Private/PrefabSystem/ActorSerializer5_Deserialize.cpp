@@ -10,6 +10,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
+#include "Serialization/MemoryReader.h"
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
@@ -28,7 +29,7 @@ namespace LGUIPrefabSystem5
 	{
 		ActorSerializer serializer;
 		serializer.TargetWorld = InWorld;
-		for (auto KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
+		for (auto& KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
 		{
 			if (IsValid(KeyValue.Value))
 			{
@@ -201,7 +202,7 @@ namespace LGUIPrefabSystem5
 #endif
 
 		//register component
-		for (auto CompData : CreatedComponents)
+		for (auto& CompData : CreatedComponents)
 		{
 			if (!CompData.Component->IsRegistered())
 			{
@@ -482,18 +483,18 @@ namespace LGUIPrefabSystem5
 	void ActorSerializer::DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents)
 	{
 		//create component first, because some object may use component as outer
-		for (auto ObjectData : SavedComponents)
+		for (auto& ObjectData : SavedComponents)
 		{
 			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				auto CreatedNewComponent = (UActorComponent*)(*CompPtr);
 				if (auto SceneComp = Cast<USceneComponent>(CreatedNewComponent))
 				{
-					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, true);
+					WriterOrReaderFunction(CreatedNewComponent, const_cast<TArray<uint8>&>(ObjectData.PropertyData), true);
 				}
 				else
 				{
-					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, false);
+					WriterOrReaderFunction(CreatedNewComponent, const_cast<TArray<uint8>&>(ObjectData.PropertyData), false);
 				}
 
 				ComponentDataStruct CompData;
@@ -503,12 +504,12 @@ namespace LGUIPrefabSystem5
 			}
 		}
 
-		for (auto ObjectData : SavedObjects)
+		for (auto& ObjectData : SavedObjects)
 		{
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				auto CreatedNewObject = *ObjectPtr;
-				WriterOrReaderFunction(CreatedNewObject, ObjectData.PropertyData, false);
+				WriterOrReaderFunction(CreatedNewObject, const_cast<TArray<uint8>&>(ObjectData.PropertyData), false);
 			}
 		}
 	}
