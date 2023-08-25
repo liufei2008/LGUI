@@ -38,7 +38,7 @@ namespace LGUIPrefabSystem5
 		}
 		ActorSerializer serializer;
 		serializer.TargetWorld = OriginRootActor->GetWorld();
-		for (auto KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
+		for (auto& KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
 		{
 			if (IsValid(KeyValue.Key))
 			{
