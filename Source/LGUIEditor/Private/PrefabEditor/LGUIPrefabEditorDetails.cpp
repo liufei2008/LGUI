@@ -287,7 +287,43 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 
 void SLGUIPrefabEditorDetails::OnEditorTreeViewSelectionChanged(const TArray<FSubobjectEditorTreeNodePtrType>& SelectedNodes)
 {
+	if (SelectedNodes.Num() > 0)
+	{
+		TArray<UObject*> SelectedObjects;
+		TArray<UActorComponent*> SelectedComponents;
+		for (auto& Node : SelectedNodes)
+		{
+			if (Node.IsValid())
+			{
+				UObject* Object = const_cast<UObject*>(Node->GetObject());
+				if (Object)
+				{
+					SelectedObjects.Add(Object);
+					if (auto Comp = Cast<UActorComponent>(Object))
+					{
+						SelectedComponents.Add(Comp);
+					}
+				}
+			}
+		}
 
+		if (SelectedObjects.Num() > 0 && DetailsView.IsValid())
+		{
+			DetailsView->SetObjects(SelectedObjects);
+		}
+		if (SelectedComponents.Num() > 0)
+		{
+			GEditor->SelectNone(true, true);
+			for (auto Comp : SelectedComponents)
+			{
+				GEditor->SelectComponent(Comp, true, true);
+			}
+		}
+		else
+		{
+			GEditor->SelectNone(true, true);
+		}
+	}
 }
 
 void SLGUIPrefabEditorDetails::OnEditorTreeViewItemDoubleClicked(const FSubobjectEditorTreeNodePtrType ClickedNode)
