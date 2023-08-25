@@ -3,7 +3,6 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
-#include "Core/LGUIIndexBuffer.h"
 
 UUIGeometryModifierBase::UUIGeometryModifierBase()
 {
