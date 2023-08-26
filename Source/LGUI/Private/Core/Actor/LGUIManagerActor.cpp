@@ -71,6 +71,14 @@ void ULGUIEditorManagerObject::BeginDestroy()
 			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
 		}
 	}
+
+	//cleanup preview world
+	if (PreviewWorldForPrefabPackage && GEngine)
+	{
+		PreviewWorldForPrefabPackage->CleanupWorld();
+		GEngine->DestroyWorldContext(PreviewWorldForPrefabPackage);
+		PreviewWorldForPrefabPackage->ReleasePhysicsScene();
+	}
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -239,13 +247,14 @@ void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTempl
 
 }
 
-UWorld* ULGUIEditorManagerObject::PreviewWorldForPrefabPackage = nullptr;
 UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 {
+	InitCheck();
+	auto& PreviewWorldForPrefabPackage = Instance->PreviewWorldForPrefabPackage;
 	if (PreviewWorldForPrefabPackage == nullptr)
 	{
-		FName UniqueWorldName = MakeUniqueObjectName(GetTransientPackage(), UWorld::StaticClass(), FName("LGUI_PreviewWorldForPrefabPackage"));
-		PreviewWorldForPrefabPackage = NewObject<UWorld>(GetTransientPackage(), UniqueWorldName);
+		FName UniqueWorldName = MakeUniqueObjectName(Instance, UWorld::StaticClass(), FName("LGUI_PreviewWorldForPrefabPackage"));
+		PreviewWorldForPrefabPackage = NewObject<UWorld>(Instance, UniqueWorldName);
 		PreviewWorldForPrefabPackage->AddToRoot();
 		PreviewWorldForPrefabPackage->WorldType = EWorldType::EditorPreview;
 
