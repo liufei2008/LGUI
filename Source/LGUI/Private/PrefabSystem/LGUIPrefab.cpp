@@ -170,7 +170,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 {
 	if (PrefabVersion >= (uint16)ELGUIPrefabVersion::BuildinFArchive)
 	{
-		if (PrefabHelperObject == nullptr)
+		if (!IsValid(PrefabHelperObject))
 		{
 			PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
 			PrefabHelperObject->PrefabAsset = this;
@@ -184,7 +184,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 }
 void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 {
-	if (PrefabHelperObject != nullptr)
+	if (IsValid(PrefabHelperObject))
 	{
 		PrefabHelperObject->ClearLoadedPrefab();
 	}
