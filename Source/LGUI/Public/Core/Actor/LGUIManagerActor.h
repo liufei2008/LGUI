@@ -46,6 +46,7 @@ private:
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
+	UPROPERTY()UWorld* PreviewWorldForPrefabPackage = nullptr;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -69,6 +70,7 @@ public:
 	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
+	static UWorld* GetPreviewWorldForPrefabPackage();
 public:
 	/**
 	 * Editor raycast hit all visible UIBaseRenderable object.
@@ -99,9 +101,6 @@ private:
 	void OnActorLabelChanged(AActor* actor);
 	FDelegateHandle OnMapOpenedDelegateHandle;
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
-	static UWorld* PreviewWorldForPrefabPackage;
-public:
-	static UWorld* GetPreviewWorldForPrefabPackage();
 #endif
 };
 
