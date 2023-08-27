@@ -331,7 +331,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
             }
             borderColor.a *= (1.0f - dInner);
             borderColor = BlendPremul(color, borderColor);
-            color = lerp(color, borderColor, _EnableBorder);
+            color = lerp(color, borderColor, _EnableBorder * sign(abs(_BorderWidth)));
         }
         color.a *= dOuter;
     }
