@@ -336,6 +336,14 @@ void UUIProceduralRect::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			MarkTextureDirty();
 			MarkUVDirty();
 		}
+		
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bUniformSetCornerRadius))
+		{
+			if (bUniformSetCornerRadius)
+			{
+				CornerRadius.Y = CornerRadius.Z = CornerRadius.W = CornerRadius.X;
+			}
+		}
 	}
 }
 void UUIProceduralRect::EditorForceUpdate()
