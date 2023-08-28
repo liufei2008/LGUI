@@ -15,6 +15,7 @@
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
+#include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
 #include "AssetToolsModule.h"
 #include "SceneView.h"
 #include "Kismet2/KismetEditorUtilities.h"
@@ -231,6 +232,8 @@ void FLGUIEditorModule::StartupModule()
 	//register SceneOutliner ColumnInfo
 	{
 		ApplyLGUIColumnInfo(IsLGUIColumnInfoChecked(), false);
+		//SceneOutliner extension
+		NativeSceneOutlinerExtension = new FLGUINativeSceneOutlinerExtension();
 	}
 	//register window
 	{
@@ -447,6 +450,8 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+		delete NativeSceneOutlinerExtension;
+		NativeSceneOutlinerExtension = nullptr;
 	}
 	//unregister window
 	{

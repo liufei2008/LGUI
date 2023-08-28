@@ -100,6 +100,8 @@ public:
 	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)override;
 	static int32 GetLGUIPreview_EditorViewIndex();
 	static void SetLGUIPreview_EditorViewIndex(int32 value);
+	static bool GetPreserveHierarchyState();
+	static float GetDelayRestoreHierarchyTime();
 #endif
 	virtual bool IsEditorOnly()const override { return true; }
 #if WITH_EDITORONLY_DATA
@@ -107,6 +109,18 @@ public:
 	UPROPERTY(config)
 		int32 LGUIPreview_EditorViewIndex = 6;
 	static FSimpleMulticastDelegate LGUIPreviewSetting_EditorPreviewViewportIndexChange;
+	/**
+	 * Keep World Outliner's actor state: expand and temporarily-hidden. When reload a level or play & endplay, all actors will expand and temporarily-hidden actors become visible, so we can check this on to keep these actor and folder's state.
+	 * Note: If actors in folder and the folder is not expanded, then these actors's state will not affected, because I can't get these tree items.
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
+		bool bPreserveHierarchyState = true;
+	static FSimpleMulticastDelegate LGUIEditorSetting_PreserveHierarchyStateChange;
+	/**
+	 * Sometimes when there are too many actors in level, restore hierarchy will not work. Then increase this value may solve the issue.
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
+		float DelayRestoreHierarchyTime = 0.2f;
 	/**
 	 * Prefabs in these folders will appear in "LGUI Tools" menu, so we can easily create our own UI control.
 	 */
