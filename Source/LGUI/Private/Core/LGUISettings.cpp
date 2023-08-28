@@ -117,7 +117,7 @@ void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 				GEditor->BroadcastLevelActorListChanged();//refresh Outliner menu
 			}
 		}
-		else if (MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, PreserveHierarchyState))
+		else if (MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, bPreserveHierarchyState))
 		{
 			LGUIEditorSetting_PreserveHierarchyStateChange.Broadcast();
 		}
@@ -141,7 +141,7 @@ void ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(int32 value)
 }
 bool ULGUIEditorSettings::GetPreserveHierarchyState()
 {
-	return GetDefault<ULGUIEditorSettings>()->PreserveHierarchyState;
+	return GetDefault<ULGUIEditorSettings>()->bPreserveHierarchyState;
 }
 float ULGUIEditorSettings::GetDelayRestoreHierarchyTime()
 {

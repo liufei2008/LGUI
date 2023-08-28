@@ -18,6 +18,8 @@
 #include "Utils/LGUIUtils.h"
 #include "UObject/ObjectSaveContext.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 #define LOCTEXT_NAMESPACE "LGUINativeSceneOutlinerExtension"
 FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 {
@@ -64,7 +66,7 @@ void FLGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, boo
 }
 void FLGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
 {
-
+	SaveSceneOutlinerStateForPIE();
 }
 void FLGUINativeSceneOutlinerExtension::OnBeginPIE(const bool IsSimulating)
 {
@@ -90,15 +92,10 @@ void FLGUINativeSceneOutlinerExtension::PreserveHierarchyStateChange()
 	}
 }
 
-void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
+void FLGUINativeSceneOutlinerExtension::OnIterateTreeItem(const TFunction<void(FSceneOutlinerTreeItemPtr&)>& Function)
 {
-	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
-	auto storageActor = FindDataStorageActor();
-	if (!storageActor)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
-	storageActor->ExpandedFolderArray.Reset();
-	TArray<AActor*> ExpandedActorArray;
 	if (LevelEditorTabManager.IsValid())
 	{
 		TSharedPtr<SDockTab> SceneOutlinerTab = LevelEditorTabManager->FindExistingLiveTab(FTabId("LevelEditorSceneOutliner"));
@@ -106,37 +103,55 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 		{
 			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
 			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
-			const auto& TreeView = SceneOutlinerWidget->GetTree();
+			auto& TreeView = SceneOutlinerWidget->GetTree();
 			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
 			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
 			{
-				if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
-				{
-					if (ActorTreeItem->Actor.IsValid())
-					{
-						ExpandedActorArray.Add(ActorTreeItem->Actor.Get());
-					}
-				}
-				else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
-				{
-					storageActor->ExpandedFolderArray.Add(FolderTreeItem->Path);
-				}
-				else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
-				{
-					if (WorldTreeItem->World.IsValid())
-					{
-
-					}
-				}
+				Function(Item);
 			}
 		}
 	}
+}
+
+void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
+{
+	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
+	auto storageActor = FindDataStorageActor();
+	if (!storageActor)return;
+	storageActor->ExpandedFolderArray.Reset();
+	storageActor->ExpandedActorArray.Reset();
+	storageActor->ExpandedSoftActorArray.Reset();
+	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
+				{
+					storageActor->ExpandedActorArray.Add(ActorTreeItem->Actor);
+				}
+				else
+				{
+					storageActor->ExpandedSoftActorArray.Add(ActorTreeItem->Actor.Get());
+				}
+			}
+		}
+		else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
+		{
+			storageActor->ExpandedFolderArray.Add(FolderTreeItem->Path);
+		}
+		else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
+		{
+			if (WorldTreeItem->World.IsValid())
+			{
+
+			}
+		}
+		});
+
 	storageActor->TemporarilyHiddenActorArray.Reset();
 	storageActor->TemporarilyHiddenSoftActorArray.Reset();
-	storageActor->UnexpandedActorArray.Reset();
-	storageActor->UnexpandedSoftActorArray.Reset();
-	UnexpandedActorArray.Reset();
 	if (auto world = GEditor->GetEditorWorldContext().World())
 	{
 		for (TActorIterator<AActor> ActorItr(world); ActorItr; ++ActorItr)
@@ -144,18 +159,6 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 			if(!IsValid(*ActorItr))continue;
 			if (ActorItr->GetClass() == ALGUIEditorLevelDataStorageActor::StaticClass())continue;//skip it-self
 			if (ActorItr->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient
-			if (!ExpandedActorArray.Contains(*ActorItr))
-			{
-				if (storageActor->GetLevel() == (*ActorItr)->GetLevel())
-				{
-					storageActor->UnexpandedActorArray.Add(*ActorItr);
-				}
-				else
-				{
-					storageActor->UnexpandedSoftActorArray.Add(*ActorItr);
-				}
-				UnexpandedActorArray.Add((*ActorItr)->GetFName());
-			}
 			if ((*ActorItr)->IsTemporarilyHiddenInEditor())
 			{
 				if (storageActor->GetLevel() == (*ActorItr)->GetLevel())
@@ -169,6 +172,32 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 			}
 		}
 	}
+}
+void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerStateForPIE()
+{
+	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
+	ExpandedActorArray.Reset();
+	ExpandedFolderArray.Reset();
+	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor.IsValid())
+			{
+				ExpandedActorArray.Add(ActorTreeItem->Actor->GetFName());
+			}
+		}
+		else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
+		{
+			ExpandedFolderArray.Add(FolderTreeItem->Path);
+		}
+		else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
+		{
+			if (WorldTreeItem->World.IsValid())
+			{
+
+			}
+		}
+		});
 }
 ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindDataStorageActor(bool CreateIfNotExist)
 {
@@ -212,72 +241,61 @@ ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindDataSto
 	return result;
 }
 
-void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor)
-{
-	if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
-	{
-		if (ActorTreeItem->Actor.IsValid())
-		{
-			//expend
-			if (shouldRestoreUseFNameData)
-			{
-				bool needToExpand = !UnexpandedActorArray.Contains(ActorTreeItem->Actor->GetFName());
-				ActorTreeItem->Flags.bIsExpanded = needToExpand;
-			}
-			else
-			{
-				if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
-				{
-					bool needToExpand = !storageActor->UnexpandedActorArray.Contains(ActorTreeItem->Actor);
-					ActorTreeItem->Flags.bIsExpanded = needToExpand;
-				}
-				else
-				{
-					bool needToExpand = !storageActor->UnexpandedSoftActorArray.Contains(ActorTreeItem->Actor.Get());
-					ActorTreeItem->Flags.bIsExpanded = needToExpand;
-				}
-			}
-		}
-	}
-	else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
-	{
-		//expend
-		bool needToExpand = storageActor->ExpandedFolderArray.Contains(FolderTreeItem->Path);
-		FolderTreeItem->Flags.bIsExpanded = needToExpand;
-	}
-	else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
-	{
-		if (WorldTreeItem->World.IsValid())
-		{
-
-		}
-	}
-}
-
 void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 {
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindDataStorageActor();
 	if (!storageActor)return;
-	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
-	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
-	if (LevelEditorTabManager.IsValid())
-	{
-		TSharedPtr<SDockTab> SceneOutlinerTab = LevelEditorTabManager->FindExistingLiveTab(FTabId("LevelEditorSceneOutliner"));
-		if (SceneOutlinerTab.IsValid())
+	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 		{
-			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
-			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
-			auto& TreeView = SceneOutlinerWidget->GetTree();
-			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
-			TreeView.GetExpandedItems(VisitingItems);
-			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
+			if (ActorTreeItem->Actor.IsValid())
 			{
-				RestoreSceneOutlinerStateForTreeItem(Item, storageActor);
+				//expend
+				if (shouldRestoreUseFNameData)
+				{
+					bool needToExpand = ExpandedActorArray.Contains(ActorTreeItem->Actor->GetFName());
+					ActorTreeItem->Flags.bIsExpanded = needToExpand;
+				}
+				else
+				{
+					if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
+					{
+						bool needToExpand = storageActor->ExpandedActorArray.Contains(ActorTreeItem->Actor);
+						ActorTreeItem->Flags.bIsExpanded = needToExpand;
+					}
+					else
+					{
+						bool needToExpand = storageActor->ExpandedSoftActorArray.Contains(ActorTreeItem->Actor.Get());
+						ActorTreeItem->Flags.bIsExpanded = needToExpand;
+					}
+				}
 			}
-			GEditor->BroadcastLevelActorListChanged();
 		}
-	}
+		else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
+		{
+			//expend
+			if (shouldRestoreUseFNameData)
+			{
+				bool needToExpand = ExpandedFolderArray.Contains(FolderTreeItem->Path);
+				FolderTreeItem->Flags.bIsExpanded = needToExpand;
+			}
+			else
+			{
+				bool needToExpand = storageActor->ExpandedFolderArray.Contains(FolderTreeItem->Path);
+				FolderTreeItem->Flags.bIsExpanded = needToExpand;
+			}
+		}
+		else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
+		{
+			if (WorldTreeItem->World.IsValid())
+			{
+
+			}
+		}
+		});
+	GEditor->BroadcastLevelActorListChanged();
+
 	if (shouldRestoreTemporarilyHidden)
 	{
 		//hidden
@@ -305,3 +323,5 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 	}
 }
 #undef LOCTEXT_NAMESPACE
+
+PRAGMA_ENABLE_OPTIMIZATION

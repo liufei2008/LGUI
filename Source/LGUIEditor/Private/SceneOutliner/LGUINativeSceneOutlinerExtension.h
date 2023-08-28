@@ -21,9 +21,9 @@ public:
 		bListedInSceneOutliner = false;
 	}
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<AActor>> UnexpandedActorArray;
+		TArray<TWeakObjectPtr<AActor>> ExpandedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TSoftObjectPtr<AActor>> UnexpandedSoftActorArray;
+		TArray<TSoftObjectPtr<AActor>> ExpandedSoftActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<AActor>> TemporarilyHiddenActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -59,13 +59,15 @@ private:
 	FDelegateHandle OnLGUIEditorPreserveHierarchyStateChangeDelegateHandle;
 
 	void SaveSceneOutlinerState();
+	void SaveSceneOutlinerStateForPIE();
 	void RestoreSceneOutlinerState();
-	void RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
 	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
+	void OnIterateTreeItem(const TFunction<void(FSceneOutlinerTreeItemPtr&)>& Function);
 	float delayRestoreTime = 0;
 	bool needToRestore = false;
 	bool shouldRestoreTemporarilyHidden = false;
 	bool shouldRestoreUseFNameData = false;
-	TArray<FName> UnexpandedActorArray;
+	TArray<FName> ExpandedActorArray;
+	TArray<FName> ExpandedFolderArray;
 	ALGUIEditorLevelDataStorageActor* FindDataStorageActor(bool CreateIfNotExist = true);
 };
