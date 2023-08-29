@@ -241,6 +241,15 @@ namespace LGUIPrefabSystem5
 	{
 		if (!IsValid(Actor))return;
 		if (Actor->HasAnyFlags(EObjectFlags::RF_Transient))return;
+#if WITH_EDITOR
+		if (bIsEditorOrRuntime)
+		{
+		}
+		else
+#endif
+		{
+			if (Actor->bIsEditorOnlyActor)return;
+		}
 		//collect actor
 		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
 		{
