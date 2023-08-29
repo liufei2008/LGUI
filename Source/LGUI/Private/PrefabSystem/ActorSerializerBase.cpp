@@ -63,6 +63,7 @@ namespace LGUIPrefabSystem
 		if (Object->GetClass()->IsChildOf(UEdMode::StaticClass()))return false;
 		if (ObjectIsTrash(Object))return false;
 #endif
+		if (Object->IsEditorOnly() && !bIsEditorOrRuntime)return false;
 		if (!Object->IsAsset()//skip asset, because asset is referenced directly
 			&& Object->GetWorld() == TargetWorld
 			&& !Object->IsPendingKillOrUnreachable()
