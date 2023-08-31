@@ -18,9 +18,18 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	{
 		if (standaloneInputDataArray.Num() == 0)
 		{
-			FVector2D mousePos = FVector2D(eventData->pointerPosition);
-			GetMousePosition(mousePos);
-			eventData->pointerPosition = FVector(mousePos, 0);
+			if (bOverrideMousePosition)
+			{
+				eventData->pointerPosition = FVector(overrideMousePosition, 0);
+			}
+			else
+			{
+				FVector2D mousePos;
+				if (GetMousePosition(mousePos))
+				{
+					eventData->pointerPosition = FVector(mousePos, 0);
+				}
+			}
 
 			FHitResultContainerStruct hitResultContainer;
 			bool lineTraceHitSomething = LineTrace(eventData, hitResultContainer);
@@ -134,10 +143,9 @@ void ULGUI_StandaloneInputModule::InputOverrideMousePosition(const FVector2D& in
 {
 	if (!bOverrideMousePosition)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUI_StandaloneInputModule::InputOverrideMousePosition]Check parameter bOverrideMousePosition if you need to use custom mouse position. Or custom mouse position will not work!"));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Check parameter bOverrideMousePosition if you need to use custom mouse position. Or custom mouse position will not work!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
-	if (!CheckEventSystem())return;
 
 	overrideMousePosition = inMousePosition;
 }
