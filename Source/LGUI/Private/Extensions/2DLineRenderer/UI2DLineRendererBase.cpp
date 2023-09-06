@@ -173,7 +173,12 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 		{	
 			//start point cap
 			auto spriteInfo = sprite->GetSpriteInfo();
-			auto capPoint = v0 - dir * (spriteInfo.HasBorder() ? spriteInfo.borderBottom : spriteInfo.height * 0.5f);
+			auto capSize = spriteInfo.HasBorder() ? spriteInfo.borderBottom : spriteInfo.height * 0.5f;
+			if (bEndCapSizeAffectByLineWidth)
+			{
+				capSize *= LineWidth / spriteInfo.width;
+			}
+			auto capPoint = v0 - dir * capSize;
 
 			pos0 = capPoint + lineLeftWidth * widthDir;
 			pos1 = capPoint - lineRightWidth * widthDir;
@@ -245,7 +250,12 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, co
 			{
 				//end point cap
 				auto spriteInfo = sprite->GetSpriteInfo();
-				auto capPoint = vEnd1 + dir * (spriteInfo.HasBorder() ? spriteInfo.borderTop : spriteInfo.height * 0.5f);
+				auto capSize = spriteInfo.HasBorder() ? spriteInfo.borderTop : spriteInfo.height * 0.5f;
+				if (bEndCapSizeAffectByLineWidth)
+				{
+					capSize *= LineWidth / spriteInfo.width;
+				}
+				auto capPoint = vEnd1 + dir * capSize;
 
 				pos0 = capPoint + lineLeftWidth * widthDir;
 				pos1 = capPoint - lineRightWidth * widthDir;
