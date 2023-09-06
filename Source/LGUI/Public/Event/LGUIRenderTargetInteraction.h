@@ -11,6 +11,7 @@
 
 class ULGUICanvas;
 class ULGUIRenderTargetGeometrySource;
+class ULGUIEventSystem;
 
 /**
  * Perform a raycaster and interaction for LGUIRenderTargetGeometrySource object, which shows the LGUI RenderTarget UI.
@@ -53,47 +54,5 @@ protected:
 	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 
-	struct FHitResultContainerStruct
-	{
-		FHitResult hitResult;
-		ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
-
-		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
-
-		ULGUIBaseRaycaster* raycaster = nullptr;
-
-		TArray<USceneComponent*> hoverArray;
-	};
-	bool LineTrace(FHitResultContainerStruct& hitResult);
-	void ProcessPointerEvent(ULGUIPointerEventData* pointerEventData, bool pointerHitAnything, const FHitResultContainerStruct& hitResult);
-	void ProcessPointerEnterExit(ULGUIPointerEventData* pointerEventData, USceneComponent* oldObj, USceneComponent* newObj, ELGUIEventFireType enterFireType);
-	/** find a commont root actor of two actors. return nullptr if no common root */
-	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
-
-
-	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerUp(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerClick(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerBeginDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerScroll(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
-	void CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
-
-	void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerUp(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerClick(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerBeginDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
-	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
+	bool LineTrace(FLGUIHitResult& hitResult);
 };

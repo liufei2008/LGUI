@@ -4,7 +4,26 @@
 #include "Event/LGUIBaseRaycaster.h"
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
+#include "Core/ActorComponent/UIItem.h"
 
+void ULGUIPointerEventData::SetHighlightedComponentForNavigation(USceneComponent* InComp)
+{
+	this->highlightComponentForNavigation = InComp;
+	this->navigateTickTime = 0;//trigger on next navigation process
+}
+
+bool ULGUIPointerEventData::IsPointerOverUI()
+{
+	if (this->enterComponentStack.Num() > 0)
+	{
+		auto firstEnterComp = this->enterComponentStack[0];
+		if (auto UIItem = Cast<UUIItem>(firstEnterComp))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 FVector ULGUIPointerEventData::GetWorldPointInPlane()const
 {

@@ -67,6 +67,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSelectComponent(USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
+	static void SetSelectComponent(ULGUIEventSystem* InEventSystem, USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSelectComponentWithDefault(USceneComponent* InSelectComp);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -78,10 +79,16 @@ public:
 		mutable TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
 	/**
 	 * Get PointerEventData by given pointerID.
-	 * @param	pointerID	0 for mouse input, touch id for touch input
+	 * @param	pointerID	0 for mouse input, touch-id for touch input, or other customized value
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIPointerEventData* GetPointerEventData(int pointerID = 0, bool createIfNotExist = false)const;
+	/**
+	 * Remove a PointerEventData. If you ensure that you will not use it anymore, then you can remove it.
+	 * @param	pointerID	0 for mouse input, touch-id for touch input, or other customized value
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void RemovePointerEventData(int pointerID);
 protected:
 	/** called for pointer hit anything */
 	FLGUIMulticastHitDelegate hitEvent;
@@ -113,27 +120,32 @@ public:
 		void UnregisterGlobalListener(const FLGUIDelegateHandleWrapper& InHandle);
 	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
 
+	UE_DEPRECATED(5.0, "Use IsPointerOverUIByPointerID instead.")
+		bool IsPointerOverUI(int pointerID = 0) { return IsPointerOverUIByPointerID(pointerID); }
 	/**
 	 * Tell if the pointer hovering on any UI object.
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool IsPointerOverUI(int pointerID = 0);
+		bool IsPointerOverUIByPointerID(int pointerID = 0);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID);
+		void SetHighlightedComponentForNavigation(USceneComponent* InComp, int InPointerID);	
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		USceneComponent* GetHighlightedComponentForNavigation(int InPointerID)const;
+
+	UE_DEPRECATED(5.0, "Use SetPointerInputTypeByPointerID instead.")
+		bool SetPointerInputType(int InPointerID, ELGUIPointerInputType InInputType) { return SetPointerInputTypeByPointerID(InPointerID, InInputType); }
 	/**
 	 * Set input type of the pointer, can be pointer or navigation.
 	 * @return true- input type changed, false- otherwise.
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool SetPointerInputType(int InPointerID, ELGUIPointerInputType InInputType);
+		bool SetPointerInputTypeByPointerID(int InPointerID, ELGUIPointerInputType InInputType);
 	/**
 	 * Set input type of the pointer, can be pointer or navigation..
 	 * @return true- input type changed, false- otherwise.
 	 */
-	bool SetPointerInputType(class ULGUIPointerEventData* InPointerEventData, ELGUIPointerInputType InInputType);
+	bool SetPointerInputType(ULGUIPointerEventData* InPointerEventData, ELGUIPointerInputType InInputType);
 	/**
 	 * Set the pointer's inputType as navigation.
 	 * @param InPointerID target pointer's ID.
@@ -166,6 +178,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		float navigateInputIntervalForFirstTime = 0.5f;
 public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerEnter(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = false);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerExit(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = false);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerDown(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerUp(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerClick(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerBeginDrag(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerDrag(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerEndDrag(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerScroll(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerDragDrop(USceneComponent* TargetRootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = true);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerSelect(USceneComponent* TargetRootComponent, ULGUIBaseEventData* EventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = false);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void ExecuteEvent_OnPointerDeselect(USceneComponent* TargetRootComponent, ULGUIBaseEventData* EventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp = false);
+
 	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
@@ -179,18 +216,18 @@ public:
 	void CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 
-	void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerUp(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerClick(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerBeginDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
-	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
+	static void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerUp(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerClick(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerBeginDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
+	static void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
+	static void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
 
 	void LogEventData(ULGUIBaseEventData* eventData);
 };
