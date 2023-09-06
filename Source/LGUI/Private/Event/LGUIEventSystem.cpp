@@ -178,6 +178,10 @@ ULGUIPointerEventData* ULGUIEventSystem::GetPointerEventData(int pointerID, bool
 	pointerEventDataMap.Add(pointerID, newEventData);
 	return newEventData;
 }
+void ULGUIEventSystem::RemovePointerEventData(int pointerID)
+{
+	pointerEventDataMap.Remove(pointerID);
+}
 
 
 void ULGUIEventSystem::RegisterHitEvent(const FLGUIHitDelegate& InEvent)
@@ -227,19 +231,11 @@ void ULGUIEventSystem::RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult,
 		hitEvent.Broadcast(hitOrNot, hitResult, hitComponent);
 	}
 }
-bool ULGUIEventSystem::IsPointerOverUI(int pointerID)
+bool ULGUIEventSystem::IsPointerOverUIByPointerID(int pointerID)
 {
 	if (auto foundPtr = pointerEventDataMap.Find(pointerID))
 	{
-		auto pointer = *foundPtr;
-		if (pointer->enterComponentStack.Num() > 0)
-		{
-			auto firstEnterComp = pointer->enterComponentStack[0];
-			if (auto UIItem = Cast<UUIItem>(firstEnterComp))
-			{
-				return true;
-			}
-		}
+		return (*foundPtr)->IsPointerOverUI();
 	}
 	return false;
 }
@@ -248,19 +244,19 @@ void ULGUIEventSystem::SetHighlightedComponentForNavigation(USceneComponent* InC
 {
 	if (auto eventData = GetPointerEventData(InPointerID, true))
 	{
-		eventData->highlightComponentForNavigation = InComp;
+		eventData->SetHighlightedComponentForNavigation(InComp);
 	}
 }
 USceneComponent* ULGUIEventSystem::GetHighlightedComponentForNavigation(int InPointerID)const
 {
 	if (auto eventData = GetPointerEventData(InPointerID, false))
 	{
-		return eventData->highlightComponentForNavigation.Get();
+		return eventData->GetHighlightedComponentForNavigation();
 	}
 	return nullptr;
 }
 
-bool ULGUIEventSystem::SetPointerInputType(int InPointerID, ELGUIPointerInputType InInputType)
+bool ULGUIEventSystem::SetPointerInputTypeByPointerID(int InPointerID, ELGUIPointerInputType InInputType)
 {
 	if (auto eventData = GetPointerEventData(InPointerID, false))
 	{
@@ -283,7 +279,7 @@ void ULGUIEventSystem::ActivateNavigationInput(int InPointerID, USceneComponent*
 	if (auto eventData = GetPointerEventData(InPointerID, false))
 	{
 		SetPointerInputType(eventData, ELGUIPointerInputType::Navigation);
-		eventData->highlightComponentForNavigation = InDefaultHighlightedComponent;
+		eventData->SetHighlightedComponentForNavigation(InDefaultHighlightedComponent);
 	}
 }
 void ULGUIEventSystem::RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange)
@@ -322,6 +318,31 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBa
 			CallOnPointerSelect(eventData->selectedComponent, eventData, eventFireType);
 		}
 		eventData->selectedComponentEventFireType = eventFireType;
+	}
+}
+
+void ULGUIEventSystem::SetSelectComponent(ULGUIEventSystem* InEventSystem, USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType)
+{
+	if (InEventSystem != nullptr)
+	{
+		InEventSystem->SetSelectComponent(InSelectComp, eventData, eventFireType);
+	}
+	else
+	{
+		if (eventData->selectedComponent != InSelectComp)//select new object
+		{
+			auto oldSelectedComp = eventData->selectedComponent;
+			eventData->selectedComponent = InSelectComp;
+			if (IsValid(oldSelectedComp))
+			{
+				ExecuteEvent_OnPointerDeselect(oldSelectedComp, eventData, eventFireType, false);
+			}
+			if (IsValid(eventData->selectedComponent))
+			{
+				ExecuteEvent_OnPointerSelect(eventData->selectedComponent, eventData, eventFireType, false);
+			}
+			eventData->selectedComponentEventFireType = eventFireType;
+		}
 	}
 }
 
@@ -506,10 +527,60 @@ void ULGUIEventSystem::BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData
 #pragma endregion
 
 #pragma region CallEvent
+void ULGUIEventSystem::ExecuteEvent_OnPointerEnter(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, EnterExit, Enter, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerExit(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, EnterExit, Exit, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerDown(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, DownUp, Down, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerUp(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, DownUp, Up, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerClick(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, Click, Click, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerBeginDrag(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, Drag, BeginDrag, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerDrag(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, Drag, Drag, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerEndDrag(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, Drag, EndDrag, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerScroll(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, Scroll, Scroll, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerDragDrop(USceneComponent* RootComponent, ULGUIPointerEventData* PointerEventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, PointerEventData, EventFireType, DragDrop, DragDrop, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerSelect(USceneComponent* RootComponent, ULGUIBaseEventData* EventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, EventData, EventFireType, SelectDeselect, Select, AllowEventBubbleUp);
+}
+void ULGUIEventSystem::ExecuteEvent_OnPointerDeselect(USceneComponent* RootComponent, ULGUIBaseEventData* EventData, ELGUIEventFireType EventFireType, bool AllowEventBubbleUp)
+{
+	CALL_LGUIINTERFACE(RootComponent, EventData, EventFireType, SelectDeselect, Deselect, AllowEventBubbleUp);
+}
+
+
 void ULGUIEventSystem::CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, EnterExit, Enter, false);
+	ExecuteEvent_OnPointerEnter(component, inEventData, eventFireType, false);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -518,7 +589,7 @@ void ULGUIEventSystem::CallOnPointerEnter(USceneComponent* component, ULGUIPoint
 void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, EnterExit, Exit, false);
+	ExecuteEvent_OnPointerExit(component, inEventData, eventFireType, false);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -527,7 +598,7 @@ void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, ULGUIPointe
 void ULGUIEventSystem::CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, DownUp, Down, true);
+	ExecuteEvent_OnPointerDown(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -535,21 +606,17 @@ void ULGUIEventSystem::CallOnPointerDown(USceneComponent* component, ULGUIPointe
 }
 void ULGUIEventSystem::CallOnPointerUp(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
-	if (!inEventData->isUpFiredAtCurrentFrame)
+	LogEventData(inEventData);
+	ExecuteEvent_OnPointerUp(component, inEventData, eventFireType, true);
+	if (globalListenerPointerEvent.IsBound())
 	{
-		inEventData->isUpFiredAtCurrentFrame = true;
-		LogEventData(inEventData);
-		CALL_LGUIINTERFACE(component, inEventData, eventFireType, DownUp, Up, true);
-		if (globalListenerPointerEvent.IsBound())
-		{
-			globalListenerPointerEvent.Broadcast(inEventData);
-		}
+		globalListenerPointerEvent.Broadcast(inEventData);
 	}
 }
 void ULGUIEventSystem::CallOnPointerClick(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, Click, Click, true);
+	ExecuteEvent_OnPointerClick(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -558,7 +625,7 @@ void ULGUIEventSystem::CallOnPointerClick(USceneComponent* component, ULGUIPoint
 void ULGUIEventSystem::CallOnPointerBeginDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, Drag, BeginDrag, true);
+	ExecuteEvent_OnPointerBeginDrag(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -567,7 +634,7 @@ void ULGUIEventSystem::CallOnPointerBeginDrag(USceneComponent* component, ULGUIP
 void ULGUIEventSystem::CallOnPointerDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, Drag, Drag, true);
+	ExecuteEvent_OnPointerDrag(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -575,22 +642,18 @@ void ULGUIEventSystem::CallOnPointerDrag(USceneComponent* component, ULGUIPointe
 }
 void ULGUIEventSystem::CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
-	if (!inEventData->isEndDragFiredAtCurrentFrame)
+	LogEventData(inEventData);
+	ExecuteEvent_OnPointerEndDrag(component, inEventData, eventFireType, true);
+	if (globalListenerPointerEvent.IsBound())
 	{
-		inEventData->isEndDragFiredAtCurrentFrame = true;
-		LogEventData(inEventData);
-		CALL_LGUIINTERFACE(component, inEventData, eventFireType, Drag, EndDrag, true);
-		if (globalListenerPointerEvent.IsBound())
-		{
-			globalListenerPointerEvent.Broadcast(inEventData);
-		}
+		globalListenerPointerEvent.Broadcast(inEventData);
 	}
 }
 
 void ULGUIEventSystem::CallOnPointerScroll(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, Scroll, Scroll, true);
+	ExecuteEvent_OnPointerScroll(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -600,7 +663,7 @@ void ULGUIEventSystem::CallOnPointerScroll(USceneComponent* component, ULGUIPoin
 void ULGUIEventSystem::CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, DragDrop, DragDrop, true);
+	ExecuteEvent_OnPointerDragDrop(component, inEventData, eventFireType, true);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -610,7 +673,7 @@ void ULGUIEventSystem::CallOnPointerDragDrop(USceneComponent* component, ULGUIPo
 void ULGUIEventSystem::CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, SelectDeselect, Select, false);
+	ExecuteEvent_OnPointerSelect(component, inEventData, eventFireType, false);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
@@ -619,7 +682,7 @@ void ULGUIEventSystem::CallOnPointerSelect(USceneComponent* component, ULGUIBase
 void ULGUIEventSystem::CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	LogEventData(inEventData);
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, SelectDeselect, Deselect, false);
+	ExecuteEvent_OnPointerDeselect(component, inEventData, eventFireType, false);
 	if (globalListenerPointerEvent.IsBound())
 	{
 		globalListenerPointerEvent.Broadcast(inEventData);
