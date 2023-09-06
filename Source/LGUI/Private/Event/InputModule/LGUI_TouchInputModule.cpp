@@ -9,37 +9,36 @@ void ULGUI_TouchInputModule::ProcessInput()
 {
 	if (!CheckEventSystem())return;
 
-	auto eventData = eventSystem->GetPointerEventData(0, true);
-	switch (eventData->inputType)
+	for (auto& keyValue : eventSystem->pointerEventDataMap)
 	{
-	default:
-	case ELGUIPointerInputType::Pointer:
-	{
-		for (auto& keyValue : eventSystem->pointerEventDataMap)
+		auto& eventData = keyValue.Value;
+		switch (eventData->inputType)
 		{
-			auto touchPointerEventData = keyValue.Value;
-			if (IsValid(touchPointerEventData))
+		default:
+		case ELGUIPointerInputType::Pointer:
+		{
+			if (IsValid(eventData))
 			{
-				if (touchPointerEventData->nowIsTriggerPressed || touchPointerEventData->prevIsTriggerPressed)
+				if (eventData->nowIsTriggerPressed || eventData->prevIsTriggerPressed)
 				{
-					FHitResultContainerStruct hitResultContainer;
-					bool lineTraceHitSomething = LineTrace(touchPointerEventData, hitResultContainer);
+					FLGUIHitResult LGUIHitResult;
+					bool lineTraceHitSomething = LineTrace(eventData, LGUIHitResult);
 					bool resultHitSomething = false;
 					FHitResult hitResult;
-					ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+					ProcessPointerEvent(eventSystem, eventData, lineTraceHitSomething, LGUIHitResult, resultHitSomething, hitResult);
 
 					auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
 					eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
 				}
 			}
 		}
-	}
-	break;
-	case ELGUIPointerInputType::Navigation:
-	{
-		ProcessInputForNavigation();
-	}
-	break;
+		break;
+		case ELGUIPointerInputType::Navigation:
+		{
+			ProcessInputForNavigation(eventData);
+		}
+		break;
+		}
 	}
 }
 void ULGUI_TouchInputModule::InputScroll(const FVector2D& inAxisValue)
