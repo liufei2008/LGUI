@@ -9,40 +9,32 @@
 #include "LGUI_PointerInputModule.generated.h"
 
 class ULGUIBaseRaycaster;
+class ULGUIEventSystem;
 
 UCLASS(Abstract)
 class LGUI_API ULGUI_PointerInputModule : public ULGUIBaseInputModule
 {
 	GENERATED_BODY()
 
+public:
+	static void ProcessPointerEvent(ULGUIEventSystem* eventSystem, ULGUIPointerEventData* pointerEventData, bool pointerHitAnything, const FLGUIHitResult& hitResult, bool& outIsHitSomething, FHitResult& outHitResult);
 protected:
-	UPROPERTY(Transient)TObjectPtr<class ULGUIEventSystem> eventSystem = nullptr;
+	UPROPERTY(Transient)TObjectPtr<ULGUIEventSystem> eventSystem = nullptr;
 	bool CheckEventSystem();
-	struct FHitResultContainerStruct
-	{
-		FHitResult hitResult;
-		ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
-		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
-
-		ULGUIBaseRaycaster* raycaster = nullptr;
-
-		TArray<USceneComponent*> hoverArray;
-	};
-
-	void ProcessPointerEvent(ULGUIPointerEventData* pointerEventData, bool pointerHitAnything, const FHitResultContainerStruct& hitResult, bool& outIsHitSomething, FHitResult& outHitResult);
-	bool LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
-	TArray<FHitResultContainerStruct> multiHitResult;//temp array for hit result
-	void ProcessPointerEnterExit(ULGUIPointerEventData* pointerEventData, USceneComponent* oldObj, USceneComponent* newObj, ELGUIEventFireType enterFireType);
+	bool LineTrace(ULGUIPointerEventData* InPointerEventData, FLGUIHitResult& hitResult);
+	TArray<FLGUIHitResult> multiHitResult;//temp array for hit result
+	static void ProcessPointerEnterExit(ULGUIEventSystem* eventSystem, ULGUIPointerEventData* pointerEventData, USceneComponent* oldObj, USceneComponent* newObj, ELGUIEventFireType enterFireType);
 	/** find a commont root actor of two actors. return nullptr if no common root */
-	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
+	static AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
 
-	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
+	bool Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FLGUIHitResult& hitResult);
 	void ProcessInputForNavigation();
+	void ProcessInputForNavigation(ULGUIPointerEventData* InPointerEventData);
 	void ClearEventByID(int pointerID);
-	bool CanHandleInterface(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
-	USceneComponent* GetEventHandle(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
-	void DeselectIfSelectionChanged(USceneComponent* currentPressed, ULGUIBaseEventData* eventData);
+	static bool CanHandleInterface(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
+	static USceneComponent* GetEventHandle(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
+	static void DeselectIfSelectionChanged(ULGUIEventSystem* eventSystem, USceneComponent* currentPressed, ULGUIBaseEventData* eventData);
 public:
 	virtual void ClearEvent()override;
 

@@ -105,13 +105,13 @@ public:
 		TObjectPtr<ULGUIBaseRaycaster> pressRaycaster;
 	/** the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		float clickTime;
+		double clickTime;
 	/** the last time when trigger release(get time from GetWorld()->TimeSeconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		float releaseTime;
+		double releaseTime;
 	/** the last time when trigger press(get time from GetWorld()->TimeSeconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		float pressTime;
+		double pressTime;
 
 	/** is dragging? */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
@@ -124,9 +124,9 @@ public:
 	ELGUIEventFireType pressComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 	ELGUIEventFireType dragComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
-	bool isUpFiredAtCurrentFrame = false;//is PointerUp event in current frame is called?
-	bool isExitFiredAtCurrentFrame = false;//is PointerExit event in current frame is called?
-	bool isEndDragFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
+	bool isUpFiredAtCurrentFrame = false;//PointerUp event is called at current frame?
+	bool isExitFiredAtCurrentFrame = false;//PointerExit event is called at current frame?
+	bool isEndDragFiredAtCurrentFrame = false;//EndDrag event is called at current frame?
 
 	bool nowIsTriggerPressed = false;
 	bool prevIsTriggerPressed = false;
@@ -134,6 +134,13 @@ public:
 	TWeakObjectPtr<USceneComponent> highlightComponentForNavigation = nullptr;
 	float navigateTickTime = 0;
 	ELGUINavigationDirection navigateDirection = ELGUINavigationDirection::None;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetHighlightedComponentForNavigation(USceneComponent* InComp);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		USceneComponent* GetHighlightedComponentForNavigation()const { return highlightComponentForNavigation.Get(); }
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool IsPointerOverUI();
 
 	virtual FString ToString()const override;
 	/** Use a line-plane intersection to get world point. The plane is pressComponent's x-axis plane. */
@@ -153,4 +160,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetCumulativeMoveDelta()const;
+};
+
+struct FLGUIHitResult
+{
+	FHitResult hitResult;
+	ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
+
+	FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
+
+	ULGUIBaseRaycaster* raycaster = nullptr;
+
+	TArray<USceneComponent*> hoverArray;
 };
