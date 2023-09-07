@@ -424,6 +424,14 @@ int32 ULGUIRenderTargetGeometrySource::GetNumMaterials() const
 	return FMath::Max<int32>(OverrideMaterials.Num(), 1);
 }
 
+bool ULGUIRenderTargetGeometrySource::GetTriMeshSizeEstimates(struct FTriMeshCollisionDataEstimates& OutTriMeshEstimates, bool bInUseAllTriData) const
+{
+	if (!GetRenderTarget())return false;
+	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)return true;
+	if (Vertices.Num() == 0 || Triangles.Num() == 0)return true;
+	OutTriMeshEstimates.VerticeCount = Vertices.Num();
+	return true;
+}
 bool ULGUIRenderTargetGeometrySource::GetPhysicsTriMeshData(struct FTriMeshCollisionData* CollisionData, bool InUseAllTriData)
 {
 	auto RenderTarget = GetRenderTarget();
@@ -484,6 +492,7 @@ bool ULGUIRenderTargetGeometrySource::ContainsPhysicsTriMeshData(bool InUseAllTr
 {
 	if (!GetRenderTarget())return false;
 	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)return false;
+	if (Vertices.Num() == 0 || Triangles.Num() == 0)return false;
 	return true;
 }
 bool ULGUIRenderTargetGeometrySource::WantsNegXTriMesh() 
