@@ -482,6 +482,7 @@ bool ULGUIRenderTargetGeometrySource::ContainsPhysicsTriMeshData(bool InUseAllTr
 {
 	if (!GetRenderTarget())return false;
 	if (GeometryMode == ELGUIRenderTargetGeometryMode::StaticMesh)return false;
+	if (Vertices.Num() == 0 || Triangles.Num() == 0)return false;
 	return true;
 }
 bool ULGUIRenderTargetGeometrySource::WantsNegXTriMesh() 
