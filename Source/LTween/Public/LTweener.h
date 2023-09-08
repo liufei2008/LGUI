@@ -56,10 +56,10 @@ DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialScalarSetterFunction, int
 DECLARE_DELEGATE_RetVal_OneParam(bool, FLTweenMaterialVectorGetterFunction, FLinearColor&);
 DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialVectorSetterFunction, int32, const FLinearColor&);
 
-/** for blueprint callback*/
-DECLARE_DYNAMIC_DELEGATE(FTweenerSimpleDynamicDelegate);
-/** @param InProgress Progress of this tween, from 0 to 1*/
-DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenerFloatDynamicDelegate, float, InProgress);
+/** simple delegate */
+DECLARE_DYNAMIC_DELEGATE(FLTweenerSimpleDynamicDelegate);
+/** @param InProgress Progress of this tween, from 0 to 1 */
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenerFloatDynamicDelegate, float, InProgress);
 
 /**
  * Animation curve type
@@ -228,7 +228,7 @@ public:
 	}
 	/** execute when animation complete */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* OnComplete(const FTweenerSimpleDynamicDelegate& newComplete)
+		ULTweener* OnComplete(const FLTweenerSimpleDynamicDelegate& newComplete)
 	{
 		this->onCompleteCpp.BindLambda([newComplete] {
 			newComplete.ExecuteIfBound();
@@ -253,7 +253,7 @@ public:
 	}
 	/** if use loop, this will call every time after tween complete in every cycle */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* OnCycleComplete(const FTweenerSimpleDynamicDelegate& newCycleComplete)
+		ULTweener* OnCycleComplete(const FLTweenerSimpleDynamicDelegate& newCycleComplete)
 	{
 		this->onCycleCompleteCpp.BindLambda([newCycleComplete] {
 			newCycleComplete.ExecuteIfBound();
@@ -278,7 +278,7 @@ public:
 	}
 	/** if use loop, this will call every time when begin tween in every cycle */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* OnCycleStart(const FTweenerSimpleDynamicDelegate& newCycleStart)
+		ULTweener* OnCycleStart(const FLTweenerSimpleDynamicDelegate& newCycleStart)
 	{
 		this->onCycleStartCpp.BindLambda([newCycleStart] {
 			newCycleStart.ExecuteIfBound();
@@ -303,7 +303,7 @@ public:
 	}
 	/** execute every frame if animation is playing */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* OnUpdate(const FTweenerFloatDynamicDelegate& newUpdate)
+		ULTweener* OnUpdate(const FLTweenerFloatDynamicDelegate& newUpdate)
 	{
 		this->onUpdateCpp.BindLambda([newUpdate](float progress) {
 			newUpdate.ExecuteIfBound(progress);
@@ -319,7 +319,7 @@ public:
 	}
 	/** execute when animation start, blueprint version*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* OnStart(const FTweenerSimpleDynamicDelegate& newStart)
+		ULTweener* OnStart(const FLTweenerSimpleDynamicDelegate& newStart)
 	{
 		this->onStartCpp.BindLambda([newStart] {
 			newStart.ExecuteIfBound();
