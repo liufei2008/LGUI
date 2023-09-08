@@ -45,7 +45,9 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix44f& VP)
 	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), VPParameter, VP);
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		SetShaderValue(BatchedParameters, VPParameter, VP);
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundVertexShader(), BatchedParameters);
 	}
 private:
 	LAYOUT_FIELD(FShaderParameter, VPParameter);

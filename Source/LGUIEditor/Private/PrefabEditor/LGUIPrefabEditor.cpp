@@ -229,7 +229,7 @@ bool FLGUIPrefabEditor::GetAnythingDirty()const
 void FLGUIPrefabEditor::CloseWithoutCheckDataDirty()
 {
 	PrefabHelperObject->SetNothingDirty();
-	this->CloseWindow();
+	this->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);
 }
 
 bool FLGUIPrefabEditor::OnRequestClose()
@@ -748,7 +748,7 @@ void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)
 				if (PrimitiveComponent->IsRegistered())
 				{
 					// Some components can have huge bounds but are not visible.  Ignore these components unless it is the only component on the actor 
-					const bool bIgnore = PrimitiveComponents.Num() > 1 && PrimitiveComponent->IgnoreBoundsForEditorFocus();
+					const bool bIgnore = PrimitiveComponents.Num() > 1 && PrimitiveComponent->GetIgnoreBoundsForEditorFocus();
 
 					if (!bIgnore)
 					{

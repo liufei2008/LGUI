@@ -447,10 +447,10 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 
 			uint32 VertexBufferSize = renderMeshRegionToScreenVertexArray.Num() * sizeof(FLGUIPostProcessVertex);
 			FRHIResourceCreateInfo CreateInfo(TEXT("RenderMeshOnScreen"));
-			FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+			FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+			void* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
-			RHIUnlockBuffer(VertexBufferRHI);
+			RHICmdList.UnlockBuffer(VertexBufferRHI);
 			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 			RHICmdList.DrawIndexedPrimitive(IndexBuffer, 0, 0, renderMeshRegionToScreenVertexArray.Num(), 0, TriangleCount, 1);
 			VertexBufferRHI.SafeRelease();

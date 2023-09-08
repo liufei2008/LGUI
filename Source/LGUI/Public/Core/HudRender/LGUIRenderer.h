@@ -169,17 +169,17 @@ public:
 class LGUI_API FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
 {
 public:
-	void InitRHI()override;
+	void InitRHI(FRHICommandListBase& RHICmdList)override;
 };
 class LGUI_API FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
 {
 public:
-	void InitRHI()override;
+	void InitRHI(FRHICommandListBase& RHICmdList)override;
 };
 class LGUI_API FLGUIFullScreenSlicedQuadIndexBuffer :public FIndexBuffer
 {
 public:
-	void InitRHI()override;
+	void InitRHI(FRHICommandListBase& RHICmdList)override;
 };
 static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;

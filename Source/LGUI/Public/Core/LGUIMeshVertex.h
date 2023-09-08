@@ -45,7 +45,7 @@ class LGUI_API FLGUIMeshVertexDeclaration : public FRenderResource
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
 	virtual ~FLGUIMeshVertexDeclaration() {}
-	virtual void InitRHI()override;
+	virtual void InitRHI(FRHICommandListBase& RHICmdList)override;
 	virtual void ReleaseRHI()override;
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIMeshVertexDeclaration();

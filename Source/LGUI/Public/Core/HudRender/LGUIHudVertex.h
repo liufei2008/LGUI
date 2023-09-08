@@ -29,7 +29,7 @@ class LGUI_API FLGUIPostProcessVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
-	virtual void InitRHI() override;
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
 	virtual void ReleaseRHI() override;
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration();
@@ -53,7 +53,7 @@ class LGUI_API FLGUIPostProcessCopyMeshRegionVertexDeclaration : public FRenderR
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
-	virtual void InitRHI() override;
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
 	virtual void ReleaseRHI() override;
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration();
@@ -76,7 +76,7 @@ struct LGUI_API FLGUIHelperLineVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
-	virtual void InitRHI() override;
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
 	virtual void ReleaseRHI() override;
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIHelperLineVertexDeclaration();

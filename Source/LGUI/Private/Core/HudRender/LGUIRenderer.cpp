@@ -215,10 +215,10 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
 
 			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
 			FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
-			FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+			FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+			void* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 			FMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
-			RHIUnlockBuffer(VertexBufferRHI);
+			RHICmdList.UnlockBuffer(VertexBufferRHI);
 
 			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -928,10 +928,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					for (auto& LineRenderParameter : HelperLineRenderParameterArray)
 					{
 						FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHelperLineRenderVertexBuffer"));
-						FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), BUF_Volatile, CreateInfo);
-						auto* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), RLM_WriteOnly);
+						FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), BUF_Volatile, CreateInfo);
+						auto* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), RLM_WriteOnly);
 						FMemory::Memcpy(VoidPtr, LineRenderParameter.LinePoints.GetData(), sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num());
-						RHIUnlockBuffer(VertexBufferRHI);
+						RHICmdList.UnlockBuffer(VertexBufferRHI);
 
 						RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 
@@ -1170,7 +1170,7 @@ void FLGUIHudRenderer::AddLineRender(const FLGUIHelperLineRenderParameter& InLin
 }
 #endif
 
-void FLGUIFullScreenQuadVertexBuffer::InitRHI()
+void FLGUIFullScreenQuadVertexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	TResourceArray<FLGUIPostProcessVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
 	Vertices.SetNumUninitialized(4);
@@ -1181,9 +1181,9 @@ void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 	Vertices[3] = FLGUIPostProcessVertex(FVector3f(1, 1, 0), FVector2f(1.0f, 0.0f));
 
 	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadVertexBuffer"), &Vertices);
-	VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
+	VertexBufferRHI = RHICmdList.CreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
-void FLGUIFullScreenQuadIndexBuffer::InitRHI()
+void FLGUIFullScreenQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	const uint16 Indices[] =
 	{
@@ -1197,9 +1197,9 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
 	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer"), &IndexBuffer);
-	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+	IndexBufferRHI = RHICmdList.CreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
-void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI()
+void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	uint16 Indices[54];
 	int wSeg = 3, hSeg = 3;
@@ -1227,7 +1227,7 @@ void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI()
 	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
 	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenSlicedQuadIndexBuffer"), &IndexBuffer);
-	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+	IndexBufferRHI = RHICmdList.CreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION

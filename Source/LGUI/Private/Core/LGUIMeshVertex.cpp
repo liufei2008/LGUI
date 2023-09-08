@@ -4,7 +4,7 @@
 #include "RHI.h"
 
 
-void FLGUIMeshVertexDeclaration::InitRHI()
+void FLGUIMeshVertexDeclaration::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	FVertexDeclarationElementList Elements;
 	uint32 Stride = sizeof(FLGUIMeshVertex);

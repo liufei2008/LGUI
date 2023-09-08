@@ -44,13 +44,13 @@ class FLGUIHudVertexBuffer : public FVertexBuffer
 {
 public:
 	TArray<FLGUIMeshVertex> Vertices;
-	virtual void InitRHI()override
+	virtual void InitRHI(FRHICommandListBase& RHICmdList)override
 	{
 		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIMeshVertex);
 
 		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
 		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHudVertexBuffer"), &ResourceArray);
-		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
+		VertexBufferRHI = RHICmdList.CreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
 	}
 };
 
@@ -77,15 +77,15 @@ public:
 		: VertexFactory(InFeatureLevel, "FLGUIMeshProxySection")
 	{}
 
-	static inline void InitOrUpdateResource(FRenderResource* Resource)
+	static inline void InitOrUpdateResource(FRHICommandListImmediate& RHICmdList, FRenderResource* Resource)
 	{
 		if (!Resource->IsInitialized())
 		{
-			Resource->InitResource();
+			Resource->InitResource(RHICmdList);
 		}
 		else
 		{
-			Resource->UpdateRHI();
+			Resource->UpdateRHI(RHICmdList);
 		}
 	}
 
@@ -130,9 +130,9 @@ public:
 		ENQUEUE_RENDER_COMMAND(StaticMeshVertexBuffersLegacyInit)(
 			[VertexFactoryPtr, Self, LightMapIndex](FRHICommandListImmediate& RHICmdList)
 			{
-				InitOrUpdateResource(&Self->PositionVertexBuffer);
-				InitOrUpdateResource(&Self->StaticMeshVertexBuffer);
-				InitOrUpdateResource(&Self->ColorVertexBuffer);
+				InitOrUpdateResource(RHICmdList, &Self->PositionVertexBuffer);
+				InitOrUpdateResource(RHICmdList, &Self->StaticMeshVertexBuffer);
+				InitOrUpdateResource(RHICmdList, &Self->ColorVertexBuffer);
 
 				FLocalVertexFactory::FDataType Data;
 				Self->PositionVertexBuffer.BindPositionVertexBuffer(VertexFactoryPtr, Data);
@@ -142,7 +142,7 @@ public:
 				Self->ColorVertexBuffer.BindColorVertexBuffer(VertexFactoryPtr, Data);
 				VertexFactoryPtr->SetData(Data);
 
-				InitOrUpdateResource(VertexFactoryPtr);
+				InitOrUpdateResource(RHICmdList, VertexFactoryPtr);
 			});
 	}
 };
@@ -391,7 +391,8 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FLGUIMeshVertex* MeshVertexData, const int32& NumVerts
+	void UpdateSection_RenderThread(FRHICommandListImmediate& RHICmdList
+		, FLGUIMeshVertex* MeshVertexData, const int32& NumVerts
 		, FLGUIMeshIndexBufferType* MeshIndexData, const uint32& IndexDataLength
 		, const int8& AdditionalChannelFlags
 		, FLGUIMeshProxySection* Section)
@@ -407,9 +408,9 @@ public:
 			if (IsSupportLGUIRenderer)
 			{
 				uint32 VertexDataLength = NumVerts * sizeof(FLGUIMeshVertex);
-				void* VertexBufferData = RHILockBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
+				void* VertexBufferData = RHICmdList.LockBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
 				FMemory::Memcpy(VertexBufferData, MeshVertexData, VertexDataLength);
-				RHIUnlockBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+				RHICmdList.UnlockBuffer(Section->HudVertexBuffers.VertexBufferRHI);
 			}
 			if(IsSupportUERenderer)
 			{
@@ -450,38 +451,38 @@ public:
 
 				{
 					auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
-					void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					void* VertexBufferData = RHICmdList.LockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
 					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
-					RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+					RHICmdList.UnlockBuffer(VertexBuffer.VertexBufferRHI);
 				}
 
 				{
 					auto& VertexBuffer = Section->VertexBuffers.ColorVertexBuffer;
-					void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					void* VertexBufferData = RHICmdList.LockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
 					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
-					RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+					RHICmdList.UnlockBuffer(VertexBuffer.VertexBufferRHI);
 				}
 
 				{
 					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
-					void* VertexBufferData = RHILockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
+					void* VertexBufferData = RHICmdList.LockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
 					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTangentData(), VertexBuffer.GetTangentSize());
-					RHIUnlockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
+					RHICmdList.UnlockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
 				}
 
 				{
 					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
-					void* VertexBufferData = RHILockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
+					void* VertexBufferData = RHICmdList.LockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
 					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
-					RHIUnlockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+					RHICmdList.UnlockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
 				}
 			}
 
 
 			// Lock index buffer
-			auto IndexBufferData = RHILockBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
+			auto IndexBufferData = RHICmdList.LockBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
 			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
-			RHIUnlockBuffer(Section->IndexBuffer.IndexBufferRHI);
+			RHICmdList.UnlockBuffer(Section->IndexBuffer.IndexBufferRHI);
 		}
 	}
 
@@ -750,7 +751,8 @@ void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 			[UpdateData](FRHICommandListImmediate& RHICmdList)
 			{
 				UpdateData->SceneProxy->UpdateSection_RenderThread(
-					UpdateData->VertexBufferData.GetData()
+					RHICmdList
+					, UpdateData->VertexBufferData.GetData()
 					, UpdateData->NumVerts
 					, UpdateData->IndexBufferData.GetData()
 					, UpdateData->IndexBufferDataLength

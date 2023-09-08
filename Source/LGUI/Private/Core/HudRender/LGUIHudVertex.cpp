@@ -3,7 +3,7 @@
 #include "Core/HudRender/LGUIHudVertex.h"
 
 
-void FLGUIPostProcessVertexDeclaration::InitRHI()
+void FLGUIPostProcessVertexDeclaration::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	FVertexDeclarationElementList Elements;
 	uint16 Stride = sizeof(FLGUIPostProcessVertex);
@@ -25,7 +25,7 @@ FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration()
 
 
 
-void FLGUIPostProcessCopyMeshRegionVertexDeclaration::InitRHI()
+void FLGUIPostProcessCopyMeshRegionVertexDeclaration::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	FVertexDeclarationElementList Elements;
 	uint16 Stride = sizeof(FLGUIPostProcessCopyMeshRegionVertex);
@@ -45,7 +45,7 @@ FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration()
 
 
 
-void FLGUIHelperLineVertexDeclaration::InitRHI()
+void FLGUIHelperLineVertexDeclaration::InitRHI(FRHICommandListBase& RHICmdList)
 {
 	FVertexDeclarationElementList Elements;
 	uint16 Stride = sizeof(FLGUIHelperLineVertex);
