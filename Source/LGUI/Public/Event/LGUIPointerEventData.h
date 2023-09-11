@@ -3,6 +3,7 @@
 #pragma once
 
 #include "LGUIBaseEventData.h"
+#include "Engine/HitResult.h"
 #include "LGUIPointerEventData.generated.h"
 
 class ULGUIBaseRaycaster;
