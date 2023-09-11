@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
 #include "Utils/LGUIUtils.h"
+#include "TextureResource.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteData"
 
