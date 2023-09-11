@@ -531,7 +531,7 @@ void UUIText::OnPostChangeRichTextCustomStyleDataProperty()
 #endif
 void UUIText::RegisterOnRichTextImageDataChange()
 {
-	onRichTextImageDataChangedDelegateHandle = richTextImageData->OnDataChange.AddWeakLambda(this, [=] {
+	onRichTextImageDataChangedDelegateHandle = richTextImageData->OnDataChange.AddWeakLambda(this, [this] {
 		this->MarkVerticesDirty(false, true, true, false);
 		});
 }
@@ -543,7 +543,7 @@ void UUIText::UnregisterOnRichTextImageDataChange()
 
 void UUIText::RegisterOnRichTextCustomStyleDataChange()
 {
-	onRichTextCustomStyleDataChangedDelegateHandle = richTextCustomStyleData->OnDataChange.AddWeakLambda(this, [=] {
+	onRichTextCustomStyleDataChangedDelegateHandle = richTextCustomStyleData->OnDataChange.AddWeakLambda(this, [this] {
 		this->MarkVerticesDirty(false, true, true, false);
 		});
 }

@@ -298,7 +298,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 	auto EventListHandle = GetEventListHandle(PropertyHandle);
 
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
-	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
+	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this] { PropertyUtilites->ForceRefresh(); }));
 
 	SAssignNew(EventsVerticalLayout, SVerticalBox)
 	+ SVerticalBox::Slot()

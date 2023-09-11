@@ -30,7 +30,7 @@ void ULGUIImageSequencePlayer::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		editorPlayDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
+		editorPlayDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
 			if (!previewInEditor)return;
 			if (!CanPlay())return;
 			duration = GetDuration();

@@ -8,6 +8,7 @@ public class LGUI : ModuleRules
 	{
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnableUndefinedIdentifierWarnings = false;
+        CppStandard = CppStandardVersion.Cpp20;
 
         string EnginSourceFolder = EngineDirectory + "/Source/";
         PrivateIncludePaths.AddRange(

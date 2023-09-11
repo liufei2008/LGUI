@@ -231,11 +231,11 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
         if (InEaseAnimation)
         {
             ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
-                , [=] {
+                , [this] {
                     auto ContentLocation = ContentUIItem->GetRelativeLocation();
                     return ContentLocation.Y;
                 })
-                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {
                     this->SetScrollValue(FVector2D(value, 0));
                     }), TargetContentPos, InAnimationDuration);
         }
@@ -272,11 +272,11 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
         if (InEaseAnimation)
         {
             ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
-                , [=] {
+                , [this] {
                     auto ContentLocation = ContentUIItem->GetRelativeLocation();
                     return ContentLocation.Z;
                 })
-                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+                , FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {
                     this->SetScrollValue(FVector2D(0, value));
                     }), TargetContentPos, InAnimationDuration);
         }

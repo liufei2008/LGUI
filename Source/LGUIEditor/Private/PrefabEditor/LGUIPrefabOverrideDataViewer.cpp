@@ -110,7 +110,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				+SVerticalBox::Slot()
 				[
 					PropertyCustomizationHelpers::MakeResetButton(
-						FSimpleDelegate::CreateLambda([=]() {
+						FSimpleDelegate::CreateLambda([=, this]() {
 							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
 							AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
@@ -128,7 +128,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				+SVerticalBox::Slot()
 				[
 					PropertyCustomizationHelpers::MakeUseSelectedButton(
-						FSimpleDelegate::CreateLambda([=]() {
+						FSimpleDelegate::CreateLambda([=, this]() {
 							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
 							AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
@@ -181,7 +181,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 					.AutoHeight()
 					[
 						PropertyCustomizationHelpers::MakeResetButton(
-							FSimpleDelegate::CreateLambda([=]() {
+							FSimpleDelegate::CreateLambda([=, this]() {
 								PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), PropertyName);
 								AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 							})
@@ -201,7 +201,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 					.AutoHeight()
 					[
 						PropertyCustomizationHelpers::MakeUseSelectedButton(
-							FSimpleDelegate::CreateLambda([=]() {
+							FSimpleDelegate::CreateLambda([=, this]() {
 								PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), PropertyName);
 								AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 							})
@@ -236,7 +236,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 					SNew(SButton)
 					.Text(LOCTEXT("RevertAll", "Revert All"))
 					.ToolTipText(LOCTEXT("RevertAll_Tooltip", "Revert all overrides"))
-					.OnClicked_Lambda([=](){
+					.OnClicked_Lambda([=, this](){
 						PrefabHelperObject->RevertAllPrefabOverride(RootObject);
 						AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(RootObject));
 						return FReply::Handled();
@@ -254,7 +254,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 					SNew(SButton)
 					.Text(LOCTEXT("ApplyAll", "Apply All"))
 					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "Apply all overrides to source prefab"))
-					.OnClicked_Lambda([=](){
+					.OnClicked_Lambda([=, this](){
 						PrefabHelperObject->ApplyAllOverrideToPrefab(RootObject);
 						AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(RootObject));
 						return FReply::Handled();

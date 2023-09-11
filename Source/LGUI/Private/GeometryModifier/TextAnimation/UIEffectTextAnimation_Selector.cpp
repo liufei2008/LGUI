@@ -134,7 +134,7 @@ bool UUIEffectTextAnimation_RichTextTagSelector::Select(class UUIText* InUIText,
 	if (FMath::Abs(range) < KINDA_SMALL_NUMBER)return false;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	auto& richTextCustomTagArray = InUIText->GetRichTextCustomTagArray();
-	int foundIndex = richTextCustomTagArray.IndexOfByPredicate([=](const FUIText_RichTextCustomTag& A) {
+	int foundIndex = richTextCustomTagArray.IndexOfByPredicate([this](const FUIText_RichTextCustomTag& A) {
 		return A.TagName == tagName;
 		});
 	if (foundIndex == -1)return false;

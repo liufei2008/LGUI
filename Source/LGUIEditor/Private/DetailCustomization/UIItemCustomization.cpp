@@ -109,7 +109,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	//base
 	{
 		auto uiActiveHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive));
-		uiActiveHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		uiActiveHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this] {
 			ForceUpdateUI();
 		}));
 	}
@@ -209,7 +209,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 			;
 		};
-		auto MakeAnchorValueWidget = [=](int AnchorValueIndex) {
+		auto MakeAnchorValueWidget = [=, this](int AnchorValueIndex) {
 			return
 				SNew(SBox)
 				.Padding(AnchorValueMargin)
@@ -231,7 +231,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			;
 		};
 		auto DetailBuilderPoiter = &DetailBuilder;
-		auto MakeAnchorPreviewWidget = [=](LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VAlign) {
+		auto MakeAnchorPreviewWidget = [=, this](LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VAlign) {
 			return
 				SNew(LGUIAnchorPreviewWidget::SAnchorPreviewWidget, anchorItemSize)
 				.BasePadding(itemBasePadding)
@@ -662,16 +662,16 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	auto PivotHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.Pivot));
 	auto& PivotProperty = TransformCategory.AddProperty(PivotHandle);
 	PivotProperty.IsEnabled(this->IsAnchorEditable());
-	PivotHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	PivotHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		this->OnPrePivotChange();
 		}));
-	PivotHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	PivotHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		this->OnPivotChanged();
 		}));
-	PivotHandle->SetOnChildPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	PivotHandle->SetOnChildPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		this->OnPrePivotChange();
 		}));
-	PivotHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	PivotHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		this->OnPivotChanged();
 		}));
 
@@ -684,7 +684,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	{
 		auto HierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
 		DetailBuilder.HideProperty(HierarchyIndexHandle);
-		HierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		HierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 			ForceUpdateUI();
 			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
 			}));

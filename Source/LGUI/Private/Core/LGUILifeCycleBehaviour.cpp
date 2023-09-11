@@ -84,7 +84,7 @@ void ULGUILifeCycleBehaviour::OnRegister()
 		{
 			if (executeInEditMode)
 			{
-				EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
+				EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([this](float deltaTime) {this->Update(deltaTime); });
 			}
 		}
 	}

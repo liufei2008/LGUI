@@ -7,8 +7,10 @@ public class LTween : ModuleRules
 	public LTween(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        CppStandard = CppStandardVersion.Cpp20;
+
         PublicDependencyModuleNames.AddRange(
-			new string[]
+            new string[]
 			{
 				"Core",
 				

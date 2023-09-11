@@ -591,10 +591,10 @@ void FLGUIEditorModule::CheckPrefabOverrideDataViewerEntry()
 	if (PrefabOverrideDataViewer != nullptr && PrefabOverrideDataViewer.IsValid())return;
 	PrefabOverrideDataViewer = 
 	SNew(SLGUIPrefabOverrideDataViewer, nullptr)
-	.AfterRevertPrefab_Lambda([=](ULGUIPrefab* PrefabAsset) {
+	.AfterRevertPrefab_Lambda([=, this](ULGUIPrefab* PrefabAsset) {
 		OnOutlinerSelectionChange();//force refresh
 		})
-	.AfterApplyPrefab_Lambda([=](ULGUIPrefab* PrefabAsset) {
+	.AfterApplyPrefab_Lambda([=, this](ULGUIPrefab* PrefabAsset) {
 		OnOutlinerSelectionChange();//force refresh
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabAsset);

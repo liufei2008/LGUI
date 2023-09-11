@@ -51,7 +51,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperComponentName));
 
 	TSharedPtr<IPropertyHandle> HelperActorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperActor));
-	HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=]() {OnHelperActorValueChange(HelperActorHandle, TargetCompHandle, HelperClassHandle, HelperComponentNameHandle); }));
+	HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this]() {OnHelperActorValueChange(HelperActorHandle, TargetCompHandle, HelperClassHandle, HelperComponentNameHandle); }));
 	UObject* HelperActorObj = nullptr;
 	AActor* HelperActor = nullptr;
 	HelperActorHandle->GetValue(HelperActorObj);

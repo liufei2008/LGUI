@@ -473,11 +473,11 @@ void UUIScrollViewComponent::ScrollTo(AUIBaseActor* InChild, bool InEaseAnimatio
     if (InEaseAnimation)
     {
         ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateWeakLambda(this
-            , [=] {
+            , [this] {
                 auto ContentLocation = ContentUIItem->GetRelativeLocation();
                 return FVector2D(ContentLocation.Y, ContentLocation.Z);
             })
-            , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [=](FVector2D value) {
+            , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [this](FVector2D value) {
                 this->SetScrollValue(value);
                 }), TargetContentPos, InAnimationDuration);
     }

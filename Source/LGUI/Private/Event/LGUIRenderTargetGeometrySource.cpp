@@ -229,7 +229,7 @@ bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
 					if (bOverrideStaticMeshMaterial)
 					{
 						//delay call, or the bPostTickComponentUpdate check will break
-						ULTweenBPLibrary::DelayFrameCall(this->GetWorld(), 1, [=] {
+						ULTweenBPLibrary::DelayFrameCall(this->GetWorld(), 1, [this] {
 							StaticMeshComp->SetMaterial(0, MaterialInstance);
 							});
 					}
@@ -838,7 +838,7 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 				if (CheckStaticMesh())
 				{
 					//delay call, or the bPostTickComponentUpdate check will break
-					ULTweenBPLibrary::DelayFrameCall(this, 1, [=] {
+					ULTweenBPLibrary::DelayFrameCall(this, 1, [this] {
 						StaticMeshComp->SetMaterial(0, MaterialInstance);
 						});
 				}

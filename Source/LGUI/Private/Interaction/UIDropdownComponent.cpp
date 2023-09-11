@@ -350,7 +350,7 @@ void UUIDropdownComponent::CreateListItems()
 #endif
 		auto script = copiedItemActor->FindComponentByClass<UUIDropdownItemComponent>();
 		int index = i;
-		script->Init(i, Options[i], [=]() {
+		script->Init(i, Options[i], [=, this]() {
 			this->OnSelectItem(index);
 			});
 		script->SetSelectionState(i == Value);

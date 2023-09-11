@@ -570,7 +570,7 @@ void ULGUICanvas::PostEditUndo()
 			}
 		}
 	};
-	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+	ULGUIEditorManagerObject::AddOneShotTickFunction([=, this]() {
 		LOCAL::RecheckRootCanvasRecursive(this);
 		}, 0);
 }

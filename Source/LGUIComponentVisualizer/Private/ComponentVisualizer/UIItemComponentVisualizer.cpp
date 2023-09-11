@@ -49,7 +49,7 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 	auto PivotVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PivotVisSelector.png"));
 	auto Area = TargetComp->GetWidth() * TargetComp->GetHeight();
 	Area = FMath::Sqrt(Area);
-	auto DrawHitProxy = [=](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture) {
+	auto DrawHitProxy = [=, this](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture) {
 		float DistScale = View->WorldToScreen(Position).W * (4.0f / View->UnscaledViewRect.Width() / View->ViewMatrices.GetProjectionMatrix().M[0][0]);
 		float Scale = DistScale * 0.25f;
 		float AreaScale = 100 - DistScale / (Area * 0.001f);

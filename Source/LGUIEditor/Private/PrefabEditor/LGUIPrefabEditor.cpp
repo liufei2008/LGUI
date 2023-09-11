@@ -939,7 +939,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				if (OutlinerPtr.IsValid())
 				{
 					OutlinerPtr->FullRefresh();
-					ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+					ULGUIEditorManagerObject::AddOneShotTickFunction([=, this] {
 						for (auto& Actor : CreatedActorArray)
 						{
 							OutlinerPtr->UnexpandActor(Actor);

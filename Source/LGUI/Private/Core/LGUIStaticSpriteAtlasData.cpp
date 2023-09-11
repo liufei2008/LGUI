@@ -80,7 +80,7 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 				}
 			}
 
-			auto TransferSprite = [=](ULGUISpriteData* spriteData) {
+			auto TransferSprite = [this](ULGUISpriteData* spriteData) {
 				spriteData->Modify();
 				if (IsValid(spriteData->packingAtlas))
 				{
@@ -90,7 +90,7 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 				spriteData->isInitialized = false;
 				spriteData->MarkPackageDirty();
 			};
-			auto KeepOldSprite = [=](ULGUISpriteData* spriteData) {
+			auto KeepOldSprite = [this](ULGUISpriteData* spriteData) {
 				spriteArray.Remove(spriteData);
 			};
 			for (auto Item : AddedArray)
@@ -138,8 +138,8 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 						ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
 							if (WeakThis.IsValid())
 							{
-								bIsYesToAll = false;
-								bIsNoToAll = false;
+								WeakThis->bIsYesToAll = false;
+								WeakThis->bIsNoToAll = false;
 							}
 							}, 0);
 					}
@@ -162,10 +162,10 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 				ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
 					if (WeakThis.IsValid())
 					{
-						MarkNotInitialized();
-						InitCheck();
-						MarkPackageDirty();
-						bIsAddedToDelayedCall = false;
+						WeakThis->MarkNotInitialized();
+						WeakThis->InitCheck();
+						WeakThis->MarkPackageDirty();
+						WeakThis->bIsAddedToDelayedCall = false;
 					}
 					}, 0);
 			}

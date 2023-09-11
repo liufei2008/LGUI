@@ -56,7 +56,7 @@ this can reduce the package size, because AtlasPacking already pack this SpriteT
 			SNew(SButton)
 			.Text(LOCTEXT("ReloadTexture_Button", "ReloadTexture"))
 			.HAlign(EHorizontalAlignment::HAlign_Center)
-			.OnClicked_Lambda([=]{
+			.OnClicked_Lambda([this]{
 				TargetScriptPtr->ReloadTexture();
 				TargetScriptPtr->MarkPackageDirty();
 				ALGUIManagerActor::RefreshAllUI();
@@ -68,13 +68,13 @@ this can reduce the package size, because AtlasPacking already pack this SpriteT
 	IDetailCategoryBuilder& atlasPackingCategory = DetailBuilder.EditCategory("AtlasPacking");
 	auto PackingAtlasProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingAtlas));
 	atlasPackingCategory.AddProperty(PackingAtlasProperty);
-	PackingAtlasProperty->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	PackingAtlasProperty->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([this] {
 		if (IsValid(TargetScriptPtr->GetPackingAtlas()))
 		{
 			TargetScriptPtr->GetPackingAtlas()->RemoveSpriteData(TargetScriptPtr.Get());
 		}
 		}));
-	PackingAtlasProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
+	PackingAtlasProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this, &DetailBuilder] {
 		if (IsValid(TargetScriptPtr->GetPackingAtlas()))
 		{
 			TargetScriptPtr->GetPackingAtlas()->AddSpriteData(TargetScriptPtr.Get());
@@ -99,7 +99,7 @@ this can reduce the package size, because AtlasPacking already pack this SpriteT
 	.ValueContent()
 	[
 		SNew(SBox)
-		.IsEnabled_Lambda([=] {
+		.IsEnabled_Lambda([this] {
 			return !IsValid(TargetScriptPtr->GetPackingAtlas());
 			})
 		[

@@ -990,18 +990,18 @@ void UUIProceduralRect::SetRaycastSupportCornerRadius(bool value)
 #include "LTweenManager.h"
 ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateWeakLambda(this, [=] {
+	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateWeakLambda(this, [this] {
 		return this->BodyColor;
-		}), FLTweenColorSetterFunction::CreateWeakLambda(this, [=](FColor value) {
+		}), FLTweenColorSetterFunction::CreateWeakLambda(this, [this](FColor value) {
 			this->SetBodyColor(value);
 			}), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
 }
 ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [this] {
 		return LGUIUtils::Color255To1_Table[this->BodyColor.A];
-		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
+		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {
 			auto PropertyValue = this->BodyColor;
             PropertyValue.A = (uint8)(value * 255.0f);
 			this->SetBodyColor(PropertyValue);
@@ -1012,9 +1012,9 @@ ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float 
 #define FunctionPropertyAnimation(Property, EndValueType, GetterAndSetterType)\
 ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration, float delay, ELTweenEase ease)\
 {\
-	return ULTweenManager::To(this, FLTween##GetterAndSetterType##GetterFunction::CreateWeakLambda(this, [=] {\
+	return ULTweenManager::To(this, FLTween##GetterAndSetterType##GetterFunction::CreateWeakLambda(this, [this] {\
 		return (EndValueType)this->Property;\
-		}), FLTween##GetterAndSetterType##SetterFunction::CreateWeakLambda(this, [=](EndValueType value) {\
+		}), FLTween##GetterAndSetterType##SetterFunction::CreateWeakLambda(this, [this](EndValueType value) {\
 			this->Set##Property(value);\
 			}), endValue, duration)\
 		->SetDelay(delay)->SetEase(ease);\
@@ -1023,9 +1023,9 @@ ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration
 #define FunctionAlphaAnimation(Property, Function)\
 ULTweener* UUIProceduralRect::Function##AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)\
 {\
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [=] {\
+	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [this] {\
 		return LGUIUtils::Color255To1_Table[this->BodyColor.A];\
-		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {\
+		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {\
 			auto PropertyValue = this->Property;\
 			PropertyValue.A = (uint8)(value * 255.0f);\
 			this->Set##Property(PropertyValue);\

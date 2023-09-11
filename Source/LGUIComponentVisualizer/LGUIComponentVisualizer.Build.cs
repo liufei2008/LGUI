@@ -7,6 +7,7 @@ public class LGUIComponentVisualizer : ModuleRules
 	public LGUIComponentVisualizer(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        CppStandard = CppStandardVersion.Cpp20;
 
         PrivateIncludePaths.AddRange(
                 new string[] {

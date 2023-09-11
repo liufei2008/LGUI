@@ -328,7 +328,7 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 	auto BodyTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture));
 	BodyTextureHandle->SetPropertyDisplayName(LOCTEXT("BodyTexture_DisplayName", "Texture"));
 	auto BodySpriteTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture));
-	BodySpriteTextureHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	BodySpriteTextureHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
@@ -337,7 +337,7 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 			}
 		}
 		}));
-	BodySpriteTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	BodySpriteTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
@@ -434,7 +434,7 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 				.Text(LOCTEXT("SnapSize_Button", "Snap Size"))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
-			.OnClicked_Lambda([=]()
+			.OnClicked_Lambda([=, this]()
 			{
 				GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UIProceduralRect texture snap size"));
 				for (auto item : TargetScriptArray)

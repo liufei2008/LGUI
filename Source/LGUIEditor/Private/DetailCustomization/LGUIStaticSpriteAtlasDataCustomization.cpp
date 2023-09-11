@@ -51,7 +51,7 @@ void FLGUIStaticSpriteAtlasDataCustomization::CustomizeDetails(IDetailLayoutBuil
 				SNew(SButton)
 				.Text(LOCTEXT("CleanupButtonText", "Cleanup"))
 				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([=, &DetailBuilder] {
+				.OnClicked_Lambda([this, &DetailBuilder] {
 					TargetScriptPtr->CleanupInvalidSpriteData();
 					DetailBuilder.ForceRefreshDetails();
 					return FReply::Handled();
@@ -66,7 +66,7 @@ void FLGUIStaticSpriteAtlasDataCustomization::CustomizeDetails(IDetailLayoutBuil
 			SNew(SButton)
 			.Text(LOCTEXT("PackAtlasButton", "Pack Atlas"))
 			.HAlign(EHorizontalAlignment::HAlign_Center)
-			.OnClicked_Lambda([=] {
+			.OnClicked_Lambda([this] {
 				TargetScriptPtr->MarkNotInitialized();
 				TargetScriptPtr->InitCheck();
 				TargetScriptPtr->MarkPackageDirty();

@@ -283,26 +283,26 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	auto fontHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, font));
-	fontHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	fontHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		TargetScriptPtr->OnPostChangeFontProperty();
 	}));
-	fontHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=]{
+	fontHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this]{
 		TargetScriptPtr->OnPreChangeFontProperty();
 	}));
 
 	auto richTextImageDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextImageData));
-	richTextImageDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	richTextImageDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		TargetScriptPtr->OnPostChangeRichTextImageDataProperty();
 		}));
-	richTextImageDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	richTextImageDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		TargetScriptPtr->OnPreChangeRichTextImageDataProperty();
 		}));
 
 	auto richTextCustomStyleDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, richTextCustomStyleData));
-	richTextCustomStyleDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+	richTextCustomStyleDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 		TargetScriptPtr->OnPostChangeRichTextCustomStyleDataProperty();
 		}));
-	richTextCustomStyleDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	richTextCustomStyleDataHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		TargetScriptPtr->OnPreChangeRichTextCustomStyleDataProperty();
 		}));
 }

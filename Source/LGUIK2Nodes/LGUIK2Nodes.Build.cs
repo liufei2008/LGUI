@@ -7,6 +7,7 @@ public class LGUIK2Nodes : ModuleRules
 	public LGUIK2Nodes(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        CppStandard = CppStandardVersion.Cpp20;
 
         PublicDependencyModuleNames.AddRange(
 			new string[]

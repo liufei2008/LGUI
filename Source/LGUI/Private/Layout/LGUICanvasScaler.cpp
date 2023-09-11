@@ -212,10 +212,10 @@ void ULGUICanvasScaler::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
+		EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
 			this->OnEditorTick(deltaTime);
 			});
-		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange([=] {
+		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange([this] {
 			this->OnEditorViewportIndexAndKeyChange();
 			});
 		LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);

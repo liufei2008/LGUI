@@ -49,7 +49,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUISpriteBase, sprite));
 	auto spriteHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISpriteBase, sprite));
-	spriteHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
+	spriteHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this, &DetailBuilder] {
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
@@ -59,7 +59,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		}
 		DetailBuilder.ForceRefreshDetails();
 	}));
-	spriteHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+	spriteHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
@@ -115,7 +115,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			SNew(SButton)
 			.HAlign(EHorizontalAlignment::HAlign_Center)
 			.VAlign(EVerticalAlignment::VAlign_Center)
-			.OnClicked_Lambda([=]()
+			.OnClicked_Lambda([=, this]()
 			{
 				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize_Transaction", "UISprite snap size"));
 				for (auto item : TargetScriptArray)
