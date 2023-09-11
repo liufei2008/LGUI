@@ -14,6 +14,7 @@
 #include "Rendering/Texture2DResource.h"
 #include "TextureCompiler.h"
 #include "Utils/LGUIUtils.h"
+#include "RenderingThread.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteData"
 

@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIText.h"
 #include "LTweenBPLibrary.h"
+#include "Engine/World.h"
 
 void UUIEffectTextAnimation_PropertyWithWave::Init()
 {
