@@ -161,12 +161,14 @@ void ULGUISDFFontData::PrepareForPushCharData(UUIText* InText)
 {
 	italicSlop = FMath::Tan(FMath::DegreesToRadians(ItalicAngle));
 	oneDivideFontSize = 1.0f / FontSize;
+	auto CompScale = InText->GetComponentScale();
+	objectScale = FMath::Max(CompScale.X, CompScale.Y);
 }
 
 uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
 {
 	return
-		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = richTextProperty.size * oneDivideFontSize
+		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = richTextProperty.size * oneDivideFontSize * objectScale
 		;
 }
 
@@ -331,7 +333,7 @@ void ULGUISDFFontData::PushCharData(
 	//uv
 	{
 		int addVertCount = 0;
-		auto tempFontSize = richTextProperty.size * oneDivideFontSize;
+		auto tempFontSize = richTextProperty.size * oneDivideFontSize * objectScale;
 		{
 			vertices[verticesStartIndex].TextureCoordinate[0] = charData.GetUV0();
 			vertices[verticesStartIndex + 1].TextureCoordinate[0] = charData.GetUV1();
