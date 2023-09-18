@@ -906,22 +906,17 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 			{
 				FActorSpawnParameters param = FActorSpawnParameters();
 				param.ObjectFlags = RF_Transient;
-				auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param);
-				WorldToInstanceMap.Add(InWorld, newInstance);
-				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance] No Instance for LGUIManagerActor in world '%s', create!"), *(InWorld->GetPathName()));
-				newInstance->bExistInInstanceMap = true;
-				return newInstance;
-			}
-			else
-			{
-				return nullptr;
+				if (auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param))
+				{
+					WorldToInstanceMap.Add(InWorld, newInstance);
+					UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance] No Instance for LGUIManagerActor in world '%s', create!"), *(InWorld->GetPathName()));
+					newInstance->bExistInInstanceMap = true;
+					return newInstance;
+				}
 			}
 		}
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
