@@ -268,10 +268,16 @@ namespace LGUIPrefabSystem6
 		TArray<FComponentDataStruct> SubPrefabRootComponents;
 		//when restore actor data, some object could be created by default (default component or object), then we collect it
 		TSet<UObject*> AlreadyRestoredObject;
-
-		TArray<AActor*> CreatedActors;//collect for created actors
-
+		TArray<AActor*> CreatedActors;//collection for all actors, include sub-prefab
 		void CollectActorRecursive(AActor* Actor);
+
+		struct FSubPrefabObjectOverrideParameterData
+		{
+			UObject* Object = nullptr;
+			TArray<uint8> ParameterDatas;
+			TArray<FName> ParameterNames;
+		};
+		TArray<FSubPrefabObjectOverrideParameterData> SubPrefabOverrideParameters;
 
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);

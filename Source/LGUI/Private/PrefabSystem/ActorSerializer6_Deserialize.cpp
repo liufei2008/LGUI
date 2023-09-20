@@ -256,6 +256,12 @@ namespace LGUIPrefabSystem6
 			}
 		}
 
+		//sub prefab object reference
+		for (auto& Item : SubPrefabOverrideParameters)
+		{
+			WriterOrReaderFunctionForSubPrefabOverrideForObjectReference(Item.Object, Item.ParameterDatas, Item.ParameterNames);
+		}
+
 		//register component
 		for (auto& CompData : CreatedComponents)
 		{
@@ -313,10 +319,12 @@ namespace LGUIPrefabSystem6
 			for (auto& KeyValue : MapGuidToObject)
 			{
 				auto Object = KeyValue.Value;
+				auto ExcludeProperties = Cast<USceneComponent>(Object) != nullptr ? GetSceneComponentExcludeProperties() : TSet<FName>();
 				for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
 				{
 					auto Property = *It;
 					if (LGUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(Property))continue;
+					if (ExcludeProperties.Contains(Property->GetFName()))continue;
 					LGUIUtils::NotifyPropertyChanged(Object, Property);
 				}
 			}
@@ -371,7 +379,7 @@ namespace LGUIPrefabSystem6
 			for (auto item : CreatedActors)
 			{
 				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
-		}
+			}
 			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
 			{
 				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
@@ -709,19 +717,6 @@ namespace LGUIPrefabSystem6
 							[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
 							//collect sub-prefab's actor to parent prefab
 							CreatedActors.Append(InSubCreatedActors);
-							//override parameter again, because in restore object-reference-parameter step, all parameters are set (include override parameter), so we set the override parameter back
-							for (auto& KeyValue : InActorData.MapObjectGuidToSubPrefabOverrideParameter)
-							{
-								auto& GuidInParent = KeyValue.Key;
-								auto& PrefabOverrideData = KeyValue.Value;
-								if (auto GuidInSubPrefabPtr = InActorData.MapObjectGuidFromParentPrefabToSubPrefab.Find(GuidInParent))
-								{
-									if (auto ObjectPtr = InSubPrefabMapGuidToObject.Find(*GuidInSubPrefabPtr))
-									{
-										WriterOrReaderFunctionForSubPrefabOverride(*ObjectPtr, PrefabOverrideData.OverrideParameterData, PrefabOverrideData.OverrideParameterNames);
-									}
-								}
-							}
 						};
 
 						//restore sub-prefab's override parameters
@@ -743,10 +738,17 @@ namespace LGUIPrefabSystem6
 							if (auto RecordDataPtr = InActorData.MapObjectGuidToSubPrefabOverrideParameter.Find(GuidInParent))
 							{
 								WriterOrReaderFunctionForSubPrefabOverride(InObjectInSubPrefab, RecordDataPtr->OverrideParameterData, RecordDataPtr->OverrideParameterNames);
+								
 								FLGUIPrefabOverrideParameterData OverrideDataItem;
 								OverrideDataItem.MemberPropertyNames = RecordDataPtr->OverrideParameterNames;
 								OverrideDataItem.Object = InObjectInSubPrefab;
 								SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
+
+								FSubPrefabObjectOverrideParameterData OverrideData;
+								OverrideData.Object = InObjectInSubPrefab;
+								OverrideData.ParameterDatas = RecordDataPtr->OverrideObjectReferenceParameterData;
+								OverrideData.ParameterNames = RecordDataPtr->OverrideParameterNames;
+								SubPrefabOverrideParameters.Add(OverrideData);//collect override parameters, so when all objects are generated, restore these parameters will get all value back
 							}
 							SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(GuidInParent, InObjectGuidInSubPrefab);
 							SubPrefabData.MapGuidToObject.Add(InObjectGuidInSubPrefab, InObjectInSubPrefab);
