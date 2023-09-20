@@ -600,97 +600,10 @@ namespace LGUIPrefabSystem6
 #if WITH_EDITOR
 					if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::CommonActor)
 					{
-
-
-						//auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
-						//auto MapObjectGuidFromSubPrefabToParentPrefab = InActorData.MapObjectGuidFromSubPrefabToParentPrefab;
-						//for (auto& KeyValue : MapObjectGuidFromSubPrefabToParentPrefab)
-						//{
-						//	auto ObjectPtr = MapGuidToObject.Find(KeyValue.Value);
-						//	if (!SubMapGuidToObject.Contains(KeyValue.Key) && ObjectPtr != nullptr)
-						//	{
-						//		SubMapGuidToObject.Add(KeyValue.Key, *ObjectPtr);
-						//	}
-						//}
-
-						//auto NewOnSubPrefabFinishDeserializeFunction =
-						//	[&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
-						//	//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
-						//	for (auto& KeyValue : InSubMapGuidToObject)
-						//	{
-						//		auto GuidInSubPrefab = KeyValue.Key;
-						//		auto ObjectInSubPrefab = KeyValue.Value;
-
-						//		FGuid ObjectGuidInParentPrefab;
-						//		auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
-						//		if (ObjectGuidInParentPrefabPtr == nullptr)
-						//		{
-						//			ObjectGuidInParentPrefab = FGuid::NewGuid();
-						//			MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, ObjectGuidInParentPrefab);
-						//		}
-						//		else
-						//		{
-						//			ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
-						//		}
-						//		SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
-						//		SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
-
-						//		if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
-						//		{
-						//			MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
-						//		}
-						//	}
-						//	//collect sub-prefab's actor to parent prefab
-						//	CreatedActors.Append(InSubCreatedActors);
-						//};
-
-						//switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
-						//{
-						//case ELGUIPrefabVersion::BuildinFArchive:
-						//{
-						//	SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-						//		, NewOnSubPrefabFinishDeserializeFunction
-						//	);
-						//}
-						//break;
-						//case ELGUIPrefabVersion::NestedDefaultSubObject:
-						//{
-						//	SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-						//		, NewOnSubPrefabFinishDeserializeFunction
-						//	);
-						//}
-						//break;
-						//case ELGUIPrefabVersion::ObjectName:
-						//{
-						//	SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-						//		, NewOnSubPrefabFinishDeserializeFunction
-						//	);
-						//}
-						//break;
-						//default:
-						//{
-						//	auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer6", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
-						//	LGUIUtils::EditorNotification(MsgText, 1.0f);
-						//}
-						//break;
-						//}
-
-						//for (auto& KeyValuePair : InActorData.MapObjectGuidToSubPrefabOverrideParameter)
-						//{
-						//	auto& RecordData = KeyValuePair.Value;
-						//	auto ObjectPtr = MapGuidToObject.Find(KeyValuePair.Key);
-						//	if (ObjectPtr != nullptr)
-						//	{
-						//		WriterOrReaderFunctionForSubPrefabOverride(*ObjectPtr, RecordData.OverrideParameterData, RecordData.OverrideParameterNames);
-						//		FLGUIPrefabOverrideParameterData OverrideDataItem;
-						//		OverrideDataItem.MemberPropertyNames = RecordData.OverrideParameterNames;
-						//		OverrideDataItem.Object = *ObjectPtr;
-						//		SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
-						//	}
-						//}
+						SubPrefabAsset->RecreatePrefab();//if is old version then recreate to make it new version
 					}
-					else
 #endif
+					//sub prefab
 					{
 						auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
 						TMap<FGuid, FGuid> MapObjectGuidFromSubPrefabToParentPrefab;

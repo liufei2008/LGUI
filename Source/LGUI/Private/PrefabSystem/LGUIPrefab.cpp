@@ -622,7 +622,6 @@ bool ULGUIPrefab::IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InR
 	return false;
 }
 
-#if WITH_EDITOR
 void ULGUIPrefab::CopyDataTo(ULGUIPrefab* TargetPrefab)
 {
 	TargetPrefab->ReferenceAssetList = this->ReferenceAssetList;
@@ -641,7 +640,6 @@ void ULGUIPrefab::CopyDataTo(ULGUIPrefab* TargetPrefab)
 	TargetPrefab->ArGameNetVer = this->ArGameNetVer;
 	TargetPrefab->PrefabDataForPrefabEditor = this->PrefabDataForPrefabEditor;
 }
-#endif
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
@@ -652,6 +650,24 @@ void ULGUIPrefab::SavePrefab(AActor* RootActor
 		, InOutMapObjectToGuid, InSubPrefabMap
 		, InForEditorOrRuntimeUse
 	);
+}
+
+void ULGUIPrefab::RecreatePrefab()
+{
+	auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+
+	TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+	auto RootActor = this->LoadPrefabWithExistingObjects(World, nullptr
+		, MapGuidToObject, SubPrefabMap
+	);
+	TMap<UObject*, FGuid> MapObjectToGuid;
+	for (auto KeyValue : MapGuidToObject)
+	{
+		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+	}
+	this->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
+	this->RefreshAgentObjectsInPreviewWorld();
 }
 
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
