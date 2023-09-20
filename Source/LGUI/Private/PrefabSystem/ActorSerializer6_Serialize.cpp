@@ -201,7 +201,7 @@ namespace LGUIPrefabSystem6
 		{
 			InPrefab->BinaryData = ToBinary;
 			InPrefab->ThumbnailDirty = true;
-			InPrefab->CreateTime = FDateTime::Now();
+			InPrefab->CreateTime = FDateTime::UtcNow();
 
 			//clear old reference data
 			InPrefab->ReferenceAssetList.Empty();

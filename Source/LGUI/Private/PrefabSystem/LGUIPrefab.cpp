@@ -641,6 +641,36 @@ void ULGUIPrefab::CopyDataTo(ULGUIPrefab* TargetPrefab)
 	TargetPrefab->PrefabDataForPrefabEditor = this->PrefabDataForPrefabEditor;
 }
 
+FString ULGUIPrefab::GenerateOverallVersionMD5()
+{
+	struct LOCAL
+	{
+		static void CollectOverallPrefab(ULGUIPrefab* Parent, TArray<ULGUIPrefab*>& Collection)
+		{
+			Collection.Add(Parent);
+			for (auto& Item : Parent->ReferenceAssetList)
+			{
+				if (auto SubPrefab = Cast<ULGUIPrefab>(Item))
+				{
+					CollectOverallPrefab(SubPrefab, Collection);
+				}
+			}
+		}
+	};
+	TArray<ULGUIPrefab*> Collection;
+	LOCAL::CollectOverallPrefab(this, Collection);
+	Collection.Sort([](const ULGUIPrefab& A, const ULGUIPrefab& B) {
+		return A.CreateTime > B.CreateTime;
+		});
+
+	FString CreateTimeOverall;
+	for (auto& Item : Collection)
+	{
+		CreateTimeOverall += Item->CreateTime.ToIso8601();
+	}
+	return LGUIUtils::GetMD5String(CreateTimeOverall);
+}
+
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse

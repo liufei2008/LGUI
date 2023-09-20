@@ -1570,14 +1570,14 @@ void ULGUIPrefabHelperObject::RefreshSubPrefabVersion(AActor* InSubPrefabRootAct
 {
 	if (IsInsidePrefabEditor())return;
 	auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];
-	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
+	SubPrefabData.OverallVersionMD5 = SubPrefabData.PrefabAsset->GenerateOverallVersionMD5();
 }
 
 void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
-	SubPrefabData.TimePointWhenSavePrefab = InPrefab->CreateTime;
+	SubPrefabData.OverallVersionMD5 = InPrefab->GenerateOverallVersionMD5();
 	SubPrefabData.MapGuidToObject = InSubMapGuidToObject;
 	SubPrefabData.ObjectOverrideParameterArray = InObjectOverrideParameterArray;
 
@@ -1755,7 +1755,7 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		auto& SubPrefabData = KeyValue.Value;
-		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		if (SubPrefabData.OverallVersionMD5 != SubPrefabData.PrefabAsset->GenerateOverallVersionMD5())
 		{
 			if (SubPrefabData.bAutoUpdate)
 			{
@@ -1771,7 +1771,7 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		auto& SubPrefabData = KeyValue.Value;
-		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		if (SubPrefabData.OverallVersionMD5 != SubPrefabData.PrefabAsset->GenerateOverallVersionMD5())
 		{
 			if (SubPrefabData.bAutoUpdate)
 			{
@@ -1841,7 +1841,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 				GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab_Transaction", "LGUI Update Prefabs"));
 				InPrefabRootActor->GetLevel()->Modify();
 				this->Modify();
-				if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+				if (SubPrefabDataPtr->OverallVersionMD5 == SubPrefabDataPtr->PrefabAsset->GenerateOverallVersionMD5())
 				{
 					Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
 				}
@@ -1891,7 +1891,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 				auto SubPrefabDataPtr = SubPrefabMap.Find(Item.SubPrefabRootActor.Get());
 				if (SubPrefabDataPtr != nullptr)
 				{
-					if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+					if (SubPrefabDataPtr->OverallVersionMD5 == SubPrefabDataPtr->PrefabAsset->GenerateOverallVersionMD5())
 					{
 						Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
 					}

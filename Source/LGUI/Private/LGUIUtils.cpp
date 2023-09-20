@@ -111,6 +111,26 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObjec
 	return ResultTexture;
 }
 
+TArray<uint8> LGUIUtils::GetMD5(const FString& InString)
+{
+	FMD5 Md5Gen;
+	Md5Gen.Update((unsigned char*)TCHAR_TO_ANSI(*InString), FCString::Strlen(*InString));
+	TArray<uint8> Digest;
+	Digest.SetNumZeroed(16);
+	Md5Gen.Final(Digest.GetData());
+	return Digest;
+}
+FString LGUIUtils::GetMD5String(const FString& InString)
+{
+	TArray<uint8> MD5Digest = GetMD5(InString);
+	FString Md5String;
+	for (TArray<uint8>::TConstIterator it(MD5Digest); it; ++it)
+	{
+		Md5String += FString::Printf(TEXT("%02x"), *it);
+	}
+	return Md5String;
+}
+
 
 //find first Canvas in hierarchy
 void LGUIUtils::FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
