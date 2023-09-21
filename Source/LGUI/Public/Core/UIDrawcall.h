@@ -35,15 +35,11 @@ public:
 	UUIDrawcall(UIQuadTree::Rectangle InCanvasRect)
 	{
 		Type = EUIDrawcallType::BatchGeometry;
-		RenderObjectListTreeRootNode = new UIQuadTree::Node(InCanvasRect);
+		RenderObjectListTreeRootNode = MakeUnique<UIQuadTree::Node>(InCanvasRect);
 	}
 	~UUIDrawcall()
 	{
-		if (RenderObjectListTreeRootNode != nullptr)
-		{
-			delete RenderObjectListTreeRootNode;
-			RenderObjectListTreeRootNode = nullptr;
-		}
+		
 	}
 	EUIDrawcallType Type = EUIDrawcallType::BatchGeometry;
 
@@ -69,7 +65,7 @@ public:
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> RenderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
 	bool bNeedToSortRenderObjectList = false;//need to sort RenderObjectList?
-	UIQuadTree::Node* RenderObjectListTreeRootNode = nullptr;
+	TUniquePtr<UIQuadTree::Node> RenderObjectListTreeRootNode = nullptr;
 	int32 VerticesCount = 0;//vertices count of all renderObjectList
 	int32 IndicesCount = 0;//triangle indices count of all renderObjectList
 

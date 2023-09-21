@@ -282,19 +282,12 @@ public:
 		{
 			Sections.Remove(Section);
 		}
-		if (this->IsSupportLGUIRenderer)
-		{
-			Section->IndexBuffer.ReleaseResource();
-			Section->HudVertexBuffers.ReleaseResource();
-		}
-		if (this->IsSupportUERenderer)
-		{
-			Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
-			Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
-			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
-			Section->IndexBuffer.ReleaseResource();
-			Section->VertexFactory.ReleaseResource();
-		}
+		Section->IndexBuffer.ReleaseResource();
+		Section->HudVertexBuffers.ReleaseResource();
+		Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+		Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+		Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+		Section->VertexFactory.ReleaseResource();
 		delete Section;
 	}
 
@@ -359,19 +352,12 @@ public:
 		{
 			if (Section != nullptr)
 			{
-				if (IsSupportLGUIRenderer)
-				{
-					Section->IndexBuffer.ReleaseResource();
-					Section->HudVertexBuffers.ReleaseResource();
-				}
-				if (IsSupportUERenderer)
-				{
-					Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
-					Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
-					Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
-					Section->IndexBuffer.ReleaseResource();
-					Section->VertexFactory.ReleaseResource();
-				}
+				Section->IndexBuffer.ReleaseResource();
+				Section->HudVertexBuffers.ReleaseResource();
+				Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+				Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+				Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+				Section->VertexFactory.ReleaseResource();
 				delete Section;
 			}
 		}
