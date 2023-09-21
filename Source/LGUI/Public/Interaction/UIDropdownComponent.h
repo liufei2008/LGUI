@@ -123,7 +123,7 @@ protected:
 
 	FLGUIMulticastInt32Delegate OnSelectionChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
-		FLGUIEventDelegate OnSelectionChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
+		FLGUIEventDelegate OnSelectionChange = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Int32);
 
 	/** Bind this delegate and set custom data for option list item. */
 	FUIDropdownComponentDelegate_SetItemCustomData OnSetItemCustomDataFunction;
