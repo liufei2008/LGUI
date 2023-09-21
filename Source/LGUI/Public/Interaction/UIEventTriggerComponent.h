@@ -34,29 +34,29 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
 		bool AllowEventBubbleUp = false;
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerEnter = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerEnter = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerExit = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerExit = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerDown = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDown = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerUp = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerUp = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerClick = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerClick = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerBeginDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerBeginDrag = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDrag = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerEndDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerEndDrag = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerDragDrop = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDragDrop = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerScroll = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerScroll = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerSelect = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerSelect = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIEventDelegate OnPointerDeselect = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDeselect = FLGUIEventDelegate(ELGUIEventDelegateParameterType::PointerEvent);
 
 	FLGUIMulticastPointerEventDelegate OnPointerEnterCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerExitCPP;

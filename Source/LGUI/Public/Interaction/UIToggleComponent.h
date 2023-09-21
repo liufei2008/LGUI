@@ -76,7 +76,7 @@ protected:
 
 	FLGUIMulticastBoolDelegate OnToggleCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-		FLGUIEventDelegate OnToggle = FLGUIEventDelegate(LGUIEventDelegateParameterType::Bool);
+		FLGUIEventDelegate OnToggle = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Bool);
 
 	void ApplyValueToUI(bool immediateSet);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;

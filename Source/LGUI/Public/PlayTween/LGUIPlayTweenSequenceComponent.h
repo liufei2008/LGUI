@@ -22,7 +22,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<TObjectPtr<class ULGUIPlayTween>> playTweenArray;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
+		FLGUIEventDelegate onComplete = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Empty);
 
 	bool isPlaying = false;
 	int currentTweenPlayIndex = 0;

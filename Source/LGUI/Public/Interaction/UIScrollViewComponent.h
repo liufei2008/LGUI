@@ -107,7 +107,7 @@ protected:
 
 	FLGUIMulticastVector2Delegate OnScrollCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
-		FLGUIEventDelegate OnScroll = FLGUIEventDelegate(LGUIEventDelegateParameterType::Vector2);
+		FLGUIEventDelegate OnScroll = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Vector2);
 
 public:
 	//scroll range change(eg content or content's parent size change), use this to recalculate range

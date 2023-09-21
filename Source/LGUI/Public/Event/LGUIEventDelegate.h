@@ -9,7 +9,7 @@
 
 
 UENUM()
-enum class LGUIEventDelegateParameterType :uint8
+enum class ELGUIEventDelegateParameterType :uint8
 {
 	/** not initialized */
 	None		UMETA(Hidden),
@@ -46,20 +46,23 @@ enum class LGUIEventDelegateParameterType :uint8
 	Name,
 	Text,
 };
+#ifndef LGUIEventDelegateParameterType
+#define LGUIEventDelegateParameterType UE_DEPRECATED_MACRO(5.0, "LGUIEventDelegateParameterType has been renamed to ELGUIEventDelegateParameterType") ELGUIEventDelegateParameterType
+#endif
 /** helper class for finding function */
 class LGUI_API ULGUIEventDelegateParameterHelper
 {
 public:
-	static bool IsSupportedFunction(UFunction* Target, LGUIEventDelegateParameterType& OutParamType);
-	static bool IsStillSupported(UFunction* Target, LGUIEventDelegateParameterType InParamType);
-	static FString ParameterTypeToName(LGUIEventDelegateParameterType paramType, const UFunction* InFunction = nullptr);
+	static bool IsSupportedFunction(UFunction* Target, ELGUIEventDelegateParameterType& OutParamType);
+	static bool IsStillSupported(UFunction* Target, ELGUIEventDelegateParameterType InParamType);
+	static FString ParameterTypeToName(ELGUIEventDelegateParameterType paramType, const UFunction* InFunction = nullptr);
 	/** if first parameter is an object type, then return it's objectclass */
 	static UClass* GetObjectParameterClass(const UFunction* InFunction);
 	static UEnum* GetEnumParameter(const UFunction* InFunction);
 	static UClass* GetClassParameterClass(const UFunction* InFunction);
 private:
-	static bool IsFunctionCompatible(const UFunction* InFunction, LGUIEventDelegateParameterType& OutParameterType);
-	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType);
+	static bool IsFunctionCompatible(const UFunction* InFunction, ELGUIEventDelegateParameterType& OutParameterType);
+	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, ELGUIEventDelegateParameterType& OutParameterType);
 };
 
 /**
@@ -126,7 +129,7 @@ private:
 		FName functionName;
 	/** target function supported parameter type */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
+		ELGUIEventDelegateParameterType ParamType = ELGUIEventDelegateParameterType::None;
 
 	/** data buffer stores function's parameter */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -143,7 +146,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UObject> CacheTarget = nullptr;
 public:
 	void Execute();
-	void Execute(void* InParam, LGUIEventDelegateParameterType InParameterType);
+	void Execute(void* InParam, ELGUIEventDelegateParameterType InParameterType);
 #if WITH_EDITOR
 	/**
 	 * Check if function parameter compatible with target function
@@ -167,7 +170,7 @@ struct LGUI_API FLGUIEventDelegate
 
 public:
 	FLGUIEventDelegate();
-	FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType);
+	FLGUIEventDelegate(ELGUIEventDelegateParameterType InParameterType);
 private:
 	friend class FLGUIEventDelegateCustomization;
 	/** event list */
@@ -175,12 +178,12 @@ private:
 		mutable TArray<FLGUIEventDelegateData> eventList;
 	/** supported parameter type of this event */
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
-		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
+		ELGUIEventDelegateParameterType supportParameterType = ELGUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
 public:
-	void SetParameterType(LGUIEventDelegateParameterType InParamType)
+	void SetParameterType(ELGUIEventDelegateParameterType InParamType)
 	{
 		if (supportParameterType != InParamType)
 		{

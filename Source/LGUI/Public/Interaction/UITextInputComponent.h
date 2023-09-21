@@ -191,15 +191,15 @@ protected:
 
 	FLGUIMulticastStringDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
+		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(ELGUIEventDelegateParameterType::String);
 	FLGUIMulticastStringDelegate OnSubmitCPP;
 	/** Input submit by "Enter" key. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIEventDelegate OnSubmit = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
+		FLGUIEventDelegate OnSubmit = FLGUIEventDelegate(ELGUIEventDelegateParameterType::String);
 	FLGUIMulticastBoolDelegate OnInputActivateCPP;
 	/** Input activate or deactivate, means begin input or end input. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIEventDelegate OnInputActivate = FLGUIEventDelegate(LGUIEventDelegateParameterType::Bool);
+		FLGUIEventDelegate OnInputActivate = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Bool);
 	FLGUITextInputCustomInputTypeDelegate CustomInputTypeFunction;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
