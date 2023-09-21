@@ -145,7 +145,6 @@ private:
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
-	FSceneRenderingBulkObjectAllocator Allocator;
 
 	void RenderLGUI_RenderThread(
 		FRDGBuilder& GraphBuilder
