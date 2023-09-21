@@ -455,6 +455,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 	float ColorCorrectionValue =
 		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : 0.45454545f;
+
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
@@ -598,6 +599,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						for (auto& Primitive : RenderSequenceItem)
 						{
 							MeshBatchArray.Reset();
+							FSceneRenderingBulkObjectAllocator Allocator;
 							FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator);
 							Primitive.HudPrimitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
@@ -681,6 +683,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			ERDGPassFlags::None,
 			[RenderView](FRHICommandListImmediate& RHICmdList)
 			{
+				RenderView->ViewUniformBuffer.SafeRelease();
 				delete RenderView;
 			});
 	}
@@ -844,6 +847,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						for (auto& Primitive : RenderSequenceItem)
 						{
 							MeshBatchArray.Reset();
+							FSceneRenderingBulkObjectAllocator Allocator;
 							FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator);
 							Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
@@ -959,6 +963,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			ERDGPassFlags::None,
 			[RenderView](FRHICommandListImmediate& RHICmdList)
 			{
+				RenderView->ViewUniformBuffer.SafeRelease();
 				delete RenderView;
 			});
 
