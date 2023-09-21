@@ -13,7 +13,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEventDelegate_##EventDelegateParamType#
 
 #define MAKE_EVENTDELEGATE_PRESETPARAM(EventDelegateParamType, ParamType)\
 public:\
-	FLGUIEventDelegate_##EventDelegateParamType() :FLGUIEventDelegate(LGUIEventDelegateParameterType::EventDelegateParamType) {}\
+	FLGUIEventDelegate_##EventDelegateParamType() :FLGUIEventDelegate(ELGUIEventDelegateParameterType::EventDelegateParamType) {}\
 private:\
 	mutable FLGUIEventDelegate_##EventDelegateParamType##_MulticastDelegate eventDelegate;\
 public:\
@@ -45,7 +45,7 @@ struct LGUI_API FLGUIEventDelegate_Empty : public FLGUIEventDelegate
 {
 	GENERATED_BODY()
 public:
-	FLGUIEventDelegate_Empty() :FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty) {}
+	FLGUIEventDelegate_Empty() :FLGUIEventDelegate(ELGUIEventDelegateParameterType::Empty) {}
 private:
 	mutable FLGUIEventDelegate_Empty_MulticastDelegate eventDelegate;
 public:

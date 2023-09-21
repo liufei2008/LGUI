@@ -18,7 +18,7 @@ class LGUI_API UUIButtonComponent : public UUISelectableComponent, public ILGUIP
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI-Button")
-		FLGUIEventDelegate OnClick = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
+		FLGUIEventDelegate OnClick = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Empty);
 	FSimpleMulticastDelegate OnClickCPP;
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:

@@ -29,15 +29,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float startDelay = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onStart = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
+		FLGUIEventDelegate onStart = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Empty);
 	/** parameter float is the progress in range 0-1, not affected by ease type (linear on time) */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
+		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Float);
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
+		FLGUIEventDelegate onComplete = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Empty);
 	/** if LoopType is not Once, then this will be called every time when the cycle end, with parameter "cycle complete count". */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
+		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Int32);
 	UPROPERTY(Transient)
 		ULTweener* tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;

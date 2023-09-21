@@ -881,7 +881,7 @@ void FLGUIEventDelegateCustomization::OnSelectActorSelf(TSharedRef<IPropertyHand
 
 	PropertyUtilites->ForceRefresh();
 }
-void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> ItemPropertyHandle)
+void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, ELGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> ItemPropertyHandle)
 {
 	auto nameHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
 	nameHandle->SetValue(FuncName);
@@ -891,17 +891,17 @@ void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, LGUIEvent
 	PropertyUtilites->ForceRefresh();
 }
 
-void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, LGUIEventDelegateParameterType ParameterType)
+void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, ELGUIEventDelegateParameterType ParameterType)
 {
 	auto ParamTypeHandle = EventDataItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
 	ParamTypeHandle->SetValue((uint8)ParameterType);
 }
-LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)const
+ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)const
 {
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	uint8 supportParameterTypeUint8;
 	NativeParameterTypeHandle->GetValue(supportParameterTypeUint8);
-	LGUIEventDelegateParameterType eventParameterType = (LGUIEventDelegateParameterType)supportParameterTypeUint8;
+	ELGUIEventDelegateParameterType eventParameterType = (ELGUIEventDelegateParameterType)supportParameterTypeUint8;
 	return eventParameterType;
 }
 void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)
@@ -909,12 +909,12 @@ void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(TSharedRef<
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	ChildBuilder.AddProperty(NativeParameterTypeHandle.ToSharedRef());
 }
-LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)const
+ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)const
 {
 	auto paramTypeHandle = EventDataItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
 	uint8 functionParameterTypeUint8;
 	paramTypeHandle->GetValue(functionParameterTypeUint8);
-	LGUIEventDelegateParameterType functionParameterType = (LGUIEventDelegateParameterType)functionParameterTypeUint8;
+	ELGUIEventDelegateParameterType functionParameterType = (ELGUIEventDelegateParameterType)functionParameterTypeUint8;
 	return functionParameterType;
 }
 
@@ -995,7 +995,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 	auto FunctionField = TFieldRange<UFunction>(TargetObject->GetClass());
 	for (auto Func : FunctionField)
 	{
-		LGUIEventDelegateParameterType ParamType;
+		ELGUIEventDelegateParameterType ParamType;
 		if (ULGUIEventDelegateParameterHelper::IsSupportedFunction(Func, ParamType))//show only supported type
 		{
 			FString ParamTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName(ParamType, Func);
@@ -1011,7 +1011,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(in
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			);
-			if (ParamType == EventParameterType && EventParameterType != LGUIEventDelegateParameterType::Empty)//if function support native parameter, then draw another button, and show as native parameter
+			if (ParamType == EventParameterType && EventParameterType != ELGUIEventDelegateParameterType::Empty)//if function support native parameter, then draw another button, and show as native parameter
 			{
 				FunctionSelectorName = FString::Printf(TEXT("%s(NativeParameter)"), *Func->GetName());
 				MenuBuilder.AddMenuEntry(
@@ -1141,15 +1141,15 @@ type Value;\
 Reader << Value;\
 ValueHandle->SetValue(Value);
 
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, LGUIEventDelegateParameterType InFunctionParameterType, UFunction* InFunction)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, ELGUIEventDelegateParameterType InFunctionParameterType, UFunction* InFunction)
 {
 	auto ParamBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamBuffer));
-	if (InFunctionParameterType != LGUIEventDelegateParameterType::None)//None means not select function yet
+	if (InFunctionParameterType != ELGUIEventDelegateParameterType::None)//None means not select function yet
 	{
 		switch (InFunctionParameterType)
 		{
 		default:
-		case LGUIEventDelegateParameterType::Empty:
+		case ELGUIEventDelegateParameterType::Empty:
 		{
 			ClearValueBuffer(InDataContainerHandle);
 			ClearReferenceValue(InDataContainerHandle);
@@ -1165,7 +1165,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::Bool:
+		case ELGUIEventDelegateParameterType::Bool:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 1);
@@ -1177,7 +1177,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Float:
+		case ELGUIEventDelegateParameterType::Float:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 4);
@@ -1187,7 +1187,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Double:
+		case ELGUIEventDelegateParameterType::Double:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 8);
@@ -1197,7 +1197,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Int8:
+		case ELGUIEventDelegateParameterType::Int8:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 1);
@@ -1207,7 +1207,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::UInt8:
+		case ELGUIEventDelegateParameterType::UInt8:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 1);
@@ -1239,7 +1239,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			}
 		}
 		break;
-		case LGUIEventDelegateParameterType::Int16:
+		case ELGUIEventDelegateParameterType::Int16:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 2);
@@ -1249,7 +1249,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::UInt16:
+		case ELGUIEventDelegateParameterType::UInt16:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 2);
@@ -1259,7 +1259,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Int32:
+		case ELGUIEventDelegateParameterType::Int32:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 4);
@@ -1269,7 +1269,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::UInt32:
+		case ELGUIEventDelegateParameterType::UInt32:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 4);
@@ -1279,7 +1279,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Int64:
+		case ELGUIEventDelegateParameterType::Int64:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 8);
@@ -1289,7 +1289,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::UInt64:
+		case ELGUIEventDelegateParameterType::UInt64:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 8);
@@ -1299,7 +1299,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Vector2:
+		case ELGUIEventDelegateParameterType::Vector2:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 8);
@@ -1327,7 +1327,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::Vector3:
+		case ELGUIEventDelegateParameterType::Vector3:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 12);
@@ -1359,7 +1359,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::Vector4:
+		case ELGUIEventDelegateParameterType::Vector4:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 16);
@@ -1395,7 +1395,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::Color:
+		case ELGUIEventDelegateParameterType::Color:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 4);
@@ -1433,7 +1433,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::LinearColor:
+		case ELGUIEventDelegateParameterType::LinearColor:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 16);
@@ -1467,7 +1467,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::Quaternion:
+		case ELGUIEventDelegateParameterType::Quaternion:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 16);
@@ -1503,7 +1503,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			;
 		}
 		break;
-		case LGUIEventDelegateParameterType::String:
+		case ELGUIEventDelegateParameterType::String:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, StringValue));
@@ -1512,7 +1512,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			return ValueHandle->CreatePropertyValueWidget();
 		}
 		break;
-		case LGUIEventDelegateParameterType::Name:
+		case ELGUIEventDelegateParameterType::Name:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, NameValue));
@@ -1520,7 +1520,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			ValueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::NameValueChange, ValueHandle, ParamBufferHandle));
 			return ValueHandle->CreatePropertyValueWidget();
 		}
-		case LGUIEventDelegateParameterType::Text:
+		case ELGUIEventDelegateParameterType::Text:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TextValue));
@@ -1546,7 +1546,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 				]
 				;
 		}
-		case LGUIEventDelegateParameterType::PointerEvent:
+		case ELGUIEventDelegateParameterType::PointerEvent:
 		{
 			ClearValueBuffer(InDataContainerHandle);
 			ClearReferenceValue(InDataContainerHandle);
@@ -1563,9 +1563,9 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 				];
 		}
 		break;
-		case LGUIEventDelegateParameterType::Object:
-		case LGUIEventDelegateParameterType::Actor:
-		case LGUIEventDelegateParameterType::Class:
+		case ELGUIEventDelegateParameterType::Object:
+		case ELGUIEventDelegateParameterType::Actor:
+		case ELGUIEventDelegateParameterType::Class:
 		{
 			return
 				SNew(SBox)
@@ -1575,7 +1575,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 				];
 		}
 		break;
-		case LGUIEventDelegateParameterType::Rotator:
+		case ELGUIEventDelegateParameterType::Rotator:
 		{
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 12);
@@ -1620,14 +1620,14 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 	}
 }
 //function's parameter editor
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionReferenceParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, LGUIEventDelegateParameterType FunctionParameterType, UFunction* InFunction)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionReferenceParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, ELGUIEventDelegateParameterType FunctionParameterType, UFunction* InFunction)
 {
 	auto ParamBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamBuffer));
 
 	TSharedPtr<SWidget> ParameterContent;
 	switch (FunctionParameterType)
 	{
-	case LGUIEventDelegateParameterType::Object:
+	case ELGUIEventDelegateParameterType::Object:
 	{
 		ClearValueBuffer(InDataContainerHandle);
 		return SNew(SObjectPropertyEntryBox)
@@ -1639,7 +1639,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionReferenceParame
 			.OnObjectChanged(this, &FLGUIEventDelegateCustomization::ObjectValueChange, ParamBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject)), true);
 	}
 	break;
-	case LGUIEventDelegateParameterType::Actor:
+	case ELGUIEventDelegateParameterType::Actor:
 	{
 		ClearValueBuffer(InDataContainerHandle);
 		return SNew(SObjectPropertyEntryBox)
@@ -1650,7 +1650,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionReferenceParame
 			.OnObjectChanged(this, &FLGUIEventDelegateCustomization::ObjectValueChange, ParamBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject)), false);
 	}
 	break;
-	case LGUIEventDelegateParameterType::Class:
+	case ELGUIEventDelegateParameterType::Class:
 	{
 		auto MetaClass = ULGUIEventDelegateParameterHelper::GetClassParameterClass(InFunction);
 		auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject));
