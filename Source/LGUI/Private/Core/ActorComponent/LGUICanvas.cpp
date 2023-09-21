@@ -944,11 +944,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				DrawcallItem->RenderObjectList.Reset();
 				DrawcallItem->RenderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
 #endif
-				if (DrawcallItem->RenderObjectListTreeRootNode != nullptr)
-				{
-					delete DrawcallItem->RenderObjectListTreeRootNode;
-				}
-				DrawcallItem->RenderObjectListTreeRootNode = new UIQuadTree::Node(CanvasRect);
+				DrawcallItem->RenderObjectListTreeRootNode = MakeUnique<UIQuadTree::Node>(CanvasRect);
 				DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
 				DrawcallItem->VerticesCount = InItemGeo->vertices.Num();
 				DrawcallItem->IndicesCount = InItemGeo->triangles.Num();
@@ -1402,10 +1398,7 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 		if (bShouldRebuildDrawcall)
 		{
 			//store prev created drawcall to cache list, so when we create drawcall, we can search in the cache list and use existing one
-			for (auto Item : UIDrawcallList)
-			{
-				CacheUIDrawcallList.Add(Item);
-			}
+			CacheUIDrawcallList.Append(UIDrawcallList);
 			UIDrawcallList.Reset();
 
 			//rect size minimal at 100, so UIQuadTree can work properly (prevent too small rect)

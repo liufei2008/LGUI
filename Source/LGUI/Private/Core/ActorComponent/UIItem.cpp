@@ -648,13 +648,15 @@ void UUIItem::CalculateAnchorFromTransform()
 		CalculatedAnchoredPosition.Y = TempRelativeLocation.Z;
 	}
 
-	AnchorData.AnchoredPosition = CalculatedAnchoredPosition;
-
 	bAnchorLeftCached = false;
 	bAnchorRightCached = false;
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
-	SetOnTransformChange();
+	if (AnchorData.AnchoredPosition != CalculatedAnchoredPosition)
+	{
+		AnchorData.AnchoredPosition = CalculatedAnchoredPosition;
+		SetOnTransformChange();
+	}
 }
 
 void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
