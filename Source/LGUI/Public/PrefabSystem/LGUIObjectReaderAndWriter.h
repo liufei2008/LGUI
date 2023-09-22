@@ -101,44 +101,26 @@ namespace LGUIPrefabSystem
 
 
 
-	class LGUI_API FLGUIOverrideParameterObjectWriter : public FObjectWriter
+	class LGUI_API FLGUIOverrideParameterObjectWriter : public FLGUIObjectWriter
 	{
 	public:
 		FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames);
-		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(class FName& N) override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject* Object);
 	protected:
-		ActorSerializerBase& Serializer;
 		mutable TSet<FName> OverridePropertyNames;
 	};
-	class LGUI_API FLGUIOverrideParameterObjectReader : public FObjectReader
+	class LGUI_API FLGUIOverrideParameterObjectReader : public FLGUIObjectReader
 	{
 	public:
 		FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames);
-		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(class FName& N) override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass);
 	protected:
-		ActorSerializerBase& Serializer;
 		mutable TSet<FName> OverridePropertyNames;
 	};
 

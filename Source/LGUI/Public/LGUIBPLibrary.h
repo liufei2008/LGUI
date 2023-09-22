@@ -9,7 +9,8 @@
 #include "Event/LGUIEventDelegate_PresetParameter.h"
 #include "LTweener.h"
 #include "Core/LGUISpriteData_BaseObject.h"
-#include "PrefabSystem/ActorSerializer5.h"
+#include "PrefabSystem/LGUIPrefab.h"
+#include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "LGUIBPLibrary.generated.h"
 
 class UUIItem;
@@ -17,7 +18,7 @@ class UUIBaseRenderable;
 class UUISector;
 class ULGUIPrefab;
 
-namespace LGUIPrefabSystem5
+namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 {
 	class ActorSerializer;
 	struct FLGUIPrefabSaveData;
@@ -29,8 +30,8 @@ struct FLGUIDuplicateDataContainer
 	GENERATED_BODY()
 public:
 	bool bIsValid = false;
-	LGUIPrefabSystem5::ActorSerializer ActorSerializer;
-	LGUIPrefabSystem5::FLGUIPrefabSaveData SerializedData;
+	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer ActorSerializer;
+	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::FLGUIPrefabSaveData SerializedData;
 };
 
 UCLASS()

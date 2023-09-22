@@ -220,7 +220,9 @@ namespace LGUIPrefabSystem
 
 	const TSet<FName>& ActorSerializerBase::GetSceneComponentExcludeProperties()
 	{
-		static TSet<FName> result = { FName("AttachParent") };
+		static TSet<FName> result = {
+			FName("AttachParent") //exclude AttachParent property, because we need to mannually do the attachment so that AttachChildren property is good
+		};
 		return result;
 	}
 

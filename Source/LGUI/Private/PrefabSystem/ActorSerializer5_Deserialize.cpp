@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
@@ -11,6 +12,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
 #include "Serialization/MemoryReader.h"
+#include "Core/LGUISettings.h"
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
@@ -362,8 +364,11 @@ namespace LGUIPrefabSystem5
 		if (InCallbackBeforeDeserialize != nullptr)InCallbackBeforeDeserialize();
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("End load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
+		if (ULGUISettings::GetLogPrefabLoadTime())
+		{
+			auto TimeSpan = FDateTime::Now() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("End load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
+		}
 
 #if WITH_EDITOR
 		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
@@ -601,7 +606,7 @@ namespace LGUIPrefabSystem5
 					break;
 					default:
 					{
-						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
+						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect older or newer sub prefab version which is not support nested prefab here! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
 						LGUIUtils::EditorNotification(MsgText, 1.0f);
 					}
 					break;
@@ -740,4 +745,6 @@ namespace LGUIPrefabSystem5
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_ENABLE_OPTIMIZATION
+#endif
+
 #endif

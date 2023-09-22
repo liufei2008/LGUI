@@ -9,18 +9,10 @@
 namespace LGUIPrefabSystem
 {
 	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
-		: FObjectWriter(Bytes)
-		, Serializer(InSerializer)
+		: FLGUIObjectWriter(Bytes, InSerializer, {})
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		SetIsLoading(false);
-		SetIsSaving(true);
-
-		Serializer.SetupArchive(*this);
-	}
-	void FLGUIOverrideParameterObjectWriter::DoSerialize(UObject* Object)
-	{
-		Object->Serialize(*this);
+		
 	}
 	bool FLGUIOverrideParameterObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
@@ -43,16 +35,9 @@ namespace LGUIPrefabSystem
 
 		return false;
 	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(class FName& N)
-	{
-		auto id = Serializer.FindOrAddNameFromList(N);
-		*this << id;
-
-		return *this;
-	}
 	bool FLGUIOverrideParameterObjectWriter::SerializeObject(UObject* Object)
 	{
-		if (Object->IsAsset())
+		if (Object->IsAsset() && !Object->GetClass()->IsChildOf(AActor::StaticClass()))
 		{
 			auto id = Serializer.FindOrAddAssetIdFromList(Object);
 			auto type = (uint8)EObjectType::Asset;
@@ -76,88 +61,6 @@ namespace LGUIPrefabSystem
 			}
 		}
 	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(UObject*& Res)
-	{
-		if (Res != nullptr)
-		{
-			auto Property = this->GetSerializedProperty();
-			if (CastField<FClassProperty>(Property) != nullptr)//class property
-			{
-				auto id = Serializer.FindOrAddClassFromList((UClass*)Res);
-				auto type = (uint8)EObjectType::Class;
-				*this << type;
-				*this << id;
-				return *this;
-			}
-			else
-			{
-				if (SerializeObject(Res))
-				{
-					return *this;
-				}
-			}
-		}
-
-		auto noneType = (uint8)EObjectType::None;
-		*this << noneType;
-
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FObjectPtr& Value)
-	{
-		auto Res = Value.Get();
-		if (Res != nullptr)
-		{
-			auto Property = this->GetSerializedProperty();
-			if (CastField<FClassProperty>(Property) != nullptr)//class property
-			{
-				auto id = Serializer.FindOrAddClassFromList((UClass*)Res);
-				auto type = (uint8)EObjectType::Class;
-				*this << type;
-				*this << id;
-				return *this;
-			}
-			else
-			{
-				if (SerializeObject(Res))
-				{
-					return *this;
-				}
-			}
-		}
-
-		auto noneType = (uint8)EObjectType::None;
-		*this << noneType;
-
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FWeakObjectPtr& Value)
-	{
-		if (Value.IsValid())
-		{
-			//no need to concern UClass, because UClass cannot use weakptr
-			if (SerializeObject(Value.Get()))
-			{
-				return *this;
-			}
-		}
-		auto noneType = (uint8)EObjectType::None;
-		*this << noneType;
-
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FLazyObjectPtr& Value)
-	{
-		return FObjectWriter::operator<<(Value);
-	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPtr& Value)
-	{
-		return FObjectWriter::operator<<(Value);
-	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPath& Value)
-	{
-		return FObjectWriter::operator<<(Value);
-	}
 	FString FLGUIOverrideParameterObjectWriter::GetArchiveName() const
 	{
 		return TEXT("FLGUIOverrideParameterObjectWriter");
@@ -165,18 +68,10 @@ namespace LGUIPrefabSystem
 
 
 	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
-		: FObjectReader(Bytes)
-		, Serializer(InSerializer)
+		: FLGUIObjectReader(Bytes, InSerializer, {})
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		SetIsLoading(true);
-		SetIsSaving(false);
-
-		Serializer.SetupArchive(*this);
-	}
-	void FLGUIOverrideParameterObjectReader::DoSerialize(UObject* Object)
-	{
-		Object->Serialize(*this);
+		
 	}
 	bool FLGUIOverrideParameterObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
@@ -198,14 +93,6 @@ namespace LGUIPrefabSystem
 		}
 
 		return false;
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(class FName& N)
-	{
-		int32 id = -1;
-		*this << id;
-		N = Serializer.FindNameFromListByIndex(id);
-
-		return *this;
 	}
 	bool FLGUIOverrideParameterObjectReader::SerializeObject(UObject*& Object, bool CanSerializeClass)
 	{
@@ -246,37 +133,6 @@ namespace LGUIPrefabSystem
 		break;
 		}
 		return false;
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(UObject*& Res)
-	{
-		SerializeObject(Res, true);
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FObjectPtr& Value)
-	{
-		UObject* Res = nullptr;
-		SerializeObject(Res, true);
-		Value = Res;
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FWeakObjectPtr& Value)
-	{
-		UObject* Res = nullptr;
-		SerializeObject(Res, false);
-		Value = Res;
-		return *this;
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FLazyObjectPtr& Value)
-	{
-		return FObjectReader::operator<<(Value);
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPtr& Value)
-	{
-		return FObjectReader::operator<<(Value);
-	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPath& Value)
-	{
-		return FObjectReader::operator<<(Value);
 	}
 	FString FLGUIOverrideParameterObjectReader::GetArchiveName() const
 	{

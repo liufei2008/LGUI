@@ -339,15 +339,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
 	if (auto Prefab = TargetScriptPtr.Get())
 	{
-		auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-		if (IsValid(World))
-		{
-			RecreatePrefab(Prefab, World);
-		}
-		else
-		{
-			UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
-		}
+		Prefab->RecreatePrefab();
 	}
 	return FReply::Handled();
 }
@@ -368,7 +360,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 				|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
 				)
 			{
-				RecreatePrefab(Prefab, World);
+				Prefab->RecreatePrefab();
 			}
 		}
 	}
@@ -377,23 +369,6 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 {
 	return FReply::Handled();
-}
-void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
-{
-	TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
-	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-	auto RootActor= Prefab->LoadPrefabWithExistingObjects(World, nullptr
-		, MapGuidToObject, SubPrefabMap
-	);
-	TMap<UObject*, FGuid> MapObjectToGuid;
-	for (auto KeyValue : MapGuidToObject)
-	{
-		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
-	}
-	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
-	Prefab->RefreshAgentObjectsInPreviewWorld();
-
-	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 }
 FReply FLGUIPrefabCustomization::OnClickRecreateAgentObjects()
 {

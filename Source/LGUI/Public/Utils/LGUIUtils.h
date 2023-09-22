@@ -136,6 +136,8 @@ public:
 
 	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
 
+	static TArray<uint8> GetMD5(const FString& InString);
+	static FString GetMD5String(const FString& InString);
 #if WITH_EDITOR
 	static void NotifyPropertyChanged(UObject* Object, FProperty* Property);
 	static void NotifyPropertyChanged(UObject* Object, FName PropertyName);
