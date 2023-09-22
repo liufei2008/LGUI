@@ -32,9 +32,9 @@ public:
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
-	void SetColorCorrectionValue(FRHICommandList& RHICmdList, float value);
+	void SetGammaValue(FRHICommandList& RHICmdList, float value);
 private:
-	LAYOUT_FIELD(FShaderParameter, ColorCorrectionValueForHDRParameter);
+	LAYOUT_FIELD(FShaderParameter, LGUIGammaValuesParameter);
 };
 
 class FLGUIWorldRenderPS : public FLGUIHudRenderPS

@@ -453,9 +453,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	}
 
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
-	float ColorCorrectionValue =
-		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : 0.45454545f;
-
+	const float EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
+	float GammaValue =
+		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
@@ -590,7 +590,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					RDG_EVENT_NAME("LGUIHudRender_WorldSpace"),
 					PassParameters,
 					ERDGPassFlags::Raster,
-					[this, RenderSequenceItem, RenderView, ViewRect, PassParameters, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, ColorCorrectionValue](FRHICommandListImmediate& RHICmdList)
+					[this, RenderSequenceItem, RenderView, ViewRect, PassParameters, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, GammaValue](FRHICommandListImmediate& RHICmdList)
 					{
 						FGraphicsPipelineStateInitializer GraphicsPSOInit;
 						RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -636,7 +636,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetDepthBlendParameter(RHICmdList, Primitive.BlendDepth, SceneDepthTexST, PassParameters->SceneDepthTex->GetRHI());
-										PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+										PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
 										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
@@ -666,7 +666,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 										PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 										PixelShader->SetDepthBlendParameter(RHICmdList, Primitive.BlendDepth, SceneDepthTexST, PassParameters->SceneDepthTex->GetRHI());
 										PixelShader->SetDepthFadeParameter(RHICmdList, Primitive.DepthFade);
-										PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+										PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
 										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
@@ -842,7 +842,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 					RDG_EVENT_NAME("LGUIHudRender_ScreenSpace"),
 					PassParameters,
 					ERDGPassFlags::Raster,
-					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, ValidDepth = LGUIScreenSpaceDepthRDGTexture != nullptr, ColorCorrectionValue](FRHICommandListImmediate& RHICmdList)
+					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, ValidDepth = LGUIScreenSpaceDepthRDGTexture != nullptr, GammaValue](FRHICommandListImmediate& RHICmdList)
 					{
 						for (auto& Primitive : RenderSequenceItem)
 						{
@@ -886,7 +886,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 
 									VertexShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 									PixelShader->SetMaterialShaderParameters(RHICmdList, *RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-									PixelShader->SetColorCorrectionValue(RHICmdList, ColorCorrectionValue);
+									PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
 									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.Elements[0].NumPrimitives, Mesh.Elements[0].NumInstances);
