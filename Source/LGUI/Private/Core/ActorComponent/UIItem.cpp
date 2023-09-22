@@ -46,6 +46,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bAnchorRightCached = false;
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
+	bNeedSortUIChildren = true;
 #if WITH_EDITOR
 	bUIActiveStateDirty = true;
 #endif
@@ -220,6 +221,7 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& index)const
 	{
 		this->flattenHierarchyIndex = index;
 	}
+	EnsureUIChildrenSorted();
 	for (auto& child : UIChildren)
 	{
 		if (IsValid(child))
@@ -296,7 +298,7 @@ void UUIItem::ApplyHierarchyIndex()
 		}
 		else
 		{
-			ParentUIItem->CheckCacheUIChildren();
+			ParentUIItem->EnsureUIChildrenValid();
 			hierarchyIndex = FMath::Clamp(hierarchyIndex, 0, ParentUIItem->UIChildren.Num() - 1);
 			ParentUIItem->UIChildren.Remove(this);
 			ParentUIItem->UIChildren.Insert(this, hierarchyIndex);
@@ -410,6 +412,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 		}
 		else
 		{
+			EnsureUIChildrenSorted();//make sure sorted, so result is predictable
 			for (auto& childItem : UIChildren)
 			{
 				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
@@ -423,6 +426,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 }
 void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
 {
+	EnsureUIChildrenSorted();//make sure sorted, so result is predictable
 	for (auto& childItem : UIChildren)
 	{
 		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
@@ -560,7 +564,7 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 
 void UUIItem::PostEditUndo()
 {
-	CheckCacheUIChildren();
+	EnsureUIChildrenValid();
 	Super::PostEditUndo();
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
@@ -666,16 +670,20 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	{
 		childUIItem->OnUIAttachedToParent();
 		//hierarchy index
-		CheckCacheUIChildren();//check
-		bool bNeedSortChildren = true;
+		EnsureUIChildrenValid();//check
+		UIChildren.Add(childUIItem);
+		
 		{
 			auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
 			if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
-				bNeedSortChildren = false;//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
+				//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
 			}
 			else
 			{
+				//need sort children here, make it true so we can sort children if we need to
+				bNeedSortUIChildren = true;
+
 				if (childUIItem->IsRegistered())
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
@@ -687,7 +695,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				}
 			}
 		}
-		UIChildren.Add(childUIItem);
 		//make sure hierarchyindex all good
 		if (childUIItem->hierarchyIndex == INDEX_NONE)
 		{
@@ -702,15 +709,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			}
 		}
 
-		if (bNeedSortChildren)
-		{
-			UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
-				{
-					if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-						return true;
-					return false;
-				});
-		}
 		MarkCanvasUpdate(false, false, false);
 	}
 }
@@ -760,7 +758,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
 		//hierarchy index
-		CheckCacheUIChildren();
+		EnsureUIChildrenValid();
 		UIChildren.Remove(childUIItem);
 		for (int i = 0; i < UIChildren.Num(); i++)
 		{
@@ -909,7 +907,7 @@ void UUIItem::OnComponentDestroyed(bool bDestroyingHierarchy)
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
 }
 
-void UUIItem::CheckCacheUIChildren()
+void UUIItem::EnsureUIChildrenValid()
 {
 	for (int i = UIChildren.Num() - 1; i >= 0; i--)
 	{
@@ -917,6 +915,20 @@ void UUIItem::CheckCacheUIChildren()
 		{
 			UIChildren.RemoveAt(i);
 		}
+	}
+}
+
+void UUIItem::EnsureUIChildrenSorted()const
+{
+	if (bNeedSortUIChildren)
+	{
+		bNeedSortUIChildren = false;
+		UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
+			{
+				if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+					return true;
+				return false;
+			});
 	}
 }
 
@@ -1875,6 +1887,7 @@ UUIItem* UUIItem::GetAttachUIChild(int index)const
 		UE_LOG(LGUI, Error, TEXT("[%s].%d Index:%d out of range[%d, %d]"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, index, 0, UIChildren.Num() - 1);
 		return nullptr;
 	}
+	EnsureUIChildrenSorted();
 	return UIChildren[index];
 }
 ULGUICanvas* UUIItem::GetRootCanvas()const

@@ -22,12 +22,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> 
 		CurrentPointArray;
 
-	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child)override;
-	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)override;
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
-	UPROPERTY(Transient)TArray<TObjectPtr<UUIItem>> SortedItemArray;
-	void RebuildChildrenList();
-
 	virtual void CalculatePoints()override;
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{
