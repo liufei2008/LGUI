@@ -81,10 +81,12 @@ protected:
 	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const;
 	void EnsureChildValid();
 	void RebuildChildrenList()const;
+	void SortChildrenList()const;
 	virtual void GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
-	bool bNeedRebuildLayout = true;
-	mutable bool bNeedRebuildChildrenList = true;
+	uint8 bNeedRebuildLayout : 1;
+	mutable uint8 bNeedRebuildChildrenList : 1;
+	mutable uint8 bNeedSortChildrenList : 1;
 
 	void ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth);
 	void ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight);

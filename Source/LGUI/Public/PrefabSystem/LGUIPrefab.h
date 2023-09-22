@@ -5,6 +5,9 @@
 #include "Misc/NetworkVersion.h"
 #include "LGUIPrefab.generated.h"
 
+#define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer6.h"
+#define LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE LGUIPrefabSystem6
+
 enum class ELGUIPrefabVersion : uint16
 {
 	/** Version 2: Support ActorGuid (start from 4.26). */
@@ -22,6 +25,8 @@ enum class ELGUIPrefabVersion : uint16
 	NestedDefaultSubObject = 4,
 	/** Support UObject name. */
 	ObjectName = 5,
+	/** Support common actor types, not just UI actor. */
+	CommonActor = 6,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
@@ -61,8 +66,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
-	/** For level editor, to tell if this prefab is latest version. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab = FDateTime(0);
+	/** For level editor, combine all create time (include all sub prefab) to create this MD5, to tell if this prefab is latest version. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")FString OverallVersionMD5;
 	/** For level editor, true means it will not show a dialog box and do the update if detect new version. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")bool bAutoUpdate = true;
 	/** Temporary color for quick identify in editor */
@@ -146,7 +151,7 @@ public:
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
-	/** The time point when create/save this prefab. */
+	/** The time point when create/save this prefab. Use UtcNow from prefab version 6. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FDateTime CreateTime;
 #endif
@@ -246,6 +251,7 @@ public:
 #if WITH_EDITOR
 	void CopyDataTo(ULGUIPrefab* TargetPrefab);
 	bool GetIsPrefabVariant()const { return bIsPrefabVariant; }
+	FString GenerateOverallVersionMD5();
 #endif
 private:
 #if WITH_EDITOR
@@ -275,10 +281,11 @@ public:
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse = true
 	);
+	void RecreatePrefab();
 	/**
 	 * @todo: There is a more efficient way for dealing with sub prefab in runtime: break sub prefab and store all actors (with override parameters) in root prefab.
 	 */
-	void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
+	//void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */

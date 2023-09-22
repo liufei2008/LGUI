@@ -20,7 +20,7 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIDynamicSpriteAtlasManager::InitCheck();
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, AutoBatchThreshold))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, AutoBatchThreshold))
 		{
 			CacheAutoBatchThreshold = AutoBatchThreshold;
 		}
@@ -70,6 +70,10 @@ float ULGUISettings::GetAutoBatchThreshold()
 #else
 	return GetDefault<ULGUISettings>()->AutoBatchThreshold;
 #endif
+}
+bool ULGUISettings::GetLogPrefabLoadTime()
+{
+	return GetDefault<ULGUISettings>()->bLogPrefabLoadTime;
 }
 int32 ULGUISettings::ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 {

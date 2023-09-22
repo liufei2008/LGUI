@@ -15,6 +15,10 @@ void UUILayoutBase::Awake()
 {
     Super::Awake();
 
+    bNeedRebuildLayout = true;
+    bNeedRebuildChildrenList = true;
+    bNeedSortChildrenList = true;
+
     MarkNeedRebuildChildrenList();
     MarkNeedRebuildLayout();
 
@@ -105,13 +109,18 @@ void UUILayoutBase::RebuildChildrenList()const
                 LayoutUIItemChildrenArray.Add(child);
             }
         }
-        LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-            {
-                if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                    return true;
-                return false;
-            });
+        SortChildrenList();
     }
+}
+
+void UUILayoutBase::SortChildrenList()const
+{
+    LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+        {
+            if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+                return true;
+            return false;
+        });
 }
 
 void UUILayoutBase::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
@@ -129,7 +138,13 @@ const TArray<UUILayoutBase::FAvaliableChild>& UUILayoutBase::GetLayoutUIItemChil
     if(bNeedRebuildChildrenList)
     {
         bNeedRebuildChildrenList = false;
+        bNeedSortChildrenList = false;
         RebuildChildrenList();
+    }
+    else if (bNeedSortChildrenList)
+    {
+        bNeedSortChildrenList = false;
+        SortChildrenList();
     }
     return LayoutUIItemChildrenArray;
 }
@@ -187,13 +202,7 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
             }
             childData.layoutElement = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
-
-            LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                {
-                    if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                        return true;
-                    return false;
-                });
+            bNeedSortChildrenList = true;
         }
     }
     else
@@ -227,13 +236,7 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
             }
             childData.layoutElement = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
-            //sort by hierarchy index
-            LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                {
-                    if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                        return true;
-                    return false;
-                });
+            bNeedSortChildrenList = true;
         }
     }
     else
@@ -254,12 +257,7 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     EnsureChildValid();
     if (LayoutUIItemChildrenArray.Find(childData, index))
     {
-        LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-            {
-                if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                    return true;
-                return false;
-            });
+        bNeedSortChildrenList = true;
     }
 
     MarkNeedRebuildLayout();

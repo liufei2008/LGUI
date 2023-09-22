@@ -7,7 +7,8 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
-#include "PrefabSystem/ActorSerializer5.h"
+#include "PrefabSystem/LGUIObjectReaderAndWriter.h"
+#include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -380,7 +381,10 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 {
 	CleanupInvalidSubPrefab();
 
+	//temporary disable these, so restore prefab data goes silently
 	bCanNotifyAttachment = false;
+	bCanCollectProperty = false;
+
 	bool AnythingChange = false;
 
 	for (auto& SubPrefabKeyValue : this->SubPrefabMap)
@@ -393,7 +397,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			)
 		{
 			//store override parameter to data
-			LGUIPrefabSystem5::ActorSerializer serializer;
+			LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer serializer;
 			serializer.bOverrideVersions = false;
 			auto OverrideData = serializer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
 
@@ -485,6 +489,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			//no need to clear invalid objects, because when SavePrefab it will do the clear work. But if we are in level editor, then there is no SavePrefab, so clear invalid objects is required: ClearInvalidObjectAndGuid()
 			//apply override parameter. 
 			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+			SubPrefabRootActor->GetRootComponent()->UpdateComponentToWorld();//root comp may stay prev position if not do this
 
 			if (SubPrefabData.CheckParameters())
 			{
@@ -508,6 +513,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	ALGUIManagerActor::RefreshAllUI();
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
+	bCanCollectProperty = true;
 	return AnythingChange;
 }
 
@@ -515,8 +521,8 @@ void ULGUIPrefabHelperObject::OnObjectPropertyChanged(UObject* InObject, struct 
 {
 	if (!IsValid(InObject))return;
 	if (InPropertyChangedEvent.MemberProperty == nullptr || InPropertyChangedEvent.Property == nullptr)return;
-	if (InPropertyChangedEvent.MemberProperty->HasAnyPropertyFlags(CPF_Transient))return;
-	if (InPropertyChangedEvent.Property->HasAnyPropertyFlags(CPF_Transient))return;
+	if (LGUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.MemberProperty))return;
+	if (LGUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.Property))return;
 
 	TryCollectPropertyToOverride(InObject, InPropertyChangedEvent.MemberProperty);
 }
@@ -527,7 +533,7 @@ void ULGUIPrefabHelperObject::OnPreObjectPropertyChanged(UObject* InObject, cons
 	if (ActiveMemberNode == nullptr)return;
 	auto MemberProperty = ActiveMemberNode->GetValue();
 	if (MemberProperty == nullptr)return;
-	if (MemberProperty->HasAnyPropertyFlags(CPF_Transient))return;
+	if (LGUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(MemberProperty))return;
 	auto ActiveNode = InEditPropertyChain.GetActiveNode();
 	if (ActiveNode != ActiveMemberNode)
 	{
@@ -1564,14 +1570,14 @@ void ULGUIPrefabHelperObject::RefreshSubPrefabVersion(AActor* InSubPrefabRootAct
 {
 	if (IsInsidePrefabEditor())return;
 	auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];
-	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
+	SubPrefabData.OverallVersionMD5 = SubPrefabData.PrefabAsset->GenerateOverallVersionMD5();
 }
 
 void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
-	SubPrefabData.TimePointWhenSavePrefab = InPrefab->CreateTime;
+	SubPrefabData.OverallVersionMD5 = InPrefab->GenerateOverallVersionMD5();
 	SubPrefabData.MapGuidToObject = InSubMapGuidToObject;
 	SubPrefabData.ObjectOverrideParameterArray = InObjectOverrideParameterArray;
 
@@ -1749,7 +1755,7 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		auto& SubPrefabData = KeyValue.Value;
-		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		if (SubPrefabData.OverallVersionMD5 != SubPrefabData.PrefabAsset->GenerateOverallVersionMD5())
 		{
 			if (SubPrefabData.bAutoUpdate)
 			{
@@ -1765,7 +1771,7 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		auto& SubPrefabData = KeyValue.Value;
-		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		if (SubPrefabData.OverallVersionMD5 != SubPrefabData.PrefabAsset->GenerateOverallVersionMD5())
 		{
 			if (SubPrefabData.bAutoUpdate)
 			{
@@ -1835,7 +1841,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 				GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab_Transaction", "LGUI Update Prefabs"));
 				InPrefabRootActor->GetLevel()->Modify();
 				this->Modify();
-				if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+				if (SubPrefabDataPtr->OverallVersionMD5 == SubPrefabDataPtr->PrefabAsset->GenerateOverallVersionMD5())
 				{
 					Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
 				}
@@ -1885,7 +1891,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 				auto SubPrefabDataPtr = SubPrefabMap.Find(Item.SubPrefabRootActor.Get());
 				if (SubPrefabDataPtr != nullptr)
 				{
-					if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+					if (SubPrefabDataPtr->OverallVersionMD5 == SubPrefabDataPtr->PrefabAsset->GenerateOverallVersionMD5())
 					{
 						Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
 					}

@@ -66,7 +66,6 @@ namespace LGUIPrefabSystem
 		FEngineVersionBase ArEngineVer;
 		uint32 ArEngineNetVer = 0;
 		uint32 ArGameNetVer = 0;
-
 		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 		TMap<UObject*, FGuid> MapObjectToGuid;
 
