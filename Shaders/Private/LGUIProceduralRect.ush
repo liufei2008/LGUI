@@ -1,3 +1,4 @@
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 
 #ifndef PI
 #define PI 3.14159265359f
@@ -80,7 +81,7 @@ half4 LGUI_ReadColor(Texture2D DataTex, inout int3 Position)
     uint ColorUint = asuint(DataTex.Load(Position).r);
     Position.x += 1;
     half4 Color = LGUI_UnpackUintColor(ColorUint);
-    Color.rgb = pow(Color.rgb, 2.2);
+    Color.rgb = sRGBToLinear(Color.rgb);
     return Color;
 }
 

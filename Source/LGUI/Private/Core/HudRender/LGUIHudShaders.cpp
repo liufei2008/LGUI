@@ -45,7 +45,7 @@ void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FMaterialShader(Initializer)
 {
-	ColorCorrectionValueForHDRParameter.Bind(Initializer.ParameterMap, TEXT("_ColorCorrectionValueForHDR"));
+	LGUIGammaValuesParameter.Bind(Initializer.ParameterMap, TEXT("_LGUIGammaValues"));
 }
 bool FLGUIHudRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
@@ -67,10 +67,11 @@ void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 	RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	FMaterialShader::SetParameters(RHICmdList, RHICmdList.GetBoundPixelShader(), MaterialRenderProxy, *Material, View);
 }
-void FLGUIHudRenderPS::SetColorCorrectionValue(FRHICommandList& RHICmdList, float value)
+void FLGUIHudRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float value)
 {
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-	SetShaderValue(BatchedParameters, ColorCorrectionValueForHDRParameter, value);
+	FVector4f GammaValues(2.2f / value, 1.0f / value, 0.0f, 0.0f);
+	SetShaderValue(BatchedParameters, LGUIGammaValuesParameter, GammaValues);
 	RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 }
 
