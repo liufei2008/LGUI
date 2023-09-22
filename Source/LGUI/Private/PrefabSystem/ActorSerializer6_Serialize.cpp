@@ -123,21 +123,26 @@ namespace LGUIPrefabSystem6
 
 			TArray<AActor*> ChildrenActors;
 			Actor->GetAttachedActors(ChildrenActors);
-			//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
-			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
-				auto ARoot = A->GetRootComponent();
-				auto BRoot = B->GetRootComponent();
-				if (ARoot != nullptr && BRoot != nullptr)
-				{
-					auto AUIRoot = Cast<UUIItem>(ARoot);
-					auto BUIRoot = Cast<UUIItem>(BRoot);
-					if (AUIRoot != nullptr && BUIRoot != nullptr)
+#if WITH_EDITOR
+			if (!TargetWorld->IsGameWorld())//only need in edit mode, because runtime serialize (or duplicate) don't use sub-prefab
+			{
+				//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+				Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+					auto ARoot = A->GetRootComponent();
+					auto BRoot = B->GetRootComponent();
+					if (ARoot != nullptr && BRoot != nullptr)
 					{
-						return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+						auto AUIRoot = Cast<UUIItem>(ARoot);
+						auto BUIRoot = Cast<UUIItem>(BRoot);
+						if (AUIRoot != nullptr && BUIRoot != nullptr)
+						{
+							return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+						}
 					}
-				}
-				return false;
-				});
+					return false;
+					});
+			}
+#endif
 			TArray<FLGUIActorSaveData> ChildSaveDataList;
 			for (auto ChildActor : ChildrenActors)
 			{
