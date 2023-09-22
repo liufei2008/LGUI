@@ -2,7 +2,6 @@
 
 #include "LGUIBPLibrary.h"
 #include "Utils/LGUIUtils.h"
-#include "PrefabSystem/ActorSerializer5.h"
 #include "LTweenManager.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
@@ -10,6 +9,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "LGUI.h"
 #include "PrefabSystem/LGUIPrefab.h"
+#include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 
 void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
@@ -30,17 +30,17 @@ AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULG
 
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
-	return LGUIPrefabSystem5::ActorSerializer::DuplicateActor(Target, Parent);
+	return LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::DuplicateActor(Target, Parent);
 }
 void ULGUIBPLibrary::PrepareDuplicateData(AActor* Target, FLGUIDuplicateDataContainer& DataContainer)
 {
-	DataContainer.bIsValid = LGUIPrefabSystem5::ActorSerializer::PrepareDataForDuplicate(Target, DataContainer.SerializedData, DataContainer.ActorSerializer);
+	DataContainer.bIsValid = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::PrepareDataForDuplicate(Target, DataContainer.SerializedData, DataContainer.ActorSerializer);
 }
 AActor* ULGUIBPLibrary::DuplicateActorWithPreparedData(FLGUIDuplicateDataContainer& Data, USceneComponent* Parent)
 {
 	if (Data.bIsValid)
 	{
-		return LGUIPrefabSystem5::ActorSerializer::DuplicateActorWithPreparedData(Data.SerializedData, Data.ActorSerializer, Parent);
+		return LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::DuplicateActorWithPreparedData(Data.SerializedData, Data.ActorSerializer, Parent);
 	}
 	else
 	{

@@ -117,7 +117,7 @@ public:
 	void UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle);
 protected:
 	/** UIItem's hierarchy changed */
-	void UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup);
+	void UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup, UUIItem* ParentRoot);
 	FSimpleMulticastDelegate UIHierarchyChangedDelegate;
 	/** called when RenderCanvas changed. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
@@ -140,9 +140,10 @@ protected:
 	/** root in hierarchy */
 	mutable TWeakObjectPtr<UUIItem> RootUIItem = nullptr;//don't mark this Transactional, because undo or redo will call register/unregister, which will trigger check RootUIItem
 	/** UI children array, sorted by hierarchy index */
-	UPROPERTY(Transient) TArray<TObjectPtr<UUIItem>> UIChildren;
+	UPROPERTY(Transient) mutable TArray<TObjectPtr<UUIItem>> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
-	void CheckCacheUIChildren();
+	void EnsureUIChildrenValid();
+	void EnsureUIChildrenSorted()const;
 #pragma region AnchorData
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
@@ -242,7 +243,7 @@ public:
 		UUIItem* GetParentUIItem()const{ return ParentUIItem.Get(); }
 	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const TArray<UUIItem*>& GetAttachUIChildren()const { return UIChildren; }
+		const TArray<UUIItem*>& GetAttachUIChildren()const { EnsureUIChildrenSorted(); return UIChildren; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIItem* GetAttachUIChild(int index)const;
 	/** Get root canvas of hierarchy */
@@ -271,6 +272,7 @@ public:
 private:
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
+	mutable uint8 bNeedSortUIChildren : 1;
 #pragma region UICanvasGroup
 protected:
 	UPROPERTY(Transient) mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
@@ -443,7 +445,7 @@ protected:
 #endif
 
 	/** find root UIItem of hierarchy */
-	void CheckRootUIItem();
+	void CheckRootUIItem(UUIItem* RootUIItemInParent = nullptr);
 	virtual bool LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End);
 public:
 #pragma region TweenAnimation
