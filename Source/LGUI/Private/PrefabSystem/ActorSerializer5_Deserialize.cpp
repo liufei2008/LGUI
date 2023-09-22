@@ -606,7 +606,7 @@ namespace LGUIPrefabSystem5
 					break;
 					default:
 					{
-						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect old sub prefab version which is not support nested prefab! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
+						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect older or newer sub prefab version which is not support nested prefab here! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
 						LGUIUtils::EditorNotification(MsgText, 1.0f);
 					}
 					break;
