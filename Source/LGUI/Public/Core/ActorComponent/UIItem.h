@@ -117,7 +117,7 @@ public:
 	void UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle);
 protected:
 	/** UIItem's hierarchy changed */
-	void UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup);
+	void UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup, UUIItem* ParentRoot);
 	FSimpleMulticastDelegate UIHierarchyChangedDelegate;
 	/** called when RenderCanvas changed. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
@@ -445,7 +445,7 @@ protected:
 #endif
 
 	/** find root UIItem of hierarchy */
-	void CheckRootUIItem();
+	void CheckRootUIItem(UUIItem* RootUIItemInParent = nullptr);
 	virtual bool LineTraceUIRect(FHitResult& OutHit, const FVector& Start, const FVector& End);
 public:
 #pragma region TweenAnimation

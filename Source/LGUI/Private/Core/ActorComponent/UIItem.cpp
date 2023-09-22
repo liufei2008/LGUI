@@ -744,7 +744,7 @@ void UUIItem::OnUIAttachedToParent()
 
 	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
 	UUICanvasGroup* ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
-	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup);
+	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup, ParentUIItem->RootUIItem.Get());
 	//callback
 	CallUILifeCycleBehavioursAttachmentChanged();
 }
@@ -802,7 +802,7 @@ void UUIItem::OnUIDetachedFromParent()
 		}
 	}
 
-	UIHierarchyChanged(nullptr, nullptr);
+	UIHierarchyChanged(nullptr, nullptr, nullptr);
 	//callback
 	CallUILifeCycleBehavioursAttachmentChanged();
 }
@@ -1080,7 +1080,7 @@ void UUIItem::SetCanvasGroup(UUICanvasGroup* InNewCanvasGroup)
 	}
 }
 
-void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup)
+void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup, UUIItem* ParentRoot)
 {
 	auto ThisRenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
 	if (ThisRenderCanvas != nullptr)
@@ -1124,15 +1124,14 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 		UIHierarchyChangedDelegate.Broadcast();
 	}
 
+	CheckRootUIItem(ParentRoot);
 	for (auto& uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
-			uiItem->UIHierarchyChanged(ParentRenderCanvas, ParentCanvasGroup);
+			uiItem->UIHierarchyChanged(ParentRenderCanvas, ParentCanvasGroup, ParentRoot);
 		}
 	}
-
-	CheckRootUIItem();
 
 	//flatten hierarchy index
 	MarkFlattenHierarchyIndexDirty();
@@ -1174,7 +1173,7 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 	}
 }
 
-void UUIItem::CheckRootUIItem()
+void UUIItem::CheckRootUIItem(UUIItem* RootUIItemInParent)
 {
 #if WITH_EDITOR
 	auto oldRootUIItem = RootUIItem;
@@ -1184,14 +1183,18 @@ void UUIItem::CheckRootUIItem()
 	}
 #endif
 
-	UUIItem* topUIItem = this;
-	UUIItem* tempRootUIItem = nullptr;
-	while (topUIItem != nullptr && topUIItem->IsRegistered())
+	if (RootUIItemInParent == nullptr)
 	{
-		tempRootUIItem = topUIItem;
-		topUIItem = Cast<UUIItem>(topUIItem->GetAttachParent());
+		UUIItem* topUIItem = this;
+		UUIItem* tempRootUIItem = nullptr;
+		while (topUIItem != nullptr && topUIItem->IsRegistered())
+		{
+			tempRootUIItem = topUIItem;
+			topUIItem = Cast<UUIItem>(topUIItem->GetAttachParent());
+		}
+		RootUIItemInParent = tempRootUIItem;
 	}
-	RootUIItem = tempRootUIItem;
+	RootUIItem = RootUIItemInParent;
 
 #if WITH_EDITOR
 	if (RootUIItem == this && RootUIItem != nullptr)
