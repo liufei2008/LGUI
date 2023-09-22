@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "/Engine/Private/Common.ush"
+#include "/Engine/Private/GammaCorrectionCommon.ush"
 #include "/Engine/Generated/Material.ush"
 #include "LGUIHudVertexFactory.ush"
 
@@ -166,6 +167,23 @@ void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters Materia
     float PixelDepthOffset = ApplyPixelDepthOffsetToMaterialParameters(MaterialParameters, PixelMaterialInputs, OutDepth);
 }
 
+/** Reference from Engine/Shader/Private/SlateElementPixelShader.usf */
+/** Display gamma x:gamma curve adjustment, y:inverse gamma (1/GEngine->DisplayGamma), z:InvertAlpha, w:Contrast */
+#define SOURCE_IN_LINEAR_SPACE  1 
+half3 GammaCorrect(half3 InColor, half4 GammaValues)
+{
+    half3 CorrectedColor = InColor;
+
+#if SOURCE_IN_LINEAR_SPACE
+    FLATTEN if (GammaValues.y != 1.0f)
+    {
+        CorrectedColor = ApplyGammaCorrection(CorrectedColor, GammaValues.x);
+    }
+#endif
+
+    return CorrectedColor;
+}
+
 #if LGUI_BLEND_DEPTH
 Texture2D _SceneDepthTex;
 SamplerState _SceneDepthTexSampler;
@@ -175,7 +193,7 @@ float _SceneDepthBlend;
 float _SceneDepthFade;
 #endif
 #endif
-float _ColorCorrectionValueForHDR;
+half4 _LGUIGammaValues;
 
 void MainPS(
 	FLGUIVertexFactoryInterpolantsVSToPS Interpolants
@@ -207,7 +225,9 @@ void MainPS(
 #endif
 	
 	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
-	OutColor.rgb = pow(OutColor.rgb, _ColorCorrectionValueForHDR);
+	
+	// Gamma Correct
+    OutColor.rgb = GammaCorrect(OutColor.rgb, _LGUIGammaValues);
 	
 #if MATERIALBLENDING_MASKED
     clip(GetMaterialMask(PixelMaterialInputs));
