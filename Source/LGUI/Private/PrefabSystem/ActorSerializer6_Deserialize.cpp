@@ -315,18 +315,10 @@ namespace LGUIPrefabSystem6
 				CompData.Component->MarkRenderTransformDirty();
 				CompData.Component->MarkRenderInstancesDirty();
 			}
-			//notify property change
-			for (auto& KeyValue : MapGuidToObject)
+			//refresh it
+			for (auto& Actor : CreatedActors)
 			{
-				auto Object = KeyValue.Value;
-				auto ExcludeProperties = Cast<USceneComponent>(Object) != nullptr ? GetSceneComponentExcludeProperties() : TSet<FName>();
-				for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
-				{
-					auto Property = *It;
-					if (LGUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(Property))continue;
-					if (ExcludeProperties.Contains(Property->GetFName()))continue;
-					LGUIUtils::NotifyPropertyChanged(Object, Property);
-				}
+				Actor->RerunConstructionScripts();
 			}
 		}
 #endif
