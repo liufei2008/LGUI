@@ -24,10 +24,10 @@ public:
 	static TArray<AActor*> GetSelectedActors();
 	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);
 	static TArray<AActor*> GetRootActorListFromSelection(const TArray<AActor*>& selectedActors);
-	static void CreateUIItemActor(UClass* ActorClass);
+	static void CreateActorByClass(UClass* ActorClass);
 	static void CreateEmptyActor();
 	static void CreateUIControls(FString InPrefabPath);
-	static void ReplaceUIElementWith(UClass* ActorClass);
+	static void ReplaceActorByClass(UClass* ActorClass);
 	static void DuplicateSelectedActors_Impl();
 	static void CopySelectedActors_Impl();
 	static void PasteSelectedActors_Impl();
