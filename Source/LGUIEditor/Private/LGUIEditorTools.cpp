@@ -390,6 +390,20 @@ public:
 
 			// create the actor
 			NewActor = OldActor->GetWorld()->SpawnActor(NewActorClass, &OldTransform, SpawnParams);
+			//added by liuf, if no root component then add one
+			{
+				auto RootComponent = NewActor->GetRootComponent();
+				if (!RootComponent)
+				{
+					RootComponent = NewObject<USceneComponent>(NewActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+					RootComponent->Mobility = EComponentMobility::Movable;
+					RootComponent->bVisualizeComponent = false;
+
+					NewActor->SetRootComponent(RootComponent);
+					RootComponent->RegisterComponent();
+					NewActor->AddInstanceComponent(RootComponent);
+				}
+			}
 			// try to copy over properties
 			NewActor->UnregisterAllComponents();
 			UEngine::FCopyPropertiesForUnrelatedObjectsParams Options;
@@ -641,7 +655,7 @@ UWorld* LGUIEditorTools::GetWorldFromSelection()
 	}
 	return GWorld;
 }
-void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
+void LGUIEditorTools::CreateActorByClass(UClass* ActorClass)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
@@ -740,7 +754,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 	}
 	GEditor->EndTransaction();
 }
-void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
+void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 {
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
