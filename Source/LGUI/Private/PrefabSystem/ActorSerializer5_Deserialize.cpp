@@ -182,9 +182,7 @@ namespace LGUIPrefabSystem5
 		return rootActor;
 	}
 
-#if !UE_BUILD_SHIPPING
 #define LGUIPREFAB_LOG_DETAIL_TIME 0
-#endif
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
 #if LGUIPREFAB_LOG_DETAIL_TIME
