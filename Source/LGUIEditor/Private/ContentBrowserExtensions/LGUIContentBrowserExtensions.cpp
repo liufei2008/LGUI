@@ -132,15 +132,15 @@ public:
 
 				for (auto Prefab : Prefabs)
 				{
-					// Create the factory used to generate the sprite
+					// Create the factory used to generate the prefab
 					auto PrefabFactory = NewObject<ULGUIPrefabFactory>();
 					PrefabFactory->SourcePrefab = Prefab;
 
-					// Create the sprite
+					// Create the prefab
 					FString Name;
 					FString PackageName;
 
-					// Get a unique name for the sprite
+					// Get a unique name for the prefab
 					const FString DefaultSuffix = TEXT("_Variant");
 					AssetToolsModule.Get().CreateUniqueAssetName(Prefab->GetOutermost()->GetName(), DefaultSuffix, /*out*/ PackageName, /*out*/ Name);
 					const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);

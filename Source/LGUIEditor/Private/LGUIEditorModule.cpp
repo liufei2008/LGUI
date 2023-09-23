@@ -1100,7 +1100,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::Format(LOCTEXT("CreateUIElementTitle", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
 			);
 		}
 		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, FText InTooltip = FText())
@@ -1165,7 +1165,7 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::FromString(ActorName),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
 			);
 		}
 	};
@@ -1286,6 +1286,9 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 			}
 		}
 	}
+	Algo::Sort(AllValidActorArray, [](const UClass* A, const UClass* B) {
+		return A->GetName().Compare(B->GetName()) < 0;
+		});
 
 	MenuBuilder.AddSubMenu(
 		FText::FromString(AllActorGroupName),
@@ -1314,6 +1317,15 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 				NAME_None, EUserInterfaceActionType::None
 				);
 
+	GroupData.Sort([](const GroupDataContainer& A, const GroupDataContainer& B) {
+		return A.GroupName.Compare(B.GroupName) < 0;
+		});
+	for (auto& Item : GroupData)
+	{
+		Algo::Sort(Item.ActorClassArray, [](const UClass* A, const UClass* B) {
+			return A->GetName().Compare(B->GetName()) < 0;
+			});
+	}
 	GroupDataContainer::MakeMenu(MenuBuilder, GroupData, this);
 }
 
@@ -1495,7 +1507,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::Format(LOCTEXT("CreateUIPoseProcessElement", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
 			);
 		}
 	};
@@ -1540,7 +1552,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(UIItemName),
 				FText::Format(LOCTEXT("CreateUIExtensionElement", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
 			);
 		}
 	};
@@ -1690,7 +1702,16 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(ClassName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, InClass))
+			);
+		}
+		static void CreateEmptyActorMenuEntry(FMenuBuilder& InBuilder)
+		{
+			InBuilder.AddMenuEntry(
+				LOCTEXT("EmptyActor", "Empty Actor"),
+				LOCTEXT("ReplaceEmptyActor", "ReplaceWith Empty Actor"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, AActor::StaticClass()))
 			);
 		}
 		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
@@ -1700,9 +1721,9 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
-				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(ClassName)),
+				FText::Format(LOCTEXT("ReplaceCommonActor", "ReplaceWith {0}"), FText::FromString(ClassName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, InClass))
 			);
 		}
 	};
@@ -1777,6 +1798,10 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 				}
 			}
 		}
+		Algo::Sort(AllValidActorArray, [](const UClass* A, const UClass* B) {
+			return A->GetName().Compare(B->GetName()) < 0;
+			});
+
 		MenuBuilder.AddSubMenu(
 			FText::FromString(AllActorGroupName),
 			FText(),
@@ -1784,6 +1809,7 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 				MenuBuilder.BeginSection(FName(*AllActorGroupName));
 				{
 					MenuBuilder.AddSearchWidget();
+					FunctionContainer::CreateEmptyActorMenuEntry(MenuBuilder);
 					for (UClass* ActorClassItem : AllValidActorArray)
 					{
 						FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, ActorClassItem);
