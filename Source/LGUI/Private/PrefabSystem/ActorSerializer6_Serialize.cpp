@@ -124,6 +124,7 @@ namespace LGUIPrefabSystem6
 			TArray<AActor*> ChildrenActors;
 			Actor->GetAttachedActors(ChildrenActors);
 #if WITH_EDITOR
+			//for UI
 			if (!TargetWorld->IsGameWorld())//only need in edit mode, because runtime serialize (or duplicate) don't use sub-prefab
 			{
 				//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
