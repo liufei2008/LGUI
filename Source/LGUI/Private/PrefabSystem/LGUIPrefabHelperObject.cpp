@@ -407,10 +407,10 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			TSet<UObject*> ExtraObjectsToDelete;
 			//check objects to delete: compare guid in sub-prefab's assets and this parent stored guid
 			SubPrefabData.PrefabAsset->ClearAgentObjectsInPreviewWorld();//force it create new agent object and use new data, because the prefab's sub-prefab or sub-sub-prefab could change
-			auto& MapGuidObjectInSubPrefab = SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject;
+			auto& MapGuidToObjectInSubPrefab = SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject;
 			for (auto& KeyValue : SubPrefabMapGuidToObject)
 			{
-				if (!MapGuidObjectInSubPrefab.Contains(KeyValue.Key))
+				if (!MapGuidToObjectInSubPrefab.Contains(KeyValue.Key))
 				{
 					ExtraObjectsGuidsToRemove.Add(KeyValue.Key);
 					ExtraObjectsToDelete.Add(KeyValue.Value);
@@ -465,6 +465,12 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 					this->MapGuidToObject.Add(NewGuid, KeyValue.Value);
 					SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(NewGuid, KeyValue.Key);
 					AnythingChange = true;
+				}
+
+				//this object could be the same one, but with different guid (because it's guid not stored in parent prefab, and generated every time)
+				if (ExtraObjectsToDelete.Contains(KeyValue.Value))
+				{
+					ExtraObjectsToDelete.Remove(KeyValue.Value);
 				}
 			}
 

@@ -64,6 +64,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
 	}
+	if (OnPackageReloadedDelegateHandle.IsValid())
+	{
+		FCoreUObjectDelegates::OnPackageReloaded.Remove(OnPackageReloadedDelegateHandle);
+	}
 	if (OnBlueprintCompiledDelegateHandle.IsValid())
 	{
 		if (GEditor)
@@ -189,6 +193,7 @@ bool ULGUIEditorManagerObject::InitCheck()
 		Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 		//open map
 		Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
+		Instance->OnPackageReloadedDelegateHandle = FCoreUObjectDelegates::OnPackageReloaded.AddUObject(Instance, &ULGUIEditorManagerObject::OnPackageReloaded);
 		if (GEditor)
 		{
 			//reimport asset
@@ -245,6 +250,18 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTemplate)
 {
 
+}
+
+void ULGUIEditorManagerObject::OnPackageReloaded(EPackageReloadPhase Phase, FPackageReloadedEvent* Event)
+{
+	if (Phase == EPackageReloadPhase::PostBatchPostGC && Event != nullptr && Event->GetNewPackage() != nullptr)
+	{
+		auto Asset = Event->GetNewPackage()->FindAssetInPackage();
+		if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
+		{
+			
+		}
+	}
 }
 
 UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()

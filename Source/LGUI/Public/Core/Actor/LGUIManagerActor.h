@@ -101,6 +101,8 @@ private:
 	void OnActorLabelChanged(AActor* actor);
 	FDelegateHandle OnMapOpenedDelegateHandle;
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
+	FDelegateHandle OnPackageReloadedDelegateHandle;
+	void OnPackageReloaded(EPackageReloadPhase Phase, FPackageReloadedEvent* Event);
 #endif
 };
 
