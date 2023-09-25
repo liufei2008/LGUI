@@ -15,12 +15,34 @@
 #include "UnrealClient.h"
 #include "Engine/GameViewportClient.h"
 
+void ULGUICanvasScalerCustomScale::Init(class ULGUICanvasScaler* InCanvasScaler)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveInit(InCanvasScaler);
+	}
+}
+void ULGUICanvasScalerCustomScale::CalculateSizeAndScale(class ULGUICanvasScaler* InCanvasScaler, const FIntPoint& InViewportSize, FIntPoint& OutLGUICanvasSize, float& OutScale)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveCalculateSizeAndScale(InCanvasScaler, InViewportSize, OutLGUICanvasSize, OutScale);
+	}
+}
 
 ULGUICanvasScaler::ULGUICanvasScaler()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void ULGUICanvasScaler::Awake()
+{
+	Super::Awake();
+	if (IsValid(CustomScale))
+	{
+		CustomScale->Init(this);
+	}
+}
 void ULGUICanvasScaler::OnEnable()
 {
 	Super::OnEnable();
@@ -191,6 +213,25 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							canvasUIItem->SetHeight(resultHeight);
 						}
 						break;
+						}
+					}
+					break;
+					case ELGUICanvasScaleMode::Custom:
+					{
+						if (IsValid(CustomScale))
+						{
+							canvasScale = 1.0f;
+							auto ScaledViewportSize = ViewportSize;
+							CustomScale->CalculateSizeAndScale(this, ViewportSize, ScaledViewportSize, canvasScale);
+							canvasUIItem->SetWidth(ScaledViewportSize.X);
+							canvasUIItem->SetHeight(ScaledViewportSize.Y);
+						}
+						else
+						{
+							//default is constant pixel
+							canvasUIItem->SetWidth(ViewportSize.X);
+							canvasUIItem->SetHeight(ViewportSize.Y);
+							canvasScale = 1.0f;
 						}
 					}
 					break;
@@ -518,6 +559,18 @@ void ULGUICanvasScaler::SetScreenMatchMode(ELGUICanvasScreenMatchMode value)
 	{
 		ScreenMatchMode = value;
 		OnViewportParameterChanged();
+	}
+}
+void ULGUICanvasScaler::SetCustomScale(ULGUICanvasScalerCustomScale* value)
+{
+	if (CustomScale != value)
+	{
+		CustomScale = value;
+		CustomScale->Init(this);//need to initialize when first set
+		if (UIScaleMode == ELGUICanvasScaleMode::Custom)
+		{
+			OnViewportParameterChanged();
+		}
 	}
 }
 

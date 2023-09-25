@@ -15,6 +15,10 @@ enum class ELGUICanvasScaleMode:uint8
 	ConstantPixelSize,
 	/** scale UI with reference resolution and screen resolution*/
 	ScaleWithScreenSize,
+	/**
+	 * Assign CustomScale parameter to use a custom class calculate resolution and scale.
+	 */
+	Custom,
 };
 
 #ifndef LGUIScaleMode
@@ -36,6 +40,24 @@ enum class ELGUICanvasScreenMatchMode :uint8
 #define LGUIScreenMatchMode UE_DEPRECATED_MACRO(5.0, "LGUIScreenMatchMode has been renamed to ELGUICanvasScreenMatchMode") ELGUICanvasScreenMatchMode
 #endif
 
+UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
+class LGUI_API ULGUICanvasScalerCustomScale: public UObject
+{
+	GENERATED_BODY()
+public:
+	/** Initialize, called when LGUICanvasScaler Awake. */
+	virtual void Init(class ULGUICanvasScaler* InCanvasScaler);
+	/** Called when LGUICanvasScaler calculate viewport size and scale. */
+	virtual void CalculateSizeAndScale(class ULGUICanvasScaler* InCanvasScaler, const FIntPoint& InViewportSize, FIntPoint& OutLGUICanvasSize, float& OutScale);
+protected:
+	/** Initialize, called when LGUICanvasScaler Awake. */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CalculateSizeAndScale"), Category = "LGUI")
+	void ReceiveInit(class ULGUICanvasScaler* InCanvasScaler);
+	/** Called when LGUICanvasScaler calculate viewport size and scale. */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CalculateSizeAndScale"), Category = "LGUI")
+	void ReceiveCalculateSizeAndScale(class ULGUICanvasScaler* InCanvasScaler, const FIntPoint& InViewportSize, FIntPoint& OutLGUICanvasSize, float& OutScale);
+};
+
 /**
  * Put this on a actor with LGUICanvas component. Use this to scale UI element to adapt different screen resolution.
  * One hierarchy should only have one UICanvasScalar.
@@ -49,6 +71,7 @@ public:
 	ULGUICanvasScaler();
 
 protected:
+	virtual void Awake()override;
 	virtual void OnEnable() override;
 	virtual void OnDisable()override;
 
@@ -88,9 +111,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D ReferenceResolution = FVector2D(1280, 720);
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0", DisplayName = "Match"))
-		float MatchFromWidthToHeight = 0;
+		float MatchFromWidthToHeight = 1;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUICanvasScreenMatchMode ScreenMatchMode = ELGUICanvasScreenMatchMode::MatchWidthOrHeight;
+
+	/**
+	 * Use this to do custom scale. Only valid if UIScaleMode = Custom.
+	 * Will fallback to "ConstantPixelSize" if not assign this value.
+	 */
+	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
+		TObjectPtr<ULGUICanvasScalerCustomScale> CustomScale;
 
 	bool CheckCanvas();
 	UPROPERTY(Transient) TObjectPtr<class ULGUICanvas> Canvas = nullptr;
@@ -126,6 +156,8 @@ public:
 		float GetMatchFromWidthToHeight() { return MatchFromWidthToHeight; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasScreenMatchMode GetScreenMatchMode() { return ScreenMatchMode; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUICanvasScalerCustomScale* GetCustomScale()const { return CustomScale; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetUIScaleMode(ELGUICanvasScaleMode value);
@@ -135,6 +167,8 @@ public:
 		void SetMatchFromWidthToHeight(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetScreenMatchMode(ELGUICanvasScreenMatchMode value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetCustomScale(ULGUICanvasScalerCustomScale* value);
 
 	/** By default, LGUICanvasScaler only update when needed(eg. viewport size change). Use this function to force update. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
