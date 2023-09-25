@@ -87,6 +87,7 @@ public:
 		return GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, CustomUIMaterial);
 	}
 protected:
+	friend class FUIBatchGeometryRenderableCustomization;
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 #if WITH_EDITOR
