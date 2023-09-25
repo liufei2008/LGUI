@@ -15,8 +15,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TWeakObjectPtr<class ULGUICanvasScaler> TargetScriptPtr;
-	float GetMatchValue(TSharedRef<IPropertyHandle> Property)const;
-	void SetMatchValue(float value, TSharedRef<IPropertyHandle> Property);
 	TSharedPtr<SHorizontalBox> ValueBox;
 	FOptionalSize GetValueWidth()const;
 };
