@@ -641,12 +641,15 @@ void FLGUIEventDelegate::FireEvent()const
 		}
 	}
 	else
-		LogParameterError();
+		LogParameterError(ELGUIEventDelegateParameterType::Empty);
 }
-void FLGUIEventDelegate::LogParameterError()const
+void FLGUIEventDelegate::LogParameterError(ELGUIEventDelegateParameterType WrongParamType)const
 {
-	auto enumObject = FindObject<UEnum>(FTopLevelAssetPath(FName(TEXT("LGUI")), FName(TEXT("LGUIEventDelegateParameterType"))), true);
-	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent]Parameter type must be the same as your declaration. supportParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString());
+	auto enumObject = FindObject<UEnum>(nullptr, TEXT("/Script/LGUI.ELGUIEventDelegateParameterType"), true);
+	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent] Parameter type must be the same as your declaration. support parameter type: %s, execute parameter type: %s")
+		, *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString()
+		, *(enumObject->GetDisplayNameTextByValue((int64)WrongParamType)).ToString()
+	);
 }
 void FLGUIEventDelegate::FireEvent(void* InParam)const
 {
@@ -663,7 +666,7 @@ void FLGUIEventDelegate::FireEvent(bool InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Bool);
 }
 void FLGUIEventDelegate::FireEvent(float InParam)const
 {
@@ -672,7 +675,7 @@ void FLGUIEventDelegate::FireEvent(float InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Float);
 }
 void FLGUIEventDelegate::FireEvent(double InParam)const
 {
@@ -681,7 +684,7 @@ void FLGUIEventDelegate::FireEvent(double InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Double);
 }
 void FLGUIEventDelegate::FireEvent(int8 InParam)const
 {
@@ -690,7 +693,7 @@ void FLGUIEventDelegate::FireEvent(int8 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Int8);
 }
 void FLGUIEventDelegate::FireEvent(uint8 InParam)const
 {
@@ -699,7 +702,7 @@ void FLGUIEventDelegate::FireEvent(uint8 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::UInt8);
 }
 void FLGUIEventDelegate::FireEvent(int16 InParam)const
 {
@@ -708,7 +711,7 @@ void FLGUIEventDelegate::FireEvent(int16 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Int16);
 }
 void FLGUIEventDelegate::FireEvent(uint16 InParam)const
 {
@@ -717,7 +720,7 @@ void FLGUIEventDelegate::FireEvent(uint16 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::UInt16);
 }
 void FLGUIEventDelegate::FireEvent(int32 InParam)const
 {
@@ -726,7 +729,7 @@ void FLGUIEventDelegate::FireEvent(int32 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Int32);
 }
 void FLGUIEventDelegate::FireEvent(uint32 InParam)const
 {
@@ -735,7 +738,7 @@ void FLGUIEventDelegate::FireEvent(uint32 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::UInt32);
 }
 void FLGUIEventDelegate::FireEvent(int64 InParam)const
 {
@@ -744,7 +747,7 @@ void FLGUIEventDelegate::FireEvent(int64 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Int64);
 }
 void FLGUIEventDelegate::FireEvent(uint64 InParam)const
 {
@@ -753,7 +756,7 @@ void FLGUIEventDelegate::FireEvent(uint64 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::UInt64);
 }
 void FLGUIEventDelegate::FireEvent(FVector2D InParam)const
 {
@@ -762,7 +765,7 @@ void FLGUIEventDelegate::FireEvent(FVector2D InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Vector2);
 }
 void FLGUIEventDelegate::FireEvent(FVector InParam)const
 {
@@ -771,7 +774,7 @@ void FLGUIEventDelegate::FireEvent(FVector InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Vector3);
 }
 void FLGUIEventDelegate::FireEvent(FVector4 InParam)const
 {
@@ -780,7 +783,7 @@ void FLGUIEventDelegate::FireEvent(FVector4 InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Vector4);
 }
 void FLGUIEventDelegate::FireEvent(FColor InParam)const
 {
@@ -789,7 +792,7 @@ void FLGUIEventDelegate::FireEvent(FColor InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Color);
 }
 void FLGUIEventDelegate::FireEvent(FLinearColor InParam)const
 {
@@ -798,7 +801,7 @@ void FLGUIEventDelegate::FireEvent(FLinearColor InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::LinearColor);
 }
 void FLGUIEventDelegate::FireEvent(FQuat InParam)const
 {
@@ -807,7 +810,7 @@ void FLGUIEventDelegate::FireEvent(FQuat InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Quaternion);
 }
 void FLGUIEventDelegate::FireEvent(const FString& InParam)const
 {
@@ -816,7 +819,7 @@ void FLGUIEventDelegate::FireEvent(const FString& InParam)const
 	{
 		FireEvent((void*)&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::String);
 }
 void FLGUIEventDelegate::FireEvent(UObject* InParam)const
 {
@@ -825,7 +828,7 @@ void FLGUIEventDelegate::FireEvent(UObject* InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Object);
 }
 void FLGUIEventDelegate::FireEvent(AActor* InParam)const
 {
@@ -834,7 +837,7 @@ void FLGUIEventDelegate::FireEvent(AActor* InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Actor);
 }
 void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 {
@@ -843,7 +846,7 @@ void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 	{
 		FireEvent((void*)&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::PointerEvent);
 }
 void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 {
@@ -852,7 +855,7 @@ void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 	{
 		FireEvent(&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Rotator);
 }
 void FLGUIEventDelegate::FireEvent(const FName& InParam)const
 {
@@ -861,7 +864,7 @@ void FLGUIEventDelegate::FireEvent(const FName& InParam)const
 	{
 		FireEvent((void*)&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Name);
 }
 void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 {
@@ -870,7 +873,7 @@ void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 	{
 		FireEvent((void*)&InParam);
 	}
-	else LogParameterError();
+	else LogParameterError(ELGUIEventDelegateParameterType::Text);
 }
 
 #if WITH_EDITOR
