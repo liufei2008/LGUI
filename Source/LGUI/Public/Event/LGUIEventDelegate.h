@@ -181,7 +181,7 @@ private:
 		ELGUIEventDelegateParameterType supportParameterType = ELGUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
-	void LogParameterError()const;
+	void LogParameterError(ELGUIEventDelegateParameterType WrongParamType)const;
 public:
 	void SetParameterType(ELGUIEventDelegateParameterType InParamType)
 	{
