@@ -55,21 +55,11 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
-			Writer.DoSerialize(InObject);
-		};
 		FLGUIPrefabSaveData SaveData;
 		serializer.SerializeActorToData(OriginRootActor, SaveData);
 
 		//deserialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
 			Reader.DoSerialize(InObject);
@@ -122,11 +112,6 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
-			Writer.DoSerialize(InObject);
-		};
 		serializer.SerializeActorToData(OriginRootActor, OutData.ActorData);
 
 		//for deserialize, set once for all use
@@ -134,12 +119,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
 			Reader.DoSerialize(InObject);
-			};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-			};
+		};
 
 		if (ULGUISettings::GetLogPrefabLoadTime())
 		{
@@ -157,11 +137,11 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.WillSerailizeObjectArray.Reset();
 		serializer.MapGuidToObject.Reset();
 		serializer.MapObjectToGuid.Reset();
-		serializer.CreatedComponents.Reset();
+		serializer.ComponentsInThisPrefab.Reset();
 		serializer.SubPrefabMap.Reset();
 		serializer.SubPrefabRootComponents.Reset();
-		serializer.AlreadyRestoredObject.Reset();
-		serializer.CreatedActors.Reset();
+		serializer.AllActors.Reset();
+		serializer.AllComponents.Reset();
 		serializer.SubPrefabOverrideParameters.Reset();
 		serializer.LoadedRootActor = nullptr;
 		serializer.ActorIndexInPrefab = false;
@@ -221,19 +201,10 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
-			Writer.DoSerialize(InObject);
-			};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
 			LGUIPrefabSystem::FLGUIDuplicateOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForSubPrefabOverrideForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
-			LGUIPrefabSystem::FLGUIDuplicateOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
-			Writer.DoSerialize(InObject);
-			};
 		FLGUIPrefabSaveData SaveData;
 		serializer.SerializeActorToData(OriginRootActor, SaveData);
 
@@ -244,19 +215,10 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
 			Reader.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-			};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNameSet) {
 			LGUIPrefabSystem::FLGUIDuplicateOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
 			Reader.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForSubPrefabOverrideForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNameSet) {
-			LGUIPrefabSystem::FLGUIDuplicateOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
-			Reader.DoSerialize(InObject);
-			};
 		auto CreatedRootActor = serializer.DeserializeActorFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 
 		OutDuplicatedSubPrefabMap = serializer.SubPrefabMap;

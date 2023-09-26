@@ -66,24 +66,15 @@ namespace LGUIPrefabSystem6
 			LGUIPrefabSystem::FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
-			Writer.DoSerialize(InObject);
-			};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
 			LGUIPrefabSystem::FLGUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.WriterOrReaderFunctionForSubPrefabOverrideForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
-			LGUIPrefabSystem::FLGUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
-			Writer.DoSerialize(InObject);
-			};
 		serializer.SerializeActor(OriginRootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 	}
 
-	void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData, TMap<FGuid, TArray<uint8>>& SavedObjectReferences)
+	void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData, TMap<FGuid, TArray<uint8>>& SavedObjectData)
 	{
 		if (!IsValid(Actor))return;
 		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab's actor is not collected in WillSerailizeActorArray
@@ -100,11 +91,9 @@ namespace LGUIPrefabSystem6
 				auto SubPrefabObject = DataItem.Object.Get();
 				if (MapObjectToGuid.Contains(SubPrefabObject))
 				{
-					WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyNames);
 					FLGUIPrefabOverrideParameterSaveData RecordDataItem;
-					RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
 					RecordDataItem.OverrideParameterNames = DataItem.MemberPropertyNames;
-					WriterOrReaderFunctionForSubPrefabOverrideForObjectReference(SubPrefabObject, RecordDataItem.OverrideObjectReferenceParameterData, DataItem.MemberPropertyNames);
+					WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, DataItem.MemberPropertyNames);
 					OutActorSaveData.MapObjectGuidToSubPrefabOverrideParameter.Add(MapObjectToGuid[SubPrefabObject], RecordDataItem);
 				}
 			}
@@ -117,8 +106,7 @@ namespace LGUIPrefabSystem6
 			OutActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
 			OutActorSaveData.ActorGuid = ActorGuid;
 			OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
-			WriterOrReaderFunction(Actor, OutActorSaveData.PropertyData, false);
-			WriterOrReaderFunctionForObjectReference(Actor, SavedObjectReferences.Add(ActorGuid), false);
+			WriterOrReaderFunction(Actor, SavedObjectData.Add(ActorGuid), false);
 			if (auto RootComp = Actor->GetRootComponent())
 			{
 				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
@@ -160,7 +148,7 @@ namespace LGUIPrefabSystem6
 			for (auto ChildActor : ChildrenActors)
 			{
 				FLGUIActorSaveData ChildActorSaveData;
-				SerializeActorRecursive(ChildActor, ChildActorSaveData, SavedObjectReferences);
+				SerializeActorRecursive(ChildActor, ChildActorSaveData, SavedObjectData);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
 			OutActorSaveData.ChildrenActorDataArray = ChildSaveDataList;
@@ -170,9 +158,9 @@ namespace LGUIPrefabSystem6
 	{
 		CollectActorRecursive(OriginRootActor);
 		//serailize actor
-		SerializeActorRecursive(OriginRootActor, OutData.SavedActor, OutData.SavedObjectReferences);
+		SerializeActorRecursive(OriginRootActor, OutData.SavedActor, OutData.SavedObjectData);
 		//serialize objects and components
-		SerializeObjectArray(OutData.SavedObjects, OutData.SavedObjectReferences, OutData.MapSceneComponentToParent);
+		SerializeObjectArray(OutData.SavedObjects, OutData.SavedObjectData, OutData.MapSceneComponentToParent);
 	}
 	void ActorSerializer::SerializeActor(AActor* OriginRootActor, ULGUIPrefab* InPrefab)
 	{
@@ -281,7 +269,7 @@ namespace LGUIPrefabSystem6
 		}
 	}
 
-	void ActorSerializer::SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectReferences, TMap<FGuid, FGuid>& MapSceneComponentToParent)
+	void ActorSerializer::SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectData, TMap<FGuid, FGuid>& MapSceneComponentToParent)
 	{
 		for (int i = 0; i < WillSerailizeObjectArray.Num(); i++)
 		{
@@ -303,8 +291,7 @@ namespace LGUIPrefabSystem6
 					}
 				}
 			}
-			WriterOrReaderFunction(Object, ObjectSaveDataItem.PropertyData, SceneComp != nullptr);
-			WriterOrReaderFunctionForObjectReference(Object, SavedObjectReferences.Add(MapObjectToGuid[Object]), SceneComp != nullptr);
+			WriterOrReaderFunction(Object, SavedObjectData.Add(MapObjectToGuid[Object]), SceneComp != nullptr);
 			TArray<UObject*> DefaultSubObjects;
 			Object->CollectDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
