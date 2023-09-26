@@ -127,11 +127,8 @@ namespace LGUIPrefabSystem6
 			Actor->CollectDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
-				if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
-				if (!MapObjectToGuid.Contains(DefaultSubObject))
-				{
-					MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
-				}
+				FGuid DefaultSubObjectGuid;
+				if (!CollectObjectToSerailize(DefaultSubObject, DefaultSubObjectGuid))continue;
 				OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
 				OutActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
 			}
@@ -312,11 +309,8 @@ namespace LGUIPrefabSystem6
 			Object->CollectDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
-				if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
-				if (!MapObjectToGuid.Contains(DefaultSubObject))
-				{
-					MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
-				}
+				FGuid DefaultSubObjectGuid;
+				if (!CollectObjectToSerailize(DefaultSubObject, DefaultSubObjectGuid))continue;
 				ObjectSaveDataItem.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
 				ObjectSaveDataItem.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
 			}
