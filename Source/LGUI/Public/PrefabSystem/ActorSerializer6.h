@@ -20,7 +20,7 @@ namespace LGUIPrefabSystem6
 	public:
 		int32 ObjectClass = -1;
 		uint32 ObjectFlags;
-		TArray<uint8> PropertyData;
+		TArray<uint8> PropertyData_Deprecated;//@todo: delete this
 
 		/** The following two array stores default sub objects which belong to this object. Array must match index for specific component. When deserialize, use FName to find FGuid. */
 		TArray<FGuid> DefaultSubObjectGuidArray;
@@ -37,7 +37,6 @@ namespace LGUIPrefabSystem6
 		{
 			Ar << ObjectData.ObjectClass;
 			Ar << ObjectData.ObjectFlags;
-			Ar << ObjectData.PropertyData;
 
 			Ar << ObjectData.DefaultSubObjectGuidArray;
 			Ar << ObjectData.DefaultSubObjectNameArray;
@@ -52,7 +51,7 @@ namespace LGUIPrefabSystem6
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
 			Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
 			Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
-			Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData);
+			Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData_Deprecated);
 
 			Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
 			Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
@@ -65,21 +64,20 @@ namespace LGUIPrefabSystem6
 	struct FLGUIPrefabOverrideParameterSaveData
 	{
 	public:
+		TArray<uint8> OverrideParameterData_Deprecated;//@todo: delete this
 		TArray<uint8> OverrideParameterData;
-		TArray<uint8> OverrideObjectReferenceParameterData;
 		TArray<FName> OverrideParameterNames;
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabOverrideParameterSaveData& Data)
 		{
 			Ar << Data.OverrideParameterData;
-			Ar << Data.OverrideObjectReferenceParameterData;
 			Ar << Data.OverrideParameterNames;
 			return Ar;
 		}
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabOverrideParameterSaveData& Data)
 		{
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
-			Record << SA_VALUE(TEXT("OverrideParameterData"), Data.OverrideParameterData);
-			Record << SA_VALUE(TEXT("OverrideObjectReferenceParameterData"), Data.OverrideObjectReferenceParameterData);
+			Record << SA_VALUE(TEXT("OverrideParameterData"), Data.OverrideParameterData_Deprecated);
+			Record << SA_VALUE(TEXT("OverrideObjectReferenceParameterData"), Data.OverrideParameterData);
 			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNames);
 		}
 	};
@@ -113,7 +111,6 @@ namespace LGUIPrefabSystem6
 				Ar << ActorData.ActorGuid;
 				Ar << ActorData.ObjectClass;
 				Ar << ActorData.ObjectFlags;
-				Ar << ActorData.PropertyData;
 
 				Ar << ActorData.RootComponentGuid;
 
@@ -140,7 +137,7 @@ namespace LGUIPrefabSystem6
 				Record << SA_VALUE(TEXT("ActorGuid"), Data.ActorGuid);
 				Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
 				Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
-				Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData);
+				Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData_Deprecated);
 
 				Record << SA_VALUE(TEXT("RootComponentGuid"), Data.RootComponentGuid);
 
@@ -159,19 +156,15 @@ namespace LGUIPrefabSystem6
 		TMap<FGuid, FLGUIObjectSaveData> SavedObjects;
 		/** Key as child, value as parent. */
 		TMap<FGuid, FGuid> MapSceneComponentToParent;
-		/**
-		 * For object reference property, include Actor or Component or other dynamic created object reference.
-		 *		It should only save the "reference property", but finally I just save all property data in it. Because I can't filter out "reference property".
-		 *		I tryed do this in "ShouldSkipProperty" in LGUIObjectWriter/Reader, but if "reference property" is inside struct and the struct inside TArray, then when LGUIObjectReader go into TArray, the struct is reset, so other "value property" in struct all gone.
-		 */
-		TMap<FGuid, TArray<uint8>> SavedObjectReferences;
+		/** Map guid to parameter data */
+		TMap<FGuid, TArray<uint8>> SavedObjectData;
 
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabSaveData& GameData)
 		{
 			Ar << GameData.SavedActor;
 			Ar << GameData.SavedObjects;
 			Ar << GameData.MapSceneComponentToParent;
-			Ar << GameData.SavedObjectReferences;
+			Ar << GameData.SavedObjectData;
 			return Ar;
 		}
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabSaveData& Data)
@@ -180,7 +173,7 @@ namespace LGUIPrefabSystem6
 			Record << SA_VALUE(TEXT("SavedActor"), Data.SavedActor);
 			Record << SA_VALUE(TEXT("SavedObjects"), Data.SavedObjects);
 			Record << SA_VALUE(TEXT("MapSceneComponentToParent"), Data.MapSceneComponentToParent);
-			Record << SA_VALUE(TEXT("SavedObjectReferences"), Data.SavedObjectReferences);
+			Record << SA_VALUE(TEXT("SavedObjectReferences"), Data.SavedObjectData);
 		}
 	};
 
@@ -188,16 +181,6 @@ namespace LGUIPrefabSystem6
 
 	/*
 	 * serialize/deserialize actor with hierarchy.
-	 * Version 6 note:
-	 *		The key is UE add a function: CustomPreSpawnInitalization for Actor and PropertyInitCallback for Object, which gives us opportunity to set property values before finish construction.
-	 *		So what I planed to achieve is two steps deserialization:
-	 *			1. first step to set all value properties right inside the callback function.
-	 *			2. second step is after all objects are generated (so we get all UObject's pointers), do a deserialization process to set all UObject properties.
-	 *		In order to do these, I make some change in LGUIObjectWriter/Reader to filter value-property and object-reference-property, not precisely correct but ok to use.
-	 *		BUT!!! Here is a condition that make it fail:
-	 *			If a Actor is inside a Struct and Struct inside a TArray, things run good at first step (just values, no object-reference(no actor)), and comes second step, when ObjectReader reach TArray, the array items value all reset, after the TArray process only the Actor property get correct value, other property in Struct are reset.
-	 *
-	 *		Finally, I remove these changes in LGUIObjectWriter/Reader, so the two steps not filter properties as I want. This could double the time of set-properties.
 	 */
 	class LGUI_API ActorSerializer : public LGUIPrefabSystem::ActorSerializerBase
 	{
@@ -250,26 +233,26 @@ namespace LGUIPrefabSystem6
 			, AActor* InParentRootActor
 			, int32& InOutActorIndex
 			, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
-			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)>& InOnSubPrefabFinishDeserializeFunction
-			, const TFunction<void(FGuid, UObject*)>& InOnSubPrefabDeserializeObjectFunction
+			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
 		);
 
 	private:
 		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
-		//bool bUseDeltaSerialization = false;//true means only serialize property that not default value. Why comment this?: If parent-prefab override sub-prefab's value to default then DeltaSerialization will not store override parameter
 
 		struct FComponentDataStruct
 		{
 			UActorComponent* Component = nullptr;
 			FGuid SceneComponentParentGuid;
 		};
-		TArray<FComponentDataStruct> CreatedComponents;
+		TArray<FComponentDataStruct> ComponentsInThisPrefab;
+		//include components in sub-prefab and sub-prefab's sub-prefab...
+		TArray<UActorComponent*> AllComponents;
+		//collection for all actors, include sub-prefab
+		TArray<AActor*> AllActors;
 
 		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		TArray<FComponentDataStruct> SubPrefabRootComponents;
-		//when restore actor data, some object could be created by default (default component or object), then we collect it
-		TSet<UObject*> AlreadyRestoredObject;
-		TArray<AActor*> CreatedActors;//collection for all actors, include sub-prefab
+
 		void CollectActorRecursive(AActor* Actor);
 
 		struct FSubPrefabObjectOverrideParameterData
@@ -282,8 +265,8 @@ namespace LGUIPrefabSystem6
 
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
-		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectReferences);
-		void SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectReferences, TMap<FGuid, FGuid>& MapSceneComponentToParent);
+		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectData);
+		void SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectData, TMap<FGuid, FGuid>& MapSceneComponentToParent);
 		void SerializeActorToData(AActor* RootActor, FLGUIPrefabSaveData& OutData);
 		//deserialize actor
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
@@ -314,12 +297,7 @@ namespace LGUIPrefabSystem6
 		 * @param	const TMap<FGuid, UObject*>&	SubPrefab's map guid to all object
 		 * @param	const TArray<AActor*>&		SubPrefab's all created actor
 		 */
-		TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
-		/**
-		 * @param	FGuid	object's guid in SubPrefab.
-		 * @param	UObject*	object in SubPrefab.
-		 */
-		TFunction<void(FGuid, UObject*)> OnSubPrefabDeserializeObjectFunction = nullptr;
+		TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
 
 		/**
 		 * Writer and Reader for serialize or deserialize
@@ -328,8 +306,6 @@ namespace LGUIPrefabSystem6
 		 * @param	bool	is SceneComponent
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, bool)> WriterOrReaderFunction = nullptr;
-		/** For dynamic created object reference. */
-		TFunction<void(UObject*, TArray<uint8>&, bool)> WriterOrReaderFunctionForObjectReference = nullptr;
 		/**
 		 * Writer and Reader for serialize or deserialize
 		 * @param	UObject*	Object to serialize/deserialize
@@ -337,8 +313,6 @@ namespace LGUIPrefabSystem6
 		 * @param	TArray<FName>&	Member properties to filter
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverride = nullptr;
-		/** For dynamic created object reference. */
-		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverrideForObjectReference = nullptr;
 	};
 
 	struct FDuplicateActorDataContainer
