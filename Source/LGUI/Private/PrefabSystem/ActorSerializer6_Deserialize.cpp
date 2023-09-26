@@ -341,26 +341,18 @@ namespace LGUIPrefabSystem6
 			}
 		}
 
+		//mark component reregister to use new property value
+		for (auto& CompData : CreatedComponents)
+		{
+			CompData.Component->ReregisterComponent();
+		}
+		for (auto& CompData : SubPrefabRootComponents)
+		{
+			CompData.Component->ReregisterComponent();
+		}
 #if WITH_EDITOR
 		if (!TargetWorld->IsGameWorld())
 		{
-			//in edit mode, component may already exist, so recreate
-			for (auto& CompData : CreatedComponents)
-			{
-				CompData.Component->RecreatePhysicsState();
-				CompData.Component->MarkRenderStateDirty();
-				CompData.Component->MarkRenderDynamicDataDirty();
-				CompData.Component->MarkRenderTransformDirty();
-				CompData.Component->MarkRenderInstancesDirty();
-			}
-			for (auto& CompData : SubPrefabRootComponents)
-			{
-				CompData.Component->RecreatePhysicsState();
-				CompData.Component->MarkRenderStateDirty();
-				CompData.Component->MarkRenderDynamicDataDirty();
-				CompData.Component->MarkRenderTransformDirty();
-				CompData.Component->MarkRenderInstancesDirty();
-			}
 			//refresh it
 			for (auto& Actor : CreatedActors)
 			{
