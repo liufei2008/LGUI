@@ -29,6 +29,21 @@ namespace LGUIPrefabSystem6
 		, bool InSetHierarchyIndexForRootComponent
 	)
 	{
+		if (!IsValid(InWorld))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+		if (!IsValid(InPrefab))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+
+		bool bIsEditorOrRuntime = true;
+#if !WITH_EDITOR
+		bIsEditorOrRuntime = false;
+#endif
 		ActorSerializer serializer;
 		serializer.TargetWorld = InWorld;
 		for (auto& KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
@@ -69,6 +84,17 @@ namespace LGUIPrefabSystem6
 
 	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity, TFunction<void(AActor*)> CallbackBeforeAwake)
 	{
+		if (!IsValid(InWorld))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+		if (!IsValid(InPrefab))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+
 		ActorSerializer serializer;
 		serializer.TargetWorld = InWorld;
 		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
@@ -107,6 +133,17 @@ namespace LGUIPrefabSystem6
 	}
 	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake)
 	{
+		if (!IsValid(InWorld))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+		if (!IsValid(InPrefab))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+
 		ActorSerializer serializer;
 		serializer.TargetWorld = InWorld;
 		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
@@ -136,6 +173,17 @@ namespace LGUIPrefabSystem6
 	}
 	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, TFunction<void(AActor*)> CallbackBeforeAwake)
 	{
+		if (!IsValid(InWorld))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+		if (!IsValid(InPrefab))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return nullptr;
+		}
+
 		ActorSerializer serializer;
 		serializer.TargetWorld = InWorld;
 		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
@@ -389,17 +437,6 @@ namespace LGUIPrefabSystem6
 	}
 	AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-		if (!InPrefab)
-		{
-			UE_LOG(LGUI, Error, TEXT("Load Prefab, InPrefab is null!"));
-			return nullptr;
-		}
-		if (!TargetWorld)
-		{
-			UE_LOG(LGUI, Error, TEXT("Load Prefab: '%s', World is null!"), *InPrefab->GetPathName());
-			return nullptr;
-		}
-
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
 		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
