@@ -123,7 +123,7 @@ protected:
 		TObjectPtr<ULGUICanvasScalerCustomScale> CustomScale;
 
 	bool CheckCanvas();
-	UPROPERTY(Transient) TObjectPtr<class ULGUICanvas> Canvas = nullptr;
+	TWeakObjectPtr<class ULGUICanvas> Canvas = nullptr;
 	void SetCanvasProperties();
 
 	/** Current viewport size*/

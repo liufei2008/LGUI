@@ -281,7 +281,7 @@ void ULGUICanvasScaler::OnUnregister()
 	}
 #endif
 	//reset the canvasScale to default
-	if (IsValid(Canvas))
+	if (Canvas.IsValid())
 	{
 		Canvas->canvasScale = 1.0f;
 	}
@@ -489,7 +489,10 @@ bool ULGUICanvasScaler::CheckCanvas()
 }
 void ULGUICanvasScaler::SetCanvasProperties()
 {
-	Canvas->SetProjectionParameters(ProjectionType, FOVAngle, NearClipPlane, FarClipPlane);
+	if (CheckCanvas())
+	{
+		Canvas->SetProjectionParameters(ProjectionType, FOVAngle, NearClipPlane, FarClipPlane);
+	}
 }
 
 void ULGUICanvasScaler::SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> value)
@@ -586,6 +589,7 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromViewportToLGUICanvas(const FVect
 	break;
 	case ELGUICanvasScaleMode::ScaleWithScreenSize:
 	{
+		if (!Canvas.IsValid())return position;
 		return FVector2D(position.X, ViewportSize.Y - position.Y) / Canvas->canvasScale;
 	}
 	break;
@@ -603,6 +607,7 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVect
 	break;
 	case ELGUICanvasScaleMode::ScaleWithScreenSize:
 	{
+		if (!Canvas.IsValid())return position;
 		return FVector2D(position.X * Canvas->canvasScale, ViewportSize.Y - position.Y * Canvas->canvasScale);
 	}
 	break;
@@ -610,6 +615,7 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVect
 }
 bool ULGUICanvasScaler::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
 {
+	if (!Canvas.IsValid())return false;
 	auto viewProjectionMatrix = Canvas->GetViewProjectionMatrix();
 	auto result = viewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
 	if (result.W > 0.0f)
