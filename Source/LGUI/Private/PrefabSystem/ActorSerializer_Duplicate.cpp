@@ -25,12 +25,12 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 	{
 		if (!OriginRootActor)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DuplicateActor]OriginRootActor is null!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return nullptr;
 		}
 		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DuplicateActor]Cannot get World from OriginRootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Cannot get World from OriginRootActor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return nullptr;
 		}
 		ActorSerializer serializer;
@@ -87,16 +87,16 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 #endif
 		return CreatedRootActor;
 	}
-	bool ActorSerializer::PrepareDataForDuplicate(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData, ActorSerializer& OutSerializer)
+	bool ActorSerializer::PrepareDataForDuplicate(AActor* OriginRootActor, FDuplicateActorDataContainer& OutData)
 	{
 		if (!OriginRootActor)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PrepareDataForDuplicate]OriginRootActor is null!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return false;
 		}
 		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::PrepareDataForDuplicate]Cannot get World from OriginRootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Cannot get World from OriginRootActor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return false;
 		}
 
@@ -108,7 +108,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 #endif
 		auto StartTime = FDateTime::Now();
 
-		ActorSerializer serializer;
+		auto& serializer = OutData.Serializer;
 		serializer.TargetWorld = OriginRootActor->GetWorld();
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
@@ -127,45 +127,52 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LGUIPrefabSystem::FLGUIDuplicateObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
 			Writer.DoSerialize(InObject);
 		};
-		serializer.SerializeActorToData(OriginRootActor, OutData);
+		serializer.SerializeActorToData(OriginRootActor, OutData.ActorData);
 
-		OutSerializer = serializer;
-
-		//for deserialize
-		OutSerializer.WriterOrReaderFunction = [&OutSerializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? OutSerializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, OutSerializer, ExcludeProperties);
+		//for deserialize, set once for all use
+		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
+			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
+			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
 			Reader.DoSerialize(InObject);
-		};
+			};
+		serializer.WriterOrReaderFunctionForObjectReference = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
+			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
+			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
+			};
 
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("PrepareData_ForDuplicate, actor: '%s' total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+		if (ULGUISettings::GetLogPrefabLoadTime())
+		{
+			auto TimeSpan = FDateTime::Now() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("PrepareData_ForDuplicate, actor: '%s' total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+		}
 		return true;
 	}
-	AActor* ActorSerializer::DuplicateActorWithPreparedData(FLGUIPrefabSaveData& InData, ActorSerializer& InSerializer, USceneComponent* InParent)
+	AActor* ActorSerializer::DuplicateActorWithPreparedData(FDuplicateActorDataContainer& InData, USceneComponent* InParent)
 	{
 		auto StartTime = FDateTime::Now();
-		ActorSerializer copiedSerializer;//use copied, incase undesired data
-		copiedSerializer.TargetWorld = InSerializer.TargetWorld;
-		copiedSerializer.bIsEditorOrRuntime = InSerializer.bIsEditorOrRuntime;
-		copiedSerializer.bOverrideVersions = InSerializer.bOverrideVersions;
-		copiedSerializer.LGUIManagerActor = InSerializer.LGUIManagerActor;
-		copiedSerializer.ReferenceAssetList = InSerializer.ReferenceAssetList;
-		copiedSerializer.ReferenceClassList = InSerializer.ReferenceClassList;
-		copiedSerializer.ReferenceNameList = InSerializer.ReferenceNameList;
-		copiedSerializer.WriterOrReaderFunction = [&copiedSerializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? copiedSerializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, copiedSerializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-		};
-		copiedSerializer.WriterOrReaderFunctionForObjectReference = [&copiedSerializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? copiedSerializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIDuplicateObjectReader Reader(InOutBuffer, copiedSerializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-		};
-		auto CreatedRootActor = copiedSerializer.DeserializeActorFromData(InData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("DuplicateActorWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
+		auto& serializer = InData.Serializer;//use copied, incase undesired data
+		//clear these data for deserializer use
+		serializer.WillSerailizeActorArray.Reset();
+		serializer.WillSerailizeObjectArray.Reset();
+		serializer.MapGuidToObject.Reset();
+		serializer.MapObjectToGuid.Reset();
+		serializer.CreatedComponents.Reset();
+		serializer.SubPrefabMap.Reset();
+		serializer.SubPrefabRootComponents.Reset();
+		serializer.AlreadyRestoredObject.Reset();
+		serializer.CreatedActors.Reset();
+		serializer.SubPrefabOverrideParameters.Reset();
+		serializer.LoadedRootActor = nullptr;
+		serializer.ActorIndexInPrefab = false;
+		serializer.SubPrefabObjectOverrideData.Reset();
+
+		auto CreatedRootActor = serializer.DeserializeActorFromData(InData.ActorData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		if (ULGUISettings::GetLogPrefabLoadTime())
+		{
+			auto TimeSpan = FDateTime::Now() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("DuplicateActorWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
+		}
 #if WITH_EDITOR
 		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
@@ -181,12 +188,12 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 	{
 		if (!OriginRootActor)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DuplicateActor]OriginRootActor is null!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return nullptr;
 		}
 		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DuplicateActor]Cannot get World from OriginRootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Cannot get World from OriginRootActor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return nullptr;
 		}
 

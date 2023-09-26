@@ -184,6 +184,7 @@ namespace LGUIPrefabSystem6
 		}
 	};
 
+	struct FDuplicateActorDataContainer;
 
 	/*
 	 * serialize/deserialize actor with hierarchy.
@@ -232,8 +233,8 @@ namespace LGUIPrefabSystem6
 		 */
 		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
 		/** Prepare one data and duplicate multiple times */
-		static bool PrepareDataForDuplicate(AActor* RootActor, FLGUIPrefabSaveData& OutData, ActorSerializer& OutSerializer);
-		static AActor* DuplicateActorWithPreparedData(FLGUIPrefabSaveData& InData, ActorSerializer& OutSerializer, USceneComponent* InParent);
+		static bool PrepareDataForDuplicate(AActor* RootActor, FDuplicateActorDataContainer& OutData);
+		static AActor* DuplicateActorWithPreparedData(FDuplicateActorDataContainer& InData, USceneComponent* InParent);
 		/**
 		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
 		 */
@@ -338,5 +339,11 @@ namespace LGUIPrefabSystem6
 		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverride = nullptr;
 		/** For dynamic created object reference. */
 		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverrideForObjectReference = nullptr;
+	};
+
+	struct FDuplicateActorDataContainer
+	{
+		FLGUIPrefabSaveData ActorData;
+		ActorSerializer Serializer;
 	};
 }

@@ -20,8 +20,7 @@ class ULGUIPrefab;
 
 namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 {
-	class ActorSerializer;
-	struct FLGUIPrefabSaveData;
+	struct FDuplicateActorDataContainer;
 }
 
 USTRUCT(BlueprintType)
@@ -30,8 +29,7 @@ struct FLGUIDuplicateDataContainer
 	GENERATED_BODY()
 public:
 	bool bIsValid = false;
-	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer ActorSerializer;
-	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::FLGUIPrefabSaveData SerializedData;
+	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::FDuplicateActorDataContainer DuplicateData;
 };
 
 UCLASS()
