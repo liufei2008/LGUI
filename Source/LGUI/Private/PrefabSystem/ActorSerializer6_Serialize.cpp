@@ -27,12 +27,27 @@ namespace LGUIPrefabSystem6
 	{
 		if (!OriginRootActor || !InPrefab)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]OriginRootActor Or InPrefab is null!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor Or InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return;
+		}
+		if (!IsValid(OriginRootActor))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return;
 		}
 		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]Cannot get World from OriginRootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[%s].%d Cannot get World from OriginRootActor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return;
+		}
+		if (OriginRootActor->HasAnyFlags(EObjectFlags::RF_Transient))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is transient!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return;
+		}
+		if (!InForEditorOrRuntimeUse && OriginRootActor->IsEditorOnly())
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d OriginRootActor is editor only!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return;
 		}
 		ActorSerializer serializer;
@@ -164,21 +179,6 @@ namespace LGUIPrefabSystem6
 	}
 	void ActorSerializer::SerializeActor(AActor* OriginRootActor, ULGUIPrefab* InPrefab)
 	{
-		if (!InPrefab)
-		{
-			UE_LOG(LGUI, Error, TEXT("Save Prefab, InPrefab is null!"));
-			return;
-		}
-		if (!IsValid(OriginRootActor))
-		{
-			UE_LOG(LGUI, Error, TEXT("Save Prefab, OriginRootActor is not valid!"));
-			return;
-		}
-		if (OriginRootActor->HasAnyFlags(EObjectFlags::RF_Transient))
-		{
-			UE_LOG(LGUI, Error, TEXT("Save Prefab, OriginRootActor is transient!"));
-			return;
-		}
 
 		auto StartTime = FDateTime::Now();
 
