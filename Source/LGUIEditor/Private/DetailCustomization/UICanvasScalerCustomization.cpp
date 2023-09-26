@@ -49,7 +49,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, MatchFromWidthToHeight));
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, CustomScale));
 
-	auto CreateSlider = [=, &lguiCategory](const FText& FilterString, TSharedPtr<IPropertyHandle> Property) {
+	auto CreateSlider = [this, &lguiCategory](const FText& FilterString, TSharedPtr<IPropertyHandle> Property) {
 		lguiCategory.AddCustomRow(FilterString)
 		.NameContent()
 		[
