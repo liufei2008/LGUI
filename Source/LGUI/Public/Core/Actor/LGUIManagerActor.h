@@ -47,6 +47,7 @@ private:
 	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 	UPROPERTY()UWorld* PreviewWorldForPrefabPackage = nullptr;
+	bool bIsBlueprintCompiling = false;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -71,6 +72,7 @@ public:
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
 	static UWorld* GetPreviewWorldForPrefabPackage();
+	static bool GetIsBlueprintCompiling();
 public:
 	/**
 	 * Editor raycast hit all visible UIBaseRenderable object.
@@ -86,11 +88,12 @@ public:
 		, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
 	);
 private:
-#if WITH_EDITORONLY_DATA
 	/** Functions that wait for prefab serialization complete then execute */
 	TArray<TFunction<void()>> LateFunctionsAfterPrefabSerialization;
+	FDelegateHandle OnBlueprintPreCompileDelegateHandle;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
-#endif
+	void OnBlueprintPreCompile(UBlueprint* InBlueprint);
+	void OnBlueprintCompiled();
 	void RefreshOnBlueprintCompiled();
 public:
 	static void MarkBroadcastLevelActorListChanged();

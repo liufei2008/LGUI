@@ -1152,6 +1152,8 @@ bool FLGUIEditorModule::IsValidClassName(const FString& InName)
 	return 
 		!InName.StartsWith(TEXT("SKEL_"))
 		&& !InName.StartsWith(TEXT("REINST_"))
+		&& !InName.Contains(TEXT("TRASH_"))
+		&& !InName.Contains(TEXT("_DEPRECATED"))
 		;
 }
 

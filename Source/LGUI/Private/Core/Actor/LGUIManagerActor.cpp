@@ -68,6 +68,13 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		FCoreUObjectDelegates::OnPackageReloaded.Remove(OnPackageReloadedDelegateHandle);
 	}
+	if (OnBlueprintPreCompileDelegateHandle.IsValid())
+	{
+		if (GEditor)
+		{
+			GEditor->OnBlueprintPreCompile().Remove(OnBlueprintPreCompileDelegateHandle);
+		}
+	}
 	if (OnBlueprintCompiledDelegateHandle.IsValid())
 	{
 		if (GEditor)
@@ -199,10 +206,24 @@ bool ULGUIEditorManagerObject::InitCheck()
 			//reimport asset
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
 			//blueprint recompile
-			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
+			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintPreCompile);
+			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintCompiled);
 		}
 	}
 	return true;
+}
+
+void ULGUIEditorManagerObject::OnBlueprintPreCompile(UBlueprint* InBlueprint)
+{
+	bIsBlueprintCompiling = true;
+}
+void ULGUIEditorManagerObject::OnBlueprintCompiled()
+{
+	bIsBlueprintCompiling = true;
+	AddOneShotTickFunction([this] {
+		bIsBlueprintCompiling = false; 
+		}, 2);
+	RefreshOnBlueprintCompiled();
 }
 
 #include "Event/LGUIEventDelegate.h"
@@ -288,6 +309,14 @@ UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 			.SetTransactional(false));
 	}
 	return PreviewWorldForPrefabPackage;
+}
+bool ULGUIEditorManagerObject::GetIsBlueprintCompiling()
+{
+	if (InitCheck())
+	{
+		return Instance->bIsBlueprintCompiling;
+	}
+	return false;
 }
 
 void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
