@@ -501,37 +501,9 @@ namespace LGUIPrefabSystem6
 
 					if (auto OuterObjectPtr = MapGuidToObject.Find(ObjectData.OuterObjectGuid))
 					{
-						EComponentCreationMethod OrignCreationMethod;
-						bool bIsComponent = ObjectClass->IsChildOf(UActorComponent::StaticClass());
-						FStaticConstructObjectParameters Params(ObjectClass);
-						Params.Outer = *OuterObjectPtr;
-						Params.Name = ObjectData.ObjectName;
-						Params.SetFlags = (EObjectFlags)ObjectData.ObjectFlags;
-						Params.Template = nullptr;
-						Params.bCopyTransientsFromClassDefaults = false;
-						Params.InstanceGraph = nullptr;
-						Params.ExternalPackage = nullptr;
-						Params.PropertyInitCallback = [&] {
-							auto& ThreadContext = FUObjectThreadContext::Get();
-							auto& ObjectInitialer = ThreadContext.TopInitializerChecked();
-							auto Obj = ObjectInitialer.GetObj();
-							MapGuidToObject.Add(ObjectGuid, Obj);
-							CollectDefaultSubobjects(Obj, ObjectGuid, ObjectData);
-							if (bIsComponent)
-							{
-								auto Comp = (UActorComponent*)Obj;
-								OrignCreationMethod = Comp->CreationMethod;
-								Comp->CreationMethod = EComponentCreationMethod::Native;
-							}
-						};
-
-						CreatedNewObject = static_cast<UObject*>(StaticConstructObject_Internal(Params));
-						if (bIsComponent)
-						{
-							auto Comp = (UActorComponent*)CreatedNewObject;
-							Comp->CreationMethod = OrignCreationMethod;
-						}
-						//CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
+						CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
+						MapGuidToObject.Add(ObjectGuid, CreatedNewObject);
+						CollectDefaultSubobjects(CreatedNewObject, ObjectGuid, ObjectData);
 					}
 					else
 					{
@@ -702,14 +674,6 @@ namespace LGUIPrefabSystem6
 					Spawnparameters.ObjectFlags = (EObjectFlags)InActorData.ObjectFlags;
 					Spawnparameters.bDeferConstruction = false;
 					Spawnparameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-					bool bIsBlueprintActor = ActorClass->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !ActorClass->HasAnyClassFlags(CLASS_Native);
-					if (!bIsBlueprintActor)
-					{
-						Spawnparameters.CustomPreSpawnInitalization = [&](AActor* Actor) {
-							MapGuidToObject.Add(InActorData.ActorGuid, Actor);
-							CollectDefaultSubobjects(Actor);
-						};
-					}
 #if WITH_EDITOR
 					//ref: LevelActor.cpp::SpawnActor 
 					//LGUI's editor preview world (or other simple world (not UE5's open world)) don't need external actor, so we need to remove the flag, or game will crash when check external package.
@@ -721,11 +685,8 @@ namespace LGUIPrefabSystem6
 					}
 #endif
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
-					if (bIsBlueprintActor)//blueprint should restore data after spawn, because components are created here
-					{
-						MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
-						CollectDefaultSubobjects(NewActor);
-					}
+					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
+					CollectDefaultSubobjects(NewActor);
 				}
 
 				if (LoadedRootActor == nullptr)
