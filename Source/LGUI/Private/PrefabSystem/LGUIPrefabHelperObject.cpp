@@ -633,6 +633,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 
 void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
 {
+	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
 	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
@@ -664,6 +665,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 }
 void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
 {
+	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
 	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
@@ -682,6 +684,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 
 void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 {
+	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (this->IsInsidePrefabEditor())return;
 
@@ -701,6 +704,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 	{
 		this->Modify();
 		ULGUIEditorManagerObject::AddOneShotTickFunction([]() {
+			if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 			auto InfoText = LOCTEXT("CannotRestructurePrefaInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
 \n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
 			FMessageDialog::Open(EAppMsgType::Ok, InfoText);
@@ -721,6 +725,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 
 void ULGUIPrefabHelperObject::CheckAttachment()
 {
+	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (!AttachmentActor.Actor.IsValid())return;
 	enum class EAttachementError
