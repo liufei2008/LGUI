@@ -2290,7 +2290,8 @@ ULTweener* UUIItem::AnchorBottomTo(float endValue, float duration, float delay, 
 UUIItemEditorHelperComp::UUIItemEditorHelperComp()
 {
 	bSelectable = false;
-	this->bIsEditorOnly = true;
+	bIsEditorOnly = true;
+	MarkAsEditorOnlySubobject();
 }
 
 #if WITH_EDITOR

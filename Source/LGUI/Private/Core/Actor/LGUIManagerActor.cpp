@@ -38,6 +38,49 @@
 UE_DISABLE_OPTIMIZATION
 #endif
 
+#if WITH_EDITOR
+class FLGUIObjectCreateDeleteListener : public FUObjectArray::FUObjectCreateListener, public FUObjectArray::FUObjectDeleteListener
+{
+public:
+	ULGUIEditorManagerObject* Manager = nullptr;
+	FLGUIObjectCreateDeleteListener(ULGUIEditorManagerObject* InManager)
+	{
+		Manager = InManager;
+		GUObjectArray.AddUObjectCreateListener(this);
+		GUObjectArray.AddUObjectDeleteListener(this);
+	}
+	~FLGUIObjectCreateDeleteListener()
+	{
+		GUObjectArray.RemoveUObjectCreateListener(this);
+		GUObjectArray.RemoveUObjectDeleteListener(this);
+	}
+
+	virtual void NotifyUObjectCreated(const class UObjectBase* Object, int32 Index)override
+	{
+		if (auto Comp = Cast<UActorComponent>(Object))
+		{
+			if (Comp->IsVisualizationComponent())return;
+			if (auto Actor = Comp->GetOwner())
+			{
+				Manager->OnComponentCreateDelete().Broadcast(true, const_cast<UActorComponent*>(Comp), Actor);
+			}
+		}
+	}
+	virtual void NotifyUObjectDeleted(const class UObjectBase* Object, int32 Index)override
+	{
+		if (auto Comp = Cast<UActorComponent>(Object))
+		{
+			if (Comp->IsVisualizationComponent())return;
+			if (auto Actor = Comp->GetOwner())
+			{
+				Manager->OnComponentCreateDelete().Broadcast(false, const_cast<UActorComponent*>(Comp), Actor);
+			}
+		}
+	}
+	virtual void OnUObjectArrayShutdown()override {};
+};
+#endif
+
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::Instance = nullptr;
 ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 {
@@ -90,6 +133,9 @@ void ULGUIEditorManagerObject::BeginDestroy()
 		GEngine->DestroyWorldContext(PreviewWorldForPrefabPackage);
 		PreviewWorldForPrefabPackage->ReleasePhysicsScene();
 	}
+
+	delete ObjectCreateDeleteListener;
+	ObjectCreateDeleteListener = nullptr;
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -209,6 +255,7 @@ bool ULGUIEditorManagerObject::InitCheck()
 			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintPreCompile);
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintCompiled);
 		}
+		Instance->ObjectCreateDeleteListener = new FLGUIObjectCreateDeleteListener(Instance);
 	}
 	return true;
 }
