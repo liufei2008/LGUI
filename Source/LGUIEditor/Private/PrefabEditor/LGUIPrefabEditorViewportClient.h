@@ -22,14 +22,14 @@ public:
 
 	virtual ~FLGUIPrefabEditorViewportClient();
 
-	// FViewportClient interface
+	// FViewElementDrawer interface
 	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override;
-	virtual void Draw(FViewport* InViewport, FCanvas* Canvas) override;
-	virtual void Tick(float DeltaSeconds) override;
-	// End of FViewportClient interface
+	// End of FViewElementDrawer interface
 
 	// FEditorViewportClient interface
 	virtual void DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas)override;
+	virtual void ReceivedFocus(FViewport* InViewport) override;
+	virtual void LostFocus(FViewport* InViewport) override;
 	virtual void ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
 	virtual bool InputKey(const FInputKeyEventArgs& EventArgs) override;
 	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge) override;
@@ -37,6 +37,8 @@ public:
 	virtual void AbortTracking() override;
 
 	virtual void CapturedMouseMove(FViewport* InViewport, int32 InMouseX, int32 InMouseY) override;
+	virtual void MouseMove(FViewport* InViewport, int32 x, int32 y) override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type InCurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override;
 
 	virtual UE::Widget::EWidgetMode GetWidgetMode() const override;
@@ -46,8 +48,43 @@ public:
 	virtual void SetCameraSpeedSetting(int32 SpeedSetting) override;
 	// End of FEditorViewportClient interface
 
+	/**
+	 * Get the elements (from the current selection set) that this viewport can manipulate (eg, via the transform gizmo).
+	 */
+	FTypedElementListConstRef GetElementsToManipulate(const bool bForceRefresh = false);
+	/** Cache the list of elements to manipulate based on the current selection set. */
+	void CacheElementsToManipulate(const bool bForceRefresh = false);
+	/** Reset the list of elements to manipulate */
+	void ResetElementsToManipulate(const bool bClearList = true);
+
+	/** Reset the list of elements to manipulate, because the selection set they were cached from has changed */
+	void ResetElementsToManipulateFromSelectionChange(const UTypedElementSelectionSet* InSelectionSet);
+
+	/** Reset the list of elements to manipulate, because the typed element registry is about to process deferred deletion */
+	void ResetElementsToManipulateFromProcessingDeferredElementsToDestroy();
+
+	/** Get the selection set that associated with our level editor. */
+	const UTypedElementSelectionSet* GetSelectionSet() const;
+	UTypedElementSelectionSet* GetMutableSelectionSet() const;
+
+	/**
+	 * Returns the horizontal axis for this viewport.
+	 */
+	EAxisList::Type GetHorizAxis() const;
+
+	/**
+	 * Returns the vertical axis for this viewport.
+	 */
+	EAxisList::Type GetVertAxis() const;
+
+	virtual void NudgeSelectedObjects(const struct FInputEventState& InputState) override;
+
 	void ApplyDeltaToActors(const FVector& InDrag, const FRotator& InRot, const FVector& InScale);
 	void ApplyDeltaToActor(AActor* InActor, const FVector& InDeltaDrag, const FRotator& InDeltaRot, const FVector& InDeltaScale);
+	void ApplyDeltaToComponent(USceneComponent* InComponent, const FVector& InDeltaDrag, const FRotator& InDeltaRot, const FVector& InDeltaScale);
+
+	void ApplyDeltaToSelectedElements(const FTransform& InDeltaTransform);
+	void ApplyDeltaToElement(const FTypedElementHandle& InElementHandle, const FTransform& InDeltaTransform);
 
 	void TickWorld(float DeltaSeconds);
 
@@ -55,7 +92,7 @@ public:
 
 private:
 	int IndexOfClickSelectUI = -1;
-	int MouseX = 0, MouseY = 0;
+	int PrevMouseX = 0, PrevMouseY = 0;
 
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 	// Are we currently manipulating something?
@@ -65,6 +102,14 @@ private:
 	 * true when a brush is being transformed by its Widget
 	 */
 	bool					bIsTrackingBrushModification;
+	/** true if gizmo manipulation was started from a tracking event */
+	bool					bHasBegunGizmoManipulation;
+	/** Whether this viewport recently received focus. Used to determine whether component selection is permissible. */
+	bool bReceivedFocusRecently;
+
+	/** The elements (from the current selection set) that this viewport can manipulate (eg, via the transform gizmo) */
+	bool bHasCachedElementsToManipulate = false;
+	FTypedElementListRef CachedElementsToManipulate;
 
 	ULGUIPrefab* GetPrefabBeingEdited()const;
 	/**
@@ -81,4 +126,7 @@ private:
 
 	/** @return	Returns true if the delta tracker was used to modify any selected actors or BSP.  Must be called before EndTracking(). */
 	bool HaveSelectedObjectsBeenChanged() const;
+
+	/** Handle to a timer event raised in ::ReceivedFocus*/
+	FTimerHandle			FocusTimerHandle;
 };
