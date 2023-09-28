@@ -397,7 +397,7 @@ namespace LGUIPrefabViewportClickHandlers
 		}
 		else
 		{
-			UPrimitiveComponent* TestComponent = const_cast<UPrimitiveComponent*>(ActorHitProxy->PrimComponent);
+			UPrimitiveComponent* TestComponent = const_cast<UPrimitiveComponent*>(ActorHitProxy->PrimComponent.Get());
 			if (ActorHitProxy->Actor->GetComponents().Contains(TestComponent))
 			{
 				Component = TestComponent;

@@ -57,23 +57,23 @@ public:
 
 	virtual void NotifyUObjectCreated(const class UObjectBase* Object, int32 Index)override
 	{
-		if (auto Comp = Cast<UActorComponent>(Object))
+		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
 		{
 			if (Comp->IsVisualizationComponent())return;
 			if (auto Actor = Comp->GetOwner())
 			{
-				Manager->OnComponentCreateDelete().Broadcast(true, const_cast<UActorComponent*>(Comp), Actor);
+				Manager->OnComponentCreateDelete().Broadcast(true, Comp, Actor);
 			}
 		}
 	}
 	virtual void NotifyUObjectDeleted(const class UObjectBase* Object, int32 Index)override
 	{
-		if (auto Comp = Cast<UActorComponent>(Object))
+		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
 		{
 			if (Comp->IsVisualizationComponent())return;
 			if (auto Actor = Comp->GetOwner())
 			{
-				Manager->OnComponentCreateDelete().Broadcast(false, const_cast<UActorComponent*>(Comp), Actor);
+				Manager->OnComponentCreateDelete().Broadcast(false, Comp, Actor);
 			}
 		}
 	}
