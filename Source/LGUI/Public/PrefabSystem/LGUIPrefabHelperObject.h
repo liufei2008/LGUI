@@ -67,7 +67,7 @@ public:
 	void ClearInvalidObjectAndGuid();
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
-	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor);
+	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, bool InIncludeRootTransform);
 	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
 	AActor* GetSubPrefabRootActor(AActor* InSubPrefabActor);
 	/** For parent prefab. When parent prefab want to apply override parameter to subprefab, but the parameter belongs to subprefab's subprefab, then we need to mark override parameter for subprefab. */

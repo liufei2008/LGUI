@@ -215,7 +215,7 @@ void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPre
 	}
 }
 
-void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabRootActor)
+void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabRootActor, bool InIncludeRootTransform)
 {
 	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabRootActor))return;
@@ -235,6 +235,12 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 					if (auto UIItem = Cast<UUIItem>(DataItem.Object))
 					{
 						FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
+					}
+					if (InIncludeRootTransform)
+					{
+						FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
+						FilterNameSet.Add(USceneComponent::GetRelativeRotationPropertyName());
+						FilterNameSet.Add(USceneComponent::GetRelativeScale3DPropertyName());
 					}
 				}
 
@@ -294,7 +300,7 @@ void ULGUIPrefabHelperObject::SavePrefab()
 	if (IsValid(PrefabAsset))
 	{
 		TMap<UObject*, FGuid> MapObjectToGuid;
-		for (auto KeyValue : MapGuidToObject)
+		for (auto& KeyValue : MapGuidToObject)
 		{
 			if (IsValid(KeyValue.Value))
 			{
@@ -1184,7 +1190,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 				DataItem.MemberPropertyNames.Remove(PropertyName);
 			}
 		}
-		RemoveAllMemberPropertyFromSubPrefab(Actor);
+		RemoveAllMemberPropertyFromSubPrefab(Actor, true);
 
 		SetAnythingDirty();
 		GEditor->EndTransaction();
@@ -1526,6 +1532,9 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 				{
 					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
 				}
+				FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
+				FilterNameSet.Add(USceneComponent::GetRelativeRotationPropertyName());
+				FilterNameSet.Add(USceneComponent::GetRelativeScale3DPropertyName());
 			}
 			if (auto ObjectInPrefab = FindOriginObjectInSourcePrefab(SourceObject))
 			{
@@ -1560,7 +1569,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 				}
 			}
 		}
-		RemoveAllMemberPropertyFromSubPrefab(Actor);
+		RemoveAllMemberPropertyFromSubPrefab(Actor, false);
 		//save origin prefab
 		{
 			SubPrefabAsset->Modify();
