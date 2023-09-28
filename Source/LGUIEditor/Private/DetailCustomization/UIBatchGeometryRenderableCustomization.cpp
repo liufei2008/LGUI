@@ -5,7 +5,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
-#include "MaterialDomain.h"
+#include "MaterialShared.h"
 
 #define LOCTEXT_NAMESPACE "UIBatchGeometryRenderableCustomization"
 FUIBatchGeometryRenderableCustomization::FUIBatchGeometryRenderableCustomization()
