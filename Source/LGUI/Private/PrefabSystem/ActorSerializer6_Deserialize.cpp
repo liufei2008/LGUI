@@ -12,6 +12,7 @@
 #include "Misc/NetworkVersion.h"
 #include "UObject/UObjectThreadContext.h"
 #include "Core/LGUISettings.h"
+#include "Serialization/MemoryReader.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
