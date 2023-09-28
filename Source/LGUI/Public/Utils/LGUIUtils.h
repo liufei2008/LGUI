@@ -145,6 +145,7 @@ public:
 #endif
 
 	static void LogObjectFlags(UObject* obj);
+	static void LogClassFlags(UClass* cls);
 
 	static float Color255To1_Table[256];
 	static TAtomic<uint32> LGUITextureNameSuffix;

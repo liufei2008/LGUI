@@ -243,6 +243,16 @@ namespace LGUIPrefabSystem6
 		if (!IsValid(Actor))return;
 		if (Actor->HasAnyFlags(EObjectFlags::RF_Transient))return;
 #if WITH_EDITOR
+		/** 
+		 * Since LGUIPrefab not work well with ActorBlueprint, so we give a hint if detect ActorBlueprint.
+		 */
+		auto ActorClass = Actor->GetClass();
+		if (ActorClass->ClassGeneratedBy != nullptr && ActorClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint))
+		{
+			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer6", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
+			LGUIUtils::EditorNotification(MsgText, 10.0f);
+			UE_LOG(LGUI, Warning, TEXT("%s"), *MsgText.ToString());
+		}
 		if (bIsEditorOrRuntime)
 		{
 		}
