@@ -51,6 +51,9 @@ public class LGUIEditor : ModuleRules
 				"MovieScene",
 				"MovieSceneTracks",
 				"MovieSceneTools",
+                "TypedElementFramework",
+                "TypedElementRuntime",
+                "EditorFramework",
             }
             );
 			
