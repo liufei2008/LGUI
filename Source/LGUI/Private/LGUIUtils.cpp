@@ -266,8 +266,7 @@ void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)
 
 void LGUIUtils::LogObjectFlags(UObject* obj)
 {
-	EObjectFlags of = obj->GetFlags();
-	UE_LOG(LGUI, Log, TEXT("obj:%s\
+	UE_LOG(LGUI, Log, TEXT("object:%s\
 \n	flagValue:%d\
 \n	RF_Public:%d\
 \n	RF_Standalone:%d\
@@ -326,6 +325,75 @@ void LGUIUtils::LogObjectFlags(UObject* obj)
 , obj->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
 , obj->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
 , obj->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
+);
+}
+void LGUIUtils::LogClassFlags(UClass* cls)
+{
+	UE_LOG(LGUI, Log, TEXT("class:%s\
+\n	flagValue:%d\
+\n	CLASS_Abstract:%d\
+\n	CLASS_DefaultConfig:%d\
+\n	CLASS_Config:%d\
+\n	CLASS_Transient:%d\
+\n	CLASS_Optional:%d\
+\n	CLASS_MatchedSerializers:%d\
+\n	CLASS_ProjectUserConfig:%d\
+\n	CLASS_Native:%d\
+\n	CLASS_NotPlaceable:%d\
+\n	CLASS_PerObjectConfig:%d\
+\n	CLASS_ReplicationDataIsSetUp:%d\
+\n	CLASS_EditInlineNew:%d\
+\n	CLASS_CollapseCategories:%d\
+\n	CLASS_Interface:%d\
+\n	CLASS_Const:%d\
+\n	CLASS_NeedsDeferredDependencyLoading:%d\
+\n	CLASS_CompiledFromBlueprint:%d\
+\n	CLASS_MinimalAPI:%d\
+\n	CLASS_RequiredAPI:%d\
+\n	CLASS_DefaultToInstanced:%d\
+\n	CLASS_TokenStreamAssembled:%d\
+\n	CLASS_HasInstancedReference:%d\
+\n	CLASS_Hidden:%d\
+\n	CLASS_Deprecated:%d\
+\n	CLASS_HideDropDown:%d\
+\n	CLASS_GlobalUserConfig:%d\
+\n	CLASS_Intrinsic:%d\
+\n	CLASS_Constructed:%d\
+\n	CLASS_ConfigDoNotCheckDefaults:%d\
+\n	CLASS_NewerVersionExists:%d\
+")
+, *cls->GetPathName()
+, cls->GetClassFlags()
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Abstract)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_DefaultConfig)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Config)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Transient)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Optional)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_MatchedSerializers)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_ProjectUserConfig)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Native)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_NotPlaceable)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_PerObjectConfig)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_ReplicationDataIsSetUp)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_EditInlineNew)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_CollapseCategories)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Interface)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Const)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_NeedsDeferredDependencyLoading)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_MinimalAPI)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_RequiredAPI)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_DefaultToInstanced)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_TokenStreamAssembled)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_HasInstancedReference)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Hidden)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Deprecated)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_HideDropDown)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_GlobalUserConfig)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Intrinsic)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_Constructed)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_ConfigDoNotCheckDefaults)
+, cls->HasAnyClassFlags(EClassFlags::CLASS_NewerVersionExists)
 );
 }
 
