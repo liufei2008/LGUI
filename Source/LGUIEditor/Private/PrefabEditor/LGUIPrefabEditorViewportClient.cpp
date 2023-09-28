@@ -37,15 +37,29 @@
 #include "UnrealEdGlobals.h"
 #include "Editor/EditorPerProjectUserSettings.h"
 #include "UnrealWidget.h"
+#include "Elements/Framework/TypedElementRegistry.h"
+#include "Elements/Framework/EngineElementsLibrary.h"
+#include "Elements/Framework/TypedElementCommonActions.h"
+#include "Elements/Framework/TypedElementListObjectUtil.h"
+#include "Elements/Framework/TypedElementViewportInteraction.h"
+#include "Elements/Actor/ActorElementLevelEditorViewportInteractionCustomization.h"
+#include "Elements/Component/ComponentElementLevelEditorViewportInteractionCustomization.h"
+#include "InputState.h"
+#include "LevelViewportClickHandlers.h"
+#include "HModel.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "LGUIPrefabViewportClickHandlers.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
+IMPLEMENT_HIT_PROXY(HLevelSocketProxy, HHitProxy);
 
 FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPreviewScene& InPreviewScene
 	, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr
 	, const TSharedRef<SLGUIPrefabEditorViewport>& InEditorViewportPtr)
 	: FEditorViewportClient(&GLevelEditorModeTools(), &InPreviewScene, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
 	, TrackingTransaction()
+	, CachedElementsToManipulate(UTypedElementRegistry::GetInstance()->CreateElementList())
 {
 	this->PrefabEditorPtr = InPrefabEditorPtr;
 
@@ -96,67 +110,214 @@ FLGUIPrefabEditorViewportClient::~FLGUIPrefabEditorViewportClient()
 {
 }
 
+
+/**
+ * Renders a view frustum specified by the provided frustum parameters
+ *
+ * @param	PDI					PrimitiveDrawInterface to use to draw the view frustum
+ * @param	FrustumColor		Color to draw the view frustum in
+ * @param	FrustumAngle		Angle of the frustum
+ * @param	FrustumAspectRatio	Aspect ratio of the frustum
+ * @param	FrustumStartDist	Start distance of the frustum
+ * @param	FrustumEndDist		End distance of the frustum
+ * @param	InViewMatrix		View matrix to use to draw the frustum
+ */
+static void RenderViewFrustum(FPrimitiveDrawInterface* PDI,
+	const FLinearColor& FrustumColor,
+	float FrustumAngle,
+	float FrustumAspectRatio,
+	float FrustumStartDist,
+	float FrustumEndDist,
+	const FMatrix& InViewMatrix)
+{
+	FVector Direction(0, 0, 1);
+	FVector LeftVector(1, 0, 0);
+	FVector UpVector(0, 1, 0);
+
+	FVector Verts[8];
+
+	// FOVAngle controls the horizontal angle.
+	float HozHalfAngle = (FrustumAngle) * ((float)PI / 360.f);
+	float HozLength = FrustumStartDist * FMath::Tan(HozHalfAngle);
+	float VertLength = HozLength / FrustumAspectRatio;
+
+	// near plane verts
+	Verts[0] = (Direction * FrustumStartDist) + (UpVector * VertLength) + (LeftVector * HozLength);
+	Verts[1] = (Direction * FrustumStartDist) + (UpVector * VertLength) - (LeftVector * HozLength);
+	Verts[2] = (Direction * FrustumStartDist) - (UpVector * VertLength) - (LeftVector * HozLength);
+	Verts[3] = (Direction * FrustumStartDist) - (UpVector * VertLength) + (LeftVector * HozLength);
+
+	HozLength = FrustumEndDist * FMath::Tan(HozHalfAngle);
+	VertLength = HozLength / FrustumAspectRatio;
+
+	// far plane verts
+	Verts[4] = (Direction * FrustumEndDist) + (UpVector * VertLength) + (LeftVector * HozLength);
+	Verts[5] = (Direction * FrustumEndDist) + (UpVector * VertLength) - (LeftVector * HozLength);
+	Verts[6] = (Direction * FrustumEndDist) - (UpVector * VertLength) - (LeftVector * HozLength);
+	Verts[7] = (Direction * FrustumEndDist) - (UpVector * VertLength) + (LeftVector * HozLength);
+
+	for (int32 x = 0; x < 8; ++x)
+	{
+		Verts[x] = InViewMatrix.InverseFast().TransformPosition(Verts[x]);
+	}
+
+	const uint8 PrimitiveDPG = SDPG_Foreground;
+	PDI->DrawLine(Verts[0], Verts[1], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[1], Verts[2], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[2], Verts[3], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[3], Verts[0], FrustumColor, PrimitiveDPG);
+
+	PDI->DrawLine(Verts[4], Verts[5], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[5], Verts[6], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[6], Verts[7], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[7], Verts[4], FrustumColor, PrimitiveDPG);
+
+	PDI->DrawLine(Verts[0], Verts[4], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[1], Verts[5], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[2], Verts[6], FrustumColor, PrimitiveDPG);
+	PDI->DrawLine(Verts[3], Verts[7], FrustumColor, PrimitiveDPG);
+}
+// Frustum parameters for the perspective view.
+static float GPerspFrustumAngle=90.f;
+static float GPerspFrustumAspectRatio=1.77777f;
+static float GPerspFrustumStartDist=GNearClippingPlane;
+static float GPerspFrustumEndDist=UE_FLOAT_HUGE_DISTANCE;
+static FMatrix GPerspViewMatrix;
 void FLGUIPrefabEditorViewportClient::Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI)
 {
+	FMemMark Mark(FMemStack::Get());
+
 	FEditorViewportClient::Draw(View, PDI);
 
-	if (GUnrealEd != nullptr)
+	//AGroupActor::DrawBracketsForGroups(PDI, Viewport);
+
+	// Determine if a view frustum should be rendered in the viewport.
+	// The frustum should definitely be rendered if the viewport has a view parent.
+	bool bRenderViewFrustum = ViewState.GetReference()->HasViewParent();
+
+	// If the viewport doesn't have a view parent, a frustum still should be drawn anyway if the viewport is ortho and level streaming
+	// volume previs is enabled in some viewport
+	if (!bRenderViewFrustum && IsOrtho())
+	{
+		for (FLevelEditorViewportClient* CurViewportClient : GEditor->GetLevelViewportClients())
+		{
+			if (CurViewportClient && IsPerspective() && GetDefault<ULevelEditorViewportSettings>()->bLevelStreamingVolumePrevis)
+			{
+				bRenderViewFrustum = true;
+				break;
+			}
+		}
+	}
+
+	// Draw the view frustum of the view parent or level streaming volume previs viewport, if necessary
+	if (bRenderViewFrustum)
+	{
+		RenderViewFrustum(PDI, FLinearColor(1.0, 0.0, 1.0, 1.0),
+			GPerspFrustumAngle,
+			GPerspFrustumAspectRatio,
+			GPerspFrustumStartDist,
+			GPerspFrustumEndDist,
+			GPerspViewMatrix);
+	}
+
+	if (GEditor->bEnableSocketSnapping)
+	{
+		const bool bGameViewMode = View->Family->EngineShowFlags.Game && !GEditor->bDrawSocketsInGMode;
+
+		for (FActorIterator It(GetWorld()); It; ++It)
+		{
+			AActor* Actor = *It;
+
+			if (bGameViewMode || Actor->IsHiddenEd())
+			{
+				// Don't display sockets on hidden actors...
+				continue;
+			}
+
+			for (UActorComponent* Component : Actor->GetComponents())
+			{
+				USceneComponent* SceneComponent = Cast<USceneComponent>(Component);
+				if (SceneComponent && SceneComponent->HasAnySockets())
+				{
+					TArray<FComponentSocketDescription> Sockets;
+					SceneComponent->QuerySupportedSockets(Sockets);
+
+					for (int32 SocketIndex = 0; SocketIndex < Sockets.Num(); ++SocketIndex)
+					{
+						FComponentSocketDescription& Socket = Sockets[SocketIndex];
+
+						if (Socket.Type == EComponentSocketType::Socket)
+						{
+							const FTransform SocketTransform = SceneComponent->GetSocketTransform(Socket.Name);
+
+							const float DiamondSize = 2.0f;
+							const FColor DiamondColor(255, 128, 128);
+
+							PDI->SetHitProxy(new HLevelSocketProxy(*It, SceneComponent, Socket.Name));
+							DrawWireDiamond(PDI, SocketTransform.ToMatrixWithScale(), DiamondSize, DiamondColor, SDPG_Foreground);
+							PDI->SetHitProxy(NULL);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//if (this == GCurrentLevelEditingViewportClient)
+	//{
+	//	FSnappingUtils::DrawSnappingHelpers(View, PDI);
+	//}
+
+	if (GUnrealEd != NULL && !IsInGameView())
 	{
 		GUnrealEd->DrawComponentVisualizers(View, PDI);
-		//bool bHitTesting = PDI->IsHitTesting();
-		//auto AllActors = PrefabEditorPtr.Pin()->GetAllActors();
-		//for (auto& PreviewActor : AllActors)
-		//{
-		//	if (ULGUIEditorManagerObject::IsSelected(PreviewActor))
-		//	{
-		//		auto& Components = PreviewActor->GetComponents();
-		//		for (auto& Comp : Components)
-		//		{
-		//			if (IsValid(Comp) && Comp->IsRegistered())
-		//			{
-		//				// Try and find a visualizer
-		//				TSharedPtr<FComponentVisualizer> Visualizer = GUnrealEd->FindComponentVisualizer(Comp->GetClass());
-		//				if (Visualizer.IsValid())
-		//				{
-		//					Visualizer->DrawVisualization(Comp, View, PDI);
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
 	}
-}
-void FLGUIPrefabEditorViewportClient::Draw(FViewport* InViewport, FCanvas* Canvas)
-{
-	FEditorViewportClient::Draw(InViewport, Canvas);
+
+	if (GEditor->bDrawParticleHelpers == true)
+	{
+		if (View->Family->EngineShowFlags.Game)
+		{
+			extern ENGINE_API void DrawParticleSystemHelpers(const FSceneView * View, FPrimitiveDrawInterface * PDI);
+			DrawParticleSystemHelpers(View, PDI);
+		}
+	}
+
+	Mark.Pop();
 }
 void FLGUIPrefabEditorViewportClient::DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas)
 {
-	FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
-	if (GUnrealEd != nullptr)
+	if (GUnrealEd != nullptr && !IsInGameView())
 	{
 		GUnrealEd->DrawComponentVisualizersHUD(&InViewport, &View, &Canvas);
-		//auto AllActors = PrefabEditorPtr.Pin()->GetAllActors();
-		//for (auto& PreviewActor : AllActors)
-		//{
-		//	if (ULGUIEditorManagerObject::IsSelected(PreviewActor))
-		//	{
-		//		auto& Components = PreviewActor->GetComponents();
-		//		for (auto& Comp : Components)
-		//		{
-		//			if (IsValid(Comp) && Comp->IsRegistered())
-		//			{
-		//				// Try and find a visualizer
-		//				TSharedPtr<FComponentVisualizer> Visualizer = GUnrealEd->FindComponentVisualizer(Comp->GetClass());
-		//				if (Visualizer.IsValid())
-		//				{
-		//					Visualizer->DrawVisualizationHUD(Comp, &InViewport, &View, &Canvas);
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
 	}
+
+	FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
+}
+
+void FLGUIPrefabEditorViewportClient::ReceivedFocus(FViewport* InViewport)
+{
+	if (!bReceivedFocusRecently)
+	{
+		bReceivedFocusRecently = true;
+
+		// A few frames can pass between receiving focus and processing a click, so we use a timer to track whether we have recently received focus.
+		FTimerDelegate ResetFocusReceivedTimer;
+		ResetFocusReceivedTimer.BindLambda([&]()
+			{
+				bReceivedFocusRecently = false;
+				FocusTimerHandle.Invalidate(); // The timer will only execute once, so we can invalidate now.
+			});
+		GEditor->GetTimerManager()->SetTimer(FocusTimerHandle, ResetFocusReceivedTimer, 0.1f, false);
+	}
+
+	FEditorViewportClient::ReceivedFocus(InViewport);
+}
+
+void FLGUIPrefabEditorViewportClient::LostFocus(FViewport* InViewport)
+{
+	FEditorViewportClient::LostFocus(InViewport);
+
+	GEditor->SetPreviewMeshMode(false);
 }
 
 void FLGUIPrefabEditorViewportClient::Tick(float DeltaSeconds)
@@ -192,10 +353,6 @@ bool FLGUIPrefabEditorViewportClient::InputKey(const FInputKeyEventArgs& EventAr
 void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
-	if (GUnrealEd->ComponentVisManager.HandleClick(this, HitProxy, Click))
-	{
-		return;
-	}
 
 	AActor* ClickHitActor = nullptr;
 	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
@@ -219,51 +376,157 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 			ClickHitActor = ClickHitUI->GetOwner();
 		}
 	}
-	if (ClickHitActor == nullptr)
+	if (ClickHitActor != nullptr)
 	{
-		if (!ModeTools->HandleClick(this, HitProxy, Click))
-		{
-			if (HitProxy == NULL)
-			{
-				GEditor->SelectNone(true, true);
-				return;
-			}
-			if (HitProxy->IsA(HActor::StaticGetType()))
-			{
-				HActor* ActorHitProxy = (HActor*)HitProxy;
-				AActor* Actor = ActorHitProxy->Actor;
-				while (Actor->IsChildActor())
-				{
-					Actor = Actor->GetParentActor();
-				}
-				ClickHitActor = Actor;
-			}
-		}
+		LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
+		return;
 	}
 
+	// We may have started gizmo manipulation if hot-keys were pressed when we started this click
+	// If so, we need to end that now before we potentially update the selection below, 
+	// otherwise the usual call in TrackingStopped would include the newly selected element
+	if (bHasBegunGizmoManipulation)
 	{
-		GEditor->BeginTransaction(LOCTEXT("ClickToPickActor_Transaction", "Click to pick UI item"));
-		GEditor->GetSelectedActors()->Modify();
+		FTypedElementListConstRef ElementsToManipulate = GetElementsToManipulate();
+		ViewportInteraction->EndGizmoManipulation(ElementsToManipulate, GetWidgetMode(), ETypedElementViewportInteractionGizmoManipulationType::Click);
+		bHasBegunGizmoManipulation = false;
+	}
 
-		// Clear the selection if not multiple selection.
-		if (!IsCtrlPressed() && !IsShiftPressed())
+	if (Click.GetKey() == EKeys::MiddleMouseButton && !Click.IsAltDown() && !Click.IsShiftDown())
+	{
+		LGUIPrefabViewportClickHandlers::ClickViewport(this, Click);
+		return;
+	}
+	if (!ModeTools->HandleClick(this, HitProxy, Click))
+	{
+		const FTypedElementHandle HitElement = HitProxy ? HitProxy->GetElementHandle() : FTypedElementHandle();
+
+		if (HitProxy == NULL)
 		{
-			GEditor->SelectNone(false, true, true);
+			LGUIPrefabViewportClickHandlers::ClickBackdrop(this, Click);
 		}
-
-		// We'll batch selection changes instead by using BeginBatchSelectOperation()
-		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
-
-		if (ClickHitActor != nullptr)
+		else if (HitProxy->IsA(HWidgetAxis::StaticGetType()))
 		{
-			GEditor->SelectActor(ClickHitActor, true, false);
-		}
+			// The user clicked on an axis translation/rotation hit proxy.  However, we want
+			// to find out what's underneath the axis widget.  To do this, we'll need to render
+			// the viewport's hit proxies again, this time *without* the axis widgets!
 
-		// Commit selection changes
-		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
-		// Fire selection changed event
-		GEditor->NoteSelectionChange();
-		GEditor->EndTransaction();
+			// OK, we need to be a bit evil right here.  Basically we want to hijack the ShowFlags
+			// for the scene so we can re-render the hit proxies without any axis widgets.  We'll
+			// store the original ShowFlags and modify them appropriately
+			const bool bOldModeWidgets1 = EngineShowFlags.ModeWidgets;
+			const bool bOldModeWidgets2 = View.Family->EngineShowFlags.ModeWidgets;
+
+			EngineShowFlags.SetModeWidgets(false);
+			FSceneViewFamily* SceneViewFamily = const_cast<FSceneViewFamily*>(View.Family);
+			SceneViewFamily->EngineShowFlags.SetModeWidgets(false);
+			bool bWasWidgetDragging = Widget->IsDragging();
+			Widget->SetDragging(false);
+
+			// Invalidate the hit proxy map so it will be rendered out again when GetHitProxy
+			// is called
+			Viewport->InvalidateHitProxy();
+
+			// This will actually re-render the viewport's hit proxies!
+			HHitProxy* HitProxyWithoutAxisWidgets = Viewport->GetHitProxy(HitX, HitY);
+			if (HitProxyWithoutAxisWidgets != NULL && !HitProxyWithoutAxisWidgets->IsA(HWidgetAxis::StaticGetType()))
+			{
+				// Try this again, but without the widget this time!
+				ProcessClick(View, HitProxyWithoutAxisWidgets, Key, Event, HitX, HitY);
+			}
+
+			// Undo the evil
+			EngineShowFlags.SetModeWidgets(bOldModeWidgets1);
+			SceneViewFamily->EngineShowFlags.SetModeWidgets(bOldModeWidgets2);
+
+			Widget->SetDragging(bWasWidgetDragging);
+
+			// Invalidate the hit proxy map again so that it'll be refreshed with the original
+			// scene contents if we need it again later.
+			Viewport->InvalidateHitProxy();
+		}
+		else if (GUnrealEd->ComponentVisManager.HandleClick(this, HitProxy, Click))
+		{
+			// Component vis manager handled the click
+		}
+		else if (HitElement && LGUIPrefabViewportClickHandlers::ClickElement(this, HitElement, Click))
+		{
+			// Element handled the click
+		}
+		else if (HitProxy->IsA(HActor::StaticGetType()))
+		{
+			HActor* ActorHitProxy = (HActor*)HitProxy;
+			AActor* ConsideredActor = ActorHitProxy->Actor;
+			if (ConsideredActor) // It is possible to be clicking something during level transition if you spam click, and it might not be valid by this point
+			{
+				while (ConsideredActor->IsChildActor())
+				{
+					ConsideredActor = ConsideredActor->GetParentActor();
+				}
+
+				// We want to process the click on the component only if:
+				// 1. The actor clicked is already selected
+				// 2. The actor selected is the only actor selected
+				// 3. The actor selected is blueprintable
+				// 4. No components are already selected and the click was a double click
+				// 5. OR, a component is already selected and the click was NOT a double click
+				const bool bActorAlreadySelectedExclusively = GEditor->GetSelectedActors()->IsSelected(ConsideredActor) && (GEditor->GetSelectedActorCount() == 1);
+				const bool bActorIsBlueprintable = FKismetEditorUtilities::CanCreateBlueprintOfClass(ConsideredActor->GetClass());
+				const bool bComponentAlreadySelected = GEditor->GetSelectedComponentCount() > 0;
+				const bool bWasDoubleClick = (Click.GetEvent() == IE_DoubleClick);
+
+				const bool bSelectComponent = bActorAlreadySelectedExclusively && bActorIsBlueprintable && (bComponentAlreadySelected != bWasDoubleClick);
+				bool bComponentSelected = false;
+
+				if (bSelectComponent)
+				{
+					bComponentSelected = LGUIPrefabViewportClickHandlers::ClickComponent(this, ActorHitProxy, Click);
+				}
+
+				if (!bComponentSelected)
+				{
+					LGUIPrefabViewportClickHandlers::ClickActor(this, ConsideredActor, Click, true);
+				}
+
+				// We clicked an actor, allow the pivot to reposition itself.
+				// GUnrealEd->SetPivotMovedIndependently(false);
+			}
+		}
+		else if (HitProxy->IsA(HInstancedStaticMeshInstance::StaticGetType()))
+		{
+			LGUIPrefabViewportClickHandlers::ClickActor(this, ((HInstancedStaticMeshInstance*)HitProxy)->Component->GetOwner(), Click, true);
+		}
+		//else if (HitProxy->IsA(HBSPBrushVert::StaticGetType()) && ((HBSPBrushVert*)HitProxy)->Brush.IsValid())
+		//{
+		//	FVector Vertex = FVector(*((HBSPBrushVert*)HitProxy)->Vertex);
+		//	LGUIPrefabViewportClickHandlers::ClickBrushVertex(this, ((HBSPBrushVert*)HitProxy)->Brush.Get(), &Vertex, Click);
+		//}
+		else if (HitProxy->IsA(HStaticMeshVert::StaticGetType()))
+		{
+			LGUIPrefabViewportClickHandlers::ClickStaticMeshVertex(this, ((HStaticMeshVert*)HitProxy)->Actor, ((HStaticMeshVert*)HitProxy)->Vertex, Click);
+		}
+		//else if (BrushSubsystem && BrushSubsystem->ProcessClickOnBrushGeometry(this, HitProxy, Click))
+		//{
+		//	// Handled by the brush subsystem
+		//}
+		else if (HitProxy->IsA(HModel::StaticGetType()))
+		{
+			HModel* ModelHit = (HModel*)HitProxy;
+
+			// Compute the viewport's current view family.
+			FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(Viewport, GetScene(), EngineShowFlags));
+			FSceneView* SceneView = CalcSceneView(&ViewFamily);
+
+			uint32 SurfaceIndex = INDEX_NONE;
+			if (ModelHit->ResolveSurface(SceneView, HitX, HitY, SurfaceIndex))
+			{
+				LGUIPrefabViewportClickHandlers::ClickSurface(this, ModelHit->GetModel(), SurfaceIndex, Click);
+			}
+		}
+		else if (HitProxy->IsA(HLevelSocketProxy::StaticGetType()))
+		{
+			LGUIPrefabViewportClickHandlers::ClickLevelSocket(this, HitProxy, Click);
+		}
 	}
 }
 
@@ -364,75 +627,246 @@ void FLGUIPrefabEditorViewportClient::SetCameraSpeedSetting(int32 SpeedSetting)
 	GetMutableDefault<UEditorPerProjectUserSettings>()->SCSViewportCameraSpeed = SpeedSetting;
 }
 
+/**
+ * Returns the horizontal axis for this viewport.
+ */
+
+EAxisList::Type FLGUIPrefabEditorViewportClient::GetHorizAxis() const
+{
+	switch (GetViewportType())
+	{
+	case LVT_OrthoXY:
+	case LVT_OrthoNegativeXY:
+		return EAxisList::X;
+	case LVT_OrthoXZ:
+	case LVT_OrthoNegativeXZ:
+		return EAxisList::X;
+	case LVT_OrthoYZ:
+	case LVT_OrthoNegativeYZ:
+		return EAxisList::Y;
+	case LVT_OrthoFreelook:
+	case LVT_Perspective:
+		break;
+	}
+
+	return EAxisList::X;
+}
+
+/**
+ * Returns the vertical axis for this viewport.
+ */
+
+EAxisList::Type FLGUIPrefabEditorViewportClient::GetVertAxis() const
+{
+	switch (GetViewportType())
+	{
+	case LVT_OrthoXY:
+	case LVT_OrthoNegativeXY:
+		return EAxisList::Y;
+	case LVT_OrthoXZ:
+	case LVT_OrthoNegativeXZ:
+		return EAxisList::Z;
+	case LVT_OrthoYZ:
+	case LVT_OrthoNegativeYZ:
+		return EAxisList::Z;
+	case LVT_OrthoFreelook:
+	case LVT_Perspective:
+		break;
+	}
+
+	return EAxisList::Y;
+}
+void FLGUIPrefabEditorViewportClient::NudgeSelectedObjects(const struct FInputEventState& InputState)
+{
+	FViewport* InViewport = InputState.GetViewport();
+	EInputEvent Event = InputState.GetInputEvent();
+	FKey Key = InputState.GetKey();
+
+	const int32 MouseX = InViewport->GetMouseX();
+	const int32 MouseY = InViewport->GetMouseY();
+
+	if (Event == IE_Pressed || Event == IE_Repeat)
+	{
+		// If this is a pressed event, start tracking.
+		if (!bIsTracking && Event == IE_Pressed)
+		{
+			// without the check for !bIsTracking, the following code would cause a new transaction to be created
+			// for each "nudge" that occurred while the key was held down.  Disabling this code prevents the transaction
+			// from being constantly recreated while as long as the key is held, so that the entire move is considered an atomic action (and
+			// doing undo reverts the entire movement, as opposed to just the last nudge that occurred while the key was held down)
+			MouseDeltaTracker->StartTracking(this, MouseX, MouseY, InputState, true);
+			bIsTracking = true;
+		}
+
+		FIntPoint StartMousePos;
+		InViewport->GetMousePos(StartMousePos);
+		FKey VirtualKey = EKeys::MouseX;
+		EAxisList::Type VirtualAxis = GetHorizAxis();
+		float VirtualDelta = GEditor->GetGridSize() * (Key == EKeys::Left ? -1 : 1);
+		if (Key == EKeys::Up || Key == EKeys::Down)
+		{
+			VirtualKey = EKeys::MouseY;
+			VirtualAxis = GetVertAxis();
+			VirtualDelta = GEditor->GetGridSize() * (Key == EKeys::Up ? 1 : -1);
+		}
+
+		bWidgetAxisControlledByDrag = false;
+		Widget->SetCurrentAxis(VirtualAxis);
+		MouseDeltaTracker->AddDelta(this, VirtualKey, static_cast<int32>(VirtualDelta), 1);
+		Widget->SetCurrentAxis(VirtualAxis);
+		UpdateMouseDelta();
+		InViewport->SetMouse(StartMousePos.X, StartMousePos.Y);
+	}
+	else if (bIsTracking && Event == IE_Released)
+	{
+		bWidgetAxisControlledByDrag = false;
+		MouseDeltaTracker->EndTracking(this);
+		bIsTracking = false;
+		Widget->SetCurrentAxis(EAxisList::None);
+	}
+
+	RedrawAllViewportsIntoThisScene();
+}
+
 void FLGUIPrefabEditorViewportClient::ApplyDeltaToActors(const FVector& InDrag, const FRotator& InRot, const FVector& InScale)
 {
-	if ((InDrag.IsZero() && InRot.IsZero() && InScale.IsZero()))
-	{
-		return;
-	}
-
-	FVector ModifiedScale = InScale;
-	// If we are scaling, we need to change the scaling factor a bit to properly align to grid.
-	if (GEditor->UsePercentageBasedScaling())
-	{
-		USelection* SelectedActors = GEditor->GetSelectedActors();
-		const bool bScalingActors = !InScale.IsNearlyZero();
-
-		if (bScalingActors)
-		{
-			ModifiedScale = InScale * ((GEditor->GetScaleGridSize() / 100.0f) / GEditor->GetGridSize());
-		}
-	}
-
-	// Transact the actors.
-	GEditor->NoteActorMovement();
-
-	// Apply the deltas to any selected actors.
-	for (FSelectionIterator SelectedActorIt(GEditor->GetSelectedActorIterator()); SelectedActorIt; ++SelectedActorIt)
-	{
-		AActor* Actor = static_cast<AActor*>(*SelectedActorIt);
-		checkSlow(Actor->IsA(AActor::StaticClass()));
-		if (!Actor->IsLockLocation())
-		{
-			// Finally, verify that no actor in the parent hierarchy is also selected
-			bool bHasParentInSelection = false;
-			AActor* ParentActor = Actor->GetAttachParentActor();
-			while (ParentActor != NULL && !bHasParentInSelection)
-			{
-				if (ParentActor->IsSelected())
-				{
-					bHasParentInSelection = true;
-				}
-				ParentActor = ParentActor->GetAttachParentActor();
-			}
-			if (!bHasParentInSelection)
-			{
-				ApplyDeltaToActor(Actor, InDrag, InRot, ModifiedScale);	
-			}
-		}
-	}
+	ApplyDeltaToSelectedElements(FTransform(InRot, InDrag, InScale));
 }
 
 void FLGUIPrefabEditorViewportClient::ApplyDeltaToActor(AActor* InActor, const FVector& InDeltaDrag, const FRotator& InDeltaRot, const FVector& InDeltaScale)
 {
-	// If we are scaling, we may need to change the scaling factor a bit to properly align to the grid.
-	FVector ModifiedDeltaScale = InDeltaScale;
-
-	// we dont scale actors when we only have a very small scale change
-	if (InDeltaScale.IsNearlyZero())
+	if (FTypedElementHandle ActorElementHandle = UEngineElementsLibrary::AcquireEditorActorElementHandle(InActor))
 	{
-		ModifiedDeltaScale = FVector::ZeroVector;
+		ApplyDeltaToElement(ActorElementHandle, FTransform(InDeltaRot, InDeltaDrag, InDeltaScale));
+	}
+}
+
+void FLGUIPrefabEditorViewportClient::ApplyDeltaToComponent(USceneComponent* InComponent, const FVector& InDeltaDrag, const FRotator& InDeltaRot, const FVector& InDeltaScale)
+{
+	if (FTypedElementHandle ComponentElementHandle = UEngineElementsLibrary::AcquireEditorComponentElementHandle(InComponent))
+	{
+		ApplyDeltaToElement(ComponentElementHandle, FTransform(InDeltaRot, InDeltaDrag, InDeltaScale));
+	}
+}
+
+void FLGUIPrefabEditorViewportClient::ApplyDeltaToSelectedElements(const FTransform& InDeltaTransform)
+{
+	if (InDeltaTransform.GetTranslation().IsZero() && InDeltaTransform.Rotator().IsZero() && InDeltaTransform.GetScale3D().IsZero())
+	{
+		return;
 	}
 
-	GEditor->ApplyDeltaToActor(
-		InActor,
-		true,
-		&InDeltaDrag,
-		&InDeltaRot,
-		&ModifiedDeltaScale,
-		IsAltPressed(),
-		IsShiftPressed(),
-		IsCtrlPressed());
+	FTransform ModifiedDeltaTransform = InDeltaTransform;
+
+	{
+		FVector AdjustedScale = ModifiedDeltaTransform.GetScale3D();
+
+		// If we are scaling, we need to change the scaling factor a bit to properly align to grid
+		if (GEditor->UsePercentageBasedScaling() && !AdjustedScale.IsNearlyZero())
+		{
+			AdjustedScale *= ((GEditor->GetScaleGridSize() / 100.0f) / GEditor->GetGridSize());
+		}
+
+		ModifiedDeltaTransform.SetScale3D(AdjustedScale);
+	}
+
+	FInputDeviceState InputState;
+	InputState.SetModifierKeyStates(IsShiftPressed(), IsAltPressed(), IsCtrlPressed(), IsCmdPressed());
+
+	FTypedElementListConstRef ElementsToManipulate = GetElementsToManipulate(true);
+	ViewportInteraction->UpdateGizmoManipulation(ElementsToManipulate, GetWidgetMode(), Widget ? Widget->GetCurrentAxis() : EAxisList::None, InputState, ModifiedDeltaTransform);
+}
+
+void FLGUIPrefabEditorViewportClient::ApplyDeltaToElement(const FTypedElementHandle& InElementHandle, const FTransform& InDeltaTransform)
+{
+	FInputDeviceState InputState;
+	InputState.SetModifierKeyStates(IsShiftPressed(), IsAltPressed(), IsCtrlPressed(), IsCmdPressed());
+
+	ViewportInteraction->ApplyDeltaToElement(InElementHandle, GetWidgetMode(), Widget ? Widget->GetCurrentAxis() : EAxisList::None, InputState, InDeltaTransform);
+}
+
+FTypedElementListConstRef FLGUIPrefabEditorViewportClient::GetElementsToManipulate(const bool bForceRefresh)
+{
+	CacheElementsToManipulate(bForceRefresh);
+	return CachedElementsToManipulate;
+}
+
+void FLGUIPrefabEditorViewportClient::CacheElementsToManipulate(const bool bForceRefresh)
+{
+	if (bForceRefresh)
+	{
+		ResetElementsToManipulate();
+	}
+
+	if (!bHasCachedElementsToManipulate)
+	{
+		const FTypedElementSelectionNormalizationOptions NormalizationOptions = FTypedElementSelectionNormalizationOptions()
+			.SetExpandGroups(true)
+			.SetFollowAttachment(true);
+
+		const UTypedElementSelectionSet* SelectionSet = GetSelectionSet();
+		SelectionSet->GetNormalizedSelection(NormalizationOptions, CachedElementsToManipulate);
+
+		// Remove any elements that cannot be moved
+		CachedElementsToManipulate->RemoveAll<ITypedElementWorldInterface>([this](const TTypedElement<ITypedElementWorldInterface>& InWorldElement)
+			{
+				if (!InWorldElement.CanMoveElement(bIsSimulateInEditorViewport ? ETypedElementWorldType::Game : ETypedElementWorldType::Editor))
+				{
+					return true;
+				}
+
+				// This element must belong to the current viewport world
+				if (GEditor->PlayWorld)
+				{
+					const UWorld* CurrentWorld = InWorldElement.GetOwnerWorld();
+					const UWorld* RequiredWorld = bIsSimulateInEditorViewport ? GEditor->PlayWorld : GEditor->EditorWorld;
+					if (CurrentWorld != RequiredWorld)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			});
+
+		bHasCachedElementsToManipulate = true;
+	}
+}
+void FLGUIPrefabEditorViewportClient::ResetElementsToManipulate(const bool bClearList)
+{
+	if (bClearList)
+	{
+		CachedElementsToManipulate->Reset();
+	}
+	bHasCachedElementsToManipulate = false;
+}
+
+void FLGUIPrefabEditorViewportClient::ResetElementsToManipulateFromSelectionChange(const UTypedElementSelectionSet* InSelectionSet)
+{
+	check(InSelectionSet == GetSelectionSet());
+
+	// Don't clear the list immediately, as the selection may change from a construction script running (while we're still iterating the list!)
+	// We'll process the clear on the next cache request, or when the typed element registry actually processes its pending deletion
+	ResetElementsToManipulate(/*bClearList*/false);
+}
+
+void FLGUIPrefabEditorViewportClient::ResetElementsToManipulateFromProcessingDeferredElementsToDestroy()
+{
+	if (!bHasCachedElementsToManipulate)
+	{
+		// If we have no cache, make sure the cached list is definitely empty now to ensure it doesn't contain any lingering references to things that are about to be deleted
+		CachedElementsToManipulate->Reset();
+	}
+}
+
+const UTypedElementSelectionSet* FLGUIPrefabEditorViewportClient::GetSelectionSet() const
+{
+	return GEditor->GetSelectedActors()->GetElementSelectionSet();
+}
+
+UTypedElementSelectionSet* FLGUIPrefabEditorViewportClient::GetMutableSelectionSet() const
+{
+	return GEditor->GetSelectedActors()->GetElementSelectionSet();
 }
 
 
@@ -611,12 +1045,17 @@ void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, i
 
 	FEditorViewportClient::CapturedMouseMove(InViewport, InMouseX, InMouseY);
 
-	if (InMouseX != MouseX || InMouseY != MouseY)
+	if (InMouseX != PrevMouseX || InMouseY != PrevMouseY)
 	{
 		IndexOfClickSelectUI = INDEX_NONE;
 	}
-	MouseX = InMouseX;
-	MouseY = InMouseY;
+	PrevMouseX = InMouseX;
+	PrevMouseY = InMouseY;
+}
+
+void FLGUIPrefabEditorViewportClient::MouseMove(FViewport* InViewport, int32 x, int32 y)
+{
+	FEditorViewportClient::MouseMove(InViewport, x, y);
 }
 
 void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)
@@ -688,30 +1127,28 @@ void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventSt
 		{
 			TrackingTransaction.TransCount++;
 
-			FText ObjectTypeBeingTracked = bIsDraggingComponents ? LOCTEXT("TransactionFocus_Components", "Components") : LOCTEXT("TransactionFocus_Actors", "Actors");
 			FText TrackingDescription;
-
 			switch (GetWidgetMode())
 			{
 			case UE::Widget::WM_Translate:
-				TrackingDescription = FText::Format(LOCTEXT("MoveTransaction", "Move {0}"), ObjectTypeBeingTracked);
+				TrackingDescription = LOCTEXT("MoveTransaction", "Move Elements");
 				break;
 			case UE::Widget::WM_Rotate:
-				TrackingDescription = FText::Format(LOCTEXT("RotateTransaction", "Rotate {0}"), ObjectTypeBeingTracked);
+				TrackingDescription = LOCTEXT("RotateTransaction", "Rotate Elements");
 				break;
 			case UE::Widget::WM_Scale:
-				TrackingDescription = FText::Format(LOCTEXT("ScaleTransaction", "Scale {0}"), ObjectTypeBeingTracked);
+				TrackingDescription = LOCTEXT("ScaleTransaction", "Scale Elements");
 				break;
 			case UE::Widget::WM_TranslateRotateZ:
-				TrackingDescription = FText::Format(LOCTEXT("TranslateRotateZTransaction", "Translate/RotateZ {0}"), ObjectTypeBeingTracked);
+				TrackingDescription = LOCTEXT("TranslateRotateZTransaction", "Translate/RotateZ Elements");
 				break;
 			case UE::Widget::WM_2D:
-				TrackingDescription = FText::Format(LOCTEXT("TranslateRotate2D", "Translate/Rotate2D {0}"), ObjectTypeBeingTracked);
+				TrackingDescription = LOCTEXT("TranslateRotate2D", "Translate/Rotate2D Elements");
 				break;
 			default:
 				if (bNudge)
 				{
-					TrackingDescription = FText::Format(LOCTEXT("NudgeTransaction", "Nudge {0}"), ObjectTypeBeingTracked);
+					TrackingDescription = LOCTEXT("NudgeTransaction", "Nudge Elements");
 				}
 			}
 
