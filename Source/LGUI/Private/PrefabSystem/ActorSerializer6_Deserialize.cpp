@@ -12,6 +12,7 @@
 #include "Misc/NetworkVersion.h"
 #include "UObject/UObjectThreadContext.h"
 #include "Core/LGUISettings.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
@@ -379,7 +380,49 @@ namespace LGUIPrefabSystem6
 			{
 				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
 			}
+
+#if WITH_EDITOR
+			if (!TargetWorld->IsGameWorld())
+			{
+				for (int i = AllActors.Num() - 1; i >= 0; i--)
+				{
+					auto& Actor = AllActors[i];
+					if (Actor->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
+					{
+						ILGUIPrefabInterface::Execute_EditorAwake(Actor);
+					}
+					auto Components = Actor->GetComponents();
+					for (auto& Comp : Components)
+					{
+						if (Comp->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
+						{
+							ILGUIPrefabInterface::Execute_EditorAwake(Comp);
+						}
+					}
+				}
 		}
+			else
+#endif
+			{
+				for (int i = AllActors.Num() - 1; i >= 0; i--)
+				{
+					auto& Actor = AllActors[i];
+					if (Actor->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
+					{
+						ILGUIPrefabInterface::Execute_Awake(Actor);
+					}
+					auto Components = Actor->GetComponents();
+					for (auto& Comp : Components)
+					{
+						if (Comp->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
+						{
+							ILGUIPrefabInterface::Execute_Awake(Comp);
+						}
+					}
+				}
+			}
+		}
+
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
 #endif
