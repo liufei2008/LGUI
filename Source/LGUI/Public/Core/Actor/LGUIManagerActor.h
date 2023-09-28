@@ -21,6 +21,7 @@ class ULGUIBaseInputModule;
 class ILGUILayoutInterface;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIEditorManagerOnComponentCreateDelete, bool, UActorComponent*, AActor*);
 
 UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ULGUIEditorManagerObject :public UObject, public FTickableGameObject
@@ -48,6 +49,7 @@ private:
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 	UPROPERTY()UWorld* PreviewWorldForPrefabPackage = nullptr;
 	bool bIsBlueprintCompiling = false;
+	class FLGUIObjectCreateDeleteListener* ObjectCreateDeleteListener = nullptr;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -57,12 +59,14 @@ private:
 #if WITH_EDITOR
 private:
 	TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
+	FLGUIEditorManagerOnComponentCreateDelete OnComponentCreateDeleteEvent;
 public:
 	static void AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount = 0);
 	static FDelegateHandle RegisterEditorTickFunction(const TFunction<void(float)>& InFunction);
 	static void UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle);
 	static FDelegateHandle RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction);
 	static void UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle);
+	static FLGUIEditorManagerOnComponentCreateDelete& OnComponentCreateDelete() { InitCheck(); return Instance->OnComponentCreateDeleteEvent; }
 private:
 	static bool InitCheck();
 public:
@@ -88,8 +92,6 @@ public:
 		, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
 	);
 private:
-	/** Functions that wait for prefab serialization complete then execute */
-	TArray<TFunction<void()>> LateFunctionsAfterPrefabSerialization;
 	FDelegateHandle OnBlueprintPreCompileDelegateHandle;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 	void OnBlueprintPreCompile(UBlueprint* InBlueprint);

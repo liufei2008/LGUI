@@ -111,6 +111,7 @@ private:
 	bool bAnythingDirty = false;
 	bool bCanCollectProperty = true;
 	bool bCanNotifyAttachment = false;
+	TArray<UActorComponent*> CreateDeleteComponentMessageQueue;
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
@@ -119,6 +120,7 @@ private:
 	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
 	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
 	void OnLevelActorDeleted(AActor* Actor);
+	void OnComponentCreateDelete(bool InCreateOrDelete, UActorComponent* InComponent, AActor* InActor);
 
 	struct FAttachmentActorStruct
 	{
