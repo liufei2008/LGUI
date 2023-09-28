@@ -1,7 +1,7 @@
 ﻿{
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "3.3.6",
+	"VersionName": "3.4.0",
 	"FriendlyName": "LGUI",
 	"Description": "LGUI (Lex GUI) - Powerful 3D UI System, Event Framework, Prefab Workflow, Tween Animation",
 	"Category": "UI",
