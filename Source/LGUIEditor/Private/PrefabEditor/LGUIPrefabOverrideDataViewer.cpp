@@ -253,7 +253,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("ApplyAll", "Apply All"))
-					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "Apply all overrides to source prefab"))
+					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "Apply all overrides to source prefab, except root actor's transform"))
 					.OnClicked_Lambda([=](){
 						PrefabHelperObject->ApplyAllOverrideToPrefab(RootObject);
 						AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(RootObject));
