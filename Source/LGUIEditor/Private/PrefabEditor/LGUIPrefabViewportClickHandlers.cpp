@@ -1,5 +1,6 @@
 // Copyright 2019-Present LexLiu. All Rights Reserved.
 
+#include "LGUIPrefabViewportClickHandlers.h"
 #include "LevelViewportClickHandlers.h"
 #include "UObject/Class.h"
 #include "InputCoreTypes.h"
