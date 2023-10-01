@@ -50,7 +50,7 @@ public:
 
 		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
 		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHudVertexBuffer"), &ResourceArray);
-		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
+		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Dynamic, CreateInfo);
 	}
 };
 
