@@ -461,6 +461,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
+		if (bNeedSortWorldSpaceRenderCanvas)
+		{
+			bNeedSortWorldSpaceRenderCanvas = false;
+			SortWorldSpacePrimitiveRenderPriority_RenderThread();
+		}
 		//use a copied view. 
 		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
 		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
@@ -694,6 +699,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		&& bIsMainViewport
 		)
 	{
+		if (ScreenSpaceRenderParameter.bNeedSortRenderPriority)
+		{
+			ScreenSpaceRenderParameter.bNeedSortRenderPriority = false;
+			SortScreenSpacePrimitiveRenderPriority_RenderThread();
+		}
 #if WITH_EDITOR
 		if (bIsRenderToRenderTarget)
 		{
@@ -996,7 +1006,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 		RenderParameter.HudPrimitive = InPrimitive;
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
-		SortWorldSpacePrimitiveRenderPriority_RenderThread();
+		bNeedSortWorldSpaceRenderCanvas = true;
 		//check if we have postprocess
 		CheckContainsPostProcess_RenderThread();
 	}
@@ -1033,7 +1043,7 @@ void FLGUIHudRenderer::AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* I
 	if (InPrimitive != nullptr)
 	{
 		ScreenSpaceRenderParameter.HudPrimitiveArray.AddUnique(InPrimitive);
-		SortScreenSpacePrimitiveRenderPriority_RenderThread();
+		ScreenSpaceRenderParameter.bNeedSortRenderPriority = true;
 		CheckContainsPostProcess_RenderThread();
 	}
 	else

@@ -127,11 +127,13 @@ private:
 		FMatrix ProjectionMatrix = FMatrix::Identity;
 		FMatrix44f ViewProjectionMatrix = FMatrix44f::Identity;
 		bool bEnableDepthTest = false;
+		bool bNeedSortRenderPriority = true;
 
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
+	bool bNeedSortWorldSpaceRenderCanvas = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
