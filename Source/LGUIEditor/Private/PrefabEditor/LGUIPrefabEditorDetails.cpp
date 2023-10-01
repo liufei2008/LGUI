@@ -35,7 +35,7 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
     DetailsViewArgs.bUpdatesFromSelection = true;
     DetailsViewArgs.bLockable = true;
     DetailsViewArgs.NotifyHook = GUnrealEd;
-    DetailsViewArgs.ViewIdentifier = NAME_None;
+    DetailsViewArgs.ViewIdentifier = FName(TEXT("LGUIPrefabEditor"));
     DetailsViewArgs.bCustomNameAreaLocation = true;
     DetailsViewArgs.bCustomFilterAreaLocation = false;
     DetailsViewArgs.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Hide;

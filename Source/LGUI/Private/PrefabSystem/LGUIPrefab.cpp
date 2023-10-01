@@ -478,12 +478,36 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 	auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 	if (World)
 	{
+		TSet<TTuple<int, UObject*>> ReplacedAssets;
+		TSet<TTuple<int, UClass*>> ReplacedClasses;
+		if (InReplaceAssetMap.Num() > 0)
+		{
+			for (int i = 0; i < ReferenceAssetList.Num(); i++)
+			{
+				if (auto ReplaceAssetPtr = InReplaceAssetMap.Find(ReferenceAssetList[i]))
+				{
+					ReplacedAssets.Add({ i, ReferenceAssetList[i] });
+					ReferenceAssetList[i] = *ReplaceAssetPtr;
+				}
+			}
+		}
+		if (InReplaceClassMap.Num() > 0)
+		{
+			for (int i = 0; i < ReferenceClassList.Num(); i++)
+			{
+				if (auto ReplaceClassPtr = InReplaceClassMap.Find(ReferenceClassList[i]))
+				{
+					ReplacedClasses.Add({ i, ReferenceClassList[i] });
+					ReferenceClassList[i] = *ReplaceClassPtr;
+				}
+			}
+		}
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::ObjectName:
+		case ELGUIPrefabVersion::NEWEST:
 		{
-			LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefab(World, this, InParent, InReplaceAssetMap, InReplaceClassMap);
+			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent);
 		}
 		break;
 		default:
@@ -493,8 +517,22 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 		break;
 		}
 #else
-		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, InReplaceAssetMap, InReplaceClassMap);
+		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent);
 #endif
+		if (ReplacedAssets.Num() > 0)
+		{
+			for (auto& Item : ReplacedAssets)
+			{
+				ReferenceAssetList[Item.Key] = Item.Value;
+			}
+		}
+		if (ReplacedClasses.Num() > 0)
+		{
+			for (auto& Item : ReplacedClasses)
+			{
+				ReferenceClassList[Item.Key] = Item.Value;
+			}
+		}
 	}
 	return LoadedRootActor;
 }
