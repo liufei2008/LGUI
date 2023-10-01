@@ -798,7 +798,6 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UActorComponent* InComponent, AActor* InActor)
 {
 	//not working as I want
-#if 0
 	if (InComponent->IsDefaultSubobject())return;
 	if (this->IsActorBelongsToSubPrefab(InActor))
 	{
@@ -823,7 +822,6 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 				}, 1);
 		}
 	}
-#endif
 }
 
 UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const

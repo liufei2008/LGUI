@@ -146,58 +146,6 @@ namespace LGUIPrefabSystem6
 		};
 		return serializer.DeserializeActor(Parent, InPrefab, nullptr, true, RelativeLocation, RelativeRotation, RelativeScale);
 	}
-	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, TFunction<void(AActor*)> CallbackBeforeAwake)
-	{
-		if (!IsValid(InWorld))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return nullptr;
-		}
-		if (!IsValid(InPrefab))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return nullptr;
-		}
-
-		ActorSerializer serializer;
-		serializer.TargetWorld = InWorld;
-		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
-#if !WITH_EDITOR
-		serializer.bIsEditorOrRuntime = false;
-#endif
-		serializer.bOverrideVersions = true;
-		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
-			Reader.DoSerialize(InObject);
-		};
-		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
-			LGUIPrefabSystem::FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
-			Reader.DoSerialize(InObject);
-		};
-		return serializer.DeserializeActor(Parent, InPrefab, [=, &serializer] {
-			if (InReplaceAssetMap.Num() > 0)
-			{
-				for (int i = 0; i < serializer.ReferenceAssetList.Num(); i++)
-				{
-					if (auto ReplaceAssetPtr = InReplaceAssetMap.Find(serializer.ReferenceAssetList[i]))
-					{
-						serializer.ReferenceAssetList[i] = *ReplaceAssetPtr;
-					}
-				}
-			}
-			if (InReplaceClassMap.Num() > 0)
-			{
-				for (int i = 0; i < serializer.ReferenceClassList.Num(); i++)
-				{
-					if (auto ReplaceClassPtr = InReplaceClassMap.Find(serializer.ReferenceClassList[i]))
-					{
-						serializer.ReferenceClassList[i] = *ReplaceClassPtr;
-					}
-				}
-			}
-			});
-	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, AActor* InParentLoadedRootActor
