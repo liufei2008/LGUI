@@ -44,6 +44,7 @@ public:
 	virtual bool CanRender() const override { return bIsVisible; };
 	virtual int GetRenderPriority() const override { return RenderPriority; };
 	virtual ULGUICanvas* GetCanvas()const override { return RenderCanvasPtr; }
+	virtual FVector3f GetWorldPositionForSortTranslucent()const override { return objectToWorldMatrix.GetOrigin(); }
 
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) override {};
 

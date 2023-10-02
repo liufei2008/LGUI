@@ -537,6 +537,10 @@ public:
 	}
 
 	//begin ILGUIHudPrimitive interface
+	virtual FVector3f GetWorldPositionForSortTranslucent()const override 
+	{
+		return (FVector3f)(GetLocalToWorld().GetOrigin()); 
+	}
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
 		if (!IsSupportLGUIRenderer)return;
