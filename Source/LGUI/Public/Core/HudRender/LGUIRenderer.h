@@ -73,7 +73,8 @@ public:
 	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	void SortScreenAndWorldSpacePrimitiveRenderPriority();
+	void SortScreenSpacePrimitiveRenderPriority();
+	void SortWorldSpacePrimitiveRenderPriority();
 	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 
 	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);

@@ -914,7 +914,6 @@ void ALGUIManagerActor::BeginPlay()
 {
 	Super::BeginPlay();
 #if WITH_EDITORONLY_DATA
-	bIsPlaying = true;
 	//only show in play mode
 	bListedInSceneOutliner = true;
 #endif
@@ -965,9 +964,6 @@ void ALGUIManagerActor::BeginDestroy()
 		ScreenSpaceOverlayViewExtension.Reset();
 	}
 	Super::BeginDestroy();
-#if WITH_EDITORONLY_DATA
-	bIsPlaying = false;
-#endif
 	if (onCultureChangedDelegateHandle.IsValid())
 	{
 		FInternationalization::Get().OnCultureChanged().Remove(onCultureChangedDelegateHandle);
@@ -1124,7 +1120,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 #if WITH_EDITOR
 	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto& item : AllCanvasArray)
+	for (auto& item : ScreenSpaceCanvasArray)
 	{
 		if (item.IsValid())
 		{
@@ -1160,22 +1156,25 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	//update drawcall
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateCanvas);
-		for (auto& item : AllCanvasArray)
-		{
-			if (item.IsValid())
+		auto UpdateCanvas = [](TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray) {
+			for (auto& item : InCanvasArray)
 			{
-				item->UpdateRootCanvas();
+				if (item.IsValid())
+				{
+					item->UpdateRootCanvas();
+				}
 			}
-		}
+		};
+		UpdateCanvas(ScreenSpaceCanvasArray);
+		UpdateCanvas(WorldSpaceUECanvasArray);
+		UpdateCanvas(WorldSpaceLGUICanvasArray);
+		UpdateCanvas(RenderTargetSpaceLGUICanvasArray);
 	}
 
 	//sort render order
-	if (AllCanvasArray.Num() > 0)
 	{
-		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
-		{
-			//@todo: no need to sort all canvas
-			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+		auto SortCanvas = [](TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray) {
+			InCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
 					auto ASortOrder = A->GetActualSortOrder();
 					auto BSortOrder = B->GetActualSortOrder();
@@ -1188,39 +1187,51 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 					}
 					return ASortOrder < BSortOrder;
 				});
-		}
-		if (bShouldSortLGUIRenderer)
+		};
+		if (bShouldSortScreenSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->AllCanvasArray);
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->AllCanvasArray);
+			bShouldSortScreenSpaceCanvas = false;
+			SortCanvas(ScreenSpaceCanvasArray);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->ScreenSpaceCanvasArray);
 			if (ScreenSpaceOverlayViewExtension.IsValid())
 			{
-				ScreenSpaceOverlayViewExtension->SortScreenAndWorldSpacePrimitiveRenderPriority();
+				ScreenSpaceOverlayViewExtension->MarkNeedToSortScreenSpacePrimitiveRenderPriority();
 			}
-			bShouldSortLGUIRenderer = false;
+		}
+		if (bShouldSortWorldSpaceLGUICanvas)
+		{
+			bShouldSortWorldSpaceLGUICanvas = false;
+			SortCanvas(WorldSpaceLGUICanvasArray);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->WorldSpaceLGUICanvasArray);
+			if (ScreenSpaceOverlayViewExtension.IsValid())
+			{
+				ScreenSpaceOverlayViewExtension->MarkNeedToSortWorldSpacePrimitiveRenderPriority();
+			}
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, this->AllCanvasArray);
 			bShouldSortWorldSpaceCanvas = false;
+			SortCanvas(WorldSpaceUECanvasArray);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, this->WorldSpaceUECanvasArray);
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
-			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, this->AllCanvasArray);
 			bShouldSortRenderTargetSpaceCanvas = false;
+			SortCanvas(RenderTargetSpaceLGUICanvasArray);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, this->RenderTargetSpaceLGUICanvasArray);
 		}
 	}
 }
 
-void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InAllCanvasArray)
+void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray)
 {
-	if (InRenderMode == ELGUIRenderMode::WorldSpace)
+	if (InRenderMode == ELGUIRenderMode::WorldSpace || InRenderMode == ELGUIRenderMode::WorldSpace_LGUI)
 	{
 		int32 RenderPriority = 0;
-		for (int i = 0; i < InAllCanvasArray.Num(); i++)
+		for (int i = 0; i < InCanvasArray.Num(); i++)
 		{
-			auto canvasItem = InAllCanvasArray[i];
-			if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && canvasItem->GetActualRenderMode() == InRenderMode)
+			auto canvasItem = InCanvasArray[i];
+			if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
 			{
 				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
 				{
@@ -1234,10 +1245,10 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, c
 	else
 	{
 		int32 RenderPriority = 0;
-		for (int i = 0; i < InAllCanvasArray.Num(); i++)
+		for (int i = 0; i < InCanvasArray.Num(); i++)
 		{
-			auto canvasItem = InAllCanvasArray[i];
-			if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && canvasItem->GetActualRenderMode() == InRenderMode)
+			auto canvasItem = InCanvasArray[i];
+			if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
 			{
 				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
 				{
@@ -1526,17 +1537,7 @@ void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
 	}
 }
 
-void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
-{
-	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
-	{
-#if !UE_BUILD_SHIPPING
-		check(Instance->AllCanvasArray.Contains(InCanvas));
-#endif
-		Instance->AllCanvasArray.RemoveSingle(InCanvas);
-	}
-}
-void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
+void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
@@ -1544,11 +1545,100 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 		check(!Instance->AllCanvasArray.Contains(InCanvas));
 #endif
 		Instance->AllCanvasArray.AddUnique(InCanvas);
+
+		if (InCurrentRenderMode != ELGUIRenderMode::None)//none means canvas's property not ready yet, so no need to collect it, because it will be collected in "CanvasRenderModeChange" function
+		{
+			switch (InCurrentRenderMode)
+			{
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+				Instance->ScreenSpaceCanvasArray.Add(InCanvas);
+				break;
+			case ELGUIRenderMode::WorldSpace:
+				Instance->WorldSpaceUECanvasArray.Add(InCanvas);
+				break;
+			case ELGUIRenderMode::WorldSpace_LGUI:
+				Instance->WorldSpaceLGUICanvasArray.Add(InCanvas);
+				break;
+			case ELGUIRenderMode::RenderTarget:
+				Instance->RenderTargetSpaceLGUICanvasArray.Add(InCanvas);
+				break;
+			}
+		}
 	}
 }
-void ALGUIManagerActor::MarkSortLGUIRenderer()
+void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
 {
-	bShouldSortLGUIRenderer = true;
+	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
+	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->AllCanvasArray.Contains(InCanvas));
+#endif
+		Instance->AllCanvasArray.RemoveSingle(InCanvas);
+		switch (InCurrentRenderMode)
+		{
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+			Instance->ScreenSpaceCanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace:
+			Instance->WorldSpaceUECanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace_LGUI:
+			Instance->WorldSpaceLGUICanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::RenderTarget:
+			Instance->RenderTargetSpaceLGUICanvasArray.Remove(InCanvas);
+			break;
+		}
+	}
+}
+void ALGUIManagerActor::CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRenderMode InOldRenderMode, ELGUIRenderMode InNewRenderMode)
+{
+	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
+	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->AllCanvasArray.Contains(InCanvas));
+#endif
+		//remove from old
+		switch (InOldRenderMode)
+		{
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+			Instance->ScreenSpaceCanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace:
+			Instance->WorldSpaceUECanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace_LGUI:
+			Instance->WorldSpaceLGUICanvasArray.Remove(InCanvas);
+			break;
+		case ELGUIRenderMode::RenderTarget:
+			Instance->RenderTargetSpaceLGUICanvasArray.Remove(InCanvas);
+			break;
+		}
+		//add to new
+		switch (InNewRenderMode)
+		{
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+			Instance->ScreenSpaceCanvasArray.Add(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace:
+			Instance->WorldSpaceUECanvasArray.Add(InCanvas);
+			break;
+		case ELGUIRenderMode::WorldSpace_LGUI:
+			Instance->WorldSpaceLGUICanvasArray.Add(InCanvas);
+			break;
+		case ELGUIRenderMode::RenderTarget:
+			Instance->RenderTargetSpaceLGUICanvasArray.Add(InCanvas);
+			break;
+		}
+	}
+}
+void ALGUIManagerActor::MarkSortScreenSpaceCanvas()
+{
+	bShouldSortScreenSpaceCanvas = true;
+}
+void ALGUIManagerActor::MarkSortWorldSpaceLGUICanvas()
+{
+	bShouldSortWorldSpaceLGUICanvas = true;
 }
 void ALGUIManagerActor::MarkSortWorldSpaceCanvas()
 {
@@ -1681,17 +1771,6 @@ void ALGUIManagerActor::MarkUpdateLayout(UWorld* InWorld)
 		Instance->bNeedUpdateLayout = true;
 	}
 }
-
-#if WITH_EDITOR
-bool ALGUIManagerActor::GetIsPlaying(UWorld* InWorld)
-{
-	if (auto Instance = GetInstance(InWorld, false))
-	{
-		return Instance->bIsPlaying;
-	}
-	return false;
-}
-#endif
 
 
 void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)

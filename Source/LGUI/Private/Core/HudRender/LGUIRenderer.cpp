@@ -115,7 +115,7 @@ bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionConte
 #if WITH_EDITOR
 	if (GEngine == nullptr) return false;
 	bCanRenderScreenSpace = true;
-	bIsPlaying = ALGUIManagerActor::GetIsPlaying(World.Get());
+	bIsPlaying = World.Get()->IsGameWorld();
 	//check if simulation
 	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
 	{
@@ -1075,17 +1075,27 @@ void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority_RenderThread()
 		});
 }
 
-void FLGUIHudRenderer::SortScreenAndWorldSpacePrimitiveRenderPriority()
+void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority()
+{
+	auto viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortScreenAndWorldSpacePrimitiveRenderPriority)(
+		[viewExtension](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->SortScreenSpacePrimitiveRenderPriority_RenderThread();
+		}
+	);
+}
+void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority()
 {
 	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortScreenAndWorldSpacePrimitiveRenderPriority)(
 		[viewExtension](FRHICommandListImmediate& RHICmdList)
 		{
 			viewExtension->SortWorldSpacePrimitiveRenderPriority_RenderThread();
-			viewExtension->SortScreenSpacePrimitiveRenderPriority_RenderThread();
 		}
 	);
 }
+
 void FLGUIHudRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
 {
 	auto viewExtension = this;
