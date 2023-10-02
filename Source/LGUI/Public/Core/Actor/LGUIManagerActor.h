@@ -119,6 +119,7 @@ struct FLGUILifeCycleBehaviourArrayContainer
 };
 
 class ILGUICultureChangedInterface;
+enum class ELGUIRenderMode : uint8;
 
 UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ALGUIManagerActor : public AActor
@@ -127,9 +128,6 @@ class LGUI_API ALGUIManagerActor : public AActor
 private:
 	static TMap<UWorld*, ALGUIManagerActor*> WorldToInstanceMap;
 	bool bExistInInstanceMap = false;
-#if WITH_EDITORONLY_DATA
-	bool bIsPlaying = false;
-#endif
 public:	
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	static const TMap<UWorld*, ALGUIManagerActor*>& GetWorldToInstanceMap() { return WorldToInstanceMap; }
@@ -143,6 +141,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<ULGUICanvas>> ScreenSpaceCanvasArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<ULGUICanvas>> WorldSpaceUECanvasArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<ULGUICanvas>> WorldSpaceLGUICanvasArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<ULGUICanvas>> RenderTargetSpaceLGUICanvasArray;
+
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBaseRaycaster>> AllRaycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TWeakObjectPtr<ULGUIBaseInputModule> CurrentInputModule = nullptr;
@@ -155,7 +162,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UObject>> AllCultureChangedArray;
 
-	bool bShouldSortLGUIRenderer = true;
+	bool bShouldSortScreenSpaceCanvas = true;
+	bool bShouldSortWorldSpaceLGUICanvas = true;
 	bool bShouldSortWorldSpaceCanvas = true;
 	bool bShouldSortRenderTargetSpaceCanvas = true;
 
@@ -195,13 +203,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(WorldContext = "WorldContextObject"))
 	static void ForceUpdateLayout(UObject* WorldContextObject);
 
-	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void RemoveCanvas(ULGUICanvas* InCanvas);
+	static void AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);
+	static void RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);
+	static void CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRenderMode InOldRenderMode, ELGUIRenderMode InNewRenderMode);
 	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return AllCanvasArray; };
-	void MarkSortLGUIRenderer();
+	void MarkSortScreenSpaceCanvas();
+	void MarkSortWorldSpaceLGUICanvas();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
-	static void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InAllCanvasArray);
+	static void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray);
 
 	const TArray<TWeakObjectPtr<UObject>>& GetAllLayoutArray()const { return AllLayoutArray; }
 
@@ -225,7 +235,6 @@ public:
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	static void MarkUpdateLayout(UWorld* InWorld);
 #if WITH_EDITOR
-	static bool GetIsPlaying(UWorld* InWorld);
 	static void DrawFrameOnUIItem(UUIItem* InItem, bool IsScreenSpace = false);
 	static void DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace = false);
 	static void DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace = false);

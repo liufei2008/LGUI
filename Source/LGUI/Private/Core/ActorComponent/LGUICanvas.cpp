@@ -231,7 +231,7 @@ void ULGUICanvas::OnRegister()
 		if (!bHasAddToLGUIManager)
 		{
 			bHasAddToLGUIManager = true;
-			ALGUIManagerActor::AddCanvas(this);
+			ALGUIManagerActor::AddCanvas(this, CurrentRenderMode);
 		}
 		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
@@ -247,7 +247,7 @@ void ULGUICanvas::OnUnregister()
 	if (bHasAddToLGUIManager)
 	{
 		bHasAddToLGUIManager = false;
-		ALGUIManagerActor::RemoveCanvas(this);
+		ALGUIManagerActor::RemoveCanvas(this, CurrentRenderMode);
 	}
 
 	//clear
@@ -410,6 +410,7 @@ void ULGUICanvas::CheckRenderMode()
 		//clear drawcall, delete mesh, because UE/LGUI render's mesh data not compatible
 		this->ClearDrawcall();
 
+		ALGUIManagerActor::CanvasRenderModeChange(this, OldRenderMode, CurrentRenderMode);
 		OnRenderModeChanged.Broadcast(this, OldRenderMode, CurrentRenderMode);
 	}
 
@@ -1488,8 +1489,10 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 				{
 				default:
 				case ELGUIRenderMode::ScreenSpaceOverlay:
+					Instance->MarkSortScreenSpaceCanvas();
+					break;
 				case ELGUIRenderMode::WorldSpace_LGUI:
-					Instance->MarkSortLGUIRenderer();
+					Instance->MarkSortWorldSpaceLGUICanvas();
 					break;
 				case ELGUIRenderMode::WorldSpace:
 					Instance->MarkSortWorldSpaceCanvas();
@@ -2440,8 +2443,10 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 			{
 			default:
 			case ELGUIRenderMode::ScreenSpaceOverlay:
+				Instance->MarkSortScreenSpaceCanvas();
+				break;
 			case ELGUIRenderMode::WorldSpace_LGUI:
-				Instance->MarkSortLGUIRenderer();
+				Instance->MarkSortWorldSpaceLGUICanvas();
 				break;
 			case ELGUIRenderMode::WorldSpace:
 				Instance->MarkSortWorldSpaceCanvas();
