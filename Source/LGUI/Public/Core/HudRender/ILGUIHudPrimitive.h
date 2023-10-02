@@ -38,6 +38,7 @@ public:
 	virtual int GetRenderPriority() const = 0;
 	virtual ELGUIHudPrimitiveType GetPrimitiveType()const = 0;
 	virtual class ULGUICanvas* GetCanvas()const = 0;
+	virtual FVector3f GetWorldPositionForSortTranslucent()const = 0;
 
 	//begin mesh interface
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;

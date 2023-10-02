@@ -132,7 +132,7 @@ void ULGUICanvas::UpdateRootCanvas()
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
-						ViewExtension->SetScreenSpaceRenderCanvas(this);
+						ViewExtension->SetScreenSpaceRootCanvas(this);
 						bHasAddToLGUIScreenSpaceRenderer = true;
 					}
 				}
@@ -145,7 +145,7 @@ void ULGUICanvas::UpdateRootCanvas()
 					if (IsValid(renderTarget))
 					{
 						GetRenderTargetViewExtension();
-						RenderTargetViewExtension->SetScreenSpaceRenderCanvas(this);
+						RenderTargetViewExtension->SetScreenSpaceRootCanvas(this);
 						RenderTargetViewExtension->SetRenderToRenderTarget(true);
 						bHasAddToLGUIScreenSpaceRenderer = true;
 					}
@@ -317,7 +317,7 @@ void ULGUICanvas::RemoveFromViewExtension()
 		auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
 		if (ViewExtension.IsValid())
 		{
-			ViewExtension->ClearScreenSpaceRenderCanvas();
+			ViewExtension->ClearScreenSpaceRootCanvas();
 		}
 	}
 	if (bHasSetIntialStateforLGUIWorldSpaceRenderer)
