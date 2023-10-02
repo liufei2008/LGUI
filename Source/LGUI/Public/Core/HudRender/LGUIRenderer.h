@@ -73,12 +73,12 @@ public:
 	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	void SortScreenSpacePrimitiveRenderPriority();
-	void SortWorldSpacePrimitiveRenderPriority();
+	void MarkNeedToSortScreenSpacePrimitiveRenderPriority();
+	void MarkNeedToSortWorldSpacePrimitiveRenderPriority();
 	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 
-	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
-	void ClearScreenSpaceRenderCanvas();
+	void SetScreenSpaceRootCanvas(ULGUICanvas* InCanvas);
+	void ClearScreenSpaceRootCanvas();
 
 	void SetRenderToRenderTarget(bool InValue);
 	void UpdateRenderTargetRenderer(class UTextureRenderTarget2D* InRenderTarget);
@@ -118,6 +118,8 @@ private:
 		float BlendDepth = 0.0f;
 		//depth fade effect
 		float DepthFade = 0.0f;
+		//distance to camera (sqare)
+		float DistToCamera = 100.0f;
 
 		ILGUIHudPrimitive* HudPrimitive;
 	};
@@ -130,11 +132,12 @@ private:
 		bool bEnableDepthTest = false;
 		bool bNeedSortRenderPriority = true;
 
-		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
+		TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
 	bool bNeedSortWorldSpaceRenderCanvas = true;
+	bool bNeedCheckContainsPostProcess = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
@@ -144,7 +147,7 @@ private:
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
-	void SortWorldSpacePrimitiveRenderPriority_RenderThread();
+	void SortWorldSpacePrimitiveRenderPriority_RenderThread(const FVector3f& InViewPosition);
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;

@@ -64,23 +64,23 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 
 	}
 	//screen space
-	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
+	if (ScreenSpaceRenderParameter.RootCanvas.IsValid())
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
-		auto ViewLocation = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
-		auto ViewRotationMatrix = FInverseRotationMatrix(ScreenSpaceRenderParameter.RenderCanvas->GetViewRotator()) * FMatrix(
+		auto ViewLocation = ScreenSpaceRenderParameter.RootCanvas->GetViewLocation();
+		auto ViewRotationMatrix = FInverseRotationMatrix(ScreenSpaceRenderParameter.RootCanvas->GetViewRotator()) * FMatrix(
 			FPlane(0, 0, 1, 0),
 			FPlane(1, 0, 0, 0),
 			FPlane(0, 1, 0, 0),
 			FPlane(0, 0, 0, 1));
-		auto ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
-		auto ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
+		auto ProjectionMatrix = ScreenSpaceRenderParameter.RootCanvas->GetProjectionMatrix();
+		auto ViewProjectionMatrix = ScreenSpaceRenderParameter.RootCanvas->GetViewProjectionMatrix();
 
 		ScreenSpaceRenderParameter.ViewOrigin = ViewLocation;
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = FMatrix44f(ViewProjectionMatrix);
-		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RenderCanvas->GetEnableDepthTest();
+		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RootCanvas->GetEnableDepthTest();
 	}
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
@@ -392,6 +392,12 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
 
+		if (bNeedCheckContainsPostProcess)
+		{
+			bNeedCheckContainsPostProcess = false;
+			CheckContainsPostProcess_RenderThread();
+		}
+
 		if (bNeedOriginScreenColorTextureOnPostProcess)
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_ShaderResource, false));
@@ -458,14 +464,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	const float EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
 	float GammaValue =
 		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
+
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
-		if (bNeedSortWorldSpaceRenderCanvas)
-		{
-			bNeedSortWorldSpaceRenderCanvas = false;
-			SortWorldSpacePrimitiveRenderPriority_RenderThread();
-		}
 		//use a copied view. 
 		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
 		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
@@ -489,6 +491,12 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		);
 
 		RenderView->ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
+
+		//if (bNeedSortWorldSpaceRenderCanvas)//@todo: mark dirty when need to
+		{
+			bNeedSortWorldSpaceRenderCanvas = false;
+			SortWorldSpacePrimitiveRenderPriority_RenderThread((FVector3f)RenderView->ViewMatrices.GetViewOrigin());
+		}
 
 		//process visibility. Can only tell visibility from mesh by PrimitiveComponentId, so what about postprocess? Just add an invisible mesh (sprite, texture, text)
 		TMap<ULGUICanvas*, bool> CanvasVisibilityMap;
@@ -1007,8 +1015,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
 		bNeedSortWorldSpaceRenderCanvas = true;
-		//check if we have postprocess
-		CheckContainsPostProcess_RenderThread();
+		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1029,8 +1036,7 @@ void FLGUIHudRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCan
 		else
 		{
 			WorldSpaceRenderCanvasParameterArray.RemoveAt(existIndex);
-			//check if we have postprocess
-			CheckContainsPostProcess_RenderThread();
+			bNeedCheckContainsPostProcess = true;
 		}
 	}
 	else
@@ -1044,7 +1050,7 @@ void FLGUIHudRenderer::AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* I
 	{
 		ScreenSpaceRenderParameter.HudPrimitiveArray.AddUnique(InPrimitive);
 		ScreenSpaceRenderParameter.bNeedSortRenderPriority = true;
-		CheckContainsPostProcess_RenderThread();
+		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1056,7 +1062,7 @@ void FLGUIHudRenderer::RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive
 	if (InPrimitive != nullptr)
 	{
 		ScreenSpaceRenderParameter.HudPrimitiveArray.RemoveSingle(InPrimitive);
-		CheckContainsPostProcess_RenderThread();
+		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1070,30 +1076,41 @@ void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 			return A.GetRenderPriority() < B.GetRenderPriority();
 		});
 }
-void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority_RenderThread()
+void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority_RenderThread(const FVector3f& InViewPosition)
 {
-	WorldSpaceRenderCanvasParameterArray.Sort([](const FWorldSpaceRenderParameter& A, const FWorldSpaceRenderParameter& B) {
+	for (auto& Item : WorldSpaceRenderCanvasParameterArray)
+	{
+		Item.DistToCamera = FVector3f::DistSquared(InViewPosition, Item.HudPrimitive->GetWorldPositionForSortTranslucent());
+	}
+	WorldSpaceRenderCanvasParameterArray.Sort([InViewPosition](const FWorldSpaceRenderParameter& A, const FWorldSpaceRenderParameter& B) {
+		if (A.HudPrimitive->GetRenderPriority() == B.HudPrimitive->GetRenderPriority())
+		{
+			return A.DistToCamera > B.DistToCamera;
+		}
+		else
+		{
 			return A.HudPrimitive->GetRenderPriority() < B.HudPrimitive->GetRenderPriority();
+		}
 		});
 }
 
-void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority()
+void FLGUIHudRenderer::MarkNeedToSortScreenSpacePrimitiveRenderPriority()
 {
-	auto viewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortScreenAndWorldSpacePrimitiveRenderPriority)(
-		[viewExtension](FRHICommandListImmediate& RHICmdList)
+	auto ViewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[ViewExtension](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->SortScreenSpacePrimitiveRenderPriority_RenderThread();
+			ViewExtension->ScreenSpaceRenderParameter.bNeedSortRenderPriority = true;
 		}
 	);
 }
-void FLGUIHudRenderer::SortWorldSpacePrimitiveRenderPriority()
+void FLGUIHudRenderer::MarkNeedToSortWorldSpacePrimitiveRenderPriority()
 {
-	auto viewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortScreenAndWorldSpacePrimitiveRenderPriority)(
-		[viewExtension](FRHICommandListImmediate& RHICmdList)
+	auto ViewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[ViewExtension](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->SortWorldSpacePrimitiveRenderPriority_RenderThread();
+			ViewExtension->bNeedSortWorldSpaceRenderCanvas = true;
 		}
 	);
 }
@@ -1121,13 +1138,13 @@ void FLGUIHudRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRend
 	}
 }
 
-void FLGUIHudRenderer::SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas)
+void FLGUIHudRenderer::SetScreenSpaceRootCanvas(ULGUICanvas* InCanvas)
 {
-	ScreenSpaceRenderParameter.RenderCanvas = InCanvas;
+	ScreenSpaceRenderParameter.RootCanvas = InCanvas;
 }
-void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
+void FLGUIHudRenderer::ClearScreenSpaceRootCanvas()
 {
-	ScreenSpaceRenderParameter.RenderCanvas = nullptr;
+	ScreenSpaceRenderParameter.RootCanvas = nullptr;
 }
 
 void FLGUIHudRenderer::SetRenderToRenderTarget(bool InValue)
