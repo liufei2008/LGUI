@@ -341,6 +341,7 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 		if (ParentCanvas.IsValid())
 		{
 			ParentCanvas->ChildrenCanvasArray.Remove(this);
+			this->DrawcallAsChildCanvas = nullptr;
 			ParentCanvas->UIRenderableList.Remove(this->UIItem.Get());
 			ParentCanvas->MarkCanvasUpdate(false, false, true, true);
 		}
@@ -955,18 +956,21 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				DrawcallItem->VerticesCount = InItemGeo->vertices.Num();
 				DrawcallItem->IndicesCount = InItemGeo->triangles.Num();
 				DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
+				DrawcallItem->DrawcallMesh = UIMesh;
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
 			{
 				DrawcallItem = MakeShared<UUIDrawcall>(InDrawcallType);
 				DrawcallItem->PostProcessRenderableObject = (UUIPostProcessRenderable*)InUIItem;
+				DrawcallItem->DrawcallMesh = UIMesh;
 			}
 			break;
 			case EUIDrawcallType::DirectMesh:
 			{
 				DrawcallItem = MakeShared<UUIDrawcall>(InDrawcallType);
 				DrawcallItem->DirectMeshRenderableObject = (UUIDirectMeshRenderable*)InUIItem;
+				DrawcallItem->DrawcallMesh = UIMesh;
 			}
 			break;
 			}
