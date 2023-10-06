@@ -64,6 +64,7 @@ namespace LGUIPrefabSystem
 		if (ObjectIsTrash(Object))return false;
 #endif
 		if (Object->IsEditorOnly() && !bIsEditorOrRuntime)return false;
+		if (Object->GetClass()->IsChildOf(UActorComponent::StaticClass()) && ((UActorComponent*)Object)->IsVisualizationComponent())return false;//skip visualization component
 		if (!Object->IsAsset()//skip asset, because asset is referenced directly
 			&& Object->GetWorld() == TargetWorld
 			&& IsValid(Object)
