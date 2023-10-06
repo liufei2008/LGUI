@@ -8,26 +8,26 @@
 #include "Engine/Texture2D.h"
 #include "MeshMaterialShader.h"
 
-class FLGUIHudRenderVS :public FMaterialShader
+class FLGUIScreenRenderVS :public FMaterialShader
 {
 public:
-	DECLARE_SHADER_TYPE(FLGUIHudRenderVS, Material);
+	DECLARE_SHADER_TYPE(FLGUIScreenRenderVS, Material);
 
-	FLGUIHudRenderVS() {}
-	FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	FLGUIScreenRenderVS() {}
+	FLGUIScreenRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
 
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 	static bool ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters);
 	
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
 };
-class FLGUIHudRenderPS : public FMaterialShader
+class FLGUIScreenRenderPS : public FMaterialShader
 {
 public:
-	DECLARE_SHADER_TYPE(FLGUIHudRenderPS, Material);
+	DECLARE_SHADER_TYPE(FLGUIScreenRenderPS, Material);
 
-	FLGUIHudRenderPS() {}
-	FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	FLGUIScreenRenderPS() {}
+	FLGUIScreenRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
 	static bool ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters);
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 
@@ -37,7 +37,7 @@ private:
 	LAYOUT_FIELD(FShaderParameter, LGUIGammaValuesParameter);
 };
 
-class FLGUIWorldRenderPS : public FLGUIHudRenderPS
+class FLGUIWorldRenderPS : public FLGUIScreenRenderPS
 {
 public:
 	DECLARE_SHADER_TYPE(FLGUIWorldRenderPS, Material);

@@ -49,7 +49,6 @@ void UUIDrawcall::CopyUpdateState(UUIDrawcall* Target)
 	if (bTextureChanged)Target->bTextureChanged = true;
 	if (bNeedToUpdateVertex)Target->bNeedToUpdateVertex = true;
 	if (bVertexPositionChanged)Target->bVertexPositionChanged = true;
-	if (bNeedToAddPostProcessRenderProxyToRender)Target->bNeedToAddPostProcessRenderProxyToRender = true;
 }
 
 bool UUIDrawcall::CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount)

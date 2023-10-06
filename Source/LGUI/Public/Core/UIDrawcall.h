@@ -15,7 +15,7 @@ class UUIItem;
 class UUIBatchGeometryRenderable;
 class UUIDirectMeshRenderable;
 class ULGUIMeshComponent;
-struct FLGUIMeshSection;
+struct FLGUIRenderSection;
 
 enum class EUIDrawcallType :uint8
 {
@@ -47,7 +47,7 @@ public:
 	TWeakObjectPtr<UMaterialInterface> Material = nullptr;//drawcall use this material to render, can be null to use default material
 	TWeakObjectPtr<UMaterialInterface> RenderMaterial = nullptr;//material that render this drawcall
 	TWeakObjectPtr<ULGUIMeshComponent> DrawcallMesh = nullptr;//mesh for render this drawcall
-	TWeakPtr<FLGUIMeshSection> DrawcallMeshSection = nullptr;//section of mesh which render this drawcall
+	TWeakPtr<FLGUIRenderSection> DrawcallRenderSection = nullptr;//section of mesh which render this drawcall
 
 	bool bMaterialContainsLGUIParameter = false;//if Material contains LGUI's parameter, then a MaterialInstanceDynamic will be created and stored as RenderMaterial, other wise RenderMaterial is same as Material
 	bool bMaterialChanged = true;
@@ -59,7 +59,6 @@ public:
 	bool bVertexPositionChanged = true;//if vertex position changed? use for update bounds
 
 	TWeakObjectPtr<UUIPostProcessRenderable> PostProcessRenderableObject;//post process object
-	bool bNeedToAddPostProcessRenderProxyToRender = true;//this parameter is needed when: post process object have added to render before (means PostProcessRenderProxy is already created) and then removed, and now add to render again, so this will be true by default newly created drawcall
 
 	TWeakObjectPtr<UUIDirectMeshRenderable> DirectMeshRenderableObject;
 

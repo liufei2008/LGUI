@@ -8,34 +8,67 @@
 #include "DynamicMeshBuilder.h"
 #include "LGUIMeshComponent.generated.h"
 
-class FLGUIMeshProxySection;
-struct FLGUIMeshSection
+struct FLGUIRenderSectionProxy;
+struct FLGUIMeshSectionProxy;
+struct FLGUIPostProcessSectionProxy;
+struct FLGUIChildCanvasSectionProxy;
+
+enum class ELGUIRenderSectionType :uint8
 {
+	Mesh, PostProcess, ChildCanvas,
+};
+struct FLGUIRenderSection
+{
+	ELGUIRenderSectionType Type;
+	int renderPriority = 0;
+	FLGUIRenderSectionProxy* RenderProxy = nullptr;
+};
+struct FLGUIMeshSection : public FLGUIRenderSection
+{
+	FLGUIMeshSection() 
+	{
+		Type = ELGUIRenderSectionType::Mesh; 
+	}
+	virtual ~FLGUIMeshSection()
+	{
+
+	}
+
 	TArray<FLGUIMeshIndexBufferType> triangles;
 	TArray<FLGUIMeshVertex> vertices;
 
 	int prevVertexCount = 0;
 	int prevIndexCount = 0;
 
-	FLGUIMeshProxySection* renderProxy = nullptr;
 	UMaterialInterface* material = nullptr;
-
-	bool bSectionVisible = true;
-	int renderPriority = 0;
-
-	FLGUIMeshSection(){}
 
 	void Reset()
 	{
 		vertices.Reset();
 		triangles.Reset();
-
-		bSectionVisible = true;
 	}
 };
+struct FLGUIPostProcessSection : public FLGUIRenderSection
+{
+	FLGUIPostProcessSection()
+	{
+		Type = ELGUIRenderSectionType::PostProcess;
+	}
 
-class FLGUIHudRenderer;
-class ILGUIHudPrimitive;
+	TWeakPtr<class FUIPostProcessRenderProxy> PostProcessRenderProxy = nullptr;
+};
+struct FLGUIChildCanvasSection : public FLGUIRenderSection
+{
+	FLGUIChildCanvasSection()
+	{
+		Type = ELGUIRenderSectionType::ChildCanvas;
+	}
+
+	class ULGUIMeshComponent* ChildCanvasMeshComponent = nullptr;
+};
+
+class FLGUIRenderer;
+class ILGUIRendererPrimitive;
 class ULGUICanvas;
 
 //LGUI's mesh
@@ -47,22 +80,22 @@ class LGUI_API ULGUIMeshComponent : public UMeshComponent
 
 public:
 	ULGUIMeshComponent();
-	void CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection);
-	void UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags);
-	void DeleteMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection);
-	void ClearAllMeshSection();
-	TSharedPtr<FLGUIMeshSection> GetMeshSection();
-	void SetMeshSectionRenderPriority(TSharedPtr<FLGUIMeshSection> InMeshSection, int32 InSortPriority);
-	void SortMeshSectionRenderPriority();
-	void SetMeshSectionMaterial(TSharedPtr<FLGUIMeshSection> InMeshSection, UMaterialInterface* InMaterial);
+	void CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSection> InRenderSection);
+	void UpdateMeshSectionRenderData(TSharedPtr<FLGUIRenderSection> InRenderSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags);
+	void UpdateChildCanvasSectionRenderData(TSharedPtr<FLGUIRenderSection> InRenderSection);
+	void DeleteRenderSection(TSharedPtr<FLGUIRenderSection> InRenderSection);
+	TSharedPtr<FLGUIRenderSection> CreateRenderSection(ELGUIRenderSectionType type);
+	void SetRenderSectionRenderPriority(TSharedPtr<FLGUIRenderSection> InRenderSection, int32 InSortPriority);
+	void SortRenderSectionRenderPriority();
+	void SetMeshSectionMaterial(TSharedPtr<FLGUIRenderSection> InMeshSection, UMaterialInterface* InMaterial);
 
-	void SetMeshSectionVisibility(bool bNewVisibility, int InSectionIndex);
-	bool IsMeshSectionVisible(int InSectionIndex) const;
-
-	void SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas, bool InIsRenderToWorld);
+	void SetRenderCanvas(ULGUICanvas* InCanvas);
+	void SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> HudRenderer, bool InIsRenderToWorld);
 	void SetSupportUERenderer(bool supportOrNot);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
+
+	void VarifyMaterials();
 
 	//~ Begin UPrimitiveComponent Interface.
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -73,8 +106,7 @@ public:
 	//~ End UMeshComponent Interface.
 
 private:
-	TArray<TSharedPtr<FLGUIMeshSection>> MeshSections;
-	TArray<TSharedPtr<FLGUIMeshSection>> PooledMeshSections;
+	TArray<TSharedPtr<FLGUIRenderSection>> RenderSections;
 	//~ Begin USceneComponent Interface.
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	//~ Begin USceneComponent Interface.
@@ -84,13 +116,18 @@ private:
 
 	virtual void DestroyRenderState_Concurrent()override;
 
-	friend class FLGUIMeshSceneProxy;
+	friend class FLGUIRenderSceneProxy;
 
 protected:
-	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
+	TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	bool IsLGUIRenderToWorld = false;//LGUI renderer render to world or screen
 	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	bool IsSupportUERenderer = true;
+
+public:
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMeshSceneProxyCreateDeleteDelegate, ULGUIMeshComponent*, FLGUIRenderSceneProxy*);
+	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyCreated;
+	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyDeleted_RenderThread;
 };
 
 

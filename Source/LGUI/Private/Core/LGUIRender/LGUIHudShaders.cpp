@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/HudRender/LGUIHudShaders.h"
+#include "Core/LGUIRender/LGUIShaders.h"
 #include "LGUI.h"
 #include "PipelineStateCache.h"
 #include "Materials/Material.h"
@@ -8,22 +8,22 @@
 #include "PrimitiveUniformShaderParameters.h"
 #include "MeshBatch.h"
 
-IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderVS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainVS"), SF_Vertex);
-IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
-IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderDepthFadePS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
+IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderVS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainVS"), SF_Vertex);
+IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);
+IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);
+IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderDepthFadePS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);
 
 
-FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
+FLGUIScreenRenderVS::FLGUIScreenRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	: FMaterialShader(Initializer)
 {
 	
 }
-bool FLGUIHudRenderVS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
+bool FLGUIScreenRenderVS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
 	return true;
 }
-void FLGUIHudRenderVS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+void FLGUIScreenRenderVS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 {
 	FMaterialShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
@@ -31,7 +31,7 @@ void FLGUIHudRenderVS::ModifyCompilationEnvironment(const FMaterialShaderPermuta
 	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
 	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
-void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
+void FLGUIScreenRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
 	SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
@@ -42,16 +42,16 @@ void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 
 
 
-FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
+FLGUIScreenRenderPS::FLGUIScreenRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FMaterialShader(Initializer)
 {
 	LGUIGammaValuesParameter.Bind(Initializer.ParameterMap, TEXT("_LGUIGammaValues"));
 }
-bool FLGUIHudRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
+bool FLGUIScreenRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
 	return true;
 }
-void FLGUIHudRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+void FLGUIScreenRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 {
 	FMaterialShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
@@ -59,7 +59,7 @@ void FLGUIHudRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermuta
 	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
 	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
-void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
+void FLGUIScreenRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
 	SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
@@ -67,7 +67,7 @@ void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 	RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	FMaterialShader::SetParameters(RHICmdList, RHICmdList.GetBoundPixelShader(), MaterialRenderProxy, *Material, View);
 }
-void FLGUIHudRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float value)
+void FLGUIScreenRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float value)
 {
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
 	FVector4f GammaValues(2.2f / value, 1.0f / value, 0.0f, 0.0f);
@@ -77,7 +77,7 @@ void FLGUIHudRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float value)
 
 
 FLGUIWorldRenderPS::FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
-	:FLGUIHudRenderPS(Initializer)
+	:FLGUIScreenRenderPS(Initializer)
 {
 	SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 	SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
@@ -87,7 +87,7 @@ FLGUIWorldRenderPS::FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShader
 void FLGUIWorldRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 {
 	OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
-	FLGUIHudRenderPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	FLGUIScreenRenderPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 }
 void FLGUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler)
 {
