@@ -482,23 +482,35 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 		TSet<TTuple<int, UClass*>> ReplacedClasses;
 		if (InReplaceAssetMap.Num() > 0)
 		{
-			for (int i = 0; i < ReferenceAssetList.Num(); i++)
+			auto& List =
+#if WITH_EDITOR
+				ReferenceAssetList;
+#else
+				ReferenceAssetListForBuild;
+#endif
+			for (int i = 0; i < List.Num(); i++)
 			{
-				if (auto ReplaceAssetPtr = InReplaceAssetMap.Find(ReferenceAssetList[i]))
+				if (auto ReplaceAssetPtr = InReplaceAssetMap.Find(List[i]))
 				{
-					ReplacedAssets.Add({ i, ReferenceAssetList[i] });
-					ReferenceAssetList[i] = *ReplaceAssetPtr;
+					ReplacedAssets.Add({ i, List[i] });
+					List[i] = *ReplaceAssetPtr;
 				}
 			}
 		}
 		if (InReplaceClassMap.Num() > 0)
 		{
-			for (int i = 0; i < ReferenceClassList.Num(); i++)
+			auto& List =
+#if WITH_EDITOR
+				ReferenceClassList;
+#else
+				ReferenceClassListForBuild;
+#endif
+			for (int i = 0; i < List.Num(); i++)
 			{
-				if (auto ReplaceClassPtr = InReplaceClassMap.Find(ReferenceClassList[i]))
+				if (auto ReplaceClassPtr = InReplaceClassMap.Find(List[i]))
 				{
-					ReplacedClasses.Add({ i, ReferenceClassList[i] });
-					ReferenceClassList[i] = *ReplaceClassPtr;
+					ReplacedClasses.Add({ i, List[i] });
+					List[i] = *ReplaceClassPtr;
 				}
 			}
 		}
@@ -521,16 +533,28 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 #endif
 		if (ReplacedAssets.Num() > 0)
 		{
+			auto& List =
+#if WITH_EDITOR
+				ReferenceAssetList;
+#else
+				ReferenceAssetListForBuild;
+#endif
 			for (auto& Item : ReplacedAssets)
 			{
-				ReferenceAssetList[Item.Key] = Item.Value;
+				List[Item.Key] = Item.Value;
 			}
 		}
 		if (ReplacedClasses.Num() > 0)
 		{
+			auto& List =
+#if WITH_EDITOR
+				ReferenceClassList;
+#else
+				ReferenceClassListForBuild;
+#endif
 			for (auto& Item : ReplacedClasses)
 			{
-				ReferenceClassList[Item.Key] = Item.Value;
+				List[Item.Key] = Item.Value;
 			}
 		}
 	}
