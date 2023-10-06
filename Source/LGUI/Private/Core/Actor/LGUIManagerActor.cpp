@@ -16,7 +16,7 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Engine/Engine.h"
-#include "Core/HudRender/LGUIRenderer.h"
+#include "Core/LGUIRender/LGUIRenderer.h"
 #include "Core/ILGUICultureChangedInterface.h"
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "Layout/ILGUILayoutInterface.h"
@@ -1225,37 +1225,14 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray)
 {
-	if (InRenderMode == ELGUIRenderMode::WorldSpace || InRenderMode == ELGUIRenderMode::WorldSpace_LGUI)
+	for (int i = 0; i < InCanvasArray.Num(); i++)
 	{
-		int32 RenderPriority = 0;
-		for (int i = 0; i < InCanvasArray.Num(); i++)
+		auto canvasItem = InCanvasArray[i];
+		if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
 		{
-			auto canvasItem = InCanvasArray[i];
-			if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
+			if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
 			{
-				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
-				{
-					//ue render need to set RenderPriority, because multiple canvas with same sort order need to sort by distance.
-					RenderPriority = canvasItem->GetActualSortOrder();
-					canvasItem->SortDrawcall(RenderPriority);
-				}
-			}
-		}
-	}
-	else
-	{
-		int32 RenderPriority = 0;
-		for (int i = 0; i < InCanvasArray.Num(); i++)
-		{
-			auto canvasItem = InCanvasArray[i];
-			if (canvasItem.IsValid() && canvasItem->GetIsUIActive())
-			{
-				if (canvasItem->IsRootCanvas() || canvasItem->GetOverrideSorting())
-				{
-					//lgui render no need to set RenderPriority
-					//RenderPriority = canvasItem->GetActualSortOrder();
-					canvasItem->SortDrawcall(RenderPriority);
-				}
+				canvasItem->SortDrawcall();
 			}
 		}
 	}
@@ -1649,7 +1626,7 @@ void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
 	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
-TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
+TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
 {
 	if (auto Instance = GetInstance(InWorld, InCreateIfNotExist))
 	{
@@ -1657,7 +1634,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetVi
 		{
 			if (InCreateIfNotExist)
 			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld);
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIRenderer>(InWorld);
 			}
 		}
 		return Instance->ScreenSpaceOverlayViewExtension;

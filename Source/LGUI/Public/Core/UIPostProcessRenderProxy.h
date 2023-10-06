@@ -4,8 +4,8 @@
 
 #include "UIGeometry.h"
 #include "Core/LGUISpriteData_BaseObject.h"
-#include "Core/HudRender/ILGUIHudPrimitive.h"
-#include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/LGUIRender/ILGUIRendererPrimitive.h"
+#include "Core/LGUIRender/LGUIVertex.h"
 
 class ULGUICanvas;
 class UUIPostProcessRenderable;
@@ -15,7 +15,7 @@ enum class EUIPostProcessMaskTextureType :uint8;
 /**
  * UIPostProcessRenderProxy is an render agent for UIPostProcessRenderable in render thread, act as a SceneProxy.
  */
-class LGUI_API FUIPostProcessRenderProxy: public ILGUIHudPrimitive
+class LGUI_API FUIPostProcessRenderProxy
 {
 public:
 	FUIPostProcessRenderProxy();
@@ -24,7 +24,7 @@ public:
 		
 	}
 private:
-	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
+	TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	int32 RenderPriority = 0;
 	bool bIsVisible = true;
 	bool bIsWorld = false;//is world space or screen space
@@ -32,24 +32,30 @@ private:
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 	void SetVisibility(bool value);
-	void AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void AddToLGUIWorldSpaceRenderer(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void AddToLGUIScreenSpaceRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void AddToLGUIWorldSpaceRenderer_RenderThread(ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
-	void RemoveFromLGUIRenderer();
-	void RemoveFromLGUIRenderer_RenderThread(bool isWorld);
 
-	//begin ILGUIHudPrimitive interface
-	virtual bool CanRender() const override { return bIsVisible; };
-	virtual int GetRenderPriority() const override { return RenderPriority; };
-	virtual ULGUICanvas* GetCanvas()const override { return RenderCanvasPtr; }
-	virtual FVector3f GetWorldPositionForSortTranslucent()const override { return objectToWorldMatrix.GetOrigin(); }
-
-	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) override {};
-
-	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::PostProcess; };
-	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const override { return FPrimitiveComponentId(); };
-	//end ILGUIHudPrimitive interface
+	virtual bool CanRender() const { return bIsVisible; };
+	virtual bool PostProcessRequireOriginScreenColorTexture()const = 0;
+	/**
+	 * render thread function that will do the post process draw
+	 * @param	ScreenTargetTexture				The full screen render target
+	 * @param	OriginScreenColorTexture		Origin screen color texture. PostProcessNeedOriginScreenColorTexture must return true for this to work.
+	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
+	 */
+	virtual void OnRenderPostProcess_RenderThread(
+		FRDGBuilder& GraphBuilder,
+		const FMinimalSceneTextures& SceneTextures,
+		FLGUIRenderer* Renderer,
+		FTextureRHIRef OriginScreenColorTexture,
+		FTextureRHIRef ScreenTargetTexture,
+		FGlobalShaderMap* GlobalShaderMap,
+		const FMatrix44f& ViewProjectionMatrix,
+		bool IsWorldSpace,
+		float BlendDepthForWorld,
+		float DepthFadeForWorld,
+		const FIntRect& ViewRect,
+		const FVector4f& DepthTextureScaleOffset,
+		const FVector4f& ViewTextureScaleOffset
+	) = 0;
 private:
 	void SetUITranslucentSortPriority_RenderThread(int value)
 	{

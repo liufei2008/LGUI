@@ -133,8 +133,8 @@ private:
 	/** clear drawcalls */
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
-	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
-	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();
+	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
+	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();
 public:
 	/** mark canvas layout dirty */
 	void MarkCanvasLayoutDirty();
@@ -194,7 +194,7 @@ public:
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }
 
-	void SortDrawcall(int32& InOutRenderPriority);
+	void SortDrawcall();
 
 	void SetParentCanvas(ULGUICanvas* InParentCanvas);
 
@@ -504,6 +504,8 @@ public:
 	/** Walk up to find the Canvas which is manage for AdditionalShaderChannel, and set it. */
 	void SetActualRequireAdditionalShaderChannels(uint8 InFlags);
 	void SetRequireAdditionalShaderChannels(uint8 InFlags);
+
+	ULGUIMeshComponent* GetUIMesh()const { CheckUIMesh(); return UIMesh.Get(); }
 public:
 	static FName LGUI_MainTextureMaterialParameterName;
 	static FName LGUI_RectClipOffsetAndSize_MaterialParameterName;
@@ -518,6 +520,8 @@ public:
 	void UpdateRootCanvas();
 	/** Check if any invalid in list. Currently use in editor after undo check. */
 	void EnsureDrawcallObjectReference();
+	/**  */
+	void MarkNeedVerifyMaterials();
 private:
 	uint32 bHasAddToLGUIManager : 1;
 	uint32 bClipTypeChanged:1;
@@ -533,6 +537,7 @@ private:
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
 	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
 	uint32 bHasSetIntialStateforLGUIWorldSpaceRenderer : 1;//is LGUI world space renderer's initial state set
+	uint32 bNeedToVerifyMaterials : 1;
 
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 
@@ -559,9 +564,7 @@ private:
 	FMatrix OverrideProjectionMatrix;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool.
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list.
+	mutable TWeakObjectPtr<ULGUIMeshComponent> UIMesh;//current using UIMesh.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool.
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas.
@@ -570,6 +573,7 @@ private:
 	TArray<TObjectPtr<UUIItem>> UIRenderableList;//Use UIItem instead of UIBaseRenderable, because we need UIItem to get sub-canvas.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<TObjectPtr<UUIItem>> UIItemList;//All UIItem that belongs to this canvas
+	TSharedPtr<UUIDrawcall> DrawcallAsChildCanvas = nullptr;//Drawcall that represent this canvas when the canvas is render as child.
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
@@ -600,6 +604,5 @@ public:
 private:
 	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
 	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
-	TWeakObjectPtr<ULGUIMeshComponent> GetUIMeshFromPool();
-	void AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh);
+	void CheckUIMesh()const;
 };

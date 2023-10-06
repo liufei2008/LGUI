@@ -8,7 +8,7 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Core/LGUISettings.h"
-#include "Core/HudRender/LGUIRenderer.h"
+#include "Core/LGUIRender/LGUIRenderer.h"
 #include "EditorViewportClient.h"
 #endif
 #include "Engine/TextureRenderTarget2D.h"
@@ -372,7 +372,7 @@ void ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange()
 void ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange()
 {
 	int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-	FLGUIHudRenderer::EditorPreview_ViewKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewIndex);
+	FLGUIRenderer::EditorPreview_ViewKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewIndex);
 }
 void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldStart, FVector& OutWorldEnd)
 {

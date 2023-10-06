@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "UIDirectMeshRenderable.generated.h"
 
-struct FLGUIMeshSection;
+struct FLGUIRenderSection;
 class ULGUIMeshComponent;
 /** 
  * UI element that use mesh to render directly
@@ -39,7 +39,7 @@ protected:
 public:
 	/** Called by LGUICanvas when this UI element have valid mesh data. */
 	virtual void OnMeshDataReady();
-	virtual TWeakPtr<FLGUIMeshSection> GetMeshSection()const;
+	virtual TWeakPtr<FLGUIRenderSection> GetMeshSection()const;
 	virtual TWeakObjectPtr<ULGUIMeshComponent> GetUIMesh()const;
 	virtual void ClearMeshData();
 	virtual bool HaveValidData()const PURE_VIRTUAL(UUIDirectMeshRenderable::HaveValidData, return true;);

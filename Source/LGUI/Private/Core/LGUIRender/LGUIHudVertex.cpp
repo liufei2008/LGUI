@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/LGUIRender/LGUIVertex.h"
 
 
 void FLGUIPostProcessVertexDeclaration::InitRHI()

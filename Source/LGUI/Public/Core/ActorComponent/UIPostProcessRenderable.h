@@ -3,7 +3,7 @@
 #pragma once
 
 #include "UIBaseRenderable.h"
-#include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/LGUIRender/LGUIVertex.h"
 #include "Core/LGUISpriteInfo.h"
 #include "UIPostProcessRenderable.generated.h"
 
