@@ -7,8 +7,8 @@
 #include "RendererInterface.h"
 #include "RenderResource.h"
 #include "StaticMeshVertexData.h"
-#include "Core/HudRender/LGUIHudVertex.h"
-#include "Core/HudRender/ILGUIHudPrimitive.h"
+#include "Core/LGUIRender/LGUIVertex.h"
+#include "Core/LGUIRender/ILGUIRendererPrimitive.h"
 
 class ULGUICanvas;
 struct FLGUIPostProcessVertex;
@@ -38,11 +38,11 @@ public:
 };
 #endif
 
-class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
+class LGUI_API FLGUIRenderer : public FSceneViewExtensionBase
 {
 public:
-	FLGUIHudRenderer(const FAutoRegister&, UWorld* InWorld);
-	virtual ~FLGUIHudRenderer();
+	FLGUIRenderer(const FAutoRegister&, UWorld* InWorld);
+	virtual ~FLGUIRenderer();
 
 	//begin ISceneViewExtension interfaces
 	virtual void SetupViewFamily(FSceneViewFamily& InViewFamily)override {};
@@ -67,11 +67,11 @@ public:
 	//end ISceneViewExtension interfaces
 
 	//
-	void AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
-	void RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
+	void AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive);
+	void RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive);
 
-	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
-	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
+	void AddScreenSpacePrimitive_RenderThread(ILGUIRendererPrimitive* InPrimitive);
+	void RemoveScreenSpacePrimitive_RenderThread(ILGUIRendererPrimitive* InPrimitive);
 
 	void MarkNeedToSortScreenSpacePrimitiveRenderPriority();
 	void MarkNeedToSortWorldSpacePrimitiveRenderPriority();
@@ -121,7 +121,7 @@ private:
 		//distance to camera (sqare)
 		float DistToCamera = 100.0f;
 
-		ILGUIHudPrimitive* HudPrimitive;
+		ILGUIRendererPrimitive* HudPrimitive = nullptr;
 	};
 	struct FScreenSpaceRenderParameter
 	{
@@ -133,9 +133,10 @@ private:
 		bool bNeedSortRenderPriority = true;
 
 		TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
-		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
+		TArray<ILGUIRendererPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
+	TMap<ULGUICanvas*, bool> WorldSpaceCanvasVisibilityMap;
 	bool bNeedSortWorldSpaceRenderCanvas = true;
 	bool bNeedCheckContainsPostProcess = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;

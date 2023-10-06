@@ -3,7 +3,7 @@
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Private/GammaCorrectionCommon.ush"
 #include "/Engine/Generated/Material.ush"
-#include "LGUIHudVertexFactory.ush"
+#include "LGUIVertexFactory.ush"
 
 
 struct FLGUIBasePassInterpolants

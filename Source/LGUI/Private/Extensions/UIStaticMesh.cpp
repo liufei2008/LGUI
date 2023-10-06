@@ -220,7 +220,7 @@ void UUIStaticMesh::UpdateGeometry()
 		}
 		if (bColorChanged || bLocalVertexPositionChanged || bTransformChanged)
 		{
-			drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), bLocalVertexPositionChanged || bTransformChanged, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+			drawcall->DrawcallMesh->UpdateMeshSectionRenderData(drawcall->DrawcallRenderSection.Pin(), bLocalVertexPositionChanged || bTransformChanged, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 			bColorChanged = false;
 			bLocalVertexPositionChanged = false;
 			bTransformChanged = false;
@@ -237,7 +237,8 @@ void UUIStaticMesh::UpdateMeshColor(bool updateToDrawcallMesh)
 	auto numIndices = sourceIndexData.Num();
 	if (numVertices > 0 && numIndices > 0)
 	{
-		auto& VertexData = drawcall->DrawcallMeshSection.Pin()->vertices;
+		auto MeshSection = (FLGUIMeshSection*)drawcall->DrawcallRenderSection.Pin().Get();
+		auto& VertexData = MeshSection->vertices;
 
 		VertexData.SetNumUninitialized(numVertices);
 		auto tempVertexColorType = vertexColorType;
@@ -275,7 +276,7 @@ void UUIStaticMesh::UpdateMeshColor(bool updateToDrawcallMesh)
 
 	if (updateToDrawcallMesh)
 	{
-		drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), false, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+		drawcall->DrawcallMesh->UpdateMeshSectionRenderData(drawcall->DrawcallRenderSection.Pin(), false, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 	}
 }
 void UUIStaticMesh::CreateGeometry()
@@ -286,7 +287,8 @@ void UUIStaticMesh::CreateGeometry()
 	auto numIndices = sourceIndexData.Num();
 	if (numVertices > 0 && numIndices > 0)
 	{
-		auto& VertexData = drawcall->DrawcallMeshSection.Pin()->vertices;
+		auto MeshSection = (FLGUIMeshSection*)drawcall->DrawcallRenderSection.Pin().Get();
+		auto& VertexData = MeshSection->vertices;
 
 		VertexData.SetNumUninitialized(numVertices);
 		bool needNormal = RenderCanvas->GetRequireNormal();
@@ -349,14 +351,14 @@ void UUIStaticMesh::CreateGeometry()
 			}
 		}
 
-		auto& IndexData = drawcall->DrawcallMeshSection.Pin()->triangles;
+		auto& IndexData = MeshSection->triangles;
 		IndexData.SetNumUninitialized(numIndices);
 		for (int i = 0; i < numIndices; i++)
 		{
 			IndexData[i] = sourceIndexData[i];
 		}
 	}
-	drawcall->DrawcallMesh->CreateMeshSectionData(drawcall->DrawcallMeshSection.Pin());
+	drawcall->DrawcallMesh->CreateRenderSectionRenderData(drawcall->DrawcallRenderSection.Pin());
 	drawcall->bMaterialNeedToReassign = true;
 	drawcall->bMaterialChanged = true;
 
@@ -373,11 +375,12 @@ void UUIStaticMesh::UpdateMeshTransform(bool updateToDrawcallMesh)
 	const auto& itemTf = this->GetComponentTransform();
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 
+	auto MeshSection = (FLGUIMeshSection*)drawcall->DrawcallRenderSection.Pin().Get();
 
 	const auto& sourceVertexData = meshCache->GetVertexData();
 	auto numVertices = sourceVertexData.Num();
 	{
-		auto& VertexData = drawcall->DrawcallMeshSection.Pin()->vertices;
+		auto& VertexData = MeshSection->vertices;
 		VertexData.SetNumUninitialized(numVertices);
 		bool needNormal = RenderCanvas->GetRequireNormal();
 		bool needTangent = RenderCanvas->GetRequireTangent();
@@ -396,8 +399,7 @@ void UUIStaticMesh::UpdateMeshTransform(bool updateToDrawcallMesh)
 		}
 	}
 
-
-	auto& vertices = drawcall->DrawcallMeshSection.Pin()->vertices;
+	auto& vertices = MeshSection->vertices;
 	auto vertexCount = vertices.Num();
 	for (int i = 0; i < vertexCount; i++)
 	{
@@ -421,7 +423,7 @@ void UUIStaticMesh::UpdateMeshTransform(bool updateToDrawcallMesh)
 
 	if (updateToDrawcallMesh)
 	{
-		drawcall->DrawcallMesh->UpdateMeshSectionData(drawcall->DrawcallMeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+		drawcall->DrawcallMesh->UpdateMeshSectionRenderData(drawcall->DrawcallRenderSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 	}
 }
 
@@ -453,7 +455,7 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 			if (IsValid(meshCache))
 			{
 				OnMeshDataChangeDelegateHandle = meshCache->OnMeshDataChange.AddUObject(this, &UUIStaticMesh::OnStaticMeshDataChange);
-				if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+				if (drawcall.IsValid() && drawcall->DrawcallRenderSection.IsValid())
 				{
 					if (HaveValidData())
 					{
@@ -468,7 +470,7 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		}
 		else if (PropName == GET_MEMBER_NAME_CHECKED(UUIStaticMesh, ReplaceMaterial))
 		{
-			if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+			if (drawcall.IsValid() && drawcall->DrawcallRenderSection.IsValid())
 			{
 				if (HaveValidData())
 				{
@@ -482,7 +484,7 @@ void UUIStaticMesh::OnStaticMeshDataChange()
 {
 	if (IsValid(meshCache))
 	{
-		if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+		if (drawcall.IsValid() && drawcall->DrawcallRenderSection.IsValid())
 		{
 			if (HaveValidData())
 			{
@@ -496,7 +498,7 @@ void UUIStaticMesh::OnStaticMeshDataChange()
 void UUIStaticMesh::OnMeshDataReady()
 {
 	Super::OnMeshDataReady();
-	if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+	if (drawcall.IsValid() && drawcall->DrawcallRenderSection.IsValid())
 	{
 		if (HaveValidData())
 		{
@@ -552,7 +554,7 @@ void UUIStaticMesh::SetMesh(ULGUIStaticMeshCacheData* value)
 		meshCache = value;
 		if (IsValid(meshCache))
 		{
-			if (drawcall.IsValid() && drawcall->DrawcallMeshSection.IsValid())
+			if (drawcall.IsValid() && drawcall->DrawcallRenderSection.IsValid())
 			{
 				if (HaveValidData())
 				{
