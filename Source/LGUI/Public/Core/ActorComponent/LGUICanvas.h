@@ -538,6 +538,7 @@ private:
 	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
 	uint32 bHasSetIntialStateforLGUIWorldSpaceRenderer : 1;//is LGUI world space renderer's initial state set
 	uint32 bNeedToVerifyMaterials : 1;
+	uint32 bRootCanvasNeedToUpdateChildrenCanvasBounds : 1;//if child canvas's UIMesh's bounds change, then need to notify root canvas to update it's UIMesh's bounds
 
 	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 

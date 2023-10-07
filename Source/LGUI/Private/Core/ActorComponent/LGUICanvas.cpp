@@ -53,6 +53,7 @@ ULGUICanvas::ULGUICanvas()
 	bOverrideFovAngle = false;
 	bPrevUIItemIsActive = true;
 	bNeedToVerifyMaterials = true;
+	bRootCanvasNeedToUpdateChildrenCanvasBounds = false;
 
 	bCanTickUpdate = true;
 	bShouldRebuildDrawcall = true;
@@ -1394,6 +1395,17 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 	SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcallMesh);
 
 	CheckUIMesh();
+	auto MarkRootCanvasNeedToUpdateChildrenCanvasBounds = [this] {
+		if (!this->GetOverrideSorting())//if override sorting (render by self) then no need to notify root canvas
+		{
+			if (RootCanvas.IsValid())
+			{
+				RootCanvas->bRootCanvasNeedToUpdateChildrenCanvasBounds = true;
+				RootCanvas->bCanTickUpdate = true;
+			}
+		}
+	};
+	bool bNeedToUpdateBounds = false;
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -1411,6 +1423,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				UIMesh->CreateRenderSectionRenderData(MeshSection.Pin());
 				//create new mesh section, need to sort it
 				bNeedToSortRenderPriority = true;
+				bNeedToUpdateBounds = true;
+				MarkRootCanvasNeedToUpdateChildrenCanvasBounds();
 			}
 		}
 		break;
@@ -1445,6 +1459,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				}
 				DrawcallItem->bNeedToUpdateVertex = false;
 				DrawcallItem->bVertexPositionChanged = false;
+				bNeedToUpdateBounds = true;
+				MarkRootCanvasNeedToUpdateChildrenCanvasBounds();
 			}
 		}
 		break;
@@ -1456,26 +1472,6 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				continue;
 			}
 
-			if (!DrawcallItem->PostProcessRenderableObject->IsRenderProxyValid())
-			{
-				auto uiPostProcessRenderProxy = DrawcallItem->PostProcessRenderableObject;
-				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
-				{
-					auto ActualRenderMode = GetActualRenderMode();
-#if WITH_EDITOR
-					if (previewWithLGUIRenderer)
-					{
-						if (!GetWorld()->IsGameWorld())//edit mode
-						{
-							if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-								ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
-						}
-					}
-#endif
-					uiPostProcessRenderProxy->SetVisibility(true);
-				}
-			}
-
 			if (!DrawcallItem->DrawcallRenderSection.IsValid())
 			{
 				auto RenderSection = UIMesh->CreateRenderSection(ELGUIRenderSectionType::PostProcess);
@@ -1485,6 +1481,8 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				DrawcallItem->DrawcallRenderSection = RenderSection;
 				//create new section, need to sort it
 				bNeedToSortRenderPriority = true;
+				bNeedToUpdateBounds = true;
+				MarkRootCanvasNeedToUpdateChildrenCanvasBounds();
 			}
 		}
 		break;
@@ -1499,10 +1497,21 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				DrawcallItem->DrawcallRenderSection = RenderSection;
 				//create new section, need to sort it
 				bNeedToSortRenderPriority = true;
+				bNeedToUpdateBounds = true;
+				MarkRootCanvasNeedToUpdateChildrenCanvasBounds();
 			}
 		}
 		break;
 		}
+	}
+	if (this->IsRootCanvas() && this->bRootCanvasNeedToUpdateChildrenCanvasBounds)
+	{
+		this->bRootCanvasNeedToUpdateChildrenCanvasBounds = false;
+		UIMesh->UpdateChildCanvasSectionBox();
+	}
+	if (bNeedToUpdateBounds)
+	{
+		UIMesh->UpdateLocalBounds();
 	}
 }
 
