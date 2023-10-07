@@ -20,8 +20,11 @@ enum class ELGUIRenderSectionType :uint8
 struct FLGUIRenderSection
 {
 	ELGUIRenderSectionType Type;
-	int renderPriority = 0;
+	int RenderPriority = 0;
 	FLGUIRenderSectionProxy* RenderProxy = nullptr;
+	FBox BoundingBox;//could be local or world box depend on type
+
+	virtual void UpdateSectionBox() = 0;
 };
 struct FLGUIMeshSection : public FLGUIRenderSection
 {
@@ -47,6 +50,7 @@ struct FLGUIMeshSection : public FLGUIRenderSection
 		vertices.Reset();
 		triangles.Reset();
 	}
+	virtual void UpdateSectionBox() override;
 };
 struct FLGUIPostProcessSection : public FLGUIRenderSection
 {
@@ -56,6 +60,8 @@ struct FLGUIPostProcessSection : public FLGUIRenderSection
 	}
 
 	TWeakObjectPtr<class UUIPostProcessRenderable> PostProcessRenderableObject = nullptr;
+
+	virtual void UpdateSectionBox() override;
 };
 struct FLGUIChildCanvasSection : public FLGUIRenderSection
 {
@@ -65,6 +71,8 @@ struct FLGUIChildCanvasSection : public FLGUIRenderSection
 	}
 
 	class ULGUIMeshComponent* ChildCanvasMeshComponent = nullptr;
+
+	virtual void UpdateSectionBox() override;
 };
 
 class FLGUIRenderer;
@@ -105,14 +113,14 @@ public:
 	virtual int32 GetNumMaterials() const override;
 	//~ End UMeshComponent Interface.
 
+	/** Update LocalBounds member from the local box of each section */
+	void UpdateLocalBounds();
+	void UpdateChildCanvasSectionBox();
 private:
 	TArray<TSharedPtr<FLGUIRenderSection>> RenderSections;
 	//~ Begin USceneComponent Interface.
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	//~ Begin USceneComponent Interface.
-
-	/** Update LocalBounds member from the local box of each section */
-	void UpdateLocalBounds();
 
 	virtual void DestroyRenderState_Concurrent()override;
 

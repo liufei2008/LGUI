@@ -352,7 +352,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FIntRect ViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
-	FVector4f ViewTextureScaleOffset;
+	FVector4f ColorTextureScaleOffset;
 	if (bIsRenderToRenderTarget)
 	{
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
@@ -383,7 +383,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			return;
 		}
 
-		ViewTextureScaleOffset = DepthTextureScaleOffset = FVector4f(1, 1, 0, 0);
+		ColorTextureScaleOffset = DepthTextureScaleOffset = FVector4f(1, 1, 0, 0);
 	}
 	else
 	{
@@ -430,7 +430,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
-			ViewTextureScaleOffset = FVector4f(1, 1, 0, 0);
+			ColorTextureScaleOffset = FVector4f(1, 1, 0, 0);
 		}
 		break;
 		case EStereoscopicPass::eSSP_PRIMARY:
@@ -441,7 +441,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
-			ViewTextureScaleOffset = FVector4f(0.5f, 1, 0, 0);
+			ColorTextureScaleOffset = FVector4f(0.5f, 1, 0, 0);
 		}
 		break;
 		case EStereoscopicPass::eSSP_SECONDARY:
@@ -453,7 +453,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
 			DepthTextureScaleOffset.Z = 0.5f;//right eye offset 0.5
-			ViewTextureScaleOffset = FVector4f(0.5f, 1, 0.5f, 0);
+			ColorTextureScaleOffset = FVector4f(0.5f, 1, 0.5f, 0);
 		}
 		break;
 		}
@@ -575,7 +575,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 								RenderSequenceItem.DepthFade,
 								ViewRect,
 								DepthTextureScaleOffset,
-								ViewTextureScaleOffset
+								ColorTextureScaleOffset
 							);
 						}
 					}
@@ -797,7 +797,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 							/*BlendDepthForWorld*/0.0f,//actually this value will no work because 'IsWorldSpace' is false
 							ViewRect,
 							DepthTextureScaleOffset,
-							ViewTextureScaleOffset
+							ColorTextureScaleOffset
 						);
 					}
 				}
