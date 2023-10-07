@@ -1457,7 +1457,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 
 			if (!DrawcallItem->PostProcessRenderableObject->IsRenderProxyValid())
 			{
-				auto uiPostProcessRenderProxy = DrawcallItem->PostProcessRenderableObject->GetRenderProxy();
+				auto uiPostProcessRenderProxy = DrawcallItem->PostProcessRenderableObject;
 				if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
 				{
 					auto ActualRenderMode = GetActualRenderMode();
@@ -1479,7 +1479,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			{
 				auto RenderSection = UIMesh->CreateRenderSection(ELGUIRenderSectionType::PostProcess);
 				auto ChildCanvasSection = (FLGUIPostProcessSection*)RenderSection.Get();
-				ChildCanvasSection->PostProcessRenderProxy = DrawcallItem->PostProcessRenderableObject->GetRenderProxy();
+				ChildCanvasSection->PostProcessRenderableObject = DrawcallItem->PostProcessRenderableObject;
 				UIMesh->CreateRenderSectionRenderData(RenderSection);
 				DrawcallItem->DrawcallRenderSection = RenderSection;
 				//create new section, need to sort it
