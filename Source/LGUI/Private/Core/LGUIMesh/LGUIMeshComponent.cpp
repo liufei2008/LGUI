@@ -16,6 +16,7 @@
 #include "MaterialDomain.h"
 #include "PrimitiveSceneProxy.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 
 
 #define LOCTEXT_NAMESPACE "LGUIMeshComponent"
@@ -325,7 +326,7 @@ public:
 			auto SrcSection = (FLGUIPostProcessSection*)InSrcSection;
 			FLGUIPostProcessSectionProxy* NewSectionProxy = new FLGUIPostProcessSectionProxy();
 
-			NewSectionProxy->PostProcessRenderProxy = SrcSection->PostProcessRenderProxy;
+			NewSectionProxy->PostProcessRenderProxy = SrcSection->PostProcessRenderableObject->GetRenderProxy();
 
 			// Copy info
 			NewSectionProxy->RenderPriority = SrcSection->renderPriority;
@@ -1244,7 +1245,7 @@ TSharedPtr<FLGUIRenderSection> ULGUIMeshComponent::CreateRenderSection(ELGUIRend
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
-	//screen space UI no need to update bounds
+	//LGUI render no need to update bounds. @todo: LGUI render should check bounds and decide render it or not
 	if (IsSupportUERenderer)
 	{
 		if (RenderSections.Num() <= 0)
@@ -1252,16 +1253,32 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 			return FBoxSphereBounds(EForceInit::ForceInitToZero);
 		}
 
-		FVector3f vecMax, vecMin;
-		bool firstVecSet = false;
+		FBoxSphereBounds ResultBounds;
+		bool bFirstBoundsSet = false;
 		for (auto& RenderSection : RenderSections)
 		{
-			if (RenderSection->Type == ELGUIRenderSectionType::Mesh)
+			FBoxSphereBounds SectionItemBounds;
+			bool bSectionItemBoundsValid = true;
+			switch(RenderSection->Type)
+			{
+			case ELGUIRenderSectionType::Mesh:
 			{
 				auto MeshSection = (FLGUIMeshSection*)RenderSection.Get();
 				const auto& vertices = MeshSection->vertices;
 				int vertCount = vertices.Num();
 				if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
+
+				FVector3f vecMax, vecMin;
+				auto VerifyMinMax = [&vecMin, &vecMax](FVector3f point) {
+					vecMin.X = (vecMin.X > point.X) ? point.X : vecMin.X;
+					vecMin.Y = (vecMin.Y > point.Y) ? point.Y : vecMin.Y;
+					vecMin.Z = (vecMin.Z > point.Z) ? point.Z : vecMin.Z;
+
+					vecMax.X = (vecMax.X < point.X) ? point.X : vecMax.X;
+					vecMax.Y = (vecMax.Y < point.Y) ? point.Y : vecMax.Y;
+					vecMax.Z = (vecMax.Z < point.Z) ? point.Z : vecMax.Z;
+					};
+				bool firstVecSet = false;
 				if (!firstVecSet)
 				{
 					firstVecSet = true;
@@ -1271,21 +1288,63 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 				// Get maximum and minimum X, Y and Z positions of vectors
 				for (int32 i = 0; i < vertCount; i++)
 				{
-					auto vertPos = vertices[i].Position;
-					vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
-					vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
-					vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
+					auto& vertPos = vertices[i].Position;
+					VerifyMinMax(vertPos);
+				}
 
-					vecMax.X = (vecMax.X < vertPos.X) ? vertPos.X : vecMax.X;
-					vecMax.Y = (vecMax.Y < vertPos.Y) ? vertPos.Y : vecMax.Y;
-					vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
+				auto vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
+				auto BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
+
+				SectionItemBounds = FBoxSphereBounds(FVector(vecOrigin), FVector(BoxPoint), double(BoxPoint.Size())).TransformBy(LocalToWorld);
+				bSectionItemBoundsValid = true;
+			}
+			break;
+			case ELGUIRenderSectionType::PostProcess:
+			{
+				if (LGUIRenderer.IsValid())
+				{
+					auto PostProcessSection = (FLGUIPostProcessSection*)RenderSection.Get();
+					FVector2D Min, Max;
+					PostProcessSection->PostProcessRenderableObject->GetGeometryBoundsInLocalSpace(Min, Max);
+					auto WorldMin = PostProcessSection->PostProcessRenderableObject->GetComponentToWorld().TransformPosition(FVector(0, Min.X, Min.Y));
+					auto WorldMax = PostProcessSection->PostProcessRenderableObject->GetComponentToWorld().TransformPosition(FVector(0, Max.X, Max.Y));
+
+					auto BoxOrigin = ((WorldMax - WorldMin) / 2) + WorldMin;
+					auto BoxSize = WorldMax - WorldMin;
+
+					SectionItemBounds = FBoxSphereBounds(FVector(BoxOrigin), FVector(BoxSize), double(BoxSize.Size())).TransformBy(LocalToWorld);
+					bSectionItemBoundsValid = true;
+				}
+				else
+				{
+					bSectionItemBoundsValid = false;
+				}
+			}
+			break;
+			case ELGUIRenderSectionType::ChildCanvas:
+			{
+				auto ChildCanvasSection = (FLGUIChildCanvasSection*)RenderSection.Get();
+				SectionItemBounds = ChildCanvasSection->ChildCanvasMeshComponent->Bounds;
+				bSectionItemBoundsValid = true;
+			}
+			break;
+			}
+
+			if (bSectionItemBoundsValid)
+			{
+				if (!bFirstBoundsSet)
+				{
+					bFirstBoundsSet = true;
+					ResultBounds = SectionItemBounds;
+				}
+				else
+				{
+					ResultBounds = ResultBounds + SectionItemBounds;
 				}
 			}
 		}
-		auto vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
-		auto BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
 
-		return FBoxSphereBounds(FVector(vecOrigin), FVector(BoxPoint), double(BoxPoint.Size())).TransformBy(LocalToWorld);
+		return ResultBounds;
 	}
 	else
 	{
