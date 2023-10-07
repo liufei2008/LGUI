@@ -186,9 +186,9 @@ struct FLGUIChildCanvasSectionProxy : public FLGUIRenderSectionProxy
 	FLGUIRenderSceneProxy* ChildCanvasSceneProxy = nullptr;
 };
 
-DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateMeshSection"), STAT_CreateMeshSection, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateRenderSection"), STAT_CreateRenderSection, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_RT"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
-/** LGUI mesh scene proxy */
+/** LGUI render scene proxy */
 class FLGUIRenderSceneProxy : public FPrimitiveSceneProxy, public ILGUIRendererPrimitive
 {
 public:
@@ -202,9 +202,11 @@ public:
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
-		SCOPE_CYCLE_COUNTER(STAT_CreateMeshSection);
+		SCOPE_CYCLE_COUNTER(STAT_CreateRenderSection);
 		MeshComponent = InComponent;
+#if !UE_BUILD_SHIPPING
 		DebugName = FName(InComponent->GetName() + "_SceneProxy");
+#endif
 		LGUIRenderer = InComponent->LGUIRenderer;
 		RenderCanvasPtr = InCanvasPtr;
 		IsLGUIRenderToWorld = InComponent->IsLGUIRenderToWorld;
@@ -681,72 +683,7 @@ public:
 	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData) override
 	{
 		if (ParentSceneProxy != nullptr)return;
-		CollectRenderPrimitive(OutRenderData);
-	}
-	void CollectRenderPrimitive(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
-	{
-		if (Sections.Num() <= 0)return;
-		auto PrevRenderSectionType = Sections[0]->Type;
-		auto PrevPrimitiveType = PrevRenderSectionType == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
-		FLGUIPrimitiveDataContainer CurrentRenderData;
-		CurrentRenderData.Primitive = this;
-		CurrentRenderData.Type = PrevPrimitiveType;
-		for (int i = 0; i < Sections.Num(); i++)
-		{
-			auto RenderSection = Sections[i];
-			if (RenderSection != nullptr)
-			{
-				if (RenderSection->Type != PrevRenderSectionType)//render section type change, collect prev data
-				{
-					if (CurrentRenderData.Sections.Num() > 0)
-					{
-						OutRenderDataArray.Add(CurrentRenderData);
-					}
-					PrevRenderSectionType = RenderSection->Type;
-					CurrentRenderData = FLGUIPrimitiveDataContainer();
-					CurrentRenderData.Primitive = this;
-					auto ItemPrimitiveType = RenderSection->Type == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
-					CurrentRenderData.Type = ItemPrimitiveType;
-				}
-
-				switch (RenderSection->Type)
-				{
-				case ELGUIRenderSectionType::Mesh:
-				{
-					FLGUIPrimitiveSectionDataContainer SectionData;
-					SectionData.SectionPointer = RenderSection;
-					CurrentRenderData.Sections.Add(SectionData);
-				}
-				break;
-				case ELGUIRenderSectionType::PostProcess:
-				{
-					auto Section = (FLGUIPostProcessSectionProxy*)RenderSection;
-					auto PostProcessProxy = Section->PostProcessRenderProxy.Pin();
-					if (PostProcessProxy.IsValid() && PostProcessProxy->CanRender())
-					{
-						FLGUIPrimitiveSectionDataContainer SectionData;
-						SectionData.SectionPointer = RenderSection;
-						CurrentRenderData.Sections.Add(SectionData);
-					}
-				}
-				break;
-				case ELGUIRenderSectionType::ChildCanvas:
-				{
-					auto Section = (FLGUIChildCanvasSectionProxy*)RenderSection;
-					auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
-					if (ChildSceneProxy != nullptr)
-					{
-						ChildSceneProxy->CollectRenderPrimitive(OutRenderDataArray);
-					}
-				}
-				break;
-				}
-			}
-		}
-		if (CurrentRenderData.Sections.Num() > 0)
-		{
-			OutRenderDataArray.Add(CurrentRenderData);
-		}
+		CollectRenderData_Implement(OutRenderData);
 	}
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
@@ -811,15 +748,81 @@ public:
 	}
 	virtual bool CanRender()const override
 	{
-		return Sections.Num() > 0;
+		return ParentSceneProxy == nullptr && Sections.Num() > 0;
 	}
 	virtual bool PostProcessRequireOriginScreenColorTexture()const override
 	{
 		if (ParentSceneProxy != nullptr)return false;
 		return PostProcessRequireOriginScreenColorTexture_Implement();
 	}
-	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const override { return GetPrimitiveComponentId(); }
+	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override { return FPrimitiveSceneProxy::GetPrimitiveComponentId(); }
+	virtual FBoxSphereBounds GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
 	//end ILGUIHudPrimitive interface
+	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
+	{
+		if (Sections.Num() <= 0)return;
+		auto PrevRenderSectionType = Sections[0]->Type;
+		auto PrevPrimitiveType = PrevRenderSectionType == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
+		FLGUIPrimitiveDataContainer CurrentRenderData;
+		CurrentRenderData.Primitive = this;
+		CurrentRenderData.Type = PrevPrimitiveType;
+		for (int i = 0; i < Sections.Num(); i++)
+		{
+			auto RenderSection = Sections[i];
+			if (RenderSection != nullptr)
+			{
+				if (RenderSection->Type != PrevRenderSectionType)//render section type change, collect prev data
+				{
+					if (CurrentRenderData.Sections.Num() > 0)
+					{
+						OutRenderDataArray.Add(CurrentRenderData);
+					}
+					PrevRenderSectionType = RenderSection->Type;
+					CurrentRenderData = FLGUIPrimitiveDataContainer();
+					CurrentRenderData.Primitive = this;
+					auto ItemPrimitiveType = RenderSection->Type == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
+					CurrentRenderData.Type = ItemPrimitiveType;
+				}
+
+				switch (RenderSection->Type)
+				{
+				case ELGUIRenderSectionType::Mesh:
+				{
+					FLGUIPrimitiveSectionDataContainer SectionData;
+					SectionData.SectionPointer = RenderSection;
+					CurrentRenderData.Sections.Add(SectionData);
+				}
+				break;
+				case ELGUIRenderSectionType::PostProcess:
+				{
+					auto Section = (FLGUIPostProcessSectionProxy*)RenderSection;
+					auto PostProcessProxy = Section->PostProcessRenderProxy.Pin();
+					if (PostProcessProxy.IsValid() && PostProcessProxy->CanRender())
+					{
+						FLGUIPrimitiveSectionDataContainer SectionData;
+						SectionData.SectionPointer = RenderSection;
+						CurrentRenderData.Sections.Add(SectionData);
+					}
+				}
+				break;
+				case ELGUIRenderSectionType::ChildCanvas:
+				{
+					auto Section = (FLGUIChildCanvasSectionProxy*)RenderSection;
+					auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
+					if (ChildSceneProxy != nullptr)
+					{
+						ChildSceneProxy->CollectRenderData_Implement(OutRenderDataArray);
+					}
+				}
+				break;
+				}
+			}
+		}
+		if (CurrentRenderData.Sections.Num() > 0)
+		{
+			OutRenderDataArray.Add(CurrentRenderData);
+		}
+	}
 	bool PostProcessRequireOriginScreenColorTexture_Implement()const
 	{
 		if (Sections.Num() <= 0)return false;
@@ -915,7 +918,9 @@ private:
 	bool IsSupportUERenderer = true;
 	ULGUICanvas* RenderCanvasPtr = nullptr;
 	TWeakObjectPtr<ULGUIMeshComponent> MeshComponent = nullptr;
+#if !UE_BUILD_SHIPPING
 	FName DebugName;
+#endif
 
 public:
 	/** If have parent then render in parent */
@@ -1302,46 +1307,38 @@ TSharedPtr<FLGUIRenderSection> ULGUIMeshComponent::CreateRenderSection(ELGUIRend
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
-	//LGUI render no need to update bounds. @todo: LGUI render should check bounds and decide render it or not
-	if (IsSupportUERenderer)
+	if (RenderSections.Num() <= 0)
 	{
-		if (RenderSections.Num() <= 0)
-		{
-			return FBoxSphereBounds(EForceInit::ForceInitToZero);
-		}
+		return FBoxSphereBounds(EForceInit::ForceInitToZero);
+	}
 
-		FBox ResultBox;
-		for (auto& RenderSection : RenderSections)
+	FBox ResultBox;
+	for (auto& RenderSection : RenderSections)
+	{
+		switch (RenderSection->Type)
 		{
-			switch(RenderSection->Type)
-			{
-			case ELGUIRenderSectionType::Mesh:
-			{
-				ResultBox += RenderSection->BoundingBox.TransformBy(LocalToWorld);
-			}
-			break;
-			case ELGUIRenderSectionType::PostProcess:
-			{
-				if (LGUIRenderer.IsValid())
-				{
-					ResultBox += RenderSection->BoundingBox;
-				}
-			}
-			break;
-			case ELGUIRenderSectionType::ChildCanvas:
+		case ELGUIRenderSectionType::Mesh:
+		{
+			ResultBox += RenderSection->BoundingBox.TransformBy(LocalToWorld);
+		}
+		break;
+		case ELGUIRenderSectionType::PostProcess:
+		{
+			if (LGUIRenderer.IsValid())
 			{
 				ResultBox += RenderSection->BoundingBox;
 			}
-			break;
-			}
 		}
+		break;
+		case ELGUIRenderSectionType::ChildCanvas:
+		{
+			ResultBox += RenderSection->BoundingBox;
+		}
+		break;
+		}
+	}
 
-		return FBoxSphereBounds(ResultBox);
-	}
-	else
-	{
-		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f)).TransformBy(LocalToWorld);
-	}
+	return FBoxSphereBounds(ResultBox);
 }
 #undef LOCTEXT_NAMESPACE
 #if LGUI_CAN_DISABLE_OPTIMIZATION

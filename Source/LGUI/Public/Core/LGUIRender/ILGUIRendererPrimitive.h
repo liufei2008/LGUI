@@ -47,13 +47,13 @@ public:
 
 	virtual bool CanRender() const = 0;
 	virtual int GetRenderPriority() const = 0;
+	/** For world space renderer to tell visibility, eg SceneCapture2D */
+	virtual FPrimitiveComponentId GetPrimitiveComponentId() const = 0;
 	virtual FVector3f GetWorldPositionForSortTranslucent()const = 0;
+	virtual FBoxSphereBounds GetWorldBounds()const = 0;
 
-	//begin mesh interface
 	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData) = 0;
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
-	virtual FPrimitiveComponentId GetMeshPrimitiveComponentId() const = 0;
 	virtual FUIPostProcessRenderProxy* GetPostProcessElement(const void* SectionPtr)const = 0;
 	virtual bool PostProcessRequireOriginScreenColorTexture()const = 0;
-	//end mesh interface
 };
