@@ -804,8 +804,9 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 		if (!CreateDeleteComponentMessageQueue.Contains(InComponent))
 		{
 			CreateDeleteComponentMessageQueue.Add(InComponent);
-			ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+			ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this), InCreateOrDelete]() {
 				if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+				if (!Object.IsValid())return;
 				if (InCreateOrDelete)
 				{
 					auto InfoText = LOCTEXT("CannotAddComponentToPrefabInstance", "Children of a Prefab instance cannot add or remove component, the added component will not saved to prefab.\
@@ -818,7 +819,7 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 \n\nYou can open the prefab in prefab editor to add or remove component, or unpack the prefab instance to remove its prefab connection.");
 					FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 				}
-				CreateDeleteComponentMessageQueue.Pop();
+				Object->CreateDeleteComponentMessageQueue.Pop();
 				}, 1);
 		}
 	}
