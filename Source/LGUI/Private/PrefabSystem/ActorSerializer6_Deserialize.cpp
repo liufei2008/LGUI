@@ -267,9 +267,9 @@ namespace LGUIPrefabSystem6
 #if WITH_EDITOR
 					PrimitiveComp->UpdateCollisionProfile();
 #endif
-					if (auto SplieComp = Cast<USplineComponent>(Comp))
+					if (auto SplineComp = Cast<USplineComponent>(Comp))
 					{
-						SplieComp->UpdateSpline();
+						SplineComp->UpdateSpline();
 					}
 				}
 				Comp->ReregisterComponent();
