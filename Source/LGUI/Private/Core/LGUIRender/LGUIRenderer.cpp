@@ -497,29 +497,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			SortWorldSpacePrimitiveRenderPriority_RenderThread((FVector3f)RenderView->ViewMatrices.GetViewOrigin());
 		}
 
-		//process visibility. Can only tell visibility from mesh by PrimitiveComponentId, so what about postprocess? Just add an invisible mesh (sprite, texture, text)
-		WorldSpaceCanvasVisibilityMap.Reset();
-		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
-		{
-			auto HudPrimitive = WorldRenderParameter.HudPrimitive;
-			if (HudPrimitive != nullptr)
-			{
-				if (!WorldSpaceCanvasVisibilityMap.Contains(WorldRenderParameter.RenderCanvas))
-				{
-					bool bIsPrimitiveVisible = true;
-					if (InView.ShowOnlyPrimitives.IsSet())
-					{
-						bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(HudPrimitive->GetMeshPrimitiveComponentId());
-					}
-					else
-					{
-						bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(HudPrimitive->GetMeshPrimitiveComponentId());
-					}
-					WorldSpaceCanvasVisibilityMap.Add(WorldRenderParameter.RenderCanvas, bIsPrimitiveVisible);
-				}
-			}
-		}
-
 		//collect render primitive to a sequence
 		struct FWorldSpaceRenderParameterSequence
 		{
@@ -535,17 +512,25 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			if (WorldRenderParameter.HudPrimitive->CanRender())
 			{
 				bool bIsPrimitiveVisible = false;//default is not visible
-				if (auto VisibilityPtr = WorldSpaceCanvasVisibilityMap.Find(WorldRenderParameter.RenderCanvas))
+				if (InView.ShowOnlyPrimitives.IsSet())
 				{
-					bIsPrimitiveVisible = *VisibilityPtr;
+					bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(WorldRenderParameter.HudPrimitive->GetPrimitiveComponentId());
+				}
+				else
+				{
+					bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(WorldRenderParameter.HudPrimitive->GetPrimitiveComponentId());
 				}
 				if (bIsPrimitiveVisible)
 				{
-					FWorldSpaceRenderParameterSequence Item;
-					Item.BlendDepth = WorldRenderParameter.BlendDepth;
-					Item.DepthFade = WorldRenderParameter.DepthFade;
-					WorldRenderParameter.HudPrimitive->CollectRenderData(Item.RenderDataArray);
-					RenderSequenceArray.Add(Item);
+					auto WorldBounds = WorldRenderParameter.HudPrimitive->GetWorldBounds();
+					if (InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+					{
+						FWorldSpaceRenderParameterSequence Item;
+						Item.BlendDepth = WorldRenderParameter.BlendDepth;
+						Item.DepthFade = WorldRenderParameter.DepthFade;
+						WorldRenderParameter.HudPrimitive->CollectRenderData(Item.RenderDataArray);
+						RenderSequenceArray.Add(Item);
+					}
 				}
 			}
 		}
@@ -739,7 +724,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 
 		//use a copied view. 
-		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
+		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is not immediately execute. 
 		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
 		FSceneView* RenderView = new FSceneView(InView);
 		auto GlobalShaderMap = GetGlobalShaderMap(RenderView->GetFeatureLevel());
@@ -748,6 +733,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		RenderView->SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
 		RenderView->SceneViewInitOptions.ProjectionMatrix = ScreenSpaceRenderParameter.ProjectionMatrix;
 		RenderView->ViewMatrices = FViewMatrices(RenderView->SceneViewInitOptions);
+		RenderView->UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);//this is mainly for ViewFrustum
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView->SetupCommonViewUniformBufferParameters(
@@ -768,7 +754,11 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			if (HudPrimitive->CanRender())
 			{
-				HudPrimitive->CollectRenderData(RenderSequenceArray);
+				auto WorldBounds = HudPrimitive->GetWorldBounds();
+				if (RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+				{
+					HudPrimitive->CollectRenderData(RenderSequenceArray);
+				}
 			}
 		}
 
