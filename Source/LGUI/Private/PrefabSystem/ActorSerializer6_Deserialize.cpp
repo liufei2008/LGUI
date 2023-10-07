@@ -181,6 +181,27 @@ namespace LGUIPrefabSystem6
 		return rootActor;
 	}
 
+	void ActorSerializer::PostSetPropertiesOnActor(UActorComponent* Comp)
+	{
+		//here two methods to apply the deserialized data to component
+#if 0//This method is simple and robust because it use built-in funtion. But also performance-cost (about 1.5-2.0x time cost to the whole deserialize process), because a lot of unnecessary properties are set here
+		auto CompInstanceData = Comp->GetComponentInstanceData();
+		CompInstanceData->ApplyToComponent(Comp, ECacheApplyPhase::PostUserConstructionScript);
+#else//In this method I search all "ApplyToComponent" function and get the important part (I think), so result may miss something, if it does then contact me and I will add the missing part
+		if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
+		{
+#if WITH_EDITOR
+			PrimitiveComp->UpdateCollisionProfile();
+#endif
+			if (auto SplineComp = Cast<USplineComponent>(Comp))
+			{
+				SplineComp->UpdateSpline();
+			}
+		}
+		Comp->ReregisterComponent();
+#endif
+	}
+
 #define LGUIPREFAB_LOG_DETAIL_TIME 0
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
@@ -257,23 +278,7 @@ namespace LGUIPrefabSystem6
 			//mark component reregister to use new property value
 			for (auto& Comp : AllComponents)
 			{
-				//here two methods to apply the deserialized data to component
-#if 0//This method is simple and robust because it use built-in funtion. But also performance-cost (about 1.5-2.0x time cost to the whole deserialize process), because a lot of unnecessary properties are set here
-				auto CompInstanceData = Comp->GetComponentInstanceData();
-				CompInstanceData->ApplyToComponent(Comp, ECacheApplyPhase::PostUserConstructionScript);
-#else//In this method I search all "ApplyToComponent" function and get the important part (I think), so result may miss something, if it does then contact me and I will add the missing part
-				if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
-				{
-#if WITH_EDITOR
-					PrimitiveComp->UpdateCollisionProfile();
-#endif
-					if (auto SplineComp = Cast<USplineComponent>(Comp))
-					{
-						SplineComp->UpdateSpline();
-					}
-				}
-				Comp->ReregisterComponent();
-#endif
+				PostSetPropertiesOnActor(Comp);
 			}
 #if WITH_EDITOR
 			if (!TargetWorld->IsGameWorld())
