@@ -232,6 +232,7 @@ namespace LGUIPrefabSystem6
 			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
 		);
 
+		static void PostSetPropertiesOnActor(UActorComponent* InComp);
 	private:
 		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
 

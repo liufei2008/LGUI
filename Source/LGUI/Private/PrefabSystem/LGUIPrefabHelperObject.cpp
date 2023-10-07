@@ -391,6 +391,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	//temporary disable these, so restore prefab data goes silently
 	bCanNotifyAttachment = false;
 	bCanCollectProperty = false;
+	bCanNotifyComponentCreateDelete = false;
 
 	bool AnythingChange = false;
 
@@ -502,6 +503,17 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			//no need to clear invalid objects, because when SavePrefab it will do the clear work. But if we are in level editor, then there is no SavePrefab, so clear invalid objects is required: ClearInvalidObjectAndGuid()
 			//apply override parameter. 
 			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+			for (auto& KeyValue : OverrideData)
+			{
+				if (auto Comp = Cast<UActorComponent>(KeyValue.Key))
+				{
+					LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::PostSetPropertiesOnActor(Comp);
+				}
+				else if (auto Actor = Cast<AActor>(KeyValue.Key))
+				{
+					Actor->RerunConstructionScripts();
+				}
+			}
 			SubPrefabRootActor->GetRootComponent()->UpdateComponentToWorld();//root comp may stay prev position if not do this
 
 			if (SubPrefabData.CheckParameters())
@@ -527,6 +539,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
 	bCanCollectProperty = true;
+	bCanNotifyComponentCreateDelete = true;
 	return AnythingChange;
 }
 
@@ -797,7 +810,8 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 
 void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UActorComponent* InComponent, AActor* InActor)
 {
-	//not working as I want
+#if 1//not work as I want
+	if (!bCanNotifyComponentCreateDelete)return;
 	if (InComponent->IsDefaultSubobject())return;
 	if (this->IsActorBelongsToSubPrefab(InActor))
 	{
@@ -823,6 +837,7 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 				}, 1);
 		}
 	}
+#endif
 }
 
 UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const

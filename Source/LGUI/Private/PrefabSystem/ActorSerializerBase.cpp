@@ -62,9 +62,9 @@ namespace LGUIPrefabSystem
 #if WITH_EDITOR
 		if (Object->GetClass()->IsChildOf(UEdMode::StaticClass()))return false;
 		if (ObjectIsTrash(Object))return false;
+		if (Object->GetClass()->IsChildOf(UActorComponent::StaticClass()) && ((UActorComponent*)Object)->IsVisualizationComponent())return false;//skip visualization component
 #endif
 		if (Object->IsEditorOnly() && !bIsEditorOrRuntime)return false;
-		if (Object->GetClass()->IsChildOf(UActorComponent::StaticClass()) && ((UActorComponent*)Object)->IsVisualizationComponent())return false;//skip visualization component
 		if (!Object->IsAsset()//skip asset, because asset is referenced directly
 			&& Object->GetWorld() == TargetWorld
 			&& IsValid(Object)
