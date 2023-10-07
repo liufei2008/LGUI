@@ -299,6 +299,7 @@ void UUIItem::ApplyHierarchyIndex()
 		else
 		{
 			ParentUIItem->EnsureUIChildrenValid();
+			ParentUIItem->EnsureUIChildrenSorted();
 			hierarchyIndex = FMath::Clamp(hierarchyIndex, 0, ParentUIItem->UIChildren.Num() - 1);
 			ParentUIItem->UIChildren.Remove(this);
 			ParentUIItem->UIChildren.Insert(this, hierarchyIndex);
@@ -565,6 +566,11 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 void UUIItem::PostEditUndo()
 {
 	EnsureUIChildrenValid();
+	bNeedSortUIChildren = true;
+	if (ParentUIItem.IsValid())
+	{
+		ParentUIItem->bNeedSortUIChildren = true;
+	}
 	Super::PostEditUndo();
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
