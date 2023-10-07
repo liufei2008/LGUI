@@ -55,7 +55,7 @@ struct FLGUIPostProcessSection : public FLGUIRenderSection
 		Type = ELGUIRenderSectionType::PostProcess;
 	}
 
-	TWeakPtr<class FUIPostProcessRenderProxy> PostProcessRenderProxy = nullptr;
+	TWeakObjectPtr<class UUIPostProcessRenderable> PostProcessRenderableObject = nullptr;
 };
 struct FLGUIChildCanvasSection : public FLGUIRenderSection
 {
