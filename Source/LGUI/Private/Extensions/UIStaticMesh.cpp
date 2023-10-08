@@ -12,7 +12,9 @@
 #include "Core/UIDrawcall.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Utils/LGUIUtils.h"
 
+#define LOCTEXT_NAMESPACE "UIStaticMesh"
 
 static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray<FLGUIStaticMeshVertex>& OutVerts, TArray<uint32>& OutIndexes)
 {
@@ -24,84 +26,91 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 	const int32 NumSections = LOD.Sections.Num();
 	if (NumSections > 1)
 	{
-		UE_LOG(LGUI, Warning, TEXT("StaticMesh %s has %d sections. UIStaticMesh expects a static mesh with 1 section."), *DataSource.GetName(), NumSections);
+		auto WarningText = FText::Format(LOCTEXT("StaticMeshHasMultipleSections", "StaticMesh {0} has {1} sections. UIStaticMesh expects a static mesh with 1 section."), FText::FromString(DataSource.GetName()), NumSections);
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(WarningText, 10);
+#endif
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *WarningText.ToString());
+		//@todo: support multiple sections
 	}
-	else
+
+	// Populate Vertex Data
 	{
-		// Populate Vertex Data
+		const uint32 NumVerts = LOD.VertexBuffers.PositionVertexBuffer.GetNumVertices();
+		OutVerts.Empty();
+		OutVerts.Reserve(NumVerts);
+
+		static const int32 MAX_SUPPORTED_UV_SETS = 4;
+		const int32 TexCoordsPerVertex = LOD.GetNumTexCoords();
+		if (TexCoordsPerVertex > MAX_SUPPORTED_UV_SETS)
 		{
-			const uint32 NumVerts = LOD.VertexBuffers.PositionVertexBuffer.GetNumVertices();
-			OutVerts.Empty();
-			OutVerts.Reserve(NumVerts);
-
-			static const int32 MAX_SUPPORTED_UV_SETS = 4;
-			const int32 TexCoordsPerVertex = LOD.GetNumTexCoords();
-			if (TexCoordsPerVertex > MAX_SUPPORTED_UV_SETS)
-			{
-				UE_LOG(LGUI, Warning, TEXT("[%s] has %d UV sets; LGUI vertex data supports at most %d"), *DataSource.GetName(), TexCoordsPerVertex, MAX_SUPPORTED_UV_SETS);
-			}
-
-			for (uint32 i = 0; i < NumVerts; ++i)
-			{
-				// Copy Position
-				const FVector3f& Position = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(i);
-
-				// Copy Color
-				FColor Color = (LOD.VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0) ? LOD.VertexBuffers.ColorVertexBuffer.VertexColor(i) : FColor::White;
-
-				// Copy all the UVs that we have, and as many as we can fit.
-				const FVector2f& UV0 = (TexCoordsPerVertex > 0) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 0) : FVector2f(1, 1);
-
-				const FVector2f& UV1 = (TexCoordsPerVertex > 1) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 1) : FVector2f(1, 1);
-
-				const FVector2f& UV2 = (TexCoordsPerVertex > 2) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 2) : FVector2f(1, 1);
-
-				const FVector2f& UV3 = (TexCoordsPerVertex > 3) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 3) : FVector2f(1, 1);
-
-				const FVector3f TangentX = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentX(i));
-				const FVector3f TangentZ = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentZ(i));
-
-				OutVerts.Add(FLGUIStaticMeshVertex(
-					FVector(Position),
-					FVector(TangentX),
-					FVector(TangentZ),
-					Color,
-					FVector2D(UV0),
-					FVector2D(UV1),
-					FVector2D(UV2),
-					FVector2D(UV3)
-				));
-			}
+			auto WarningText = FText::Format(LOCTEXT("StaticMeshHasTooManyUVSets", "StaticMesh {0} has {1} UV sets; LGUI vertex data supports at most {2}."), FText::FromString(DataSource.GetName()), TexCoordsPerVertex, MAX_SUPPORTED_UV_SETS);
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(WarningText, 10);
+#endif
+			UE_LOG(LGUI, Warning, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *WarningText.ToString());
 		}
 
-		// Populate Index data
+		for (uint32 i = 0; i < NumVerts; ++i)
 		{
-			FIndexArrayView SourceIndexes = LOD.IndexBuffer.GetArrayView();
-			const int32 NumIndexes = SourceIndexes.Num();
-			OutIndexes.Empty();
-			OutIndexes.Reserve(NumIndexes);
-			for (int32 i = 0; i < NumIndexes; ++i)
-			{
-				OutIndexes.Add(SourceIndexes[i]);
-			}
+			// Copy Position
+			const FVector3f& Position = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(i);
+
+			// Copy Color
+			FColor Color = (LOD.VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0) ? LOD.VertexBuffers.ColorVertexBuffer.VertexColor(i) : FColor::White;
+
+			// Copy all the UVs that we have, and as many as we can fit.
+			const FVector2f& UV0 = (TexCoordsPerVertex > 0) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 0) : FVector2f(1, 1);
+
+			const FVector2f& UV1 = (TexCoordsPerVertex > 1) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 1) : FVector2f(1, 1);
+
+			const FVector2f& UV2 = (TexCoordsPerVertex > 2) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 2) : FVector2f(1, 1);
+
+			const FVector2f& UV3 = (TexCoordsPerVertex > 3) ? LOD.VertexBuffers.StaticMeshVertexBuffer.GetVertexUV(i, 3) : FVector2f(1, 1);
+
+			const FVector3f TangentX = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentX(i));
+			const FVector3f TangentZ = FVector3f(LOD.VertexBuffers.StaticMeshVertexBuffer.VertexTangentZ(i));
+
+			OutVerts.Add(FLGUIStaticMeshVertex(
+				FVector(Position),
+				FVector(TangentX),
+				FVector(TangentZ),
+				Color,
+				FVector2D(UV0),
+				FVector2D(UV1),
+				FVector2D(UV2),
+				FVector2D(UV3)
+			));
+		}
+	}
+
+	// Populate Index data
+	{
+		FIndexArrayView SourceIndexes = LOD.IndexBuffer.GetArrayView();
+		const int32 NumIndexes = SourceIndexes.Num();
+		OutIndexes.Empty();
+		OutIndexes.Reserve(NumIndexes);
+		for (int32 i = 0; i < NumIndexes; ++i)
+		{
+			OutIndexes.Add(SourceIndexes[i]);
+		}
 
 
-			// Sort the index buffer such that verts are drawn in Z-order.
-			// Assume that all triangles are coplanar with Z == SomeValue.
-			ensure(NumIndexes % 3 == 0);
-			for (int32 a = 0; a < NumIndexes; a += 3)
+		// Sort the index buffer such that verts are drawn in Z-order.
+		// Assume that all triangles are coplanar with Z == SomeValue.
+		ensure(NumIndexes % 3 == 0);
+		for (int32 a = 0; a < NumIndexes; a += 3)
+		{
+			for (int32 b = 0; b < NumIndexes; b += 3)
 			{
-				for (int32 b = 0; b < NumIndexes; b += 3)
+				const float VertADepth = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(OutIndexes[a]).Z;
+				const float VertBDepth = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(OutIndexes[b]).Z;
+				if (VertADepth < VertBDepth)
 				{
-					const float VertADepth = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(OutIndexes[a]).Z;
-					const float VertBDepth = LOD.VertexBuffers.PositionVertexBuffer.VertexPosition(OutIndexes[b]).Z;
-					if (VertADepth < VertBDepth)
-					{
-						// Swap the order in which triangles will be drawn
-						Swap(OutIndexes[a + 0], OutIndexes[b + 0]);
-						Swap(OutIndexes[a + 1], OutIndexes[b + 1]);
-						Swap(OutIndexes[a + 2], OutIndexes[b + 2]);
-					}
+					// Swap the order in which triangles will be drawn
+					Swap(OutIndexes[a + 0], OutIndexes[b + 0]);
+					Swap(OutIndexes[a + 1], OutIndexes[b + 1]);
+					Swap(OutIndexes[a + 2], OutIndexes[b + 2]);
 				}
 			}
 		}
@@ -598,3 +607,5 @@ AUIStaticMeshActor::AUIStaticMeshActor()
 	UIStaticMesh = CreateDefaultSubobject<UUIStaticMesh>(TEXT("UIStaticMeshComponent"));
 	RootComponent = UIStaticMesh;
 }
+
+#undef LOCTEXT_NAMESPACE

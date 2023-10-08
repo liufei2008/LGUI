@@ -931,7 +931,7 @@ public:
 
 
 
-void FLGUIMeshSection::UpdateSectionBox()
+void FLGUIMeshSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
 	BoundingBox = FBox();
 
@@ -945,8 +945,9 @@ void FLGUIMeshSection::UpdateSectionBox()
 			BoundingBox += (FVector)VertPos;
 		}
 	}
+	BoundingBox = BoundingBox.TransformBy(LocalToWorld);
 }
-void FLGUIPostProcessSection::UpdateSectionBox()
+void FLGUIPostProcessSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
 	BoundingBox = FBox();
 
@@ -957,7 +958,7 @@ void FLGUIPostProcessSection::UpdateSectionBox()
 	BoundingBox += WorldMin;
 	BoundingBox += WorldMax;
 }
-void FLGUIChildCanvasSection::UpdateSectionBox()
+void FLGUIChildCanvasSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
 	BoundingBox = FBox();
 
@@ -990,7 +991,7 @@ void ULGUIMeshComponent::CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSec
 		}
 	}
 #endif
-	InRenderSection->UpdateSectionBox();
+	InRenderSection->UpdateSectionBox(GetComponentTransform());
 
 	if (InRenderSection->Type == ELGUIRenderSectionType::ChildCanvas)
 	{
@@ -1039,7 +1040,7 @@ void ULGUIMeshComponent::UpdateMeshSectionRenderData(TSharedPtr<FLGUIRenderSecti
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionGT);
 	if (InVertexPositionChanged)
 	{
-		InRenderSection->UpdateSectionBox();
+		InRenderSection->UpdateSectionBox(GetComponentTransform());
 	}
 	if (SceneProxy)
 	{
@@ -1209,7 +1210,7 @@ void ULGUIMeshComponent::UpdateChildCanvasSectionBox()
 					if (ChildCanvasSection->ChildCanvasMeshComponent != nullptr)
 					{
 						UpdateChildCanvasSectionBox_Recursive(ChildCanvasSection->ChildCanvasMeshComponent->RenderSections);
-						ChildCanvasSection->UpdateSectionBox();
+						ChildCanvasSection->UpdateSectionBox(ChildCanvasSection->ChildCanvasMeshComponent->GetComponentToWorld());
 					}
 				}
 			}
@@ -1321,7 +1322,7 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 		{
 		case ELGUIRenderSectionType::Mesh:
 		{
-			ResultBox += RenderSection->BoundingBox.TransformBy(LocalToWorld);
+			ResultBox += RenderSection->BoundingBox;
 		}
 		break;
 		case ELGUIRenderSectionType::PostProcess:
