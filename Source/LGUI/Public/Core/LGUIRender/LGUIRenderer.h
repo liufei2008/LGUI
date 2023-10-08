@@ -118,8 +118,6 @@ private:
 		float BlendDepth = 0.0f;
 		//depth fade effect
 		float DepthFade = 0.0f;
-		//distance to camera (sqare)
-		float DistToCamera = 100.0f;
 
 		ILGUIRendererPrimitive* HudPrimitive = nullptr;
 	};
@@ -148,7 +146,6 @@ private:
 	bool bNeedOriginScreenColorTextureOnPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
-	void SortWorldSpacePrimitiveRenderPriority_RenderThread(const FVector3f& InViewPosition);
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
 	bool bIsRenderToRenderTarget = false;
