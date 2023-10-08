@@ -316,7 +316,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	}
 	if (geometry->vertices.Num() >= LGUI_MAX_VERTEX_COUNT)
 	{
-		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleDdrawcall", "{0} Too many vertex ({1}) in single UI element: {2}")
+		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleUIElement", "{0} Too many vertex ({1}) in single UI element: {2}")
 			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
 			, geometry->vertices.Num()
 #if WITH_EDITOR
@@ -553,7 +553,7 @@ void ULGUIGeometryHelper::AddVertexSimple(FVector position, FColor color, FVecto
 		|| uv0.ContainsNaN()
 		)
 	{
-		UE_LOG(LGUI, Error, TEXT("[%s].%s Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Vertex data contains NaN!."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 #endif

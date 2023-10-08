@@ -22,9 +22,9 @@ struct FLGUIRenderSection
 	ELGUIRenderSectionType Type;
 	int RenderPriority = 0;
 	FLGUIRenderSectionProxy* RenderProxy = nullptr;
-	FBox BoundingBox;//could be local or world box depend on type
+	FBox BoundingBox;//world space bounding box
 
-	virtual void UpdateSectionBox() = 0;
+	virtual void UpdateSectionBox(const FTransform& LocalToWorld) = 0;
 };
 struct FLGUIMeshSection : public FLGUIRenderSection
 {
@@ -50,7 +50,7 @@ struct FLGUIMeshSection : public FLGUIRenderSection
 		vertices.Reset();
 		triangles.Reset();
 	}
-	virtual void UpdateSectionBox() override;
+	virtual void UpdateSectionBox(const FTransform& LocalToWorld) override;
 };
 struct FLGUIPostProcessSection : public FLGUIRenderSection
 {
@@ -61,7 +61,7 @@ struct FLGUIPostProcessSection : public FLGUIRenderSection
 
 	TWeakObjectPtr<class UUIPostProcessRenderable> PostProcessRenderableObject = nullptr;
 
-	virtual void UpdateSectionBox() override;
+	virtual void UpdateSectionBox(const FTransform& LocalToWorld) override;
 };
 struct FLGUIChildCanvasSection : public FLGUIRenderSection
 {
@@ -72,7 +72,7 @@ struct FLGUIChildCanvasSection : public FLGUIRenderSection
 
 	class ULGUIMeshComponent* ChildCanvasMeshComponent = nullptr;
 
-	virtual void UpdateSectionBox() override;
+	virtual void UpdateSectionBox(const FTransform& LocalToWorld) override;
 };
 
 class FLGUIRenderer;
