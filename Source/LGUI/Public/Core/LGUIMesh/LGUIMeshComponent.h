@@ -133,7 +133,7 @@ protected:
 	bool IsSupportUERenderer = true;
 
 public:
-	DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMeshSceneProxyCreateDeleteDelegate, ULGUIMeshComponent*, FLGUIRenderSceneProxy*);
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMeshSceneProxyCreateDeleteDelegate, ULGUIMeshComponent*, class FLGUIRenderSceneProxy*);
 	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyCreated;
 	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyDeleted_RenderThread;
 };
