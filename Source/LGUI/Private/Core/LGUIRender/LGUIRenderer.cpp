@@ -493,12 +493,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 		RenderView->ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
 
-		//if (bNeedSortWorldSpaceRenderCanvas)//@todo: mark dirty when need to
-		{
-			bNeedSortWorldSpaceRenderCanvas = false;
-			SortWorldSpacePrimitiveRenderPriority_RenderThread((FVector3f)RenderView->ViewMatrices.GetViewOrigin());
-		}
-
 		//collect render primitive to a sequence
 		struct FWorldSpaceRenderParameterSequence
 		{
@@ -507,6 +501,12 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			float BlendDepth = 0.0f;
 			//depth fade effect
 			float DepthFade = 0.0f;
+
+			//for sort translucent
+			FVector3f WorldPosition;
+			//distance to camera (sqare)
+			float DistToCamera = 0;
+			int RenderPriority = 0;
 		};
 		TArray<FWorldSpaceRenderParameterSequence> RenderSequenceArray;
 		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
@@ -530,11 +530,34 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 						FWorldSpaceRenderParameterSequence Item;
 						Item.BlendDepth = WorldRenderParameter.BlendDepth;
 						Item.DepthFade = WorldRenderParameter.DepthFade;
+						Item.WorldPosition = WorldRenderParameter.HudPrimitive->GetWorldPositionForSortTranslucent();
+						Item.RenderPriority = WorldRenderParameter.HudPrimitive->GetRenderPriority();
 						WorldRenderParameter.HudPrimitive->CollectRenderData(Item.RenderDataArray);
 						RenderSequenceArray.Add(Item);
 					}
 				}
 			}
+		}
+
+		//if (bNeedSortWorldSpaceRenderCanvas)//@todo: mark dirty when need to
+		{
+			bNeedSortWorldSpaceRenderCanvas = false;
+
+			auto InViewPosition = (FVector3f)RenderView->ViewMatrices.GetViewOrigin();
+			for (auto& Item : RenderSequenceArray)
+			{
+				Item.DistToCamera = FVector3f::DistSquared(InViewPosition, Item.WorldPosition);
+			}
+			RenderSequenceArray.Sort([InViewPosition](const FWorldSpaceRenderParameterSequence& A, const FWorldSpaceRenderParameterSequence& B) {
+				if (A.RenderPriority == B.RenderPriority)
+				{
+					return A.DistToCamera > B.DistToCamera;
+				}
+				else
+				{
+					return A.RenderPriority < B.RenderPriority;
+				}
+				});
 		}
 
 		for (auto& RenderSequenceItem : RenderSequenceArray)
@@ -1024,23 +1047,6 @@ void FLGUIRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 	ScreenSpaceRenderParameter.HudPrimitiveArray.Sort([](ILGUIRendererPrimitive& A, ILGUIRendererPrimitive& B)
 		{
 			return A.GetRenderPriority() < B.GetRenderPriority();
-		});
-}
-void FLGUIRenderer::SortWorldSpacePrimitiveRenderPriority_RenderThread(const FVector3f& InViewPosition)
-{
-	for (auto& Item : WorldSpaceRenderCanvasParameterArray)
-	{
-		Item.DistToCamera = FVector3f::DistSquared(InViewPosition, Item.HudPrimitive->GetWorldPositionForSortTranslucent());
-	}
-	WorldSpaceRenderCanvasParameterArray.Sort([InViewPosition](const FWorldSpaceRenderParameter& A, const FWorldSpaceRenderParameter& B) {
-		if (A.HudPrimitive->GetRenderPriority() == B.HudPrimitive->GetRenderPriority())
-		{
-			return A.DistToCamera > B.DistToCamera;
-		}
-		else
-		{
-			return A.HudPrimitive->GetRenderPriority() < B.HudPrimitive->GetRenderPriority();
-		}
 		});
 }
 
