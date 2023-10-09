@@ -1881,7 +1881,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 	}
 	if (bNeedToVerifyMaterials)
 	{
-		bNeedToVerifyMaterials = true;
+		bNeedToVerifyMaterials = false;
 		UIMesh->VarifyMaterials();
 	}
 }
