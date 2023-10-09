@@ -810,7 +810,7 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 
 void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UActorComponent* InComponent, AActor* InActor)
 {
-#if 1//not work as I want
+#if 0//not work as I want, toooooooo many unexpected operations can trigger this
 	if (!bCanNotifyComponentCreateDelete)return;
 	if (InComponent->IsDefaultSubobject())return;
 	if (this->IsActorBelongsToSubPrefab(InActor))
