@@ -722,8 +722,6 @@ namespace LGUIPrefabSystem6
 				AllActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
-				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
-
 				for (auto& ChildSaveData : InActorData.ChildrenActorDataArray)
 				{
 					GenerateActorRecursive(ChildSaveData, SavedObjects, NewActor->GetRootComponent(), InActorData.RootComponentGuid);
