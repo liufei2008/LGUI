@@ -115,6 +115,7 @@ int32 FLGUIRenderer::GetPriority() const
 }
 bool FLGUIRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
 {
+	if (!World.IsValid())return false;
 #if WITH_EDITOR
 	if (GEngine == nullptr) return false;
 	bCanRenderScreenSpace = true;
@@ -128,8 +129,6 @@ bool FLGUIRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext&
 	if (bIsPlaying == bIsEditorPreview)bCanRenderScreenSpace = false;
 #endif
 
-
-	if (!World.IsValid())return false;
 	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
 }
