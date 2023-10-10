@@ -29,7 +29,8 @@ UCLASS(Abstract)
 class LGUI_API UUILayoutBase :public ULGUILifeCycleUIBehaviour, public ILGUILayoutInterface
 {
 	GENERATED_BODY()
-
+public:
+	UUILayoutBase();
 protected:
 	virtual void Awake() override;
 	virtual void OnEnable()override;

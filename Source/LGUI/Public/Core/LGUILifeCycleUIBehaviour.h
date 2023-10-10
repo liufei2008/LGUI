@@ -61,11 +61,11 @@ protected:
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive);
 	/** 
-	 * Called when RootUIComp->AnchorData is changed. 
+	 * Called when RootUIComp->AnchorData is changed or scale is changed. 
 	 */
 	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/**
-	 * Called when RootUIComp's attachchildren->AnchorData is changed.
+	 * Called when RootUIComp's attachchildren->AnchorData is changed or scale is changed.
 	 */
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
@@ -91,11 +91,11 @@ protected:
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIActiveInHierarchy"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIActiveInHierarchy(bool activeOrInactive);
 	/** 
-	 * Called when RootUIComp->AnchorData is changed
+	 * Called when RootUIComp->AnchorData is changed  or scale is changed.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** 
-	 * Called when RootUIComp's attachchildren->AnchorData is changed.
+	 * Called when RootUIComp's attachchildren->AnchorData is changed or scale is changed.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
