@@ -16,15 +16,6 @@ FUIPostProcessRenderProxy::FUIPostProcessRenderProxy()
 	clipType = ELGUICanvasClipType::None;
 	MaskTextureType = EUIPostProcessMaskTextureType::Simple;
 }
-void FUIPostProcessRenderProxy::SetUITranslucentSortPriority(int32 NewTranslucentSortPriority)
-{
-	auto renderProxy = this;
-	ENQUEUE_RENDER_COMMAND(FUIPostProcess_SetSortPriority)(
-		[NewTranslucentSortPriority, renderProxy](FRHICommandListImmediate& RHICmdList)
-		{
-			renderProxy->SetUITranslucentSortPriority_RenderThread(NewTranslucentSortPriority);
-		});
-}
 void FUIPostProcessRenderProxy::SetVisibility(bool value)
 {
 	auto renderProxy = this;

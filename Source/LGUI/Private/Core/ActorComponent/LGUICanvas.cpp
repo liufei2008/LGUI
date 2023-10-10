@@ -53,6 +53,7 @@ ULGUICanvas::ULGUICanvas()
 	bPrevUIItemIsActive = true;
 	bNeedToVerifyMaterials = true;
 	bRootCanvasNeedToUpdateChildrenCanvasBounds = false;
+	bUIMeshNeedToSetInitialParameters = true;
 
 	bCanTickUpdate = true;
 	bShouldRebuildDrawcall = true;
@@ -284,14 +285,19 @@ void ULGUICanvas::OnUnregister()
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	if (UIMesh.IsValid())
+	{
+		UIMesh->DestroyComponent();
+		UIMesh = nullptr;
+	}
 }
 
 void ULGUICanvas::ClearDrawcall()
 {
 	if (UIMesh.IsValid())
 	{
-		UIMesh->DestroyComponent();
-		UIMesh = nullptr;
+		UIMesh->ClearRenderData();
+		bUIMeshNeedToSetInitialParameters = true;
 	}
 
 	PooledUIMaterialList.Empty();
@@ -340,8 +346,15 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 		this->MarkCanvasUpdate(false, false, true, true);
 		if (ParentCanvas.IsValid())
 		{
-			ParentCanvas->ChildrenCanvasArray.Remove(this);
+			//if render as child, then delete render section
+			if (DrawcallAsChildCanvas.IsValid() && DrawcallAsChildCanvas->DrawcallRenderSection.IsValid())
+			{
+				DrawcallAsChildCanvas->DrawcallMesh->DeleteRenderSection(DrawcallAsChildCanvas->DrawcallRenderSection.Pin());
+				DrawcallAsChildCanvas->DrawcallRenderSection = nullptr;
+			}
 			this->DrawcallAsChildCanvas = nullptr;
+
+			ParentCanvas->ChildrenCanvasArray.Remove(this);
 			ParentCanvas->UIRenderableList.Remove(this->UIItem.Get());
 			ParentCanvas->MarkCanvasUpdate(false, false, true, true);
 		}
@@ -994,7 +1007,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 	auto ClearObjectFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable) {
 		if (InDrawcallItem->DrawcallRenderSection.IsValid())
 		{
-			UIMesh->DeleteRenderSection(InDrawcallItem->DrawcallRenderSection.Pin());
+			InDrawcallItem->DrawcallMesh->DeleteRenderSection(InDrawcallItem->DrawcallRenderSection.Pin());
 			InDrawcallItem->DrawcallRenderSection = nullptr;
 		}
 
@@ -1007,7 +1020,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 	auto ClearChildCanvasFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, ULGUICanvas* InChildCanvas) {
 		if (InDrawcallItem->DrawcallRenderSection.IsValid())
 		{
-			UIMesh->DeleteRenderSection(InDrawcallItem->DrawcallRenderSection.Pin());
+			InDrawcallItem->DrawcallMesh->DeleteRenderSection(InDrawcallItem->DrawcallRenderSection.Pin());
 			InDrawcallItem->DrawcallRenderSection = nullptr;
 		}
 
@@ -1046,6 +1059,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 						}
 						auto ChildCanvasDrawcall = MakeShared<UUIDrawcall>(EUIDrawcallType::ChildCanvas);
 						ChildCanvasDrawcall->ChildCanvas = ChildCanvas;
+						ChildCanvasDrawcall->DrawcallMesh = UIMesh;
 						ChildCanvas->DrawcallAsChildCanvas = ChildCanvasDrawcall;
 						InUIDrawcallList.Add(ChildCanvasDrawcall);
 					}
@@ -1063,6 +1077,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 					}
 					auto ChildCanvasDrawcall = MakeShared<UUIDrawcall>(EUIDrawcallType::ChildCanvas);
 					ChildCanvasDrawcall->ChildCanvas = ChildCanvas;
+					ChildCanvasDrawcall->DrawcallMesh = UIMesh;
 					ChildCanvas->DrawcallAsChildCanvas = ChildCanvasDrawcall;
 					InUIDrawcallList.Add(ChildCanvasDrawcall);
 					OutNeedToSortRenderPriority = true;
@@ -1247,6 +1262,12 @@ void ULGUICanvas::SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue)
 		{
 			UIMesh->DestroyComponent();
 			UIMesh = nullptr;
+			//if render as child, then delete render section
+			if (DrawcallAsChildCanvas.IsValid() && DrawcallAsChildCanvas->DrawcallRenderSection.IsValid())
+			{
+				DrawcallAsChildCanvas->DrawcallMesh->DeleteRenderSection(DrawcallAsChildCanvas->DrawcallRenderSection.Pin());
+				DrawcallAsChildCanvas->DrawcallRenderSection = nullptr;
+			}
 		}
 
 		MarkCanvasUpdate(true, false, false);
@@ -1331,7 +1352,7 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 				//check(DrawcallInCache->RenderObjectList.Num() == 0);//why comment this?: need to wait until UUIBaseRenderable::OnRenderCanvasChanged.todo finish
 				if (DrawcallInCache->DrawcallRenderSection.IsValid())
 				{
-					UIMesh->DeleteRenderSection(DrawcallInCache->DrawcallRenderSection.Pin());
+					DrawcallInCache->DrawcallMesh->DeleteRenderSection(DrawcallInCache->DrawcallRenderSection.Pin());
 					DrawcallInCache->DrawcallRenderSection = nullptr;
 				}
 				if (DrawcallInCache->RenderMaterial.IsValid())
@@ -1346,6 +1367,10 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 				if (DrawcallInCache->DirectMeshRenderableObject.IsValid())
 				{
 					DrawcallInCache->DirectMeshRenderableObject->ClearMeshData();
+				}
+				if (DrawcallInCache->ChildCanvas.IsValid())
+				{
+					DrawcallInCache->ChildCanvas->DrawcallAsChildCanvas = nullptr;
 				}
 			}
 			CacheUIDrawcallList.Reset();
@@ -1516,74 +1541,81 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 
 void ULGUICanvas::CheckUIMesh()const
 {
-	if (UIMesh.IsValid())return;
-	auto MeshType = DefaultMeshType.Get();
-	if (MeshType == nullptr)MeshType = ULGUIMeshComponent::StaticClass();
-	auto ObjectName = MakeUniqueObjectName(this->GetOwner(), MeshType, FName(*this->GetUIItem()->GetDisplayName()));
-	UIMesh = NewObject<ULGUIMeshComponent>(this->GetOwner(), MeshType, ObjectName, RF_Transient);
-	UIMesh->RegisterComponent();
-	UIMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	UIMesh->SetRelativeTransform(FTransform::Identity);
-	UIMesh->SetRenderCanvas((ULGUICanvas*)this);
-
-	if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
+	if (!UIMesh.IsValid())
 	{
-		auto ActualRenderMode = GetActualRenderMode();
-#if WITH_EDITOR
-		if (previewWithLGUIRenderer)
-		{
-			if (!GetWorld()->IsGameWorld())//edit mode
-			{
-				if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-					ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
-			}
-		}
-#endif
-		switch (ActualRenderMode)
-		{
-		case ELGUIRenderMode::RenderTarget:
-		{
-			UIMesh->SetSupportLGUIRenderer(true, this->GetRootCanvas()->GetRenderTargetViewExtension(), false);
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
-			{
-				UIMesh->SetSupportUERenderer(true);
-			}
-			else
-#endif
-			{
-				UIMesh->SetSupportUERenderer(false);
-			}
-		}
-		break;
-		case ELGUIRenderMode::ScreenSpaceOverlay:
-		{
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
-			{
-				UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
-				UIMesh->SetSupportUERenderer(true);
-			}
-			else
-#endif
-			{
-				UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
-				UIMesh->SetSupportUERenderer(false);
-			}
-		}
-		break;
-		case ELGUIRenderMode::WorldSpace_LGUI:
-		{
-			UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), true);
-			UIMesh->SetSupportUERenderer(false);
-		}
-		break;
-		}
+		auto MeshType = DefaultMeshType.Get();
+		if (MeshType == nullptr)MeshType = ULGUIMeshComponent::StaticClass();
+		auto ObjectName = MakeUniqueObjectName(this->GetOwner(), MeshType, FName(*this->GetUIItem()->GetDisplayName()));
+		UIMesh = NewObject<ULGUIMeshComponent>(this->GetOwner(), MeshType, ObjectName, RF_Transient);
+		UIMesh->RegisterComponent();
+		UIMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		UIMesh->SetRelativeTransform(FTransform::Identity);
+		UIMesh->SetRenderCanvas((ULGUICanvas*)this);
+		bUIMeshNeedToSetInitialParameters = true;
 	}
-	else
+
+	if (bUIMeshNeedToSetInitialParameters)
 	{
-		UIMesh->SetSupportLGUIRenderer(false, nullptr, false);
-		UIMesh->SetSupportUERenderer(true);
+		bUIMeshNeedToSetInitialParameters = false;
+		if (RenderModeIsLGUIRendererOrUERenderer(CurrentRenderMode))
+		{
+			auto ActualRenderMode = GetActualRenderMode();
+#if WITH_EDITOR
+			if (previewWithLGUIRenderer)
+			{
+				if (!GetWorld()->IsGameWorld())//edit mode
+				{
+					if (ActualRenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+						ActualRenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+				}
+			}
+#endif
+			switch (ActualRenderMode)
+			{
+			case ELGUIRenderMode::RenderTarget:
+			{
+				UIMesh->SetSupportLGUIRenderer(true, this->GetRootCanvas()->GetRenderTargetViewExtension(), false);
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
+				{
+					UIMesh->SetSupportUERenderer(true);
+				}
+				else
+#endif
+				{
+					UIMesh->SetSupportUERenderer(false);
+				}
+			}
+			break;
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+			{
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
+					UIMesh->SetSupportUERenderer(true);
+				}
+				else
+#endif
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
+					UIMesh->SetSupportUERenderer(false);
+				}
+			}
+			break;
+			case ELGUIRenderMode::WorldSpace_LGUI:
+			{
+				UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), true);
+				UIMesh->SetSupportUERenderer(false);
+			}
+			break;
+			}
+		}
+		else
+		{
+			UIMesh->SetSupportLGUIRenderer(false, nullptr, false);
+			UIMesh->SetSupportUERenderer(true);
+		}
 	}
 }
 
@@ -1600,12 +1632,8 @@ void ULGUICanvas::SortDrawcall()
 		{
 		case EUIDrawcallType::BatchGeometry:
 		case EUIDrawcallType::DirectMesh:
-		{
-		}
-		break;
 		case EUIDrawcallType::PostProcess:
 		{
-			DrawcallItem->PostProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(0);
 		}
 		break;
 		case EUIDrawcallType::ChildCanvas:
