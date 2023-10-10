@@ -26,7 +26,6 @@ public:
 	}
 private:
 	TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> LGUIRenderer;
-	int32 RenderPriority = 0;
 	bool bIsVisible = true;
 	bool bIsWorld = false;//is world space or screen space
 	ULGUICanvas* RenderCanvasPtr = nullptr;
@@ -58,10 +57,6 @@ public:
 		const FVector4f& ViewTextureScaleOffset
 	) = 0;
 private:
-	void SetUITranslucentSortPriority_RenderThread(int value)
-	{
-		RenderPriority = value;
-	}
 	void SetVisibility_RenderThread(bool value)
 	{
 		bIsVisible = value;

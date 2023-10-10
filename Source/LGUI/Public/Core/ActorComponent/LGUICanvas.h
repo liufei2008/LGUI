@@ -544,6 +544,7 @@ private:
 
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 
+	mutable uint32 bUIMeshNeedToSetInitialParameters : 1;//after clear UIMesh, it will need to set initial parameters to use again
 	mutable uint32 bIsViewProjectionMatrixDirty : 1;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
