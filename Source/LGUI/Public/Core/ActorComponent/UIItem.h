@@ -264,7 +264,7 @@ public:
 	virtual void MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode);
 private:
 	void SetOnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange);
-	void SetOnTransformChange();
+	void SetOnTransformChange(bool InPositionChanged, bool InScaleChanged);
 protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true);
 public:
@@ -273,6 +273,7 @@ private:
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 	mutable uint8 bNeedSortUIChildren : 1;
+	FVector2f PrevScale2D = FVector2f::One();
 #pragma region UICanvasGroup
 protected:
 	UPROPERTY(Transient) mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;

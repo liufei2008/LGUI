@@ -134,7 +134,7 @@ private:
 	bool bTextLayoutDirty = false;
 	void MarkTextLayoutDirty();
 	void ConditionalMarkTextLayoutDirty();
-	FVector2f PrevScale2D = FVector2f::One();
+	FVector2f PrevScale2DForUIText = FVector2f::One();
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
 	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;

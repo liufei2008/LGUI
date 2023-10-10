@@ -11,13 +11,15 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
-void UUILayoutBase::Awake()
+UUILayoutBase::UUILayoutBase()
 {
-    Super::Awake();
-
     bNeedRebuildLayout = true;
     bNeedRebuildChildrenList = true;
     bNeedSortChildrenList = true;
+}
+void UUILayoutBase::Awake()
+{
+    Super::Awake();
 
     MarkNeedRebuildChildrenList();
     MarkNeedRebuildLayout();

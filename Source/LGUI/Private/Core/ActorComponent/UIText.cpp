@@ -244,14 +244,14 @@ void UUIText::OnComponentDestroyed(bool bDestroyingHierarchy)
 void UUIText::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
-	if (IsValid(font) && font->GetNeedObjectScale())
+	if (IsValid(font) && font->GetNeedObjectScale())//some font need object scale (SDF font), so detect scale change and mark update
 	{
 		auto CompScale3D = this->GetComponentScale();
 		auto CompScale2D = FVector2f(CompScale3D.Y, CompScale3D.Z);
-		if (!PrevScale2D.Equals(CompScale2D))
+		if (!PrevScale2DForUIText.Equals(CompScale2D))
 		{
-			PrevScale2D = CompScale2D;
-			MarkUVDirty();//object scale value is stored in uv2
+			PrevScale2DForUIText = CompScale2D;
+			MarkUVDirty();//object scale value is stored in uv2. @todo: this should defined in font
 		}
 	}
 }
