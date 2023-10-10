@@ -334,13 +334,13 @@ void FLGUIRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel,
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUI RHIRender"), STAT_LGUI_RHIRender, STATGROUP_LGUI);
 void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRDGBuilder& GraphBuilder
 	, FSceneView& InView)
 {
-	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
-	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
+	SCOPE_CYCLE_COUNTER(STAT_LGUI_RHIRender);
+	if (ScreenSpaceRenderParameter.PrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
 	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
 
 	//create render target
@@ -363,9 +363,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			//clear render target
 			{
 				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIHudRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
+				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
 				GraphBuilder.AddPass(
-					RDG_EVENT_NAME("LGUIHudRender_ClearRenderTarget"),
+					RDG_EVENT_NAME("LGUIRender_ClearRenderTarget"),
 					Parameters,
 					ERDGPassFlags::Raster,
 					[](FRHICommandListImmediate& RHICmdList)
@@ -509,28 +509,28 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		TArray<FWorldSpaceRenderParameterSequence> RenderSequenceArray;
 		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
 		{
-			if (WorldRenderParameter.HudPrimitive->CanRender())
+			if (WorldRenderParameter.Primitive->CanRender())
 			{
 				bool bIsPrimitiveVisible = false;//default is not visible
 				if (InView.ShowOnlyPrimitives.IsSet())
 				{
-					bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(WorldRenderParameter.HudPrimitive->GetPrimitiveComponentId());
+					bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(WorldRenderParameter.Primitive->GetPrimitiveComponentId());
 				}
 				else
 				{
-					bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(WorldRenderParameter.HudPrimitive->GetPrimitiveComponentId());
+					bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(WorldRenderParameter.Primitive->GetPrimitiveComponentId());
 				}
 				if (bIsPrimitiveVisible)
 				{
-					auto WorldBounds = WorldRenderParameter.HudPrimitive->GetWorldBounds();
+					auto WorldBounds = WorldRenderParameter.Primitive->GetWorldBounds();
 					if (InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 					{
 						FWorldSpaceRenderParameterSequence Item;
 						Item.BlendDepth = WorldRenderParameter.BlendDepth;
 						Item.DepthFade = WorldRenderParameter.DepthFade;
-						Item.WorldPosition = WorldRenderParameter.HudPrimitive->GetWorldPositionForSortTranslucent();
-						Item.RenderPriority = WorldRenderParameter.HudPrimitive->GetRenderPriority();
-						WorldRenderParameter.HudPrimitive->CollectRenderData(Item.RenderDataArray);
+						Item.WorldPosition = WorldRenderParameter.Primitive->GetWorldPositionForSortTranslucent();
+						Item.RenderPriority = WorldRenderParameter.Primitive->GetRenderPriority();
+						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray);
 						RenderSequenceArray.Add(Item);
 					}
 				}
@@ -564,7 +564,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			{
 				switch (RenderPrimitiveItem.Type)
 				{
-				case ELGUIHudPrimitiveType::PostProcess://render post process
+				case ELGUIRendererPrimitiveType::PostProcess://render post process
 				{
 					for (int i = 0; i < RenderPrimitiveItem.Sections.Num(); i++)
 					{
@@ -589,14 +589,14 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					}
 				}
 				break;
-				case ELGUIHudPrimitiveType::Mesh://render mesh
+				case ELGUIRendererPrimitiveType::Mesh://render mesh
 				{
 					auto* PassParameters = GraphBuilder.AllocParameters<FLGUIWorldRenderPSParameter>();
 					PassParameters->SceneDepthTex = SceneTextures.Depth.Resolve;
 					PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
 
 					GraphBuilder.AddPass(
-						RDG_EVENT_NAME("LGUIHudRender_WorldSpace"),
+						RDG_EVENT_NAME("LGUIRender_WorldSpace"),
 						PassParameters,
 						ERDGPassFlags::Raster,
 						[this, DepthFade = RenderSequenceItem.DepthFade, BlendDepth = RenderSequenceItem.BlendDepth, RenderPrimitiveItem, RenderView, ViewRect, PassParameters, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, GammaValue](FRHICommandListImmediate& RHICmdList)
@@ -696,7 +696,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	}
 
 	//Render screen space
-	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0
+	if (ScreenSpaceRenderParameter.PrimitiveArray.Num() > 0
 		&& bIsMainViewport
 		)
 	{
@@ -773,14 +773,14 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		
 		//collect render primitive to a sequence
 		TArray<FLGUIPrimitiveDataContainer> RenderSequenceArray;
-		for (auto HudPrimitive : ScreenSpaceRenderParameter.HudPrimitiveArray)
+		for (auto Primitive : ScreenSpaceRenderParameter.PrimitiveArray)
 		{
-			if (HudPrimitive->CanRender())
+			if (Primitive->CanRender())
 			{
-				auto WorldBounds = HudPrimitive->GetWorldBounds();
+				auto WorldBounds = Primitive->GetWorldBounds();
 				if (RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 				{
-					HudPrimitive->CollectRenderData(RenderSequenceArray);
+					Primitive->CollectRenderData(RenderSequenceArray);
 				}
 			}
 		}
@@ -791,7 +791,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			switch (RenderSequenceItem.Type)
 			{
-			case ELGUIHudPrimitiveType::PostProcess://render post process
+			case ELGUIRendererPrimitiveType::PostProcess://render post process
 			{
 				for (int i = 0; i < RenderSequenceItem.Sections.Num(); i++)
 				{
@@ -816,7 +816,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				}
 			}
 			break;
-			case ELGUIHudPrimitiveType::Mesh:
+			case ELGUIRendererPrimitiveType::Mesh:
 			{
 				auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
 				PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
@@ -833,7 +833,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					}
 				}
 				GraphBuilder.AddPass(
-					RDG_EVENT_NAME("LGUIHudRender_ScreenSpace"),
+					RDG_EVENT_NAME("LGUIRender_ScreenSpace"),
 					PassParameters,
 					ERDGPassFlags::Raster,
 					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, ValidDepth = LGUIScreenSpaceDepthRDGTexture != nullptr, GammaValue](FRHICommandListImmediate& RHICmdList)
@@ -982,7 +982,7 @@ void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, I
 		RenderParameter.BlendDepth = InCanvas->GetActualBlendDepth();
 		RenderParameter.DepthFade = InCanvas->GetActualDepthFade();
 		RenderParameter.RenderCanvas = InCanvas;
-		RenderParameter.HudPrimitive = InPrimitive;
+		RenderParameter.Primitive = InPrimitive;
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
 		bNeedSortWorldSpaceRenderCanvas = true;
@@ -990,7 +990,7 @@ void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, I
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIRenderer::AddWorldSpacePrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Add nullptr as ILGUIRendererPrimitive!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)
@@ -998,11 +998,11 @@ void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 	if (InPrimitive != nullptr)
 	{
 		int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InPrimitive](const FWorldSpaceRenderParameter& item) {
-			return item.HudPrimitive == InPrimitive;
+			return item.Primitive == InPrimitive;
 			});
 		if (existIndex == INDEX_NONE)
 		{
-			UE_LOG(LGUI, Log, TEXT("[FLGUIRenderer::RemoveHudPrimitive]Canvas already removed."));
+			UE_LOG(LGUI, Log, TEXT("[%s].%d Canvas already removed."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		}
 		else
 		{
@@ -1012,37 +1012,37 @@ void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread]Remove nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Remove nullptr as ILGUIRendererPrimitive!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FLGUIRenderer::AddScreenSpacePrimitive_RenderThread(ILGUIRendererPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		ScreenSpaceRenderParameter.HudPrimitiveArray.AddUnique(InPrimitive);
+		ScreenSpaceRenderParameter.PrimitiveArray.AddUnique(InPrimitive);
 		ScreenSpaceRenderParameter.bNeedSortRenderPriority = true;
 		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIRenderer::AddScreenSpacePrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Add nullptr as ILGUIRendererPrimitive!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FLGUIRenderer::RemoveScreenSpacePrimitive_RenderThread(ILGUIRendererPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		ScreenSpaceRenderParameter.HudPrimitiveArray.RemoveSingle(InPrimitive);
+		ScreenSpaceRenderParameter.PrimitiveArray.RemoveSingle(InPrimitive);
 		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIRenderer::RemoveScreenSpacePrimitive_RenderThread]Remove nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Remove nullptr as ILGUIRendererPrimitive!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
 void FLGUIRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 {
-	ScreenSpaceRenderParameter.HudPrimitiveArray.Sort([](ILGUIRendererPrimitive& A, ILGUIRendererPrimitive& B)
+	ScreenSpaceRenderParameter.PrimitiveArray.Sort([](ILGUIRendererPrimitive& A, ILGUIRendererPrimitive& B)
 		{
 			return A.GetRenderPriority() < B.GetRenderPriority();
 		});
@@ -1129,7 +1129,7 @@ void FLGUIRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderT
 void FLGUIRenderer::CheckContainsPostProcess_RenderThread()
 {
 	bNeedOriginScreenColorTextureOnPostProcess = false;
-	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
+	for (auto& item : ScreenSpaceRenderParameter.PrimitiveArray)
 	{
 		if (item->PostProcessRequireOriginScreenColorTexture())
 		{
@@ -1139,7 +1139,7 @@ void FLGUIRenderer::CheckContainsPostProcess_RenderThread()
 	}
 	for (auto& renderItem : WorldSpaceRenderCanvasParameterArray)
 	{
-		if (renderItem.HudPrimitive->PostProcessRequireOriginScreenColorTexture())
+		if (renderItem.Primitive->PostProcessRequireOriginScreenColorTexture())
 		{
 			bNeedOriginScreenColorTextureOnPostProcess = true;
 			return;

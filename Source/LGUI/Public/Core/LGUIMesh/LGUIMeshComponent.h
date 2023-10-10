@@ -96,8 +96,8 @@ public:
 	void SetMeshSectionMaterial(TSharedPtr<FLGUIRenderSection> InMeshSection, UMaterialInterface* InMaterial);
 
 	void SetRenderCanvas(ULGUICanvas* InCanvas);
-	void SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> HudRenderer, bool InIsRenderToWorld);
-	void SetSupportUERenderer(bool supportOrNot);
+	void SetSupportLGUIRenderer(bool InSupportOrNot, TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> InLGUIRenderer, bool InIsRenderToWorld);
+	void SetSupportUERenderer(bool InSupportOrNot);
 	void ClearRenderData();
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
