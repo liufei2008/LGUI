@@ -657,15 +657,21 @@ void UUIItem::CalculateAnchorFromTransform()
 		CalculatedAnchoredPosition.X = TempRelativeLocation.Y;
 		CalculatedAnchoredPosition.Y = TempRelativeLocation.Z;
 	}
+	auto CompScale3D = this->GetComponentScale();
+	auto CompScale2D = FVector2f(CompScale3D.Y, CompScale3D.Z);
 
 	bAnchorLeftCached = false;
 	bAnchorRightCached = false;
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
-	if (AnchorData.AnchoredPosition != CalculatedAnchoredPosition)
+
+	bool AnchorChanged = AnchorData.AnchoredPosition != CalculatedAnchoredPosition;
+	bool ScaleChanged = PrevScale2D != CompScale2D;
+	if (AnchorChanged || ScaleChanged)
 	{
 		AnchorData.AnchoredPosition = CalculatedAnchoredPosition;
-		SetOnTransformChange();
+		PrevScale2D = CompScale2D;
+		SetOnTransformChange(AnchorChanged, ScaleChanged);
 	}
 }
 
@@ -1959,7 +1965,7 @@ void UUIItem::SetOnAnchorChange(bool InPivotChange, bool InWidthChange, bool InH
 	OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, false);
 }
 
-void UUIItem::SetOnTransformChange()
+void UUIItem::SetOnTransformChange(bool InPositionChanged, bool InScaleChanged)
 {
 	if (this->RenderCanvas.IsValid())
 	{
@@ -1970,13 +1976,13 @@ void UUIItem::SetOnTransformChange()
 		}
 	}
 
-	CallUILifeCycleBehavioursDimensionsChanged(true, true, false, false);
+	CallUILifeCycleBehavioursDimensionsChanged(InPositionChanged, InPositionChanged, InScaleChanged, InScaleChanged);
 
 	for (auto& UIChild : UIChildren)
 	{
 		if (IsValid(UIChild))
 		{
-			UIChild->SetOnTransformChange();
+			UIChild->SetOnTransformChange(InPositionChanged, InScaleChanged);
 		}
 	}
 }
