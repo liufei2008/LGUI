@@ -22,7 +22,7 @@ struct FLGUIRenderSection
 	ELGUIRenderSectionType Type;
 	int RenderPriority = 0;
 	FLGUIRenderSectionProxy* RenderProxy = nullptr;
-	FBox BoundingBox;//world space bounding box
+	FBox BoundingBox = FBox(EForceInit::ForceInit);//world space bounding box
 
 	virtual void UpdateSectionBox(const FTransform& LocalToWorld) = 0;
 };
