@@ -119,7 +119,7 @@ private:
 		//depth fade effect
 		float DepthFade = 0.0f;
 
-		ILGUIRendererPrimitive* HudPrimitive = nullptr;
+		ILGUIRendererPrimitive* Primitive = nullptr;
 	};
 	struct FScreenSpaceRenderParameter
 	{
@@ -131,7 +131,7 @@ private:
 		bool bNeedSortRenderPriority = true;
 
 		TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
-		TArray<ILGUIRendererPrimitive*> HudPrimitiveArray;
+		TArray<ILGUIRendererPrimitive*> PrimitiveArray;
 	};
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
 	TMap<ULGUICanvas*, bool> WorldSpaceCanvasVisibilityMap;

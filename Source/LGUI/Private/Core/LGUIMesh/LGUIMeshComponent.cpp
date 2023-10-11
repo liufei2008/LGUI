@@ -23,10 +23,10 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
 #endif
-class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
+class FLGUIMeshVertexResourceArray : public FResourceArrayInterface
 {
 public:
-	FLGUIHudMeshVertexResourceArray(void* InData, uint32 InSize)
+	FLGUIMeshVertexResourceArray(void* InData, uint32 InSize)
 		:Data(InData)
 		,Size(InSize)
 	{
@@ -42,7 +42,7 @@ private:
 	void* Data;
 	uint32 Size;
 };
-class FLGUIHudVertexBuffer : public FVertexBuffer
+class FLGUIVertexBuffer : public FVertexBuffer
 {
 public:
 	TArray<FLGUIMeshVertex> Vertices;
@@ -50,8 +50,8 @@ public:
 	{
 		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIMeshVertex);
 
-		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
-		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHudVertexBuffer"), &ResourceArray);
+		FLGUIMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
+		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIVertexBuffer"), &ResourceArray);
 		VertexBufferRHI = RHICmdList.CreateVertexBuffer(SizeInBytes, BUF_Dynamic, CreateInfo);
 	}
 };
@@ -76,7 +76,7 @@ struct FLGUIMeshSectionProxy : public FLGUIRenderSectionProxy
 	UMaterialInterface* Material = nullptr;
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
-	FLGUIHudVertexBuffer HudVertexBuffers;
+	FLGUIVertexBuffer LGUIVertexBuffers;
 	/** Index buffer for this section */
 	FLGUIMeshIndexBuffer IndexBuffer;
 	/** Vertex factory for this section */
@@ -90,7 +90,7 @@ struct FLGUIMeshSectionProxy : public FLGUIRenderSectionProxy
 	~FLGUIMeshSectionProxy()
 	{
 		IndexBuffer.ReleaseResource();
-		HudVertexBuffers.ReleaseResource();
+		LGUIVertexBuffers.ReleaseResource();
 		VertexBuffers.PositionVertexBuffer.ReleaseResource();
 		VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
 		VertexBuffers.ColorVertexBuffer.ReleaseResource();
@@ -109,7 +109,7 @@ struct FLGUIMeshSectionProxy : public FLGUIRenderSectionProxy
 		}
 	}
 
-	void InitFromLGUIHudVertexData(TArray<FLGUIMeshVertex>& Vertices)
+	void InitFromLGUIVertexData(TArray<FLGUIMeshVertex>& Vertices)
 	{
 		auto LightMapIndex = 0;
 		VertexBuffers.StaticMeshVertexBuffer.SetUseFullPrecisionUVs(true);
@@ -213,20 +213,20 @@ public:
 		if (LGUIRenderer.IsValid())
 		{
 			auto TempRenderer = LGUIRenderer;
-			auto HudPrimitive = this;
+			auto SceneProxy = this;
 			auto IsRenderToWorld = bIsLGUIRenderToWorld;
-			ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_AddHudPrimitive)(
-				[TempRenderer, HudPrimitive, InCanvasPtr, InCanvasSortOrder, IsRenderToWorld](FRHICommandListImmediate& RHICmdList)
+			ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_AddPrimitive)(
+				[TempRenderer, SceneProxy, InCanvasPtr, InCanvasSortOrder, IsRenderToWorld](FRHICommandListImmediate& RHICmdList)
 				{
 					if (TempRenderer.IsValid())
 					{
 						if (IsRenderToWorld)
 						{
-							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, HudPrimitive);
+							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, SceneProxy);
 						}
 						else
 						{
-							TempRenderer.Pin()->AddScreenSpacePrimitive_RenderThread(HudPrimitive);
+							TempRenderer.Pin()->AddScreenSpacePrimitive_RenderThread(SceneProxy);
 						}
 					}
 				}
@@ -282,19 +282,19 @@ public:
 			int NumVerts = SrcVertices.Num();
 			if (bIsSupportLGUIRenderer)
 			{
-				auto& HudVertices = NewSectionProxy->HudVertexBuffers.Vertices;
-				HudVertices.SetNumUninitialized(NumVerts);
-				FMemory::Memcpy(HudVertices.GetData(), SrcVertices.GetData(), NumVerts * sizeof(FLGUIMeshVertex));
+				auto& LGUIVertices = NewSectionProxy->LGUIVertexBuffers.Vertices;
+				LGUIVertices.SetNumUninitialized(NumVerts);
+				FMemory::Memcpy(LGUIVertices.GetData(), SrcVertices.GetData(), NumVerts * sizeof(FLGUIMeshVertex));
 				NewSectionProxy->IndexBuffer.Indices = SrcSection->triangles;
 
 				// Enqueue initialization of render resource
 				BeginInitResource(&NewSectionProxy->IndexBuffer);
-				BeginInitResource(&NewSectionProxy->HudVertexBuffers);
+				BeginInitResource(&NewSectionProxy->LGUIVertexBuffers);
 			}
 			if (bIsSupportUERenderer)
 			{
 				NewSectionProxy->IndexBuffer.Indices = SrcSection->triangles;
-				NewSectionProxy->InitFromLGUIHudVertexData(SrcSection->vertices);
+				NewSectionProxy->InitFromLGUIVertexData(SrcSection->vertices);
 
 				// Enqueue initialization of render resource
 				BeginInitResource(&NewSectionProxy->VertexBuffers.PositionVertexBuffer);
@@ -508,9 +508,9 @@ public:
 			if (bIsSupportLGUIRenderer)
 			{
 				uint32 VertexDataLength = NumVerts * sizeof(FLGUIMeshVertex);
-				void* VertexBufferData = RHICmdList.LockBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
+				void* VertexBufferData = RHICmdList.LockBuffer(Section->LGUIVertexBuffers.VertexBufferRHI, 0, VertexDataLength, RLM_WriteOnly);
 				FMemory::Memcpy(VertexBufferData, MeshVertexData, VertexDataLength);
-				RHICmdList.UnlockBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+				RHICmdList.UnlockBuffer(Section->LGUIVertexBuffers.VertexBufferRHI);
 			}
 			if(bIsSupportUERenderer)
 			{
@@ -681,7 +681,7 @@ public:
 		}
 	}
 
-	//begin ILGUIHudPrimitive interface
+	//begin ILGUIRendererPrimitive interface
 	virtual FVector3f GetWorldPositionForSortTranslucent()const override 
 	{
 		return (FVector3f)(GetLocalToWorld().GetOrigin()); 
@@ -727,7 +727,7 @@ public:
 			BatchElement.FirstIndex = 0;
 			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
 			BatchElement.MinVertexIndex = 0;
-			BatchElement.MaxVertexIndex = Section->HudVertexBuffers.Vertices.Num() - 1;
+			BatchElement.MaxVertexIndex = Section->LGUIVertexBuffers.Vertices.Num() - 1;
 			Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
 			Mesh.Type = PT_TriangleList;
 			Mesh.DepthPriorityGroup = SDPG_World;
@@ -735,8 +735,8 @@ public:
 
 			FLGUIMeshBatchContainer MeshBatchContainer;
 			MeshBatchContainer.Mesh = Mesh;
-			MeshBatchContainer.VertexBufferRHI = Section->HudVertexBuffers.VertexBufferRHI;
-			MeshBatchContainer.NumVerts = Section->HudVertexBuffers.Vertices.Num();
+			MeshBatchContainer.VertexBufferRHI = Section->LGUIVertexBuffers.VertexBufferRHI;
+			MeshBatchContainer.NumVerts = Section->LGUIVertexBuffers.Vertices.Num();
 			ResultArray.Add(MeshBatchContainer);
 		}
 	}
@@ -762,7 +762,7 @@ public:
 	}
 	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override { return FPrimitiveSceneProxy::GetPrimitiveComponentId(); }
 	virtual FBoxSphereBounds GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
-	//end ILGUIHudPrimitive interface
+	//end ILGUIRendererPrimitive interface
 	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
 	{
 		if (Sections.Num() <= 0)return;
@@ -777,7 +777,7 @@ public:
 		}
 
 		auto PrevRenderSectionType = Sections[0]->Type;
-		auto PrevPrimitiveType = PrevRenderSectionType == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
+		auto PrevPrimitiveType = PrevRenderSectionType == ELGUIRenderSectionType::PostProcess ? ELGUIRendererPrimitiveType::PostProcess : ELGUIRendererPrimitiveType::Mesh;
 		FLGUIPrimitiveDataContainer CurrentRenderData;
 		CurrentRenderData.Primitive = this;
 		CurrentRenderData.Type = PrevPrimitiveType;
@@ -795,7 +795,7 @@ public:
 					PrevRenderSectionType = RenderSection->Type;
 					CurrentRenderData = FLGUIPrimitiveDataContainer();
 					CurrentRenderData.Primitive = this;
-					auto ItemPrimitiveType = RenderSection->Type == ELGUIRenderSectionType::PostProcess ? ELGUIHudPrimitiveType::PostProcess : ELGUIHudPrimitiveType::Mesh;
+					auto ItemPrimitiveType = RenderSection->Type == ELGUIRenderSectionType::PostProcess ? ELGUIRendererPrimitiveType::PostProcess : ELGUIRendererPrimitiveType::Mesh;
 					CurrentRenderData.Type = ItemPrimitiveType;
 				}
 
@@ -1246,11 +1246,11 @@ void ULGUIMeshComponent::SetRenderCanvas(ULGUICanvas* InCanvas)
 {
 	RenderCanvas = InCanvas;
 }
-void ULGUIMeshComponent::SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> HudRenderer, bool InIsRenderToWorld)
+void ULGUIMeshComponent::SetSupportLGUIRenderer(bool InSupportOrNot, TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> InLGUIRenderer, bool InIsRenderToWorld)
 {
-	if (supportOrNot)
+	if (InSupportOrNot)
 	{
-		LGUIRenderer = HudRenderer;
+		LGUIRenderer = InLGUIRenderer;
 		bIsLGUIRenderToWorld = InIsRenderToWorld;
 	}
 	else
@@ -1259,9 +1259,9 @@ void ULGUIMeshComponent::SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGU
 	}
 }
 
-void ULGUIMeshComponent::SetSupportUERenderer(bool supportOrNot)
+void ULGUIMeshComponent::SetSupportUERenderer(bool InSupportOrNot)
 {
-	bIsSupportUERenderer = supportOrNot;
+	bIsSupportUERenderer = InSupportOrNot;
 }
 void ULGUIMeshComponent::ClearRenderData()
 {

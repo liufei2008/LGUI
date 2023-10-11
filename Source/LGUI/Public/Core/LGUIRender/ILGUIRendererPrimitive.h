@@ -23,7 +23,7 @@ struct FLGUIMeshBatchContainer
 	FLGUIMeshBatchContainer() {}
 };
 
-enum class ELGUIHudPrimitiveType :uint8
+enum class ELGUIRendererPrimitiveType :uint8
 {
 	Mesh,
 	PostProcess,
@@ -36,7 +36,7 @@ struct FLGUIPrimitiveSectionDataContainer
 struct FLGUIPrimitiveDataContainer
 {
 	class ILGUIRendererPrimitive* Primitive = nullptr;
-	ELGUIHudPrimitiveType Type;
+	ELGUIRendererPrimitiveType Type;
 	TArray<FLGUIPrimitiveSectionDataContainer> Sections;
 };
 
