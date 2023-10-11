@@ -21,7 +21,10 @@ FLGUIScreenRenderVS::FLGUIScreenRenderVS(const FMaterialShaderType::CompiledShad
 }
 bool FLGUIScreenRenderVS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
-	return true;
+	return
+		Parameters.MaterialParameters.MaterialDomain == MD_Surface
+		|| Parameters.MaterialParameters.MaterialDomain == MD_UI
+		;
 }
 void FLGUIScreenRenderVS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 {
@@ -47,7 +50,10 @@ FLGUIScreenRenderPS::FLGUIScreenRenderPS(const FMaterialShaderType::CompiledShad
 }
 bool FLGUIScreenRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
-	return true;
+	return
+		Parameters.MaterialParameters.MaterialDomain == MD_Surface
+		|| Parameters.MaterialParameters.MaterialDomain == MD_UI
+		;
 }
 void FLGUIScreenRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 {
