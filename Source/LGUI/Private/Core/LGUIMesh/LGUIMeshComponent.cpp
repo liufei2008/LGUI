@@ -944,7 +944,7 @@ public:
 
 void FLGUIMeshSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
-	BoundingBox = FBox();
+	BoundingBox = FBox(EForceInit::ForceInit);
 
 	int vertCount = vertices.Num();
 	if (vertCount > 2)
@@ -960,7 +960,7 @@ void FLGUIMeshSection::UpdateSectionBox(const FTransform& LocalToWorld)
 }
 void FLGUIPostProcessSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
-	BoundingBox = FBox();
+	BoundingBox = FBox(EForceInit::ForceInit);
 
 	FVector2D Min, Max;
 	PostProcessRenderableObject->GetGeometryBoundsInLocalSpace(Min, Max);
@@ -971,7 +971,7 @@ void FLGUIPostProcessSection::UpdateSectionBox(const FTransform& LocalToWorld)
 }
 void FLGUIChildCanvasSection::UpdateSectionBox(const FTransform& LocalToWorld)
 {
-	BoundingBox = FBox();
+	BoundingBox = FBox(EForceInit::ForceInit);
 
 	BoundingBox = ChildCanvasMeshComponent->Bounds.GetBox();
 }
@@ -1310,7 +1310,7 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 		return FBoxSphereBounds(EForceInit::ForceInitToZero);
 	}
 
-	FBox ResultBox;
+	FBox ResultBox = FBox(EForceInit::ForceInit);
 	for (auto& RenderSection : RenderSections)
 	{
 		switch (RenderSection->Type)
