@@ -183,13 +183,6 @@ private:
 	void FireEvent(void* InParam)const;
 	void LogParameterError(ELGUIEventDelegateParameterType WrongParamType)const;
 public:
-	void SetParameterType(ELGUIEventDelegateParameterType InParamType)
-	{
-		if (supportParameterType != InParamType)
-		{
-			supportParameterType = InParamType;
-		}
-	}
 	bool IsBound()const;
 public:
 	void FireEvent()const;
@@ -214,6 +207,7 @@ public:
 	void FireEvent(UObject* InParam)const;
 	void FireEvent(AActor* InParam)const;
 	void FireEvent(ULGUIPointerEventData* InParam)const;
+	void FireEvent(UClass* InParam)const;
 	void FireEvent(FRotator InParam)const;
 	void FireEvent(const FName& InParam)const;
 	void FireEvent(const FText& InParam)const;

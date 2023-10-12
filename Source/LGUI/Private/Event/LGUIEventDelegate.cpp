@@ -3,10 +3,15 @@
 #include "Event/LGUIEventDelegate.h"
 #include "LGUI.h"
 #include "Serialization/MemoryReader.h"
+#if WITH_EDITOR
+#include "Utils/LGUIUtils.h"
+#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
+
+#define LOCTEXT_NAMESPACE "LGUIEventDelegate"
 
 bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* InFunction, ELGUIEventDelegateParameterType& OutParameterType)
 {
@@ -441,12 +446,20 @@ void FLGUIEventDelegateData::Execute()
 {
 	if (UseNativeParameter)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]If use NativeParameter, you must FireEvent with your own parameter!"));
+		auto errMsg = LOCTEXT("NativeParameterError", "LGUIEventDelegateData.Execute, If use NativeParameter, you must FireEvent with your own parameter!");
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+		UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 		return;
 	}
 	if (ParamType == ELGUIEventDelegateParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Not valid event"));
+		auto errMsg = LOCTEXT("NotValid", "LGUIEventDelegateData.Execute, Not valid LGUIEventDelegate.");
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+		UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 		return;
 	}
 	if (CacheTarget != nullptr && CacheFunction != nullptr)
@@ -465,7 +478,11 @@ void FLGUIEventDelegateData::Execute(void* InParam, ELGUIEventDelegateParameterT
 {
 	if (ParamType == ELGUIEventDelegateParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Not valid event"));
+		auto errMsg = LOCTEXT("NotValid", "LGUIEventDelegateData.Execute, Not valid LGUIEventDelegate.");
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+		UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 		return;
 	}
 
@@ -478,18 +495,30 @@ void FLGUIEventDelegateData::Execute(void* InParam, ELGUIEventDelegateParameterT
 				auto InValue = *((double*)InParam);
 				auto ConvertValue = (float)InValue;
 				InParam = &ConvertValue;
-				UE_LOG(LGUI, Warning, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal, LGUI will automatic convert it from double to float."));
+				auto errMsg = LOCTEXT("ParameterTypeNotEqual_DoubleToFloat", "LGUIEventDelegateData.Execute, Parameter type not equal, LGUI will automatic convert it from double to float.");
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+				UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 			}
 			else if (InParameterType == ELGUIEventDelegateParameterType::Float && ParamType == ELGUIEventDelegateParameterType::Double)
 			{
 				auto InValue = *((float*)InParam);
 				auto ConvertValue = (double)InValue;
 				InParam = &ConvertValue;
-				UE_LOG(LGUI, Warning, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal, LGUI will automatic convert it from float to double."));
+				auto errMsg = LOCTEXT("ParameterTypeNotEqual_FloatToDouble", "LGUIEventDelegateData.Execute, Parameter type not equal, LGUI will automatic convert it from float to double.");
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+				UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Parameter type not equal!"));
+				auto errMsg = LOCTEXT("ParameterTypeNotEqual", "LGUIEventDelegateData.Execute, Parameter type not equal!");
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+				UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 				return;
 			}
 		}
@@ -551,7 +580,11 @@ void FLGUIEventDelegateData::FindAndExecute(UObject* Target, void* ParamData)
 	{
 		if (!ULGUIEventDelegateParameterHelper::IsStillSupported(CacheFunction, ParamType))
 		{
-			UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Target function:%s not supported!"), *(functionName.ToString()));
+			auto errMsg = FText::Format(LOCTEXT("FunctionNotSupport", "LGUIEventDelegateData.FindAndExecute, Target function: {0} not supported!"), FText::FromName(functionName));
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+			UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 			CacheFunction = nullptr;
 		}
 		else
@@ -568,7 +601,11 @@ void FLGUIEventDelegateData::FindAndExecute(UObject* Target, void* ParamData)
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Target function:%s not found!"), *(functionName.ToString()));
+		auto errMsg = FText::Format(LOCTEXT("FunctionNotExist", "LGUIEventDelegateData.FindAndExecute, Target function: {0} not exist!"), FText::FromName(functionName));
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+		UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 	}
 }
 void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* Func)
@@ -646,10 +683,14 @@ void FLGUIEventDelegate::FireEvent()const
 void FLGUIEventDelegate::LogParameterError(ELGUIEventDelegateParameterType WrongParamType)const
 {
 	auto enumObject = FindObject<UEnum>(nullptr, TEXT("/Script/LGUI.ELGUIEventDelegateParameterType"), true);
-	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent] Parameter type must be the same as your declaration. support parameter type: %s, execute parameter type: %s")
-		, *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString()
-		, *(enumObject->GetDisplayNameTextByValue((int64)WrongParamType)).ToString()
+	auto errMsg = FText::Format(LOCTEXT("ParameterTypeMismatch", "LGUIEventDelegate parameter type must be the same as your declaration. support parameter type: {0}, execute parameter type: {1}")
+		, enumObject->GetDisplayNameTextByValue((int64)supportParameterType)
+		, enumObject->GetDisplayNameTextByValue((int64)WrongParamType)
 	);
+#if WITH_EDITOR
+	LGUIUtils::EditorNotification(errMsg, 10);
+#endif
+	UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 }
 void FLGUIEventDelegate::FireEvent(void* InParam)const
 {
@@ -844,9 +885,18 @@ void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 	if (eventList.Num() == 0)return;
 	if (supportParameterType == ELGUIEventDelegateParameterType::PointerEvent)
 	{
-		FireEvent((void*)&InParam);
+		FireEvent(&InParam);
 	}
 	else LogParameterError(ELGUIEventDelegateParameterType::PointerEvent);
+}
+void FLGUIEventDelegate::FireEvent(UClass* InParam)const
+{
+	if (eventList.Num() == 0)return;
+	if (supportParameterType == ELGUIEventDelegateParameterType::Class)
+	{
+		FireEvent(&InParam);
+	}
+	else LogParameterError(ELGUIEventDelegateParameterType::Class);
 }
 void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 {
@@ -889,6 +939,8 @@ bool FLGUIEventDelegate::CheckFunctionParameter()const
 	return true;
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
