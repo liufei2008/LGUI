@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Core/LGUIRender/LGUIVertex.h"
+#include "RHI.h"
 
 
 void FLGUIPostProcessVertexDeclaration::InitRHI(FRHICommandListBase& RHICmdList)
