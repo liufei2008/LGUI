@@ -10,6 +10,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
+#include "Runtime/Launch/Resources/Version.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"
