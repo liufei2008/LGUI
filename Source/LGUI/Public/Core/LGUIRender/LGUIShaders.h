@@ -7,6 +7,7 @@
 #include "ShaderParameterUtils.h"
 #include "Engine/Texture2D.h"
 #include "MeshMaterialShader.h"
+#include "RHIStaticStates.h"
 
 class FLGUIScreenRenderVS :public FMaterialShader
 {

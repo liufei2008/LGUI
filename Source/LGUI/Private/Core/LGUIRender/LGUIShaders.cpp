@@ -7,6 +7,7 @@
 #include "ShaderParameterUtils.h"
 #include "PrimitiveUniformShaderParameters.h"
 #include "MeshBatch.h"
+#include "MaterialDomain.h"
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderVS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);

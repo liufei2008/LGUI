@@ -7,6 +7,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
+#include "RenderingThread.h"
 
 #define LOCTEXT_NAMESPACE "LGUIProceduralRectData"
 
@@ -74,8 +75,9 @@ bool ULGUIProceduralRectData::ExpandTexture()
 	CreateTexture();
 
 	//copy existing data
-	ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectUpdateAndCopyDataTexture)(
-		[OldTexture, NewTexture = Texture, OldTextureSize](FRHICommandListImmediate& RHICmdList)
+	auto NewTexture = Texture;
+	ENQUEUE_RENDER_COMMAND(FLGUIProceduralRect_ExpandTexture)(
+		[OldTexture, NewTexture, OldTextureSize](FRHICommandListImmediate& RHICmdList)
 		{
 			FRHICopyTextureInfo CopyInfo;
 			CopyInfo.SourcePosition = FIntVector(0, 0, 0);
