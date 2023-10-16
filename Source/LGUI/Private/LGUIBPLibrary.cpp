@@ -82,9 +82,35 @@ TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor
 		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::GetComponentInParent]InActor is not valid!"));
 		return result;
 	}
+
+	struct LOCAL
+	{
+		static void CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray, const TSet<AActor*>& InExcludeNode)
+		{
+			if (InExcludeNode.Contains(InActor))return;
+			auto& components = InActor->GetComponents();
+			for (UActorComponent* comp : components)
+			{
+				if (IsValid(comp) && comp->IsA(ComponentClass))
+				{
+					InOutArray.Add(comp);
+				}
+			}
+
+			TArray<AActor*> childrenActors;
+			InActor->GetAttachedActors(childrenActors);
+			if (childrenActors.Num() > 0)
+			{
+				for (AActor* actor : childrenActors)
+				{
+					CollectComponentsInChildrenRecursive(actor, ComponentClass, InOutArray, InExcludeNode);
+				}
+			}
+		}
+	};
 	if (IncludeSelf)
 	{
-		CollectComponentsInChildrenRecursive(InActor, ComponentClass, result, InExcludeNode);
+		LOCAL::CollectComponentsInChildrenRecursive(InActor, ComponentClass, result, InExcludeNode);
 	}
 	else
 	{
@@ -94,34 +120,11 @@ TArray<UActorComponent*> ULGUIBPLibrary::GetComponentsInChildren(AActor* InActor
 		{
 			for (AActor* actor : childrenActors)
 			{
-				CollectComponentsInChildrenRecursive(actor, ComponentClass, result, InExcludeNode);
+				LOCAL::CollectComponentsInChildrenRecursive(actor, ComponentClass, result, InExcludeNode);
 			}
 		}
 	}
 	return result;
-}
-
-void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray, const TSet<AActor*>& InExcludeNode)
-{
-	if (InExcludeNode.Contains(InActor))return;
-	auto& components = InActor->GetComponents();
-	for (UActorComponent* comp : components)
-	{
-		if (IsValid(comp) && comp->IsA(ComponentClass))
-		{
-			InOutArray.Add(comp);
-		}
-	}
-
-	TArray<AActor*> childrenActors;
-	InActor->GetAttachedActors(childrenActors);
-	if (childrenActors.Num() > 0)
-	{
-		for (AActor* actor : childrenActors)
-		{
-			CollectComponentsInChildrenRecursive(actor, ComponentClass, InOutArray, InExcludeNode);
-		}
-	}
 }
 
 UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode)
@@ -131,10 +134,37 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::GetComponentInChildren]InActor is not valid!"));
 		return nullptr;
 	}
+
+	struct LOCAL
+	{
+		static UActorComponent* FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, const TSet<AActor*>& InExcludeNode)
+		{
+			if (InExcludeNode.Contains(InActor))return nullptr;
+			if (auto comp = InActor->GetComponentByClass(ComponentClass))
+			{
+				if (IsValid(comp))
+				{
+					return comp;
+				}
+			}
+			TArray<AActor*> childrenActors;
+			InActor->GetAttachedActors(childrenActors);
+			for (auto childActor : childrenActors)
+			{
+				auto comp = FindComponentInChildrenRecursive(childActor, ComponentClass, InExcludeNode);
+				if (IsValid(comp))
+				{
+					return comp;
+				}
+			}
+			return nullptr;
+		}
+	};
+
 	UActorComponent* result = nullptr;
 	if (IncludeSelf)
 	{
-		result = FindComponentInChildrenRecursive(InActor, ComponentClass, InExcludeNode);
+		result = LOCAL::FindComponentInChildrenRecursive(InActor, ComponentClass, InExcludeNode);
 	}
 	else
 	{
@@ -144,7 +174,7 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 		{
 			for (AActor* actor : childrenActors)
 			{
-				result = FindComponentInChildrenRecursive(InActor, ComponentClass, InExcludeNode);
+				result = LOCAL::FindComponentInChildrenRecursive(actor, ComponentClass, InExcludeNode);
 				if (IsValid(result))
 				{
 					return result;
@@ -153,28 +183,6 @@ UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubcla
 		}
 	}
 	return result;
-}
-UActorComponent* ULGUIBPLibrary::FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, const TSet<AActor*>& InExcludeNode)
-{
-	if (InExcludeNode.Contains(InActor))return nullptr;
-	if (auto comp = InActor->GetComponentByClass(ComponentClass))
-	{
-		if (IsValid(comp))
-		{
-			return comp;
-		}
-	}
-	TArray<AActor*> childrenActors;
-	InActor->GetAttachedActors(childrenActors);
-	for (auto childActor : childrenActors)
-	{
-		auto comp = FindComponentInChildrenRecursive(childActor, ComponentClass, InExcludeNode);
-		if (IsValid(comp))
-		{
-			return comp;
-		}
-	}
-	return nullptr;
 }
 
 UActorComponent* ULGUIBPLibrary::LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUIComponentReference, TSubclassOf<UActorComponent> InComponentType)
