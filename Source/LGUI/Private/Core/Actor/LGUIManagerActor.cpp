@@ -1653,14 +1653,20 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		{
 			if (InRaycaster->GetDepth() == item->GetDepth() && InRaycaster->GetTraceChannel() == item->GetTraceChannel())
 			{
-				auto errMsg = FText::Format(LOCTEXT("MultipleLGUIBaseRaycasterWithSameDepthAndTraceChannel", "[{0}].{1}\
+#if WITH_EDITOR
+				auto ErrorNotifyMsg = LOCTEXT("MultipleLGUIBaseRaycasterWithSameDepthAndTraceChannel"
+					, "Detect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results! See output log for details.");
+				LGUIUtils::EditorNotification(ErrorNotifyMsg, 10);
+#endif
+				UE_LOG(LGUI, Warning, TEXT("[%s].%d \
 \nDetect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
 \neg: Want use mouse to click object A but get object B.\
-\nPlease note:\
+\nPlease note : \
 \n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\
-\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.")
-, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__);
-				UE_LOG(LGUI, Warning, TEXT("\n%s"), *errMsg.ToString());
+\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
+\n	LGUIWorldSpaceInteraction is for all WorldSpaceUI in current level.\
+"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+
 				break;
 			}
 		}

@@ -96,9 +96,6 @@ public:
 	 */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
 		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
-private:
-	static void CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray, const TSet<AActor*>& InExcludeNode);
-	static UActorComponent* FindComponentInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, const TSet<AActor*>& InExcludeNode);
 public:
 #pragma region EventDelegate
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIEventDelegateExecuteEmpty(const FLGUIEventDelegate& InEvent) { InEvent.FireEvent(); }
