@@ -102,6 +102,7 @@ protected:
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
 	virtual void OnChildAttached(USceneComponent* ChildComponent)override;
 	virtual void OnChildDetached(USceneComponent* ChildComponent)override;
+	virtual void OnAttachmentChanged()override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
@@ -273,6 +274,7 @@ private:
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 	mutable uint8 bNeedSortUIChildren : 1;
+	uint8 bIsDetaching : 1;
 	FVector2f PrevScale2D = FVector2f::One();
 #pragma region UICanvasGroup
 protected:
