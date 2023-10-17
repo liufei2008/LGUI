@@ -191,7 +191,7 @@ void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 	}
 }
 
-struct LGUIVersionScope
+struct FLGUIVersionScope
 {
 public:
 	uint16 PrefabVersion = 0;
@@ -204,7 +204,7 @@ public:
 	uint32 ArGameNetVer = 0;
 
 	ULGUIPrefab* Prefab = nullptr;
-	LGUIVersionScope(ULGUIPrefab* InPrefab)
+	FLGUIVersionScope(ULGUIPrefab* InPrefab)
 	{
 		Prefab = InPrefab;
 		this->EngineMajorVersion = Prefab->EngineMajorVersion;
@@ -215,7 +215,7 @@ public:
 		this->ArEngineNetVer = Prefab->ArEngineNetVer;
 		this->ArGameNetVer = Prefab->ArGameNetVer;
 	}
-	~LGUIVersionScope()
+	~FLGUIVersionScope()
 	{
 		Prefab->EngineMajorVersion = this->EngineMajorVersion;
 		Prefab->EngineMinorVersion = this->EngineMinorVersion;
@@ -253,7 +253,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 
 	//serialize to runtime data
 	{
-		LGUIVersionScope VersionProtect(this);
+		FLGUIVersionScope VersionProtect(this);
 		//check override parameter. although parameter is refreshed when sub prefab change, but what if sub prefab is changed outside of editor?
 		bool AnythingChange = false;
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
@@ -279,6 +279,9 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		this->SavePrefab(PrefabHelperObject->LoadedRootActor
 			, MapObjectToGuid, PrefabHelperObject->SubPrefabMap
 			, false
+#if WITH_EDITOR
+			, true
+#endif
 		);
 		PrefabHelperObject->MapGuidToObject.Empty();
 		for (auto KeyValue : MapObjectToGuid)
@@ -736,11 +739,17 @@ FString ULGUIPrefab::GenerateOverallVersionMD5()
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse
+#if WITH_EDITOR
+	, bool InForCook
+#endif
 )
 {
 	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::SavePrefab(RootActor, this
 		, InOutMapObjectToGuid, InSubPrefabMap
 		, InForEditorOrRuntimeUse
+#if WITH_EDITOR
+		, InForCook
+#endif
 	);
 }
 
