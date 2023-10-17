@@ -182,7 +182,7 @@ struct FLGUIChildCanvasSectionProxy : public FLGUIRenderSectionProxy
 		Type = ELGUIRenderSectionType::ChildCanvas;
 	}
 
-	ULGUIMeshComponent* SceneProxyComponent = nullptr;
+	FPrimitiveComponentId PrimitiveComponentID;
 	FLGUIRenderSceneProxy* ChildCanvasSceneProxy = nullptr;
 };
 
@@ -203,9 +203,8 @@ public:
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CreateRenderSection);
-		MeshComponent = InComponent;
 #if !UE_BUILD_SHIPPING
-		DebugName = FName(InComponent->GetName() + "_SceneProxy");
+		DebugName = FName(FString::Printf(TEXT("%s_SceneProxy_%d"), *InComponent->GetName(), DebugNameIndex++));
 #endif
 		LGUIRenderer = InComponent->LGUIRenderer;
 		RenderCanvasPtr = InCanvasPtr;
@@ -338,7 +337,7 @@ public:
 			auto NewSectionProxy = new FLGUIChildCanvasSectionProxy();
 
 			auto& ChildCanvasMeshItem = SrcSection->ChildCanvasMeshComponent;
-			NewSectionProxy->SceneProxyComponent = ChildCanvasMeshItem;
+			NewSectionProxy->PrimitiveComponentID = ChildCanvasMeshItem->ComponentId;
 			if (ChildCanvasMeshItem->SceneProxy != nullptr)
 			{
 				NewSectionProxy->ChildCanvasSceneProxy = (FLGUIRenderSceneProxy*)ChildCanvasMeshItem->SceneProxy;
@@ -356,7 +355,7 @@ public:
 		check(0);
 		return nullptr;
 	}
-	void SetChildCanvasSectionData_RenderThread(ULGUIMeshComponent* Mesh, FLGUIRenderSceneProxy* SceneProxy)
+	void SetChildCanvasSectionData_RenderThread(FPrimitiveComponentId CompID, FLGUIRenderSceneProxy* SceneProxy)
 	{
 		for (int i = 0; i < Sections.Num(); i++)
 		{
@@ -364,11 +363,11 @@ public:
 			if (Section->Type == ELGUIRenderSectionType::ChildCanvas)
 			{
 				auto ChildCanvasSection = (FLGUIChildCanvasSectionProxy*)Section;
-				if (ChildCanvasSection->SceneProxyComponent == Mesh)
+				if (ChildCanvasSection->PrimitiveComponentID == CompID
+					&& (ChildCanvasSection->ChildCanvasSceneProxy == nullptr || ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy == this)//check this because ParentSceneProxy could be a new one
+					)
 				{
 					ChildCanvasSection->ChildCanvasSceneProxy = SceneProxy;
-					ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy = this;
-					return;
 				}
 			}
 		}
@@ -381,7 +380,7 @@ public:
 			if (Section->Type == ELGUIRenderSectionType::ChildCanvas)
 			{
 				auto ChildCanvasSection = (FLGUIChildCanvasSectionProxy*)Section;
-				if (ChildCanvasSection->ChildCanvasSceneProxy == SceneProxy)
+				if (ChildCanvasSection->ChildCanvasSceneProxy == SceneProxy)//child could already get new proxy, so need to check it
 				{
 					ChildCanvasSection->ChildCanvasSceneProxy = nullptr;
 					return;
@@ -415,21 +414,6 @@ public:
 		DeleteSectionData_RenderThread(OldSection, false);
 		check(SectionIndex >= 0);
 		Sections[SectionIndex] = NewSection;
-	}
-	void ReassignChildCanvasSectionData_RenderThread(ULGUIMeshComponent* InMeshComp, FLGUIRenderSceneProxy* NewSceneProxy)
-	{
-		for (auto& Section : Sections)
-		{
-			if (Section->Type == ELGUIRenderSectionType::ChildCanvas)
-			{
-				auto ChildCanvasSectionProxy = (FLGUIChildCanvasSectionProxy*)Section;
-				if (ChildCanvasSectionProxy->SceneProxyComponent == InMeshComp)
-				{
-					ChildCanvasSectionProxy->ChildCanvasSceneProxy = NewSceneProxy;
-					return;
-				}
-			}
-		}
 	}
 
 	void SetRenderPriority_RenderThread(int32 NewPriority)
@@ -468,10 +452,27 @@ public:
 		{
 			if (Section != nullptr)
 			{
+				switch (Section->Type)
+				{
+				case ELGUIRenderSectionType::ChildCanvas:
+					auto ChildCanvasSection = (FLGUIChildCanvasSectionProxy*)Section;
+					if (ChildCanvasSection->ChildCanvasSceneProxy)
+					{
+						if (ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy == this)//child canvas's ParentSceneProxy could already be new one, so check it
+						{
+							ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy = nullptr;
+						}
+					}
+					break;
+				}
 				delete Section;
 			}
 		}
 		Sections.Empty();
+		if (ParentSceneProxy)
+		{
+			ParentSceneProxy->ClearChildCanvasSectionData_RenderThread(this);
+		}
 		if (LGUIRenderer.IsValid())
 		{
 			if (bIsLGUIRenderToWorld)
@@ -483,10 +484,6 @@ public:
 				LGUIRenderer.Pin()->RemoveScreenSpacePrimitive_RenderThread(this);
 			}
 			LGUIRenderer.Reset();
-		}
-		if (MeshComponent.IsValid())
-		{
-			MeshComponent->OnSceneProxyDeleted_RenderThread.Broadcast(MeshComponent.Get(), this);
 		}
 	}
 
@@ -760,7 +757,10 @@ public:
 		if (ParentSceneProxy != nullptr)return false;
 		return PostProcessRequireOriginScreenColorTexture_Implement();
 	}
-	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override { return FPrimitiveSceneProxy::GetPrimitiveComponentId(); }
+	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override 
+	{
+		return FPrimitiveSceneProxy::GetPrimitiveComponentId();
+	}
 	virtual FBoxSphereBounds GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
 	//end ILGUIRendererPrimitive interface
 	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
@@ -933,16 +933,17 @@ private:
 	bool bIsLGUIRenderToWorld = false;
 	bool bNeedToSortRenderSections = true;
 	ULGUICanvas* RenderCanvasPtr = nullptr;
-	TWeakObjectPtr<ULGUIMeshComponent> MeshComponent = nullptr;
 #if !UE_BUILD_SHIPPING
 	FName DebugName;
+	static uint32 DebugNameIndex;
 #endif
-
-public:
+	bool bIsRenderFromParent = false;
 	/** If have parent then render in parent */
 	FLGUIRenderSceneProxy* ParentSceneProxy = nullptr;
-	bool bIsRenderFromParent = false;
 };
+#if !UE_BUILD_SHIPPING
+uint32 FLGUIRenderSceneProxy::DebugNameIndex = 0;
+#endif
 
 
 
@@ -1015,32 +1016,25 @@ void ULGUIMeshComponent::CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSec
 		ChildCanvasMeshCom->OnSceneProxyCreated.AddWeakLambda(this, [this](ULGUIMeshComponent* InMesh, FLGUIRenderSceneProxy* InSceneProxy) {
 			if (this->SceneProxy != nullptr)
 			{
-				auto MeshSceneProxy = (FLGUIRenderSceneProxy*)this->SceneProxy;
+				auto ThisSceneProxy = (FLGUIRenderSceneProxy*)this->SceneProxy;//SceneProxy could change before the RENDER_COMMAND execute, so do necessary check in SetChildCanvasSectionData_RenderThread
 				ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_ReassignChildCanvasSectionData)(
-					[MeshSceneProxy, InMesh, InSceneProxy](FRHICommandListImmediate& RHICmdList) {
-						MeshSceneProxy->SetChildCanvasSectionData_RenderThread(InMesh, InSceneProxy);
+					[ThisSceneProxy, CompID = InMesh->ComponentId, InSceneProxy](FRHICommandListImmediate& RHICmdList) {
+						ThisSceneProxy->SetChildCanvasSectionData_RenderThread(CompID, InSceneProxy);
 					});
-			}
-			});
-		ChildCanvasMeshCom->OnSceneProxyDeleted_RenderThread.AddWeakLambda(this, [this](ULGUIMeshComponent* InMesh, FLGUIRenderSceneProxy* InSceneProxy) {
-			if (this->SceneProxy != nullptr)
-			{
-				auto MeshSceneProxy = (FLGUIRenderSceneProxy*)this->SceneProxy;
-				MeshSceneProxy->ClearChildCanvasSectionData_RenderThread(InSceneProxy);
 			}
 			});
 	}
 
 	if (SceneProxy)
 	{
-		auto LGUIMeshSceneProxy = (FLGUIRenderSceneProxy*)SceneProxy;
+		auto ThisSceneProxy = (FLGUIRenderSceneProxy*)SceneProxy;
 		if (InRenderSection->RenderProxy != nullptr)
 		{
-			LGUIMeshSceneProxy->RecreateSectionData(InRenderSection.Get());
+			ThisSceneProxy->RecreateSectionData(InRenderSection.Get());
 		}
 		else
 		{
-			LGUIMeshSceneProxy->AddSectionData(InRenderSection.Get());
+			ThisSceneProxy->AddSectionData(InRenderSection.Get());
 		}
 	}
 	else
@@ -1228,6 +1222,22 @@ void ULGUIMeshComponent::UpdateLocalBounds()
 	}
 }
 
+struct FLGUIPrimitiveComponentIdTemporaryModifier
+{
+	ULGUIMeshComponent* Comp = nullptr;
+	FPrimitiveComponentId OriginId;
+	FLGUIPrimitiveComponentIdTemporaryModifier(ULGUIMeshComponent* InComp, FPrimitiveComponentId InNewId)
+	{
+		Comp = InComp;
+		OriginId = Comp->ComponentId;
+		Comp->ComponentId = InNewId;
+	}
+	~FLGUIPrimitiveComponentIdTemporaryModifier()
+	{
+		Comp->ComponentId = OriginId;
+	}
+};
+
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateSceneProxy"), STAT_LGUIMesh_CreateSceneProxy, STATGROUP_LGUI);
 FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 {
@@ -1236,7 +1246,13 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	FLGUIRenderSceneProxy* Proxy = NULL;
 	if (RenderSections.Num() > 0)
 	{
-		Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get(), RenderCanvas->GetActualSortOrder());
+		//change component id to RootCanvasUIMesh's component id, so when check visibility it will use RootCanvas's id
+		{
+			//turns out not work as I want, so comment the codes
+			//auto RootCanvasUIMesh = RenderCanvas->GetRootCanvas()->GetUIMesh();
+			//FLGUIPrimitiveComponentIdTemporaryModifier TempModifier(this, RootCanvasUIMesh->ComponentId);
+			Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get(), RenderCanvas->GetActualSortOrder());
+		}
 		OnSceneProxyCreated.Broadcast(this, Proxy);
 	}
 	return Proxy;
@@ -1267,6 +1283,7 @@ void ULGUIMeshComponent::ClearRenderData()
 {
 	MarkRenderStateDirty();//mark dirty to recreate SceneProxy
 	RenderSections.Reset();
+	OnSceneProxyCreated.Clear();
 	LGUIRenderer = nullptr;
 }
 

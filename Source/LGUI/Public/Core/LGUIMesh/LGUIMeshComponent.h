@@ -79,6 +79,8 @@ class FLGUIRenderer;
 class ILGUIRendererPrimitive;
 class ULGUICanvas;
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMeshSceneProxyCreateDeleteDelegate, class ULGUIMeshComponent*, class FLGUIRenderSceneProxy*);
+
 //LGUI's mesh
 //@todo: split this class to: one for UE renderer && one for LGUI renderer, will it be more efficient? or maybe a class without additional shader channels? 
 UCLASS(ClassGroup = (LGUI), Blueprintable)
@@ -130,9 +132,7 @@ protected:
 	bool bIsSupportUERenderer = true;
 
 public:
-	DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMeshSceneProxyCreateDeleteDelegate, ULGUIMeshComponent*, class FLGUIRenderSceneProxy*);
 	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyCreated;
-	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyDeleted_RenderThread;
 };
 
 
