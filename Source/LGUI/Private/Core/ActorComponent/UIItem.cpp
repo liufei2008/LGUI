@@ -47,6 +47,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bAnchorBottomCached = false;
 	bAnchorTopCached = false;
 	bNeedSortUIChildren = true;
+	bIsDetaching = false;
 #if WITH_EDITOR
 	bUIActiveStateDirty = true;
 #endif
@@ -577,6 +578,10 @@ void UUIItem::PostEditUndo()
 
 	SetOnAnchorChange(true, true, true);
 
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->OnUIPostEditUndo();
+	}
 #if WITH_EDITOR
 	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
 	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
@@ -771,6 +776,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
+		childUIItem->bIsDetaching = true;
 		//hierarchy index
 		EnsureUIChildrenValid();
 		UIChildren.Remove(childUIItem);
@@ -784,8 +790,15 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 			}
 		}
 		MarkCanvasUpdate(false, false, false);
+	}
+}
 
-		childUIItem->OnUIDetachedFromParent();
+void UUIItem::OnAttachmentChanged()
+{
+	if (this->bIsDetaching)//OnAttachmentChanged happens after SetParent, which is better for search parent things
+	{
+		this->OnUIDetachedFromParent();
+		this->bIsDetaching = false;
 	}
 }
 

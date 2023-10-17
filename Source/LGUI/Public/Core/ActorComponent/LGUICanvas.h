@@ -125,6 +125,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostLoad()override;
 	virtual void PostEditUndo()override;
+	void OnUIPostEditUndo();
 #endif
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
@@ -205,7 +206,7 @@ protected:
 	UPROPERTY(Transient) mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 	void CheckRenderMode();
 	/** chekc RootCanvas. search for it if not valid */
-	bool CheckRootCanvas()const;
+	bool CheckRootCanvas(bool forceRecheck = false)const;
 	/** nearest up parent Canvas */
 	UPROPERTY(Transient) TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	

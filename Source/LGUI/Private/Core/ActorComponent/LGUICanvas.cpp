@@ -327,14 +327,24 @@ void ULGUICanvas::RemoveFromViewExtension()
 	}
 }
 
-bool ULGUICanvas::CheckRootCanvas()const
+bool ULGUICanvas::CheckRootCanvas(bool forceRecheck)const
 {
+	if (forceRecheck)
+	{
+		if (RootCanvas.IsValid())
+		{
+			RootCanvas = nullptr;
+		}
+	}
 	if (RootCanvas.IsValid())return true;
 	if (this->GetWorld() == nullptr)return false;
 	ULGUICanvas* ResultCanvas = nullptr;
 	LGUIUtils::FindRootCanvas(this->GetOwner(), ResultCanvas);
 	RootCanvas = ResultCanvas;
-	if (RootCanvas.IsValid()) return true;
+	if (RootCanvas.IsValid())
+	{
+		return true;
+	}
 	return false;
 }
 
@@ -425,8 +435,7 @@ void ULGUICanvas::CheckRenderMode()
 void ULGUICanvas::OnUIHierarchyChanged()
 {
 	this->bCanTickUpdate = true;
-	RootCanvas = nullptr;
-	CheckRootCanvas();
+	CheckRootCanvas(true);
 	CheckRenderMode();
 
 	bClipTypeChanged = true;
@@ -560,14 +569,17 @@ void ULGUICanvas::PostEditUndo()
 {
 	Super::PostEditUndo();
 
+	OnUIPostEditUndo();
+}
+void ULGUICanvas::OnUIPostEditUndo()
+{
 	struct LOCAL
 	{
 		static void RecheckRootCanvasRecursive(ULGUICanvas* Target)
 		{
-			Target->RootCanvas = nullptr;
-			Target->CheckRootCanvas();
-			Target->MarkCanvasUpdate(true, true, true);
-
+			Target->CheckRootCanvas(true);
+			Target->MarkCanvasUpdate(true, true, true, true);
+			Target->CurrentRenderMode = ELGUIRenderMode::None;//force check RenderMode
 			for (auto childCanvas : Target->ChildrenCanvasArray)
 			{
 				RecheckRootCanvasRecursive(childCanvas.Get());
@@ -1038,6 +1050,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{
 			auto ChildCanvas = Item->GetRenderCanvas();
+			if (ChildCanvas == nullptr)continue;//normally this won't be nullptr, but when redo in editor this breaks
 			if (!ChildCanvas->GetOverrideSorting())
 			{
 				if (InCacheUIDrawcallList.Num() > 0)
@@ -1771,6 +1784,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				DrawcallItem->bTextureChanged = false;
 				DrawcallItem->bMaterialNeedToReassign = false;
 				bNeedToSetClipParameter = true;
+				bNeedToVerifyMaterials = true;
 			}
 			if (DrawcallItem->bTextureChanged)
 			{
@@ -1784,6 +1798,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 			{
 				DrawcallItem->bMaterialNeedToReassign = false;
 				UIMesh->SetMeshSectionMaterial(DrawcallItem->DrawcallRenderSection.Pin(), RenderMat.Get());
+				bNeedToVerifyMaterials = true;
 			}
 		}
 		break;
