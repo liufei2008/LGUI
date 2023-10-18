@@ -1,7 +1,6 @@
 // Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer6.h"
+#include "PrefabSystem/ActorSerializer7.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -26,7 +25,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem6
+namespace LGUIPrefabSystem7
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
@@ -555,7 +554,7 @@ namespace LGUIPrefabSystem6
 					SubPrefabData.PrefabAsset = SubPrefabAsset;
 
 #if WITH_EDITOR
-					if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::CommonActor)
+					if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::ActorAttachToSubPrefab)
 					{
 						SubPrefabAsset->RecreatePrefab();//if is old version then recreate to make it new version
 					}
@@ -633,7 +632,7 @@ namespace LGUIPrefabSystem6
 							AllComponents.Append(InSubComponents);
 						};
 
-						SubPrefabRootActor = LGUIPrefabSystem6::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -740,6 +739,4 @@ namespace LGUIPrefabSystem6
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
-#endif
-
 #endif

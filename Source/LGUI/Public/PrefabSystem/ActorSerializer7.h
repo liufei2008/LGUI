@@ -1,6 +1,5 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,7 +13,7 @@
 class ULGUIPrefabOverrideParameterObject;
 class UUIItem;
 
-namespace LGUIPrefabSystem6
+namespace LGUIPrefabSystem7
 {
 	struct FLGUICommonObjectSaveData
 	{
@@ -325,4 +324,3 @@ namespace LGUIPrefabSystem6
 		ActorSerializer Serializer;
 	};
 }
-#endif

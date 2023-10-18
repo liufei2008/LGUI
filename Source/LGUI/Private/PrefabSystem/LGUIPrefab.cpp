@@ -392,9 +392,14 @@ AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
@@ -443,9 +448,14 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
@@ -572,9 +582,14 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
