@@ -27,6 +27,10 @@ AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULG
 {
 	return InPrefab->LoadPrefabWithTransform(WorldContextObject, InParent, Location, Rotation, Scale);
 }
+AActor* ULGUIBPLibrary::LoadPrefabWithReplacement(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap)
+{
+	return InPrefab->LoadPrefabWithReplacement(WorldContextObject, InParent, InReplaceAssetMap, InReplaceClassMap);
+}
 
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {

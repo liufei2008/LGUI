@@ -207,7 +207,7 @@ private:
 public:
 	/**
 	 * LoadPrefab to create actor.
-	 * Awake function in LGUILifeCycleBehaviour will be called right after LoadPrefab is done.
+	 * Awake function in LGUILifeCycleBehaviour and LGUIPrefabInterface will be called right after LoadPrefab is done.
 	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
 	 * @param SetRelativeTransformToIdentity Set created root actor's transform to zero after load.
 	 */
@@ -215,7 +215,7 @@ public:
 		AActor* LoadPrefab(UObject* WorldContextObject, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
 	/**
 	 * LoadPrefab to create actor.
-	 * Awake function in LGUILifeCycleBehaviour will be called right after LoadPrefab is done.
+	 * Awake function in LGUILifeCycleBehaviour and LGUIPrefabInterface will be called right after LoadPrefab is done.
 	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
 	 * @param Location Set created root actor's location after load.
 	 * @param Rotation Set created root actor's rotation after load.
@@ -225,17 +225,17 @@ public:
 		AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	/**
 	 * LoadPrefab to create actor.
-	 * Awake function in LGUILifeCycleBehaviour will be called right after LoadPrefab is done.
+	 * Awake function in LGUILifeCycleBehaviour and LGUIPrefabInterface will be called right after LoadPrefab is done.
 	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
 	 * @param InReplaceAssetMap Replace source asset to dest before load the prefab.
 	 * @param InReplaceClassMap Replace source class to dest before load the prefab.
 	 */
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
 		AActor* LoadPrefabWithReplacement(UObject* WorldContextObject, USceneComponent* InParent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap);
 	AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 	/**
 	 * LoadPrefab to create actor.
-	 * Awake function in LGUILifeCycleBehaviour will be called right after LoadPrefab is done.
+	 * Awake function in LGUILifeCycleBehaviour and LGUIPrefabInterface will be called right after LoadPrefab is done.
 	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
 	 * @param SetRelativeTransformToIdentity Set created root actor's transform to zero after load.
 	 */
