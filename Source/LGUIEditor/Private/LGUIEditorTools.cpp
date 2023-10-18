@@ -816,6 +816,7 @@ void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 			{
 				ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
 			}
+			PrefabHelperObject->SetAnythingDirty();
 		}
 		else
 		{
