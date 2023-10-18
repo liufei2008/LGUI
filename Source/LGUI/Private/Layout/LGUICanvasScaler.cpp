@@ -101,24 +101,27 @@ void ULGUICanvasScaler::ForceUpdate()
 
 void ULGUICanvasScaler::CheckAndApplyViewportParameter()
 {
-	switch (Canvas->GetRenderMode())
+	if (CheckCanvas())
 	{
-	case ELGUIRenderMode::ScreenSpaceOverlay:
-	{
-		ViewportSize = Canvas->GetViewportSize();
-		OnViewportParameterChanged();
-	}
-	break;
-	case ELGUIRenderMode::RenderTarget:
-	{
-		if (auto renderTarget = Canvas->GetRenderTarget())
+		switch (Canvas->GetRenderMode())
 		{
-			ViewportSize.X = renderTarget->SizeX;
-			ViewportSize.Y = renderTarget->SizeY;
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+		{
+			ViewportSize = Canvas->GetViewportSize();
 			OnViewportParameterChanged();
 		}
-	}
-	break;
+		break;
+		case ELGUIRenderMode::RenderTarget:
+		{
+			if (auto renderTarget = Canvas->GetRenderTarget())
+			{
+				ViewportSize.X = renderTarget->SizeX;
+				ViewportSize.Y = renderTarget->SizeY;
+				OnViewportParameterChanged();
+			}
+		}
+		break;
+		}
 	}
 }
 void ULGUICanvasScaler::OnViewportResized(FViewport* viewport, uint32)
