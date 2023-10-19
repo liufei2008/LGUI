@@ -1183,7 +1183,10 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 		{
 			PrefabHelperObject->Modify();
 			PrefabHelperObject->SetAnythingDirty();
-			PrefabHelperObject->RemoveSubPrefab(Actor);
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))
+			{
+				PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(Actor);
+			}
 			LGUIUtils::DestroyActorWithHierarchy(Actor);
 		}
 		else//common actor
@@ -1792,7 +1795,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 					LOCAL::CollectSubPrefab(selectedActor, SubPrefabMap, PrefabHelperObjectWhichManageThisActor, MapObjectToGuid);
 					for (auto& KeyValue : SubPrefabMap)
 					{
-						PrefabHelperObjectWhichManageThisActor->RemoveSubPrefab(KeyValue.Key);//remove prefab from origin PrefabHelperObject
+						PrefabHelperObjectWhichManageThisActor->RemoveSubPrefabByAnyActorOfSubPrefab(KeyValue.Key);//remove prefab from origin PrefabHelperObject
 					}
 					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab second step, store sub prefab data
 					OutPrefab->RefreshAgentObjectsInPreviewWorld();

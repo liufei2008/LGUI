@@ -25,6 +25,9 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
+
+#define LOCTEXT_NAMESPACE "LGUIPrefabSystem7_Deserialize"
+
 namespace LGUIPrefabSystem7
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
@@ -240,20 +243,34 @@ namespace LGUIPrefabSystem7
 			{
 				if (CompData.SceneComponentParentGuid.IsValid())
 				{
-					if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.SceneComponentParentGuid))
+					USceneComponent* ParentComp = nullptr;
+					auto ParentObjectPtr = MapGuidToObject.Find(CompData.SceneComponentParentGuid);
+					if (ParentObjectPtr != nullptr)
 					{
-						if (auto ParentComp = Cast<USceneComponent>(*ParentObjectPtr))
-						{
-							if (SceneComp->IsRegistered())
-							{
-								SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
-							}
-							else
-							{
-								SceneComp->SetupAttachment(ParentComp);
-							}
-						}
+						ParentComp = Cast<USceneComponent>(*ParentObjectPtr);
 					}
+					if (!ParentComp)
+					{
+#if WITH_EDITOR
+						if (TargetWorld != ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage())//skip preview world, only show this in PrefabEditor or LevelEditor
+						{
+							auto MissingParentMsg = FText::Format(LOCTEXT("MissingParentMsg", "Prefab '{0}' fail to find parent for component '{1}.{2}', do you delete it? The component will attach to root")
+								, FText::FromString(PrefabAssetPath), FText::FromString(SceneComp->GetOwner()->GetActorLabel()), FText::FromString(SceneComp->GetName()));
+							LGUIUtils::EditorNotification(MissingParentMsg, 10);
+							UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *MissingParentMsg.ToString());
+						}
+#endif
+						ParentComp = CreatedRootActor->GetRootComponent();
+					}
+					if (SceneComp->IsRegistered())
+					{
+						SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
+					}
+					else
+					{
+						SceneComp->SetupAttachment(ParentComp);
+					}
+
 				}
 			}
 			if (!CompData.Component->IsRegistered())
@@ -355,7 +372,7 @@ namespace LGUIPrefabSystem7
 #if WITH_EDITOR
 			if (!TargetWorld->IsGameWorld())
 			{
-				for (int i = AllActors.Num() - 1; i >= 0; i--)
+				for (int i = 0; i < AllActors.Num(); i++)
 				{
 					auto& Actor = AllActors[i];
 					if (Actor->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
@@ -375,7 +392,7 @@ namespace LGUIPrefabSystem7
 			else
 #endif
 			{
-				for (int i = AllActors.Num() - 1; i >= 0; i--)
+				for (int i = 0; i < AllActors.Num(); i++)
 				{
 					auto& Actor = AllActors[i];
 					if (Actor->GetClass()->ImplementsInterface(ULGUIPrefabInterface::StaticClass()))
@@ -486,6 +503,13 @@ namespace LGUIPrefabSystem7
 				auto Index = ObjectData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 				if (Index == INDEX_NONE)
 				{
+#if WITH_EDITOR
+					if (auto Comp = Cast<UActorComponent>(DefaultSubObject))
+					{
+						if (Comp->IsVisualizationComponent())//visualization component no need to serialize
+							continue;
+					}
+#endif
 					UE_LOG(LGUI, Warning, TEXT("[%s].%d Missing guid for default sub object: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(DefaultSubObject->GetFName().ToString()));
 					continue;
 				}
@@ -764,6 +788,9 @@ namespace LGUIPrefabSystem7
 		return RootActor;
 	}
 }
+
+#undef LOCTEXT_NAMESPACE
+
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
 #endif

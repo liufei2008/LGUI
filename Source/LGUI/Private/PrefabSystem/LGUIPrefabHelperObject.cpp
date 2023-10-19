@@ -197,11 +197,14 @@ void ULGUIPrefabHelperObject::AddMemberPropertyToSubPrefab(AActor* InSubPrefabAc
 {
 	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			KeyValue.Value.AddMemberProperty(InObject, InPropertyName);
+			if (InSubPrefabActor == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.AddMemberProperty(InObject, InPropertyName);
+			}
 		}
 	}
 }
@@ -210,12 +213,15 @@ void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPre
 {
 	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			KeyValue.Value.RemoveMemberProperty(InObject, InPropertyName);
-			break;
+			if (InSubPrefabActor == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.RemoveMemberProperty(InObject, InPropertyName);
+				break;
+			}
 		}
 	}
 }
@@ -274,12 +280,15 @@ FLGUISubPrefabData ULGUIPrefabHelperObject::GetSubPrefabData(AActor* InSubPrefab
 {
 	CleanupInvalidSubPrefab();
 	check(IsValid(InSubPrefabActor));
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			KeyValue.Value.CheckParameters();
-			return KeyValue.Value;
+			if (InSubPrefabActor == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.CheckParameters();
+				return SubPrefabKeyValue.Value;
+			}
 		}
 	}
 	return FLGUISubPrefabData();
@@ -289,11 +298,14 @@ AActor* ULGUIPrefabHelperObject::GetSubPrefabRootActor(AActor* InSubPrefabActor)
 {
 	CleanupInvalidSubPrefab();
 	check(IsValid(InSubPrefabActor));
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			return KeyValue.Key;
+			if (InSubPrefabActor == KeyValue.Value)
+			{
+				return SubPrefabKeyValue.Key;
+			}
 		}
 	}
 	return nullptr;
@@ -358,11 +370,14 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 		Actor = Component->GetOwner();
 	}
 
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (Actor == KeyValue.Key || Actor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			KeyValue.Value.AddMemberProperty(InObject, InPropertyNames);
+			if (Actor == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.AddMemberProperty(InObject, InPropertyNames);
+			}
 		}
 	}
 }
@@ -378,12 +393,15 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 		Actor = Component->GetOwner();
 	}
 
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (Actor == KeyValue.Key || Actor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			KeyValue.Value.AddMemberProperty(InObject, InPropertyName);
-			break;
+			if (Actor == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.AddMemberProperty(InObject, InPropertyName);
+				break;
+			}
 		}
 	}
 }
@@ -663,7 +681,10 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(Actor->GetWorld(), true))
+	{
+		if (LGUIManagerActor->IsPrefabSystemProcessingActor(Actor))return;
+	}
 
 	if (AttachmentActor.Actor == Actor)
 	{
@@ -695,7 +716,10 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (ALGUIManagerActor::GetInstance(Actor->GetWorld(), true)->IsPrefabSystemProcessingActor(Actor))return;
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(Actor->GetWorld(), true))
+	{
+		if (LGUIManagerActor->IsPrefabSystemProcessingActor(Actor))return;
+	}
 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
@@ -772,7 +796,7 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 			}
 		}
 	}
-	if (
+	else if (
 		(AttachmentActor.DetachFrom.IsValid() && (IsActorBelongsToSubPrefab(AttachmentActor.Actor.Get()) && IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom.Get())))//detatch, restruct sbuprefab
 		|| 
 		(AttachmentActor.AttachTo.IsValid() && (IsActorBelongsToSubPrefab(AttachmentActor.Actor.Get()) && IsActorBelongsToSubPrefab(AttachmentActor.AttachTo.Get())))//attach, restruct sbuprefab
@@ -795,6 +819,7 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 	{
 	default:
 	case EAttachementError::None:
+		this->SetAnythingDirty();
 		break;
 	case EAttachementError::ActorMustBelongToRoot:
 	{
@@ -1709,7 +1734,7 @@ void ULGUIPrefabHelperObject::RemoveSubPrefabByRootActor(AActor* InPrefabRootAct
 	ClearInvalidObjectAndGuid();
 }
 
-void ULGUIPrefabHelperObject::RemoveSubPrefab(AActor* InPrefabActor)
+void ULGUIPrefabHelperObject::RemoveSubPrefabByAnyActorOfSubPrefab(AActor* InPrefabActor)
 {
 	auto RootActor = GetSubPrefabRootActor(InPrefabActor);
 	if (RootActor)

@@ -113,14 +113,18 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	auto Prefab = InPrefab;
 	if (InPrefab->GetIsPrefabVariant())
 	{
-		if (InPrefab->ReferenceAssetList.Num() <= 0)
+		auto RootSubPrefab = InPrefab;
+		while (RootSubPrefab->GetIsPrefabVariant())
 		{
-			return nullptr;
-		}
-		auto RootSubPrefab = Cast<ULGUIPrefab>(InPrefab->ReferenceAssetList[0]);
-		if (!RootSubPrefab)
-		{
-			return nullptr;
+			if (RootSubPrefab->ReferenceAssetList.Num() <= 0)
+			{
+				return nullptr;
+			}
+			RootSubPrefab = Cast<ULGUIPrefab>(RootSubPrefab->ReferenceAssetList[0]);
+			if (!RootSubPrefab)
+			{
+				return nullptr;
+			}
 		}
 		Prefab = RootSubPrefab;
 	}

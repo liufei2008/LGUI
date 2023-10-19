@@ -857,15 +857,15 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FGetActionCheckState()
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanUnpackActorForPrefab))
 			);
-			//MenuBuilder.AddMenuEntry(
-			//	LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
-			//	LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
-			//	FSlateIcon(),
-			//	FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::SelectPrefabAsset)
-			//		, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab)
-			//		, FGetActionCheckState()
-			//		, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab))
-			//);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
+				LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::SelectPrefabAsset)
+					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab)
+					, FGetActionCheckState()
+					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab))
+			);
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("OpenPrefabAsset", "Open Prefab asset"),
 				LOCTEXT("OpenPrefabAsset_Tooltip", "Open Prefab asset in PrefabEditor"),
