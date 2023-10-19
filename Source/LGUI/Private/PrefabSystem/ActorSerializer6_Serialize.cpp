@@ -108,7 +108,7 @@ namespace LGUIPrefabSystem6
 		}
 		else
 		{
-			if (!WillSerailizeActorArray.Contains(Actor))return;
+			if (!WillSerializeActorArray.Contains(Actor))return;
 			auto ActorGuid = MapObjectToGuid[Actor];
 
 			OutActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
@@ -275,7 +275,7 @@ namespace LGUIPrefabSystem6
 		//collect actor
 		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
 		{
-			WillSerailizeActorArray.Add(Actor);
+			WillSerializeActorArray.Add(Actor);
 		}
 		if (!MapObjectToGuid.Contains(Actor))
 		{
@@ -292,9 +292,9 @@ namespace LGUIPrefabSystem6
 
 	void ActorSerializer::SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectData, TMap<FGuid, FGuid>& MapSceneComponentToParent)
 	{
-		for (int i = 0; i < WillSerailizeObjectArray.Num(); i++)
+		for (int i = 0; i < WillSerializeObjectArray.Num(); i++)
 		{
-			auto Object = WillSerailizeObjectArray[i];
+			auto Object = WillSerializeObjectArray[i];
 			auto Class = Object->GetClass();
 			FLGUIObjectSaveData ObjectSaveDataItem;
 			ObjectSaveDataItem.ObjectClass = FindOrAddClassFromList(Class);
@@ -306,7 +306,7 @@ namespace LGUIPrefabSystem6
 			{
 				if (auto ParentComp = SceneComp->GetAttachParent())
 				{
-					if (WillSerailizeActorArray.Contains(ParentComp->GetOwner()))//check if parent component belongs to this prefab
+					if (WillSerializeActorArray.Contains(ParentComp->GetOwner()))//check if parent component belongs to this prefab
 					{
 						MapSceneComponentToParent.Add(MapObjectToGuid[Object], MapObjectToGuid[ParentComp]);
 					}

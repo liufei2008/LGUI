@@ -150,7 +150,7 @@ namespace LGUIPrefabSystem5
 	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, AActor* InParentLoadedRootActor
+		, const FGuid& InParentDeserializationSessionId
 		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
@@ -164,7 +164,7 @@ namespace LGUIPrefabSystem5
 		serializer.bOverrideVersions = true;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
-		serializer.LoadedRootActor = InParentLoadedRootActor;
+		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
 		serializer.ActorIndexInPrefab = InOutActorIndex;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -277,11 +277,11 @@ namespace LGUIPrefabSystem5
 		{
 			for (auto item : CreatedActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+			if (DeserializationSessionId.IsValid())
 			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
+				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -581,14 +581,14 @@ namespace LGUIPrefabSystem5
 					{
 					case ELGUIPrefabVersion::BuildinFArchive:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
 					break;
 					case ELGUIPrefabVersion::NestedDefaultSubObject:
 					{
-						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 					}
@@ -596,7 +596,7 @@ namespace LGUIPrefabSystem5
 					case ELGUIPrefabVersion::ObjectName:
 					{
 #endif
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
+						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
 							, NewOnSubPrefabFinishDeserializeFunction
 						);
 #if WITH_EDITOR
@@ -651,13 +651,13 @@ namespace LGUIPrefabSystem5
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);
 				}
 
-				if (LoadedRootActor == nullptr)
+				if (!DeserializationSessionId.IsValid())
 				{
-					LoadedRootActor = NewActor;
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
+					DeserializationSessionId = FGuid::NewGuid();
+					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);

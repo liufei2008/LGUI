@@ -94,8 +94,6 @@ namespace LGUIPrefabSystem7
 		FGuid ActorGuid;
 		FGuid RootComponentGuid;
 
-		TArray<FLGUIActorSaveData> ChildrenActorDataArray;
-
 		friend FArchive& operator<<(FArchive& Ar, FLGUIActorSaveData& ActorData)
 		{
 			Ar << ActorData.bIsPrefab;
@@ -116,8 +114,6 @@ namespace LGUIPrefabSystem7
 
 				Ar << ActorData.DefaultSubObjectGuidArray;
 				Ar << ActorData.DefaultSubObjectNameArray;
-
-				Ar << ActorData.ChildrenActorDataArray;
 			}
 			return Ar;
 		}
@@ -143,8 +139,6 @@ namespace LGUIPrefabSystem7
 
 				Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
 				Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
-
-				Record << SA_VALUE(TEXT("ChildrenActorDataArray"), Data.ChildrenActorDataArray);
 			}
 		}
 	};
@@ -152,7 +146,7 @@ namespace LGUIPrefabSystem7
 	struct FLGUIPrefabSaveData
 	{
 	public:
-		FLGUIActorSaveData SavedActor;
+		TArray<FLGUIActorSaveData> SavedActors;
 		TMap<FGuid, FLGUIObjectSaveData> SavedObjects;
 		/** Key as child, value as parent. */
 		TMap<FGuid, FGuid> MapSceneComponentToParent;
@@ -161,7 +155,7 @@ namespace LGUIPrefabSystem7
 
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabSaveData& GameData)
 		{
-			Ar << GameData.SavedActor;
+			Ar << GameData.SavedActors;
 			Ar << GameData.SavedObjects;
 			Ar << GameData.MapSceneComponentToParent;
 			Ar << GameData.SavedObjectData;
@@ -170,7 +164,7 @@ namespace LGUIPrefabSystem7
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUIPrefabSaveData& Data)
 		{
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
-			Record << SA_VALUE(TEXT("SavedActor"), Data.SavedActor);
+			Record << SA_VALUE(TEXT("SavedActor"), Data.SavedActors);
 			Record << SA_VALUE(TEXT("SavedObjects"), Data.SavedObjects);
 			Record << SA_VALUE(TEXT("MapSceneComponentToParent"), Data.MapSceneComponentToParent);
 			Record << SA_VALUE(TEXT("SavedObjectReferences"), Data.SavedObjectData);
@@ -229,7 +223,7 @@ namespace LGUIPrefabSystem7
 
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, AActor* InParentRootActor
+			, const FGuid& InParentDeserializationSessionId
 			, int32& InOutActorIndex
 			, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
@@ -251,7 +245,10 @@ namespace LGUIPrefabSystem7
 		TArray<AActor*> AllActors;
 
 		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+		TArray<AActor*> SubPrefabActorArray;
 		TArray<FComponentDataStruct> SubPrefabRootComponents;
+		//this collection will collect all actors of this prefab, and root actor of sub prefab
+		TArray<AActor*> TrySerializeActorArray;
 
 		void CollectActorRecursive(AActor* Actor);
 #if WITH_EDITOR
@@ -268,17 +265,17 @@ namespace LGUIPrefabSystem7
 
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
-		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectData);
+		void SerializeActorArray(TMap<FGuid, FGuid>& MapSceneComponentToParent, TArray<FLGUIActorSaveData>& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectData);
 		void SerializeObjectArray(TMap<FGuid, FLGUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectData, TMap<FGuid, FGuid>& MapSceneComponentToParent);
 		void SerializeActorToData(AActor* RootActor, FLGUIPrefabSaveData& OutData);
 		//deserialize actor
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
-		AActor* GenerateActorRecursive(FLGUIActorSaveData& SavedActors, TMap<FGuid, FLGUIObjectSaveData>& InSavedObjects, USceneComponent* Parent, FGuid ParentGuid);
+		AActor* GenerateActorArray(TArray<FLGUIActorSaveData>& SavedActors, TMap<FGuid, FLGUIObjectSaveData>& InSavedObjects, TMap<FGuid, FGuid>& MapSceneComponentToParent, FGuid ParentGuid);
 		void GenerateObjectArray(TMap<FGuid, FLGUIObjectSaveData>& SavedObjects, TMap<FGuid, FGuid>& MapSceneComponentToParent);
 
-		/** Loaded root actor when deserialize. If nested prefab, this is still the parent prefab's root actor */
-		AActor* LoadedRootActor = nullptr;
+		/** Mark of this deserialization session. If nested prefab, this is still the root prefab's value. */
+		FGuid DeserializationSessionId = FGuid();
 		int32 ActorIndexInPrefab = 0;
 		bool bIsSubPrefab = false;
 		/** A temperary string for log if is loading or saving prefab (not duplicate). */

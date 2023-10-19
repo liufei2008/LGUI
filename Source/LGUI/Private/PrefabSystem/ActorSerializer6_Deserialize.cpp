@@ -20,6 +20,7 @@
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
 #include "PrefabSystem/ActorSerializer5.h"
+#include "PrefabSystem/ActorSerializer7.h"
 #include "Utils/LGUIUtils.h"
 #endif
 
@@ -150,7 +151,7 @@ namespace LGUIPrefabSystem6
 	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, AActor* InParentLoadedRootActor
+		, const FGuid& InParentDeserializationSessionId
 		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 		, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
@@ -164,7 +165,7 @@ namespace LGUIPrefabSystem6
 		serializer.bOverrideVersions = true;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
-		serializer.LoadedRootActor = InParentLoadedRootActor;
+		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
 		serializer.ActorIndexInPrefab = InOutActorIndex;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -346,11 +347,11 @@ namespace LGUIPrefabSystem6
 		{
 			for (auto item : AllActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+			if (DeserializationSessionId.IsValid())
 			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
+				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 
 #if WITH_EDITOR
@@ -559,6 +560,7 @@ namespace LGUIPrefabSystem6
 					{
 						SubPrefabAsset->RecreatePrefab();//if is old version then recreate to make it new version
 					}
+					else
 #endif
 					//sub prefab
 					{
@@ -633,9 +635,19 @@ namespace LGUIPrefabSystem6
 							AllComponents.Append(InSubComponents);
 						};
 
-						SubPrefabRootActor = LGUIPrefabSystem6::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, NewOnSubPrefabFinishDeserializeFunction
-						);
+						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
+						{
+						case ELGUIPrefabVersion::CommonActor:
+							SubPrefabRootActor = LGUIPrefabSystem6::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+							break;
+						case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+							SubPrefabRootActor = LGUIPrefabSystem7::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+							break;
+						}
 					}
 					FComponentDataStruct CompData;
 					CompData.Component = SubPrefabRootActor->GetRootComponent();
@@ -704,13 +716,13 @@ namespace LGUIPrefabSystem6
 					CollectDefaultSubobjects(NewActor);
 				}
 
-				if (LoadedRootActor == nullptr)
+				if (!DeserializationSessionId.IsValid())
 				{
-					LoadedRootActor = NewActor;
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
+					DeserializationSessionId = FGuid::NewGuid();
+					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 
 				if (auto RootComp = NewActor->GetRootComponent())
 				{

@@ -230,7 +230,7 @@ namespace LGUIPrefabSystem6
 
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, AActor* InParentRootActor
+			, const FGuid& InParentDeserializationSessionId
 			, int32& InOutActorIndex
 			, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
@@ -278,8 +278,8 @@ namespace LGUIPrefabSystem6
 		AActor* GenerateActorRecursive(FLGUIActorSaveData& SavedActors, TMap<FGuid, FLGUIObjectSaveData>& InSavedObjects, USceneComponent* Parent, FGuid ParentGuid);
 		void GenerateObjectArray(TMap<FGuid, FLGUIObjectSaveData>& SavedObjects, TMap<FGuid, FGuid>& MapSceneComponentToParent);
 
-		/** Loaded root actor when deserialize. If nested prefab, this is still the parent prefab's root actor */
-		AActor* LoadedRootActor = nullptr;
+		/** Mark of this deserialization session. If nested prefab, this is still the root prefab's value. */
+		FGuid DeserializationSessionId = FGuid();
 		int32 ActorIndexInPrefab = 0;
 		bool bIsSubPrefab = false;
 		/** A temperary string for log if is loading or saving prefab (not duplicate). */

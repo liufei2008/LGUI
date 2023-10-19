@@ -103,7 +103,7 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, AActor* InParentLoadedRootActor
+		, const FGuid& InParentDeserializationSessionId
 		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
@@ -117,7 +117,7 @@ namespace LGUIPrefabSystem3
 		serializer.bOverrideVersions = true;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
-		serializer.LoadedRootActor = InParentLoadedRootActor;
+		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
@@ -213,11 +213,11 @@ namespace LGUIPrefabSystem3
 		{
 			for (auto item : CreatedActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+			if (DeserializationSessionId.IsValid())
 			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
+				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 
@@ -431,7 +431,7 @@ namespace LGUIPrefabSystem3
 						}
 					}
 					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent
-						, LoadedRootActor
+						, DeserializationSessionId
 						, this->ActorIndexInPrefab
 						, SubMapGuidToObject
 						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
@@ -496,13 +496,13 @@ namespace LGUIPrefabSystem3
 					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 				}
 
-				if (LoadedRootActor == nullptr)
+				if (!DeserializationSessionId.IsValid())
 				{
-					LoadedRootActor = NewActor;
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
+					DeserializationSessionId = FGuid::NewGuid();
+					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);
