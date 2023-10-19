@@ -158,6 +158,20 @@ namespace LGUISceneOutliner
 							.ToolTipText(this, &FLGUISceneOutlinerInfoColumn::GetPrefabTooltip, TreeItem)
 						]
 					]
+					//+SOverlay::Slot()//prefab+
+					//[
+					//	SNew(SBox)
+					//	.WidthOverride(16)
+					//	.HeightOverride(16)
+					//	.Padding(FMargin(0))
+					//	.HAlign(EHorizontalAlignment::HAlign_Center)
+					//	.VAlign(EVerticalAlignment::VAlign_Center)
+					//	[
+					//		SNew(SImage)
+					//		.Image(this, &FLGUISceneOutlinerInfoColumn::GetPrefabPlusIconImage, TreeItem)
+					//		.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabPlusIconVisibility, TreeItem)
+					//	]
+					//]
 				]
 			]
 			.MenuContent()
@@ -278,6 +292,31 @@ namespace LGUISceneOutliner
 		}
 		return EVisibility::Hidden;
 	}
+	auto ActorIsPrefabPlus(AActor* Actor)
+	{
+		if (auto ParentActor = Actor->GetAttachParentActor())
+		{
+			auto PrefabHelperObjectForParent = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(ParentActor);
+			auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor);
+			if (PrefabHelperObject != nullptr && PrefabHelperObjectForParent != nullptr)
+			{
+				if (!PrefabHelperObject->IsActorBelongsToSubPrefab(Actor) && PrefabHelperObjectForParent->IsActorBelongsToSubPrefab(ParentActor))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	EVisibility FLGUISceneOutlinerInfoColumn::GetPrefabPlusIconVisibility(FSceneOutlinerTreeItemRef TreeItem)const
+	{
+		if (AActor* Actor = GetActorFromTreeItem(TreeItem))
+		{
+			if (ActorIsPrefabPlus(Actor))
+				return EVisibility::Visible;
+		}
+		return EVisibility::Hidden;
+	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetDrawcallIconColor(FSceneOutlinerTreeItemRef TreeItem)const
 	{
 		if (AActor* actor = GetActorFromTreeItem(TreeItem))
@@ -308,9 +347,20 @@ namespace LGUISceneOutliner
 						return FLGUIEditorStyle::Get().GetBrush("PrefabMarkBroken");
 					}
 				}
+				else
+				{
+					if (PrefabHelperObject->GetSubPrefabAsset(actor)->GetIsPrefabVariant())
+					{
+						return FLGUIEditorStyle::Get().GetBrush("PrefabVariantMarkWhite");
+					}
+				}
 			}
 		}
 		return FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite");
+	}
+	const FSlateBrush* FLGUISceneOutlinerInfoColumn::GetPrefabPlusIconImage(FSceneOutlinerTreeItemRef TreeItem)const
+	{
+		return FLGUIEditorStyle::Get().GetBrush("PrefabPlusMarkWhite");
 	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(FSceneOutlinerTreeItemRef TreeItem)const
 	{

@@ -104,11 +104,15 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 {
 	CleanupInvalidSubPrefab();
 	if (!IsValid(InActor))return false;
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InActor == KeyValue.Key || InActor->IsAttachedTo(KeyValue.Key))
+		auto& SubMapGuidToObject = SubPrefabKeyValue.Value.MapGuidToObject;
+		for (auto& SubMapGuidToObjectKeyValue : SubMapGuidToObject)
 		{
-			return true;
+			if (SubMapGuidToObjectKeyValue.Value == InActor)
+			{
+				return true;
+			}
 		}
 	}
 	return false;
@@ -117,7 +121,7 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToMissingSubPrefab(const AActor* InA
 {
 	if (!IsValid(InActor))return false;
 #if WITH_EDITOR
-	for (auto& Item : MissingPrefab)
+	for (auto& Item : MissingPrefab)//@todo: should directly reference to every actor
 	{
 		if (InActor == Item || InActor->IsAttachedTo(Item))
 		{
@@ -329,11 +333,14 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor
 {
 	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return nullptr;
-	for (auto& KeyValue : SubPrefabMap)
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
 		{
-			return KeyValue.Value.PrefabAsset;
+			if (InSubPrefabActor == KeyValue.Value)
+			{
+				return SubPrefabKeyValue.Value.PrefabAsset;
+			}
 		}
 	}
 	return nullptr;
@@ -766,9 +773,9 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 		}
 	}
 	if (
-		(IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom.Get())//why use DetachFrom(not Actor)? because Actor is already dettached
-			&& !SubPrefabMap.Contains(AttachmentActor.Actor.Get()))//is sub prefab's children actor
-		|| IsActorBelongsToSubPrefab(AttachmentActor.AttachTo.Get())//attach to sub prefab
+		(AttachmentActor.DetachFrom.IsValid() && (IsActorBelongsToSubPrefab(AttachmentActor.Actor.Get()) && IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom.Get())))//detatch, restruct sbuprefab
+		|| 
+		(AttachmentActor.AttachTo.IsValid() && (IsActorBelongsToSubPrefab(AttachmentActor.Actor.Get()) && IsActorBelongsToSubPrefab(AttachmentActor.AttachTo.Get())))//attach, restruct sbuprefab
 		)
 	{
 		AttachementError = EAttachementError::CannotRestructurePrefabInstance;

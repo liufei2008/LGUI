@@ -697,17 +697,6 @@ bool FLGUIEditorModule::CanCreateActor()
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (SelectedActor == nullptr)return false;
 	if (!LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(SelectedActor))return false;
-	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-	{
-		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
-		{
-			return false;
-		}
-		else if (PrefabHelperObject->IsActorBelongsToMissingSubPrefab(SelectedActor))//missing sub prefab's actor not allowed
-		{
-			return false;
-		}
-	}
 	return true;
 }
 
