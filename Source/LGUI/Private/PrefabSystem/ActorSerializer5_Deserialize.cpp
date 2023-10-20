@@ -188,6 +188,14 @@ namespace LGUIPrefabSystem5
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
+		if (!bIsSubPrefab)
+		{
+			if (!DeserializationSessionId.IsValid())
+			{
+				DeserializationSessionId = FGuid::NewGuid();
+				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+			}
+		}
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -263,7 +271,7 @@ namespace LGUIPrefabSystem5
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, CreatedActors);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, AllActors);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -275,14 +283,12 @@ namespace LGUIPrefabSystem5
 #endif
 		if (!bIsSubPrefab)
 		{
-			for (auto item : CreatedActors)
+			check(DeserializationSessionId.IsValid());
+			for (auto item : AllActors)
 			{
 				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (DeserializationSessionId.IsValid())
-			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
-			}
+			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
@@ -577,7 +583,7 @@ namespace LGUIPrefabSystem5
 								}
 							}
 							//collect sub-prefab's actor to parent prefab
-							CreatedActors.Append(InSubCreatedActors);
+							AllActors.Append(InSubCreatedActors);
 							};
 						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
 						{
@@ -675,7 +681,7 @@ namespace LGUIPrefabSystem5
 								}
 							}
 							//collect sub-prefab's actor to parent prefab
-							CreatedActors.Append(InSubCreatedActors);
+							AllActors.Append(InSubCreatedActors);
 							};
 
 						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
@@ -741,12 +747,6 @@ namespace LGUIPrefabSystem5
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);
 				}
 
-				if (!DeserializationSessionId.IsValid())
-				{
-					DeserializationSessionId = FGuid::NewGuid();
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
-				}
-
 				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
@@ -775,7 +775,7 @@ namespace LGUIPrefabSystem5
 					}
 				}
 
-				CreatedActors.Add(NewActor);
+				AllActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
 				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
