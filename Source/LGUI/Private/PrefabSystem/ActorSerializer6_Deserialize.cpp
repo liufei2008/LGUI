@@ -208,6 +208,14 @@ namespace LGUIPrefabSystem6
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
+		if (!bIsSubPrefab)
+		{
+			if (!DeserializationSessionId.IsValid())
+			{
+				DeserializationSessionId = FGuid::NewGuid();
+				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+			}
+		}
 		auto CreatedRootActor = GenerateActorRecursive(SaveData.SavedActor, SaveData.SavedObjects, nullptr, FGuid());//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		GenerateObjectArray(SaveData.SavedObjects, SaveData.MapSceneComponentToParent);
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -343,14 +351,12 @@ namespace LGUIPrefabSystem6
 #endif
 		if (!bIsSubPrefab)
 		{
+			check(DeserializationSessionId.IsValid());
 			for (auto item : AllActors)
 			{
 				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (DeserializationSessionId.IsValid())
-			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
-			}
+			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 
 #if WITH_EDITOR
 			if (!TargetWorld->IsGameWorld())
@@ -713,12 +719,6 @@ namespace LGUIPrefabSystem6
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 					CollectDefaultSubobjects(NewActor);
-				}
-
-				if (!DeserializationSessionId.IsValid())
-				{
-					DeserializationSessionId = FGuid::NewGuid();
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 				}
 
 				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);

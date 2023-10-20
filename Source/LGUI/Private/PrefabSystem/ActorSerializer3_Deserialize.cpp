@@ -135,6 +135,14 @@ namespace LGUIPrefabSystem3
 
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
+		if (!bIsSubPrefab)
+		{
+			if (!DeserializationSessionId.IsValid())
+			{
+				DeserializationSessionId = FGuid::NewGuid();
+				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+			}
+		}
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
@@ -202,7 +210,7 @@ namespace LGUIPrefabSystem3
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, CreatedActors);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, AllActors);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -211,14 +219,12 @@ namespace LGUIPrefabSystem3
 
 		if (!bIsSubPrefab)
 		{
-			for (auto item : CreatedActors)
+			check(DeserializationSessionId.IsValid());
+			for (auto item : AllActors)
 			{
 				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (DeserializationSessionId.IsValid())
-			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
-			}
+			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 		}
 
 		return CreatedRootActor;
@@ -461,7 +467,7 @@ namespace LGUIPrefabSystem3
 								}
 							}
 							//collect sub-prefab's actor to parent prefab
-							CreatedActors.Append(InSubCreatedActors);
+							AllActors.Append(InSubCreatedActors);
 						}
 					);
 
@@ -496,12 +502,6 @@ namespace LGUIPrefabSystem3
 					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 				}
 
-				if (!DeserializationSessionId.IsValid())
-				{
-					DeserializationSessionId = FGuid::NewGuid();
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
-				}
-
 				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
@@ -529,7 +529,7 @@ namespace LGUIPrefabSystem3
 					}
 				}
 
-				CreatedActors.Add(NewActor);
+				AllActors.Add(NewActor);
 				ActorIndexInPrefab++;
 
 				NewActor->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
