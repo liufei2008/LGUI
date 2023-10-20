@@ -271,8 +271,8 @@ namespace LGUIPrefabSystem5
 		TArray<ComponentDataStruct> CreatedComponents;
 
 		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-
-		TArray<AActor*> CreatedActors;//collect for created actors
+		//collection for all actors, include sub-prefab
+		TArray<AActor*> AllActors;
 
 		void CollectActorRecursive(AActor* Actor);
 
