@@ -53,6 +53,7 @@ public class LGUIEditor : ModuleRules
                 "TypedElementFramework",
                 "TypedElementRuntime",
                 "EditorFramework",
+                "PlacementMode",
             }
             );
 			

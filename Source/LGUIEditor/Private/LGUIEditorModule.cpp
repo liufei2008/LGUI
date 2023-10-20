@@ -939,7 +939,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		MenuBuilder.EndSection();
 	}
 
-	MenuBuilder.BeginSection("Create", LOCTEXT("Create", "Create"));
+	MenuBuilder.BeginSection("LGUI Actor", LOCTEXT("LGUI Actor", "LGUI Actor Operations"));
 	{
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIElementSubMenu", "Create UI Element"),
@@ -965,16 +965,6 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("CreateUIPostProcessSubMenu", "Create UI Post Process"),
 			LOCTEXT("CreateUIPostProcessSubMenu_Tooltip", "Create UI Post Process"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu),
-			FUIAction(FExecuteAction()
-				, FCanExecuteAction()
-				, FGetActionCheckState()
-				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
-			NAME_None, EUserInterfaceActionType::None
-		);
-		MenuBuilder.AddSubMenu(
-			LOCTEXT("CreateCommonActorSubMenu", "Create Actor"),
-			LOCTEXT("CreateCommonActorSubMenu_Tooltip", "Create Actor"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateCommonActorSubMenu),
 			FUIAction(FExecuteAction()
 				, FCanExecuteAction()
 				, FGetActionCheckState()
@@ -1011,6 +1001,12 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanAttachLayout)),
 			NAME_None, EUserInterfaceActionType::None
 		);
+	}
+	MenuBuilder.EndSection();
+
+	MenuBuilder.BeginSection("CommonActor", LOCTEXT("CommonActor", "Create Common Actors"));
+	{
+		this->CreateCommonActorSubMenu(MenuBuilder);
 	}
 	MenuBuilder.EndSection();
 
@@ -1145,78 +1141,112 @@ bool FLGUIEditorModule::IsValidClassName(const FString& InName)
 		;
 }
 
+#include "IPlacementModeModule.h"
+#include "AssetSelection.h"
+#include "LevelEditorViewport.h"
 void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 {
-	struct FunctionContainer
+	struct LOCAL
 	{
-		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
+		struct TempGWorldCurrentLevel
 		{
-			auto ActorName = InClass->GetName();
-			auto ShotName = FString(*ActorName);
-			ShotName.RemoveFromEnd(TEXT("Actor"));
+			ULevel* OriginLevel = nullptr;
+			TempGWorldCurrentLevel(ULevel* NewLevel)
+			{
+				OriginLevel = GWorld->GetCurrentLevel();
+				GWorld->SetCurrentLevel(NewLevel);
+			}
+			~TempGWorldCurrentLevel()
+			{
+				GWorld->SetCurrentLevel(OriginLevel);
+			}
+		};
+		//reference from GEditor->UseActorFactory
+		static AActor* UseActorFactory(UActorFactory* Factory, const FAssetData& AssetData)
+		{
+			AActor* NewActor = nullptr;
+
+			if (auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor())
+			{
+				LGUIEditorTools::MakeCurrentLevel(SelectedActor);
+				if (ULevel* DesiredLevel = SelectedActor->GetLevel())
+				{
+					TempGWorldCurrentLevel Temp(DesiredLevel);//temporary change level, because when create actor form asset, the function (PrivateAddActor) use level by GWorld->GetCurrentLevel
+					if (UObject* LoadedAsset = AssetData.GetAsset())
+					{
+						auto Actors = FLevelEditorViewportClient::TryPlacingActorFromObject(DesiredLevel, LoadedAsset, true, RF_Transactional, Factory);
+						if (Actors.Num() && (Actors[0] != nullptr))
+						{
+							NewActor = Actors[0];
+
+							auto SelectedRootComp = SelectedActor->GetRootComponent();
+							auto NewRootComp = NewActor->GetRootComponent();
+							if (SelectedRootComp && NewRootComp)
+							{
+								NewRootComp->SetMobility(SelectedRootComp->Mobility);
+								NewActor->AttachToActor(SelectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+							}
+						}
+					}
+				}
+			}
+
+			return NewActor;
+		}
+		//reference from SPlacementAssetMenuEntry::OnMouseButtonUp
+		static void CreateActor(TSharedPtr<FPlaceableItem> Item)
+		{
+			AActor* NewActor = nullptr;
+			UActorFactory* Factory = Item->Factory;
+			if (!Item->Factory)
+			{
+				// If no actor factory was found or failed, add the actor from the uclass
+				UClass* AssetClass = Item->AssetData.GetClass();
+				if (AssetClass)
+				{
+					UObject* ClassObject = AssetClass->GetDefaultObject();
+					FActorFactoryAssetProxy::GetFactoryForAssetObject(ClassObject);
+				}
+			}
+			//reference from FLevelEditorActionCallbacks::AddActor
+			NewActor = UseActorFactory(Factory, Item->AssetData);
+			if (NewActor != NULL && IPlacementModeModule::IsAvailable())
+			{
+				IPlacementModeModule::Get().AddToRecentlyPlaced(Item->AssetData.GetAsset(), Factory);
+			}
+		}
+		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, TSharedPtr<FPlaceableItem> Item)
+		{
 			InBuilder.AddMenuEntry(
-				FText::FromString(ShotName),
-				FText::FromString(ActorName),
+				Item->DisplayName,
+				FText(),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LOCAL::CreateActor, Item))
 			);
 		}
-	};
-
-	struct GroupDataContainer
-	{
-		FString GroupName;
-		TArray<UClass*> ActorClassArray;
-		TArray<GroupDataContainer> SubGroupData;
-
-		static int PushItemToContainer(const FString& GroupName, UClass* InClass, TArray<GroupDataContainer>& InOutGroupData)
+		static void MakeMenu(FMenuBuilder& MenuBuilder, const TArray<FPlacementCategoryInfo>& Categories, FLGUIEditorModule* EditorModulePtr, IPlacementModeModule& PlacementMode)
 		{
-			auto FoundIndex = InOutGroupData.IndexOfByPredicate([GroupName](const GroupDataContainer& DataItem) {
-				return GroupName == DataItem.GroupName;
-				});
-			if (FoundIndex == INDEX_NONE)
+			for (auto GroupDataItem : Categories)
 			{
-				GroupDataContainer Container;
-				Container.GroupName = GroupName;
-				FoundIndex = InOutGroupData.Add(Container);
-			}
-			if (InClass != nullptr)
-			{
-				auto& Container = InOutGroupData[FoundIndex];
-				Container.ActorClassArray.Add(InClass);
-			}
-			return FoundIndex;
-		}
-		static void PushToContainer(TArray<FString> InGroupNameArray, UClass* InClass, TArray<GroupDataContainer>& InOutGroupData)
-		{
-			auto FirstGroup = InGroupNameArray[0];
-			InGroupNameArray.RemoveAt(0);
-			if (InGroupNameArray.Num() == 0)
-			{
-				PushItemToContainer(FirstGroup, InClass, InOutGroupData);
-			}
-			else
-			{
-				auto FoundIndex = PushItemToContainer(FirstGroup, nullptr, InOutGroupData);
-				auto& GroupData = InOutGroupData[FoundIndex];
-				PushToContainer(InGroupNameArray, InClass, GroupData.SubGroupData);
-			}
-		}
+				if (GroupDataItem.UniqueHandle == FBuiltInPlacementCategories::RecentlyPlaced())
+					GroupDataItem.DisplayName = LOCTEXT("RecentlyPlaced", "Recently Created");
 
-		static void MakeMenu(FMenuBuilder& MenuBuilder, const TArray<GroupDataContainer>& InGroupData, FLGUIEditorModule* EditorModulePtr)
-		{
-			for (auto& GroupDataItem : InGroupData)
-			{
+				PlacementMode.RegenerateItemsForCategory(GroupDataItem.UniqueHandle);
+				TArray<TSharedPtr<FPlaceableItem>> Items;
+				PlacementMode.GetItemsForCategory(GroupDataItem.UniqueHandle, Items);
+				if (Items.Num() <= 0)
+					continue;
+
 				MenuBuilder.AddSubMenu(
-					FText::FromString(GroupDataItem.GroupName),
+					GroupDataItem.DisplayName,
 					FText(),
-					FNewMenuDelegate::CreateLambda([=](FMenuBuilder& MenuBuilder) {
-						MenuBuilder.BeginSection(FName(*GroupDataItem.GroupName));
+					FNewMenuDelegate::CreateLambda([Items, UniqueHandle = GroupDataItem.UniqueHandle](FMenuBuilder& MenuBuilder) {
+						MenuBuilder.BeginSection(UniqueHandle);
 						{
 							MenuBuilder.AddSearchWidget();
-							for (UClass* ActorClassItem : GroupDataItem.ActorClassArray)
+							for (auto& Item : Items)
 							{
-								FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, ActorClassItem);
+								CreateCommonActorMenuEntry(MenuBuilder, Item);
 							}
 						}
 						MenuBuilder.EndSection();
@@ -1227,99 +1257,14 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 						, FIsActionButtonVisible::CreateRaw(EditorModulePtr, &FLGUIEditorModule::CanCreateActor)),
 					NAME_None, EUserInterfaceActionType::None
 				);
-
-				if (GroupDataItem.SubGroupData.Num() > 0)
-				{
-					MakeMenu(MenuBuilder, GroupDataItem.SubGroupData, EditorModulePtr);
-				}
 			}
 		}
 	};
 
-	const FString AllActorGroupName = TEXT("All Actors");
-	TArray<GroupDataContainer> GroupData;
-	TArray<UClass*> AllValidActorArray;
-	TArray<FName> SkipArray =//these actors don't have RootComponent, which is not good for LGUI's prefab system, so ignore them
-	{
-		TEXT("Brush"),
-		TEXT("BrushShape"),
-		TEXT("AbstractNavData"),
-		TEXT("NavModifierVolume"),
-		TEXT("ARActor"),
-		TEXT("AROriginActor"),
-		TEXT("NavSystemConfigOverride"),
-		TEXT("SequenceRecorderGroup"),
-	};
-	for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
-	{
-		if (ClassItr->IsChildOf(AActor::StaticClass())
-			&& (*ClassItr) != AActor::StaticClass()
-			&& !SkipArray.Contains(ClassItr->GetFName())
-			)
-		{
-			if (
-				!(ClassItr->HasAnyClassFlags(CLASS_Transient))
-				&& !(ClassItr->HasAnyClassFlags(CLASS_Abstract))
-				&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
-				&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
-				)
-			{
-				if (!IsValidClassName(ClassItr->GetName()))
-				{
-					continue;
-				}
-
-				TArray<FString> GroupNames;
-				ClassItr->GetClassGroupNames(GroupNames);
-				if (GroupNames.Num() != 0)
-				{
-					GroupDataContainer::PushToContainer(GroupNames, *ClassItr, GroupData);
-				}
-				AllValidActorArray.Add(*ClassItr);
-			}
-		}
-	}
-	Algo::Sort(AllValidActorArray, [](const UClass* A, const UClass* B) {
-		return A->GetName().Compare(B->GetName()) < 0;
-		});
-
-	MenuBuilder.AddSubMenu(
-		FText::FromString(AllActorGroupName),
-		FText(),
-		FNewMenuDelegate::CreateLambda([=](FMenuBuilder& MenuBuilder) {
-			MenuBuilder.BeginSection(FName(*AllActorGroupName));
-			{
-				MenuBuilder.AddSearchWidget();
-				MenuBuilder.AddMenuEntry(
-					LOCTEXT("EmptyActor", "Empty Actor"),
-					LOCTEXT("EmptyActor_Tooltip", "Create an empty actor"),
-					FSlateIcon(),
-					FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateEmptyActor))
-				);
-				for (UClass* ActorClassItem : AllValidActorArray)
-				{
-					FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, ActorClassItem);
-				}
-			}
-			MenuBuilder.EndSection();
-			}),
-		FUIAction(FExecuteAction()
-			, FCanExecuteAction()
-			, FGetActionCheckState()
-			, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
-				NAME_None, EUserInterfaceActionType::None
-				);
-
-	GroupData.Sort([](const GroupDataContainer& A, const GroupDataContainer& B) {
-		return A.GroupName.Compare(B.GroupName) < 0;
-		});
-	for (auto& Item : GroupData)
-	{
-		Algo::Sort(Item.ActorClassArray, [](const UClass* A, const UClass* B) {
-			return A->GetName().Compare(B->GetName()) < 0;
-			});
-	}
-	GroupDataContainer::MakeMenu(MenuBuilder, GroupData, this);
+	auto& PlacementMode = IPlacementModeModule::Get();
+	TArray<FPlacementCategoryInfo> Categories;
+	PlacementMode.GetSortedCategories(Categories);
+	LOCAL::MakeMenu(MenuBuilder, Categories, this, PlacementMode);
 }
 
 void FLGUIEditorModule::CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder)
@@ -1684,39 +1629,37 @@ void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
 
 void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 {
+	struct FPlaceableItem
+	{
+		UClass* Class;
+		FText DisplayName;
+		FPlaceableItem(UClass* InClass)
+		{
+			Class = InClass;
+			DisplayName = InClass->GetDisplayNameText();
+		}
+	};
+
 	struct FunctionContainer
 	{
 		static void ReplaceUIElement(FMenuBuilder& InBuilder, UClass* InClass)
 		{
-			auto ClassName = InClass->GetName();
-			auto ShotName = FString(*ClassName);
-			ShotName.RemoveFromEnd(TEXT("Actor"));
+			auto ClassName = InClass->GetDisplayNameText().ToString();
+			ClassName.RemoveFromEnd("Actor");
 			InBuilder.AddMenuEntry(
-				FText::FromString(ShotName),
+				FText::FromString(ClassName),
 				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(ClassName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, InClass))
 			);
 		}
-		static void CreateEmptyActorMenuEntry(FMenuBuilder& InBuilder)
+		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, const FPlaceableItem& Item)
 		{
 			InBuilder.AddMenuEntry(
-				LOCTEXT("EmptyActor", "Empty Actor"),
-				LOCTEXT("ReplaceEmptyActor", "ReplaceWith Empty Actor"),
+				Item.DisplayName,
+				FText::Format(LOCTEXT("ReplaceCommonActor", "ReplaceWith {0}"), Item.DisplayName),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, AActor::StaticClass()))
-			);
-		}
-		static void CreateCommonActorMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
-		{
-			auto ClassName = InClass->GetName();
-			auto ShotName = FString(*ClassName);
-			ShotName.RemoveFromEnd(TEXT("Actor"));
-			InBuilder.AddMenuEntry(
-				FText::FromString(ShotName),
-				FText::Format(LOCTEXT("ReplaceCommonActor", "ReplaceWith {0}"), FText::FromString(ClassName)),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceActorByClass, Item.Class))
 			);
 		}
 	};
@@ -1755,46 +1698,31 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 			}
 		}
 
+		
+		TArray<FPlaceableItem> AllValidActorArray;
+		for (TObjectIterator<UClass> ClassIt; ClassIt; ++ClassIt)
+		{
+			// Don't offer skeleton classes
+			bool bIsSkeletonClass = FKismetEditorUtilities::IsClassABlueprintSkeleton(*ClassIt);
 
-		const FString AllActorGroupName = TEXT("All Actors");
-		TArray<UClass*> AllValidActorArray;
-		TArray<FName> SkipArray =//these actors don't have RootComponent, which is not good for LGUI's prefab system, so ignore them
-		{
-			TEXT("Brush"),
-			TEXT("BrushShape"),
-			TEXT("AbstractNavData"),
-			TEXT("NavModifierVolume"),
-			TEXT("ARActor"),
-			TEXT("AROriginActor"),
-			TEXT("NavSystemConfigOverride"),
-			TEXT("SequenceRecorderGroup"),
-		};
-		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
-		{
-			if (ClassItr->IsChildOf(AActor::StaticClass())
-				&& (*ClassItr) != AActor::StaticClass()
-				&& !SkipArray.Contains(ClassItr->GetFName())
-				)
+			if (!ClassIt->HasAllClassFlags(CLASS_NotPlaceable) &&
+				!ClassIt->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists) &&
+				ClassIt->IsChildOf(AActor::StaticClass()) &&
+				(!ClassIt->IsChildOf(ABrush::StaticClass()) || ClassIt->IsChildOf(AVolume::StaticClass())) &&
+				!bIsSkeletonClass)
 			{
-				if (
-					!(ClassItr->HasAnyClassFlags(CLASS_Transient))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_Abstract))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
-					)
+				if (!IsValidClassName(ClassIt->GetName()))
 				{
-					if (!IsValidClassName(ClassItr->GetName()))
-					{
-						continue;
-					}
-					AllValidActorArray.Add(*ClassItr);
+					continue;
 				}
+				AllValidActorArray.Add(FPlaceableItem(*ClassIt));
 			}
 		}
-		Algo::Sort(AllValidActorArray, [](const UClass* A, const UClass* B) {
-			return A->GetName().Compare(B->GetName()) < 0;
+		Algo::Sort(AllValidActorArray, [](const FPlaceableItem A, const FPlaceableItem B) {
+			return A.DisplayName.CompareTo(B.DisplayName) < 0;
 			});
 
+		const FString AllActorGroupName = TEXT("All Classes");
 		MenuBuilder.AddSubMenu(
 			FText::FromString(AllActorGroupName),
 			FText(),
@@ -1802,10 +1730,9 @@ void FLGUIEditorModule::ReplaceActorSubMenu(FMenuBuilder& MenuBuilder)
 				MenuBuilder.BeginSection(FName(*AllActorGroupName));
 				{
 					MenuBuilder.AddSearchWidget();
-					FunctionContainer::CreateEmptyActorMenuEntry(MenuBuilder);
-					for (UClass* ActorClassItem : AllValidActorArray)
+					for (auto& PlaceableItem : AllValidActorArray)
 					{
-						FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, ActorClassItem);
+						FunctionContainer::CreateCommonActorMenuEntry(MenuBuilder, PlaceableItem);
 					}
 				}
 				MenuBuilder.EndSection();
