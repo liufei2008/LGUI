@@ -93,7 +93,7 @@ public:
 
 	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
-	void RemoveSubPrefab(AActor* InPrefabActor);
+	void RemoveSubPrefabByAnyActorOfSubPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);
 	bool GetAnythingDirty()const;
 	void SetNothingDirty();

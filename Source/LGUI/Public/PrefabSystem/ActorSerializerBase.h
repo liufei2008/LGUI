@@ -36,10 +36,10 @@ namespace LGUIPrefabSystem
 
 		virtual void SetupArchive(FArchive& InArchive);
 
-		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
-		TArray<UObject*> WillSerailizeActorArray;
+		//Actor that belongs to this prefab. All UObjects which get outer of these actor can be serailized
+		TArray<AActor*> WillSerializeActorArray;
 		//Common UObjects that need to serialize. Outer object should stay at lower index then sub object, so when deserialize the outer object will created ealier, then the sub object can use the correct outer.
-		TArray<UObject*> WillSerailizeObjectArray;
+		TArray<UObject*> WillSerializeObjectArray;
 		bool ObjectBelongsToThisPrefab(UObject* InObject);
 
 		const TSet<FName>& GetSceneComponentExcludeProperties();

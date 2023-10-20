@@ -901,15 +901,6 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 					return FReply::Unhandled();
 				}
-				if (PrefabsToLoad.Num() > 0)
-				{
-					if (PrefabHelperObject->IsActorBelongsToSubPrefab(CurrentSelectedActor.Get()))
-					{
-						auto MsgText = FText::Format(LOCTEXT("Error_SubPrefabCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
-						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-						return FReply::Unhandled();
-					}
-				}
 			}
 			else
 			{

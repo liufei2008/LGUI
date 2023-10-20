@@ -153,8 +153,9 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 		.SetHovered(FSlateColorBrush(FColor(0, 39, 131, 64)))
 		.SetPressed(FSlateColorBrush(FColor(0, 39, 131, 128)));
 	Style->Set("EmptyButton", EmptyButton);
-	Style->Set("PrefabMark", new IMAGE_BRUSH("PrefabMark_16x", Icon16x16));
 	Style->Set("PrefabMarkWhite", new IMAGE_BRUSH("PrefabMarkWhite_16x", Icon16x16));
+	Style->Set("PrefabPlusMarkWhite", new IMAGE_BRUSH("PrefabPlusMarkWhite_16x", Icon16x16));
+	Style->Set("PrefabVariantMarkWhite", new IMAGE_BRUSH("PrefabVariantMarkWhite_16x", Icon16x16));
 	Style->Set("PrefabMarkBroken", new IMAGE_BRUSH("PrefabMarkBroken_16x", Icon16x16));
 	Style->Set("CanvasMark", new IMAGE_BRUSH("CanvasMark_16x", Icon16x16));
 

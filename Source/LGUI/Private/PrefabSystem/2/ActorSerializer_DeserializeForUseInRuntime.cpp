@@ -24,12 +24,12 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		if (LoadedRootActor == nullptr)
+		if (!DeserializationSessionId.IsValid())
 		{
-			LoadedRootActor = NewActor;
-			LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
+			DeserializationSessionId = FGuid::NewGuid();
+			LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 		}
-		LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, 0);
+		LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, 0);
 		CreatedActors.Add(NewActor);
 		LoadPropertyForRuntime(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 

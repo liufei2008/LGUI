@@ -30,7 +30,7 @@ namespace LGUIPrefabSystem
 
 	bool ActorSerializerBase::ObjectBelongsToThisPrefab(UObject* InObject)
 	{
-		if (WillSerailizeActorArray.Contains(InObject))
+		if (WillSerializeActorArray.Contains(InObject))
 		{
 			return true;
 		}
@@ -40,7 +40,7 @@ namespace LGUIPrefabSystem
 			&& !Outer->HasAnyFlags(EObjectFlags::RF_Transient)
 			)
 		{
-			if (WillSerailizeActorArray.Contains(Outer))
+			if (WillSerializeActorArray.Contains(Outer))
 			{
 				return true;
 			}
@@ -69,12 +69,12 @@ namespace LGUIPrefabSystem
 			&& Object->GetWorld() == TargetWorld
 			&& IsValid(Object)
 			&& !Object->HasAnyFlags(EObjectFlags::RF_Transient)
-			&& !WillSerailizeActorArray.Contains(Object)
+			&& !WillSerializeActorArray.Contains(Object)
 			&& !Object->GetClass()->IsChildOf(AActor::StaticClass())//skip actor
 			&& ObjectBelongsToThisPrefab(Object)
 			)
 		{
-			if (WillSerailizeObjectArray.Contains(Object))
+			if (WillSerializeObjectArray.Contains(Object))
 			{
 				auto GuidPtr = MapObjectToGuid.Find(Object);
 				check(GuidPtr != nullptr);
@@ -85,9 +85,9 @@ namespace LGUIPrefabSystem
 			auto Outer = Object->GetOuter();
 			check(Outer != nullptr);
 
-			if (WillSerailizeActorArray.Contains(Outer))//outer is actor
+			if (WillSerializeActorArray.Contains(Outer))//outer is actor
 			{
-				WillSerailizeObjectArray.Add(Object);
+				WillSerializeObjectArray.Add(Object);
 				if (auto GuidPtr = MapObjectToGuid.Find(Object))
 				{
 					OutGuid = *GuidPtr;
@@ -110,13 +110,13 @@ namespace LGUIPrefabSystem
 					OutGuid = FGuid::NewGuid();
 					MapObjectToGuid.Add(Object, OutGuid);
 				}
-				auto Index = WillSerailizeObjectArray.Add(Object);
+				auto Index = WillSerializeObjectArray.Add(Object);
 				while (Outer != nullptr
-					&& !WillSerailizeActorArray.Contains(Outer)//Make sure Outer is not actor, because actor is created before any other objects, they will be stored in actor's data
-					&& !WillSerailizeObjectArray.Contains(Outer)//Make sure Outer is not inside array
+					&& !WillSerializeActorArray.Contains(Outer)//Make sure Outer is not actor, because actor is created before any other objects, they will be stored in actor's data
+					&& !WillSerializeObjectArray.Contains(Outer)//Make sure Outer is not inside array
 					)
 				{
-					WillSerailizeObjectArray.Insert(Outer, Index);//insert before object
+					WillSerializeObjectArray.Insert(Outer, Index);//insert before object
 					if (!MapObjectToGuid.Contains(Outer))
 					{
 						MapObjectToGuid.Add(Outer, FGuid::NewGuid());

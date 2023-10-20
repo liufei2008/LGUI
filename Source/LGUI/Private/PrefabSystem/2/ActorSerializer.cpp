@@ -288,11 +288,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	for (auto item : CreatedActors)
 	{
-		LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+		LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 	}
-	if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+	if (DeserializationSessionId.IsValid())
 	{
-		LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
+		LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 	}
 
 	auto TimeSpan = FDateTime::Now() - StartTime;
