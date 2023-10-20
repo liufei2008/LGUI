@@ -64,16 +64,6 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 		}
 
 		auto FilteredMemeberPropertyNames = DataItem.MemberPropertyNames;
-		if (i == 0)
-		{
-			if (auto UIItem = Cast<UUIItem>(DataItem.Object.Get()))
-			{
-				for (auto& Name : UUIItem::PersistentOverridePropertyNameSet)
-				{
-					FilteredMemeberPropertyNames.Remove(Name);
-				}
-			}
-		}
 
 		RootContentVerticalBox->AddSlot()
 		.AutoHeight()
@@ -157,60 +147,48 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 				]
 			]
 			;
-			bool bCanDrawReset = true;
-			if (i == 0)
-			{
-				if (auto UIItem = Cast<UUIItem>(DataItem.Object.Get()))
-				{
-					if (UUIItem::PersistentOverridePropertyNameSet.Contains(PropertyName))
-					{
-						bCanDrawReset = false;
-					}
-				}
-			}
-			if (bCanDrawReset)
-			{
-				HorizontalBox->AddSlot()
-				.Padding(FMargin(6, 0, 0, 0))
-				.AutoWidth()
-				.HAlign(EHorizontalAlignment::HAlign_Left)
-				.VAlign(EVerticalAlignment::VAlign_Center)
+			//apply and revert
+			HorizontalBox->AddSlot()
+			.Padding(FMargin(6, 0, 0, 0))
+			.AutoWidth()
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						PropertyCustomizationHelpers::MakeResetButton(
-							FSimpleDelegate::CreateLambda([=]() {
-								PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), PropertyName);
-								AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
-							})
-							, LOCTEXT("ResetThisParameter", "Click to revert this parameter to prefab's default value.")
-						)
-					]
+					PropertyCustomizationHelpers::MakeResetButton(
+						FSimpleDelegate::CreateLambda([=]() {
+							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), PropertyName);
+							AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
+						})
+						, LOCTEXT("ResetThisParameter", "Click to revert this parameter to prefab's default value.")
+					)
 				]
-				;
-				HorizontalBox->AddSlot()
-				.Padding(FMargin(6, 0, 0, 0))
-				.AutoWidth()
-				.HAlign(EHorizontalAlignment::HAlign_Left)
-				.VAlign(EVerticalAlignment::VAlign_Center)
+			]
+			;
+			HorizontalBox->AddSlot()
+			.Padding(FMargin(6, 0, 0, 0))
+			.AutoWidth()
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						PropertyCustomizationHelpers::MakeUseSelectedButton(
-							FSimpleDelegate::CreateLambda([=]() {
-								PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), PropertyName);
-								AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
-							})
-							, LOCTEXT("ApplyThisParameter", "Click to apply this parameter to origin prefab.")
-						)
-					]
+					PropertyCustomizationHelpers::MakeUseSelectedButton(
+						FSimpleDelegate::CreateLambda([=]() {
+							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), PropertyName);
+							AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
+						})
+						, LOCTEXT("ApplyThisParameter", "Click to apply this parameter to origin prefab.")
+					)
 				]
-				;
-			}
+			]
+			;
+
 			RootContentVerticalBox->AddSlot()
 			[
 				HorizontalBox
