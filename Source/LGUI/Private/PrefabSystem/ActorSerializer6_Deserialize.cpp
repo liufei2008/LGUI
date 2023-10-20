@@ -16,13 +16,11 @@
 #include "Core/LGUISettings.h"
 #include "Serialization/MemoryReader.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
-#if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
 #include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/ActorSerializer7.h"
 #include "Utils/LGUIUtils.h"
-#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -598,7 +596,7 @@ namespace LGUIPrefabSystem6
 								GuidInParent = *ObjectGuidInParentPrefabPtr;
 							}
 							return GuidInParent;
-						};
+							};
 						auto NewOnSubPrefabFinishDeserializeFunction =
 							[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TArray<AActor*>& InSubActors, const TArray<UActorComponent*>& InSubComponents) {
 							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
@@ -633,7 +631,7 @@ namespace LGUIPrefabSystem6
 							//collect sub-prefab's actor to parent prefab
 							AllActors.Append(InSubActors);
 							AllComponents.Append(InSubComponents);
-						};
+							};
 
 						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
 						{
@@ -649,14 +647,15 @@ namespace LGUIPrefabSystem6
 							break;
 						}
 					}
-					FComponentDataStruct CompData;
-					CompData.Component = SubPrefabRootActor->GetRootComponent();
-					CompData.SceneComponentParentGuid = ParentGuid;
-					SubPrefabRootComponents.Add(CompData);
-					AllComponents.Add(SubPrefabRootActor->GetRootComponent());
+					if (SubPrefabRootActor != nullptr)
+					{
+						FComponentDataStruct CompData;
+						CompData.Component = SubPrefabRootActor->GetRootComponent();
+						CompData.SceneComponentParentGuid = ParentGuid;
+						SubPrefabRootComponents.Add(CompData);
 
-					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
-
+						SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
+					}
 					return SubPrefabRootActor;
 				}
 			}
@@ -687,7 +686,7 @@ namespace LGUIPrefabSystem6
 						auto DefaultSubObjectGuid = InActorData.DefaultSubObjectGuidArray[Index];
 						MapGuidToObject.Add(DefaultSubObjectGuid, DefaultSubObject);
 					}
-				};
+					};
 
 				AActor* NewActor = nullptr;
 				if (auto ActorPtr = MapGuidToObject.Find(InActorData.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
@@ -746,8 +745,8 @@ namespace LGUIPrefabSystem6
 			{
 				UE_LOG(LGUI, Warning, TEXT("[%s].%d Actor Class of index:%d not found! Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, (InActorData.ObjectClass), *PrefabAssetPath);
 			}
-			}
-			return nullptr;
+		}
+		return nullptr;
 	}
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION

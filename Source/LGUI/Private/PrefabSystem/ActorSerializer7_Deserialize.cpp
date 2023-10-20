@@ -665,29 +665,31 @@ namespace LGUIPrefabSystem7
 							);
 						}
 						
-						FComponentDataStruct CompData;
-						CompData.Component = SubPrefabRootActor->GetRootComponent();
-						FGuid SubPrefabRootCompGuid;
-						for (auto& KeyValue : MapGuidToObject)
+						if (SubPrefabRootActor != nullptr)
 						{
-							if (KeyValue.Value == CompData.Component)
+							FComponentDataStruct CompData;
+							CompData.Component = SubPrefabRootActor->GetRootComponent();
+							FGuid SubPrefabRootCompGuid;
+							for (auto& KeyValue : MapGuidToObject)
 							{
-								SubPrefabRootCompGuid = KeyValue.Key;
-								break;
+								if (KeyValue.Value == CompData.Component)
+								{
+									SubPrefabRootCompGuid = KeyValue.Key;
+									break;
+								}
 							}
-						}
-						if (auto ParentGuidPtr = MapSceneComponentToParent.Find(SubPrefabRootCompGuid))
-						{
-							CompData.SceneComponentParentGuid = *ParentGuidPtr;
-							SubPrefabRootComponents.Add(CompData);
-						}
-						AllComponents.Add(SubPrefabRootActor->GetRootComponent());
+							if (auto ParentGuidPtr = MapSceneComponentToParent.Find(SubPrefabRootCompGuid))
+							{
+								CompData.SceneComponentParentGuid = *ParentGuidPtr;
+								SubPrefabRootComponents.Add(CompData);
+							}
 
-						SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
+							SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
 
-						if (i + 1 == SavedActors.Num())
-						{
-							RootActor = SubPrefabRootActor;
+							if (i + 1 == SavedActors.Num())
+							{
+								RootActor = SubPrefabRootActor;
+							}
 						}
 					}
 				}
