@@ -7,6 +7,7 @@
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
 #include "PrefabSystem/ActorSerializer5.h"
+#include "PrefabSystem/ActorSerializer6.h"
 #endif
 #include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "Utils/LGUIUtils.h"
@@ -392,9 +393,14 @@ AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
@@ -443,9 +449,14 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
@@ -572,9 +583,14 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::CommonActor:
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 		}
 		break;
 		case ELGUIPrefabVersion::ObjectName:
@@ -614,6 +630,14 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+	{
+		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this, InParent
+			, InOutMapGuidToObject, OutSubPrefabMap
+			, InSetHierarchyIndexForRootComponent
+		);
+	}
+	break;
 	case ELGUIPrefabVersion::CommonActor:
 	{
 		LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this, InParent
@@ -776,6 +800,15 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+	{
+		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
+			, InParent, MapGuidToObject, SubPrefabMap
+		);
+	}
+	break;
 	case ELGUIPrefabVersion::CommonActor:
 	{
 		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
@@ -827,6 +860,13 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+	{
+		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this
+			, InParent, OutMapGuidToObject, OutSubPrefabMap
+		);
+	}
+	break;
 	case ELGUIPrefabVersion::CommonActor:
 	{
 		LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this

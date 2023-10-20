@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer6.h"
+#include "PrefabSystem/ActorSerializer7.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
@@ -20,7 +19,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem6
+namespace LGUIPrefabSystem7
 {
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
@@ -65,6 +64,16 @@ namespace LGUIPrefabSystem6
 			}
 		}
 		serializer.SubPrefabMap = InSubPrefabMap;
+		for (auto& SubPrefabKeyValue : InSubPrefabMap)
+		{
+			for (auto& GuidToObjectKeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
+			{
+				if (auto SubPrefabActor = Cast<AActor>(GuidToObjectKeyValue.Value))
+				{
+					serializer.SubPrefabActorArray.Add(SubPrefabActor);
+				}
+			}
+		}
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
 #if WITH_EDITOR
 		serializer.bIsForCook = InForCook;
@@ -82,91 +91,98 @@ namespace LGUIPrefabSystem6
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 	}
 
-	void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData, TMap<FGuid, TArray<uint8>>& SavedObjectData)
+	void ActorSerializer::SerializeActorArray(TMap<FGuid, FGuid>& MapSceneComponentToParent, TArray<FLGUIActorSaveData>& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectData)
 	{
-		if (!IsValid(Actor))return;
-		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab's actor is not collected in WillSerailizeActorArray
+		for (int i = TrySerializeActorArray.Num() - 1; i >= 0; i--)//serialize from tail to head (deeper in hierarchy will stay previous in data array)
 		{
-			OutActorSaveData.bIsPrefab = true;
-			OutActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
-			OutActorSaveData.ActorGuid = MapObjectToGuid[Actor];
-			OutActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
-
-			//serialize override parameter data
-			for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
+			auto& Actor = TrySerializeActorArray[i];
+			FLGUIActorSaveData ActorSaveData;
+			if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab's actor is not collected in WillSerailizeActorArray
 			{
-				TArray<uint8> SubPrefabOverrideData;
-				auto SubPrefabObject = DataItem.Object.Get();
-				if (MapObjectToGuid.Contains(SubPrefabObject))
+				ActorSaveData.bIsPrefab = true;
+				ActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
+				ActorSaveData.ActorGuid = MapObjectToGuid[Actor];
+				ActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
+
+				//serialize override parameter data
+				for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
 				{
-					FLGUIPrefabOverrideParameterSaveData RecordDataItem;
-					RecordDataItem.OverrideParameterNames = DataItem.MemberPropertyNames;
-					WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, DataItem.MemberPropertyNames);
-					OutActorSaveData.MapObjectGuidToSubPrefabOverrideParameter.Add(MapObjectToGuid[SubPrefabObject], RecordDataItem);
-				}
-			}
-		}
-		else
-		{
-			if (!WillSerializeActorArray.Contains(Actor))return;
-			auto ActorGuid = MapObjectToGuid[Actor];
-
-			OutActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
-			OutActorSaveData.ActorGuid = ActorGuid;
-			OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
-			WriterOrReaderFunction(Actor, SavedObjectData.Add(ActorGuid), false);
-			if (auto RootComp = Actor->GetRootComponent())
-			{
-				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
-			}
-			TArray<UObject*> DefaultSubObjects;
-			Actor->CollectDefaultSubobjects(DefaultSubObjects);
-			for (auto DefaultSubObject : DefaultSubObjects)
-			{
-				FGuid DefaultSubObjectGuid;
-				if (!CollectObjectToSerailize(DefaultSubObject, DefaultSubObjectGuid))continue;
-				OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
-				OutActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
-			}
-
-			TArray<AActor*> ChildrenActors;
-			Actor->GetAttachedActors(ChildrenActors);
-#if WITH_EDITOR
-			//for UI
-			if (!TargetWorld->IsGameWorld())//only need in edit mode, because runtime serialize (or duplicate) don't use sub-prefab
-			{
-				//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
-				Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
-					auto ARoot = A->GetRootComponent();
-					auto BRoot = B->GetRootComponent();
-					if (ARoot != nullptr && BRoot != nullptr)
+					TArray<uint8> SubPrefabOverrideData;
+					auto SubPrefabObject = DataItem.Object.Get();
+					if (MapObjectToGuid.Contains(SubPrefabObject))
 					{
-						auto AUIRoot = Cast<UUIItem>(ARoot);
-						auto BUIRoot = Cast<UUIItem>(BRoot);
-						if (AUIRoot != nullptr && BUIRoot != nullptr)
+						FLGUIPrefabOverrideParameterSaveData RecordDataItem;
+						RecordDataItem.OverrideParameterNames = DataItem.MemberPropertyNames;
+						WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, DataItem.MemberPropertyNames);
+						ActorSaveData.MapObjectGuidToSubPrefabOverrideParameter.Add(MapObjectToGuid[SubPrefabObject], RecordDataItem);
+					}
+				}
+
+				if (auto RootComp = Actor->GetRootComponent())
+				{
+					if (auto ParentComp = RootComp->GetAttachParent())
+					{
+						if (MapObjectToGuid.Contains(ParentComp))//check if parent component belongs to this prefab
 						{
-							return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+							MapSceneComponentToParent.Add(MapObjectToGuid[RootComp], MapObjectToGuid[ParentComp]);
 						}
 					}
-					return false;
-					});
+				}
 			}
-#endif
-			TArray<FLGUIActorSaveData> ChildSaveDataList;
-			for (auto ChildActor : ChildrenActors)
+			else
 			{
-				FLGUIActorSaveData ChildActorSaveData;
-				SerializeActorRecursive(ChildActor, ChildActorSaveData, SavedObjectData);
-				ChildSaveDataList.Add(ChildActorSaveData);
+				auto ActorGuid = MapObjectToGuid[Actor];
+
+				ActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
+				ActorSaveData.ActorGuid = ActorGuid;
+				ActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
+				WriterOrReaderFunction(Actor, SavedObjectData.Add(ActorGuid), false);
+				if (auto RootComp = Actor->GetRootComponent())
+				{
+					ActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
+				}
+				TArray<UObject*> DefaultSubObjects;
+				Actor->CollectDefaultSubobjects(DefaultSubObjects);
+				for (auto DefaultSubObject : DefaultSubObjects)
+				{
+					FGuid DefaultSubObjectGuid;
+					if (!CollectObjectToSerailize(DefaultSubObject, DefaultSubObjectGuid))continue;
+					ActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
+					ActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
+				}
+
+				TArray<AActor*> ChildrenActors;
+				Actor->GetAttachedActors(ChildrenActors);
+#if WITH_EDITOR
+				//for UI
+				if (!TargetWorld->IsGameWorld())//only need in edit mode, because runtime serialize (or duplicate) don't use sub-prefab
+				{
+					//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+					Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+						auto ARoot = A->GetRootComponent();
+						auto BRoot = B->GetRootComponent();
+						if (ARoot != nullptr && BRoot != nullptr)
+						{
+							auto AUIRoot = Cast<UUIItem>(ARoot);
+							auto BUIRoot = Cast<UUIItem>(BRoot);
+							if (AUIRoot != nullptr && BUIRoot != nullptr)
+							{
+								return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+							}
+						}
+						return false;
+						});
+				}
+#endif
 			}
-			OutActorSaveData.ChildrenActorDataArray = ChildSaveDataList;
+			SavedActors.Add(ActorSaveData);
 		}
 	}
 	void ActorSerializer::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{
 		CollectActorRecursive(OriginRootActor);
 		//serailize actor
-		SerializeActorRecursive(OriginRootActor, OutData.SavedActor, OutData.SavedObjectData);
+		SerializeActorArray(OutData.MapSceneComponentToParent, OutData.SavedActors, OutData.SavedObjectData);
 		//serialize objects and components
 		SerializeObjectArray(OutData.SavedObjects, OutData.SavedObjectData, OutData.MapSceneComponentToParent);
 	}
@@ -257,7 +273,7 @@ namespace LGUIPrefabSystem6
 		auto ActorClass = Actor->GetClass();
 		if (ActorClass->ClassGeneratedBy != nullptr && ActorClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint))
 		{
-			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer6", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
+			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer7", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
 			if (!bIsForCook)
 			{
 				LGUIUtils::EditorNotification(MsgText, 10.0f);
@@ -273,10 +289,20 @@ namespace LGUIPrefabSystem6
 			if (Actor->bIsEditorOnlyActor)return;
 		}
 		//collect actor
-		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
+		bool bIsSubprefabActor = SubPrefabActorArray.Contains(Actor);
+		if (!bIsSubprefabActor)//sub prefab's actor should not put to the list
 		{
-			WillSerializeActorArray.Add(Actor);
+			WillSerializeActorArray.Add(Actor);//sub-prefab just keep a reference, no need to serialize
+			TrySerializeActorArray.Add(Actor);
 		}
+		else
+		{
+			if (SubPrefabMap.Contains(Actor))//sub-prefab's root actor
+			{
+				TrySerializeActorArray.Add(Actor);
+			}
+		}
+		//collect all actors include sub-prefab's actor, because some property could reference it
 		if (!MapObjectToGuid.Contains(Actor))
 		{
 			MapObjectToGuid.Add(Actor, FGuid::NewGuid());
@@ -306,7 +332,7 @@ namespace LGUIPrefabSystem6
 			{
 				if (auto ParentComp = SceneComp->GetAttachParent())
 				{
-					if (WillSerializeActorArray.Contains(ParentComp->GetOwner()))//check if parent component belongs to this prefab
+					if (MapObjectToGuid.Contains(ParentComp))//check if parent component belongs to this prefab
 					{
 						MapSceneComponentToParent.Add(MapObjectToGuid[Object], MapObjectToGuid[ParentComp]);
 					}
@@ -328,6 +354,4 @@ namespace LGUIPrefabSystem6
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
-#endif
-
 #endif

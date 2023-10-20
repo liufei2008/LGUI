@@ -243,15 +243,15 @@ private:
 	static void DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 #endif
 private:
-	/** Map actor to prefab's root actor */
-	TMap<AActor*, TTuple<AActor*, int32>> AllActors_PrefabSystemProcessing;
-	/** Map root actor to LGUILifeCycleBehaviour array */
-	TMap<AActor*, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
+	/** Map actor to prefab-deserialize-settion-id and actor index */
+	TMap<AActor*, TTuple<FGuid, int32>> AllActors_PrefabSystemProcessing;
+	/** Map prefab-deserialize-settion-id to LGUILifeCycleBehaviour array */
+	TMap<FGuid, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
 public:
-	void BeginPrefabSystemProcessingActor(AActor* InRootActor);
-	void EndPrefabSystemProcessingActor(AActor* InRootActor);
-	void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex);
-	void RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
+	void BeginPrefabSystemProcessingActor(const FGuid& InSessionId);
+	void EndPrefabSystemProcessingActor(const FGuid& InSessionId);
+	void AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId, int32 InActorIndex);
+	void RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
 	bool IsPrefabSystemProcessingActor(AActor* InActor);
 	/**
 	 * Add a function that execute after prefab system serialization and before Awake called

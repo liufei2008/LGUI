@@ -22,23 +22,6 @@ ULGUIPrefabActorFactory::ULGUIPrefabActorFactory()
 
 bool ULGUIPrefabActorFactory::CanCreateActorFrom(const FAssetData& AssetData, FText& OutErrorMsg)
 {
-	bool bCanLoadPrefab = true;
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor != nullptr)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-		{
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
-			{
-				bCanLoadPrefab = false;
-			}
-		}
-	}
-	if (!bCanLoadPrefab)
-	{
-		return false;
-	}
-
 	if (AssetData.IsValid() && AssetData.GetClass()->IsChildOf(ULGUIPrefab::StaticClass()))
 	{
 		return true;
