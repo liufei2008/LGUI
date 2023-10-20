@@ -1244,9 +1244,9 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
-			if (auto RootActorDataPtr = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
+			if (auto PrefabDeserializeSessionPtr = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
 			{
-				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(RootActorDataPtr->Key))
+				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(PrefabDeserializeSessionPtr->Key))
 				{
 					InComp->bIsSerializedFromLGUIPrefab = true;
 					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
@@ -1261,7 +1261,7 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 					}
 					TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32> Item;
 					Item.Key = InComp;
-					Item.Value = RootActorDataPtr->Value;
+					Item.Value = PrefabDeserializeSessionPtr->Value;
 					CompArray.Add(Item);
 				}
 			}
@@ -1776,14 +1776,14 @@ void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InCom
 		}
 	}
 }
-void ALGUIManagerActor::BeginPrefabSystemProcessingActor(AActor* InRootActor)
+void ALGUIManagerActor::BeginPrefabSystemProcessingActor(const FGuid& InSessionId)
 {
 	FLGUILifeCycleBehaviourArrayContainer Container;
-	LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InRootActor, Container);
+	LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InSessionId, Container);
 }
-void ALGUIManagerActor::EndPrefabSystemProcessingActor(AActor* InRootActor)
+void ALGUIManagerActor::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
 {
-	if (auto ArrayPtr = LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(InRootActor))
+	if (auto ArrayPtr = LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(InSessionId))
 	{
 		auto& LateFunctions = ArrayPtr->Functions;
 		for (auto& Function : LateFunctions)
@@ -1792,7 +1792,7 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(AActor* InRootActor)
 		}
 
 		auto& LGUILifeCycleBehaviourArray = ArrayPtr->LGUILifeCycleBehaviourArray;
-		//sort by hierarchy index
+		//sort it by hierarchy
 		LGUILifeCycleBehaviourArray.Sort([](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& A, const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& B) {
 			return A.Value < B.Value;
 			});
@@ -1809,17 +1809,17 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(AActor* InRootActor)
 #endif
 		}
 
-		LGUILifeCycleBehaviours_PrefabSystemProcessing.Remove(InRootActor);
+		LGUILifeCycleBehaviours_PrefabSystemProcessing.Remove(InSessionId);
 	}
 }
-void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex)
+void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId, int32 InActorIndex)
 {
-	TTuple<AActor*, int32> Item;
-	Item.Key = InRootActor;
+	TTuple<FGuid, int32> Item;
+	Item.Key = InSessionId;
 	Item.Value = InActorIndex;
 	AllActors_PrefabSystemProcessing.Add(InActor, Item);
 }
-void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
+void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId)
 {
 	AllActors_PrefabSystemProcessing.Remove(InActor);
 }

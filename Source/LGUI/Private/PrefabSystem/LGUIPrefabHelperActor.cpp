@@ -41,7 +41,7 @@ void ALGUIPrefabHelperActor::Destroyed()
 		{
 			if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
 			{
-				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefab(LoadedRootActor);
+				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(LoadedRootActor);
 				LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
 			}
 		}

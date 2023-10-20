@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorSerializer6.h"
+#include "PrefabSystem/ActorSerializer7.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -133,8 +133,8 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		auto StartTime = FDateTime::Now();
 		auto& serializer = InData.Serializer;//use copied, incase undesired data
 		//clear these data for deserializer use
-		serializer.WillSerailizeActorArray.Reset();
-		serializer.WillSerailizeObjectArray.Reset();
+		serializer.WillSerializeActorArray.Reset();
+		serializer.WillSerializeObjectArray.Reset();
 		serializer.MapGuidToObject.Reset();
 		serializer.MapObjectToGuid.Reset();
 		serializer.ComponentsInThisPrefab.Reset();
@@ -143,7 +143,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.AllActors.Reset();
 		serializer.AllComponents.Reset();
 		serializer.SubPrefabOverrideParameters.Reset();
-		serializer.LoadedRootActor = nullptr;
+		serializer.DeserializationSessionId = FGuid();
 		serializer.ActorIndexInPrefab = false;
 		serializer.SubPrefabObjectOverrideData.Reset();
 

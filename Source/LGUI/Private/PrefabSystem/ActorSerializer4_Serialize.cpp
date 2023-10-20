@@ -218,7 +218,7 @@ namespace LGUIPrefabSystem4
 		//collect actor
 		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
 		{
-			WillSerailizeActorArray.Add(Actor);
+			WillSerializeActorArray.Add(Actor);
 		}
 		if (!MapObjectToGuid.Contains(Actor))
 		{
@@ -235,9 +235,9 @@ namespace LGUIPrefabSystem4
 
 	void ActorSerializer::SerializeObjectArray(TArray<FLGUIObjectSaveData>& ObjectSaveDataArray, TArray<FLGUIComponentSaveData>& ComponentSaveDataArray)
 	{
-		for (int i = 0; i < WillSerailizeObjectArray.Num(); i++)
+		for (int i = 0; i < WillSerializeObjectArray.Num(); i++)
 		{
-			auto Object = WillSerailizeObjectArray[i];
+			auto Object = WillSerializeObjectArray[i];
 			auto Class = Object->GetClass();
 			if (Class->IsChildOf(UActorComponent::StaticClass()))
 			{
@@ -251,7 +251,7 @@ namespace LGUIPrefabSystem4
 				{
 					if (auto ParentComp = SceneComp->GetAttachParent())
 					{
-						if (WillSerailizeActorArray.Contains(ParentComp->GetOwner()))//check if parent component belongs to this prefab
+						if (WillSerializeActorArray.Contains(ParentComp->GetOwner()))//check if parent component belongs to this prefab
 						{
 							ComponentSaveDataItem.SceneComponentParentGuid = MapObjectToGuid[ParentComp];//@todo: better way to store SceneComponent's parent?
 						}

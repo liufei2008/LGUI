@@ -5,8 +5,8 @@
 #include "Misc/NetworkVersion.h"
 #include "LGUIPrefab.generated.h"
 
-#define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer6.h"
-#define LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE LGUIPrefabSystem6
+#define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer7.h"
+#define LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE LGUIPrefabSystem7
 
 enum class ELGUIPrefabVersion : uint16
 {
@@ -27,6 +27,8 @@ enum class ELGUIPrefabVersion : uint16
 	ObjectName = 5,
 	/** Support common actor types, not just UI actor. */
 	CommonActor = 6,
+	/** Support add new actor under subprefab's actor. */
+	ActorAttachToSubPrefab = 7,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,

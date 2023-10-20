@@ -13,11 +13,11 @@
 #include "Misc/NetworkVersion.h"
 #include "Serialization/MemoryReader.h"
 #include "Core/LGUISettings.h"
-#if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
+#include "PrefabSystem/ActorSerializer6.h"
+#include "PrefabSystem/ActorSerializer7.h"
 #include "Utils/LGUIUtils.h"
-#endif
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
@@ -150,7 +150,7 @@ namespace LGUIPrefabSystem5
 	}
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, AActor* InParentLoadedRootActor
+		, const FGuid& InParentDeserializationSessionId
 		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&)> InOnSubPrefabFinishDeserializeFunction
@@ -164,7 +164,7 @@ namespace LGUIPrefabSystem5
 		serializer.bOverrideVersions = true;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
-		serializer.LoadedRootActor = InParentLoadedRootActor;
+		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
 		serializer.ActorIndexInPrefab = InOutActorIndex;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -277,11 +277,11 @@ namespace LGUIPrefabSystem5
 		{
 			for (auto item : CreatedActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, LoadedRootActor);
+				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+			if (DeserializationSessionId.IsValid())
 			{
-				LGUIManagerActor->EndPrefabSystemProcessingActor(LoadedRootActor);
+				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -529,87 +529,177 @@ namespace LGUIPrefabSystem5
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
 					SubPrefabData.PrefabAsset = SubPrefabAsset;
-					auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
-					if (auto ValuePtr = MapGuidToObject.Find(InActorData.ObjectGuid))
+
+					if (SubPrefabAsset->PrefabVersion <= (uint16)ELGUIPrefabVersion::ObjectName)
 					{
-						auto SubPrefabRootActorGuid = InActorData.MapObjectGuidFromParentPrefabToSubPrefab[InActorData.ObjectGuid];
-						SubMapGuidToObject.Add(SubPrefabRootActorGuid, *ValuePtr);
-					}
-					TMap<FGuid, FGuid> MapObjectGuidFromSubPrefabToParentPrefab;
-					for (auto& KeyValue : InActorData.MapObjectGuidFromParentPrefabToSubPrefab)
-					{
-						MapObjectGuidFromSubPrefabToParentPrefab.Add(KeyValue.Value, KeyValue.Key);
-						auto ObjectPtr = MapGuidToObject.Find(KeyValue.Key);
-						if (!SubMapGuidToObject.Contains(KeyValue.Value) && ObjectPtr != nullptr)
+						auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
+						if (auto ValuePtr = MapGuidToObject.Find(InActorData.ObjectGuid))
 						{
-							SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
+							auto SubPrefabRootActorGuid = InActorData.MapObjectGuidFromParentPrefabToSubPrefab[InActorData.ObjectGuid];
+							SubMapGuidToObject.Add(SubPrefabRootActorGuid, *ValuePtr);
+						}
+						TMap<FGuid, FGuid> MapObjectGuidFromSubPrefabToParentPrefab;
+						for (auto& KeyValue : InActorData.MapObjectGuidFromParentPrefabToSubPrefab)
+						{
+							MapObjectGuidFromSubPrefabToParentPrefab.Add(KeyValue.Value, KeyValue.Key);
+							auto ObjectPtr = MapGuidToObject.Find(KeyValue.Key);
+							if (!SubMapGuidToObject.Contains(KeyValue.Value) && ObjectPtr != nullptr)
+							{
+								SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
+							}
+						}
+
+						auto NewOnSubPrefabFinishDeserializeFunction =
+							[&](AActor* InSubPrefabRootActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
+							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
+							for (auto& KeyValue : InSubMapGuidToObject)
+							{
+								auto GuidInSubPrefab = KeyValue.Key;
+								auto ObjectInSubPrefab = KeyValue.Value;
+
+								FGuid ObjectGuidInParentPrefab;
+								auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
+								if (ObjectGuidInParentPrefabPtr == nullptr)
+								{
+									ObjectGuidInParentPrefab = FGuid::NewGuid();
+									MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, ObjectGuidInParentPrefab);
+								}
+								else
+								{
+									ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
+								}
+								SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
+								SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
+
+								if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
+								{
+									MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
+								}
+							}
+							//collect sub-prefab's actor to parent prefab
+							CreatedActors.Append(InSubCreatedActors);
+							};
+						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
+						{
+						case ELGUIPrefabVersion::BuildinFArchive:
+						{
+							SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+						}
+						break;
+						case ELGUIPrefabVersion::NestedDefaultSubObject:
+						{
+							SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+						}
+						break;
+						case ELGUIPrefabVersion::ObjectName:
+						{
+							SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+						}
+						break;
+						default:
+						{
+							auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect older sub prefab version which is not support nested prefab here! Please update the prefab to new version. Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
+							LGUIUtils::EditorNotification(MsgText, 1.0f);
+						}
+						break;
 						}
 					}
-
-					auto NewOnSubPrefabFinishDeserializeFunction =
-						[&](AActor* InSubPrefabRootActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors) {
-						//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
-						for (auto& KeyValue : InSubMapGuidToObject)
+					else
+					{
+						auto& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
+						TMap<FGuid, FGuid> MapObjectGuidFromSubPrefabToParentPrefab;
+						for (auto& KeyValue : InActorData.MapObjectGuidFromParentPrefabToSubPrefab)
 						{
-							auto GuidInSubPrefab = KeyValue.Key;
-							auto ObjectInSubPrefab = KeyValue.Value;
+							MapObjectGuidFromSubPrefabToParentPrefab.Add(KeyValue.Value, KeyValue.Key);
+						}
+#if WITH_EDITOR
+						//edit mode must check if the object already exist, because the deserialize process could happen when use revert-prefab
+						if (bIsEditorOrRuntime)
+						{
+							for (auto& KeyValue : MapObjectGuidFromSubPrefabToParentPrefab)
+							{
+								auto ObjectPtr = MapGuidToObject.Find(KeyValue.Value);
+								if (!SubMapGuidToObject.Contains(KeyValue.Key) && ObjectPtr != nullptr)
+								{
+									SubMapGuidToObject.Add(KeyValue.Key, *ObjectPtr);
+								}
+							}
+						}
+#endif
 
-							FGuid ObjectGuidInParentPrefab;
+						auto GetObjectGuidInParent = [&](const FGuid& GuidInSubPrefab) {
+							FGuid GuidInParent;
 							auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
 							if (ObjectGuidInParentPrefabPtr == nullptr)
 							{
-								ObjectGuidInParentPrefab = FGuid::NewGuid();
-								MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, ObjectGuidInParentPrefab);
+								GuidInParent = FGuid::NewGuid();
+								MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, GuidInParent);
 							}
 							else
 							{
-								ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
+								GuidInParent = *ObjectGuidInParentPrefabPtr;
 							}
-							SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
-							SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
-
-							if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
+							return GuidInParent;
+							};
+						auto NewOnSubPrefabFinishDeserializeFunction =
+							[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<AActor*>& InSubCreatedActors, const TArray<UActorComponent*>& InSubComponents) {
+							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
+							for (auto& KeyValue : InSubMapGuidToObject)
 							{
-								MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
+								auto GuidInSubPrefab = KeyValue.Key;
+								auto ObjectInSubPrefab = KeyValue.Value;
+
+								FGuid ObjectGuidInParentPrefab;
+								auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
+								if (ObjectGuidInParentPrefabPtr == nullptr)
+								{
+									ObjectGuidInParentPrefab = FGuid::NewGuid();
+									MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, ObjectGuidInParentPrefab);
+								}
+								else
+								{
+									ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
+								}
+								SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
+								SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
+
+								if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
+								{
+									MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
+								}
 							}
+							//collect sub-prefab's actor to parent prefab
+							CreatedActors.Append(InSubCreatedActors);
+							};
+
+						switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
+						{
+						case ELGUIPrefabVersion::CommonActor:
+						{
+							SubPrefabRootActor = LGUIPrefabSystem6::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
 						}
-						//collect sub-prefab's actor to parent prefab
-						CreatedActors.Append(InSubCreatedActors);
-					};
-#if WITH_EDITOR
-					switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
-					{
-					case ELGUIPrefabVersion::BuildinFArchive:
-					{
-						SubPrefabRootActor = LGUIPrefabSystem3::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, NewOnSubPrefabFinishDeserializeFunction
-						);
+						break;
+						case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+							SubPrefabRootActor = LGUIPrefabSystem7::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
+							break;
+						default:
+						{
+							auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportHigherPrefabVersion", "Detect newer sub prefab version which is not support nested prefab here! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
+							LGUIUtils::EditorNotification(MsgText, 1.0f);
+						}
+						break;
+						}
 					}
-					break;
-					case ELGUIPrefabVersion::NestedDefaultSubObject:
-					{
-						SubPrefabRootActor = LGUIPrefabSystem4::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, NewOnSubPrefabFinishDeserializeFunction
-						);
-					}
-					break;
-					case ELGUIPrefabVersion::ObjectName:
-					{
-#endif
-						SubPrefabRootActor = LGUIPrefabSystem5::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent, LoadedRootActor, this->ActorIndexInPrefab, SubMapGuidToObject
-							, NewOnSubPrefabFinishDeserializeFunction
-						);
-#if WITH_EDITOR
-					}
-					break;
-					default:
-					{
-						auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer5", "Error_UnsupportOldPrefabVersion", "Detect older or newer sub prefab version which is not support nested prefab here! Prefab: '{0}'"), FText::FromString(SubPrefabAsset->GetPathName()));
-						LGUIUtils::EditorNotification(MsgText, 1.0f);
-					}
-					break;
-					}
-#endif
 					
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
@@ -651,13 +741,13 @@ namespace LGUIPrefabSystem5
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);
 				}
 
-				if (LoadedRootActor == nullptr)
+				if (!DeserializationSessionId.IsValid())
 				{
-					LoadedRootActor = NewActor;
-					LGUIManagerActor->BeginPrefabSystemProcessingActor(LoadedRootActor);
+					DeserializationSessionId = FGuid::NewGuid();
+					LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
+				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);

@@ -423,8 +423,8 @@ namespace LGUIPrefabSystem
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
 
-		/** Prefab's loaded root actor */
-		AActor* LoadedRootActor = nullptr;
+		/** Mark of this deserialization session. If nested prefab, this is still the root prefab's value. */
+		FGuid DeserializationSessionId = FGuid();
 		ALGUIManagerActor* LGUIManagerActor = nullptr;
 #if WITH_EDITOR
 		//serialize actor
