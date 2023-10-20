@@ -43,9 +43,6 @@ public:
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdate();//@todo: remove this
 #endif
-#if WITH_EDITORONLY_DATA
-	static TSet<FName> PersistentOverridePropertyNameSet;
-#endif
 	static const FName GetAnchorDataPropertyName()
 	{
 		return GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData);

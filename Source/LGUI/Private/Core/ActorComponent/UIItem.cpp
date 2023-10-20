@@ -20,13 +20,6 @@
 UE_DISABLE_OPTIMIZATION
 #endif
 
-#if WITH_EDITORONLY_DATA
-TSet<FName> UUIItem::PersistentOverridePropertyNameSet =
-{
-	GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex)
-};
-#endif
-
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
