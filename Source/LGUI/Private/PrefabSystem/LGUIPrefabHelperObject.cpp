@@ -243,10 +243,6 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 				TSet<FName> FilterNameSet;
 				if (i == 0)//first object is always the root component of prefab's root actor
 				{
-					if (auto UIItem = Cast<UUIItem>(DataItem.Object))
-					{
-						FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
-					}
 					if (InIncludeRootTransform)
 					{
 						FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
@@ -914,7 +910,10 @@ bool ULGUIPrefabHelperObject::CleanupInvalidLinkToSubPrefabObject()
 }
 
 #pragma region RevertAndApply
-//@todo: maybe this is not necessary? not sure, need to test
+/**
+ * When revert, if the parameter is RelativeLocation, then UIItem's AnchorData will also be reverted. Revert parameter is just copy data from origin to dest, origin means the temporary created objects in prefab's preview world.
+ * But since AnchorData is relative to parent, and parent may not have the same AnchorData (because parent is temporary created inside preview world), so we need to set parent's AnchorData to now object's parent's AnchorData.
+ */
 void ULGUIPrefabHelperObject::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
 {
 	if (auto SceneComp = Cast<USceneComponent>(InObject))
@@ -1238,13 +1237,6 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
 			auto SourceObject = DataItem.Object.Get();
 			TSet<FName> FilterNameSet;
-			if (i == 0)//first object is always the root component of prefab's root actor
-			{
-				if (auto UIItem = Cast<UUIItem>(SourceObject))
-				{
-					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
-				}
-			}
 			auto ObjectInPrefab = FindOriginObjectInSourcePrefab(SourceObject);
 			CopyRootObjectParentAnchorData(SourceObject, ObjectInPrefab);
 
@@ -1606,10 +1598,6 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			TSet<FName> FilterNameSet;
 			if (i == 0)//first object is always the root component of prefab's root actor
 			{
-				if (auto UIItem = Cast<UUIItem>(SourceObject))
-				{
-					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
-				}
 				FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
 				FilterNameSet.Add(USceneComponent::GetRelativeRotationPropertyName());
 				FilterNameSet.Add(USceneComponent::GetRelativeScale3DPropertyName());
