@@ -1498,7 +1498,10 @@ void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->AllRootUIItemArray.Contains(InItem));
+		if (Instance->AllRootUIItemArray.Contains(InItem))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllRootUIItemArray.AddUnique(InItem);
 	}
@@ -1508,7 +1511,10 @@ void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld(), false))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->AllRootUIItemArray.Contains(InItem));
+		if (!Instance->AllRootUIItemArray.Contains(InItem))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllRootUIItemArray.RemoveSingle(InItem);
 	}
@@ -1519,7 +1525,10 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurre
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->AllCanvasArray.Contains(InCanvas));
+		if (Instance->AllCanvasArray.Contains(InCanvas))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllCanvasArray.AddUnique(InCanvas);
 
@@ -1548,7 +1557,10 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCu
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->AllCanvasArray.Contains(InCanvas));
+		if (!Instance->AllCanvasArray.Contains(InCanvas))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllCanvasArray.RemoveSingle(InCanvas);
 		switch (InCurrentRenderMode)
@@ -1573,7 +1585,10 @@ void ALGUIManagerActor::CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRende
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->AllCanvasArray.Contains(InCanvas));
+		if (!Instance->AllCanvasArray.Contains(InCanvas))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		//remove from old
 		switch (InOldRenderMode)
@@ -1732,7 +1747,10 @@ void ALGUIManagerActor::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->AllLayoutArray.Contains(InItem.GetObject()));
+		if (Instance->AllLayoutArray.Contains(InItem.GetObject()))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllLayoutArray.AddUnique(InItem.GetObject());
 	}
@@ -1742,7 +1760,10 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->AllLayoutArray.Contains(InItem.GetObject()));
+		if (!Instance->AllLayoutArray.Contains(InItem.GetObject()))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		}
 #endif
 		Instance->AllLayoutArray.RemoveSingle(InItem.GetObject());
 	}
@@ -1805,7 +1826,10 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
 				ProcessLGUILifecycleEvent(Item.Key.Get());
 			}
 #if !UE_BUILD_SHIPPING
-			check(LGUILifeCycleBehaviourArray.Num() == Count);
+			if (LGUILifeCycleBehaviourArray.Num() != Count)
+			{
+				UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			}
 #endif
 		}
 
