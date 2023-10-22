@@ -235,15 +235,15 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 		auto SubPrefabRootActor = KeyValue.Key;
 		FLGUISubPrefabData& SubPrefabData = KeyValue.Value;
 		SubPrefabData.CheckParameters();
-		if (InSubPrefabRootActor == SubPrefabRootActor || InSubPrefabRootActor->IsAttachedTo(SubPrefabRootActor))
+		if (InSubPrefabRootActor == SubPrefabRootActor)
 		{
 			for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
 			{
 				auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
 				TSet<FName> FilterNameSet;
-				if (i == 0)//first object is always the root component of prefab's root actor
+				if (InSubPrefabRootActor->GetRootComponent() == DataItem.Object)//if is root component of prefab's root actor, then skip it's transform
 				{
-					if (InIncludeRootTransform)
+					if (!InIncludeRootTransform)
 					{
 						FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
 						FilterNameSet.Add(USceneComponent::GetRelativeRotationPropertyName());
@@ -552,6 +552,9 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 		if (this->PrefabAsset != nullptr)//could be null in level editor
 		{
+#if WITH_EDITOR
+			this->PrefabAsset->ThumbnailDirty = true;
+#endif
 			this->PrefabAsset->MarkPackageDirty();
 		}
 		ClearInvalidObjectAndGuid();//incase LevelPrefab reference invalid object, eg: delete object in sub-prefab's sub-prefab, and update the prefab in level
@@ -1208,6 +1211,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			Actor = Component->GetOwner();
 		}
 		auto SubPrefabData = GetSubPrefabData(Actor);
+		auto SubPrefabRootActor = GetSubPrefabRootActor(Actor);
 
 		GEditor->BeginTransaction(LOCTEXT("RevertPrefabOnAll_Transaction", "Revert Prefab Override"));
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
@@ -1260,7 +1264,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 				DataItem.MemberPropertyNames.Remove(PropertyName);
 			}
 		}
-		RemoveAllMemberPropertyFromSubPrefab(Actor, true);
+		RemoveAllMemberPropertyFromSubPrefab(SubPrefabRootActor, true);
 
 		SetAnythingDirty();
 		GEditor->EndTransaction();
@@ -1558,6 +1562,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 		Actor = Component->GetOwner();
 	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
+	auto SubPrefabRootActor = GetSubPrefabRootActor(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
 
 	bCanCollectProperty = false;
@@ -1596,7 +1601,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
 			auto SourceObject = DataItem.Object.Get();
 			TSet<FName> FilterNameSet;
-			if (i == 0)//first object is always the root component of prefab's root actor
+			if (SourceObject == SubPrefabRootActor->GetRootComponent())//if is root component of prefab's root actor, then skip it's transform
 			{
 				FilterNameSet.Add(USceneComponent::GetRelativeLocationPropertyName());
 				FilterNameSet.Add(USceneComponent::GetRelativeRotationPropertyName());
@@ -1635,7 +1640,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 				}
 			}
 		}
-		RemoveAllMemberPropertyFromSubPrefab(Actor, false);
+		RemoveAllMemberPropertyFromSubPrefab(SubPrefabRootActor, false);
 		//save origin prefab
 		{
 			SubPrefabAsset->Modify();
