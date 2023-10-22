@@ -1178,6 +1178,7 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 						if (Actors.Num() && (Actors[0] != nullptr))
 						{
 							NewActor = Actors[0];
+							NewActor->SetActorRelativeTransform(FTransform::Identity);
 
 							auto SelectedRootComp = SelectedActor->GetRootComponent();
 							auto NewRootComp = NewActor->GetRootComponent();
