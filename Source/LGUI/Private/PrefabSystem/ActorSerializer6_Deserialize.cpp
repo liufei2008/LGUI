@@ -288,16 +288,6 @@ namespace LGUIPrefabSystem6
 			{
 				PostSetPropertiesOnActor(Comp);
 			}
-#if WITH_EDITOR
-			if (!TargetWorld->IsGameWorld())
-			{
-				//refresh it
-				for (auto& Actor : AllActors)
-				{
-					Actor->RerunConstructionScripts();
-				}
-			}
-#endif
 		}
 
 		//attach root actor's parent
@@ -336,6 +326,20 @@ namespace LGUIPrefabSystem6
 				}
 			}
 		}
+
+#if WITH_EDITOR
+		if (!bIsSubPrefab)//sub-prefab's RerunConstructionScripts should handle in parent after all override property, and after root actor attach to parent
+		{
+			if (!TargetWorld->IsGameWorld())
+			{
+				//refresh it
+				for (auto& Actor : AllActors)
+				{
+					Actor->RerunConstructionScripts();
+				}
+			}
+		}
+#endif
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
@@ -695,6 +699,7 @@ namespace LGUIPrefabSystem6
 					};
 
 				AActor* NewActor = nullptr;
+				bool bNeedFinishSpawn = false;
 				if (auto ActorPtr = MapGuidToObject.Find(InActorData.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
 				{
 					NewActor = (AActor*)(*ActorPtr);
@@ -704,7 +709,7 @@ namespace LGUIPrefabSystem6
 				{
 					FActorSpawnParameters Spawnparameters;
 					Spawnparameters.ObjectFlags = (EObjectFlags)InActorData.ObjectFlags;
-					Spawnparameters.bDeferConstruction = false;
+					Spawnparameters.bDeferConstruction = true;
 					Spawnparameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 #if WITH_EDITOR
 					//ref: LevelActor.cpp::SpawnActor 
@@ -719,9 +724,14 @@ namespace LGUIPrefabSystem6
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 					CollectDefaultSubobjects(NewActor);
+					bNeedFinishSpawn = true;
 				}
-
+				//add actor before FinishSpawing, so it's good for component (or other default subobject) to check if actor is processing by prefab system
 				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
+				if (bNeedFinishSpawn)
+				{
+					NewActor->FinishSpawning(FTransform::Identity, true);
+				}
 
 				if (auto RootComp = NewActor->GetRootComponent())
 				{

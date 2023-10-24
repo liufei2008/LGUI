@@ -16,9 +16,6 @@
 #include "Serialization/MemoryReader.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 #if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer3.h"
-#include "PrefabSystem/ActorSerializer4.h"
-#include "PrefabSystem/ActorSerializer5.h"
 #include "Utils/LGUIUtils.h"
 #endif
 
@@ -305,16 +302,6 @@ namespace LGUIPrefabSystem7
 			{
 				PostSetPropertiesOnActor(Comp);
 			}
-#if WITH_EDITOR
-			if (!TargetWorld->IsGameWorld())
-			{
-				//refresh it
-				for (auto& Actor : AllActors)
-				{
-					Actor->RerunConstructionScripts();
-				}
-			}
-#endif
 		}
 
 		//attach root actor's parent
@@ -353,6 +340,20 @@ namespace LGUIPrefabSystem7
 				}
 			}
 		}
+
+#if WITH_EDITOR
+		if (!bIsSubPrefab)//sub-prefab's RerunConstructionScripts should handle in parent after all override property, and after root actor attach to parent
+		{
+			if (!TargetWorld->IsGameWorld())
+			{
+				//refresh it
+				for (auto& Actor : AllActors)
+				{
+					Actor->RerunConstructionScripts();
+				}
+			}
+		}
+#endif
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
@@ -528,12 +529,15 @@ namespace LGUIPrefabSystem7
 			auto& ObjectGuid = KeyValuePair.Key;
 			auto& ObjectData = KeyValuePair.Value;
 			UObject* CreatedNewObject = nullptr;
+#if WITH_EDITOR
+			//MapGuidToObject can passed from LoadPrefabWithExistingObjects, so we need to find from map first. This only needed in editor, because runtime never use LoadPrefabWithExistingObjects
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectGuid))
 			{
 				CreatedNewObject = *ObjectPtr;
 				CollectDefaultSubobjects(CreatedNewObject, ObjectGuid, ObjectData);
 			}
 			else
+#endif
 			{
 				if (auto ObjectClass = FindClassFromListByIndex(ObjectData.ObjectClass))
 				{
@@ -729,16 +733,20 @@ namespace LGUIPrefabSystem7
 						};
 
 					AActor* NewActor = nullptr;
-					if (auto ActorPtr = MapGuidToObject.Find(InActorData.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
+					bool bNeedFinishSpawn = false;
+#if WITH_EDITOR
+					//MapGuidToObject can passed from LoadPrefabWithExistingObjects, so we need to find from map first. This only needed in editor, because runtime never use LoadPrefabWithExistingObjects
+					if (auto ActorPtr = MapGuidToObject.Find(InActorData.ActorGuid))
 					{
 						NewActor = (AActor*)(*ActorPtr);
 						CollectDefaultSubobjects(NewActor);
 					}
 					else
+#endif
 					{
 						FActorSpawnParameters Spawnparameters;
 						Spawnparameters.ObjectFlags = (EObjectFlags)InActorData.ObjectFlags;
-						Spawnparameters.bDeferConstruction = false;
+						Spawnparameters.bDeferConstruction = true;
 						Spawnparameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 #if WITH_EDITOR
 						//ref: LevelActor.cpp::SpawnActor 
@@ -753,9 +761,14 @@ namespace LGUIPrefabSystem7
 						NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 						MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 						CollectDefaultSubobjects(NewActor);
+						bNeedFinishSpawn = true;
 					}
-
+					//add actor before FinishSpawing, so it's good for component (or other default subobject) to check if actor is processing by prefab system
 					LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
+					if (bNeedFinishSpawn)
+					{
+						NewActor->FinishSpawning(FTransform::Identity, true);
+					}
 
 					if (auto RootComp = NewActor->GetRootComponent())
 					{

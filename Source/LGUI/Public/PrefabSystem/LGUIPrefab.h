@@ -257,8 +257,7 @@ public:
 #endif
 private:
 #if WITH_EDITOR
-	TWeakObjectPtr<AActor> ContainerActor;//container actor for UI or common actor
-	AActor* GetContainerActor();
+	TWeakObjectPtr<AActor> TempAgentActor;//actor for agent objects in preview world
 public:
 	void MakeAgentObjectsInPreviewWorld();
 	void ClearAgentObjectsInPreviewWorld();
