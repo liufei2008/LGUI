@@ -4,6 +4,7 @@
 #include "PrefabAnimation/LGUIPrefabSequence.h"
 #include "PrefabAnimation/LGUIPrefabSequencePlayer.h"
 #include "LGUI.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 {
@@ -11,16 +12,20 @@ ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-void ULGUIPrefabSequenceComponent::Awake()
+void ULGUIPrefabSequenceComponent::BeginPlay()
 {
-	Super::Awake();
-
-	this->SetCanExecuteUpdate(false);
-	InitSequencePlayer();
+	Super::BeginPlay();
+	if (auto ManagerInstance = ALGUIManagerActor::GetInstance(this->GetWorld(), true))
+	{
+		if (!ManagerInstance->IsPrefabSystemProcessingActor(this->GetOwner()))//if not processing by PrefabSystem, then mannually call initialize function
+		{
+			Awake_Implementation();
+		}
+	}
 }
-void ULGUIPrefabSequenceComponent::Start()
+void ULGUIPrefabSequenceComponent::Awake_Implementation()
 {
-	Super::Start();
+	InitSequencePlayer();
 
 	if (IsValid(SequenceBlueprint))
 	{
@@ -32,21 +37,15 @@ void ULGUIPrefabSequenceComponent::Start()
 	}
 }
 
-void ULGUIPrefabSequenceComponent::OnDestroy()
+void ULGUIPrefabSequenceComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::OnDestroy();
+	Super::EndPlay(EndPlayReason);
 
 	if (SequencePlayer)
 	{
 		SequencePlayer->Stop();
 		SequencePlayer->TearDown();
 	}
-}
-
-
-void ULGUIPrefabSequenceComponent::Update(float DeltaSeconds)
-{
-	Super::Update(DeltaSeconds);
 }
 
 #if WITH_EDITOR

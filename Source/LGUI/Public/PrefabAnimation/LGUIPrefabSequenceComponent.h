@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
-#include "Core/LGUILifeCycleBehaviour.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "MovieSceneSequencePlayer.h"
 #include "LGUIPrefabSequenceComponent.generated.h"
 
@@ -30,7 +30,7 @@ public:
  */
 UCLASS(Blueprintable, ClassGroup=LGUI, hidecategories=(Collision, Cooking, Activation), meta=(BlueprintSpawnableComponent))
 class LGUI_API ULGUIPrefabSequenceComponent
-	: public ULGUILifeCycleBehaviour
+	: public UActorComponent, public ILGUIPrefabInterface
 {
 public:
 	GENERATED_BODY()
@@ -64,10 +64,9 @@ public:
 	bool DeleteAnimationByIndex(int32 InIndex);
 	ULGUIPrefabSequence* DuplicateAnimationByIndex(int32 InIndex);
 	
-	virtual void Awake()override;
-	virtual void Start() override;
-	virtual void OnDestroy() override;
-	virtual void Update(float DeltaTime) override;
+	virtual void BeginPlay()override;
+	virtual void Awake_Implementation()override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
@@ -90,8 +89,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
 	/**
-	 * Create a blueprint that use LGUIPrefabSequenceBlueprint as parent class and use it here.
 	 * Not working yet.
+	 * Create a blueprint that use LGUIPrefabSequenceBlueprint as parent class and use it here.
 	 */
 	UPROPERTY(/*EditAnywhere, Category = Playback, Instanced*/)
 		TObjectPtr<ULGUIPrefabSequenceBlueprint> SequenceBlueprint = nullptr;
