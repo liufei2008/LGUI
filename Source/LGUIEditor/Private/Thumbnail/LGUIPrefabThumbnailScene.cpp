@@ -52,9 +52,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 	{
 		if (auto RootActor = CurrentPrefab->LoadPrefabInEditor(GetWorld(), nullptr))
 		{
-			auto PrefabRootUIItem = Cast<UUIItem>(RootActor->GetRootComponent());
-			
-			if (PrefabRootUIItem)
+			if (auto PrefabRootUIItem = Cast<UUIItem>(RootActor->GetRootComponent()))
 			{
 				auto RootCanvas = RootActor->FindComponentByClass<ULGUICanvas>();
 				auto CanvasSize = CurrentPrefab->PrefabDataForPrefabEditor.CanvasSize;
