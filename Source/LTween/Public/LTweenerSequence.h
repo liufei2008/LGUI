@@ -4,7 +4,7 @@
 #include "LTweener.h"
 #include "LTweenerSequence.generated.h"
 
-UCLASS(NotBlueprintType)
+UCLASS(BlueprintType)
 class LTWEEN_API ULTweenerSequence:public ULTweener
 {
 	GENERATED_BODY()
