@@ -390,58 +390,6 @@ FString ULGUIEventDelegateParameterHelper::ParameterTypeToName(ELGUIEventDelegat
 
 
 
-#if WITH_EDITOR
-TArray<FLGUIEventDelegateData*> FLGUIEventDelegateData::AllEventDelegateDataArray;
-FLGUIEventDelegateData::FLGUIEventDelegateData()
-{
-	AllEventDelegateDataArray.Add(this);
-}
-FLGUIEventDelegateData::~FLGUIEventDelegateData()
-{
-	AllEventDelegateDataArray.Remove(this);
-}
-void FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile()
-{
-	for (int i = 0; i < AllEventDelegateDataArray.Num(); i++)
-	{
-		auto& Item = AllEventDelegateDataArray[i];
-		Item->RefreshOnBlueprintRecompile();
-	}
-}
-void FLGUIEventDelegateData::RefreshOnBlueprintRecompile()
-{
-	if (!IsValid(TargetObject))
-	{
-		if (IsValid(HelperActor) && IsValid(HelperClass))
-		{
-			if (HelperClass == AActor::StaticClass())
-			{
-				TargetObject = HelperActor;
-			}
-			else
-			{
-				TArray<UActorComponent*> Components;
-				HelperActor->GetComponents(HelperClass, Components);
-				if (Components.Num() == 1)
-				{
-					TargetObject = Components[0];
-				}
-				else if(Components.Num() > 1)
-				{
-					for (auto Comp : Components)
-					{
-						if (Comp->GetFName() == HelperComponentName)
-						{
-							TargetObject = Comp;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-#endif
-
 void FLGUIEventDelegateData::Execute()
 {
 	if (UseNativeParameter)
@@ -462,13 +410,13 @@ void FLGUIEventDelegateData::Execute()
 		UE_LOG(LGUI, Error, TEXT("[%s].%d %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *errMsg.ToString());
 		return;
 	}
-	if (CacheTarget != nullptr && CacheFunction != nullptr)
+	if (CheckTargetObject())
 	{
-		ExecuteTargetFunction(CacheTarget, CacheFunction);
-	}
-	else
-	{
-		if (IsValid(TargetObject))
+		if (CacheFunction != nullptr)
+		{
+			ExecuteTargetFunction(TargetObject, CacheFunction);
+		}
+		else
 		{
 			FindAndExecute(TargetObject);
 		}
@@ -522,13 +470,13 @@ void FLGUIEventDelegateData::Execute(void* InParam, ELGUIEventDelegateParameterT
 				return;
 			}
 		}
-		if (CacheTarget != nullptr && CacheFunction != nullptr)
+		if (CheckTargetObject())
 		{
-			ExecuteTargetFunction(CacheTarget, CacheFunction, InParam);
-		}
-		else
-		{
-			if (IsValid(TargetObject))
+			if (CacheFunction != nullptr)
+			{
+				ExecuteTargetFunction(TargetObject, CacheFunction, InParam);
+			}
+			else
 			{
 				FindAndExecute(TargetObject, InParam);
 			}
@@ -536,13 +484,13 @@ void FLGUIEventDelegateData::Execute(void* InParam, ELGUIEventDelegateParameterT
 	}
 	else
 	{
-		if (CacheTarget != nullptr && CacheFunction != nullptr)
+		if (CheckTargetObject())
 		{
-			ExecuteTargetFunction(CacheTarget, CacheFunction);
-		}
-		else
-		{
-			if (IsValid(TargetObject))
+			if (CacheFunction != nullptr)
+			{
+				ExecuteTargetFunction(TargetObject, CacheFunction);
+			}
+			else
 			{
 				FindAndExecute(TargetObject);
 			}
@@ -572,9 +520,60 @@ bool FLGUIEventDelegateData::CheckFunctionParameter()const
 }
 #endif
 
+bool FLGUIEventDelegateData::CheckTargetObject()
+{
+	if (IsValid(TargetObject))
+	{
+		return true;
+	}
+	else
+	{
+		if (IsValid(HelperActor))
+		{
+			if (IsValid(HelperClass))
+			{
+				if (HelperClass == AActor::StaticClass())
+				{
+					TargetObject = HelperActor;
+				}
+				else
+				{
+					TArray<UActorComponent*> Components;
+					HelperActor->GetComponents(HelperClass, Components);
+					if (Components.Num() == 1)
+					{
+						TargetObject = Components[0];
+					}
+					else if (Components.Num() > 1)
+					{
+						if (!HelperComponentName.IsNone())
+						{
+							for (auto& Comp : Components)
+							{
+								if (Comp->GetFName() == HelperComponentName)
+								{
+									TargetObject = Comp;
+									return true;
+								}
+							}
+							FString ActorName =
+#if WITH_EDITOR
+								HelperActor->GetActorLabel();
+#else
+								HelperActor->GetPathName();
+#endif
+							UE_LOG(LGUI, Error, TEXT("[%s].%d Can't find component of name '%s' on actor '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *HelperComponentName.ToString(), *ActorName);
+						}
+					}
+				}
+			}
+		}
+
+		return IsValid(TargetObject);
+	}
+}
 void FLGUIEventDelegateData::FindAndExecute(UObject* Target, void* ParamData)
 {
-	CacheTarget = Target;
 	CacheFunction = Target->FindFunction(functionName);
 	if (CacheFunction)
 	{

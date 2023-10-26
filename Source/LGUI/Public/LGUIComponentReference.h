@@ -18,20 +18,8 @@ struct LGUI_API FLGUIComponentReference
 	FLGUIComponentReference(TSubclassOf<UActorComponent> InCompClass);
 	FLGUIComponentReference(UActorComponent* InComp);
 	FLGUIComponentReference();
-	~FLGUIComponentReference();
-#if WITH_EDITORONLY_DATA
-	/**
-	 * If TargetObject is a BlueprintCreatedComponent, when hit compile on blueprint editor, the TargetObject will lose reference.
-	 * So we need to find the referenced TargetObject after blueprint compile.
-	 */
-	static void RefreshAllOnBlueprintRecompile();
-private:
-	static TArray<FLGUIComponentReference*> AllLGUIComponentReferenceArray;
-	void RefreshOnBlueprintRecompile();
-#endif
 protected:
 	friend class FLGUIComponentReferenceCustomization;
-#if WITH_EDITORONLY_DATA
 	/** Editor helper actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<AActor> HelperActor = nullptr;
@@ -39,41 +27,54 @@ protected:
 		TSubclassOf<UActorComponent> HelperClass;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
-#endif
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TObjectPtr<UObject> TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
-										//And, if use UActorComponent here, then reference just missing
+
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")
+		mutable TObjectPtr<UActorComponent> TargetComp = nullptr;
+
+	bool CheckTargetObject()const;
 public:
 	AActor* GetActor()const;
-	UActorComponent* GetComponent()const { return (UActorComponent*)TargetComp; }
+	UActorComponent* GetComponent()const
+	{
+		if (CheckTargetObject())
+		{
+			return TargetComp;
+		}
+		return nullptr;
+	}
 	template<class T>
 	T* GetComponent()const
 	{
+		if (CheckTargetObject())
+		{
 #if WITH_EDITOR
-		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponent must be derived from UActorComponent");
-		if (!TargetComp)
-		{
-			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] TargetComp is null!"));
-			return nullptr;
-		}
-		if (!TargetComp->IsA(T::StaticClass()))
-		{
-			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] Provided parameter T: '%s' must be parent of or equal to HelperClass: '%s'!"), *(T::StaticClass()->GetName()), *(HelperClass->GetName()));
-			return nullptr;
-		}
+			static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponent must be derived from UActorComponent");
+			if (!TargetComp)
+			{
+				UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] TargetComp is null!"));
+				return nullptr;
+			}
+			if (!TargetComp->IsA(T::StaticClass()))
+			{
+				UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>] Provided parameter T: '%s' must be parent of or equal to HelperClass: '%s'!"), *(T::StaticClass()->GetName()), *(HelperClass->GetName()));
+				return nullptr;
+			}
 #endif
-		return (T*)(TargetComp);
+			return (T*)(TargetComp);
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
-#if WITH_EDITOR
 	TSubclassOf<UActorComponent> GetComponentClass()const
 	{
 		return HelperClass;
 	}
-#endif
 	bool IsValidComponentReference()const;
 
 #if WITH_EDITORONLY_DATA
-	//can't delete those old data, or blueprint will throw error.
+	//can't delete those old data, or new data will missing and K2Node will compile fail.
 	/** old data */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		TWeakObjectPtr<AActor> targetActor;

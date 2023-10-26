@@ -12,69 +12,6 @@ PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
 #if WITH_EDITOR
-TArray<FLGUIPrefabSequenceObjectReference*> FLGUIPrefabSequenceObjectReference::AllObjectReferenceArray;
-void FLGUIPrefabSequenceObjectReference::RefreshReference()
-{
-	if (!IsValid(Object))
-	{
-		if (IsValid(HelperActor) && IsValid(HelperClass))
-		{
-			if (HelperClass == AActor::StaticClass())
-			{
-				Object = HelperActor;
-			}
-			else
-			{
-				TArray<UActorComponent*> Components;
-				HelperActor->GetComponents(HelperClass, Components);
-				if (Components.Num() == 1)
-				{
-					Object = Components[0];
-				}
-				else if (Components.Num() > 1)
-				{
-					bool getObject = false;
-					for (auto Comp : Components)
-					{
-						if (Comp->GetFName() == HelperComponentName)
-						{
-							Object = Comp;
-							getObject = true;
-							break;
-						}
-					}
-					if (!getObject)
-					{
-						Object = Components[0];
-					}
-				}
-			}
-		}
-	}
-}
-void FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile()
-{
-	for (auto& Item : AllObjectReferenceArray)
-	{
-		Item->RefreshReference();
-	}
-}
-#endif
-
-FLGUIPrefabSequenceObjectReference::FLGUIPrefabSequenceObjectReference()
-{
-#if WITH_EDITOR
-	AllObjectReferenceArray.Add(this);
-#endif
-}
-FLGUIPrefabSequenceObjectReference::~FLGUIPrefabSequenceObjectReference()
-{
-#if WITH_EDITOR
-	AllObjectReferenceArray.Remove(this);
-#endif
-}
-
-#if WITH_EDITOR
 FString FLGUIPrefabSequenceObjectReference::GetActorPathRelativeToContextActor(AActor* InContextActor, AActor* InActor)
 {
 	if (InActor == InContextActor)
@@ -202,6 +139,7 @@ bool FLGUIPrefabSequenceObjectReference::CanFixObjectReferenceFromEditorHelpers(
 }
 bool FLGUIPrefabSequenceObjectReference::IsObjectReferenceGood(AActor* InContextActor)const
 {
+	CheckTargetObject();
 	AActor* Actor = Cast<AActor>(Object);
 	if (Actor == nullptr)
 	{
@@ -227,15 +165,19 @@ bool FLGUIPrefabSequenceObjectReference::IsEditorHelpersGood(AActor* InContextAc
 		&& HelperActorPath == GetActorPathRelativeToContextActor(InContextActor, HelperActor)
 		;
 }
-bool FLGUIPrefabSequenceObjectReference::FixEditorHelpers(AActor* InContextActor)
+#endif
+
+bool FLGUIPrefabSequenceObjectReference::InitHelpers(AActor* InContextActor)
 {
 	if (auto Actor = Cast<AActor>(Object))
 	{
 		this->HelperActor = Actor;
 		this->HelperClass = AActor::StaticClass();
-		this->HelperActorLabel = Actor->GetActorLabel();
 		this->HelperComponentName = TEXT("Actor");
+#if WITH_EDITOR
+		this->HelperActorLabel = Actor->GetActorLabel();
 		this->HelperActorPath = GetActorPathRelativeToContextActor(InContextActor, Actor);
+#endif
 		return true;
 	}
 	else
@@ -245,28 +187,66 @@ bool FLGUIPrefabSequenceObjectReference::FixEditorHelpers(AActor* InContextActor
 			Actor = Component->GetOwner();
 			this->HelperActor = Actor;
 			this->HelperClass = Component->GetClass();
-			this->HelperActorLabel = Actor->GetActorLabel();
 			this->HelperComponentName = Component->GetFName();
+#if WITH_EDITOR
+			this->HelperActorLabel = Actor->GetActorLabel();
 			this->HelperActorPath = GetActorPathRelativeToContextActor(InContextActor, Actor);
+#endif
 			return true;
 		}
 	}
 	return false;
 }
-#endif
-
 bool FLGUIPrefabSequenceObjectReference::CreateForObject(AActor* InContextActor, UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult)
 {
 	OutResult.Object = InObject;
-#if WITH_EDITOR
-	return OutResult.FixEditorHelpers(InContextActor);
-#else
-	return true;
-#endif
+	return OutResult.InitHelpers(InContextActor);
+}
+
+bool FLGUIPrefabSequenceObjectReference::CheckTargetObject()const
+{
+	if (IsValid(Object))
+	{
+		return true;
+	}
+	else
+	{
+		if (IsValid(HelperActor) && IsValid(HelperClass))
+		{
+			if (HelperClass == AActor::StaticClass())
+			{
+				Object = HelperActor;
+				return true;
+			}
+			else
+			{
+				TArray<UActorComponent*> Components;
+				HelperActor->GetComponents(HelperClass, Components);
+				if (Components.Num() == 1)
+				{
+					Object = Components[0];
+					return true;
+				}
+				else if (Components.Num() > 1)
+				{
+					for (auto Comp : Components)
+					{
+						if (Comp->GetFName() == HelperComponentName)
+						{
+							Object = Comp;
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 
 UObject* FLGUIPrefabSequenceObjectReference::Resolve() const
 {
+	CheckTargetObject();
 	return Object;
 }
 
@@ -372,7 +352,7 @@ bool FLGUIPrefabSequenceObjectReferenceMap::FixEditorHelpers(AActor* InContextAc
 		{
 			if (RefItem.IsObjectReferenceGood(InContextActor) && !RefItem.IsEditorHelpersGood(InContextActor))
 			{
-				if (RefItem.FixEditorHelpers(InContextActor))
+				if (RefItem.InitHelpers(InContextActor))
 				{
 					anythingChanged = true;
 				}

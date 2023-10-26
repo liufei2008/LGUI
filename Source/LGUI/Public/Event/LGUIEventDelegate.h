@@ -72,19 +72,6 @@ USTRUCT()
 struct LGUI_API FLGUIEventDelegateData
 {
 	GENERATED_BODY()
-#if WITH_EDITORONLY_DATA
-public:
-	FLGUIEventDelegateData();
-	~FLGUIEventDelegateData();
-	/**
-	 * If TargetObject is a BlueprintCreatedComponent, when hit compile on blueprint editor, the TargetObject will lose reference.
-	 * So we need to find the referenced TargetObject after blueprint compile.
-	 */
-	static void RefreshAllOnBlueprintRecompile();
-private:
-	static TArray<FLGUIEventDelegateData*> AllEventDelegateDataArray;
-	void RefreshOnBlueprintRecompile();
-#endif
 private:
 	friend struct FLGUIEventDelegate;
 	friend class FLGUIEventDelegateCustomization;
@@ -111,7 +98,7 @@ private:
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FName NameValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FText TextValue;
 #endif
-#if WITH_EDITORONLY_DATA
+
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<AActor> HelperActor = nullptr;
@@ -121,8 +108,8 @@ private:
 	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
-#endif
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")
 		TObjectPtr<UObject> TargetObject = nullptr;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -143,7 +130,6 @@ private:
 		bool UseNativeParameter = false;
 private:
 	UPROPERTY(Transient) TObjectPtr<UFunction> CacheFunction = nullptr;
-	UPROPERTY(Transient) TObjectPtr<UObject> CacheTarget = nullptr;
 public:
 	void Execute();
 	void Execute(void* InParam, ELGUIEventDelegateParameterType InParameterType);
@@ -155,6 +141,7 @@ public:
 	bool CheckFunctionParameter()const;
 #endif
 private:
+	bool CheckTargetObject();
 	void FindAndExecute(UObject* Target, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData);

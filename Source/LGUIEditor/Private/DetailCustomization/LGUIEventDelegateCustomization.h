@@ -16,6 +16,7 @@ protected:
 	TSharedPtr<SWidget> ColorPickerParentWidget;
 	TArray<TSharedRef<SWidget>> EventParameterWidgetArray;
 	TSharedPtr<SVerticalBox> EventsVerticalLayout;
+	TArray<FLGUIEventDelegate*> EventDelegateInstances;
 private:
 	bool CanChangeParameterType = true;
 	bool IsParameterTypeValid(ELGUIEventDelegateParameterType InParamType)
