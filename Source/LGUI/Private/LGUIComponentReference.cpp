@@ -5,83 +5,72 @@
 
 FLGUIComponentReference::FLGUIComponentReference(TSubclassOf<UActorComponent> InCompClass)
 {
-#if WITH_EDITOR
 	HelperClass = InCompClass;
-	AllLGUIComponentReferenceArray.Add(this);
-#endif
 }
 FLGUIComponentReference::FLGUIComponentReference(UActorComponent* InComp)
 {
 	TargetComp = InComp;
-#if WITH_EDITOR
 	HelperClass = InComp->GetClass();
-	AllLGUIComponentReferenceArray.Add(this);
-#endif
+	HelperActor = TargetComp->GetOwner();
+	HelperComponentName = TargetComp->GetFName();
 }
 FLGUIComponentReference::FLGUIComponentReference()
 {
-#if WITH_EDITOR
-	AllLGUIComponentReferenceArray.Add(this);
-#endif
-}
-FLGUIComponentReference::~FLGUIComponentReference()
-{
-#if WITH_EDITOR
-	AllLGUIComponentReferenceArray.Remove(this);
-#endif
+	
 }
 
-#if WITH_EDITOR
-TArray<FLGUIComponentReference*> FLGUIComponentReference::AllLGUIComponentReferenceArray;
-void FLGUIComponentReference::RefreshAllOnBlueprintRecompile()
+bool FLGUIComponentReference::CheckTargetObject()const
 {
-	for (auto Item : AllLGUIComponentReferenceArray)
+	if (IsValid(TargetComp))
 	{
-		Item->RefreshOnBlueprintRecompile();
+		return true;
 	}
-}
-void FLGUIComponentReference::RefreshOnBlueprintRecompile()
-{
-	if (!IsValid(TargetComp))
+	else
 	{
-		if (IsValid(HelperActor) && IsValid(HelperClass))
+		if (IsValid(HelperActor))
 		{
-			TArray<UActorComponent*> Components;
-			HelperActor->GetComponents(HelperClass, Components);
-			if (Components.Num() == 1)
+			if (IsValid(HelperClass))
 			{
-				TargetComp = Components[0];
-			}
-			else if (Components.Num() > 1)
-			{
-				for (auto Comp : Components)
+				TArray<UActorComponent*> Components;
+				HelperActor->GetComponents(HelperClass, Components);
+				if (Components.Num() == 1)
 				{
-					if (Comp->GetFName() == HelperComponentName)
+					TargetComp = Components[0];
+				}
+				else if (Components.Num() > 1)
+				{
+					if (!HelperComponentName.IsNone())
 					{
-						TargetComp = Comp;
+						for (auto& Comp : Components)
+						{
+							if (Comp->GetFName() == HelperComponentName)
+							{
+								TargetComp = Comp;
+								return true;
+							}
+						}
+						FString ActorName =
+#if WITH_EDITOR
+							HelperActor->GetActorLabel();
+#else
+							HelperActor->GetPathName();
+#endif
+						UE_LOG(LGUI, Error, TEXT("[%s].%d Can't find component of name '%s' on actor '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *HelperComponentName.ToString(), *ActorName);
 					}
 				}
 			}
 		}
+
+		return IsValid(TargetComp);
 	}
 }
-#endif
-
 AActor* FLGUIComponentReference::GetActor()const
 {
-	if (IsValid(TargetComp))
-	{
-		return ((UActorComponent*)TargetComp)->GetOwner();
-	}
-	return nullptr;
+	return HelperActor;
 }
 
 bool FLGUIComponentReference::IsValidComponentReference()const
 {
-#if WITH_EDITOR
-	return IsValid(HelperActor) && IsValid(TargetComp);
-#else
-	return IsValid(TargetComp);
-#endif
+	return CheckTargetObject();
 }
 

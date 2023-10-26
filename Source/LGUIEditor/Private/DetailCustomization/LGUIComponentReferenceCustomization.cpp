@@ -30,6 +30,20 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 		break;
 	}
 
+	// copy all EventDelegate I'm accessing right now
+	TArray<void*> StructPtrs;
+	PropertyHandle->AccessRawData(StructPtrs);
+	check(StructPtrs.Num() != 0);
+
+	ComponentReferenceInstances.AddZeroed(StructPtrs.Num());
+	for (auto Iter = StructPtrs.CreateIterator(); Iter; ++Iter)
+	{
+		check(*Iter);
+		auto Item = (FLGUIComponentReference*)(*Iter);
+		ComponentReferenceInstances[Iter.GetIndex()] = Item;
+		Item->CheckTargetObject();
+	}
+
 	UObject* HelperClassObj = nullptr;
 	UClass* HelperClass = nullptr;
 	TSharedPtr<IPropertyHandle> HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperClass));
@@ -161,7 +175,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 							[
 								SNew(SComboButton)
 								.ToolTipText(FText::Format(LOCTEXT("TargetActorHaveMultipleComponent_YouMustSelectOne", "Target actor have multiple components of type: {0}, you must select one of them"), FText::FromName(HelperClass->GetFName())))
-								.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
+								.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, HelperComponentNameHandle, Components)
 								.ContentPadding(FMargin(0))
 								.ButtonContent()
 								[
@@ -216,7 +230,7 @@ void FLGUIComponentReferenceCustomization::OnPaste(TSharedPtr<IPropertyHandle> H
 	TargetCompProperty->SetValue((UObject*)CopiedTargetComp.Get());
 	HelperClassProperty->SetValue((UObject*)CopiedHelperClass);
 }
-TSharedRef<SWidget> FLGUIComponentReferenceCustomization::OnGetMenu(TSharedPtr<IPropertyHandle> CompProperty, TArray<UActorComponent*> Components)
+TSharedRef<SWidget> FLGUIComponentReferenceCustomization::OnGetMenu(TSharedPtr<IPropertyHandle> CompProperty, TSharedPtr<IPropertyHandle> CompNameProperty, TArray<UActorComponent*> Components)
 {
 	FMenuBuilder MenuBuilder(true, nullptr);
 	//MenuBuilder.BeginSection(FName(), LOCTEXT("Components", "Components"));
@@ -225,7 +239,7 @@ TSharedRef<SWidget> FLGUIComponentReferenceCustomization::OnGetMenu(TSharedPtr<I
 			FText::FromName(FName(NAME_None)),
 			FText(LOCTEXT("Tip", "Clear component selection, will use first one.")),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentReferenceCustomization::OnSelectComponent, CompProperty, (UActorComponent*)nullptr))
+			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentReferenceCustomization::OnSelectComponent, CompProperty, CompNameProperty, (UActorComponent*)nullptr))
 		);
 		for (auto Comp : Components)
 		{
@@ -234,16 +248,17 @@ TSharedRef<SWidget> FLGUIComponentReferenceCustomization::OnGetMenu(TSharedPtr<I
 				FText::FromString(Comp->GetName()),
 				FText(),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentReferenceCustomization::OnSelectComponent, CompProperty, Comp))
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentReferenceCustomization::OnSelectComponent, CompProperty, CompNameProperty, Comp))
 			);
 		}
 	}
 	//MenuBuilder.EndSection();
 	return MenuBuilder.MakeWidget();
 }
-void FLGUIComponentReferenceCustomization::OnSelectComponent(TSharedPtr<IPropertyHandle> CompProperty, UActorComponent* Comp)
+void FLGUIComponentReferenceCustomization::OnSelectComponent(TSharedPtr<IPropertyHandle> CompProperty, TSharedPtr<IPropertyHandle> CompNameProperty, UActorComponent* Comp)
 {
 	CompProperty->SetValue(Comp);
+	CompNameProperty->SetValue(Comp->GetFName());
 	PropertyUtilites->ForceRefresh();
 }
 

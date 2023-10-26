@@ -96,7 +96,6 @@ private:
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 	void OnBlueprintPreCompile(UBlueprint* InBlueprint);
 	void OnBlueprintCompiled();
-	void RefreshOnBlueprintCompiled();
 public:
 	static void MarkBroadcastLevelActorListChanged();
 private:

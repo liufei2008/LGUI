@@ -15,16 +15,7 @@ struct LGUI_API FLGUIPrefabSequenceObjectReference
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR
-private:
-	static TArray<FLGUIPrefabSequenceObjectReference*> AllObjectReferenceArray;
-	void RefreshReference();
 public:
-	static void RefreshAllOnBlueprintRecompile();
-#endif
-public:
-	FLGUIPrefabSequenceObjectReference();
-	~FLGUIPrefabSequenceObjectReference();
 
 #if WITH_EDITOR
 	static FString GetActorPathRelativeToContextActor(AActor* InContextActor, AActor* InActor);
@@ -33,16 +24,17 @@ public:
 	bool CanFixObjectReferenceFromEditorHelpers()const;
 	bool IsObjectReferenceGood(AActor* InContextActor)const;
 	bool IsEditorHelpersGood(AActor* InContextActor)const;
-	bool FixEditorHelpers(AActor* InContextActor);
 #endif
 	static bool CreateForObject(AActor* InContextActor, UObject* InObject, FLGUIPrefabSequenceObjectReference& OutResult);
 
+	bool InitHelpers(AActor* InContextActor);
+	bool CheckTargetObject()const;
 	/**
 	 * Check whether this object reference is valid or not
 	 */
 	bool IsValidReference() const
 	{
-		return IsValid(Object);
+		return CheckTargetObject();
 	}
 
 	/**
@@ -57,13 +49,23 @@ public:
 	 */
 	friend bool operator==(const FLGUIPrefabSequenceObjectReference& A, const FLGUIPrefabSequenceObjectReference& B)
 	{
-		return A.Object == B.Object;
+		return A.Resolve() == B.Resolve();
 	}
 
 private:
 
+	UPROPERTY(Transient)
+	mutable TObjectPtr<UObject> Object = nullptr;
+
+	/** for direct reference actor. */
 	UPROPERTY()
-	TObjectPtr<UObject> Object = nullptr;
+		TObjectPtr<AActor> HelperActor = nullptr;
+	/** target object class. If class is actor then Object is HelperActor, if class is ActorComponent then Object is the component. */
+	UPROPERTY()
+		TObjectPtr<UClass> HelperClass = nullptr;
+	/** if Object is actor component and HelperActor have multiple components, then select by component name. */
+	UPROPERTY()
+		FName HelperComponentName;
 
 #if WITH_EDITORONLY_DATA
 	/** HelperActor's actor label/ */
@@ -72,15 +74,6 @@ private:
 	/** HelperActor's path relative to context actor, split by '/'. If only '/' means it is the context actor. could use this to replace reference object in editor/ */
 	UPROPERTY()
 		FString HelperActorPath;
-	/** Editor helper actor, for direct reference actor. */
-	UPROPERTY()
-		TObjectPtr<AActor> HelperActor = nullptr;
-	/** Editor helper, target object class. If class is actor then Object is HelperActor, if class is ActorComponent then Object is the component. */
-	UPROPERTY()
-		TObjectPtr<UClass> HelperClass = nullptr;
-	/** Editor helper, if Object is actor component and HelperActor have multiple components, then select by component name. */
-	UPROPERTY()
-		FName HelperComponentName;
 #endif
 };
 

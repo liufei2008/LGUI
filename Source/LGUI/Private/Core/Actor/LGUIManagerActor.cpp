@@ -270,18 +270,9 @@ void ULGUIEditorManagerObject::OnBlueprintCompiled()
 	AddOneShotTickFunction([this] {
 		bIsBlueprintCompiling = false; 
 		}, 2);
-	RefreshOnBlueprintCompiled();
-}
-
-#include "Event/LGUIEventDelegate.h"
-#include "LGUIComponentReference.h"
-#include "PrefabAnimation/LGUIPrefabSequenceObjectReference.h"
-void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
-{
-	ALGUIManagerActor::RefreshAllUI();
-	FLGUIEventDelegateData::RefreshAllOnBlueprintRecompile();
-	FLGUIComponentReference::RefreshAllOnBlueprintRecompile();
-	FLGUIPrefabSequenceObjectReference::RefreshAllOnBlueprintRecompile();
+	AddOneShotTickFunction([] {
+		ALGUIManagerActor::RefreshAllUI();
+		});
 }
 
 void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
