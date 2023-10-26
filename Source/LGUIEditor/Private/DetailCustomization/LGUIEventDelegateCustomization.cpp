@@ -56,6 +56,23 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		return;
 	}
 
+	// copy all EventDelegate I'm accessing right now
+	TArray<void*> StructPtrs;
+	PropertyHandle->AccessRawData(StructPtrs);
+	check(StructPtrs.Num() != 0);
+
+	EventDelegateInstances.AddZeroed(StructPtrs.Num());
+	for (auto Iter = StructPtrs.CreateIterator(); Iter; ++Iter)
+	{
+		check(*Iter);
+		auto Item = (FLGUIEventDelegate*)(*Iter);
+		EventDelegateInstances[Iter.GetIndex()] = Item;
+		for (auto& listItem : Item->eventList)
+		{
+			listItem.CheckTargetObject();
+		}
+	}
+
 	auto EventListHandle = GetEventListHandle(PropertyHandle);
 	TWeakPtr<IPropertyUtilities> WeakUtilities = PropertyUtilites;
 	OnEventArrayNumChangedDelegate = FSimpleDelegate::CreateLambda([WeakUtilities]() {
