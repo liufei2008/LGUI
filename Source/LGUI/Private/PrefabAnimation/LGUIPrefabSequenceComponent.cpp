@@ -10,6 +10,7 @@ ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	SequenceEventHandler = FLGUIComponentReference(UActorComponent::StaticClass());
 }
 
 void ULGUIPrefabSequenceComponent::BeginPlay()
@@ -27,10 +28,6 @@ void ULGUIPrefabSequenceComponent::Awake_Implementation()
 {
 	InitSequencePlayer();
 
-	if (IsValid(SequenceBlueprint))
-	{
-		SequenceBlueprint->ReceiveInit(this);
-	}
 	if (PlaybackSettings.bAutoPlay)
 	{
 		SequencePlayer->Play();
@@ -90,9 +87,9 @@ void ULGUIPrefabSequenceComponent::FixEditorHelpers()
 
 UBlueprint* ULGUIPrefabSequenceComponent::GetSequenceBlueprint()const
 {
-	if (SequenceBlueprint)
+	if (auto Comp = SequenceEventHandler.GetComponent())
 	{
-		if (auto GeneratedClass = Cast<UBlueprintGeneratedClass>(SequenceBlueprint->GetClass()))
+		if (auto GeneratedClass = Cast<UBlueprintGeneratedClass>(Comp->GetClass()))
 		{
 			return Cast<UBlueprint>(GeneratedClass->ClassGeneratedBy);
 		}

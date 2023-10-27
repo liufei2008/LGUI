@@ -168,8 +168,14 @@ void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 
 UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
 {
-	auto Actor = CastChecked<AActor>(Player.GetPlaybackContext());
-	return Actor;
+	if (auto Actor = CastChecked<AActor>(Player.GetPlaybackContext()))
+	{
+		if (auto Comp = Actor->FindComponentByClass<ULGUIPrefabSequenceComponent>())
+		{
+			return Comp->GetSequenceBlueprintInstance();
+		}
+	}
+	return nullptr;
 }
 
 #if WITH_EDITOR

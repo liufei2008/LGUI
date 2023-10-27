@@ -21,6 +21,10 @@ namespace LGUIPrefabSystem
 		Class,
 		/** UObject reference(Not asset), include actor/ component/ uobject */
 		ObjectReference,
+		/** UFunction reference, currently for PrefabAnimation's event track. */
+		Function,
+		/** K2Node reference, currently for PrefabAnimation's event track. */
+		K2Node,
 		/** Only for duplicate, use native ObjectWriter/ObjectReader serialization method */
 		NativeSerailizeForDuplicate,
 	};
