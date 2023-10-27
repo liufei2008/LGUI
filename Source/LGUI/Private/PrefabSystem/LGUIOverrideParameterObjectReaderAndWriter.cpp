@@ -37,6 +37,39 @@ namespace LGUIPrefabSystem
 	}
 	bool FLGUIOverrideParameterObjectWriter::SerializeObject(UObject* Object)
 	{
+		if (auto Function = Cast<UFunction>(Object))
+		{
+			auto OuterClass = Function->GetTypedOuter<UClass>();
+			if (OuterClass != nullptr)
+			{
+				auto FunctionName = Function->GetFName();
+				auto FunctionNameId = Serializer.FindOrAddNameFromList(FunctionName);
+				auto OuterClassId = Serializer.FindOrAddClassFromList(OuterClass);
+				auto type = (uint8)EObjectType::Function;
+				*this << type;
+				*this << OuterClassId;
+				*this << FunctionNameId;
+				return true;
+			}
+			return false;
+		}
+		//if (auto K2Node = Cast<UK2Node>(Object))//K2Node is editor only, so we just check the name
+		if (Object->GetName().StartsWith(TEXT("K2Node_")))
+		{
+			auto OuterObject = Object->GetTypedOuter<UBlueprint>();
+			if (OuterObject != nullptr)
+			{
+				auto NodeName = Object->GetFName();
+				auto NameId = Serializer.FindOrAddNameFromList(NodeName);
+				auto OuterObjectId = Serializer.FindOrAddAssetIdFromList(OuterObject);
+				auto type = (uint8)EObjectType::K2Node;
+				*this << type;
+				*this << OuterObjectId;
+				*this << NodeName;
+				return true;
+			}
+			return false;
+		}
 		if (Object->IsAsset() && !Object->GetClass()->IsChildOf(AActor::StaticClass()))
 		{
 			auto id = Serializer.FindOrAddAssetIdFromList(Object);
@@ -118,6 +151,41 @@ namespace LGUIPrefabSystem
 			auto asset = Serializer.FindAssetFromListByIndex(id);
 			Object = asset;
 			return true;
+		}
+		break;
+		case LGUIPrefabSystem::EObjectType::Function:
+		{
+			int32 OuterClasstId = -1;
+			int32 FunctionNameId = -1;
+			*this << OuterClasstId;
+			*this << FunctionNameId;
+			auto OuterClass = Serializer.FindClassFromListByIndex(OuterClasstId);
+			auto FunctionName = Serializer.FindNameFromListByIndex(FunctionNameId);
+			Object = OuterClass->FindFunctionByName(FunctionName);
+			return true;
+		}
+		break;
+		case LGUIPrefabSystem::EObjectType::K2Node:
+		{
+			int32 OuterObjectId = -1;
+			int32 NodeNameId = -1;
+			*this << OuterObjectId;
+			*this << NodeNameId;
+			if (OuterObjectId != -1 && NodeNameId != -1)
+			{
+				auto OuterObject = Serializer.FindAssetFromListByIndex(OuterObjectId);
+				if (OuterObject != nullptr)
+				{
+					auto NodeName = Serializer.FindNameFromListByIndex(NodeNameId);
+					ForEachObjectWithOuter(OuterObject, [&NodeName, &Object](UObject* ItemObject) {
+						if (NodeName == ItemObject->GetFName())
+						{
+							Object = ItemObject;
+						}
+						});
+					return true;
+				}
+			}
 		}
 		break;
 		case LGUIPrefabSystem::EObjectType::ObjectReference:

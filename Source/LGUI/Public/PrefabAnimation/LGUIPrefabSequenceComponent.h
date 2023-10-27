@@ -5,25 +5,12 @@
 #include "Components/ActorComponent.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "MovieSceneSequencePlayer.h"
+#include "LGUIComponentReference.h"
 #include "LGUIPrefabSequenceComponent.generated.h"
 
 
 class ULGUIPrefabSequence;
 class ULGUIPrefabSequencePlayer;
-
-/**
- * Only use this as blueprint, because MovieScene need blueprint to handle event callback.
- * Not working yet.
- */
-UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable, DefaultToInstanced, EditInlineNew)
-class LGUI_API ULGUIPrefabSequenceBlueprint : public UObject
-{
-	GENERATED_BODY()
-public:
-	/** Called when LGUIPrefabSequenceComponent process Start */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
-		void ReceiveInit(class ULGUIPrefabSequenceComponent* InComp);
-};
 
 /**
  * Movie scene animation embedded within LGUIPrefab.
@@ -77,8 +64,8 @@ public:
 
 	void FixEditorHelpers();
 	UBlueprint* GetSequenceBlueprint()const;
-	UObject* GetSequenceBlueprintInstance()const { return SequenceBlueprint; }
 #endif
+	UObject* GetSequenceBlueprintInstance()const { return SequenceEventHandler.GetComponent(); }
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))
@@ -89,11 +76,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
 	/**
-	 * Not working yet.
-	 * Create a blueprint that use LGUIPrefabSequenceBlueprint as parent class and use it here.
+	 * Use a Blueprint component to handle callback for event track.
+	 * Not working: Add event in prefab the event can work no problem, but if close editor and open again, the event not fire at all.
 	 */
-	UPROPERTY(/*EditAnywhere, Category = Playback, Instanced*/)
-		TObjectPtr<ULGUIPrefabSequenceBlueprint> SequenceBlueprint = nullptr;
+	UPROPERTY(/*EditAnywhere, Category = Playback*/)
+		FLGUIComponentReference SequenceEventHandler;
 
 	UPROPERTY(transient)
 		TObjectPtr<ULGUIPrefabSequencePlayer> SequencePlayer;
