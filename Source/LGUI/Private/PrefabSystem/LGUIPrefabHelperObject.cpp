@@ -879,7 +879,14 @@ UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const
 	}
 	else
 	{
-		return Super::GetWorld();
+		if (bIsMarkedAsManagerObject)
+		{
+			return ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+		}
+		else
+		{
+			return Super::GetWorld();
+		}
 	}
 }
 
@@ -1660,8 +1667,18 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 void ULGUIPrefabHelperObject::RefreshSubPrefabVersion(AActor* InSubPrefabRootActor)
 {
 	if (IsInsidePrefabEditor())return;
-	auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];
-	SubPrefabData.OverallVersionMD5 = SubPrefabData.PrefabAsset->GenerateOverallVersionMD5();
+	if (InSubPrefabRootActor != nullptr)
+	{
+		auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];
+		SubPrefabData.OverallVersionMD5 = SubPrefabData.PrefabAsset->GenerateOverallVersionMD5();
+	}
+	else
+	{
+		for (auto& KeyValue : SubPrefabMap)
+		{
+			KeyValue.Value.OverallVersionMD5 = KeyValue.Value.PrefabAsset->GenerateOverallVersionMD5();
+		}
+	}
 }
 
 void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
