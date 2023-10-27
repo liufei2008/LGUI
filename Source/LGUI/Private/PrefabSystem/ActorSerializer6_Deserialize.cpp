@@ -217,6 +217,17 @@ namespace LGUIPrefabSystem6
 			}
 		}
 		auto CreatedRootActor = GenerateActorRecursive(SaveData.SavedActor, SaveData.SavedObjects, nullptr, FGuid());//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
+		if (CreatedRootActor == nullptr)
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d No actor generated!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+
+			if (!bIsSubPrefab)
+			{
+				check(DeserializationSessionId.IsValid());
+				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+			}
+			return nullptr;
+		}
 		GenerateObjectArray(SaveData.SavedObjects, SaveData.MapSceneComponentToParent);
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
@@ -291,39 +302,36 @@ namespace LGUIPrefabSystem6
 		}
 
 		//attach root actor's parent
-		if (CreatedRootActor != nullptr)
+		if (USceneComponent* RootComp = CreatedRootActor->GetRootComponent())
 		{
-			if (USceneComponent* RootComp = CreatedRootActor->GetRootComponent())
+			if (Parent)
 			{
-				if (Parent)
+				RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
+			}
+			//for UI
+			{
+				auto RootUIComp = Cast<UUIItem>(RootComp);
+				if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
 				{
-					RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
-				}
-				//for UI
-				{
-					auto RootUIComp = Cast<UUIItem>(RootComp);
-					if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
+					if (Parent)
 					{
-						if (Parent)
+						//recreate hierarchy index
+						if (bSetHierarchyIndexForRootComponent)
 						{
-							//recreate hierarchy index
-							if (bSetHierarchyIndexForRootComponent)
-							{
-								RootUIComp->SetAsLastHierarchy();
-							}
-						}
-						else
-						{
-							RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
+							RootUIComp->SetAsLastHierarchy();
 						}
 					}
+					else
+					{
+						RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
+					}
 				}
-				RootComp->UpdateComponentToWorld();
-				if (ReplaceTransform)
-				{
-					RootComp->SetRelativeLocationAndRotation(InLocation, InRotation);
-					RootComp->SetRelativeScale3D(InScale);
-				}
+			}
+			RootComp->UpdateComponentToWorld();
+			if (ReplaceTransform)
+			{
+				RootComp->SetRelativeLocationAndRotation(InLocation, InRotation);
+				RootComp->SetRelativeScale3D(InScale);
 			}
 		}
 
