@@ -4,43 +4,9 @@
 
 #include "GameFramework/Actor.h"
 #include "PrefabSystem/LGUIPrefab.h"
-#include "LGUIPrefabHelperActor.generated.h"
+#include "LGUIPrefabLevelManagerActor.generated.h"
 
 class ULGUIPrefabHelperObject;
-struct FLGUIPrefabOverrideParameterData;
-
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, NotPlaceable, HideCategories = (Rendering, Actor, Input))
-class LGUI_API ALGUIPrefabHelperActor : public AActor
-{
-	GENERATED_BODY()
-	
-	
-public:	
-	// Sets default values for this actor's properties
-	ALGUIPrefabHelperActor();
-
-	virtual void BeginPlay()override;
-	virtual void Destroyed()override;
-	virtual void BeginDestroy() override;
-
-public:
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TObjectPtr<AActor> LoadedRootActor = nullptr;
-#endif
-#if WITH_EDITOR
-	void LoadPrefab(USceneComponent* InParent);
-	void MoveActorToPrefabFolder();
-#endif
-
-#if WITH_EDITORONLY_DATA
-public:
-	bool bAutoDestroyLoadedActors = true;
-	static FName PrefabFolderName;
-#endif
-};
 
 /**
  * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabLevelManagerActor.
@@ -68,6 +34,7 @@ private:
 	void CleanupWhenDestroy();
 	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabLevelManagerActor>> MapLevelToManagerActor;
 public:
+	static FName PrefabFolderName;
 	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
 	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
 #endif

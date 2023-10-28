@@ -21,3 +21,31 @@ public:
 	//~ End UActorFactory
 
 };
+
+
+class ULGUIPrefab;
+
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, NotPlaceable, HideCategories = (Rendering, Actor, Input))
+class ALGUIPrefabLoadHelperActor : public AActor
+{
+	GENERATED_BODY()
+public:
+	// Sets default values for this actor's properties
+	ALGUIPrefabLoadHelperActor();
+
+	virtual void BeginPlay()override;
+	virtual void Destroyed()override;
+	virtual void BeginDestroy() override;
+
+public:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TObjectPtr<AActor> LoadedRootActor = nullptr;
+	void LoadPrefab(USceneComponent* InParent);
+	void MoveActorToPrefabFolder();
+
+public:
+	bool bAutoDestroyLoadedActors = true;
+};
+

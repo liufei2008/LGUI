@@ -77,7 +77,6 @@
 #include "DetailCustomization/LGUICanvasCustomClip_RoundedRect_Customization.h"
 
 #include "PrefabEditor/LGUIPrefabOverrideDataViewer.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Engine/Selection.h"
 
 #include "PrefabAnimation/LGUIPrefabSequenceComponentCustomization.h"

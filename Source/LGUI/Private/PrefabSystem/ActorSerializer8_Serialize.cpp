@@ -2,7 +2,6 @@
 
 #include "PrefabSystem/ActorSerializer8.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"
