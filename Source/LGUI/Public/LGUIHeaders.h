@@ -113,7 +113,7 @@
 #include "Layout/UIFlexibleGridLayoutElement.h"
 
 #include "PrefabSystem/LGUIPrefab.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabLevelManagerActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 

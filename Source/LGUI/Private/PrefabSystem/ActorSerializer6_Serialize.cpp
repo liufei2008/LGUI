@@ -3,7 +3,6 @@
 #if WITH_EDITOR
 #include "PrefabSystem/ActorSerializer6.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"

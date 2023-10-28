@@ -12,7 +12,6 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorTools.h"
 #include "SortHelper.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "SceneOutlinerStandaloneTypes.h"

@@ -25,8 +25,6 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/Selection.h"
 #include "EditorViewportClient.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"

@@ -2,7 +2,6 @@
 
 #if WITH_EDITOR
 #include "PrefabSystem/2/ActorSerializer.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "BitConverter.h"
 #include "Engine/World.h"
