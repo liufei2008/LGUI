@@ -15,7 +15,7 @@
 #include "EditorViewportClient.h"
 #include "Engine/Selection.h"
 #include "EngineUtils.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "LGUIEditorModule.h"
@@ -1685,9 +1685,9 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 	{
 		return;
 	}
-	if (Cast<ALGUIPrefabHelperActor>(selectedActor) != nullptr || Cast<ALGUIPrefabLevelManagerActor>(selectedActor) != nullptr)
+	if (Cast<ALGUIPrefabLoadHelperActor>(selectedActor) != nullptr || Cast<ALGUIPrefabLevelManagerActor>(selectedActor) != nullptr)
 	{
-		auto Message = LOCTEXT("CreatePrefabError_PrefabActor", "Cannot create prefab on a LGUIPrefabHelperActor or LGUIPrefabLevelManagerActor!");
+		auto Message = LOCTEXT("CreatePrefabError_PrefabActor", "Cannot create prefab on a LGUIPrefabLoadHelperActor or LGUIPrefabLevelManagerActor!");
 		FMessageDialog::Open(EAppMsgType::Ok, Message);
 		return;
 	}
@@ -2042,7 +2042,7 @@ ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisA
 
 void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 {
-	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(World); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabLoadHelperActor> ActorItr(World); ActorItr; ++ActorItr)
 	{
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))

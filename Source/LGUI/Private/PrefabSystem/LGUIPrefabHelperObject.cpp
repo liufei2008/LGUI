@@ -139,7 +139,7 @@ bool ULGUIPrefabHelperObject::ActorIsSubPrefabRootActor(const AActor* InActor)
 	return SubPrefabMap.Contains(InActor);
 }
 
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabLevelManagerActor.h"
 bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor)
 {
 	if (this->IsInsidePrefabEditor())
