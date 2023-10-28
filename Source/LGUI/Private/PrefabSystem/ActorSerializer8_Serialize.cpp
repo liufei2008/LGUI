@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer7.h"
+#include "PrefabSystem/ActorSerializer8.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
@@ -20,7 +19,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem7
+namespace LGUIPrefabSystem8
 {
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
@@ -117,6 +116,10 @@ namespace LGUIPrefabSystem7
 						WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, DataItem.MemberPropertyNames);
 						ActorSaveData.MapObjectGuidToSubPrefabOverrideParameter.Add(MapObjectToGuid[SubPrefabObject], RecordDataItem);
 					}
+				}
+				for (auto& DataItem : SubPrefabDataPtr->MapObjectIdToNewlyCreatedId)
+				{
+					ActorSaveData.MapObjectIdToNewlyCreatedId.Add({ DataItem.Key.RootActorGuidInParentPrefab, DataItem.Key.ObjectGuidInOrignPrefab }, DataItem.Value);
 				}
 
 				if (auto RootComp = Actor->GetRootComponent())
@@ -355,6 +358,4 @@ namespace LGUIPrefabSystem7
 }
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_ENABLE_OPTIMIZATION
-#endif
-
 #endif

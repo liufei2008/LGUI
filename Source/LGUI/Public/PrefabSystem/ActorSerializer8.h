@@ -1,6 +1,5 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,14 +13,13 @@
 class ULGUIPrefabOverrideParameterObject;
 class UUIItem;
 
-namespace LGUIPrefabSystem7
+namespace LGUIPrefabSystem8
 {
 	struct FLGUICommonObjectSaveData
 	{
 	public:
 		int32 ObjectClass = -1;
 		uint32 ObjectFlags;
-		TArray<uint8> PropertyData_Deprecated;//@todo: delete this
 
 		/** The following two array stores default sub objects which belong to this object. Array must match index for specific component. When deserialize, use FName to find FGuid. */
 		TArray<FGuid> DefaultSubObjectGuidArray;
@@ -52,7 +50,6 @@ namespace LGUIPrefabSystem7
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
 			Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
 			Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
-			Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData_Deprecated);
 
 			Record << SA_VALUE(TEXT("DefaultSubObjectGuidArray"), Data.DefaultSubObjectGuidArray);
 			Record << SA_VALUE(TEXT("DefaultSubObjectNameArray"), Data.DefaultSubObjectNameArray);
@@ -83,6 +80,35 @@ namespace LGUIPrefabSystem7
 		}
 	};
 
+	struct FLGUISubPrefabObjectUniqueIdSaveData
+	{
+	public:
+		FGuid RootActorGuidInParentPrefab;
+		FGuid ObjectGuidInOrignPrefab;
+
+		bool operator==(const FLGUISubPrefabObjectUniqueIdSaveData& other)const
+		{
+			return this->RootActorGuidInParentPrefab == other.RootActorGuidInParentPrefab && this->ObjectGuidInOrignPrefab == other.ObjectGuidInOrignPrefab;
+		}
+		friend FORCEINLINE uint32 GetTypeHash(const FLGUISubPrefabObjectUniqueIdSaveData& other)
+		{
+			return HashCombine(GetTypeHash(other.RootActorGuidInParentPrefab), GetTypeHash(other.ObjectGuidInOrignPrefab));
+		}
+
+		friend FArchive& operator<<(FArchive& Ar, FLGUISubPrefabObjectUniqueIdSaveData& Data)
+		{
+			Ar << Data.RootActorGuidInParentPrefab;
+			Ar << Data.ObjectGuidInOrignPrefab;
+			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLGUISubPrefabObjectUniqueIdSaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("RootActorGuidInParentPrefab"), Data.RootActorGuidInParentPrefab);
+			Record << SA_VALUE(TEXT("ObjectGuidInOrignPrefab"), Data.ObjectGuidInOrignPrefab);
+		}
+	};
+
 	//Actor serialize and save data
 	struct FLGUIActorSaveData : FLGUICommonObjectSaveData
 	{
@@ -90,6 +116,7 @@ namespace LGUIPrefabSystem7
 		bool bIsPrefab = false;
 		int32 PrefabAssetIndex;
 		TMap<FGuid, FLGUIPrefabOverrideParameterSaveData> MapObjectGuidToSubPrefabOverrideParameter;//override sub prefab's parameter
+		TMap<FLGUISubPrefabObjectUniqueIdSaveData, FGuid> MapObjectIdToNewlyCreatedId;
 		TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;//sub prefab's object use a different guid in parent prefab. So multiple same sub prefab can exist in same parent prefab.
 
 		FGuid ActorGuid;
@@ -103,6 +130,7 @@ namespace LGUIPrefabSystem7
 				Ar << ActorData.PrefabAssetIndex;
 				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
 				Ar << ActorData.MapObjectGuidToSubPrefabOverrideParameter;
+				Ar << ActorData.MapObjectIdToNewlyCreatedId;
 				Ar << ActorData.MapObjectGuidFromParentPrefabToSubPrefab;
 			}
 			else
@@ -127,6 +155,7 @@ namespace LGUIPrefabSystem7
 				Record << SA_VALUE(TEXT("PrefabAssetIndex"), Data.PrefabAssetIndex);
 				Record << SA_VALUE(TEXT("ActorGuid"), Data.ActorGuid);
 				Record << SA_VALUE(TEXT("SubPrefabOverrideParameterArray"), Data.MapObjectGuidToSubPrefabOverrideParameter);
+				Record << SA_VALUE(TEXT("MapObjectIdToNewlyCreatedId"), Data.MapObjectIdToNewlyCreatedId);
 				Record << SA_VALUE(TEXT("MapObjectGuidFromParentPrefabToSubPrefab"), Data.MapObjectGuidFromParentPrefabToSubPrefab);
 			}
 			else
@@ -134,7 +163,6 @@ namespace LGUIPrefabSystem7
 				Record << SA_VALUE(TEXT("ActorGuid"), Data.ActorGuid);
 				Record << SA_VALUE(TEXT("ObjectClass"), Data.ObjectClass);
 				Record << SA_VALUE(TEXT("ObjectFlags"), Data.ObjectFlags);
-				Record << SA_VALUE(TEXT("PropertyData"), Data.PropertyData_Deprecated);
 
 				Record << SA_VALUE(TEXT("RootComponentGuid"), Data.RootComponentGuid);
 
@@ -172,6 +200,8 @@ namespace LGUIPrefabSystem7
 		}
 	};
 
+	struct FDuplicateActorDataContainer;
+
 	/*
 	 * serialize/deserialize actor with hierarchy.
 	 */
@@ -202,13 +232,30 @@ namespace LGUIPrefabSystem7
 			, bool InForCook
 #endif
 		);
+		
+		/**
+		 * Duplicate actor with hierarchy
+		 */
+		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
+		/** Prepare one data and duplicate multiple times */
+		static bool PrepareDataForDuplicate(AActor* RootActor, FDuplicateActorDataContainer& OutData);
+		static AActor* DuplicateActorWithPreparedData(FDuplicateActorDataContainer& InData, USceneComponent* InParent);
+		/**
+		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
+		 */
+		static AActor* DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
+			, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
+			, const TMap<UObject*, FGuid>& InMapObjectToGuid
+			, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+			, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject
+		);
 
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, const FGuid& InParentDeserializationSessionId
 			, int32& InOutActorIndex
 			, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
-			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
+			, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
 		);
 
 		static void PostSetPropertiesOnActor(UActorComponent* InComp);
@@ -231,6 +278,8 @@ namespace LGUIPrefabSystem7
 		TArray<FComponentDataStruct> SubPrefabRootComponents;
 		//this collection will collect all actors of this prefab, and root actor of sub prefab
 		TArray<AActor*> TrySerializeActorArray;
+		//origin guid mean the object guid in it's origin prefab, not sub prefab
+		TMap<TObjectPtr<UObject>, FGuid> MapObjectToOriginGuid;
 
 		void CollectActorRecursive(AActor* Actor);
 #if WITH_EDITOR
@@ -279,7 +328,7 @@ namespace LGUIPrefabSystem7
 		 * @param	const TMap<FGuid, UObject*>&	SubPrefab's map guid to all object
 		 * @param	const TArray<AActor*>&		SubPrefab's all created actor
 		 */
-		TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
+		TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)> OnSubPrefabFinishDeserializeFunction = nullptr;
 
 		/**
 		 * Writer and Reader for serialize or deserialize
@@ -296,5 +345,10 @@ namespace LGUIPrefabSystem7
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverride = nullptr;
 	};
+
+	struct FDuplicateActorDataContainer
+	{
+		FLGUIPrefabSaveData ActorData;
+		ActorSerializer Serializer;
+	};
 }
-#endif
