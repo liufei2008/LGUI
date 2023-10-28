@@ -5,8 +5,8 @@
 #include "Misc/NetworkVersion.h"
 #include "LGUIPrefab.generated.h"
 
-#define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer7.h"
-#define LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE LGUIPrefabSystem7
+#define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer8.h"
+#define LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE LGUIPrefabSystem8
 
 enum class ELGUIPrefabVersion : uint16
 {
@@ -29,6 +29,18 @@ enum class ELGUIPrefabVersion : uint16
 	CommonActor = 6,
 	/** Support add new actor under subprefab's actor. */
 	ActorAttachToSubPrefab = 7,
+	/**
+	 * This version is mainly to solve the case:
+	 *		There are Prefabs, A is origin prefab, B contains A, C contains B,
+	 *		open A and add a new object O to A (new Actor or ActorComponent or other UObject), apply A then close,
+	 *		then open C and modify property on object O, apply C then close,
+	 *		open C again, here error happens, because O is not exist in B yet, so B will alway create new guid for O, then pass to C as subprefab, so when open C again, the modified property on O will missing, because subprefab's guid on O is changed.
+	 * Solusion:
+	 *		Use a map data D, map from object's unique id (subprefab's root actor's guid and new created object's origin guid --origin guid means the object's guid in root prefab) to created guid,
+	 *		when load subprefab, if not find guid then create a new guid and store it in data D, next time when load subprefab if still don't find the guid (because B create a new guid for it) then search in data D and use existing guid,
+	 *		so the guid can persist.
+	 */
+	NewObjectOnNestedPrefab = 8,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
@@ -57,6 +69,27 @@ public:
 		TArray<FName> MemberPropertyNames;
 };
 
+/** Unique id for newly created object in subprefab, just for store data here. Check description on ELGUIPrefabVersion.NewObjectOnNestedPrefab */
+USTRUCT(NotBlueprintType)
+struct FLGUISubPrefabObjectUniqueId
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FGuid RootActorGuidInParentPrefab;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FGuid ObjectGuidInOrignPrefab;
+
+	bool operator==(const FLGUISubPrefabObjectUniqueId& other)const
+	{
+		return this->RootActorGuidInParentPrefab == other.RootActorGuidInParentPrefab && this->ObjectGuidInOrignPrefab == other.ObjectGuidInOrignPrefab;
+	}
+	friend FORCEINLINE uint32 GetTypeHash(const FLGUISubPrefabObjectUniqueId& other)
+	{
+		return HashCombine(GetTypeHash(other.RootActorGuidInParentPrefab), GetTypeHash(other.ObjectGuidInOrignPrefab));
+	}
+};
+
 USTRUCT(NotBlueprintType)
 struct LGUI_API FLGUISubPrefabData
 {
@@ -66,6 +99,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TObjectPtr<ULGUIPrefab> PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FLGUISubPrefabObjectUniqueId, FGuid> MapObjectIdToNewlyCreatedId;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
 	/** For level editor, combine all create time (include all sub prefab) to create this MD5, to tell if this prefab is latest version. */

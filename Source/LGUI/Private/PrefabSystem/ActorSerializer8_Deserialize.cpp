@@ -1,7 +1,5 @@
 // Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#if WITH_EDITOR
-#include "PrefabSystem/ActorSerializer7.h"
 #include "PrefabSystem/ActorSerializer8.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
@@ -25,9 +23,9 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
-#define LOCTEXT_NAMESPACE "LGUIPrefabSystem7_Deserialize"
+#define LOCTEXT_NAMESPACE "LGUIPrefabSystem8_Deserialize"
 
-namespace LGUIPrefabSystem7
+namespace LGUIPrefabSystem8
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
@@ -154,7 +152,7 @@ namespace LGUIPrefabSystem7
 		, const FGuid& InParentDeserializationSessionId
 		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
-		, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
+		, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
 	)
 	{
 		ActorSerializer serializer;
@@ -367,7 +365,7 @@ namespace LGUIPrefabSystem7
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, AllActors, AllComponents);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootActor, MapGuidToObject, MapObjectToOriginGuid, AllActors, AllComponents);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -532,6 +530,7 @@ namespace LGUIPrefabSystem7
 				}
 				auto DefaultSubObjectGuid = ObjectData.DefaultSubObjectGuidArray[Index];
 				MapGuidToObject.Add(DefaultSubObjectGuid, DefaultSubObject);
+				MapObjectToOriginGuid.Add(DefaultSubObject, DefaultSubObjectGuid);
 			}
 		};
 		for (auto& KeyValuePair : SavedObjects)
@@ -561,6 +560,7 @@ namespace LGUIPrefabSystem7
 					{
 						CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
 						MapGuidToObject.Add(ObjectGuid, CreatedNewObject);
+						MapObjectToOriginGuid.Add(CreatedNewObject, ObjectGuid);
 						CollectDefaultSubobjects(CreatedNewObject, ObjectGuid, ObjectData);
 					}
 					else
@@ -602,7 +602,7 @@ namespace LGUIPrefabSystem7
 						SubPrefabData.PrefabAsset = SubPrefabAsset;
 
 #if WITH_EDITOR
-						if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::ActorAttachToSubPrefab)
+						if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::NewObjectOnNestedPrefab)
 						{
 							SubPrefabAsset->RecreatePrefab();//if is old version then recreate to make it new version
 						}
@@ -629,13 +629,23 @@ namespace LGUIPrefabSystem7
 								}
 							}
 #endif
-
-							auto GetObjectGuidInParent = [&](const FGuid& GuidInSubPrefab) {
+							bool bAnyGuidFrom_MapObjectIdToNewlyCreatedId = false;
+							auto GetObjectGuidInParent = [&](const FGuid& GuidInSubPrefab, const FGuid& GuidInOriginPrefab) {
 								FGuid GuidInParent;
 								auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
 								if (ObjectGuidInParentPrefabPtr == nullptr)
 								{
-									GuidInParent = FGuid::NewGuid();
+									auto UniqueId = FLGUISubPrefabObjectUniqueIdSaveData{ InActorData.ActorGuid, GuidInOriginPrefab };
+									if (auto GuidInParentPtr = InActorData.MapObjectIdToNewlyCreatedId.Find(UniqueId))
+									{
+										GuidInParent = *GuidInParentPtr;
+									}
+									else
+									{
+										GuidInParent = FGuid::NewGuid();
+										InActorData.MapObjectIdToNewlyCreatedId.Add(UniqueId, GuidInParent);
+									}
+									bAnyGuidFrom_MapObjectIdToNewlyCreatedId = true;
 									MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, GuidInParent);
 								}
 								else
@@ -644,96 +654,62 @@ namespace LGUIPrefabSystem7
 								}
 								return GuidInParent;
 								};
+							auto NewOnSubPrefabFinishDeserializeFunction =
+								[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TMap<TObjectPtr<UObject>, FGuid>& InMapObjectToOriginGuid, const TArray<AActor*>& InSubActors, const TArray<UActorComponent*>& InSubComponents) {
+								//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
+								for (auto& KeyValue : InSubPrefabMapGuidToObject)
+								{
+									auto& GuidInSubPrefab = KeyValue.Key;
+									auto& ObjectInSubPrefab = KeyValue.Value;
 
-							switch ((ELGUIPrefabVersion)SubPrefabAsset->PrefabVersion)
-							{
-							case ELGUIPrefabVersion::ActorAttachToSubPrefab:
-							{
-								auto NewOnSubPrefabFinishDeserializeFunction =
-									[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TArray<AActor*>& InSubActors, const TArray<UActorComponent*>& InSubComponents) {
-									//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
-									for (auto& KeyValue : InSubPrefabMapGuidToObject)
+									auto GuidInParent = GetObjectGuidInParent(GuidInSubPrefab, InMapObjectToOriginGuid[ObjectInSubPrefab]);
+
+									if (auto RecordDataPtr = InActorData.MapObjectGuidToSubPrefabOverrideParameter.Find(GuidInParent))
 									{
-										auto& GuidInSubPrefab = KeyValue.Key;
-										auto& ObjectInSubPrefab = KeyValue.Value;
+										FLGUIPrefabOverrideParameterData OverrideDataItem;
+										OverrideDataItem.MemberPropertyNames = RecordDataPtr->OverrideParameterNames;
+										OverrideDataItem.Object = ObjectInSubPrefab;
+										SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
 
-										auto GuidInParent = GetObjectGuidInParent(GuidInSubPrefab);
-
-										if (auto RecordDataPtr = InActorData.MapObjectGuidToSubPrefabOverrideParameter.Find(GuidInParent))
-										{
-											FLGUIPrefabOverrideParameterData OverrideDataItem;
-											OverrideDataItem.MemberPropertyNames = RecordDataPtr->OverrideParameterNames;
-											OverrideDataItem.Object = ObjectInSubPrefab;
-											SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
-
-											FSubPrefabObjectOverrideParameterData OverrideData;
-											OverrideData.Object = ObjectInSubPrefab;
-											OverrideData.ParameterDatas = RecordDataPtr->OverrideParameterData;
-											OverrideData.ParameterNames = RecordDataPtr->OverrideParameterNames;
-											SubPrefabOverrideParameters.Add(OverrideData);//collect override parameters, so when all objects are generated, restore these parameters will get all value back
-										}
-
-										SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(GuidInParent, GuidInSubPrefab);
-										SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
-										if (!MapGuidToObject.Contains(GuidInParent))
-										{
-											MapGuidToObject.Add(GuidInParent, ObjectInSubPrefab);
-										}
+										FSubPrefabObjectOverrideParameterData OverrideData;
+										OverrideData.Object = ObjectInSubPrefab;
+										OverrideData.ParameterDatas = RecordDataPtr->OverrideParameterData;
+										OverrideData.ParameterNames = RecordDataPtr->OverrideParameterNames;
+										SubPrefabOverrideParameters.Add(OverrideData);//collect override parameters, so when all objects are generated, restore these parameters will get all value back
 									}
-									//collect sub-prefab's actor to parent prefab
-									AllActors.Append(InSubActors);
-									AllComponents.Append(InSubComponents);
+
+									SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(GuidInParent, GuidInSubPrefab);
+									SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
+									if (!MapGuidToObject.Contains(GuidInParent))
+									{
+										MapGuidToObject.Add(GuidInParent, ObjectInSubPrefab);
+									}
+								}
+								//if we don't need to get any guid from MapObjectIdToNewlyCreatedId, that means subprefab already have a persistent guid for all objects, then we can clear the data
+								if (!bAnyGuidFrom_MapObjectIdToNewlyCreatedId)
+								{
+									if (InActorData.MapObjectIdToNewlyCreatedId.Num() > 0)
+									{
+										InActorData.MapObjectIdToNewlyCreatedId.Empty();
+									}
+								}
+								else
+								{
+									//convert data to save
+									for (auto& DataItem : InActorData.MapObjectIdToNewlyCreatedId)
+									{
+										SubPrefabData.MapObjectIdToNewlyCreatedId.Add({ DataItem.Key.RootActorGuidInParentPrefab, DataItem.Key.ObjectGuidInOrignPrefab }, DataItem.Value);
+									}
+								}
+								//collect sub-prefab's actor to parent prefab
+								AllActors.Append(InSubActors);
+								AllComponents.Append(InSubComponents);
+								MapObjectToOriginGuid.Append(InMapObjectToOriginGuid);
 								};
 
-								SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
-									, NewOnSubPrefabFinishDeserializeFunction
-								);
-							}
-							break;
-							case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
-							{
-								auto NewOnSubPrefabFinishDeserializeFunction =
-									[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>& InSubActors, const TArray<UActorComponent*>& InSubComponents) {
-									//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
-									for (auto& KeyValue : InSubPrefabMapGuidToObject)
-									{
-										auto& GuidInSubPrefab = KeyValue.Key;
-										auto& ObjectInSubPrefab = KeyValue.Value;
-
-										auto GuidInParent = GetObjectGuidInParent(GuidInSubPrefab);
-
-										if (auto RecordDataPtr = InActorData.MapObjectGuidToSubPrefabOverrideParameter.Find(GuidInParent))
-										{
-											FLGUIPrefabOverrideParameterData OverrideDataItem;
-											OverrideDataItem.MemberPropertyNames = RecordDataPtr->OverrideParameterNames;
-											OverrideDataItem.Object = ObjectInSubPrefab;
-											SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
-
-											FSubPrefabObjectOverrideParameterData OverrideData;
-											OverrideData.Object = ObjectInSubPrefab;
-											OverrideData.ParameterDatas = RecordDataPtr->OverrideParameterData;
-											OverrideData.ParameterNames = RecordDataPtr->OverrideParameterNames;
-											SubPrefabOverrideParameters.Add(OverrideData);//collect override parameters, so when all objects are generated, restore these parameters will get all value back
-										}
-
-										SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(GuidInParent, GuidInSubPrefab);
-										SubPrefabData.MapGuidToObject.Add(GuidInSubPrefab, ObjectInSubPrefab);
-										if (!MapGuidToObject.Contains(GuidInParent))
-										{
-											MapGuidToObject.Add(GuidInParent, ObjectInSubPrefab);
-										}
-									}
-									//collect sub-prefab's actor to parent prefab
-									AllActors.Append(InSubActors);
-									AllComponents.Append(InSubComponents);
-								};
-
-								SubPrefabRootActor = LGUIPrefabSystem8::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
-									, NewOnSubPrefabFinishDeserializeFunction
-								);
-							}
-							break;
-							}
+							SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								, NewOnSubPrefabFinishDeserializeFunction
+							);
 						}
 						
 						if (SubPrefabRootActor != nullptr)
@@ -790,6 +766,7 @@ namespace LGUIPrefabSystem7
 							}
 							auto DefaultSubObjectGuid = InActorData.DefaultSubObjectGuidArray[Index];
 							MapGuidToObject.Add(DefaultSubObjectGuid, DefaultSubObject);
+							MapObjectToOriginGuid.Add(DefaultSubObject, DefaultSubObjectGuid);
 						}
 						};
 
@@ -821,6 +798,7 @@ namespace LGUIPrefabSystem7
 #endif
 						NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
 						MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
+						MapObjectToOriginGuid.Add(NewActor, InActorData.ActorGuid);
 						CollectDefaultSubobjects(NewActor);
 						bNeedFinishSpawn = true;
 					}
@@ -836,6 +814,7 @@ namespace LGUIPrefabSystem7
 						if (!MapGuidToObject.Contains(InActorData.RootComponentGuid))
 						{
 							MapGuidToObject.Add(InActorData.RootComponentGuid, RootComp);
+							MapObjectToOriginGuid.Add(RootComp, InActorData.RootComponentGuid);
 						}
 
 						if (ParentGuid.IsValid())
@@ -869,6 +848,4 @@ namespace LGUIPrefabSystem7
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
-#endif
-
 #endif
