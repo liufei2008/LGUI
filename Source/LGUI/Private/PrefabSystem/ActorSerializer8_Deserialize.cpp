@@ -543,6 +543,7 @@ namespace LGUIPrefabSystem8
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectGuid))
 			{
 				CreatedNewObject = *ObjectPtr;
+				MapObjectToOriginGuid.Add(CreatedNewObject, ObjectGuid);
 				CollectDefaultSubobjects(CreatedNewObject, ObjectGuid, ObjectData);
 			}
 			else
@@ -777,6 +778,7 @@ namespace LGUIPrefabSystem8
 					if (auto ActorPtr = MapGuidToObject.Find(InActorData.ActorGuid))
 					{
 						NewActor = (AActor*)(*ActorPtr);
+						MapObjectToOriginGuid.Add(NewActor, InActorData.ActorGuid);
 						CollectDefaultSubobjects(NewActor);
 					}
 					else
