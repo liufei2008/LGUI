@@ -879,14 +879,7 @@ UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const
 	}
 	else
 	{
-		if (bIsMarkedAsManagerObject)
-		{
-			return ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-		}
-		else
-		{
-			return Super::GetWorld();
-		}
+		return Super::GetWorld();
 	}
 }
 
