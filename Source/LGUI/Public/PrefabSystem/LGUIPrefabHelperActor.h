@@ -43,17 +43,17 @@ public:
 };
 
 /**
- * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabManagerActor.
+ * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabLevelManagerActor.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotPlaceable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
-class LGUI_API ALGUIPrefabManagerActor : public AActor
+class LGUI_API ALGUIPrefabLevelManagerActor : public AActor
 {
 	GENERATED_BODY()
 
 
 public:
 	// Sets default values for this actor's properties
-	ALGUIPrefabManagerActor();
+	ALGUIPrefabLevelManagerActor();
 
 #if WITH_EDITOR
 	virtual void BeginPlay()override;
@@ -66,10 +66,10 @@ private:
 	FDelegateHandle BeginPIEDelegateHandle;
 	void CollectWhenCreate();
 	void CleanupWhenDestroy();
-	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabManagerActor>> MapLevelToManagerActor;
+	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabLevelManagerActor>> MapLevelToManagerActor;
 public:
-	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
-	static ALGUIPrefabManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
+	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
+	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")

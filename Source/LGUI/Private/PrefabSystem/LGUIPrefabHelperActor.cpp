@@ -39,7 +39,7 @@ void ALGUIPrefabHelperActor::Destroyed()
 	{
 		if (IsValid(LoadedRootActor))
 		{
-			if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
+			if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(this->GetLevel()))
 			{
 				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(LoadedRootActor);
 				LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
@@ -68,7 +68,7 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
 	if (IsValid(LoadedRootActor))return;
-	auto PrefabHelperObject = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject;
+	auto PrefabHelperObject = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject;
 	PrefabHelperObject->SetCanNotifyAttachment(false);
 	TMap<FGuid, TObjectPtr<UObject>> SubPrefabMapGuidToObject;
 	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
@@ -82,7 +82,7 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 #endif
 
 
-ALGUIPrefabManagerActor::ALGUIPrefabManagerActor()
+ALGUIPrefabLevelManagerActor::ALGUIPrefabLevelManagerActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bIsEditorOnlyActor = true;
@@ -94,13 +94,13 @@ ALGUIPrefabManagerActor::ALGUIPrefabManagerActor()
 
 #if WITH_EDITOR
 
-TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabManagerActor>> ALGUIPrefabManagerActor::MapLevelToManagerActor;
+TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabLevelManagerActor>> ALGUIPrefabLevelManagerActor::MapLevelToManagerActor;
 
-ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist)
+ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist)
 {
 	if (!MapLevelToManagerActor.Contains(InLevel) && CreateIfNotExist)
 	{
-		auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabManagerActor>();
+		auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabLevelManagerActor>();
 		MapLevelToManagerActor.Add(InLevel, PrefabManagerActor);
 		InLevel->MarkPackageDirty();
 		FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), FFolder(FFolder::FRootObject(PrefabManagerActor), ALGUIPrefabHelperActor::PrefabFolderName));
@@ -131,7 +131,7 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	}
 }
 
-ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject)
+ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject)
 {
 	for (auto& KeyValue : MapLevelToManagerActor)
 	{
@@ -143,21 +143,21 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActorByPrefabH
 	return nullptr;
 }
 
-void ALGUIPrefabManagerActor::BeginPlay()
+void ALGUIPrefabLevelManagerActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void ALGUIPrefabManagerActor::PostInitProperties()
+void ALGUIPrefabLevelManagerActor::PostInitProperties()
 {
 	Super::PostInitProperties();
-	if (this != GetDefault<ALGUIPrefabManagerActor>())
+	if (this != GetDefault<ALGUIPrefabLevelManagerActor>())
 	{
 		CollectWhenCreate();
 	}
 }
 
-void ALGUIPrefabManagerActor::CollectWhenCreate()
+void ALGUIPrefabLevelManagerActor::CollectWhenCreate()
 {
 	if (auto Level = this->GetLevel())
 	{
@@ -193,25 +193,25 @@ void ALGUIPrefabManagerActor::CollectWhenCreate()
 	});
 }
 
-void ALGUIPrefabManagerActor::PostActorCreated()
+void ALGUIPrefabLevelManagerActor::PostActorCreated()
 {
 	Super::PostActorCreated();
 }
 
-void ALGUIPrefabManagerActor::BeginDestroy()
+void ALGUIPrefabLevelManagerActor::BeginDestroy()
 {
 	Super::BeginDestroy();
 	CleanupWhenDestroy();
 }
-void ALGUIPrefabManagerActor::Destroyed()
+void ALGUIPrefabLevelManagerActor::Destroyed()
 {
 	Super::Destroyed();
 	CleanupWhenDestroy();
 	if (!this->GetWorld()->IsGameWorld())
 	{
 		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = this, World = this->GetWorld()]() {
-			auto InfoText = LOCTEXT("DeleteLGUIPrefabManagerActor", "\
-LGUIPrefabManagerActor is being destroyed!\
+			auto InfoText = LOCTEXT("DeleteLGUIPrefabLevelManagerActor", "\
+LGUIPrefabLevelManagerActor is being destroyed!\
 \nThis actor is responsible for managing LGUI-Prefabs in current level, if you delete it then all LGUI-Prefabs linked in the level will be lost!\
 \nCilck OK to confirm delete, or Cancel to undo it.");
 			auto Return = FMessageDialog::Open(EAppMsgType::OkCancel, InfoText);
@@ -240,7 +240,7 @@ LGUIPrefabManagerActor is being destroyed!\
 			}, 1);
 	}
 }
-void ALGUIPrefabManagerActor::CleanupWhenDestroy()
+void ALGUIPrefabLevelManagerActor::CleanupWhenDestroy()
 {
 	if (OnSubPrefabNewVersionUpdatedDelegateHandle.IsValid())
 	{
@@ -250,7 +250,7 @@ void ALGUIPrefabManagerActor::CleanupWhenDestroy()
 	{
 		FEditorDelegates::BeginPIE.Remove(BeginPIEDelegateHandle);
 	}
-	if (this != GetDefault<ALGUIPrefabManagerActor>())
+	if (this != GetDefault<ALGUIPrefabLevelManagerActor>())
 	{
 		if (this->GetWorld() != nullptr && !this->GetWorld()->IsGameWorld())
 		{
