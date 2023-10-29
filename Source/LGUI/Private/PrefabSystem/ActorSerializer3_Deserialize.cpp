@@ -9,7 +9,7 @@
 #include "Serialization/BufferArchive.h"
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
@@ -135,12 +135,16 @@ namespace LGUIPrefabSystem3
 
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
+		if (LGUIPrefabManager == nullptr)
+		{
+			LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(TargetWorld);
+		}
 		if (!bIsSubPrefab)
 		{
 			if (!DeserializationSessionId.IsValid())
 			{
 				DeserializationSessionId = FGuid::NewGuid();
-				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+				LGUIPrefabManager->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
@@ -222,9 +226,9 @@ namespace LGUIPrefabSystem3
 			check(DeserializationSessionId.IsValid());
 			for (auto item : AllActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
+				LGUIPrefabManager->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+			LGUIPrefabManager->EndPrefabSystemProcessingActor(DeserializationSessionId);
 		}
 
 		return CreatedRootActor;
@@ -243,7 +247,6 @@ namespace LGUIPrefabSystem3
 		}
 
 		auto StartTime = FDateTime::Now();
-		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -294,7 +297,7 @@ namespace LGUIPrefabSystem3
 		UE_LOG(LGUI, Log, TEXT("Take %fs loading prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
 
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;
@@ -502,7 +505,7 @@ namespace LGUIPrefabSystem3
 					MapGuidToObject.Add(InActorData.ActorGuid, NewActor);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
+				LGUIPrefabManager->AddActorForPrefabSystem(NewActor, DeserializationSessionId);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);

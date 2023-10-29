@@ -9,7 +9,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 using namespace LGUIPrefabSystem;
 
@@ -27,9 +27,9 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 		if (!DeserializationSessionId.IsValid())
 		{
 			DeserializationSessionId = FGuid::NewGuid();
-			LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+			LGUIPrefabManager->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 		}
-		LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, 0);
+		LGUIPrefabManager->AddActorForPrefabSystem(NewActor, DeserializationSessionId);
 		CreatedActors.Add(NewActor);
 		LoadPropertyForRuntime(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 

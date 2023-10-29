@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Utils/LGUIUtils.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -56,12 +56,12 @@ void UUILayoutBase::PostEditUndo()
 void UUILayoutBase::OnRegister()
 {
     Super::OnRegister();
-    ALGUIManagerActor::RegisterLGUILayout(this);
+    ULGUIManagerWorldSubsystem::RegisterLGUILayout(this);
 }
 void UUILayoutBase::OnUnregister()
 {
     Super::OnUnregister();
-    ALGUIManagerActor::UnregisterLGUILayout(this);
+    ULGUIManagerWorldSubsystem::UnregisterLGUILayout(this);
 }
 
 void UUILayoutBase::OnUpdateLayout_Implementation()
@@ -158,7 +158,7 @@ void UUILayoutBase::MarkNeedRebuildChildrenList()
 void UUILayoutBase::MarkNeedRebuildLayout()
 {
     bNeedRebuildLayout = true; 
-    ALGUIManagerActor::MarkUpdateLayout(this->GetWorld());
+    ULGUIManagerWorldSubsystem::MarkUpdateLayout(this->GetWorld());
 }
 
 void UUILayoutBase::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)

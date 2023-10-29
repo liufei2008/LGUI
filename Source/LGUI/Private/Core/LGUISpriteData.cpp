@@ -9,7 +9,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "RHI.h"
 #include "Rendering/Texture2DResource.h"
 #include "TextureCompiler.h"
@@ -347,7 +347,7 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 			this->ReloadTexture();
 		}
 
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 }
 bool ULGUISpriteData::CanEditChange(const FProperty* InProperty) const

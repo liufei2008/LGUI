@@ -26,8 +26,14 @@
 #include "EditorStyleSet.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
-#include "LGUIHeaders.h"
 #include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
+#include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/Actor/UIBaseActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "Utils/LGUIUtils.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
@@ -511,7 +517,7 @@ void FLGUIPrefabEditor::OnApply()
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 }
 
@@ -542,7 +548,7 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 			if (ItemActor == PrefabHelperObject->LoadedRootActor)continue;
 			if (ItemActor == RootUIAgentActor)continue;
 			if (GetPreviewScene().IsWorldDefaultActor(ItemActor))continue;
-			if (ItemActor->GetClass() == ALGUIManagerActor::StaticClass())continue;
+			if (ItemActor->GetClass() == ULGUIManagerWorldSubsystem::StaticClass())continue;
 			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
 			{
 				auto MsgText = LOCTEXT("Error_AllActor", "All prefab's actors must attach to prefab's root actor!");
@@ -930,7 +936,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				if (OutlinerPtr.IsValid())
 				{
 					OutlinerPtr->FullRefresh();
-					ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+					ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
 						for (auto& Actor : CreatedActorArray)
 						{
 							OutlinerPtr->UnexpandActor(Actor);

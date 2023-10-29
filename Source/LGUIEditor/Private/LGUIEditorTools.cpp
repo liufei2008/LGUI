@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "LGUIEditorTools.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
 #include "Misc/MessageDialog.h"
@@ -930,7 +930,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		GEditor->SelectActor(copiedActor, true, true);
 	}
 	GEditor->EndTransaction();
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 }
 void LGUIEditorTools::CopySelectedActors_Impl()
 {
@@ -1086,7 +1086,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	}
 	PrefabHelperObject->SetCanNotifyAttachment(true);
 	GEditor->EndTransaction();
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 }
 void LGUIEditorTools::DeleteSelectedActors_Impl()
 {
@@ -1338,7 +1338,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 			}
 		}
 		GEditor->EndTransaction();
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 	else
 	{
@@ -1409,7 +1409,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 		GEditor->SelectActor(actor, true, true);
 		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 	else
 	{
@@ -1441,7 +1441,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 		GEditor->SelectActor(actor, true, true);
 		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 	else
 	{
@@ -1473,7 +1473,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 		GEditor->SelectActor(actor, true, true);
 		CreatePresetEventSystem_BasicSetup();
 		GEditor->EndTransaction();
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 	else
 	{

@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "TextureCompiler.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/IUISpriteRenderableInterface.h"
 
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
@@ -135,7 +135,7 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 							break;
 						}
 						auto WeakThis = TWeakObjectPtr<ULGUIStaticSpriteAtlasData>(this);
-						ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+						ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
 							if (WeakThis.IsValid())
 							{
 								bIsYesToAll = false;
@@ -159,7 +159,7 @@ void ULGUIStaticSpriteAtlasData::PostEditChangeProperty(struct FPropertyChangedE
 			{
 				bIsAddedToDelayedCall = true;
 				auto WeakThis = TWeakObjectPtr<ULGUIStaticSpriteAtlasData>(this);
-				ULGUIEditorManagerObject::AddOneShotTickFunction([=] {
+				ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
 					if (WeakThis.IsValid())
 					{
 						MarkNotInitialized();

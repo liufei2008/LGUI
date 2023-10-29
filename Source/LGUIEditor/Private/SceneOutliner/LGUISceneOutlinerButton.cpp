@@ -3,7 +3,7 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorModule.h"
 #include "Widgets/Input/SComboButton.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerButton"
 

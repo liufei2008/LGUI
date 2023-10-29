@@ -9,7 +9,6 @@
 #include "Components/PrimitiveComponent.h"
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
 
 using namespace LGUIPrefabSystem;
 

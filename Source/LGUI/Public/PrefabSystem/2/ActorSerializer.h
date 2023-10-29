@@ -8,7 +8,7 @@
 
 #if WITH_EDITOR
 
-class ALGUIManagerActor;
+class ULGUIPrefabWorldSubsystem;
 namespace LGUIPrefabSystem
 {
 	enum class ELGUIPropertyType : uint8
@@ -425,7 +425,7 @@ namespace LGUIPrefabSystem
 
 		/** Mark of this deserialization session. If nested prefab, this is still the root prefab's value. */
 		FGuid DeserializationSessionId = FGuid();
-		ALGUIManagerActor* LGUIManagerActor = nullptr;
+		ULGUIPrefabWorldSubsystem* LGUIPrefabManager = nullptr;
 #if WITH_EDITOR
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);

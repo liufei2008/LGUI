@@ -10,7 +10,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UITextureBase.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUISpriteData_BaseObject.h"

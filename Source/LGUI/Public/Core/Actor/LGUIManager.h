@@ -7,7 +7,7 @@
 #include "Core/LGUISpriteData.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Tickable.h"
-#include "LGUIManagerActor.generated.h"
+#include "LGUIManager.generated.h"
 
 class UUIItem;
 class UUIText;
@@ -45,38 +45,20 @@ private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
-	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
-	UPROPERTY()UWorld* PreviewWorldForPrefabPackage = nullptr;
-	bool bIsBlueprintCompiling = false;
-	class FLGUIObjectCreateDeleteListener* ObjectCreateDeleteListener = nullptr;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
-private:
-	bool bShouldBroadcastLevelActorListChanged = false;
 #endif
 #if WITH_EDITOR
-private:
-	TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
-	FLGUIEditorManagerOnComponentCreateDelete OnComponentCreateDeleteEvent;
-public:
-	static void AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount = 0);
-	static FDelegateHandle RegisterEditorTickFunction(const TFunction<void(float)>& InFunction);
-	static void UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle);
 	static FDelegateHandle RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction);
 	static void UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle);
-	static FLGUIEditorManagerOnComponentCreateDelete& OnComponentCreateDelete() { InitCheck(); return Instance->OnComponentCreateDeleteEvent; }
 private:
 	static bool InitCheck();
 public:
 	static ULGUIEditorManagerObject* GetInstance(bool CreateIfNotValid = false);
-	static bool IsSelected(AActor* InObject);
-	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
-	static UWorld* GetPreviewWorldForPrefabPackage();
-	static bool GetIsBlueprintCompiling();
 public:
 	/**
 	 * Editor raycast hit all visible UIBaseRenderable object.
@@ -96,8 +78,6 @@ private:
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 	void OnBlueprintPreCompile(UBlueprint* InBlueprint);
 	void OnBlueprintCompiled();
-public:
-	static void MarkBroadcastLevelActorListChanged();
 private:
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);
@@ -112,7 +92,7 @@ private:
 
 struct FLGUILifeCycleBehaviourArrayContainer
 {
-	TArray<TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>> LGUILifeCycleBehaviourArray;
+	TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehaviourArray;
 	/** Functions that wait for prefab serialization complete then execute */
 	TArray<TFunction<void()>> Functions;
 };
@@ -121,20 +101,24 @@ class ILGUICultureChangedInterface;
 enum class ELGUIRenderMode : uint8;
 
 UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
-class LGUI_API ALGUIManagerActor : public AActor
+class LGUI_API ULGUIManagerWorldSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
-private:
-	static TMap<UWorld*, ALGUIManagerActor*> WorldToInstanceMap;
-	bool bExistInInstanceMap = false;
 public:	
-	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
-	static const TMap<UWorld*, ALGUIManagerActor*>& GetWorldToInstanceMap() { return WorldToInstanceMap; }
-	ALGUIManagerActor();
-	virtual void BeginPlay()override;
-	virtual void BeginDestroy()override;
-	virtual void Tick(float DeltaTime)override;
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override { return true; }
+	virtual void Initialize(FSubsystemCollectionBase& Collection)override;
+	virtual void PostInitialize()override;
+	virtual void Deinitialize()override;
+
+	virtual TStatId GetStatId() const override;
+	virtual bool IsTickableInEditor()const { return true; }
+	virtual void Tick(float DeltaTime) override;
+
+	static ULGUIManagerWorldSubsystem* GetInstance(UWorld* InWorld);
 private:
+#if WITH_EDITOR
+	static TArray<ULGUIManagerWorldSubsystem*> InstanceArray;
+#endif
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -179,7 +163,7 @@ private:
 #endif
 	void OnCultureChanged();
 	bool bShouldUpdateOnCultureChanged = false;
-	FDelegateHandle onCultureChangedDelegateHandle;
+	FDelegateHandle OnCultureChangedDelegateHandle;
 
 	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 
@@ -242,16 +226,11 @@ private:
 	static void DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 #endif
 private:
-	/** Map actor to prefab-deserialize-settion-id and actor index */
-	TMap<AActor*, TTuple<FGuid, int32>> AllActors_PrefabSystemProcessing;
 	/** Map prefab-deserialize-settion-id to LGUILifeCycleBehaviour array */
 	TMap<FGuid, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
 public:
 	void BeginPrefabSystemProcessingActor(const FGuid& InSessionId);
 	void EndPrefabSystemProcessingActor(const FGuid& InSessionId);
-	void AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId, int32 InActorIndex);
-	void RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
-	bool IsPrefabSystemProcessingActor(AActor* InActor);
 	/**
 	 * Add a function that execute after prefab system serialization and before Awake called
 	 * @param	InPrefabActor	Current prefab system processing actor

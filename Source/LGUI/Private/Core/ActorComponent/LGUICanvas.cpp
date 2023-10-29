@@ -8,7 +8,8 @@
 #include "DrawDebugHelpers.h"
 #endif
 #include "Core/LGUISettings.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/LGUIRender/LGUIRenderer.h"
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Core/UIDrawcall.h"
@@ -131,7 +132,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasAddToLGUIScreenSpaceRenderer)
 				{
-					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+					auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), true);
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
@@ -160,7 +161,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasSetIntialStateforLGUIWorldSpaceRenderer)
 				{
-					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+					auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), true);
 
 					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 					{
@@ -233,7 +234,7 @@ void ULGUICanvas::OnRegister()
 		if (!bHasAddToLGUIManager)
 		{
 			bHasAddToLGUIManager = true;
-			ALGUIManagerActor::AddCanvas(this, CurrentRenderMode);
+			ULGUIManagerWorldSubsystem::AddCanvas(this, CurrentRenderMode);
 		}
 		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
@@ -249,7 +250,7 @@ void ULGUICanvas::OnUnregister()
 	if (bHasAddToLGUIManager)
 	{
 		bHasAddToLGUIManager = false;
-		ALGUIManagerActor::RemoveCanvas(this, CurrentRenderMode);
+		ULGUIManagerWorldSubsystem::RemoveCanvas(this, CurrentRenderMode);
 	}
 
 	//clear
@@ -310,7 +311,7 @@ void ULGUICanvas::RemoveFromViewExtension()
 	if (bHasAddToLGUIScreenSpaceRenderer)
 	{
 		bHasAddToLGUIScreenSpaceRenderer = false;
-		auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
+		auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
 		if (ViewExtension.IsValid())
 		{
 			ViewExtension->ClearScreenSpaceRootCanvas();
@@ -423,7 +424,7 @@ void ULGUICanvas::CheckRenderMode()
 		//clear drawcall, delete mesh, because UE/LGUI render's mesh data not compatible
 		this->ClearDrawcall();
 
-		ALGUIManagerActor::CanvasRenderModeChange(this, OldRenderMode, CurrentRenderMode);
+		ULGUIManagerWorldSubsystem::CanvasRenderModeChange(this, OldRenderMode, CurrentRenderMode);
 		OnRenderModeChanged.Broadcast(this, OldRenderMode, CurrentRenderMode);
 	}
 
@@ -586,7 +587,7 @@ void ULGUICanvas::OnUIPostEditUndo()
 			}
 		}
 	};
-	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([=]() {
 		LOCAL::RecheckRootCanvasRecursive(this);
 		}, 0);
 }
@@ -1401,7 +1402,7 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 		if (bNeedToSortRenderPriority)
 		{
 			bNeedToSortRenderPriority = false;
-			if (auto Instance = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+			if (auto Instance = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 			{
 				switch (this->GetActualRenderMode())
 				{
@@ -1605,20 +1606,20 @@ void ULGUICanvas::CheckUIMesh()const
 #if WITH_EDITOR
 				if (!GetWorld()->IsGameWorld())
 				{
-					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
+					UIMesh->SetSupportLGUIRenderer(true, ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), true), false);
 					UIMesh->SetSupportUERenderer(true);
 				}
 				else
 #endif
 				{
-					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), false);
+					UIMesh->SetSupportLGUIRenderer(true, ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), true), false);
 					UIMesh->SetSupportUERenderer(false);
 				}
 			}
 			break;
 			case ELGUIRenderMode::WorldSpace_LGUI:
 			{
-				UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), true);
+				UIMesh->SetSupportLGUIRenderer(true, ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), true), true);
 				UIMesh->SetSupportUERenderer(false);
 			}
 			break;
@@ -2285,7 +2286,7 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 			this->sortOrder = InSortOrder;
 		}
 
-		if (auto Instance = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+		if (auto Instance = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 		{
 			switch (this->GetActualRenderMode())
 			{
@@ -2860,7 +2861,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 			{
 				if (RootCanvas->IsRenderToWorldSpace())
 				{
-					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
+					auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
 					if (ViewExtension.IsValid())
 					{
 						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
@@ -2883,7 +2884,7 @@ void ULGUICanvas::SetDepthFade(float value)
 			{
 				if (RootCanvas->IsRenderToWorldSpace())
 				{
-					auto ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), false);
+					auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
 					if (ViewExtension.IsValid())
 					{
 						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());

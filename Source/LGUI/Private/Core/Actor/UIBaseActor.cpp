@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #if WITH_EDITOR
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
 #endif
 
@@ -51,7 +51,7 @@ void AUIBaseActor::SetIsTemporarilyHiddenInEditor(bool bIsHidden)
 				LGUIUtils::NotifyPropertyChanged(GetUIItem(), FName(TEXT("bIsUIActive")));
 			}
 		}
-		ULGUIEditorManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
+		ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
 			FirstTemporarilyHiddenActor = nullptr;
 			if (WeakThis.IsValid())
 			{

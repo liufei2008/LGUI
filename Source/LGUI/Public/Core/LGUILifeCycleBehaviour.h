@@ -55,7 +55,7 @@ protected:
 	/** this object is serialized from LGUIPrefab? Some data may need to be fixed after loaded from LGUIPrefab */
 	uint8 bIsSerializedFromLGUIPrefab : 1;
 protected:
-	friend class ALGUIManagerActor;
+	friend class ULGUIManagerWorldSubsystem;
 	UPROPERTY(Transient) mutable TWeakObjectPtr<USceneComponent> RootComp = nullptr;
 	virtual bool IsAllowedToCallAwake()const;
 	virtual bool IsAllowedToCallOnEnable()const;

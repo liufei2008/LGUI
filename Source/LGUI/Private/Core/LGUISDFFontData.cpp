@@ -4,7 +4,7 @@
 
 #include "Core/LGUISDFFontData.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Materials/MaterialInterface.h"
 #define SDF_IMPLEMENTATION

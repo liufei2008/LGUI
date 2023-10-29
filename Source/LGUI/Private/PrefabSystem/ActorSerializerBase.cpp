@@ -2,7 +2,7 @@
 
 #include "PrefabSystem/ActorSerializerBase.h"
 #include "Engine/World.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "LGUI.h"
 #include "Misc/ConfigCacheIni.h"

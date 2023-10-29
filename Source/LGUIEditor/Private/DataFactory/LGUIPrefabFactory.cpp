@@ -4,7 +4,7 @@
 #include "LGUIEditorModule.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/Actor/UIContainerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabFactory"
@@ -26,7 +26,7 @@ UObject* ULGUIPrefabFactory::FactoryCreateNew(UClass* Class, UObject* InParent, 
 		HelperObject->PrefabAsset = NewAsset;
 		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-		HelperObject->LoadedRootActor = SourcePrefab->LoadPrefabWithExistingObjects(ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage(), nullptr, MapGuidToObject, SubPrefabMap);
+		HelperObject->LoadedRootActor = SourcePrefab->LoadPrefabWithExistingObjects(ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage(), nullptr, MapGuidToObject, SubPrefabMap);
 		FLGUISubPrefabData SubPrefabData;
 		SubPrefabData.PrefabAsset = SourcePrefab;
 		SubPrefabData.MapGuidToObject = MapGuidToObject;
@@ -48,7 +48,7 @@ UObject* ULGUIPrefabFactory::FactoryCreateNew(UClass* Class, UObject* InParent, 
 		NewAsset->bIsPrefabVariant = false;
 		ULGUIPrefabHelperObject* HelperObject = NewObject<ULGUIPrefabHelperObject>(GetTransientPackage());
 		HelperObject->PrefabAsset = NewAsset;
-		HelperObject->LoadedRootActor = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()->SpawnActor<AUIContainerActor>();
+		HelperObject->LoadedRootActor = ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage()->SpawnActor<AUIContainerActor>();
 		HelperObject->LoadedRootActor->SetActorLabel(TEXT("RootActor"));
 		HelperObject->SavePrefab();
 		HelperObject->LoadedRootActor->Destroy();

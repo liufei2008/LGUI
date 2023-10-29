@@ -14,7 +14,7 @@
 #endif
 #include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "Engine/Engine.h"
 
@@ -160,7 +160,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 		}
 		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
-			if (auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage())
+			if (auto World = ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage())
 			{
 				if (!TempAgentActor.IsValid())
 				{
@@ -249,7 +249,7 @@ ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
 	}
 	if (!IsValid(PrefabHelperObject->LoadedRootActor))
 	{
-		auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+		auto World = ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage();
 		PrefabHelperObject->LoadPrefab(World, nullptr);
 	}
 	return PrefabHelperObject;
@@ -814,7 +814,7 @@ void ULGUIPrefab::SavePrefab(AActor* RootActor
 
 void ULGUIPrefab::RecreatePrefab()
 {
-	auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+	auto World = ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage();
 
 	TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
