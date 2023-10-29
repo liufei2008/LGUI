@@ -28,9 +28,8 @@
 #include "Editor/UnrealEdEngine.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Editor.h"
-#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUIPrefabPreviewScene.h"
-#include "LGUIHeaders.h"
 #include "LGUIPrefabEditor.h"
 #include "MouseDeltaTracker.h"
 #include "Misc/ITransaction.h"
@@ -354,32 +353,17 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 {
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 
-	AActor* ClickHitActor = nullptr;
-	if (auto ManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
+	if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		FVector RayOrigin, RayDirection;
 		View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
-		float LineTraceLength = 100000;
-		//find hit UIBatchGeometryRenderable
-		auto LineStart = RayOrigin;
-		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
-		auto& AllCanvasArray = ManagerActor->GetCanvasArray();
-		UUIBaseRenderable* ClickHitUI = nullptr;
-		static TArray<UUIItem*> AllUIItemArray;
-		AllUIItemArray.Reset();
-		for (auto& CanvasItem : AllCanvasArray)
+		AActor* ClickHitActor = nullptr;
+		PrefabManager->OnPrefabEditorViewport_MouseClick.Broadcast(RayOrigin, RayDirection, ClickHitActor);
+		if (ClickHitActor != nullptr)
 		{
-			AllUIItemArray.Append(CanvasItem->GetUIItemArray());
+			LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
+			return;
 		}
-		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI, IndexOfClickSelectUI))
-		{
-			ClickHitActor = ClickHitUI->GetOwner();
-		}
-	}
-	if (ClickHitActor != nullptr)
-	{
-		LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
-		return;
 	}
 
 	// We may have started gizmo manipulation if hot-keys were pressed when we started this click
@@ -1047,7 +1031,10 @@ void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, i
 
 	if (InMouseX != PrevMouseX || InMouseY != PrevMouseY)
 	{
-		IndexOfClickSelectUI = INDEX_NONE;
+		if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
+		{
+			PrefabManager->OnPrefabEditorViewport_MouseMove.Broadcast();
+		}
 	}
 	PrevMouseX = InMouseX;
 	PrevMouseY = InMouseY;

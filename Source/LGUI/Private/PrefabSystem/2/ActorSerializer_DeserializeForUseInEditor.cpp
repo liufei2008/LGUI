@@ -10,7 +10,9 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
+#if 0
 #include "Core/ActorComponent/UIText.h"
+#endif
 
 using namespace LGUIPrefabSystem;
 
@@ -451,6 +453,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			{
 				if (Prefab->PrefabVersion < 1)
 				{
+#if 0
 					if (Property->GetFName() == TEXT("text")//specific for UIText's text property, to convert from FString to FText
 						&& Outter->GetClass() == UUIText::StaticClass()
 						)
@@ -463,6 +466,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 							textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 						}
 					}
+#endif
 				}
 				else
 				{

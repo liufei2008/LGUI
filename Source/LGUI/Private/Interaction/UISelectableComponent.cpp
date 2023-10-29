@@ -621,7 +621,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		}
 
 #if WITH_EDITOR
-		if (this->GetWorld() != sel->GetWorld())//get selectables from ULGUIEditorManagerObject, could be different world (thumbnail preview)
+		if (this->GetWorld() != sel->GetWorld())
 			continue;
 #endif
 

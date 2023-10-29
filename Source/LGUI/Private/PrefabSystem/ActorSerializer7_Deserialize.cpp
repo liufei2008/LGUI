@@ -11,7 +11,6 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
 #include "UObject/UObjectThreadContext.h"
 #include "PrefabSystem/LGUIPrefabSettings.h"
@@ -330,22 +329,7 @@ namespace LGUIPrefabSystem7
 			}
 			//for UI
 			{
-				auto RootUIComp = Cast<UUIItem>(RootComp);
-				if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
-				{
-					if (Parent)
-					{
-						//recreate hierarchy index
-						if (bSetHierarchyIndexForRootComponent)
-						{
-							RootUIComp->SetAsLastHierarchy();
-						}
-					}
-					else
-					{
-						RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
-					}
-				}
+				LGUIPrefabManager->AttachRootActor(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 			}
 			RootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)

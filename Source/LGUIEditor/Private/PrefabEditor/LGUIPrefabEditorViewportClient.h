@@ -91,7 +91,6 @@ public:
 	bool FocusViewportToTargets();
 
 private:
-	int IndexOfClickSelectUI = -1;
 	int PrevMouseX = 0, PrevMouseY = 0;
 
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;

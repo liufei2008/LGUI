@@ -264,65 +264,6 @@ uint32 ULGUIEditorManagerObject::GetViewportKeyFromIndex(int32 InViewportIndex)
 	}
 	return 0;
 }
-
-bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-	, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
-)
-{
-	TArray<FHitResult> HitResultArray;
-	for (auto& uiItem : InUIItems)
-	{
-		if (uiItem->GetWorld() == InWorld)
-		{
-			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
-			{
-				if (uiRenderable->GetIsUIActiveInHierarchy() && uiRenderable->GetRenderCanvas() != nullptr)
-				{
-					FHitResult hitInfo;
-					auto OriginRaycastType = uiRenderable->GetRaycastType();
-					auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
-					uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
-					uiRenderable->SetRaycastTarget(true);
-					if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
-					{
-						if (uiRenderable->GetRenderCanvas()->CalculatePointVisibilityOnClip(hitInfo.Location))
-						{
-							HitResultArray.Add(hitInfo);
-						}
-					}
-					uiRenderable->SetRaycastType(OriginRaycastType);
-					uiRenderable->SetRaycastTarget(OriginRaycastTarget);
-				}
-			}
-		}
-	}
-	if (HitResultArray.Num() > 0)//hit something
-	{
-		HitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
-			{
-				auto AUIRenderable = (UUIBaseRenderable*)(A.Component.Get());
-				auto BUIRenderable = (UUIBaseRenderable*)(B.Component.Get());
-				if (AUIRenderable->GetRenderCanvas()->GetActualSortOrder() == BUIRenderable->GetRenderCanvas()->GetActualSortOrder())//if Canvas's sort order is equal then sort on item's depth
-				{
-					return AUIRenderable->GetFlattenHierarchyIndex() > BUIRenderable->GetFlattenHierarchyIndex();
-				}
-				else//if Canvas's depth not equal then sort on Canvas's SortOrder
-				{
-					return AUIRenderable->GetRenderCanvas()->GetActualSortOrder() > BUIRenderable->GetRenderCanvas()->GetActualSortOrder();
-				}
-			});
-		InOutTargetIndexInHitArray++;
-		if (InOutTargetIndexInHitArray >= HitResultArray.Num() || InOutTargetIndexInHitArray < 0)
-		{
-			InOutTargetIndexInHitArray = 0;
-		}
-		auto uiRenderableComp = (UUIBaseRenderable*)(HitResultArray[InOutTargetIndexInHitArray].Component.Get());//target need to select
-		ResultSelectTarget = uiRenderableComp;
-		return true;
-	}
-	return false;
-}
-
 #endif
 
 
@@ -704,6 +645,87 @@ void ULGUIManagerWorldSubsystem::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVe
 		ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
 	}
 }
+
+bool ULGUIManagerWorldSubsystem::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+	, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
+)
+{
+	TArray<FHitResult> HitResultArray;
+	for (auto& uiItem : InUIItems)
+	{
+		if (uiItem->GetWorld() == InWorld)
+		{
+			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
+			{
+				if (uiRenderable->GetIsUIActiveInHierarchy() && uiRenderable->GetRenderCanvas() != nullptr)
+				{
+					FHitResult hitInfo;
+					auto OriginRaycastType = uiRenderable->GetRaycastType();
+					auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
+					uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
+					uiRenderable->SetRaycastTarget(true);
+					if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
+					{
+						if (uiRenderable->GetRenderCanvas()->CalculatePointVisibilityOnClip(hitInfo.Location))
+						{
+							HitResultArray.Add(hitInfo);
+						}
+					}
+					uiRenderable->SetRaycastType(OriginRaycastType);
+					uiRenderable->SetRaycastTarget(OriginRaycastTarget);
+				}
+			}
+		}
+	}
+	if (HitResultArray.Num() > 0)//hit something
+	{
+		HitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
+			{
+				auto AUIRenderable = (UUIBaseRenderable*)(A.Component.Get());
+				auto BUIRenderable = (UUIBaseRenderable*)(B.Component.Get());
+				if (AUIRenderable->GetRenderCanvas()->GetActualSortOrder() == BUIRenderable->GetRenderCanvas()->GetActualSortOrder())//if Canvas's sort order is equal then sort on item's depth
+				{
+					return AUIRenderable->GetFlattenHierarchyIndex() > BUIRenderable->GetFlattenHierarchyIndex();
+				}
+				else//if Canvas's depth not equal then sort on Canvas's SortOrder
+				{
+					return AUIRenderable->GetRenderCanvas()->GetActualSortOrder() > BUIRenderable->GetRenderCanvas()->GetActualSortOrder();
+				}
+			});
+		InOutTargetIndexInHitArray++;
+		if (InOutTargetIndexInHitArray >= HitResultArray.Num() || InOutTargetIndexInHitArray < 0)
+		{
+			InOutTargetIndexInHitArray = 0;
+		}
+		auto uiRenderableComp = (UUIBaseRenderable*)(HitResultArray[InOutTargetIndexInHitArray].Component.Get());//target need to select
+		ResultSelectTarget = uiRenderableComp;
+		return true;
+	}
+	return false;
+}
+
+void ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick(const FVector& RayOrigin, const FVector& RayDirection, AActor*& ClickHitActor)
+{
+	float LineTraceLength = 100000;
+	//find hit UIBatchGeometryRenderable
+	auto LineStart = RayOrigin;
+	auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
+	UUIBaseRenderable* ClickHitUI = nullptr;
+	static TArray<UUIItem*> AllUIItemArray;
+	AllUIItemArray.Reset();
+	for (auto& CanvasItem : AllCanvasArray)
+	{
+		AllUIItemArray.Append(CanvasItem->GetUIItemArray());
+	}
+	if (ULGUIManagerWorldSubsystem::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI, IndexOfClickSelectUI))
+	{
+		ClickHitActor = ClickHitUI->GetOwner();
+	}
+}
+void ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseMove()
+{
+	IndexOfClickSelectUI = INDEX_NONE;
+}
 #endif
 
 void ULGUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -721,6 +743,27 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 	check(PrefabManager);
 	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);
 	PrefabManager->OnEndDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor);
+	PrefabManager->OnAttachRootActor.AddStatic([](USceneComponent* RootComp, USceneComponent* ParentComp, bool bSetHierarchyIndex) {
+		auto RootUIComp = Cast<UUIItem>(RootComp);
+		if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
+		{
+			if (ParentComp)
+			{
+				//recreate hierarchy index
+				if (bSetHierarchyIndex)
+				{
+					RootUIComp->SetAsLastHierarchy();
+				}
+			}
+			else
+			{
+				RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
+			}
+		}
+		});
+#if WITH_EDITOR
+	PrefabManager->OnPrefabEditorViewport_MouseClick.AddUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);
+#endif
 }
 void ULGUIManagerWorldSubsystem::Deinitialize()
 {

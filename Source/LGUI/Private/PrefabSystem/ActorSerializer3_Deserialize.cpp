@@ -11,7 +11,6 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -186,22 +185,13 @@ namespace LGUIPrefabSystem3
 		{
 			if (USceneComponent* RootComp = CreatedRootActor->GetRootComponent())
 			{
-				auto RootUIComp = Cast<UUIItem>(RootComp);
-				if (Parent)//if UIItem have parent, CheckUIActiveState will becalled when attach
+				if (Parent)
 				{
 					RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
-					//recreate hierarchy index
-					if (RootUIComp && bSetHierarchyIndexForRootComponent)
-					{
-						RootUIComp->SetAsLastHierarchy();
-					}
 				}
-				else
+				//for UI
 				{
-					if (RootUIComp)//for UIItem not have parent, need to CheckUIActiveState
-					{
-						RootUIComp->CheckUIActiveState();
-					}
+					LGUIPrefabManager->AttachRootActor(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 				}
 				RootComp->UpdateComponentToWorld();
 				if (ReplaceTransform)
