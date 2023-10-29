@@ -4,9 +4,9 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabLevelManagerActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUIEditorTools.h"
 #include "AssetRegistry/AssetData.h"
-#include "Core/Actor/LGUIManagerActor.h"
 #include "Utils/LGUIUtils.h"
 #include "Editor.h"
 #include "EditorActorFolders.h"
@@ -66,7 +66,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 	}
 	PrefabActor->MoveActorToPrefabFolder();
 	PrefabActor->SetFlags(EObjectFlags::RF_Transient);
-	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([=]() {
 		auto LoadedRootActor = PrefabActor->LoadedRootActor;
 		PrefabActor->LoadedRootActor = nullptr;
 		LGUIUtils::DestroyActorWithHierarchy(PrefabActor);

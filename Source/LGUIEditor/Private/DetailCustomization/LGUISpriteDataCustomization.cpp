@@ -7,7 +7,7 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/LGUIStaticSpriteAtlasData.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Sound/SoundCue.h"
 
 #include "LGUIEditorModule.h"
@@ -59,7 +59,7 @@ this can reduce the package size, because AtlasPacking already pack this SpriteT
 			.OnClicked_Lambda([this]{
 				TargetScriptPtr->ReloadTexture();
 				TargetScriptPtr->MarkPackageDirty();
-				ALGUIManagerActor::RefreshAllUI();
+				ULGUIManagerWorldSubsystem::RefreshAllUI();
 				return FReply::Handled();
 			})
 		];

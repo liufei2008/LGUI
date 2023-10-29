@@ -3,7 +3,8 @@
 #include "Extensions/LGUIImageSequencePlayer.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UITexture.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 ULGUIImageSequencePlayer::ULGUIImageSequencePlayer()
 {
@@ -30,7 +31,7 @@ void ULGUIImageSequencePlayer::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		editorPlayDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
+		editorPlayDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
 			if (!previewInEditor)return;
 			if (!CanPlay())return;
 			duration = GetDuration();
@@ -46,7 +47,7 @@ void ULGUIImageSequencePlayer::OnUnregister()
 #if WITH_EDITOR
 	if (editorPlayDelegateHandle.IsValid())
 	{
-		ULGUIEditorManagerObject::UnregisterEditorTickFunction(editorPlayDelegateHandle);
+		ULGUIPrefabManagerObject::UnregisterEditorTickFunction(editorPlayDelegateHandle);
 	}
 #endif
 }

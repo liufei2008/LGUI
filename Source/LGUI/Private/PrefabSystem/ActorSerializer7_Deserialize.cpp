@@ -9,12 +9,12 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/SplineComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
 #include "UObject/UObjectThreadContext.h"
-#include "Core/LGUISettings.h"
+#include "PrefabSystem/LGUIPrefabSettings.h"
 #include "Serialization/MemoryReader.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 #if WITH_EDITOR
@@ -210,12 +210,16 @@ namespace LGUIPrefabSystem7
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
+		if (LGUIPrefabManager == nullptr)
+		{
+			LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(TargetWorld);
+		}
 		if (!bIsSubPrefab)
 		{
 			if (!DeserializationSessionId.IsValid())
 			{
 				DeserializationSessionId = FGuid::NewGuid();
-				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+				LGUIPrefabManager->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 		auto CreatedRootActor = GenerateActorArray(SaveData.SavedActors, SaveData.SavedObjects, SaveData.MapSceneComponentToParent, FGuid());
@@ -226,7 +230,7 @@ namespace LGUIPrefabSystem7
 			if (!bIsSubPrefab)
 			{
 				check(DeserializationSessionId.IsValid());
-				LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+				LGUIPrefabManager->EndPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 			return nullptr;
 		}
@@ -270,7 +274,7 @@ namespace LGUIPrefabSystem7
 					if (!ParentComp)
 					{
 #if WITH_EDITOR
-						if (TargetWorld != ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage())//skip preview world, only show this in PrefabEditor or LevelEditor
+						if (TargetWorld != ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage())//skip preview world, only show this in PrefabEditor or LevelEditor
 						{
 							auto MissingParentMsg = FText::Format(LOCTEXT("MissingParentMsg", "Prefab '{0}' fail to find parent for component '{1}.{2}', do you delete it? The component will attach to root")
 								, FText::FromString(PrefabAssetPath), FText::FromString(SceneComp->GetOwner()->GetActorLabel()), FText::FromString(SceneComp->GetName()));
@@ -382,9 +386,9 @@ namespace LGUIPrefabSystem7
 			check(DeserializationSessionId.IsValid());
 			for (auto item : AllActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
+				LGUIPrefabManager->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+			LGUIPrefabManager->EndPrefabSystemProcessingActor(DeserializationSessionId);
 
 #if WITH_EDITOR
 			if (!TargetWorld->IsGameWorld())
@@ -438,7 +442,6 @@ namespace LGUIPrefabSystem7
 	{
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
-		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -492,14 +495,14 @@ namespace LGUIPrefabSystem7
 		if (InCallbackBeforeDeserialize != nullptr)InCallbackBeforeDeserialize();
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 
-		if (ULGUISettings::GetLogPrefabLoadTime())
+		if (ULGUIPrefabSettings::GetLogPrefabLoadTime())
 		{
 			auto TimeSpan = FDateTime::Now() - StartTime;
 			UE_LOG(LGUI, Log, TEXT("Load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
 		}
 
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;
@@ -825,7 +828,7 @@ namespace LGUIPrefabSystem7
 						bNeedFinishSpawn = true;
 					}
 					//add actor before FinishSpawing, so it's good for component (or other default subobject) to check if actor is processing by prefab system
-					LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
+					LGUIPrefabManager->AddActorForPrefabSystem(NewActor, DeserializationSessionId);
 					if (bNeedFinishSpawn)
 					{
 						NewActor->FinishSpawning(FTransform::Identity, true);

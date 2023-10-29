@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
@@ -20,6 +20,7 @@
 #include "Core/ILGUICultureChangedInterface.h"
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "Layout/ILGUILayoutInterface.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -33,50 +34,7 @@
 #define LOCTEXT_NAMESPACE "LGUIManagerObject"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
-UE_DISABLE_OPTIMIZATION
-#endif
-
-#if WITH_EDITOR
-class FLGUIObjectCreateDeleteListener : public FUObjectArray::FUObjectCreateListener, public FUObjectArray::FUObjectDeleteListener
-{
-public:
-	ULGUIEditorManagerObject* Manager = nullptr;
-	FLGUIObjectCreateDeleteListener(ULGUIEditorManagerObject* InManager)
-	{
-		Manager = InManager;
-		GUObjectArray.AddUObjectCreateListener(this);
-		GUObjectArray.AddUObjectDeleteListener(this);
-	}
-	~FLGUIObjectCreateDeleteListener()
-	{
-		GUObjectArray.RemoveUObjectCreateListener(this);
-		GUObjectArray.RemoveUObjectDeleteListener(this);
-	}
-
-	virtual void NotifyUObjectCreated(const class UObjectBase* Object, int32 Index)override
-	{
-		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
-		{
-			if (Comp->IsVisualizationComponent())return;
-			if (auto Actor = Comp->GetOwner())
-			{
-				Manager->OnComponentCreateDelete().Broadcast(true, Comp, Actor);
-			}
-		}
-	}
-	virtual void NotifyUObjectDeleted(const class UObjectBase* Object, int32 Index)override
-	{
-		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
-		{
-			if (Comp->IsVisualizationComponent())return;
-			if (auto Actor = Comp->GetOwner())
-			{
-				Manager->OnComponentCreateDelete().Broadcast(false, Comp, Actor);
-			}
-		}
-	}
-	virtual void OnUObjectArrayShutdown()override {};
-};
+PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::Instance = nullptr;
@@ -123,17 +81,6 @@ void ULGUIEditorManagerObject::BeginDestroy()
 			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
 		}
 	}
-
-	//cleanup preview world
-	if (PreviewWorldForPrefabPackage && GEngine)
-	{
-		PreviewWorldForPrefabPackage->CleanupWorld();
-		GEngine->DestroyWorldContext(PreviewWorldForPrefabPackage);
-		PreviewWorldForPrefabPackage->ReleasePhysicsScene();
-	}
-
-	delete ObjectCreateDeleteListener;
-	ObjectCreateDeleteListener = nullptr;
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -141,48 +88,8 @@ void ULGUIEditorManagerObject::BeginDestroy()
 
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
-#if WITH_EDITORONLY_DATA
-	if (EditorTick.IsBound())
-	{
-		EditorTick.Broadcast(DeltaTime);
-	}
-	if (OneShotFunctionsToExecuteInTick.Num() > 0)
-	{
-		for (int i = 0; i < OneShotFunctionsToExecuteInTick.Num(); i++)
-		{
-			auto& Item = OneShotFunctionsToExecuteInTick[i];
-			if (Item.Key <= 0)
-			{
-				Item.Value();
-				OneShotFunctionsToExecuteInTick.RemoveAt(i);
-				i--;
-			}
-			else
-			{
-				Item.Key--;
-			}
-		}
-	}
-#endif
 #if WITH_EDITOR
-	for (auto& KeyValue : ALGUIManagerActor::GetWorldToInstanceMap())
-	{
-		if (!KeyValue.Key->IsGameWorld())
-		{
-			KeyValue.Value->Tick(DeltaTime);
-		}
-	}
-
 	CheckEditorViewportIndexAndKey();
-
-	if (bShouldBroadcastLevelActorListChanged)
-	{
-		bShouldBroadcastLevelActorListChanged = false;
-		if (IsValid(GEditor))
-		{
-			GEditor->BroadcastLevelActorListChanged();
-		}
-	}
 #endif
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
@@ -191,28 +98,6 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 }
 
 #if WITH_EDITOR
-
-void ULGUIEditorManagerObject::AddOneShotTickFunction(const TFunction<void()>& InFunction, int InDelayFrameCount)
-{
-	InitCheck();
-	InDelayFrameCount = FMath::Max(0, InDelayFrameCount);
-	TTuple<int, TFunction<void()>> Item;
-	Item.Key = InDelayFrameCount;
-	Item.Value = InFunction;
-	Instance->OneShotFunctionsToExecuteInTick.Add(Item);
-}
-FDelegateHandle ULGUIEditorManagerObject::RegisterEditorTickFunction(const TFunction<void(float)>& InFunction)
-{
-	InitCheck();
-	return Instance->EditorTick.AddLambda(InFunction);
-}
-void ULGUIEditorManagerObject::UnregisterEditorTickFunction(const FDelegateHandle& InDelegateHandle)
-{
-	if (Instance != nullptr)
-	{
-		Instance->EditorTick.Remove(InDelegateHandle);
-	}
-}
 FDelegateHandle ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction)
 {
 	InitCheck();
@@ -253,23 +138,18 @@ bool ULGUIEditorManagerObject::InitCheck()
 			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintPreCompile);
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintCompiled);
 		}
-		Instance->ObjectCreateDeleteListener = new FLGUIObjectCreateDeleteListener(Instance);
 	}
 	return true;
 }
 
 void ULGUIEditorManagerObject::OnBlueprintPreCompile(UBlueprint* InBlueprint)
 {
-	bIsBlueprintCompiling = true;
+	
 }
 void ULGUIEditorManagerObject::OnBlueprintCompiled()
 {
-	bIsBlueprintCompiling = true;
-	AddOneShotTickFunction([this] {
-		bIsBlueprintCompiling = false; 
-		}, 2);
-	AddOneShotTickFunction([] {
-		ALGUIManagerActor::RefreshAllUI();
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([] {
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 		});
 }
 
@@ -298,7 +178,7 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 			//Refresh ui
 			if (needToRebuildUI)
 			{
-				ALGUIManagerActor::RefreshAllUI();
+				ULGUIManagerWorldSubsystem::RefreshAllUI();
 			}
 		}
 	}
@@ -321,40 +201,6 @@ void ULGUIEditorManagerObject::OnPackageReloaded(EPackageReloadPhase Phase, FPac
 	}
 }
 
-UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
-{
-	InitCheck();
-	auto& PreviewWorldForPrefabPackage = Instance->PreviewWorldForPrefabPackage;
-	if (PreviewWorldForPrefabPackage == nullptr)
-	{
-		FName UniqueWorldName = MakeUniqueObjectName(Instance, UWorld::StaticClass(), FName("LGUI_PreviewWorldForPrefabPackage"));
-		PreviewWorldForPrefabPackage = NewObject<UWorld>(Instance, UniqueWorldName);
-		PreviewWorldForPrefabPackage->AddToRoot();
-		PreviewWorldForPrefabPackage->WorldType = EWorldType::EditorPreview;
-
-		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(PreviewWorldForPrefabPackage->WorldType);
-		WorldContext.SetCurrentWorld(PreviewWorldForPrefabPackage);
-
-		PreviewWorldForPrefabPackage->InitializeNewWorld(UWorld::InitializationValues()
-			.AllowAudioPlayback(false)
-			.CreatePhysicsScene(false)
-			.RequiresHitProxies(false)
-			.CreateNavigation(false)
-			.CreateAISystem(false)
-			.ShouldSimulatePhysics(false)
-			.SetTransactional(false));
-	}
-	return PreviewWorldForPrefabPackage;
-}
-bool ULGUIEditorManagerObject::GetIsBlueprintCompiling()
-{
-	if (InitCheck())
-	{
-		return Instance->bIsBlueprintCompiling;
-	}
-	return false;
-}
-
 void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 {
 	if (!IsValid(actor))return;
@@ -375,34 +221,6 @@ void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 			LGUIUtils::NotifyPropertyChanged(rootUIComp, FName(TEXT("displayName")));
 		}
 	}
-}
-
-void ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged()
-{
-	if (Instance != nullptr)
-	{
-		Instance->bShouldBroadcastLevelActorListChanged = true;
-	}
-}
-
-bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
-{
-	if (!IsValid(GEditor))return false;
-	return GEditor->GetSelectedActors()->IsSelected(InObject);
-}
-
-bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
-{
-	if (!IsValid(GEditor))return false;
-	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
-	{
-		auto itrActor = Cast<AActor>(*itr);
-		if (IsValid(itrActor) && itrActor->IsAttachedTo(InObject))
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
@@ -510,12 +328,12 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 
 
 #if WITH_EDITOR
-void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
+void ULGUIManagerWorldSubsystem::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 {
 	auto RectExtends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
 	bool bCanDrawRect = false;
 	auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
-	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
+	if (ULGUIPrefabManagerObject::IsSelected(item->GetOwner()))//select self
 	{
 		RectDrawColor = FColor(0, 255, 0, 255);//green means selected object
 		RectExtends.X = 1;
@@ -533,7 +351,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
 			if (IsScreenSpace)
 			{
-				ALGUIManagerActor::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+				ULGUIManagerWorldSubsystem::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
 			}
 			else
 			{
@@ -546,7 +364,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 		//parent selected
 		if (IsValid(item->GetParentUIItem()))
 		{
-			if (ULGUIEditorManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
+			if (ULGUIPrefabManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
 			{
 				bCanDrawRect = true;
 			}
@@ -555,7 +373,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 		auto& childrenCompArray = item->GetAttachUIChildren();
 		for (auto& uiComp : childrenCompArray)
 		{
-			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIPrefabManagerObject::IsSelected(uiComp->GetOwner()))
 			{
 				bCanDrawRect = true;
 				break;
@@ -567,7 +385,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 			const auto& sameLevelCompArray = item->GetParentUIItem()->GetAttachUIChildren();
 			for (auto& uiComp : sameLevelCompArray)
 			{
-				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIPrefabManagerObject::IsSelected(uiComp->GetOwner()))
 				{
 					bCanDrawRect = true;
 					break;
@@ -582,7 +400,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 		{
 			if (auto canvasScaler = item->GetOwner()->FindComponentByClass<ULGUICanvasScaler>())
 			{
-				if (ULGUIEditorManagerObject::AnySelectedIsChildOf(item->GetOwner()))
+				if (ULGUIPrefabManagerObject::AnySelectedIsChildOf(item->GetOwner()))
 				{
 					bCanDrawRect = true;
 					RectDrawColor = FColor(255, 227, 124);
@@ -601,7 +419,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 
 		if (IsScreenSpace)
 		{
-			ALGUIManagerActor::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
+			ULGUIManagerWorldSubsystem::DrawDebugRectOnScreenSpace(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
 		}
 		else
 		{
@@ -610,7 +428,7 @@ void ALGUIManagerActor::DrawFrameOnUIItem(UUIItem* item, bool IsScreenSpace)
 	}
 }
 
-void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace)
+void ULGUIManagerWorldSubsystem::DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace)
 {
 	if (InControlPoints.Num() != 4)return;
 	TArray<FVector> ResultPoints;
@@ -642,7 +460,7 @@ void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVecto
 
 	if (IsScreenSpace)
 	{
-		auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+		auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(InWorld, false);
 		if (ViewExtension.IsValid())
 		{
 			TArray<FLGUIHelperLineVertex> Lines;
@@ -678,11 +496,11 @@ void ALGUIManagerActor::DrawNavigationArrow(UWorld* InWorld, const TArray<FVecto
 	}
 }
 
-void ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace)
+void ULGUIManagerWorldSubsystem::DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace)
 {
 	auto SourceUIItem = InSelectable->GetRootUIComponent();
 	if (!IsValid(SourceUIItem))return;
-	const FColor Drawcall = ULGUIEditorManagerObject::IsSelected(SourceUIItem->GetOwner()) ? FColor(255, 255, 0, 255) : FColor(140, 140, 0, 255);
+	const FColor Drawcall = ULGUIPrefabManagerObject::IsSelected(SourceUIItem->GetOwner()) ? FColor(255, 255, 0, 255) : FColor(140, 140, 0, 255);
 	const float Offset = 2;
 	const float ArrowSize = 2;
 
@@ -784,9 +602,9 @@ void ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, 
 	}
 }
 
-void ALGUIManagerActor::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
+void ULGUIManagerWorldSubsystem::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
 {
-	auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+	auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(InWorld, false);
 	if (ViewExtension.IsValid())
 	{
 		TArray<FLGUIHelperLineVertex> Lines;
@@ -855,9 +673,9 @@ void ALGUIManagerActor::DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const
 		ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
 	}
 }
-void ALGUIManagerActor::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
+void ULGUIManagerWorldSubsystem::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color)
 {
-	auto ViewExtension = ALGUIManagerActor::GetViewExtension(InWorld, false);
+	auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(InWorld, false);
 	if (ViewExtension.IsValid())
 	{
 		TArray<FLGUIHelperLineVertex> Lines;
@@ -888,120 +706,66 @@ void ALGUIManagerActor::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector cons
 }
 #endif
 
-TMap<UWorld*, ALGUIManagerActor*> ALGUIManagerActor::WorldToInstanceMap ;
-ALGUIManagerActor::ALGUIManagerActor()
+void ULGUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = ETickingGroup::TG_DuringPhysics;
-	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-#if WITH_EDITORONLY_DATA
-	bListedInSceneOutliner = false;
-#endif
-}
-
-void ALGUIManagerActor::BeginPlay()
-{
-	Super::BeginPlay();
-#if WITH_EDITORONLY_DATA
-	//only show in play mode
-	bListedInSceneOutliner = true;
+	Super::Initialize(Collection);
+#if WITH_EDITOR
+	InstanceArray.Add(this);
 #endif
 	//localization
-	onCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ALGUIManagerActor::OnCultureChanged);
+	OnCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ULGUIManagerWorldSubsystem::OnCultureChanged);
 }
-void ALGUIManagerActor::BeginDestroy()
+void ULGUIManagerWorldSubsystem::PostInitialize()
 {
-	if (WorldToInstanceMap.Num() > 0 && bExistInInstanceMap)
-	{
-		bool removed = false;
-		if (auto world = this->GetWorld())
-		{
-			WorldToInstanceMap.Remove(world);
-			removed = true;
-		}
-		else
-		{
-			world = nullptr;
-			for (auto& keyValue : WorldToInstanceMap)
-			{
-				if (keyValue.Value == this)
-				{
-					world = keyValue.Key;
-				}
-			}
-			if (world != nullptr)
-			{
-				WorldToInstanceMap.Remove(world);
-				removed = true;
-			}
-		}
-		if (removed)
-		{
-			bExistInInstanceMap = false;
-		}
-		else
-		{
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::BeginDestroy]Cannot remove instance!"));
-		}
-	}
-	if (WorldToInstanceMap.Num() <= 0)
-	{
-		UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::BeginDestroy]All instance removed."));
-	}
+	auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+	check(PrefabManager);
+	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);
+	PrefabManager->OnEndDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor);
+}
+void ULGUIManagerWorldSubsystem::Deinitialize()
+{
+	Super::Deinitialize();
+#if WITH_EDITOR
+	InstanceArray.Remove(this);
+#endif
 	if (ScreenSpaceOverlayViewExtension.IsValid())
 	{
 		ScreenSpaceOverlayViewExtension.Reset();
 	}
-	Super::BeginDestroy();
-	if (onCultureChangedDelegateHandle.IsValid())
+	if (OnCultureChangedDelegateHandle.IsValid())
 	{
-		FInternationalization::Get().OnCultureChanged().Remove(onCultureChangedDelegateHandle);
+		FInternationalization::Get().OnCultureChanged().Remove(OnCultureChangedDelegateHandle);
 	}
 }
+TStatId ULGUIManagerWorldSubsystem::GetStatId() const
+{
+	//return GetStatID();
+	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIManagerWorldSubsystem, STATGROUP_Tickables);
+}
 
-void ALGUIManagerActor::OnCultureChanged()
+void ULGUIManagerWorldSubsystem::OnCultureChanged()
 {
 	bShouldUpdateOnCultureChanged = true;
 }
 
-ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
+ULGUIManagerWorldSubsystem* ULGUIManagerWorldSubsystem::GetInstance(UWorld* InWorld)
 {
-#if WITH_EDITOR
-	if (IsValid(InWorld) && (InWorld->WorldType == EWorldType::Editor || InWorld->WorldType == EWorldType::EditorPreview))
+	if (FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(InWorld))
 	{
-		ULGUIEditorManagerObject::GetInstance(CreateIfNotValid);
-	}
-#endif
-	if (IsValid(InWorld))
-	{
-		if (auto instance = WorldToInstanceMap.Find(InWorld))
-		{
-			return *instance;
-		}
-		else
-		{
-			if (CreateIfNotValid)
-			{
-				FActorSpawnParameters param = FActorSpawnParameters();
-				param.ObjectFlags = RF_Transient;
-				if (auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param))
-				{
-					WorldToInstanceMap.Add(InWorld, newInstance);
-					UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance] No Instance for LGUIManagerActor in world '%s', create!"), *(InWorld->GetPathName()));
-					newInstance->bExistInInstanceMap = true;
-					return newInstance;
-				}
-			}
-		}
+		return InWorld->GetSubsystem<ULGUIManagerWorldSubsystem>();
 	}
 	return nullptr;
 }
+
+#if WITH_EDITOR
+TArray<ULGUIManagerWorldSubsystem*> ULGUIManagerWorldSubsystem::InstanceArray;
+#endif
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Start"), STAT_LGUILifeCycleBehaviourStart, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UpdateLayoutInterface"), STAT_UpdateLayoutInterface, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas Update"), STAT_UpdateCanvas, STATGROUP_LGUI);
-void ALGUIManagerActor::Tick(float DeltaTime)
+void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 {
 	//editor draw helper frame
 #if WITH_EDITOR
@@ -1024,7 +788,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 						if (!IsValid(UIItem))continue;
 						if (!IsValid(UIItem->GetWorld()))continue;
 
-						ALGUIManagerActor::DrawFrameOnUIItem(UIItem, this->GetWorld()->IsGameWorld() ? UIItem->IsScreenSpaceOverlayUI() : false);
+						ULGUIManagerWorldSubsystem::DrawFrameOnUIItem(UIItem, this->GetWorld()->IsGameWorld() ? UIItem->IsScreenSpaceOverlayUI() : false);
 					}
 				}
 			}
@@ -1039,7 +803,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				if (!IsValid(item->GetRootUIComponent()))continue;
 				if (!item->GetRootUIComponent()->GetIsUIActiveInHierarchy())continue;
 
-				ALGUIManagerActor::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), this->GetWorld()->IsGameWorld() ? item->GetRootUIComponent()->IsScreenSpaceOverlayUI() : false);
+				ULGUIManagerWorldSubsystem::DrawNavigationVisualizerOnUISelectable(item->GetWorld(), item.Get(), this->GetWorld()->IsGameWorld() ? item->GetRootUIComponent()->IsScreenSpaceOverlayUI() : false);
 			}
 		}
 	}
@@ -1212,7 +976,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	}
 }
 
-void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray)
+void ULGUIManagerWorldSubsystem::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, const TArray<TWeakObjectPtr<ULGUICanvas>>& InCanvasArray)
 {
 	for (int i = 0; i < InCanvasArray.Num(); i++)
 	{
@@ -1227,31 +991,28 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, c
 	}
 }
 
-void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
-		if (auto Instance = GetInstance(InComp->GetWorld(), true))
+		if (auto Instance = GetInstance(InComp->GetWorld()))
 		{
-			if (auto PrefabDeserializeSessionPtr = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
+			auto SessionId = ULGUIPrefabWorldSubsystem::GetInstance(InComp->GetWorld())->GetPrefabSystemSessionIdForActor(InComp->GetOwner());
+			if (SessionId.IsValid())//processing by prefab system, collect for further operation
 			{
-				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(PrefabDeserializeSessionPtr->Key))
+				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(SessionId))
 				{
 					InComp->bIsSerializedFromLGUIPrefab = true;
 					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
-					auto FoundIndex = CompArray.IndexOfByPredicate([InComp](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& Item) {
-						return InComp == Item.Key;
-						});
-					if (FoundIndex != INDEX_NONE)
+#if !UE_BUILD_SHIPPING
+					if (CompArray.Contains(InComp))
 					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
+						UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 						FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 						return;
 					}
-					TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32> Item;
-					Item.Key = InComp;
-					Item.Value = PrefabDeserializeSessionPtr->Value;
-					CompArray.Add(Item);
+#endif
+					CompArray.Add(InComp);
 				}
 			}
 			else//not processed by prefab system, just do immediately
@@ -1262,11 +1023,11 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 	}
 }
 
-void ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
-		if (auto Instance = GetInstance(InComp->GetWorld(), true))
+		if (auto Instance = GetInstance(InComp->GetWorld()))
 		{
 			int32 index = INDEX_NONE;
 			if (!Instance->LGUILifeCycleBehavioursForUpdate.Find(InComp, index))
@@ -1274,15 +1035,15 @@ void ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehavi
 				Instance->LGUILifeCycleBehavioursForUpdate.Add(InComp);
 				return;
 			}
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate]Already exist, comp:%s"), *(InComp->GetPathName()));
+			UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForUpdate]Already exist, comp:%s"), *(InComp->GetPathName()));
 		}
 	}
 }
-void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
-		if (auto Instance = GetInstance(InComp->GetWorld(), false))
+		if (auto Instance = GetInstance(InComp->GetWorld()))
 		{
 			auto& updateArray = Instance->LGUILifeCycleBehavioursForUpdate;
 			int32 index = INDEX_NONE;
@@ -1306,7 +1067,7 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBe
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate]Not exist, comp:%s"), *(InComp->GetPathName()));
+				UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromUpdate]Not exist, comp:%s"), *(InComp->GetPathName()));
 			}
 
 			//cleanup array
@@ -1321,17 +1082,17 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBe
 			}
 			if (inValidCount > 0)
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
+				UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromUpdate]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
 			}
 		}
 	}
 }
 
-void ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForStart(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
-		if (auto Instance = GetInstance(InComp->GetWorld(), true))
+		if (auto Instance = GetInstance(InComp->GetWorld()))
 		{
 			int32 index = INDEX_NONE;
 			if (!Instance->LGUILifeCycleBehavioursForStart.Find(InComp, index))
@@ -1339,15 +1100,15 @@ void ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(ULGUILifeCycleBehavio
 				Instance->LGUILifeCycleBehavioursForStart.Add(InComp);
 				return;
 			}
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart]Already exist, comp:%s"), *(InComp->GetPathName()));
+			UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForStart]Already exist, comp:%s"), *(InComp->GetPathName()));
 		}
 	}
 }
-void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
-		if (auto Instance = GetInstance(InComp->GetWorld(), false))
+		if (auto Instance = GetInstance(InComp->GetWorld()))
 		{
 			auto& startArray = Instance->LGUILifeCycleBehavioursForStart;
 			int32 index = INDEX_NONE;
@@ -1367,7 +1128,7 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBeh
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart]Not exist, comp:%s"), *(InComp->GetPathName()));
+				UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromStart]Not exist, comp:%s"), *(InComp->GetPathName()));
 			}
 
 			//cleanup array
@@ -1382,20 +1143,20 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBeh
 			}
 			if (inValidCount > 0)
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
+				UE_LOG(LGUI, Warning, TEXT("[ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromStart]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
 			}
 		}
 	}
 }
 
-void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
+void ULGUIManagerWorldSubsystem::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
-	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 		Instance->AllCultureChangedArray.AddUnique(InItem.GetObject());
 	}
 }
-void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
+void ULGUIManagerWorldSubsystem::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
@@ -1403,7 +1164,7 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 	}
 }
 
-void ALGUIManagerActor::UpdateLayout()
+void ULGUIManagerWorldSubsystem::UpdateLayout()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateLayoutInterface);
 
@@ -1417,11 +1178,11 @@ void ALGUIManagerActor::UpdateLayout()
 		}
 	}
 }
-void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
+void ULGUIManagerWorldSubsystem::ForceUpdateLayout(UObject* WorldContextObject)
 {
 	if (auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
-		if (auto Instance = GetInstance(world, false))
+		if (auto Instance = GetInstance(world))
 		{
 			Instance->UpdateLayout();
 		}
@@ -1429,7 +1190,7 @@ void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
 }
 
 #if WITH_EDITOR
-void ALGUIManagerActor::RefreshAllUI(UWorld* InWorld)
+void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 {
 	struct Local
 	{
@@ -1446,16 +1207,16 @@ void ALGUIManagerActor::RefreshAllUI(UWorld* InWorld)
 		}
 	};
 
-	for (auto& KeyValue : WorldToInstanceMap)
+	for (auto InstanceItem : InstanceArray)
 	{
-		if (InWorld != nullptr)
+		if (InstanceItem != nullptr)
 		{
-			if (KeyValue.Key != InWorld)
+			if (InstanceItem->GetWorld() != InWorld)
 			{
 				continue;
 			}
 		}
-		auto Instance = KeyValue.Value;
+		auto Instance = InstanceItem;
 		for (auto& Layout : Instance->AllLayoutArray)
 		{
 			if (Layout.IsValid())
@@ -1482,41 +1243,44 @@ void ALGUIManagerActor::RefreshAllUI(UWorld* InWorld)
 }
 #endif
 
-void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
+void ULGUIManagerWorldSubsystem::AddRootUIItem(UUIItem* InItem)
 {
-	if (auto Instance = GetInstance(InItem->GetWorld(), true))
+	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (Instance->AllRootUIItemArray.Contains(InItem))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllRootUIItemArray.AddUnique(InItem);
 	}
 }
-void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
+void ULGUIManagerWorldSubsystem::RemoveRootUIItem(UUIItem* InItem)
 {
-	if (auto Instance = GetInstance(InItem->GetWorld(), false))
+	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (!Instance->AllRootUIItemArray.Contains(InItem))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllRootUIItemArray.RemoveSingle(InItem);
 	}
 }
 
-void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
+void ULGUIManagerWorldSubsystem::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
 {
-	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
+	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (Instance->AllCanvasArray.Contains(InCanvas))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllCanvasArray.AddUnique(InCanvas);
@@ -1541,14 +1305,15 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurre
 		}
 	}
 }
-void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
+void ULGUIManagerWorldSubsystem::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode)
 {
-	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
+	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (!Instance->AllCanvasArray.Contains(InCanvas))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllCanvasArray.RemoveSingle(InCanvas);
@@ -1569,14 +1334,15 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCu
 		}
 	}
 }
-void ALGUIManagerActor::CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRenderMode InOldRenderMode, ELGUIRenderMode InNewRenderMode)
+void ULGUIManagerWorldSubsystem::CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRenderMode InOldRenderMode, ELGUIRenderMode InNewRenderMode)
 {
-	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
+	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (!Instance->AllCanvasArray.Contains(InCanvas))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		//remove from old
@@ -1613,26 +1379,26 @@ void ALGUIManagerActor::CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRende
 		}
 	}
 }
-void ALGUIManagerActor::MarkSortScreenSpaceCanvas()
+void ULGUIManagerWorldSubsystem::MarkSortScreenSpaceCanvas()
 {
 	bShouldSortScreenSpaceCanvas = true;
 }
-void ALGUIManagerActor::MarkSortWorldSpaceLGUICanvas()
+void ULGUIManagerWorldSubsystem::MarkSortWorldSpaceLGUICanvas()
 {
 	bShouldSortWorldSpaceLGUICanvas = true;
 }
-void ALGUIManagerActor::MarkSortWorldSpaceCanvas()
+void ULGUIManagerWorldSubsystem::MarkSortWorldSpaceCanvas()
 {
 	bShouldSortWorldSpaceCanvas = true;
 }
-void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
+void ULGUIManagerWorldSubsystem::MarkSortRenderTargetSpaceCanvas()
 {
 	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
-TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
+TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ULGUIManagerWorldSubsystem::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
 {
-	if (auto Instance = GetInstance(InWorld, InCreateIfNotExist))
+	if (auto Instance = GetInstance(InWorld))
 	{
 		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
 		{
@@ -1646,9 +1412,9 @@ TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewE
 	return nullptr;
 }
 
-void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
+void ULGUIManagerWorldSubsystem::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
-	if (auto Instance = GetInstance(InRaycaster->GetWorld(), true))
+	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{
 		auto& AllRaycasterArray = Instance->AllRaycasterArray;
 		if (AllRaycasterArray.Contains(InRaycaster))return;
@@ -1683,7 +1449,7 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		});
 	}
 }
-void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
+void ULGUIManagerWorldSubsystem::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{
@@ -1695,14 +1461,14 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 	}
 }
 
-void ALGUIManagerActor::SetCurrentInputModule(ULGUIBaseInputModule* InInputModule)
+void ULGUIManagerWorldSubsystem::SetCurrentInputModule(ULGUIBaseInputModule* InInputModule)
 {
-	if (auto Instance = GetInstance(InInputModule->GetWorld(), true))
+	if (auto Instance = GetInstance(InInputModule->GetWorld()))
 	{
 		Instance->CurrentInputModule = InInputModule;
 	}
 }
-void ALGUIManagerActor::ClearCurrentInputModule(ULGUIBaseInputModule* InInputModule)
+void ULGUIManagerWorldSubsystem::ClearCurrentInputModule(ULGUIBaseInputModule* InInputModule)
 {
 	if (auto Instance = GetInstance(InInputModule->GetWorld()))
 	{
@@ -1710,16 +1476,22 @@ void ALGUIManagerActor::ClearCurrentInputModule(ULGUIBaseInputModule* InInputMod
 	}
 }
 
-void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
+void ULGUIManagerWorldSubsystem::AddSelectable(UUISelectableComponent* InSelectable)
 {
-	if (auto Instance = GetInstance(InSelectable->GetWorld(), true))
+	if (auto Instance = GetInstance(InSelectable->GetWorld()))
 	{
 		auto& AllSelectableArray = Instance->AllSelectableArray;
-		if (AllSelectableArray.Contains(InSelectable))return;
-		AllSelectableArray.Add(InSelectable);
+#if !UE_BUILD_SHIPPING
+		if (AllSelectableArray.Contains(InSelectable))
+		{
+			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		}
+#endif
+		AllSelectableArray.AddUnique(InSelectable);
 	}
 }
-void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
+void ULGUIManagerWorldSubsystem::RemoveSelectable(UUISelectableComponent* InSelectable)
 {
 	if (auto Instance = GetInstance(InSelectable->GetWorld()))
 	{
@@ -1731,20 +1503,21 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 	}
 }
 
-void ALGUIManagerActor::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
+void ULGUIManagerWorldSubsystem::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
-	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
 		if (Instance->AllLayoutArray.Contains(InItem.GetObject()))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllLayoutArray.AddUnique(InItem.GetObject());
 	}
 }
-void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
+void ULGUIManagerWorldSubsystem::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
@@ -1752,21 +1525,22 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 		if (!Instance->AllLayoutArray.Contains(InItem.GetObject()))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		}
 #endif
 		Instance->AllLayoutArray.RemoveSingle(InItem.GetObject());
 	}
 }
-void ALGUIManagerActor::MarkUpdateLayout(UWorld* InWorld)
+void ULGUIManagerWorldSubsystem::MarkUpdateLayout(UWorld* InWorld)
 {
-	if (auto Instance = GetInstance(InWorld, false))
+	if (auto Instance = GetInstance(InWorld))
 	{
 		Instance->bNeedUpdateLayout = true;
 	}
 }
 
 
-void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
+void ULGUIManagerWorldSubsystem::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
 {
 	if (InComp)
 	{
@@ -1786,12 +1560,12 @@ void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InCom
 		}
 	}
 }
-void ALGUIManagerActor::BeginPrefabSystemProcessingActor(const FGuid& InSessionId)
+void ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor(const FGuid& InSessionId)
 {
 	FLGUILifeCycleBehaviourArrayContainer Container;
 	LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InSessionId, Container);
 }
-void ALGUIManagerActor::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
+void ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
 {
 	if (auto ArrayPtr = LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(InSessionId))
 	{
@@ -1802,17 +1576,13 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
 		}
 
 		auto& LGUILifeCycleBehaviourArray = ArrayPtr->LGUILifeCycleBehaviourArray;
-		//sort it by hierarchy
-		LGUILifeCycleBehaviourArray.Sort([](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& A, const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& B) {
-			return A.Value < B.Value;
-			});
 		auto Count = LGUILifeCycleBehaviourArray.Num();
-		for (int i = Count - 1; i >= 0; i--)//execute from tail to head, when in prefab the lower in hierarchy will execute earlier
+		for (int i = 0; i < Count; i++)
 		{
-			auto Item = LGUILifeCycleBehaviourArray[i];
-			if (Item.Key.IsValid())
+			auto& Item = LGUILifeCycleBehaviourArray[i];
+			if (Item.IsValid())
 			{
-				ProcessLGUILifecycleEvent(Item.Key.Get());
+				ProcessLGUILifecycleEvent(Item.Get());
 			}
 #if !UE_BUILD_SHIPPING
 			if (LGUILifeCycleBehaviourArray.Num() != Count)
@@ -1825,26 +1595,12 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(const FGuid& InSessionId)
 		LGUILifeCycleBehaviours_PrefabSystemProcessing.Remove(InSessionId);
 	}
 }
-void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId, int32 InActorIndex)
+void ULGUIManagerWorldSubsystem::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
 {
-	TTuple<FGuid, int32> Item;
-	Item.Key = InSessionId;
-	Item.Value = InActorIndex;
-	AllActors_PrefabSystemProcessing.Add(InActor, Item);
-}
-void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId)
-{
-	AllActors_PrefabSystemProcessing.Remove(InActor);
-}
-bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
-{
-	return AllActors_PrefabSystemProcessing.Contains(InActor);
-}
-void ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
-{
-	if (auto RootActorDataPtr = AllActors_PrefabSystemProcessing.Find(InPrefabActor))
+	auto SessionId = ULGUIPrefabWorldSubsystem::GetInstance(InPrefabActor->GetWorld())->GetPrefabSystemSessionIdForActor(InPrefabActor);
+	if (SessionId.IsValid())
 	{
-		auto& Container = LGUILifeCycleBehaviours_PrefabSystemProcessing[RootActorDataPtr->Key];
+		auto& Container = LGUILifeCycleBehaviours_PrefabSystemProcessing[SessionId];
 		Container.Functions.Add(InFunction);
 	}
 }

@@ -8,9 +8,9 @@
 #include "Serialization/BufferArchive.h"
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
-#include "Core/LGUISettings.h"
+#include "PrefabSystem/LGUIPrefabSettings.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"
@@ -39,7 +39,6 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.bIsEditorOrRuntime = false;
 #endif
 		serializer.bOverrideVersions = false;
-		serializer.LGUIManagerActor = ALGUIManagerActor::GetInstance(serializer.TargetWorld, true);
 
 		auto Name =
 #if WITH_EDITOR
@@ -66,14 +65,14 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		};
 		auto CreatedRootActor = serializer.DeserializeActorFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 
-		if (ULGUISettings::GetLogPrefabLoadTime())
+		if (ULGUIPrefabSettings::GetLogPrefabLoadTime())
 		{
 			auto TimeSpan = FDateTime::Now() - StartTime;
 			UE_LOG(LGUI, Log, TEXT("Duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
 		}
 
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 		return CreatedRootActor;
 	}
@@ -104,7 +103,6 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.bIsEditorOrRuntime = false;
 #endif
 		serializer.bOverrideVersions = false;
-		serializer.LGUIManagerActor = ALGUIManagerActor::GetInstance(serializer.TargetWorld, true);
 
 		//serialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -121,7 +119,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			Reader.DoSerialize(InObject);
 		};
 
-		if (ULGUISettings::GetLogPrefabLoadTime())
+		if (ULGUIPrefabSettings::GetLogPrefabLoadTime())
 		{
 			auto TimeSpan = FDateTime::Now() - StartTime;
 			UE_LOG(LGUI, Log, TEXT("PrepareData_ForDuplicate, actor: '%s' total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
@@ -148,13 +146,13 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.SubPrefabObjectOverrideData.Reset();
 
 		auto CreatedRootActor = serializer.DeserializeActorFromData(InData.ActorData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-		if (ULGUISettings::GetLogPrefabLoadTime())
+		if (ULGUIPrefabSettings::GetLogPrefabLoadTime())
 		{
 			auto TimeSpan = FDateTime::Now() - StartTime;
 			UE_LOG(LGUI, Log, TEXT("DuplicateActorWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
 		}
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 		return CreatedRootActor;
 	}
@@ -189,7 +187,6 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		ActorSerializer serializer;
 		serializer.TargetWorld = OriginRootActor->GetWorld();
 		serializer.MapObjectToGuid = InMapObjectToGuid;
-		serializer.LGUIManagerActor = ALGUIManagerActor::GetInstance(serializer.TargetWorld, true);
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
@@ -227,7 +224,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
 
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;

@@ -3,7 +3,7 @@
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "LGUIEditorUtils.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Engine/TextureRenderTarget2D.h"
 
@@ -52,9 +52,9 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	{
 		if (auto world = TargetScriptArray[0]->GetWorld())
 		{
-			if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(world, false))
+			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(world))
 			{
-				auto& allCanvasArray = LGUIManagerActor->GetCanvasArray();
+				auto& allCanvasArray = LGUIManager->GetCanvasArray();
 				int screenSpaceCanvasCount = 0;
 				for (auto item : allCanvasArray)
 				{
@@ -418,9 +418,9 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 	{
 		if (auto world = TargetScript->GetWorld())
 		{
-			if (auto instance = ALGUIManagerActor::GetInstance(world, false))
+			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(world))
 			{
-				auto& itemList = instance->GetCanvasArray();
+				auto& itemList = LGUIManager->GetCanvasArray();
 
 				FText spaceText;
 				if (TargetScript->IsRenderToScreenSpace())
@@ -474,9 +474,9 @@ const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray(UWorld* InWorld)
 {
 	if (IsValid(InWorld))
 	{
-		if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(InWorld, false))
+		if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(InWorld))
 		{
-			return LGUIManagerActor->GetCanvasArray();
+			return LGUIManager->GetCanvasArray();
 		}
 	}
 	static TArray<TWeakObjectPtr<ULGUICanvas>> staticArray;//just for the return value

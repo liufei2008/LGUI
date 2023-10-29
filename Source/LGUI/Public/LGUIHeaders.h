@@ -40,7 +40,7 @@
 #include "Core/Actor/UIProceduralRectActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
 #include "Core/Actor/UIBackgroundPixelateActor.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 
 #include "Event/LGUIEventSystem.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"

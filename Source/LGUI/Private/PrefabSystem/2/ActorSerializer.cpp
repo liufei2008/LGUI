@@ -9,7 +9,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 using namespace LGUIPrefabSystem;
 
@@ -139,7 +139,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	else
 #endif
 	{
-		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld.Get(), true);
+		LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(TargetWorld.Get());
 	}
 
 #if WITH_EDITORONLY_DATA
@@ -287,11 +287,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	for (auto item : CreatedActors)
 	{
-		LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
+		LGUIPrefabManager->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 	}
 	if (DeserializationSessionId.IsValid())
 	{
-		LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+		LGUIPrefabManager->EndPrefabSystemProcessingActor(DeserializationSessionId);
 	}
 
 	auto TimeSpan = FDateTime::Now() - StartTime;

@@ -4,7 +4,8 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #if WITH_EDITOR
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Core/LGUISettings.h"
@@ -256,7 +257,7 @@ void ULGUICanvasScaler::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
-		EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
+		EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([this](float deltaTime) {
 			this->OnEditorTick(deltaTime);
 			});
 		EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange([this] {
@@ -274,7 +275,7 @@ void ULGUICanvasScaler::OnUnregister()
 	{
 		if (EditorTickDelegateHandle.IsValid())
 		{
-			ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+			ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
 		}
 		if (EditorViewportIndexAndKeyChangeDelegateHandle.IsValid())
 		{
@@ -433,7 +434,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 {
 	if (CheckCanvas())
 	{
-		if (!ULGUIEditorManagerObject::IsSelected(this->GetOwner()))return;
+		if (!ULGUIPrefabManagerObject::IsSelected(this->GetOwner()))return;
 
 		auto ViewLocation = Canvas->GetViewLocation();
 		auto ViewRotationMatrix = FInverseRotationMatrix(Canvas->GetViewRotator()) * FMatrix(

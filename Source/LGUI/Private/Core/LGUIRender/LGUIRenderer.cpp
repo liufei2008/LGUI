@@ -23,7 +23,7 @@
 #include "Editor/EditorEngine.h"
 #endif
 #include "Slate/SceneViewport.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "ClearQuad.h"

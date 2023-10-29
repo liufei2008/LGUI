@@ -8,7 +8,7 @@
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIPointerEventData.h"
@@ -86,7 +86,7 @@ void ULGUIEventSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void ULGUIEventSystem::ProcessInputEvent()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto LGUIManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
 		if (CurrentInputModule.IsValid())
@@ -156,7 +156,7 @@ void ULGUIEventSystem::BeginDestroy()
 
 void ULGUIEventSystem::ClearEvent()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto LGUIManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
 		if (CurrentInputModule.IsValid())
@@ -362,7 +362,7 @@ void ULGUIEventSystem::SetSelectComponentWithDefault(USceneComponent* InSelectCo
 }
 ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto LGUIManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		return LGUIManagerActor->GetCurrentInputModule().Get();
 	}

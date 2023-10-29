@@ -2,7 +2,7 @@
 
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "LGUI.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 
 ULGUILifeCycleUIBehaviour::ULGUILifeCycleUIBehaviour()
 {

@@ -28,7 +28,7 @@
 #include "Editor/UnrealEdEngine.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Editor.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "LGUIPrefabPreviewScene.h"
 #include "LGUIHeaders.h"
 #include "LGUIPrefabEditor.h"
@@ -346,7 +346,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 
 	AActor* ClickHitActor = nullptr;
-	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto ManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		FVector RayOrigin, RayDirection;
 		View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);

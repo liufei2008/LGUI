@@ -19,6 +19,7 @@
 #include "Layout/UILayoutElement.h"
 #include "LGUIHeaders.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
@@ -686,7 +687,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		DetailBuilder.HideProperty(HierarchyIndexHandle);
 		HierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 			ForceUpdateUI();
-			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+			ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
 			}));
 		auto hierarchyIndexWidget =
 			SNew(SHorizontalBox)
@@ -936,7 +937,7 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 	}
 	GEditor->EndTransaction();
 
-	ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+	ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
 	return FReply::Handled();
 }
 
@@ -2035,7 +2036,7 @@ FLGUICanLayoutControlAnchor FUIItemCustomization::GetLayoutControlAnchorValue()c
 	auto World = TargetScriptArray[0]->GetWorld();
 	if (Actor && World)
 	{
-		if (auto Manager = ALGUIManagerActor::GetInstance(World, false))
+		if (auto Manager = ULGUIManagerWorldSubsystem::GetInstance(World))
 		{
 			auto& AllLayoutArray = Manager->GetAllLayoutArray();
 
@@ -2063,7 +2064,7 @@ bool FUIItemCustomization::IsAnchorControlledByMultipleLayout(TMap<EAnchorContro
 	auto World = TargetScriptArray[0]->GetWorld();
 	if (Actor && World)
 	{
-		if (auto Manager = ALGUIManagerActor::GetInstance(World, false))
+		if (auto Manager = ULGUIManagerWorldSubsystem::GetInstance(World))
 		{
 			auto AllLayoutArray = Manager->GetAllLayoutArray();
 			if (AllLayoutArray.Num() > 0)

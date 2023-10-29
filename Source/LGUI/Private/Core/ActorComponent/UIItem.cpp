@@ -7,7 +7,8 @@
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/LGUISettings.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Layout/LGUICanvasScaler.h"
 #if WITH_EDITOR
@@ -577,7 +578,7 @@ void UUIItem::PostEditUndo()
 	}
 #if WITH_EDITOR
 	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
-	if (auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto ManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		for (auto TempRootUIItem : ManagerActor->GetAllRootUIItemArray())
 		{
@@ -586,7 +587,7 @@ void UUIItem::PostEditUndo()
 			TempRootUIItem->RenewRenderCanvasRecursive(OldRenderCanvas.Get());
 		}
 	}
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI(this->GetWorld());
 #endif
 }
 
@@ -686,8 +687,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		UIChildren.Add(childUIItem);
 		
 		{
-			auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-			if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
+			auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+			if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
 				//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
 			}
@@ -727,13 +728,14 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 void UUIItem::OnUIAttachedToParent()
 {
-	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
+	auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+	if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
 		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
 		check(ParentUIItem.IsValid());
 		{
-			ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+			auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld());
+			LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
 				if (Child.IsValid() && Parent.IsValid())
 				{
 					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
@@ -797,12 +799,13 @@ void UUIItem::OnAttachmentChanged()
 
 void UUIItem::OnUIDetachedFromParent()
 {
-	auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-	if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
+	auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+	if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the ChildAttachmentChanged callback should execute til prefab serialization ready
 	{
 		if (ParentUIItem.IsValid())//tell old parent
 		{
-			ManagerActor->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+			auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld());
+			LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
 				if (Child.IsValid() && Parent.IsValid())
 				{
 					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
@@ -854,8 +857,8 @@ void UUIItem::OnRegister()
 			//display name
 			if (this->GetOwner()->GetRootComponent() == this)
 			{
-				auto ManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
-				if (ManagerActor && ManagerActor->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the displayName should be set from prefab
+				auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+				if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the displayName should be set from prefab
 				{
 
 				}
@@ -1199,7 +1202,7 @@ void UUIItem::CheckRootUIItem(UUIItem* RootUIItemInParent)
 	auto oldRootUIItem = RootUIItem;
 	if (oldRootUIItem == this && oldRootUIItem != nullptr)
 	{
-		ALGUIManagerActor::RemoveRootUIItem(this);
+		ULGUIManagerWorldSubsystem::RemoveRootUIItem(this);
 	}
 #endif
 
@@ -1219,7 +1222,7 @@ void UUIItem::CheckRootUIItem(UUIItem* RootUIItemInParent)
 #if WITH_EDITOR
 	if (RootUIItem == this && RootUIItem != nullptr)
 	{
-		ALGUIManagerActor::AddRootUIItem(this);
+		ULGUIManagerWorldSubsystem::AddRootUIItem(this);
 	}
 #endif
 }
