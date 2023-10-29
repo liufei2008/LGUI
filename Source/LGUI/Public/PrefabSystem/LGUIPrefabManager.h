@@ -81,10 +81,18 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection)override {};
 	virtual void Deinitialize()override {};
 
-	DECLARE_EVENT_OneParam(ULGUIPrefabWorldSubsystem, FLGUIPrefabDeserializeSession, const FGuid&);
+	DECLARE_EVENT_OneParam(ULGUIPrefabWorldSubsystem, FDeserializeSession, const FGuid&);
 	static ULGUIPrefabWorldSubsystem* GetInstance(UWorld* World);
-	FLGUIPrefabDeserializeSession OnBeginDeserializeSession;
-	FLGUIPrefabDeserializeSession OnEndDeserializeSession;
+	FDeserializeSession OnBeginDeserializeSession;
+	FDeserializeSession OnEndDeserializeSession;
+	DECLARE_EVENT_ThreeParams(ULGUIPrefabWorldSubsystem, FAttachRootActor, USceneComponent*, USceneComponent*, bool);
+	FAttachRootActor OnAttachRootActor;
+#if WITH_EDITOR
+	DECLARE_MULTICAST_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
+	FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
+	DECLARE_MULTICAST_DELEGATE(FPrefabEditorViewport_MouseMove);
+	FPrefabEditorViewport_MouseMove OnPrefabEditorViewport_MouseMove;
+#endif
 private:
 	/** Map actor to prefab-deserialize-settion-id */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -94,6 +102,7 @@ public:
 	void EndPrefabSystemProcessingActor(const FGuid& InSessionId);
 	void AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
 	void RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
+	void AttachRootActor(USceneComponent* RootComp, USceneComponent* ParentComp, bool SetHierarchyIndex);
 	FGuid GetPrefabSystemSessionIdForActor(AActor* InActor);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

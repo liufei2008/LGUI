@@ -59,20 +59,6 @@ public:
 	static ULGUIEditorManagerObject* GetInstance(bool CreateIfNotValid = false);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
-public:
-	/**
-	 * Editor raycast hit all visible UIBaseRenderable object.
-	 * @param InWorld
-	 * @param InUIItems
-	 * @param LineStart
-	 * @param LineEnd
-	 * @param ResultSelectTarget
-	 * @param InOutTargetIndexInHitArray	Pass in desired item index, and result selected item index. Default is -1, will use first one as result.
-	 * \return 
-	 */
-	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-		, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
-	);
 private:
 	FDelegateHandle OnBlueprintPreCompileDelegateHandle;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
@@ -218,12 +204,28 @@ public:
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	static void MarkUpdateLayout(UWorld* InWorld);
 #if WITH_EDITOR
+	/**
+	 * Editor raycast hit all visible UIBaseRenderable object.
+	 * @param InWorld
+	 * @param InUIItems
+	 * @param LineStart
+	 * @param LineEnd
+	 * @param ResultSelectTarget
+	 * @param InOutTargetIndexInHitArray	Pass in desired item index, and result selected item index. Default is -1, will use first one as result.
+	 * \return 
+	 */
+	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+		, UUIBaseRenderable*& ResultSelectTarget, int& InOutTargetIndexInHitArray
+	);
 	static void DrawFrameOnUIItem(UUIItem* InItem, bool IsScreenSpace = false);
 	static void DrawNavigationArrow(UWorld* InWorld, const TArray<FVector>& InControlPoints, const FVector& InArrowPointA, const FVector& InArrowPointB, FColor const& InColor, bool IsScreenSpace = false);
 	static void DrawNavigationVisualizerOnUISelectable(UWorld* InWorld, UUISelectableComponent* InSelectable, bool IsScreenSpace = false);
 private:
 	static void DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 	static void DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
+	void OnPrefabEditorViewport_MouseClick(const FVector& RayOrigin, const FVector& RayDirection, AActor*& ClickHitActor);
+	void OnPrefabEditorViewport_MouseMove();
+	int IndexOfClickSelectUI = INDEX_NONE;
 #endif
 private:
 	/** Map prefab-deserialize-settion-id to LGUILifeCycleBehaviour array */
