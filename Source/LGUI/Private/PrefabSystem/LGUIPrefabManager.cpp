@@ -341,6 +341,10 @@ void ULGUIPrefabWorldSubsystem::RemoveActorForPrefabSystem(AActor* InActor, cons
 {
 	AllActors_PrefabSystemProcessing.Remove(InActor);
 }
+void ULGUIPrefabWorldSubsystem::AttachRootActor(USceneComponent* RootComp, USceneComponent* ParentComp, bool SetHierarchyIndex)
+{
+	OnAttachRootActor.Broadcast(RootComp, ParentComp, SetHierarchyIndex);
+}
 FGuid ULGUIPrefabWorldSubsystem::GetPrefabSystemSessionIdForActor(AActor* InActor)
 {
 	if (auto FoundPtr = AllActors_PrefabSystemProcessing.Find(InActor))
