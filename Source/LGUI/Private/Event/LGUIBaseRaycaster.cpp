@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Event/LGUIBaseRaycaster.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Engine/SceneCapture2D.h"
 #include "Core/ActorComponent/UIItem.h"
 
@@ -37,11 +37,11 @@ void ULGUIBaseRaycaster::Deactivate()
 }
 void ULGUIBaseRaycaster::ActivateRaycaster()
 {
-	ALGUIManagerActor::AddRaycaster(this);
+	ULGUIManagerWorldSubsystem::AddRaycaster(this);
 }
 void ULGUIBaseRaycaster::DeactivateRaycaster()
 {
-	ALGUIManagerActor::RemoveRaycaster(this);
+	ULGUIManagerWorldSubsystem::RemoveRaycaster(this);
 }
 void ULGUIBaseRaycaster::OnUnregister()
 {
@@ -69,9 +69,9 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 		multiHitResult.Reset();
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;
 
-		if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+		if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 		{
-			auto& AllCanvasArray = LGUIManagerActor->GetCanvasArray();
+			auto& AllCanvasArray = LGUIManager->GetCanvasArray();
 			for (auto& CanvasItem : AllCanvasArray)
 			{
 				if (ShouldSkipCanvas(CanvasItem.Get()))continue;

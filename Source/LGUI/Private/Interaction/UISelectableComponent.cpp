@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "LTweenManager.h"
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/ActorComponent/LGUICanvas.h"
@@ -28,7 +28,7 @@ void UUISelectableComponent::Awake()
 void UUISelectableComponent::OnEnable()
 {
 	Super::OnEnable();
-	ALGUIManagerActor::AddSelectable(this);
+	ULGUIManagerWorldSubsystem::AddSelectable(this);
 	ApplySelectionState(true);
 }
 
@@ -40,7 +40,7 @@ void UUISelectableComponent::Start()
 void UUISelectableComponent::OnDisable()
 {
 	Super::OnDisable();
-	ALGUIManagerActor::RemoveSelectable(this);
+	ULGUIManagerWorldSubsystem::RemoveSelectable(this);
 }
 void UUISelectableComponent::OnDestroy()
 {
@@ -54,7 +54,7 @@ void UUISelectableComponent::OnRegister()
 	//Add/Remove selectable inside OnRegister/OnUnregister in edit mode, and inside OnEnable/OnDisable in runtime mode
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		ALGUIManagerActor::AddSelectable(this);
+		ULGUIManagerWorldSubsystem::AddSelectable(this);
 	}
 #endif
 }
@@ -64,7 +64,7 @@ void UUISelectableComponent::OnUnregister()
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		ALGUIManagerActor::RemoveSelectable(this);
+		ULGUIManagerWorldSubsystem::RemoveSelectable(this);
 	}
 #endif
 }
@@ -564,7 +564,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)
 {
-	auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false);
+	auto LGUIManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld());
 	if (LGUIManagerActor == nullptr)return nullptr;
 	const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
 
@@ -652,7 +652,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 }
 UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* WorldContextObject)
 {
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(WorldContextObject->GetWorld(), false))
+	if (auto LGUIManagerActor = ULGUIManagerWorldSubsystem::GetInstance(WorldContextObject->GetWorld()))
 	{
 		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
 		if (SelectableArray.Num() > 0)

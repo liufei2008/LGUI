@@ -9,7 +9,8 @@
 #include "Core/LGUIRichTextImageData_BaseObject.h"
 #include "Core/LGUIRichTextCustomStyleData.h"
 #include "Core/UIDrawcall.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
 
@@ -187,9 +188,9 @@ void UUIText::OnRegister()
 		else
 #endif
 		{
-			ALGUIManagerActor::RegisterLGUICultureChangedEvent(this);
+			ULGUIManagerWorldSubsystem::RegisterLGUICultureChangedEvent(this);
 		}
-		ALGUIManagerActor::RegisterLGUILayout(this);
+		ULGUIManagerWorldSubsystem::RegisterLGUILayout(this);
 	}
 }
 void UUIText::OnUnregister()
@@ -223,9 +224,9 @@ void UUIText::OnUnregister()
 		else
 #endif
 		{
-			ALGUIManagerActor::UnregisterLGUICultureChangedEvent(this);
+			ULGUIManagerWorldSubsystem::UnregisterLGUICultureChangedEvent(this);
 		}
-		ALGUIManagerActor::UnregisterLGUILayout(this);
+		ULGUIManagerWorldSubsystem::UnregisterLGUILayout(this);
 	}
 }
 void UUIText::OnComponentDestroyed(bool bDestroyingHierarchy)
@@ -456,7 +457,7 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 				}
 			}
 #if WITH_EDITOR
-			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+			ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
 #endif
 		}
 		else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UUIText, richText))
@@ -760,7 +761,7 @@ void UUIText::ClearCreatedRichTextImageObject()
 void UUIText::MarkTextLayoutDirty()
 {
 	bTextLayoutDirty = true;
-	ALGUIManagerActor::MarkUpdateLayout(this->GetWorld());
+	ULGUIManagerWorldSubsystem::MarkUpdateLayout(this->GetWorld());
 }
 void UUIText::ConditionalMarkTextLayoutDirty()
 {

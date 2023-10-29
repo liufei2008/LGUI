@@ -7,12 +7,12 @@
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
 #include "Serialization/MemoryReader.h"
-#include "Core/LGUISettings.h"
+#include "PrefabSystem/LGUIPrefabSettings.h"
 #include "PrefabSystem/ActorSerializer3.h"
 #include "PrefabSystem/ActorSerializer4.h"
 #include "PrefabSystem/ActorSerializer6.h"
@@ -189,12 +189,16 @@ namespace LGUIPrefabSystem5
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		auto Time = FDateTime::Now();
 #endif
+		if (LGUIPrefabManager == nullptr)
+		{
+			LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(TargetWorld);
+		}
 		if (!bIsSubPrefab)
 		{
 			if (!DeserializationSessionId.IsValid())
 			{
 				DeserializationSessionId = FGuid::NewGuid();
-				LGUIManagerActor->BeginPrefabSystemProcessingActor(DeserializationSessionId);
+				LGUIPrefabManager->BeginPrefabSystemProcessingActor(DeserializationSessionId);
 			}
 		}
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);//this must be nullptr, because we need to do the attachment later, to handle hierarchy index
@@ -287,9 +291,9 @@ namespace LGUIPrefabSystem5
 			check(DeserializationSessionId.IsValid());
 			for (auto item : AllActors)
 			{
-				LGUIManagerActor->RemoveActorForPrefabSystem(item, DeserializationSessionId);
+				LGUIPrefabManager->RemoveActorForPrefabSystem(item, DeserializationSessionId);
 			}
-			LGUIManagerActor->EndPrefabSystemProcessingActor(DeserializationSessionId);
+			LGUIPrefabManager->EndPrefabSystemProcessingActor(DeserializationSessionId);
 		}
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
@@ -315,7 +319,6 @@ namespace LGUIPrefabSystem5
 #endif
 		auto StartTime = FDateTime::Now();
 		PrefabAssetPath = InPrefab->GetPathName();
-		LGUIManagerActor = ALGUIManagerActor::GetInstance(TargetWorld, true);
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
@@ -369,14 +372,14 @@ namespace LGUIPrefabSystem5
 		if (InCallbackBeforeDeserialize != nullptr)InCallbackBeforeDeserialize();
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
-		if (ULGUISettings::GetLogPrefabLoadTime())
+		if (ULGUIPrefabSettings::GetLogPrefabLoadTime())
 		{
 			auto TimeSpan = FDateTime::Now() - StartTime;
 			UE_LOG(LGUI, Log, TEXT("End load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
 		}
 
 #if WITH_EDITOR
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
 #endif
 
 		return CreatedRootActor;
@@ -792,7 +795,7 @@ namespace LGUIPrefabSystem5
 					MapGuidToObject.Add(InActorData.ObjectGuid, NewActor);
 				}
 
-				LGUIManagerActor->AddActorForPrefabSystem(NewActor, DeserializationSessionId, ActorIndexInPrefab);
+				LGUIPrefabManager->AddActorForPrefabSystem(NewActor, DeserializationSessionId);
 				if (bNeedFinishSpawn)
 				{
 					NewActor->FinishSpawning(FTransform::Identity);

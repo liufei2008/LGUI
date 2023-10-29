@@ -4,7 +4,7 @@
 #include "PrefabAnimation/LGUIPrefabSequence.h"
 #include "PrefabAnimation/LGUIPrefabSequencePlayer.h"
 #include "LGUI.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 {
@@ -16,7 +16,7 @@ ULGUIPrefabSequenceComponent::ULGUIPrefabSequenceComponent()
 void ULGUIPrefabSequenceComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if (auto ManagerInstance = ALGUIManagerActor::GetInstance(this->GetWorld(), true))
+	if (auto ManagerInstance = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
 	{
 		if (!ManagerInstance->IsPrefabSystemProcessingActor(this->GetOwner()))//if not processing by PrefabSystem, then mannually call initialize function
 		{

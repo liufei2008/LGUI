@@ -71,10 +71,6 @@ float ULGUISettings::GetAutoBatchThreshold()
 	return GetDefault<ULGUISettings>()->AutoBatchThreshold;
 #endif
 }
-bool ULGUISettings::GetLogPrefabLoadTime()
-{
-	return GetDefault<ULGUISettings>()->bLogPrefabLoadTime;
-}
 int32 ULGUISettings::ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 {
 	return ((int32)FMath::Pow(2.0, (double)InType)) * 256;

@@ -5,9 +5,8 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "PrefabSystem/ActorSerializer3.h"
 #if WITH_EDITOR
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "EngineUtils.h"
@@ -109,7 +108,7 @@ void ALGUIPrefabLevelManagerActor::CollectWhenCreate()
 			}
 		});
 	}
-	ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
 		if (Actor.IsValid())
 		{
 			if (auto World = Actor->GetWorld())
@@ -146,7 +145,7 @@ void ALGUIPrefabLevelManagerActor::Destroyed()
 	CleanupWhenDestroy();
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = this, World = this->GetWorld()]() {
+		ULGUIPrefabManagerObject::AddOneShotTickFunction([Actor = this, World = this->GetWorld()]() {
 			auto InfoText = LOCTEXT("DeleteLGUIPrefabLevelManagerActor", "\
 LGUIPrefabLevelManagerActor is being destroyed!\
 \nThis actor is responsible for managing LGUI-Prefabs in current level, if you delete it then all LGUI-Prefabs linked in the level will be lost!\

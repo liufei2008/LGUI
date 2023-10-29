@@ -5,7 +5,7 @@
 #include "Interaction/UIScrollbarComponent.h"
 #include "LTweenManager.h"
 #include "Core/Actor/UIBaseActor.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 
 
 UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
@@ -16,12 +16,12 @@ UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
 void UUIScrollViewWithScrollbarComponent::OnRegister()
 {
 	Super::OnRegister();
-	ALGUIManagerActor::RegisterLGUILayout(this);
+	ULGUIManagerWorldSubsystem::RegisterLGUILayout(this);
 }
 void UUIScrollViewWithScrollbarComponent::OnUnregister()
 {
 	Super::OnUnregister();
-	ALGUIManagerActor::UnregisterLGUILayout(this);
+	ULGUIManagerWorldSubsystem::UnregisterLGUILayout(this);
 }
 
 void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
@@ -256,7 +256,7 @@ void UUIScrollViewWithScrollbarComponent::MarkLayoutDirty()
 		else
 #endif
 		{
-			ALGUIManagerActor::MarkUpdateLayout(World);
+			ULGUIManagerWorldSubsystem::MarkUpdateLayout(World);
 		}
 	}
 }

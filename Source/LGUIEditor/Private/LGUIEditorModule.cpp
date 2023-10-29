@@ -6,8 +6,9 @@
 
 #include "LGUIHeaders.h"
 #include "Core/LGUISettings.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabSystem/LGUIPrefabSettings.h"
 
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
@@ -379,6 +380,10 @@ void FLGUIEditorModule::StartupModule()
 				LOCTEXT("LGUIEditorSettingsName", "LGUI Editor"),
 				LOCTEXT("LGUIEditorSettingsDescription", "LGUI Editor Settings"),
 				GetMutableDefault<ULGUIEditorSettings>());
+			SettingsModule->RegisterSettings("Project", "Plugins", "LGUIPrefab",
+				LOCTEXT("LGUIPrefabSettingsName", "LGUIPrefab"),
+				LOCTEXT("LGUIPrefabSettingsDescription", "LGUIPrefab Settings"),
+				GetMutableDefault<ULGUIPrefabSettings>());
 
 			LGUIPrefabSequencerSettings = USequencerSettingsContainer::GetOrCreate<ULGUIPrefabSequencerSettings>(TEXT("EmbeddedLGUIPrefabSequenceEditor"));
 			SettingsModule->RegisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor",
@@ -561,6 +566,7 @@ void FLGUIEditorModule::ShutdownModule()
 		{
 			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI");
 			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI Editor");
+			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI Prefab");
 			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUIPrefabSequencerSettings");
 		}
 	}

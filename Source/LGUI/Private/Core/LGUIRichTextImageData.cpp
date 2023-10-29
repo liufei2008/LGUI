@@ -6,7 +6,8 @@
 #include "Core/LGUIRichTextImageData.h"
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Engine/World.h"
 
 #if WITH_EDITOR
@@ -125,7 +126,7 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 #if WITH_EDITOR
 	if (!parent->GetWorld()->IsGameWorld())//refresh on editor
 	{
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
 	}
 #endif
 }

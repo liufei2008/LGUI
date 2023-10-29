@@ -71,12 +71,6 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
 		float AutoBatchThreshold = 0.01f;
 
-	/**
-	 * For load prefab debug, display a log that shows how much time a LoadPrefab cost.
-	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI")
-		bool bLogPrefabLoadTime = false;
-
 #if WITH_EDITORONLY_DATA
 	static float CacheAutoBatchThreshold;
 #endif
@@ -90,7 +84,6 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static float GetAutoBatchThreshold();
-	static bool GetLogPrefabLoadTime();
 	static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType);
 	static int32 GetPriorityInSceneViewExtension();
 private:

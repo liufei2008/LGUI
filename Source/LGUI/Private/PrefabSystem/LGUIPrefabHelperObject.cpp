@@ -2,7 +2,7 @@
 
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUI.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
@@ -38,14 +38,14 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 {
 	if (bIsMarkedAsManagerObject)return;
 	bIsMarkedAsManagerObject = true;
-	ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]{
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]{
 		if (Object.IsValid())
 		{
 			GEditor->OnLevelActorAttached().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorAttached);
 			GEditor->OnLevelActorDetached().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorDetached);
 			GEditor->OnLevelActorDeleted().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnLevelActorDeleted);
 			Object->bCanNotifyAttachment = true;
-			ULGUIEditorManagerObject::OnComponentCreateDelete().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnComponentCreateDelete);
+			ULGUIPrefabManagerObject::OnComponentCreateDelete().AddUObject(Object.Get(), &ULGUIPrefabHelperObject::OnComponentCreateDelete);
 		}
 		}, 1);
 
@@ -69,7 +69,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 
 		if (LoadedRootActor == nullptr)return;
 
-		ALGUIManagerActor::RefreshAllUI();
+		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 }
 #endif
@@ -559,7 +559,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 		ClearInvalidObjectAndGuid();//incase LevelPrefab reference invalid object, eg: delete object in sub-prefab's sub-prefab, and update the prefab in level
 	}
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
 	bCanCollectProperty = true;
@@ -677,12 +677,12 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 
 void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
 {
-	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+	if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(Actor->GetWorld(), true))
+	if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(Actor->GetWorld()))
 	{
-		if (LGUIManagerActor->IsPrefabSystemProcessingActor(Actor))return;
+		if (PrefabManager->IsPrefabSystemProcessingActor(Actor))return;
 	}
 
 	if (AttachmentActor.Actor == Actor)
@@ -696,7 +696,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 			AttachmentActor.Actor = Actor;
 			AttachmentActor.AttachTo = (AActor*)AttachTo;
 			AttachmentActor.DetachFrom = nullptr;
-			ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
+			ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 				if (Object.IsValid())
 				{
 					Object->CheckAttachment();
@@ -712,19 +712,19 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 }
 void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
 {
-	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+	if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(Actor->GetWorld(), true))
+	if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(Actor->GetWorld()))
 	{
-		if (LGUIManagerActor->IsPrefabSystemProcessingActor(Actor))return;
+		if (PrefabManager->IsPrefabSystemProcessingActor(Actor))return;
 	}
 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
 	AttachmentActor.DetachFrom = (AActor*)DetachFrom;
 
-	ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 		if (Object.IsValid())
 		{
 			Object->CheckAttachment();
@@ -734,7 +734,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 
 void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 {
-	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+	if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (this->IsInsidePrefabEditor())return;
 
@@ -753,8 +753,8 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 		)
 	{
 		this->Modify();
-		ULGUIEditorManagerObject::AddOneShotTickFunction([]() {
-			if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+		ULGUIPrefabManagerObject::AddOneShotTickFunction([]() {
+			if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 			auto InfoText = LOCTEXT("CannotRestructurePrefabInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
 \n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
 			FMessageDialog::Open(EAppMsgType::Ok, InfoText);
@@ -762,7 +762,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 			}, 1);
 	}
 
-	ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 		if (Object.IsValid())
 		{
 			if (Object->CleanupInvalidLinkToSubPrefabObject())
@@ -775,7 +775,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 
 void ULGUIPrefabHelperObject::CheckAttachment()
 {
-	if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+	if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (!AttachmentActor.Actor.IsValid())return;
 	enum class EAttachementError
@@ -849,8 +849,8 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 		if (!CreateDeleteComponentMessageQueue.Contains(InComponent))
 		{
 			CreateDeleteComponentMessageQueue.Add(InComponent);
-			ULGUIEditorManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this), InCreateOrDelete]() {
-				if (ULGUIEditorManagerObject::GetIsBlueprintCompiling())return;
+			ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this), InCreateOrDelete]() {
+				if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 				if (!Object.IsValid())return;
 				if (InCreateOrDelete)
 				{
@@ -1139,7 +1139,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArr
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1192,7 +1192,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1272,7 +1272,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 	}
 	bCanCollectProperty = true;
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 }
 
 void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInPrefab, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex, bool IsInsideRawArray)
@@ -1482,7 +1482,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArra
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1546,7 +1546,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1651,7 +1651,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ALGUIManagerActor::RefreshAllUI();
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1845,7 +1845,7 @@ void ULGUIPrefabHelperObject::SetAnythingDirty()
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorActorFolders.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #endif
@@ -1922,7 +1922,7 @@ void ULGUIPrefabHelperObject::CheckPrefabVersion()
 		this->ClearInvalidObjectAndGuid();
 		GEditor->EndTransaction();
 
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 	}
 }
 
@@ -1955,7 +1955,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 			}
 			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 			Item.Notification.Pin()->ExpireAndFadeout();
-			ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
+			ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 		}
 		NewVersionPrefabNotificationArray.RemoveAt(FoundIndex);
 	}
@@ -2014,7 +2014,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 
 	if (bUpdated)
 	{
-		ULGUIEditorManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
+		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();//make outliner refresh
 	}
 }
 void ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked()

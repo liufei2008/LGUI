@@ -3,7 +3,7 @@
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "LGUI.h"
 #include "Event/LGUIPointerEventData.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
 #include "Event/LGUIEventSystem.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/Interface/LGUINavigationInterface.h"
@@ -30,9 +30,9 @@ bool ULGUI_PointerInputModule::CheckEventSystem()
 bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FLGUIHitResult& hitResult)
 {
 	multiHitResult.Reset();
-	if (auto LGUIManagerActor = ALGUIManagerActor::GetInstance(this->GetWorld(), false))
+	if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
-		auto& AllRaycasterArray = LGUIManagerActor->GetAllRaycasterArray();
+		auto& AllRaycasterArray = LGUIManager->GetAllRaycasterArray();
 		InPointerEventData->hoverComponentArray.Reset();
 
 		FVector rayOrigin(0, 0, 0), rayDir(1, 0, 0), rayEnd(1, 0, 0);

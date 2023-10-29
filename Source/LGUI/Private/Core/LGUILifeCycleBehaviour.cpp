@@ -2,7 +2,8 @@
 
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "LGUI.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "Components/SceneComponent.h"
@@ -26,7 +27,7 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 void ULGUILifeCycleBehaviour::BeginPlay()
 {
 	Super::BeginPlay();
-	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
+	ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
 	if (GetRootSceneComponent())
 	{
 		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
@@ -85,7 +86,7 @@ void ULGUILifeCycleBehaviour::OnRegister()
 		{
 			if (executeInEditMode)
 			{
-				EditorTickDelegateHandle = ULGUIEditorManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
+				EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
 			}
 		}
 	}
@@ -97,7 +98,7 @@ void ULGUILifeCycleBehaviour::OnUnregister()
 #if WITH_EDITOR
 	if (EditorTickDelegateHandle.IsValid())
 	{
-		ULGUIEditorManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+		ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
 		EditorTickDelegateHandle.Reset();
 	}
 #endif
@@ -426,14 +427,14 @@ void ULGUILifeCycleBehaviour::Call_OnEnable()
 	OnEnable();
 	if (!bIsStartCalled)
 	{
-		ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(this);
+		ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForStart(this);
 	}
 	else
 	{
 		if (bCanExecuteUpdate && !bIsAddedToUpdate)
 		{
 			bIsAddedToUpdate = true;
-			ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(this);
+			ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehavioursForUpdate(this);
 		}
 	}
 }
@@ -461,14 +462,14 @@ void ULGUILifeCycleBehaviour::Call_OnDisable()
 	OnDisable();
 	if (!bIsStartCalled)
 	{
-		ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(this);
+		ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromStart(this);
 	}
 	else
 	{
 		if (bIsAddedToUpdate)
 		{
 			bIsAddedToUpdate = false;
-			ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(this);
+			ULGUIManagerWorldSubsystem::RemoveLGUILifeCycleBehavioursFromUpdate(this);
 		}
 	}
 }

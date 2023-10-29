@@ -3,7 +3,7 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
@@ -345,7 +345,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 }
 FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 {
-	auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+	auto World = ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage();
 	if (!IsValid(World))
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
