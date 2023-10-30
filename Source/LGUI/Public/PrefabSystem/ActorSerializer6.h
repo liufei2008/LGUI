@@ -206,9 +206,6 @@ namespace LGUIPrefabSystem6
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
-#if WITH_EDITOR
-			, bool InForCook
-#endif
 		);
 		
 		/**
@@ -255,9 +252,6 @@ namespace LGUIPrefabSystem6
 		TArray<FComponentDataStruct> SubPrefabRootComponents;
 
 		void CollectActorRecursive(AActor* Actor);
-#if WITH_EDITOR
-		bool bIsForCook = false;
-#endif
 
 		struct FSubPrefabObjectOverrideParameterData
 		{

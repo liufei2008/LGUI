@@ -228,9 +228,6 @@ namespace LGUIPrefabSystem8
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
-#if WITH_EDITOR
-			, bool InForCook
-#endif
 		);
 		
 		/**
@@ -281,9 +278,6 @@ namespace LGUIPrefabSystem8
 		TMap<TObjectPtr<UObject>, FGuid> MapObjectToOriginGuid;
 
 		void CollectActorRecursive(AActor* Actor);
-#if WITH_EDITOR
-		bool bIsForCook = false;
-#endif
 
 		struct FSubPrefabObjectOverrideParameterData
 		{
