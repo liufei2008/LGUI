@@ -1041,7 +1041,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 		{
 			if (auto Level = World->GetCurrentLevel())
 			{
-				if (auto ManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(Level))
+				if (auto ManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(Level))
 				{
 					PrefabHelperObject = ManagerActor->PrefabHelperObject;
 				}
@@ -1744,7 +1744,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 				auto PrefabHelperObjectWhichManageThisActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
 				if (PrefabHelperObjectWhichManageThisActor == nullptr)//not exist, means in level editor and not create PrefabManagerActor yet, so create it
 				{
-					auto ManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(selectedActor->GetLevel());
+					auto ManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(selectedActor->GetLevel());
 					if (ManagerActor != nullptr)
 					{
 						PrefabHelperObjectWhichManageThisActor = ManagerActor->PrefabHelperObject;
@@ -1809,7 +1809,7 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 						MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
 					}
 					PrefabHelperObjectWhichManageThisActor->MakePrefabAsSubPrefab(OutPrefab, selectedActor, MapGuidToObject, {});
-					if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActorByPrefabHelperObject(PrefabHelperObjectWhichManageThisActor))
+					if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstanceByPrefabHelperObject(PrefabHelperObjectWhichManageThisActor))
 					{
 						PrefabManagerActor->MarkPackageDirty();
 					}

@@ -117,7 +117,7 @@ void ALGUIPrefabLoadHelperActor::Destroyed()
 	{
 		if (IsValid(LoadedRootActor))
 		{
-			if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(this->GetLevel()))
+			if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(this->GetLevel()))
 			{
 				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(LoadedRootActor);
 				LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
@@ -140,7 +140,7 @@ void ALGUIPrefabLoadHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
 	if (IsValid(LoadedRootActor))return;
-	auto PrefabHelperObject = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject;
+	auto PrefabHelperObject = ALGUIPrefabLevelManagerActor::GetInstance(this->GetLevel())->PrefabHelperObject;
 	PrefabHelperObject->SetCanNotifyAttachment(false);
 	TMap<FGuid, TObjectPtr<UObject>> SubPrefabMapGuidToObject;
 	TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
