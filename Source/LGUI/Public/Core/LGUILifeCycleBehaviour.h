@@ -52,8 +52,6 @@ protected:
 	uint8 bPrevIsRootComponentVisible : 1;
 	/** use this to tell if the class is compiled from blueprint, only blueprint can execute ReceiveXXX. */
 	uint8 bCanExecuteBlueprintEvent : 1;
-	/** this object is serialized from LGUIPrefab? Some data may need to be fixed after loaded from LGUIPrefab */
-	uint8 bIsSerializedFromLGUIPrefab : 1;
 protected:
 	friend class ULGUIManagerWorldSubsystem;
 	UPROPERTY(Transient) mutable TWeakObjectPtr<USceneComponent> RootComp = nullptr;

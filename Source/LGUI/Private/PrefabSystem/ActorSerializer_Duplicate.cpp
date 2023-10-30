@@ -142,7 +142,7 @@ namespace LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.AllComponents.Reset();
 		serializer.SubPrefabOverrideParameters.Reset();
 		serializer.DeserializationSessionId = FGuid();
-		serializer.ActorIndexInPrefab = false;
+		serializer.bIsSubPrefab = false;
 		serializer.SubPrefabObjectOverrideData.Reset();
 
 		auto CreatedRootActor = serializer.DeserializeActorFromData(InData.ActorData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);

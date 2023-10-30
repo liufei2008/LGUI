@@ -149,7 +149,6 @@ namespace LGUIPrefabSystem8
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, const FGuid& InParentDeserializationSessionId
-		, int32& InOutActorIndex
 		, TMap<FGuid, TObjectPtr<UObject>>& InMapGuidToObject
 		, const TFunction<void(AActor*, const TMap<FGuid, TObjectPtr<UObject>>&, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>&, const TArray<UActorComponent*>&)>& InOnSubPrefabFinishDeserializeFunction
 	)
@@ -164,7 +163,6 @@ namespace LGUIPrefabSystem8
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
-		serializer.ActorIndexInPrefab = InOutActorIndex;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
@@ -176,7 +174,6 @@ namespace LGUIPrefabSystem8
 		};
 		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-		InOutActorIndex = serializer.ActorIndexInPrefab;
 		return rootActor;
 	}
 
@@ -327,7 +324,7 @@ namespace LGUIPrefabSystem8
 			}
 			//for UI
 			{
-				LGUIPrefabManager->AttachRootActor(RootComp, Parent, bSetHierarchyIndexForRootComponent);
+				LGUIPrefabManager->OnAttachRootActor.ExecuteIfBound(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 			}
 			RootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)
@@ -695,7 +692,7 @@ namespace LGUIPrefabSystem8
 								MapObjectToOriginGuid.Append(InMapObjectToOriginGuid);
 								};
 
-							SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+							SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, SubMapGuidToObject
 								, NewOnSubPrefabFinishDeserializeFunction
 							);
 						}
@@ -816,7 +813,6 @@ namespace LGUIPrefabSystem8
 					}
 
 					AllActors.Add(NewActor);
-					ActorIndexInPrefab++;
 
 					if (i + 1 == SavedActors.Num())
 					{

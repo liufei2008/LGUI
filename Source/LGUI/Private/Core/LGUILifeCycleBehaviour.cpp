@@ -19,7 +19,6 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 	bCanExecuteUpdate = true;
 	bIsAddedToUpdate = false;
 	bPrevIsRootComponentVisible = false;
-	bIsSerializedFromLGUIPrefab = false;
 
 	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 }
@@ -244,19 +243,25 @@ void ULGUILifeCycleBehaviour::SetActiveStateForEnableAndDisable(bool activeOrIna
 			}
 		}
 	}
-	else//not call awake, should be the first time that get IsUIActive:true
+	else//awake not called, should be the first time that get IsUIActive:true
 	{
-		if (activeOrInactive)
+		if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
 		{
-			if (!bIsAwakeCalled)
+			if (!PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//is processing by prefab system, means not finish deserialize yet, not allowed to call awake
 			{
-				Call_Awake();
-			}
-			if (enable)
-			{
-				if (!bIsEnableCalled)
+				if (activeOrInactive)
 				{
-					Call_OnEnable();
+					if (!bIsAwakeCalled)
+					{
+						Call_Awake();
+					}
+					if (enable)
+					{
+						if (!bIsEnableCalled)
+						{
+							Call_OnEnable();
+						}
+					}
 				}
 			}
 		}
