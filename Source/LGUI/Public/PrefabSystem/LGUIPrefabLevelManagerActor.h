@@ -35,8 +35,8 @@ private:
 	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabLevelManagerActor>> MapLevelToManagerActor;
 public:
 	static FName PrefabFolderName;
-	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
-	static ALGUIPrefabLevelManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
+	static ALGUIPrefabLevelManagerActor* GetInstance(ULevel* InLevel, bool CreateIfNotExist = true);
+	static ALGUIPrefabLevelManagerActor* GetInstanceByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")

@@ -14,7 +14,7 @@
 #include "EditorActorFolders.h"
 #endif
 
-#define LOCTEXT_NAMESPACE "LGUIPrefabHelperActor"
+#define LOCTEXT_NAMESPACE "LGUIPrefabLevelManagerActor"
 
 
 ALGUIPrefabLevelManagerActor::ALGUIPrefabLevelManagerActor()
@@ -32,7 +32,7 @@ ALGUIPrefabLevelManagerActor::ALGUIPrefabLevelManagerActor()
 FName ALGUIPrefabLevelManagerActor::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabLevelManagerActor>> ALGUIPrefabLevelManagerActor::MapLevelToManagerActor;
 
-ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist)
+ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetInstance(ULevel* InLevel, bool CreateIfNotExist)
 {
 	if (!MapLevelToManagerActor.Contains(InLevel) && CreateIfNotExist)
 	{
@@ -67,7 +67,7 @@ ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetPrefabManagerActo
 	}
 }
 
-ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject)
+ALGUIPrefabLevelManagerActor* ALGUIPrefabLevelManagerActor::GetInstanceByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject)
 {
 	for (auto& KeyValue : MapLevelToManagerActor)
 	{
@@ -132,6 +132,10 @@ void ALGUIPrefabLevelManagerActor::CollectWhenCreate()
 void ALGUIPrefabLevelManagerActor::PostActorCreated()
 {
 	Super::PostActorCreated();
+	if (this != GetDefault<ALGUIPrefabLevelManagerActor>())
+	{
+		CollectWhenCreate();
+	}
 }
 
 void ALGUIPrefabLevelManagerActor::BeginDestroy()
