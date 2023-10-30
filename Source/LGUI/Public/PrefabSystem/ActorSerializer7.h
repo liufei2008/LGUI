@@ -198,9 +198,6 @@ namespace LGUIPrefabSystem7
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
-#if WITH_EDITOR
-			, bool InForCook
-#endif
 		);
 
 		static AActor* LoadSubPrefab(

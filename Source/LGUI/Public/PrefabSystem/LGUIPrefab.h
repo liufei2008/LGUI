@@ -315,9 +315,6 @@ public:
 	void SavePrefab(AActor* RootActor
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse = true
-#if WITH_EDITOR
-		, bool InForCook = false
-#endif
 	);
 	void RecreatePrefab();
 	/**

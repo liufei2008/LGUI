@@ -292,9 +292,6 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		this->SavePrefab(PrefabHelperObject->LoadedRootActor
 			, MapObjectToGuid, PrefabHelperObject->SubPrefabMap
 			, false
-#if WITH_EDITOR
-			, true
-#endif
 		);
 		PrefabHelperObject->MapGuidToObject.Empty();
 		for (auto KeyValue : MapObjectToGuid)
@@ -798,17 +795,11 @@ FString ULGUIPrefab::GenerateOverallVersionMD5()
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse
-#if WITH_EDITOR
-	, bool InForCook
-#endif
 )
 {
 	LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::SavePrefab(RootActor, this
 		, InOutMapObjectToGuid, InSubPrefabMap
 		, InForEditorOrRuntimeUse
-#if WITH_EDITOR
-		, InForCook
-#endif
 	);
 }
 

@@ -23,9 +23,6 @@ namespace LGUIPrefabSystem7
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse
-#if WITH_EDITOR
-		, bool InForCook
-#endif
 	)
 	{
 		if (!OriginRootActor || !InPrefab)
@@ -74,9 +71,6 @@ namespace LGUIPrefabSystem7
 			}
 		}
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
-#if WITH_EDITOR
-		serializer.bIsForCook = InForCook;
-#endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
@@ -253,7 +247,7 @@ namespace LGUIPrefabSystem7
 		if (ActorClass->ClassGeneratedBy != nullptr && ActorClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint))
 		{
 			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer7", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
-			if (!bIsForCook)
+			if (bIsEditorOrRuntime)
 			{
 				LGUIUtils::EditorNotification(MsgText, 10.0f);
 			}
