@@ -156,7 +156,7 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor)
 	{
 		if (auto Level = InActor->GetLevel())
 		{
-			if (auto ManagerActor = ALGUIPrefabLevelManagerActor::GetPrefabManagerActor(Level, false))
+			if (auto ManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(Level, false))
 			{
 				return ManagerActor->PrefabHelperObject == this;//if this level have a PrefabManagerActor, then all actor is belongs to this PrefabHelperObject.
 			}
