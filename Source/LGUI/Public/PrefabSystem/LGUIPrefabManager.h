@@ -2,9 +2,8 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "Components/ActorComponent.h"
 #include "Tickable.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "LGUIPrefabManager.generated.h"
 
 
@@ -87,9 +86,9 @@ public:
 	FDeserializeSession OnEndDeserializeSession;
 	DECLARE_DELEGATE_ThreeParams(FAttachRootActor, USceneComponent*, USceneComponent*, bool);
 	FAttachRootActor OnAttachRootActor;
+#if WITH_EDITOR
 	DECLARE_DELEGATE_OneParam(FSortChildrenActors, TArray<AActor*>&);
 	FSortChildrenActors OnSortChildrenActors;
-#if WITH_EDITOR
 	DECLARE_MULTICAST_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
 	FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
 	DECLARE_MULTICAST_DELEGATE(FPrefabEditorViewport_MouseMove);

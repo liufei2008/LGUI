@@ -9,6 +9,7 @@
 #include "Core/Actor/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Engine/World.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 #if WITH_EDITOR
 void ULGUIRichTextImageData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

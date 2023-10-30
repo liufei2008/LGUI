@@ -2,10 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "Components/ActorComponent.h"
-#include "Core/LGUISpriteData.h"
-#include "Core/ActorComponent/LGUICanvas.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "Tickable.h"
 #include "LGUIManager.generated.h"
 
