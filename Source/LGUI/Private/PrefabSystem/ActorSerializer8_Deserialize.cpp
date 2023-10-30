@@ -571,7 +571,7 @@ namespace LGUIPrefabSystem8
 
 	AActor* ActorSerializer::GenerateActorArray(TArray<FLGUIActorSaveData>& SavedActors, TMap<FGuid, FLGUIObjectSaveData>& SavedObjects, TMap<FGuid, FGuid>& MapSceneComponentToParent, FGuid ParentGuid)
 	{
-		AActor* RootActor = nullptr;//last actor should be the RootActor, because SavedActors store RootActor at last position;
+		AActor* RootActor = nullptr;//first actor is the RootActor
 		for (int i = 0; i < SavedActors.Num(); i++)
 		{
 			auto& InActorData = SavedActors[i];
@@ -718,7 +718,7 @@ namespace LGUIPrefabSystem8
 
 							SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
 
-							if (i + 1 == SavedActors.Num())
+							if (i == 0)
 							{
 								RootActor = SubPrefabRootActor;
 							}
@@ -814,7 +814,7 @@ namespace LGUIPrefabSystem8
 
 					AllActors.Add(NewActor);
 
-					if (i + 1 == SavedActors.Num())
+					if (i == 0)
 					{
 						RootActor = NewActor;
 					}
