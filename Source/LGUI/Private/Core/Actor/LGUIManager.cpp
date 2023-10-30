@@ -761,6 +761,7 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 			}
 		}
 		});
+#if WITH_EDITOR
 	PrefabManager->OnSortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
 		//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
 		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
@@ -783,7 +784,7 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 			return false;
 			});
 		});
-#if WITH_EDITOR
+
 	PrefabManager->OnPrefabEditorViewport_MouseClick.AddUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);
 #endif
 }
