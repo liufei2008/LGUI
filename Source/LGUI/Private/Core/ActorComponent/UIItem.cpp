@@ -699,7 +699,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 				if (childUIItem->IsRegistered())
 				{
-					childUIItem->hierarchyIndex = UIChildren.Num();
+					childUIItem->hierarchyIndex = UIChildren.Num() - 1;
 					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
 				}
 				else//not registered means is loading from level. then no need to set hierarchy index
