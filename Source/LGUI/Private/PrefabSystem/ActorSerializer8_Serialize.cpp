@@ -292,6 +292,7 @@ namespace LGUIPrefabSystem8
 
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
+#if WITH_EDITOR
 		if (!LGUIPrefabManager->OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
 		{
 			//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
@@ -300,6 +301,7 @@ namespace LGUIPrefabSystem8
 				return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
 				});
 		}
+#endif
 		for (auto ChildActor : ChildrenActors)
 		{
 			CollectActorRecursive(ChildActor);//collect all actor, include subprefab's actor

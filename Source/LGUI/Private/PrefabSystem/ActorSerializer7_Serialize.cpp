@@ -289,6 +289,7 @@ namespace LGUIPrefabSystem7
 
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
+#if WITH_EDITOR
 		if (!LGUIPrefabManager->OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
 		{
 			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
@@ -296,6 +297,7 @@ namespace LGUIPrefabSystem7
 				return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
 				});
 		}
+#endif
 		for (auto ChildActor : ChildrenActors)
 		{
 			CollectActorRecursive(ChildActor);//collect all actor, include subprefab's actor

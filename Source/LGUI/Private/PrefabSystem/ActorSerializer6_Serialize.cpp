@@ -129,6 +129,7 @@ namespace LGUIPrefabSystem6
 
 			TArray<AActor*> ChildrenActors;
 			Actor->GetAttachedActors(ChildrenActors);
+#if WITH_EDITOR
 			if (!LGUIPrefabManager->OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
 			{
 				Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
@@ -136,6 +137,7 @@ namespace LGUIPrefabSystem6
 					return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
 					});
 			}
+#endif
 			TArray<FLGUIActorSaveData> ChildSaveDataList;
 			for (auto ChildActor : ChildrenActors)
 			{
