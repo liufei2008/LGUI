@@ -91,7 +91,7 @@ namespace LGUIPrefabSystem8
 
 	void ActorSerializer::SerializeActorArray(TMap<FGuid, FGuid>& MapSceneComponentToParent, TArray<FLGUIActorSaveData>& SavedActors, TMap<FGuid, TArray<uint8>>& SavedObjectData)
 	{
-		for (int i = TrySerializeActorArray.Num() - 1; i >= 0; i--)//serialize from tail to head (deeper in hierarchy will stay previous in data array)
+		for (int i = 0; i < TrySerializeActorArray.Num(); i++)
 		{
 			auto& Actor = TrySerializeActorArray[i];
 			FLGUIActorSaveData ActorSaveData;

@@ -12,7 +12,7 @@ class USceneComponent;
  * Base class for LGUI's life cycle behviour related component.
  * I'm trying to make this ULGUILifeCycleBehaviour more like Unity's MonoBehaviour. You will see it contains function like Awake/Start/Update/OnDestroy/OnEnable/OnDisable.
  * So you should use Awake/Start instead of BeginPlay, Update instead of Tick, OnDestroy instead of EndPlay.
- * Awake execute order in prefab: deeper and lower in hierarchy will execute earlier, so scripts on root actor will execute latest.
+ * Awake execute order in prefab: higher in hierarchy will execute earlier, so scripts on root actor will execute the first.
  */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable, HideCategories = (Activation), DisplayName = "LGUI LifeCycle Behaviour")
 class LGUI_API ULGUILifeCycleBehaviour : public UActorComponent
@@ -62,7 +62,7 @@ protected:
 	 * This function is always called before any Start functions and also after a prefab is instantiated.
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
 	 * NOTE!!! If RootComponent is UIItem: if UIItem is not "ActiveInHierarchy" during start up, then Awake is not called until "ActiveInHierarchy" becomes true.
-	 * Awake execute order in prefab: deeper and lower in hierarchy will execute earlier, so scripts on root actor will execute latest.
+	 * Awake execute order in prefab: higher in hierarchy will execute earlier, so scripts on root actor will execute the first.
 	 */
 	virtual void Awake();
 	/** Executed after Awake when GetIsActiveAndEnable is true, or when GetIsActiveAndEnable become true. */
@@ -88,7 +88,7 @@ protected:
 	 * This function is always called before any Start functions and also after a prefab is instantiated.
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
 	 * NOTE!!! If RootComponent is UIItem: if UIItem is inactive during start up, then Awake is not called until it is made active.
-	 * Awake execute order in prefab: deeper and lower in hierarchy will execute earlier, so scripts on root actor will execute latest.
+	 * Awake execute order in prefab: higher in hierarchy will execute earlier, so scripts on root actor will execute the first.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Awake"), Category = "LGUILifeCycleBehaviour")void ReceiveAwake();
 	/** Executed after Awake when GetIsActiveAndEnable is true, or when GetIsActiveAndEnable become true. */
