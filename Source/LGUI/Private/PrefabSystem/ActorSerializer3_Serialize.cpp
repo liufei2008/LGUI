@@ -6,9 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"
-#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"
@@ -102,21 +101,13 @@ namespace LGUIPrefabSystem3
 
 			TArray<AActor*> ChildrenActors;
 			Actor->GetAttachedActors(ChildrenActors);
-			//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
-			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
-				auto ARoot = A->GetRootComponent();
-				auto BRoot = B->GetRootComponent();
-				if (ARoot != nullptr && BRoot != nullptr)
-				{
-					auto AUIRoot = Cast<UUIItem>(ARoot);
-					auto BUIRoot = Cast<UUIItem>(BRoot);
-					if (AUIRoot != nullptr && BUIRoot != nullptr)
-					{
-						return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
-					}
-				}
-				return false;
-				});
+			if (!LGUIPrefabManager->OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
+			{
+				Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+					//sort on ActorLabel so the Tick function can be predictable because deserialize order is determinate.
+					return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
+					});
+			}
 			TArray<FLGUIActorSaveData> ChildSaveDataList;
 			for (auto ChildActor : ChildrenActors)
 			{
@@ -129,6 +120,10 @@ namespace LGUIPrefabSystem3
 	}
 	void ActorSerializer::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{
+		if (LGUIPrefabManager == nullptr)
+		{
+			LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(OriginRootActor->GetWorld());
+		}
 		CollectActorRecursive(OriginRootActor);
 		//serailize actor
 		SerializeActorRecursive(OriginRootActor, OutData.SavedActor);

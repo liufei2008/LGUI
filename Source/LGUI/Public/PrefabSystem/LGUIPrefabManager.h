@@ -85,8 +85,10 @@ public:
 	static ULGUIPrefabWorldSubsystem* GetInstance(UWorld* World);
 	FDeserializeSession OnBeginDeserializeSession;
 	FDeserializeSession OnEndDeserializeSession;
-	DECLARE_EVENT_ThreeParams(ULGUIPrefabWorldSubsystem, FAttachRootActor, USceneComponent*, USceneComponent*, bool);
+	DECLARE_DELEGATE_ThreeParams(FAttachRootActor, USceneComponent*, USceneComponent*, bool);
 	FAttachRootActor OnAttachRootActor;
+	DECLARE_DELEGATE_OneParam(FSortChildrenActors, TArray<AActor*>&);
+	FSortChildrenActors OnSortChildrenActors;
 #if WITH_EDITOR
 	DECLARE_MULTICAST_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
 	FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
@@ -102,7 +104,6 @@ public:
 	void EndPrefabSystemProcessingActor(const FGuid& InSessionId);
 	void AddActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
 	void RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
-	void AttachRootActor(USceneComponent* RootComp, USceneComponent* ParentComp, bool SetHierarchyIndex);
 	FGuid GetPrefabSystemSessionIdForActor(AActor* InActor);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

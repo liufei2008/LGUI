@@ -194,7 +194,7 @@ namespace LGUIPrefabSystem4
 				}
 				//for UI
 				{
-					LGUIPrefabManager->AttachRootActor(RootComp, Parent, bSetHierarchyIndexForRootComponent);
+					LGUIPrefabManager->OnAttachRootActor.ExecuteIfBound(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 				}
 				RootComp->UpdateComponentToWorld();
 				if (ReplaceTransform)

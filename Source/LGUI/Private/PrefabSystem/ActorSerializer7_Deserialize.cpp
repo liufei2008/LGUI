@@ -329,7 +329,7 @@ namespace LGUIPrefabSystem7
 			}
 			//for UI
 			{
-				LGUIPrefabManager->AttachRootActor(RootComp, Parent, bSetHierarchyIndexForRootComponent);
+				LGUIPrefabManager->OnAttachRootActor.ExecuteIfBound(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 			}
 			RootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)
@@ -715,7 +715,7 @@ namespace LGUIPrefabSystem7
 									AllComponents.Append(InSubComponents);
 								};
 
-								SubPrefabRootActor = LGUIPrefabSystem8::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, this->ActorIndexInPrefab, SubMapGuidToObject
+								SubPrefabRootActor = LGUIPrefabSystem8::ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, nullptr, DeserializationSessionId, SubMapGuidToObject
 									, NewOnSubPrefabFinishDeserializeFunction
 								);
 							}
