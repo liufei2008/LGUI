@@ -743,7 +743,7 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 	check(PrefabManager);
 	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);
 	PrefabManager->OnEndDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor);
-	PrefabManager->OnAttachRootActor.AddStatic([](USceneComponent* RootComp, USceneComponent* ParentComp, bool bSetHierarchyIndex) {
+	PrefabManager->OnAttachRootActor.BindStatic([](USceneComponent* RootComp, USceneComponent* ParentComp, bool bSetHierarchyIndex) {
 		auto RootUIComp = Cast<UUIItem>(RootComp);
 		if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
 		{
@@ -760,6 +760,28 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 				RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
 			}
 		}
+		});
+	PrefabManager->OnSortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
+		//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+			auto ARoot = A->GetRootComponent();
+			auto BRoot = B->GetRootComponent();
+			if (ARoot != nullptr && BRoot != nullptr)
+			{
+				auto AUIRoot = Cast<UUIItem>(ARoot);
+				auto BUIRoot = Cast<UUIItem>(BRoot);
+				if (AUIRoot != nullptr && BUIRoot != nullptr)
+				{
+					return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();//compare hierarch index for UI actor
+				}
+			}
+			else
+			{
+				//sort on ActorLabel so the Tick function can be predictable because deserialize order is determinate.
+				return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
+			}
+			return false;
+			});
 		});
 #if WITH_EDITOR
 	PrefabManager->OnPrefabEditorViewport_MouseClick.AddUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);
@@ -1045,7 +1067,6 @@ void ULGUIManagerWorldSubsystem::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGU
 			{
 				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(SessionId))
 				{
-					InComp->bIsSerializedFromLGUIPrefab = true;
 					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
 #if !UE_BUILD_SHIPPING
 					if (CompArray.Contains(InComp))

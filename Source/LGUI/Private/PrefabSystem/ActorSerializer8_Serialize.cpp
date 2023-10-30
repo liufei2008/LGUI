@@ -5,9 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Components/PrimitiveComponent.h"
-#include "Core/Actor/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "Misc/NetworkVersion.h"
 #include "Runtime/Launch/Resources/Version.h"
 #if WITH_EDITOR
@@ -153,36 +152,16 @@ namespace LGUIPrefabSystem8
 					ActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
 					ActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
 				}
-
-				TArray<AActor*> ChildrenActors;
-				Actor->GetAttachedActors(ChildrenActors);
-#if WITH_EDITOR
-				//for UI
-				if (!TargetWorld->IsGameWorld())//only need in edit mode, because runtime serialize (or duplicate) don't use sub-prefab
-				{
-					//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
-					Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
-						auto ARoot = A->GetRootComponent();
-						auto BRoot = B->GetRootComponent();
-						if (ARoot != nullptr && BRoot != nullptr)
-						{
-							auto AUIRoot = Cast<UUIItem>(ARoot);
-							auto BUIRoot = Cast<UUIItem>(BRoot);
-							if (AUIRoot != nullptr && BUIRoot != nullptr)
-							{
-								return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
-							}
-						}
-						return false;
-						});
-				}
-#endif
 			}
 			SavedActors.Add(ActorSaveData);
 		}
 	}
 	void ActorSerializer::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{
+		if (LGUIPrefabManager == nullptr)
+		{
+			LGUIPrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(OriginRootActor->GetWorld());
+		}
 		CollectActorRecursive(OriginRootActor);
 		//serailize actor
 		SerializeActorArray(OutData.MapSceneComponentToParent, OutData.SavedActors, OutData.SavedObjectData);
@@ -276,7 +255,7 @@ namespace LGUIPrefabSystem8
 		auto ActorClass = Actor->GetClass();
 		if (ActorClass->ClassGeneratedBy != nullptr && ActorClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint))
 		{
-			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer7", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
+			auto MsgText = FText::Format(NSLOCTEXT("LGUIActorSerializer8", "Warning_ActorBlueprintInPrefab", "Trying to create a prefab with ActorBlueprint '{0}', ActorBlueprint not work well with PrefabEditor, suggest to use native Actor."), FText::FromString(Actor->GetActorLabel()));
 			if (!bIsForCook)
 			{
 				LGUIUtils::EditorNotification(MsgText, 10.0f);
@@ -313,6 +292,14 @@ namespace LGUIPrefabSystem8
 
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
+		if (!LGUIPrefabManager->OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
+		{
+			//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+				//sort on ActorLabel so the Tick function can be predictable because deserialize order is determinate.
+				return A->GetActorLabel().Compare(B->GetActorLabel()) < 0;//compare name for normal actor
+				});
+		}
 		for (auto ChildActor : ChildrenActors)
 		{
 			CollectActorRecursive(ChildActor);//collect all actor, include subprefab's actor
