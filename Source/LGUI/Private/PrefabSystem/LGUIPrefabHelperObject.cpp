@@ -522,19 +522,24 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			}
 
 			//no need to clear invalid objects, because when SavePrefab it will do the clear work. But if we are in level editor, then there is no SavePrefab, so clear invalid objects is required: ClearInvalidObjectAndGuid()
-			//apply override parameter. 
-			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
-			for (auto& KeyValue : OverrideData)
+
+			//apply override parameter.
+			for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
 			{
-				if (auto Comp = Cast<UActorComponent>(KeyValue.Key))
+				for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
 				{
-					LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::PostSetPropertiesOnActor(Comp);
-				}
-				else if (auto Actor = Cast<AActor>(KeyValue.Key))
-				{
-					Actor->RerunConstructionScripts();
+					LGUIUtils::NotifyPropertyPreChange(ObjectOverrideItem.Object.Get(), PropName);
 				}
 			}
+			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+			for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
+			{
+				for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+				{
+					LGUIUtils::NotifyPropertyChanged(ObjectOverrideItem.Object.Get(), PropName);
+				}
+			}
+
 			SubPrefabRootActor->GetRootComponent()->UpdateComponentToWorld();//root comp may stay prev position if not do this
 
 			if (SubPrefabData.CheckParameters())
