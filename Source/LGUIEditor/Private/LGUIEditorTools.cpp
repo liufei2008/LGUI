@@ -799,26 +799,51 @@ void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 				auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, confirmMsg);
 				if (confirmResult == EAppReturnType::Yes)
 				{
-					FGuid RootActorGuid, RootComponentGuid;
-					for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-					{
-						if (PrefabHelperObject->LoadedRootActor == KeyValue.Value)
+					auto FindGuid = [&](UObject* Obj) {
+						for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 						{
-							RootActorGuid = KeyValue.Key;
+							if (Obj == KeyValue.Value)
+							{
+								return KeyValue.Key;
+							}
 						}
-						if (PrefabHelperObject->LoadedRootActor->GetRootComponent() == KeyValue.Value)
+						return FGuid();
+					};
+					TArray<UObject*> OriginObjects;
+					GetObjectsWithOuter(PrefabHelperObject->LoadedRootActor, OriginObjects);
+					TMap<FName, FGuid> MapObjectNameToGuid;
+					for (auto& Object : OriginObjects)
+					{
+						auto FoundGuid = FindGuid(Object);
+						if (FoundGuid.IsValid())
 						{
-							RootComponentGuid = KeyValue.Key;
+							MapObjectNameToGuid.Add(Object->GetFName(), FoundGuid);
 						}
 					}
+					FGuid RootActorGuid = FindGuid(PrefabHelperObject->LoadedRootActor);
+					FGuid RootCompGuid = FindGuid(PrefabHelperObject->LoadedRootActor->GetRootComponent());
+
 					PrefabHelperObject->SetCanNotifyAttachment(false);
 					ReplacedActor = LGUIEditorToolsHelperFunctionHolder::ReplaceActor({ Actor }, ActorClass)[0];
 					if (bIsRootActor)
 					{
 						PrefabHelperObject->LoadedRootActor = ReplacedActor;
-						PrefabHelperObject->MapGuidToObject[RootActorGuid] = ReplacedActor;
-						PrefabHelperObject->MapGuidToObject[RootComponentGuid] = ReplacedActor->GetRootComponent();
 					}
+					TArray<UObject*> NewObjects;
+					GetObjectsWithOuter(ReplacedActor, NewObjects);
+					for (auto& KeyValue : MapObjectNameToGuid)
+					{
+						auto FoundIndex = NewObjects.IndexOfByPredicate([=](const UObject* Item) {
+							return Item->GetFName() == KeyValue.Key;
+							});
+						if (FoundIndex != INDEX_NONE)
+						{
+							PrefabHelperObject->MapGuidToObject[KeyValue.Value] = NewObjects[FoundIndex];
+						}
+					}
+					PrefabHelperObject->MapGuidToObject[RootActorGuid] = ReplacedActor;
+					PrefabHelperObject->MapGuidToObject[RootCompGuid] = ReplacedActor->GetRootComponent();
+
 					PrefabHelperObject->SetCanNotifyAttachment(true);
 				}
 			}
