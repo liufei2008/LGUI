@@ -29,6 +29,7 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"
+#include "Core/LGUISpriteData.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "LGUIManagerObject"
