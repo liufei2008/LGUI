@@ -775,6 +775,16 @@ void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 			HierarchyIndex = SourceUIItem->GetHierarchyIndex();
 		}
 		AActor* ReplacedActor = nullptr;
+		TArray<AActor*> ChildrenActors;
+		Actor->GetAttachedActors(ChildrenActors);
+		TMap<UUIItem*, TTuple<FUIAnchorData, int, FVector>> ChildrenOriginPositionArray;
+		for (auto& ChildActor : ChildrenActors)
+		{
+			if (auto UIComp = Cast<UUIItem>(ChildActor->GetRootComponent()))
+			{
+				ChildrenOriginPositionArray.Add(UIComp, { UIComp->GetAnchorData(), UIComp->GetHierarchyIndex(), UIComp->GetRelativeLocation()});
+			}
+		}
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
 			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
@@ -827,6 +837,14 @@ void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 			if (auto ReplaceUIItem = Cast<UUIItem>(ReplacedActor->GetRootComponent()))
 			{
 				ReplaceUIItem->SetHierarchyIndex(HierarchyIndex);
+			}
+			for (auto& KeyValue : ChildrenOriginPositionArray)
+			{
+				auto UIItem = KeyValue.Key;
+				auto& Value = KeyValue.Value;
+				UIItem->SetRelativeLocation(Value.Get<2>());
+				UIItem->SetAnchorData(Value.Get<0>());
+				UIItem->SetHierarchyIndex(Value.Get<1>());
 			}
 		}
 	}
