@@ -11,9 +11,6 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
 
-class ULGUIPrefabOverrideParameterObject;
-class UUIItem;
-
 namespace LGUIPrefabSystem7
 {
 	struct FLGUICommonObjectSaveData

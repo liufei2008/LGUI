@@ -5,6 +5,7 @@
 #include "ActorFactories/ActorFactory.h"
 #include "LGUIPrefabActorFactory.generated.h"
 
+/** Create a agent actor and use it to spawn the actual prefab. */
 UCLASS()
 class ULGUIPrefabActorFactory : public UActorFactory
 {
