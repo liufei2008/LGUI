@@ -11,9 +11,6 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
 
-class ULGUIPrefabOverrideParameterObject;
-class UUIItem;
-
 namespace LGUIPrefabSystem3
 {
 	//@todo: could use int as object's id instead of FGuid, because object's id only need to be unique inside single prefab, not even in nested prefab.
