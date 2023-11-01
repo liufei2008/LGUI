@@ -996,11 +996,11 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		TMap<UObject*, FGuid> InOutMapObjectToGuid;
-		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> InSubPrefabMap;
+		TMap<UObject*, FGuid> MapObjectToGuid;
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
-			InSubPrefabMap = PrefabHelperObject->SubPrefabMap;
+			SubPrefabMap = PrefabHelperObject->SubPrefabMap;
 
 			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
 			{
@@ -1047,12 +1047,22 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 					};
 					for (auto& MapGuidToObjectKeyValue : SubPrefabData.MapGuidToObject)
 					{
-						InOutMapObjectToGuid.Add(MapGuidToObjectKeyValue.Value, FindObjectGuidInParentPrefab(MapGuidToObjectKeyValue.Key));
+						MapObjectToGuid.Add(MapGuidToObjectKeyValue.Value, FindObjectGuidInParentPrefab(MapGuidToObjectKeyValue.Key));
 					}
 				}
 			}
 		}
-		prefab->SavePrefab(Actor, InOutMapObjectToGuid, InSubPrefabMap);
+
+		TMap<TObjectPtr<AActor>, FLGUISubPrefabData> TempSubPrefabMap;
+		for (auto& SubPrefabKeyValue : SubPrefabMap)
+		{
+			if (SubPrefabKeyValue.Key->IsAttachedTo(Actor) || SubPrefabKeyValue.Key == Actor)
+			{
+				TempSubPrefabMap = SubPrefabMap;
+				break;
+			}
+		}
+		prefab->SavePrefab(Actor, MapObjectToGuid, TempSubPrefabMap);
 		CopiedActorPrefabMap.Add(Actor->GetActorLabel(), prefab);
 	}
 }
@@ -1245,31 +1255,9 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 
 bool LGUIEditorTools::CanDuplicateActor()
 {
-	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
-	if (SelectedActors.Num() == 0)return false;
-
-	for (auto Actor : SelectedActors)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
-		{
-			if (PrefabHelperObject->SubPrefabMap.Contains(Actor))//sub prefab's root actor can duplicate
-			{
-				return true;
-			}
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))//sub prefab's other actor cannot duplicate
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			return true;
-		}
-	}
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+	if (!LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(SelectedActor))return false;
 	return true;
 }
 bool LGUIEditorTools::CanCopyActor()
@@ -1281,25 +1269,9 @@ bool LGUIEditorTools::CanCopyActor()
 bool LGUIEditorTools::CanPasteActor()
 {
 	if (LGUIEditorTools::CopiedActorPrefabMap.Num() == 0)return false;
-	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
-	for (auto Actor : SelectedActors)
-	{
-		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
-		{
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			return true;
-		}
-	}
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+	if (!LGUIEditorTools::IsActorCompatibleWithLGUIToolsMenu(SelectedActor))return false;
 	return true;
 }
 bool LGUIEditorTools::CanCutActor()
