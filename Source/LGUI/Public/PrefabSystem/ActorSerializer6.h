@@ -196,7 +196,6 @@ namespace LGUIPrefabSystem6
 		 */
 		static AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-			, bool InSetHierarchyIndexForRootComponent = true
 		);
 
 		/** Save prefab data for editor use. */
@@ -232,8 +231,6 @@ namespace LGUIPrefabSystem6
 
 		static void PostSetPropertiesOnActor(UActorComponent* InComp);
 	private:
-		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
-
 		struct FComponentDataStruct
 		{
 			UActorComponent* Component = nullptr;

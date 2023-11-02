@@ -682,32 +682,31 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	if (UUIItem* childUIItem = Cast<UUIItem>(ChildComponent))
 	{
 		childUIItem->OnUIAttachedToParent();
-		//hierarchy index
+
 		EnsureUIChildrenValid();//check
 		UIChildren.Add(childUIItem);
 		
+		auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+		if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 		{
-			auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
-			if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
+			//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
+		}
+		else
+		{
+			//need sort children here, make it true so we can sort children if we need to
+			bNeedSortUIChildren = true;
+
+			if (childUIItem->IsRegistered())
 			{
-				//if is load from prefab system, then we don't need to sort children, because children is already sorted when save prefab
+				childUIItem->hierarchyIndex = UIChildren.Num() - 1;
+				this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
 			}
-			else
+			else//not registered means is loading from level. then no need to set hierarchy index
 			{
-				//need sort children here, make it true so we can sort children if we need to
-				bNeedSortUIChildren = true;
 
-				if (childUIItem->IsRegistered())
-				{
-					childUIItem->hierarchyIndex = UIChildren.Num() - 1;
-					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
-				}
-				else//not registered means is loading from level. then no need to set hierarchy index
-				{
-
-				}
 			}
 		}
+
 		//make sure hierarchyindex all good
 		if (childUIItem->hierarchyIndex == INDEX_NONE)
 		{

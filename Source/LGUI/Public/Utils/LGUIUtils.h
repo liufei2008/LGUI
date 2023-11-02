@@ -116,10 +116,6 @@ public:
 		}
 		return nullptr;
 	}
-	//find root LGUICanvas
-	static void FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
-	//find LGUICanvas component in parent, not include self
-	static void FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	static FColor MultiplyColor(FColor A, FColor B);
 #if WITH_EDITOR
 	//nodify some informations in editor

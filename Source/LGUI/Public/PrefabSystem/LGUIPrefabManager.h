@@ -10,6 +10,8 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIEditorManagerOnComponentCreateDelete, bool, UActorComponent*, AActor*);
 
+class ULGUIPrefab;
+
 UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ULGUIPrefabManagerObject :public UObject, public FTickableGameObject
 {
@@ -68,6 +70,20 @@ private:
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
 	FDelegateHandle OnPackageReloadedDelegateHandle;
 	void OnPackageReloaded(EPackageReloadPhase Phase, FPackageReloadedEvent* Event);
+
+public:
+	DECLARE_DELEGATE_OneParam(FSortChildrenActors, TArray<AActor*>&);
+	static FSortChildrenActors OnSortChildrenActors;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
+	static FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
+	DECLARE_DELEGATE(FPrefabEditorViewport_MouseMove);
+	static FPrefabEditorViewport_MouseMove OnPrefabEditorViewport_MouseMove;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_CreateRootAgent, UClass*, ULGUIPrefab*, AActor*&);
+	static FPrefabEditor_CreateRootAgent OnPrefabEditor_CreateRootAgent;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_GetBounds, USceneComponent*, FBox&, bool&);
+	static FPrefabEditor_GetBounds OnPrefabEditor_GetBounds;
+	DECLARE_DELEGATE_TwoParams(FPrefabEditor_SavePrefab, AActor*, ULGUIPrefab*);
+	static FPrefabEditor_SavePrefab OnPrefabEditor_SavePrefab;
 #endif
 };
 
@@ -80,20 +96,10 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection)override {};
 	virtual void Deinitialize()override {};
 
-	DECLARE_EVENT_OneParam(ULGUIPrefabWorldSubsystem, FDeserializeSession, const FGuid&);
 	static ULGUIPrefabWorldSubsystem* GetInstance(UWorld* World);
+	DECLARE_EVENT_OneParam(ULGUIPrefabWorldSubsystem, FDeserializeSession, const FGuid&);
 	FDeserializeSession OnBeginDeserializeSession;
 	FDeserializeSession OnEndDeserializeSession;
-	DECLARE_DELEGATE_ThreeParams(FAttachRootActor, USceneComponent*, USceneComponent*, bool);
-	FAttachRootActor OnAttachRootActor;
-#if WITH_EDITOR
-	DECLARE_DELEGATE_OneParam(FSortChildrenActors, TArray<AActor*>&);
-	FSortChildrenActors OnSortChildrenActors;
-	DECLARE_MULTICAST_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
-	FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
-	DECLARE_MULTICAST_DELEGATE(FPrefabEditorViewport_MouseMove);
-	FPrefabEditorViewport_MouseMove OnPrefabEditorViewport_MouseMove;
-#endif
 private:
 	/** Map actor to prefab-deserialize-settion-id */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")

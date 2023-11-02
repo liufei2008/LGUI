@@ -3,14 +3,12 @@
 #include "LGUIPrefabPreviewScene.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "PrefabSystem/LGUIPrefab.h"
-#include "Core/Actor/UIContainerActor.h"
 #include "LGUIEditorModule.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SphereReflectionCaptureComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
-#include "Core/ActorComponent/LGUICanvas.h"
-#include "Layout/LGUICanvasScaler.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabPreviewScene"
 
@@ -130,30 +128,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	}
 	if (Prefab->ReferenceClassList.Num() > 0)
 	{
-		if (Prefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
-		{
-			auto CanvasSize = Prefab->PrefabDataForPrefabEditor.CanvasSize;
-			//create Canvas for UI
-			auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
-			RootUICanvasActor->SetActorLabel(*RootAgentActorName);
-			RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
-
-			if (Prefab->PrefabDataForPrefabEditor.bNeedCanvas)
-			{
-				auto RenderMode = (ELGUIRenderMode)Prefab->PrefabDataForPrefabEditor.CanvasRenderMode;
-				auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
-				CanvasComp->RegisterComponent();
-				RootUICanvasActor->AddInstanceComponent(CanvasComp);
-				CanvasComp->SetRenderMode(RenderMode);
-			}
-
-			RootUICanvasActor->GetUIItem()->SetWidth(CanvasSize.X);
-			RootUICanvasActor->GetUIItem()->SetHeight(CanvasSize.Y);
-			RootUICanvasActor->GetUIItem()->SetHierarchyIndex(0);
-
-			RootAgentActor = RootUICanvasActor;
-		}
-		else//not ui
+		if (!ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent.ExecuteIfBound(Prefab->ReferenceClassList[0], InPrefab, RootAgentActor))
 		{
 			auto CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 			//create SceneComponent
@@ -171,7 +146,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 
 		//set properties
 		{
-			//auto bEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bEditable"));
+			//auto bEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bEditable"));
 			//bEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 
 			//RootAgentActor->bHiddenEd = true;
@@ -179,7 +154,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			//RootAgentActor->bHiddenEdLevel = true;
 			RootAgentActor->SetLockLocation(true);
 
-			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
+			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bActorLabelEditable"));
 			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 		}
 

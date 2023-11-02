@@ -318,6 +318,12 @@ bool ULGUIPrefabManagerObject::AnySelectedIsChildOf(AActor* InObject)
 	return false;
 }
 
+ULGUIPrefabManagerObject::FSortChildrenActors ULGUIPrefabManagerObject::OnSortChildrenActors;
+ULGUIPrefabManagerObject::FPrefabEditorViewport_MouseClick ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick;
+ULGUIPrefabManagerObject::FPrefabEditorViewport_MouseMove ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseMove;
+ULGUIPrefabManagerObject::FPrefabEditor_CreateRootAgent ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent;
+ULGUIPrefabManagerObject::FPrefabEditor_GetBounds ULGUIPrefabManagerObject::OnPrefabEditor_GetBounds;
+ULGUIPrefabManagerObject::FPrefabEditor_SavePrefab ULGUIPrefabManagerObject::OnPrefabEditor_SavePrefab;
 #endif
 
 

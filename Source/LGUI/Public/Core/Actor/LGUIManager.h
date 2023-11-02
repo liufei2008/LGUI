@@ -16,6 +16,7 @@ class UUISelectableComponent;
 class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
 class ILGUILayoutInterface;
+class ULGUIPrefab;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIEditorManagerOnComponentCreateDelete, bool, UActorComponent*, AActor*);
@@ -223,6 +224,9 @@ private:
 	void OnPrefabEditorViewport_MouseClick(const FVector& RayOrigin, const FVector& RayDirection, AActor*& ClickHitActor);
 	void OnPrefabEditorViewport_MouseMove();
 	int IndexOfClickSelectUI = INDEX_NONE;
+	void OnPrefabEditor_CreateRootAgent(UClass* ActorClass, ULGUIPrefab* Prefab, AActor*& OutCreatedRootAgentActor);
+	void OnPrefabEditorGetBounds(USceneComponent* SceneComp, FBox& OutBounds, bool& OutValidBounds);
+	void OnPrefabEditorSavePrefab(AActor* RootAgentActor, ULGUIPrefab* Prefab);
 #endif
 private:
 	/** Map prefab-deserialize-settion-id to LGUILifeCycleBehaviour array */

@@ -158,7 +158,6 @@ namespace LGUIPrefabSystem3
 		 */
 		static AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-			, bool InSetHierarchyIndexForRootComponent = true
 		);
 
 		/** Save prefab data for editor use. */
@@ -176,9 +175,6 @@ namespace LGUIPrefabSystem3
 		);
 
 	private:
-		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
-		//bool bUseDeltaSerialization = false;//true means only serialize property that not default value. Why comment this?: If parent-prefab override sub-prefab's value to default then DeltaSerialization will not store override parameter
-
 		struct ComponentDataStruct
 		{
 			UActorComponent* Component;
