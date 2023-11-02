@@ -833,15 +833,14 @@ void UUIItem::OnRegister()
 {
 	Super::OnRegister();
 	//UE_LOG(LGUI, Error, TEXT("OnRegister:%s, registered:%d"), *(this->GetOwner()->GetActorLabel()), this->IsRegistered());
+#if WITH_EDITOR
 	if (auto world = this->GetWorld())
 	{
-#if WITH_EDITOR
-		if (!world->IsGameWorld() && GetOwner())
+		if (!world->IsGameWorld() && GetOwner() && !IsRunningCommandlet())
 		{
 			//create helper for root component
 			if (this->GetOwner()->GetRootComponent() == this 
-				&& this->GetOwner()->GetWorld() != nullptr
-				&& (IsValid(this) && !this->IsUnreachable()))
+				)
 			{
 				if (!HelperComp)
 				{
@@ -852,10 +851,8 @@ void UUIItem::OnRegister()
 					HelperComp->SetupAttachment(this);
 					HelperComp->RegisterComponent();
 				}
-			}
-			//display name
-			if (this->GetOwner()->GetRootComponent() == this)
-			{
+
+				//display name
 				auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
 				if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate by LGUI PrefabSystem, the displayName should be set from prefab
 				{
@@ -872,9 +869,7 @@ void UUIItem::OnRegister()
 				this->displayName = this->GetName();
 			}
 		}
-#endif
 	}
-#if WITH_EDITOR
 	else
 	{
 		this->displayName = this->GetName();
@@ -914,6 +909,12 @@ void UUIItem::OnUnregister()
 		}
 #endif
 	}
+	CheckRootUIItem();
+}
+
+void UUIItem::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
 #if WITH_EDITORONLY_DATA
 	if (HelperComp)
 	{
@@ -921,12 +922,6 @@ void UUIItem::OnUnregister()
 		HelperComp = nullptr;
 	}
 #endif
-	CheckRootUIItem();
-}
-
-void UUIItem::OnComponentDestroyed(bool bDestroyingHierarchy)
-{
-	Super::OnComponentDestroyed(bDestroyingHierarchy);
 }
 
 void UUIItem::EnsureUIChildrenValid()
@@ -1005,6 +1000,10 @@ void UUIItem::UnregisterRenderCanvas()
 {
 	bIsCanvasUIItem = false;
 	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->SetParentCanvas(nullptr);
+	}
 	if (RenderCanvas != ParentCanvas)
 	{
 		SetRenderCanvas(ParentCanvas);

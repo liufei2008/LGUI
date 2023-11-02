@@ -244,8 +244,8 @@ void ULGUICanvas::OnUnregister()
 	Super::OnUnregister();
 	ULGUIManagerWorldSubsystem::RemoveCanvas(this, CurrentRenderMode);
 
-	//OnUIHierarchyChanged();
 	{
+		//these thress functions is from OnUIHierarchyChanged()
 		RemoveFromViewExtension(true);
 		CheckRootCanvas(true);
 		CheckRenderMode(true);
@@ -582,7 +582,7 @@ void ULGUICanvas::OnUIPostEditUndo()
 		{
 			Target->CheckRootCanvas(true);
 			Target->MarkCanvasUpdate(true, true, true, true);
-			Target->CurrentRenderMode = ELGUIRenderMode::None;//force check RenderMode
+			Target->CheckRenderMode(false);
 			for (int i = Target->ChildrenCanvasArray.Num() - 1; i >= 0; i--)
 			{
 				auto ChildCanvas = Target->ChildrenCanvasArray[i];
