@@ -30,6 +30,7 @@
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "Core/LGUISpriteData.h"
+#include "Core/Actor/UIContainerActor.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "LGUIManagerObject"
@@ -707,25 +708,83 @@ bool ULGUIManagerWorldSubsystem::RaycastHitUI(UWorld* InWorld, const TArray<UUII
 
 void ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick(const FVector& RayOrigin, const FVector& RayDirection, AActor*& ClickHitActor)
 {
-	float LineTraceLength = 100000;
-	//find hit UIBatchGeometryRenderable
-	auto LineStart = RayOrigin;
-	auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
-	UUIBaseRenderable* ClickHitUI = nullptr;
-	static TArray<UUIItem*> AllUIItemArray;
-	AllUIItemArray.Reset();
-	for (auto& CanvasItem : AllCanvasArray)
-	{
-		AllUIItemArray.Append(CanvasItem->GetUIItemArray());
-	}
-	if (ULGUIManagerWorldSubsystem::RaycastHitUI(this->GetWorld(), AllUIItemArray, LineStart, LineEnd, ClickHitUI, IndexOfClickSelectUI))
-	{
-		ClickHitActor = ClickHitUI->GetOwner();
-	}
+	
 }
 void ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseMove()
 {
 	IndexOfClickSelectUI = INDEX_NONE;
+}
+void ULGUIManagerWorldSubsystem::OnPrefabEditor_CreateRootAgent(UClass* RootActorClass, ULGUIPrefab* Prefab, AActor*& OutCreatedRootAgentActor)
+{
+	if (RootActorClass->IsChildOf(AUIBaseActor::StaticClass()))//ui
+	{
+		auto CanvasSize = Prefab->PrefabDataForPrefabEditor.CanvasSize;
+		//create Canvas for UI
+		auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
+		RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
+
+		if (Prefab->PrefabDataForPrefabEditor.bNeedCanvas)
+		{
+			auto RenderMode = (ELGUIRenderMode)Prefab->PrefabDataForPrefabEditor.CanvasRenderMode;
+			auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
+			CanvasComp->RegisterComponent();
+			RootUICanvasActor->AddInstanceComponent(CanvasComp);
+			CanvasComp->SetRenderMode(RenderMode);
+		}
+
+		RootUICanvasActor->GetUIItem()->SetWidth(CanvasSize.X);
+		RootUICanvasActor->GetUIItem()->SetHeight(CanvasSize.Y);
+		RootUICanvasActor->GetUIItem()->SetHierarchyIndex(0);
+
+		OutCreatedRootAgentActor = RootUICanvasActor;
+	}
+	else//not ui
+	{
+		auto CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
+		//create SceneComponent
+		{
+			USceneComponent* RootComponent = NewObject<USceneComponent>(CreatedActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+			RootComponent->Mobility = EComponentMobility::Static;
+			RootComponent->bVisualizeComponent = false;
+
+			CreatedActor->SetRootComponent(RootComponent);
+			RootComponent->RegisterComponent();
+			CreatedActor->AddInstanceComponent(RootComponent);
+		}
+		OutCreatedRootAgentActor = CreatedActor;
+	}
+}
+void ULGUIManagerWorldSubsystem::OnPrefabEditorGetBounds(USceneComponent* SceneComp, FBox& OutBounds, bool& OutValidBounds)
+{
+	if (auto UIItem = Cast<UUIItem>(SceneComp))
+	{
+		if (UIItem->GetIsUIActiveInHierarchy())
+		{
+			OutBounds = UIItem->Bounds.GetBox();
+			OutValidBounds = true;
+		}
+	}
+	else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(SceneComp))
+	{
+		OutBounds = PrimitiveComp->Bounds.GetBox();
+		OutValidBounds = true;
+	}
+}
+void ULGUIManagerWorldSubsystem::OnPrefabEditorSavePrefab(AActor* RootAgentActor, ULGUIPrefab* Prefab)
+{
+	if (auto UIItem = Cast<UUIItem>(RootAgentActor->GetRootComponent()))
+	{
+		Prefab->PrefabDataForPrefabEditor.CanvasSize = FIntPoint(UIItem->GetWidth(), UIItem->GetHeight());
+	}
+	if (auto Canvas = RootAgentActor->FindComponentByClass<ULGUICanvas>())
+	{
+		Prefab->PrefabDataForPrefabEditor.bNeedCanvas = true;
+		Prefab->PrefabDataForPrefabEditor.CanvasRenderMode = (uint8)Canvas->GetRenderMode();
+	}
+	else
+	{
+		Prefab->PrefabDataForPrefabEditor.bNeedCanvas = false;
+	}
 }
 #endif
 
@@ -744,26 +803,8 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 	check(PrefabManager);
 	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);
 	PrefabManager->OnEndDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor);
-	PrefabManager->OnAttachRootActor.BindStatic([](USceneComponent* RootComp, USceneComponent* ParentComp, bool bSetHierarchyIndex) {
-		auto RootUIComp = Cast<UUIItem>(RootComp);
-		if (RootUIComp)//if UIItem have parent, CheckUIActiveState will becalled when attach
-		{
-			if (ParentComp)
-			{
-				//recreate hierarchy index
-				if (bSetHierarchyIndex)
-				{
-					RootUIComp->SetAsLastHierarchy();
-				}
-			}
-			else
-			{
-				RootUIComp->CheckUIActiveState();//for UIItem not have parent, need to CheckUIActiveState
-			}
-		}
-		});
 #if WITH_EDITOR
-	PrefabManager->OnSortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
+	ULGUIPrefabManagerObject::OnSortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
 		//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
 		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
 			auto ARoot = A->GetRootComponent();
@@ -786,7 +827,11 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 			});
 		});
 
-	PrefabManager->OnPrefabEditorViewport_MouseClick.AddUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);
+	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);
+	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseMove.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseMove);
+	ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditor_CreateRootAgent);
+	ULGUIPrefabManagerObject::OnPrefabEditor_GetBounds.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorGetBounds);
+	ULGUIPrefabManagerObject::OnPrefabEditor_SavePrefab.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorSavePrefab);
 #endif
 }
 void ULGUIManagerWorldSubsystem::Deinitialize()
@@ -1342,15 +1387,7 @@ void ULGUIManagerWorldSubsystem::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMod
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
-#if !UE_BUILD_SHIPPING
-		if (Instance->AllCanvasArray.Contains(InCanvas))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
-		}
-#endif
 		Instance->AllCanvasArray.AddUnique(InCanvas);
-
 		if (InCurrentRenderMode != ELGUIRenderMode::None)//none means canvas's property not ready yet, so no need to collect it, because it will be collected in "CanvasRenderModeChange" function
 		{
 			switch (InCurrentRenderMode)
@@ -1375,13 +1412,6 @@ void ULGUIManagerWorldSubsystem::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRender
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
-#if !UE_BUILD_SHIPPING
-		if (!Instance->AllCanvasArray.Contains(InCanvas))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
-		}
-#endif
 		Instance->AllCanvasArray.RemoveSingle(InCanvas);
 		switch (InCurrentRenderMode)
 		{
@@ -1404,13 +1434,6 @@ void ULGUIManagerWorldSubsystem::CanvasRenderModeChange(ULGUICanvas* InCanvas, E
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
-#if !UE_BUILD_SHIPPING
-		if (!Instance->AllCanvasArray.Contains(InCanvas))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
-		}
-#endif
 		//remove from old
 		switch (InOldRenderMode)
 		{

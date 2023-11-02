@@ -133,7 +133,7 @@ public:
 private:
 	/** clear drawcalls */
 	void ClearDrawcall();
-	void RemoveFromViewExtension();
+	void RemoveFromViewExtension(bool PropogateToChildrenCanvas);
 	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
 	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();
 public:
@@ -204,7 +204,7 @@ public:
 protected:
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
 	UPROPERTY(Transient) mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
-	void CheckRenderMode();
+	void CheckRenderMode(bool PropogateToChildrenCanvas);
 	/** chekc RootCanvas. search for it if not valid */
 	bool CheckRootCanvas(bool forceRecheck = false)const;
 	/** nearest up parent Canvas */
@@ -524,7 +524,6 @@ public:
 	/**  */
 	void MarkNeedVerifyMaterials();
 private:
-	uint32 bHasAddToLGUIManager : 1;
 	uint32 bClipTypeChanged:1;
 	uint32 bRectClipParameterChanged:1;
 	uint32 bTextureClipParameterChanged : 1;

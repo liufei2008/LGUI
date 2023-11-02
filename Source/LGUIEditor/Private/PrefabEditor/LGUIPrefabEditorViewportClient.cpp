@@ -344,17 +344,14 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 {
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 
-	if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
+	FVector RayOrigin, RayDirection;
+	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
+	AActor* ClickHitActor = nullptr;
+	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.ExecuteIfBound(RayOrigin, RayDirection, ClickHitActor);
+	if (ClickHitActor != nullptr)
 	{
-		FVector RayOrigin, RayDirection;
-		View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
-		AActor* ClickHitActor = nullptr;
-		PrefabManager->OnPrefabEditorViewport_MouseClick.Broadcast(RayOrigin, RayDirection, ClickHitActor);
-		if (ClickHitActor != nullptr)
-		{
-			LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
-			return;
-		}
+		LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
+		return;
 	}
 
 	// We may have started gizmo manipulation if hot-keys were pressed when we started this click
@@ -1022,10 +1019,7 @@ void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, i
 
 	if (InMouseX != PrevMouseX || InMouseY != PrevMouseY)
 	{
-		if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld()))
-		{
-			PrefabManager->OnPrefabEditorViewport_MouseMove.Broadcast();
-		}
+		ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseMove.ExecuteIfBound();
 	}
 	PrevMouseX = InMouseX;
 	PrevMouseY = InMouseY;

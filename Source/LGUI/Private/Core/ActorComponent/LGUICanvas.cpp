@@ -39,7 +39,6 @@ ULGUICanvas::ULGUICanvas()
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 
-	bHasAddToLGUIManager = false;
 	bClipTypeChanged = true;
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
@@ -232,11 +231,7 @@ void ULGUICanvas::OnRegister()
 	Super::OnRegister();
 	if (CheckUIItem())
 	{
-		if (!bHasAddToLGUIManager)
-		{
-			bHasAddToLGUIManager = true;
-			ULGUIManagerWorldSubsystem::AddCanvas(this, CurrentRenderMode);
-		}
+		ULGUIManagerWorldSubsystem::AddCanvas(this, CurrentRenderMode);
 		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
 		UIHierarchyChangedDelegateHandle = UIItem->RegisterUIHierarchyChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIHierarchyChanged));
@@ -248,30 +243,13 @@ void ULGUICanvas::OnRegister()
 void ULGUICanvas::OnUnregister()
 {
 	Super::OnUnregister();
-	if (bHasAddToLGUIManager)
-	{
-		bHasAddToLGUIManager = false;
-		ULGUIManagerWorldSubsystem::RemoveCanvas(this, CurrentRenderMode);
-	}
+	ULGUIManagerWorldSubsystem::RemoveCanvas(this, CurrentRenderMode);
 
-	//clear
-	ClearDrawcall();
-
-	//remove from parent canvas
-	if (ParentCanvas.IsValid())
+	//OnUIHierarchyChanged();
 	{
-		SetParentCanvas(nullptr);
-	}
-
-	if (this == RootCanvas)
-	{
-		for (auto& ChildCanvas : ChildrenCanvasArray)
-		{
-			if (ChildCanvas.IsValid())
-			{
-				ChildCanvas->RootCanvas = nullptr;//force ChildCanvas to find new RootCanvas
-			}
-		}
+		RemoveFromViewExtension(true);
+		CheckRootCanvas(true);
+		CheckRenderMode(true);
 	}
 
 	//tell UIItem
@@ -281,8 +259,6 @@ void ULGUICanvas::OnUnregister()
 		UIItem->UnregisterUIHierarchyChanged(UIHierarchyChangedDelegateHandle);
 		UIItem->UnregisterUIActiveStateChanged(UIActiveStateChangedDelegateHandle);
 	}
-
-	RemoveFromViewExtension();
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
@@ -307,7 +283,7 @@ void ULGUICanvas::ClearDrawcall()
 	CacheUIDrawcallList.Empty();
 }
 
-void ULGUICanvas::RemoveFromViewExtension()
+void ULGUICanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
 {
 	if (bHasAddToLGUIScreenSpaceRenderer)
 	{
@@ -327,6 +303,14 @@ void ULGUICanvas::RemoveFromViewExtension()
 	{
 		RenderTargetViewExtension->SetRenderToRenderTarget(false);
 	}
+
+	if (PropogateToChildrenCanvas)
+	{
+		for (const auto& ChildCanvas : ChildrenCanvasArray)
+		{
+			ChildCanvas->RemoveFromViewExtension(PropogateToChildrenCanvas);
+		}
+	}
 }
 
 bool ULGUICanvas::CheckRootCanvas(bool forceRecheck)const
@@ -340,9 +324,24 @@ bool ULGUICanvas::CheckRootCanvas(bool forceRecheck)const
 	}
 	if (RootCanvas.IsValid())return true;
 	if (this->GetWorld() == nullptr)return false;
-	ULGUICanvas* ResultCanvas = nullptr;
-	LGUIUtils::FindRootCanvas(this->GetOwner(), ResultCanvas);
-	RootCanvas = ResultCanvas;
+	auto FindRootCanvas = [](AActor* Actor)
+	{
+		ULGUICanvas* ResultCanvas = nullptr;
+		auto ParentActor = Actor;
+		while (ParentActor != nullptr
+			&& Cast<UUIItem>(ParentActor->GetRootComponent()) != nullptr//root must be UI component
+			)
+		{
+			auto FoundCanvas = ParentActor->FindComponentByClass<ULGUICanvas>();
+			if (FoundCanvas && FoundCanvas->IsRegistered())
+			{
+				ResultCanvas = FoundCanvas;
+			}
+			ParentActor = ParentActor->GetAttachParentActor();
+		}
+		return ResultCanvas;
+	};
+	RootCanvas = FindRootCanvas(this->GetOwner());
 	if (RootCanvas.IsValid())
 	{
 		return true;
@@ -395,14 +394,13 @@ bool ULGUICanvas::CheckUIItem()const
 		return true;
 	}
 }
-void ULGUICanvas::CheckRenderMode()
+void ULGUICanvas::CheckRenderMode(bool PropogateToChildrenCanvas)
 {
-	RemoveFromViewExtension();
-
 	const auto OldRenderMode = CurrentRenderMode;
 	if (this->IsRegistered())
 	{
-		if (CheckRootCanvas())
+		bool bForceRecheckRootCanvas = !RootCanvas->IsRegistered();
+		if (CheckRootCanvas(bForceRecheckRootCanvas))
 		{
 			CurrentRenderMode = RootCanvas->GetRenderMode();
 		}
@@ -429,16 +427,20 @@ void ULGUICanvas::CheckRenderMode()
 		OnRenderModeChanged.Broadcast(this, OldRenderMode, CurrentRenderMode);
 	}
 
-	for (const auto& ChildCanvas : ChildrenCanvasArray)
+	if (PropogateToChildrenCanvas)
 	{
-		ChildCanvas->CheckRenderMode();
+		for (const auto& ChildCanvas : ChildrenCanvasArray)
+		{
+			ChildCanvas->CheckRenderMode(PropogateToChildrenCanvas);
+		}
 	}
 }
 void ULGUICanvas::OnUIHierarchyChanged()
 {
 	this->bCanTickUpdate = true;
+	RemoveFromViewExtension(true);
 	CheckRootCanvas(true);
-	CheckRenderMode();
+	CheckRenderMode(true);
 
 	bClipTypeChanged = true;
 	bRectClipParameterChanged = true;
@@ -582,14 +584,25 @@ void ULGUICanvas::OnUIPostEditUndo()
 			Target->CheckRootCanvas(true);
 			Target->MarkCanvasUpdate(true, true, true, true);
 			Target->CurrentRenderMode = ELGUIRenderMode::None;//force check RenderMode
-			for (auto childCanvas : Target->ChildrenCanvasArray)
+			for (int i = Target->ChildrenCanvasArray.Num() - 1; i >= 0; i--)
 			{
-				RecheckRootCanvasRecursive(childCanvas.Get());
+				auto ChildCanvas = Target->ChildrenCanvasArray[i];
+				if (ChildCanvas.IsValid())
+				{
+					RecheckRootCanvasRecursive(ChildCanvas.Get());
+				}
+				else
+				{
+					Target->ChildrenCanvasArray.RemoveAt(i);
+				}
 			}
 		}
 	};
-	ULGUIPrefabManagerObject::AddOneShotTickFunction([this]() {
-		LOCAL::RecheckRootCanvasRecursive(this);
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)]() {
+		if (WeakThis.IsValid())
+		{
+			LOCAL::RecheckRootCanvasRecursive(WeakThis.Get());
+		}
 		}, 0);
 }
 #endif
@@ -2759,8 +2772,8 @@ void ULGUICanvas::SetRenderMode(ELGUIRenderMode value)
 	if (renderMode != value)
 	{
 		renderMode = value;
-
-		CheckRenderMode();
+		MarkCanvasUpdate(false, false, false, true);
+		CheckRenderMode(true);
 	}
 }
 
