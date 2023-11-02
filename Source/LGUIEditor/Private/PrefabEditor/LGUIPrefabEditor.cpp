@@ -29,10 +29,6 @@
 #include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
-#include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/LGUICanvas.h"
-#include "Core/Actor/UIBaseActor.h"
-#include "Core/Actor/LGUIManager.h"
 #include "Utils/LGUIUtils.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
@@ -109,6 +105,14 @@ bool FLGUIPrefabEditor::ActorIsRootAgent(AActor* InActor)
 	return false;
 }
 
+void FLGUIPrefabEditor::IterateAllPrefabEditor(const TFunction<void(FLGUIPrefabEditor*)>& InFunction)
+{
+	for (auto Instance : LGUIPrefabEditorInstanceCollection)
+	{
+		InFunction(Instance);
+	}
+}
+
 bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 {
 	return PrefabHelperObject->RefreshOnSubPrefabDirty(InSubPrefab);
@@ -159,18 +163,13 @@ FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
 		{
 			if (SceneComp->IsRegistered() && !SceneComp->IsVisualizationComponent())
 			{
-				if (auto UIItem = Cast<UUIItem>(SceneComp))
+				if (!ULGUIPrefabManagerObject::OnPrefabEditor_GetBounds.ExecuteIfBound(SceneComp, Box, bIsValidBox))
 				{
-					if (UIItem->GetIsUIActiveInHierarchy())
+					if (auto PrimitiveComp = Cast<UPrimitiveComponent>(SceneComp))
 					{
-						Box = UIItem->Bounds.GetBox();
+						Box = PrimitiveComp->Bounds.GetBox();
 						bIsValidBox = true;
 					}
-				}
-				else if (auto PrimitiveComp = Cast<UPrimitiveComponent>(SceneComp))
-				{
-					Box = PrimitiveComp->Bounds.GetBox();
-					bIsValidBox = true;
 				}
 			}
 		}
@@ -479,16 +478,7 @@ void FLGUIPrefabEditor::OnApply()
 		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewOrbitLocation = ViewTransform.GetLookAt();
 		if (auto RootAgentActor = GetPreviewScene().GetRootAgentActor())
 		{
-			if (auto UIItem = Cast<UUIItem>(RootAgentActor->GetRootComponent()))
-			{
-				PrefabBeingEdited->PrefabDataForPrefabEditor.CanvasSize = FIntPoint(UIItem->GetWidth(), UIItem->GetHeight());
-			}
-			if (auto Canvas = RootAgentActor->FindComponentByClass<ULGUICanvas>())
-			{
-				PrefabBeingEdited->PrefabDataForPrefabEditor.bNeedCanvas = true;
-				PrefabBeingEdited->PrefabDataForPrefabEditor.CanvasRenderMode = (uint8)Canvas->GetRenderMode();
-			}
-			else
+			if (!ULGUIPrefabManagerObject::OnPrefabEditor_SavePrefab.ExecuteIfBound(RootAgentActor, PrefabBeingEdited))
 			{
 				PrefabBeingEdited->PrefabDataForPrefabEditor.bNeedCanvas = false;
 			}
@@ -517,7 +507,6 @@ void FLGUIPrefabEditor::OnApply()
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
-		ULGUIManagerWorldSubsystem::RefreshAllUI();
 	}
 }
 
@@ -548,24 +537,12 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 			if (ItemActor == PrefabHelperObject->LoadedRootActor)continue;
 			if (ItemActor == RootUIAgentActor)continue;
 			if (GetPreviewScene().IsWorldDefaultActor(ItemActor))continue;
-			if (ItemActor->GetClass() == ULGUIManagerWorldSubsystem::StaticClass())continue;
 			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
 			{
 				auto MsgText = LOCTEXT("Error_AllActor", "All prefab's actors must attach to prefab's root actor!");
 				FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 				return false;
 			}
-		}
-	}
-	
-	//If is UI prefab, then root actor must be child of [UIRootAgent]
-	if (PrefabHelperObject->LoadedRootActor->IsA(AUIBaseActor::StaticClass()))
-	{
-		if (PrefabHelperObject->LoadedRootActor->GetAttachParentActor() != RootUIAgentActor)
-		{
-			auto MsgText = LOCTEXT("Error_PrefabRootMustMustBeChildOfRootUIAgent", "Prefab's root actor must be child of [UIRootAgent]");
-			FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-			return false;
 		}
 	}
 

@@ -132,39 +132,6 @@ FString LGUIUtils::GetMD5String(const FString& InString)
 	return Md5String;
 }
 
-
-//find first Canvas in hierarchy
-void LGUIUtils::FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
-{
-	if (!IsValid(actor))return;
-	auto tempComp = GetComponentInParent<ULGUICanvas>(actor, false);
-	if (tempComp != nullptr && tempComp->IsRegistered())
-	{
-		resultCanvas = tempComp;
-	}
-
-	auto parentActor = actor->GetAttachParentActor();
-	if (parentActor != nullptr)
-	{
-		FindRootCanvas(parentActor, resultCanvas);
-	}
-}
-
-void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
-{
-	if (!IsValid(actor))return;
-	auto parentActor = actor->GetAttachParentActor();
-	if (parentActor != nullptr)
-	{
-		auto tempComp = GetComponentInParent<ULGUICanvas>(parentActor, false);
-		if (tempComp != nullptr)
-		{
-			resultCanvas = tempComp;
-		}
-		return;
-	}
-}
-
 #if WITH_EDITOR
 void LGUIUtils::NotifyPropertyChanged(UObject* Object, FProperty* Property)
 {

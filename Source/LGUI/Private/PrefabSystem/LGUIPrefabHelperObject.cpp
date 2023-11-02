@@ -472,7 +472,6 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
 				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
 				, SubPrefabMapGuidToObject, TempSubSubPrefabMap
-				, false
 			);
 
 			//collect newly added object and guid

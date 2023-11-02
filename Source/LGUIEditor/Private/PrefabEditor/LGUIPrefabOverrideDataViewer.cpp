@@ -5,7 +5,6 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUIPrefabEditor.h"
 #include "PropertyCustomizationHelpers.h"
-#include "Core/ActorComponent/UIItem.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabOverrideDataViewer"
 

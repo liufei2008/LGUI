@@ -28,7 +28,6 @@ namespace LGUIPrefabSystem8
 {
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, bool InSetHierarchyIndexForRootComponent
 	)
 	{
 		if (!IsValid(InWorld))
@@ -68,7 +67,6 @@ namespace LGUIPrefabSystem8
 			LGUIPrefabSystem::FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
 			Reader.DoSerialize(InObject);
 		};
-		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
@@ -159,7 +157,6 @@ namespace LGUIPrefabSystem8
 		serializer.bIsEditorOrRuntime = false;
 #endif
 		serializer.bOverrideVersions = true;
-		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.DeserializationSessionId = InParentDeserializationSessionId;
 		serializer.bIsSubPrefab = true;
@@ -321,10 +318,6 @@ namespace LGUIPrefabSystem8
 			if (Parent)
 			{
 				RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
-			}
-			//for UI
-			{
-				LGUIPrefabManager->OnAttachRootActor.ExecuteIfBound(RootComp, Parent, bSetHierarchyIndexForRootComponent);
 			}
 			RootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)

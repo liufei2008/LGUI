@@ -72,6 +72,7 @@ public:
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
 	static ULGUIPrefabHelperObject* GetEditorPrefabHelperObjectForActor(AActor* InActor);
 	static bool ActorIsRootAgent(AActor* InActor);
+	static void IterateAllPrefabEditor(const TFunction<void(FLGUIPrefabEditor*)>& InFunction);
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);

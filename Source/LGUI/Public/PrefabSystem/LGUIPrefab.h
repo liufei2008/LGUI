@@ -281,7 +281,6 @@ public:
 	 */
 	AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, bool InSetHierarchyIndexForRootComponent = true
 	);
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
 #if WITH_EDITOR
