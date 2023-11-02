@@ -57,8 +57,6 @@
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIScreenSpaceRaycaster.h"
 #include "Event/LGUIWorldSpaceRaycaster.h"
-#include "Event/LGUIRenderTargetInteraction.h"
-#include "Event/LGUIRenderTargetGeometrySource.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "Event/InputModule/LGUI_StandaloneInputModule.h"
@@ -73,6 +71,8 @@
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Extensions/UISpriteSheetTexturePlayer.h"
+#include "Extensions/LGUIRenderTargetInteraction.h"
+#include "Extensions/LGUIRenderTargetGeometrySource.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"

@@ -1,11 +1,11 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Event/LGUIRenderTargetInteraction.h"
+#include "Extensions/LGUIRenderTargetInteraction.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Event/LGUIWorldSpaceRaycaster.h"
-#include "Event/LGUIRenderTargetGeometrySource.h"
+#include "Extensions/LGUIRenderTargetGeometrySource.h"
 #include "Event/LGUIScreenSpaceRaycaster.h"
 #include "Engine/World.h"
 #include "Event/LGUIEventSystem.h"
