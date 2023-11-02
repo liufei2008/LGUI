@@ -55,6 +55,35 @@ public:
 	{
 		return GET_MEMBER_NAME_CHECKED(UUIItem, traceChannel);
 	}
+	template<class T>
+	static T* GetComponentInParentUI(AActor* InActor, bool IncludeUnregisteredComponent = true)
+	{
+		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponentInParent must be derived from UActorComponent");
+		T* ResultComp = nullptr;
+		AActor* ParentActor = InActor;
+		while (IsValid(ParentActor)
+			&& Cast<UUIItem>(ParentActor->GetRootComponent()) != nullptr
+			)
+		{
+			ResultComp = ParentActor->FindComponentByClass<T>();
+			if (IsValid(ResultComp))
+			{
+				if (ResultComp->IsRegistered())
+				{
+					return ResultComp;
+				}
+				else
+				{
+					if (IncludeUnregisteredComponent)
+					{
+						return ResultComp;
+					}
+				}
+			}
+			ParentActor = ParentActor->GetAttachParentActor();
+		}
+		return nullptr;
+	}
 	
 #pragma region LGUILifeCycleUIBehaviour
 private:

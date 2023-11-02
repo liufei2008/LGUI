@@ -755,8 +755,8 @@ void UUIItem::OnUIAttachedToParent()
 		}
 	}
 
-	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
-	UUICanvasGroup* ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
+	ULGUICanvas* ParentCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	UUICanvasGroup* ParentCanvasGroup = UUIItem::GetComponentInParentUI<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
 	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup, ParentUIItem->RootUIItem.Get());
 	//callback
 	CallUILifeCycleBehavioursAttachmentChanged();
@@ -952,7 +952,7 @@ void UUIItem::EnsureUIChildrenSorted()const
 void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
 {
 	bIsCanvasUIItem = true;
-	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with Canvas's ParentCanvas?
+	auto ParentCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with Canvas's ParentCanvas?
 	if (RenderCanvas != InRenderCanvas)
 	{
 		SetRenderCanvas(InRenderCanvas);
@@ -999,7 +999,7 @@ void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
 void UUIItem::UnregisterRenderCanvas()
 {
 	bIsCanvasUIItem = false;
-	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	auto ParentCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
 	if (RenderCanvas.IsValid())
 	{
 		RenderCanvas->SetParentCanvas(nullptr);
@@ -1026,7 +1026,7 @@ void UUIItem::SetRenderCanvas(ULGUICanvas* InNewCanvas)
 
 void UUIItem::RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup)
 {
-	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
+	auto ParentCanvasGroup = UUIItem::GetComponentInParentUI<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
 	InCanvasGroup->SetParentCanvasGroup(ParentCanvasGroup);
 	SetCanvasGroup(InCanvasGroup);
 	for (auto& uiItem : UIChildren)
@@ -1039,7 +1039,7 @@ void UUIItem::RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup)
 }
 void UUIItem::UnregisterCanvasGroup()
 {
-	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
+	auto ParentCanvasGroup = UUIItem::GetComponentInParentUI<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
 	SetCanvasGroup(ParentCanvasGroup);
 	for (auto uiItem : UIChildren)
 	{
