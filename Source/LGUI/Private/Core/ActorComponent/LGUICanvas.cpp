@@ -450,7 +450,7 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	ULGUICanvas* NewParentCanvas = nullptr;
 	if (this->IsRegistered())
 	{
-		NewParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner()->GetAttachParentActor(), true);
+		NewParentCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(this->GetOwner()->GetAttachParentActor(), true);
 	}
 	SetParentCanvas(NewParentCanvas);
 }

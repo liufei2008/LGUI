@@ -82,7 +82,7 @@ void UUICanvasGroup::OnUIHierarchyChanged()
 	UUICanvasGroup* NewParentUICanvasGroup = nullptr;
 	if (this->IsRegistered())//find new CanvasGroup only for OnRegister
 	{
-		NewParentUICanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(this->GetOwner()->GetAttachParentActor(), true);
+		NewParentUICanvasGroup = UUIItem::GetComponentInParentUI<UUICanvasGroup>(this->GetOwner()->GetAttachParentActor(), true);
 	}
 	SetParentCanvasGroup(NewParentUICanvasGroup);
 }
