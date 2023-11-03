@@ -1238,9 +1238,11 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 		{
 			PrefabHelperObject->Modify();
 			PrefabHelperObject->SetAnythingDirty();
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))
+			TArray<AActor*> ChildrenActors;
+			LGUIUtils::CollectChildrenActors(Actor, ChildrenActors);
+			for (auto ChildActor : ChildrenActors)
 			{
-				PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(Actor);
+				PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(ChildActor);
 			}
 			LGUIUtils::DestroyActorWithHierarchy(Actor);
 		}
