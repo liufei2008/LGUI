@@ -465,6 +465,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	float GammaValue =
 		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
 
+	auto CurrentWorldTime = InView.Family->Time.GetWorldTimeSeconds();
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
@@ -531,7 +532,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 						Item.DepthFade = WorldRenderParameter.DepthFade;
 						Item.WorldPosition = WorldRenderParameter.Primitive->GetWorldPositionForSortTranslucent();
 						Item.RenderPriority = WorldRenderParameter.Primitive->GetRenderPriority();
-						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray);
+						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
 						RenderSequenceArray.Add(Item);
 					}
 				}
@@ -781,7 +782,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				auto WorldBounds = Primitive->GetWorldBounds();
 				if (RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 				{
-					Primitive->CollectRenderData(RenderSequenceArray);
+					Primitive->CollectRenderData(RenderSequenceArray, CurrentWorldTime);
 				}
 			}
 		}
