@@ -17,6 +17,7 @@
 #include "PrimitiveSceneProxy.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
+#include "PrimitiveSceneInfo.h"
 
 
 #define LOCTEXT_NAMESPACE "LGUIMeshComponent"
@@ -208,6 +209,7 @@ public:
 #endif
 		LGUIRenderer = InComponent->LGUIRenderer;
 		RenderCanvasPtr = InCanvasPtr;
+		CanvasLastRenderTime = &RenderCanvasPtr->LastRenderTime;
 		bIsLGUIRenderToWorld = InComponent->bIsLGUIRenderToWorld;
 		if (LGUIRenderer.IsValid())
 		{
@@ -682,10 +684,10 @@ public:
 	{
 		return (FVector3f)(GetLocalToWorld().GetOrigin()); 
 	}
-	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData) override
+	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) override
 	{
 		if (ParentSceneProxy != nullptr)return;
-		CollectRenderData_Implement(OutRenderData);
+		CollectRenderData_Implement(OutRenderData, CurrentWorldTime);
 	}
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
@@ -762,7 +764,7 @@ public:
 	}
 	virtual FBoxSphereBounds GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
 	//end ILGUIRendererPrimitive interface
-	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
+	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray, float CurrentWorldTime)
 	{
 		if (Sections.Num() <= 0)return;
 		if (bNeedToSortRenderSections)
@@ -774,6 +776,7 @@ public:
 					LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
 				});
 		}
+		*CanvasLastRenderTime = CurrentWorldTime;
 
 		auto PrevRenderSectionType = Sections[0]->Type;
 		auto PrevPrimitiveType = PrevRenderSectionType == ELGUIRenderSectionType::PostProcess ? ELGUIRendererPrimitiveType::PostProcess : ELGUIRendererPrimitiveType::Mesh;
@@ -825,7 +828,7 @@ public:
 					auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
 					if (ChildSceneProxy != nullptr)
 					{
-						ChildSceneProxy->CollectRenderData_Implement(OutRenderDataArray);
+						ChildSceneProxy->CollectRenderData_Implement(OutRenderDataArray, CurrentWorldTime);
 					}
 				}
 				break;
@@ -939,6 +942,11 @@ private:
 	bool bIsRenderFromParent = false;
 	/** If have parent then render in parent */
 	FLGUIRenderSceneProxy* ParentSceneProxy = nullptr;
+	/**
+	 * This is a pointer to LGUICanvas's LastRenderTime.
+	 * Why it is safe to use? Check PrimitiveSceneInfo.h OwnerLastRenderTime
+	 */
+	float* CanvasLastRenderTime = nullptr;
 };
 #if !UE_BUILD_SHIPPING
 uint32 FLGUIRenderSceneProxy::DebugNameIndex = 0;
