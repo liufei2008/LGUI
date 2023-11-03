@@ -64,7 +64,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 	float thisFreeHeight = rectSize.Y - rowTotalConstantSize - Layout->GetSpacing().Y * (Rows.Num() - 1);//height exclude constant size and all space
 
 	//darw line at column's left
-	float offsetX = 0, offsetY = 0;
+	float offsetX = Layout->GetPadding().Left, offsetY = Layout->GetPadding().Bottom;
 	float halfSpaceX = Layout->GetSpacing().X * 0.5f;
 	float halfSpaceY = Layout->GetSpacing().Y * 0.5f;
 	auto lineColor = FLinearColor(0, 1, 1, 1);
