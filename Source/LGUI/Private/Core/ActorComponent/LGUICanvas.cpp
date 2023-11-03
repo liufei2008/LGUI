@@ -1566,6 +1566,18 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 	}
 }
 
+float ULGUICanvas::GetLastRenderTime()const
+{
+	if (IsRenderByLGUIRendererOrUERenderer())
+	{
+		return LastRenderTime;
+	}
+	else
+	{
+		return GetUIMesh()->GetLastRenderTime();
+	}
+}
+
 void ULGUICanvas::CheckUIMesh()const
 {
 	if (!UIMesh.IsValid())

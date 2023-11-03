@@ -11,6 +11,7 @@
 #include "Event/LGUIEventSystem.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 #if WITH_EDITOR
 #include "Utils/LGUIUtils.h"
 #endif

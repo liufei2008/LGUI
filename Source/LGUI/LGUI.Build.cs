@@ -33,7 +33,8 @@ public class LGUI : ModuleRules
                 "ApplicationCore",//UITextInput/RequiresVirtualKeyboard, debug
                 "Projects",
                 "MovieScene",
-                "MovieSceneTracks"
+                "MovieSceneTracks",
+                "UMG",
 				// ... add other public dependencies that you statically link with here ...
             }
             );
