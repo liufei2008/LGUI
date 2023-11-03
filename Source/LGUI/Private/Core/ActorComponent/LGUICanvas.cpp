@@ -307,7 +307,10 @@ void ULGUICanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
 	{
 		for (const auto& ChildCanvas : ChildrenCanvasArray)
 		{
-			ChildCanvas->RemoveFromViewExtension(PropogateToChildrenCanvas);
+			if (ChildCanvas.IsValid())
+			{
+				ChildCanvas->RemoveFromViewExtension(PropogateToChildrenCanvas);
+			}
 		}
 	}
 }
@@ -430,7 +433,10 @@ void ULGUICanvas::CheckRenderMode(bool PropogateToChildrenCanvas)
 	{
 		for (const auto& ChildCanvas : ChildrenCanvasArray)
 		{
-			ChildCanvas->CheckRenderMode(PropogateToChildrenCanvas);
+			if (ChildCanvas.IsValid())
+			{
+				ChildCanvas->CheckRenderMode(PropogateToChildrenCanvas);
+			}
 		}
 	}
 }

@@ -563,11 +563,11 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 		ClearInvalidObjectAndGuid();//incase LevelPrefab reference invalid object, eg: delete object in sub-prefab's sub-prefab, and update the prefab in level
 	}
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	RefreshSubPrefabVersion(InSubPrefabRootActor);
 	bCanNotifyAttachment = true;
 	bCanCollectProperty = true;
 	bCanNotifyComponentCreateDelete = true;
+	ULGUIManagerWorldSubsystem::RefreshAllUI();
 	return AnythingChange;
 }
 
@@ -1773,7 +1773,7 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 		TSet<AActor*> SubPrefabKeysToRemove;
 		for (auto& KeyValue : SubPrefabMap)
 		{
-			if (!IsValid(KeyValue.Key) || !IsValid(KeyValue.Value.PrefabAsset))
+			if (IsValid(KeyValue.Key) && !IsValid(KeyValue.Value.PrefabAsset))
 			{
 				SubPrefabKeysToRemove.Add(KeyValue.Key);
 #if WITH_EDITOR
