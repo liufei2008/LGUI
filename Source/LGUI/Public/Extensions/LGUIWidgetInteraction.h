@@ -151,7 +151,7 @@ protected:
 	 * the mouse and keyboard focus input (the viewport), so that things like the player controller receive
 	 * standard hardware input.
 	 */
-	TSharedPtr<FSlateVirtualUserHandle> VirtualUser;
+	TSharedPtr<class FSlateVirtualUserHandle> VirtualUser;
 
 public:
 

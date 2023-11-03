@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Extensions/LGUIWidget.h"
 #include "Event/LGUIEventSystem.h"
+#include "Framework/Application/SlateUser.h"
 
 #define LOCTEXT_NAMESPACE "LGUIWidgetInteraction"
 
