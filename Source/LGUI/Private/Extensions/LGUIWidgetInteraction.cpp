@@ -8,6 +8,8 @@
 
 #define LOCTEXT_NAMESPACE "LGUIWidgetInteraction"
 
+ULGUIWidgetInteractionManager* ULGUIWidgetInteractionManager::Instance = nullptr;
+
 ULGUIWidgetInteraction::ULGUIWidgetInteraction()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -16,14 +18,31 @@ ULGUIWidgetInteraction::ULGUIWidgetInteraction()
 
 bool ULGUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
-	bIsPointerInside = true;
-	CurrentPointerEventData = eventData;
-	PointerIndex = eventData->pointerID;
+	if (CurrentPointerEventData == nullptr)
+	{
+		CurrentPointerEventData = eventData;
+
+		auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+		if (Interactions.CurrentInteraction == nullptr)
+		{
+			Interactions.CurrentInteraction = this;
+		}
+	}
 	return bAllowEventBubbleUp;
 }
 bool ULGUIWidgetInteraction::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
-	bIsPointerInside = false;
+	if (CurrentPointerEventData == eventData)
+	{
+		CurrentPointerEventData = nullptr;
+
+		auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+		if (Interactions.CurrentInteraction == this)
+		{
+			SimulatePointerMovement();//pointer exit;
+			Interactions.CurrentInteraction = nullptr;
+		}
+	}
 	return bAllowEventBubbleUp;
 }
 bool ULGUIWidgetInteraction::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
@@ -83,12 +102,20 @@ void ULGUIWidgetInteraction::Awake()
 {
 	Super::Awake();
 
+	if (ULGUIWidgetInteractionManager::Instance == nullptr)
+	{
+		ULGUIWidgetInteractionManager::Instance = NewObject<ULGUIWidgetInteractionManager>();
+		ULGUIWidgetInteractionManager::Instance->AddToRoot();
+	}
+	Helper = ULGUIWidgetInteractionManager::Instance;
 	// Only create another user in a real world. FindOrCreateVirtualUser changes focus
 	if (FSlateApplication::IsInitialized() && !GetWorld()->IsPreviewWorld())
 	{
 		if (!VirtualUser.IsValid())
 		{
 			VirtualUser = FSlateApplication::Get().FindOrCreateVirtualUser(VirtualUserIndex);
+			auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.FindOrAdd(VirtualUserIndex);
+			Interactions.AllInteractions.Add(this);
 		}
 	}
 }
@@ -103,24 +130,37 @@ void ULGUIWidgetInteraction::OnDestroy()
 		{
 			FSlateApplication::Get().UnregisterUser(VirtualUser->GetUserIndex());
 			VirtualUser.Reset();
+			auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+			Interactions.AllInteractions.Remove(this);
+			if (Interactions.AllInteractions.Num() == 0)
+			{
+				ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Remove(VirtualUserIndex);
+			}
 		}
+	}
+
+	if (ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Num() == 0)
+	{
+		ULGUIWidgetInteractionManager::Instance->ConditionalBeginDestroy();
+		ULGUIWidgetInteractionManager::Instance = nullptr;
 	}
 }
 
 void ULGUIWidgetInteraction::Update(float DeltaTime)
 {
 	Super::Update(DeltaTime);
-
+	
 	SimulatePointerMovement();
 }
 
 bool ULGUIWidgetInteraction::CanSendInput()
 {
-	if (HoveredWidgetComponent == nullptr)
+	if (WidgetComponent == nullptr)
 	{
-		HoveredWidgetComponent = GetOwner()->FindComponentByClass<ULGUIWidget>();
+		WidgetComponent = GetOwner()->FindComponentByClass<ULGUIWidget>();
 	}
-	return FSlateApplication::IsInitialized() && VirtualUser.IsValid() && HoveredWidgetComponent != nullptr;
+	auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+	return FSlateApplication::IsInitialized() && VirtualUser.IsValid() && WidgetComponent != nullptr && Interactions.CurrentInteraction == this;
 }
 
 void ULGUIWidgetInteraction::SetCustomHitResult(const FHitResult& HitResult)
@@ -184,23 +224,18 @@ FWidgetPath ULGUIWidgetInteraction::DetermineWidgetUnderPointer()
 	bIsHoveredWidgetFocusable = false;
 	bIsHoveredWidgetHitTestVisible = false;
 
-	FWidgetTraceResult TraceResult;
-	if (bIsPointerInside)
-	{
-		HoveredWidgetComponent->GetLocalHitLocation(CurrentPointerEventData->worldPoint, TraceResult.LocalHitLocation);
-		TraceResult.HitWidgetPath = FWidgetPath(HoveredWidgetComponent->GetHitWidgetPath(TraceResult.LocalHitLocation, /*bIgnoreEnabledStatus*/ false));
-	}
-
 	LastLocalHitLocation = LocalHitLocation;
-	LocalHitLocation = bIsPointerInside
-		? TraceResult.LocalHitLocation
-		: LastLocalHitLocation;
+	FWidgetTraceResult TraceResult;
+	if (CurrentPointerEventData != nullptr)
+	{
+		WidgetComponent->GetLocalHitLocation(CurrentPointerEventData->worldPoint, TraceResult.LocalHitLocation);
+		TraceResult.HitWidgetPath = FWidgetPath(WidgetComponent->GetHitWidgetPath(TraceResult.LocalHitLocation, /*bIgnoreEnabledStatus*/ false));
+
+		LocalHitLocation = TraceResult.LocalHitLocation;
+	}
 	WidgetPathUnderPointer = TraceResult.HitWidgetPath;
 
-	if (bIsPointerInside)
-	{
-		HoveredWidgetComponent->RequestRenderUpdate();
-	}
+	WidgetComponent->RequestRenderUpdate();
 
 	if (WidgetPathUnderPointer.IsValid())
 	{
@@ -239,31 +274,35 @@ void ULGUIWidgetInteraction::SimulatePointerMovement()
 	}
 
 	FWidgetPath WidgetPathUnderFinger = DetermineWidgetUnderPointer();
-
-	ensure(PointerIndex >= 0);
-	FPointerEvent PointerEvent(
-		VirtualUser->GetUserIndex(),
-		(uint32)PointerIndex,
-		LocalHitLocation,
-		LastLocalHitLocation,
-		PressedKeys,
-		FKey(),
-		0.0f,
-		ModifierKeys);
-
-	if (WidgetPathUnderFinger.IsValid())
+	if (CurrentPointerEventData != nullptr)
 	{
-		check(HoveredWidgetComponent);
-		LastWidgetPath = WidgetPathUnderFinger;
-
-		FSlateApplication::Get().RoutePointerMoveEvent(WidgetPathUnderFinger, PointerEvent, false);
+		PrevPointerIndex = CurrentPointerEventData->pointerID;
 	}
-	else
+	if (PrevPointerIndex >= 0)
 	{
-		FWidgetPath EmptyWidgetPath;
-		FSlateApplication::Get().RoutePointerMoveEvent(EmptyWidgetPath, PointerEvent, false);
+		FPointerEvent PointerEvent(
+			VirtualUser->GetUserIndex(),
+			(uint32)PrevPointerIndex,
+			LocalHitLocation,
+			LastLocalHitLocation,
+			PressedKeys,
+			FKey(),
+			0.0f,
+			ModifierKeys);
 
-		LastWidgetPath = FWeakWidgetPath();
+		if (WidgetPathUnderFinger.IsValid())
+		{
+			check(WidgetComponent);
+			LastWidgetPath = WidgetPathUnderFinger;
+			FSlateApplication::Get().RoutePointerMoveEvent(WidgetPathUnderFinger, PointerEvent, false);
+		}
+		else
+		{
+			FWidgetPath EmptyWidgetPath;
+			FSlateApplication::Get().RoutePointerMoveEvent(EmptyWidgetPath, PointerEvent, false);
+
+			LastWidgetPath = FWeakWidgetPath();
+		}
 	}
 }
 
@@ -288,41 +327,40 @@ void ULGUIWidgetInteraction::PressPointerKey(FKey Key)
 	}
 
 	FWidgetPath WidgetPathUnderFinger = LastWidgetPath.ToWidgetPath();
-
-	ensure(PointerIndex >= 0);
-
-	FPointerEvent PointerEvent;
-
-	if (Key.IsTouch())
+	if (PrevPointerIndex >= 0)
 	{
-		PointerEvent = FPointerEvent(
-			VirtualUser->GetUserIndex(),
-			(uint32)PointerIndex,
-			LocalHitLocation,
-			LastLocalHitLocation,
-			1.0f,
-			false);
+		FPointerEvent PointerEvent;
+		if (Key.IsTouch())
+		{
+			PointerEvent = FPointerEvent(
+				VirtualUser->GetUserIndex(),
+				(uint32)PrevPointerIndex,
+				LocalHitLocation,
+				LastLocalHitLocation,
+				1.0f,
+				false);
 
+		}
+		else
+		{
+			PointerEvent = FPointerEvent(
+				VirtualUser->GetUserIndex(),
+				(uint32)PrevPointerIndex,
+				LocalHitLocation,
+				LastLocalHitLocation,
+				PressedKeys,
+				Key,
+				0.0f,
+				ModifierKeys);
+		}
+
+
+		FReply Reply = FSlateApplication::Get().RoutePointerDownEvent(WidgetPathUnderFinger, PointerEvent);
+
+		// @TODO Something about double click, expose directly, or automatically do it if key press happens within
+		// the double click timeframe?
+		//Reply = FSlateApplication::Get().RoutePointerDoubleClickEvent( WidgetPathUnderFinger, PointerEvent );
 	}
-	else
-	{
-		PointerEvent = FPointerEvent(
-			VirtualUser->GetUserIndex(),
-			(uint32)PointerIndex,
-			LocalHitLocation,
-			LastLocalHitLocation,
-			PressedKeys,
-			Key,
-			0.0f,
-			ModifierKeys);
-	}
-
-
-	FReply Reply = FSlateApplication::Get().RoutePointerDownEvent(WidgetPathUnderFinger, PointerEvent);
-
-	// @TODO Something about double click, expose directly, or automatically do it if key press happens within
-	// the double click timeframe?
-	//Reply = FSlateApplication::Get().RoutePointerDoubleClickEvent( WidgetPathUnderFinger, PointerEvent );
 }
 
 void ULGUIWidgetInteraction::ReleasePointerKey(FKey Key)
@@ -342,33 +380,34 @@ void ULGUIWidgetInteraction::ReleasePointerKey(FKey Key)
 	FWidgetPath WidgetPathUnderFinger = LastWidgetPath.ToWidgetPath();
 	// Need to clear the widget path for cases where the component isn't ticking/clearing itself.
 	LastWidgetPath = FWeakWidgetPath();
-
-	ensure(PointerIndex >= 0);
-	FPointerEvent PointerEvent;
-	if (Key.IsTouch())
+	if (PrevPointerIndex >= 0)
 	{
-		PointerEvent = FPointerEvent(
-			VirtualUser->GetUserIndex(),
-			(uint32)PointerIndex,
-			LocalHitLocation,
-			LastLocalHitLocation,
-			1.0f,
-			false);
-	}
-	else
-	{
-		PointerEvent = FPointerEvent(
-			VirtualUser->GetUserIndex(),
-			(uint32)PointerIndex,
-			LocalHitLocation,
-			LastLocalHitLocation,
-			PressedKeys,
-			Key,
-			0.0f,
-			ModifierKeys);
-	}
+		FPointerEvent PointerEvent;
+		if (Key.IsTouch())
+		{
+			PointerEvent = FPointerEvent(
+				VirtualUser->GetUserIndex(),
+				(uint32)PrevPointerIndex,
+				LocalHitLocation,
+				LastLocalHitLocation,
+				1.0f,
+				false);
+		}
+		else
+		{
+			PointerEvent = FPointerEvent(
+				VirtualUser->GetUserIndex(),
+				(uint32)PrevPointerIndex,
+				LocalHitLocation,
+				LastLocalHitLocation,
+				PressedKeys,
+				Key,
+				0.0f,
+				ModifierKeys);
+		}
 
-	FReply Reply = FSlateApplication::Get().RoutePointerUpEvent(WidgetPathUnderFinger, PointerEvent);
+		FReply Reply = FSlateApplication::Get().RoutePointerUpEvent(WidgetPathUnderFinger, PointerEvent);
+	}
 }
 
 bool ULGUIWidgetInteraction::PressKey(FKey Key, bool bRepeat)
@@ -479,20 +518,21 @@ void ULGUIWidgetInteraction::ScrollWheel(float ScrollDelta)
 		return;
 	}
 
-	FWidgetPath WidgetPathUnderFinger = LastWidgetPath.ToWidgetPath();
+	if (PrevPointerIndex >= 0)
+	{
+		FWidgetPath WidgetPathUnderFinger = LastWidgetPath.ToWidgetPath();
+		FPointerEvent MouseWheelEvent(
+			VirtualUser->GetUserIndex(),
+			(uint32)PrevPointerIndex,
+			LocalHitLocation,
+			LastLocalHitLocation,
+			PressedKeys,
+			EKeys::MouseWheelAxis,
+			ScrollDelta,
+			ModifierKeys);
 
-	ensure(PointerIndex >= 0);
-	FPointerEvent MouseWheelEvent(
-		VirtualUser->GetUserIndex(),
-		(uint32)PointerIndex,
-		LocalHitLocation,
-		LastLocalHitLocation,
-		PressedKeys,
-		EKeys::MouseWheelAxis,
-		ScrollDelta,
-		ModifierKeys);
-
-	FSlateApplication::Get().RouteMouseWheelOrGestureEvent(WidgetPathUnderFinger, MouseWheelEvent, nullptr);
+		FSlateApplication::Get().RouteMouseWheelOrGestureEvent(WidgetPathUnderFinger, MouseWheelEvent, nullptr);
+	}
 }
 
 bool ULGUIWidgetInteraction::IsOverInteractableWidget() const

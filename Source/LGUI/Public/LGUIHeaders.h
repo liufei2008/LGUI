@@ -73,6 +73,8 @@
 #include "Extensions/UISpriteSheetTexturePlayer.h"
 #include "Extensions/LGUIRenderTargetInteraction.h"
 #include "Extensions/LGUIRenderTargetGeometrySource.h"
+#include "Extensions/LGUIWidget.h"
+#include "Extensions/LGUIWidgetInteraction.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"
@@ -114,6 +116,8 @@
 
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabLevelManagerActor.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
+#include "PrefabSystem/LGUIPrefabSettings.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 
