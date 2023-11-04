@@ -12,8 +12,7 @@ ULGUIWidgetInteractionManager* ULGUIWidgetInteractionManager::Instance = nullptr
 
 ULGUIWidgetInteraction::ULGUIWidgetInteraction()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-	PrimaryComponentTick.bStartWithTickEnabled = false;
+	
 }
 
 bool ULGUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
@@ -26,6 +25,7 @@ bool ULGUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData
 		if (Interactions.CurrentInteraction == nullptr)
 		{
 			Interactions.CurrentInteraction = this;
+			this->SetEnable(true);//hover in, enable update
 		}
 	}
 	return bAllowEventBubbleUp;
@@ -41,6 +41,7 @@ bool ULGUIWidgetInteraction::OnPointerExit_Implementation(ULGUIPointerEventData*
 		{
 			SimulatePointerMovement();//pointer exit;
 			Interactions.CurrentInteraction = nullptr;
+			this->SetEnable(false);//hover out, disable update
 		}
 	}
 	return bAllowEventBubbleUp;
@@ -118,6 +119,8 @@ void ULGUIWidgetInteraction::Awake()
 			Interactions.AllInteractions.Add(this);
 		}
 	}
+	WidgetComponent = GetOwner()->FindComponentByClass<ULGUIWidget>();
+	this->SetEnable(false);//disable update by default
 }
 
 void ULGUIWidgetInteraction::OnDestroy()
@@ -155,12 +158,7 @@ void ULGUIWidgetInteraction::Update(float DeltaTime)
 
 bool ULGUIWidgetInteraction::CanSendInput()
 {
-	if (WidgetComponent == nullptr)
-	{
-		WidgetComponent = GetOwner()->FindComponentByClass<ULGUIWidget>();
-	}
-	auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
-	return FSlateApplication::IsInitialized() && VirtualUser.IsValid() && WidgetComponent != nullptr && Interactions.CurrentInteraction == this;
+	return FSlateApplication::IsInitialized() && VirtualUser.IsValid() && WidgetComponent != nullptr;
 }
 
 void ULGUIWidgetInteraction::SetCustomHitResult(const FHitResult& HitResult)

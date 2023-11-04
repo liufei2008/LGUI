@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/LGUILifeCycleUIBehaviour.h"
+#include "Core/LGUILifeCycleBehaviour.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
@@ -33,7 +33,7 @@ public:
  * This component should be placed on a actor which have a LGUIRenderTargetGeometrySource component.
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIWidgetInteraction : public ULGUILifeCycleUIBehaviour
+class LGUI_API ULGUIWidgetInteraction : public ULGUILifeCycleBehaviour
 	, public ILGUIPointerEnterExitInterface
 	, public ILGUIPointerDownUpInterface
 	, public ILGUIPointerScrollInterface
