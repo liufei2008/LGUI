@@ -144,7 +144,7 @@ namespace UIQuadTree
 			{
 				return false;
 			}
-			if (this->NodeRect.Intersects(InRect))
+			if (this->NodeRect.Intersects(InRect))//intersect with NodeRect
 			{
 				//check RectArray
 				for (auto& ItemRect : RectArray)
@@ -170,6 +170,17 @@ namespace UIQuadTree
 						return true;
 					}
 					if (BottomRight->Overlap(InRect))
+					{
+						return true;
+					}
+				}
+			}
+			else//not intersect with NodeRect, but can still intersect with RectArray
+			{
+				//check RectArray
+				for (auto& ItemRect : RectArray)
+				{
+					if (ItemRect.Intersects(InRect))
 					{
 						return true;
 					}
