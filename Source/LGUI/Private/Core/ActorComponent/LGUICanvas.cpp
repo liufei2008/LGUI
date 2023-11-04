@@ -579,6 +579,7 @@ void ULGUICanvas::PostEditUndo()
 {
 	Super::PostEditUndo();
 
+	ULGUIManagerWorldSubsystem::RefreshAllUI(this->GetWorld());
 	OnUIPostEditUndo();
 }
 void ULGUICanvas::OnUIPostEditUndo()
