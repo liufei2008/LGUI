@@ -655,7 +655,7 @@ UWorld* LGUIEditorTools::GetWorldFromSelection()
 	}
 	return GWorld;
 }
-void LGUIEditorTools::CreateActorByClass(UClass* ActorClass)
+void LGUIEditorTools::CreateActorByClass(UClass* ActorClass, TFunction<void(AActor*)> Callback)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
@@ -664,6 +664,10 @@ void LGUIEditorTools::CreateActorByClass(UClass* ActorClass)
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
 	{
+		if (Callback != nullptr)
+		{
+			Callback(newActor);
+		}
 		if (selectedActor != nullptr)
 		{
 			auto SelectedRootComp = selectedActor->GetRootComponent();

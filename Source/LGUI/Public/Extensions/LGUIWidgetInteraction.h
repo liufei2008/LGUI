@@ -11,6 +11,22 @@
 #include "LGUIWidgetInteraction.generated.h"
 
 class ULGUIWidget;
+class ULGUIWidgetInteraction;
+
+UCLASS()
+class LGUI_API ULGUIWidgetInteractionManager : public UObject
+{
+	GENERATED_BODY()
+public:
+
+	static ULGUIWidgetInteractionManager* Instance;
+	struct FInteractionContainer
+	{
+		TArray<ULGUIWidgetInteraction*> AllInteractions;
+		ULGUIWidgetInteraction* CurrentInteraction = nullptr;
+	};
+	TMap<int, FInteractionContainer> MapVirtualUserIndexToInteraction;
+};
 
 /**
  * Perform a raycaster and interaction for LGUIRenderTargetGeometrySource object, which shows the LGUI RenderTarget UI.
@@ -31,6 +47,8 @@ protected:
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bAllowEventBubbleUp = false;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay)
+		ULGUIWidgetInteractionManager* Helper = nullptr;
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
@@ -38,7 +56,6 @@ protected:
 	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 
-	bool bIsPointerInside = false;
 	ULGUIPointerEventData* CurrentPointerEventData = nullptr;
 
 public:
@@ -163,9 +180,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI, meta = (ClampMin = "0", ExposeOnSpawn = true))
 	int32 VirtualUserIndex;
 
-	int32 PointerIndex;
 
 protected:
+	int32 PrevPointerIndex = -1;
 
 	// Gets the key and char codes for sending keys for the platform.
 	void GetKeyAndCharCodes(const FKey& Key, bool& bHasKeyCode, uint32& KeyCode, bool& bHasCharCode, uint32& CharCode);
@@ -222,7 +239,7 @@ protected:
 
 	/** The widget component we're currently hovering over. */
 	UPROPERTY(Transient)
-	TObjectPtr<ULGUIWidget> HoveredWidgetComponent;
+	TObjectPtr<ULGUIWidget> WidgetComponent;
 
 	/** Are we hovering over any interactive widgets. */
 	UPROPERTY(Transient)

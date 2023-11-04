@@ -1574,7 +1574,23 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 
 float ULGUICanvas::GetLastRenderTime()const
 {
-	if (IsRenderByLGUIRendererOrUERenderer())
+	auto RenderMode = GetActualRenderMode();
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld())//edit mode
+	{
+		if (previewWithLGUIRenderer)
+		{
+			if (RenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+				RenderMode = ELGUIRenderMode::WorldSpace_LGUI;
+		}
+		else
+		{
+			if (RenderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+				RenderMode = ELGUIRenderMode::WorldSpace;
+		}
+	}
+#endif
+	if (RenderModeIsLGUIRendererOrUERenderer(RenderMode))
 	{
 		return LastRenderTime;
 	}

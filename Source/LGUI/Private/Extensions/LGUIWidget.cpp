@@ -622,7 +622,8 @@ void ULGUIWidget::UpdateRenderTarget(FIntPoint DesiredRenderTargetSize)
 		{
 			RenderTarget = NewObject<UTextureRenderTarget2D>(this);
 			RenderTarget->ClearColor = ActualBackgroundColor;
-
+			RenderTarget->AddressX = TextureAddress::TA_Clamp;
+			RenderTarget->AddressY = TextureAddress::TA_Clamp;
 			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, requestedFormat, false);
 
 			MarkTextureDirty();
@@ -648,16 +649,11 @@ void ULGUIWidget::GetLocalHitLocation(FVector WorldHitLocation, FVector2D& OutLo
 	FVector ComponentHitLocation = GetComponentTransform().InverseTransformPosition(WorldHitLocation);
 
 	// Convert the 3D position of component space, into the 2D equivalent
-	OutLocalWidgetHitLocation = FVector2D(-ComponentHitLocation.Y, -ComponentHitLocation.Z);
+	auto LocationRelativeToLeftBottom = FVector2D(ComponentHitLocation.Y, ComponentHitLocation.Z) - this->GetLocalSpaceLeftBottomPoint();
+	auto Location01 = LocationRelativeToLeftBottom / FVector2D(this->GetWidth(), this->GetHeight());
+	Location01.Y = 1.0f - Location01.Y;
 
-	// Offset the position by the pivot to get the position in widget space.
-	OutLocalWidgetHitLocation.X += CurrentDrawSize.X * this->GetPivot().X;
-	OutLocalWidgetHitLocation.Y += CurrentDrawSize.Y * this->GetPivot().Y;
-
-	// Apply the parabola distortion
-	FVector2D NormalizedLocation = OutLocalWidgetHitLocation / CurrentDrawSize;
-
-	OutLocalWidgetHitLocation.Y = CurrentDrawSize.Y * NormalizedLocation.Y;
+	OutLocalWidgetHitLocation = Location01 * CurrentDrawSize;
 }
 
 UUserWidget* ULGUIWidget::GetUserWidgetObject() const
