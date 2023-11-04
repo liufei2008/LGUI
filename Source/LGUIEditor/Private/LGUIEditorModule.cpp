@@ -5,10 +5,6 @@
 #include "Modules/ModuleManager.h"
 
 #include "LGUIHeaders.h"
-#include "Core/LGUISettings.h"
-#include "Core/Actor/LGUIManager.h"
-#include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "PrefabSystem/LGUIPrefabSettings.h"
 
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
@@ -1089,6 +1085,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 	{
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
+			TFunction<void(AActor*)> EmptyCallback = nullptr;
 			auto UIItemName = InClass->GetName();
 			auto ShotName = FString(*UIItemName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
@@ -1096,7 +1093,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::Format(LOCTEXT("CreateUIElementTitle", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass, EmptyCallback))
 			);
 		}
 		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, FText InTooltip = FText())
@@ -1448,6 +1445,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 	{
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
+			TFunction<void(AActor*)> EmptyCallback = nullptr;
 			auto UIItemName = InClass->GetName();
 			auto ShotName = FString(*UIItemName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
@@ -1455,7 +1453,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::Format(LOCTEXT("CreateUIPoseProcessElement", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass, EmptyCallback))
 			);
 		}
 	};
@@ -1493,47 +1491,34 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 {
 	struct FunctionContainer
 	{
-		static void CreateUIExtensionElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
+		static void CreateMenuEntryByClass(FMenuBuilder& InBuilder, UClass* InClass, TFunction<void(AActor*)> EmptyCallback = nullptr)
 		{
-			auto UIItemName = InClass->GetName();
 			InBuilder.AddMenuEntry(
-				FText::FromString(UIItemName),
-				FText::Format(LOCTEXT("CreateUIExtensionElement", "Create {0}"), FText::FromString(UIItemName)),
+				InClass->GetDisplayNameText(),
+				InClass->GetToolTipText(),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass, EmptyCallback))
 			);
 		}
 	};
 
 	MenuBuilder.BeginSection("UIExtension");
 	{
-		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
-		{
-			if (ClassItr->IsChildOf(AUIBaseActor::StaticClass()))
-			{
-				if (*ClassItr != AUIContainerActor::StaticClass()
-					&& *ClassItr != AUISpriteActor::StaticClass()
-					&& *ClassItr != AUITextActor::StaticClass()
-					&& *ClassItr != AUITextureActor::StaticClass()
-					&& !(*ClassItr)->IsChildOf(AUIBasePostProcessActor::StaticClass())
-					&& !(ClassItr->HasAnyClassFlags(CLASS_Transient))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_Abstract))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
-					&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
-					)
-				{
-					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
-					if (isBlueprint)
-					{
-						if (!IsValidClassName(ClassItr->GetName()))
-						{
-							continue;
-						}
-					}
-					FunctionContainer::CreateUIExtensionElementMenuEntry(MenuBuilder, *ClassItr);
-				}
-			}
-		}
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUIPolygonActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUIPolygonLineActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUIRingActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUIStaticMeshActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUI2DLineActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUI2DLineChildrenAsPointsActor::StaticClass());
+		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, ALGUIWidgetActor::StaticClass(), [](AActor* Actor) {
+			auto LGUIWidgetActor = Cast<ALGUIWidgetActor>(Actor);
+			auto LGUIWidget = LGUIWidgetActor->GetLGUIWidget();
+			LGUIWidget->SetRaycastTarget(true);
+			auto Interaction = NewObject<ULGUIWidgetInteraction>(LGUIWidgetActor, ULGUIWidgetInteraction::StaticClass()->GetFName());
+			Interaction->RegisterComponent();
+			LGUIWidgetActor->AddInstanceComponent(Interaction);
+			});
+
 	}
 	MenuBuilder.EndSection();
 }

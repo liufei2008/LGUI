@@ -311,6 +311,9 @@ private:
 	bool bOnWidgetVisibilityChangedRegistered;
 };
 
+/**
+ * This actor provide a LGUIWidget component which render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction.
+ */
 UCLASS(ClassGroup = LGUI)
 class LGUI_API ALGUIWidgetActor : public AUIBaseRenderableActor
 {
