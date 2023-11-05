@@ -286,7 +286,10 @@ void ULGUILifeCycleBehaviour::SetEnable(bool value)
 				else
 #endif
 				{
-					Call_OnEnable();
+					if (!bIsEnableCalled)
+					{
+						Call_OnEnable();
+					}
 				}
 			}
 			else
@@ -299,7 +302,10 @@ void ULGUILifeCycleBehaviour::SetEnable(bool value)
 				else
 #endif
 				{
-					Call_OnDisable();
+					if (bIsEnableCalled)
+					{
+						Call_OnDisable();
+					}
 				}
 			}
 		}
