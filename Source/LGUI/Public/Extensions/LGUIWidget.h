@@ -231,11 +231,13 @@ protected:
 	/** Returns current absolute time, respecting TimingPolicy. */
 	double GetCurrentTime() const;
 
-	UPROPERTY(EditAnywhere, Category = LGUI)
-	float ResolutionScale = 1.0f;
 	/**
-	 * The actual draw size, this changes based on DrawSize - or the desired size of the widget if
-	 * bDrawAtDesiredSize is true.
+	 * Scale draw size for the widget.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+	float RenderSizeScale = 1.0f;
+	/**
+	 * The actual draw size, this changes based on this UI element's size.
 	 */
 	FIntPoint CurrentDrawSize;
 
