@@ -81,6 +81,8 @@ public:
 
 	void RevertPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
 	void ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
+	FName ReplaceObjectPropertyForApplyOrRevert(UObject* InObject, FName InPropertyName);
+	void AfterObjectPropertyApplyOrRevert(UObject* InObject, FName InPropertyName);
 
 	void RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);

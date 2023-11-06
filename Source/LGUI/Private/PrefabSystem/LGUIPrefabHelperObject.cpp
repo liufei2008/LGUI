@@ -1124,14 +1124,16 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArr
 
 	bCanCollectProperty = false;
 	{
-		for (auto& PropertyName : InPropertyNames)
+		for (auto PropertyName : InPropertyNames)
 		{
+			PropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, PropertyName);
 			if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 			{
 				//notify
 				LGUIUtils::NotifyPropertyPreChange(InObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 				//set to default value
 				RevertPrefabPropertyValue(InObject, Property, InObject, ObjectInPrefab, SubPrefabData);
+				AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 				//delete item
 				RemoveMemberPropertyFromSubPrefab(Actor, InObject, PropertyName);
 				//notify
@@ -1180,12 +1182,14 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		InObject->Modify();
 		this->Modify();
 
+		InPropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, InPropertyName);
 		if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), InPropertyName))
 		{
 			//notify
 			LGUIUtils::NotifyPropertyPreChange(InObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 			//set to default value
 			RevertPrefabPropertyValue(InObject, Property, InObject, ObjectInPrefab, SubPrefabData);
+			AfterObjectPropertyApplyOrRevert(InObject, InPropertyName);
 			//delete item
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
@@ -1249,8 +1253,9 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			CopyRootObjectParentAnchorData(SourceObject, ObjectInPrefab);
 
 			TSet<FName> NamesToClear;
-			for (auto& PropertyName : DataItem.MemberPropertyNames)
+			for (auto PropertyName : DataItem.MemberPropertyNames)
 			{
+				PropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, PropertyName);
 				if (FilterNameSet.Contains(PropertyName))continue;
 				NamesToClear.Add(PropertyName);
 				if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
@@ -1259,6 +1264,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 					LGUIUtils::NotifyPropertyPreChange(SourceObject, Property);//need to do PreChange here, so that actor's PostContructionScript can work
 					//set to default value
 					RevertPrefabPropertyValue(InObject, Property, SourceObject, ObjectInPrefab, SubPrefabData);
+					AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 					//notify
 					LGUIUtils::NotifyPropertyChanged(SourceObject, Property);
 				}
@@ -1277,6 +1283,29 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 	}
 	bCanCollectProperty = true;
 	ULGUIManagerWorldSubsystem::RefreshAllUI();
+}
+
+FName ULGUIPrefabHelperObject::ReplaceObjectPropertyForApplyOrRevert(UObject* InObject, FName InPropertyName)
+{
+	if (auto UIItem = Cast<UUIItem>(InObject))
+	{
+		if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())
+		{
+			return UUIItem::GetAnchorDataPropertyName();
+		}
+	}
+	return InPropertyName;
+}
+void ULGUIPrefabHelperObject::AfterObjectPropertyApplyOrRevert(UObject* InObject, FName InPropertyName)
+{
+	if (auto UIItem = Cast<UUIItem>(InObject))
+	{
+		if (InPropertyName == UUIItem::GetAnchorDataPropertyName())
+		{
+			UIItem->CalculateTransformFromAnchor();//calculate transform here, because when NotifyPropertyChanged the PostActorConstruction->MoveComponent will call then anchor will calculate from transform value which is wrong
+			RemoveMemberPropertyFromSubPrefab(UIItem->GetOwner(), InObject, USceneComponent::GetRelativeLocationPropertyName());//remove RelativeLocation override because UIItem use AnchorData to calculate RelativeLocation
+		}
+	}
 }
 
 void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInPrefab, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex, bool IsInsideRawArray)
@@ -1460,12 +1489,14 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArra
 
 	bCanCollectProperty = false;
 	{
-		for (auto& PropertyName : InPropertyNames)
+		for (auto PropertyName : InPropertyNames)
 		{
+			PropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, PropertyName);
 			if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 			{
 				//set to default value
 				ApplyPrefabPropertyValue(ObjectInPrefab, Property, InObject, ObjectInPrefab, SubPrefabData);
+				AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 				//delete item
 				RemoveMemberPropertyFromSubPrefab(Actor, InObject, PropertyName);
 				//notify
@@ -1527,10 +1558,12 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		InObject->Modify();
 		this->Modify();
 
+		InPropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, InPropertyName);
 		if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), InPropertyName))
 		{
 			//set to default value
 			ApplyPrefabPropertyValue(ObjectInPrefab, Property, InObject, ObjectInPrefab, SubPrefabData);
+			AfterObjectPropertyApplyOrRevert(InObject, InPropertyName);
 			//delete item
 			RemoveMemberPropertyFromSubPrefab(Actor, InObject, InPropertyName);
 			//notify
@@ -1614,14 +1647,16 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			if (auto ObjectInPrefab = FindOriginObjectInSourcePrefab(SourceObject))
 			{
 				TSet<FName> NamesToClear;
-				for (auto& PropertyName : DataItem.MemberPropertyNames)
+				for (auto PropertyName : DataItem.MemberPropertyNames)
 				{
+					PropertyName = ReplaceObjectPropertyForApplyOrRevert(InObject, PropertyName);
 					if (FilterNameSet.Contains(PropertyName))continue;
 					NamesToClear.Add(PropertyName);
 					if (auto Property = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), PropertyName))
 					{
 						//set to default value
 						ApplyPrefabPropertyValue(ObjectInPrefab, Property, SourceObject, ObjectInPrefab, SubPrefabData);
+						AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 						//notify
 						LGUIUtils::NotifyPropertyChanged(ObjectInPrefab, Property);
 					}

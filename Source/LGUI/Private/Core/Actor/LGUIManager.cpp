@@ -804,7 +804,7 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);
 	PrefabManager->OnEndDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::EndPrefabSystemProcessingActor);
 #if WITH_EDITOR
-	ULGUIPrefabManagerObject::OnSortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
+	ULGUIPrefabManagerObject::OnSerialize_SortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
 		//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
 		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
 			auto ARoot = A->GetRootComponent();
@@ -825,6 +825,15 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 			}
 			return false;
 			});
+		});
+	ULGUIPrefabManagerObject::OnDeserialize_ProcessComponentsBeforeRerunConstructionScript.BindStatic([](const TArray<UActorComponent*>& Components) {
+		for (auto& Comp : Components)
+		{
+			if (auto UIItem = Cast<UUIItem>(Comp))
+			{
+				UIItem->CalculateTransformFromAnchor();
+			}
+		}
 		});
 
 	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorViewport_MouseClick);

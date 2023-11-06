@@ -124,7 +124,7 @@ namespace LGUIPrefabSystem6
 			TArray<AActor*> ChildrenActors;
 			Actor->GetAttachedActors(ChildrenActors);
 #if WITH_EDITOR
-			if (!ULGUIPrefabManagerObject::OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
+			if (!ULGUIPrefabManagerObject::OnSerialize_SortChildrenActors.ExecuteIfBound(ChildrenActors))
 			{
 				Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
 					//sort on ActorLabel so the Tick function can be predictable because deserialize order is determinate.
