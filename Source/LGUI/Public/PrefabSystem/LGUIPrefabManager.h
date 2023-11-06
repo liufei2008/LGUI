@@ -72,8 +72,10 @@ private:
 	void OnPackageReloaded(EPackageReloadPhase Phase, FPackageReloadedEvent* Event);
 
 public:
-	DECLARE_DELEGATE_OneParam(FSortChildrenActors, TArray<AActor*>&);
-	static FSortChildrenActors OnSortChildrenActors;
+	DECLARE_DELEGATE_OneParam(FSerialize_SortChildrenActors, TArray<AActor*>&);
+	static FSerialize_SortChildrenActors OnSerialize_SortChildrenActors;
+	DECLARE_DELEGATE_OneParam(FDeserialize_Components, const TArray<UActorComponent*>&);
+	static FDeserialize_Components OnDeserialize_ProcessComponentsBeforeRerunConstructionScript;
 	DECLARE_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
 	static FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
 	DECLARE_DELEGATE(FPrefabEditorViewport_MouseMove);

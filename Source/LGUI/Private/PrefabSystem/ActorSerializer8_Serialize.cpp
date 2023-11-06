@@ -287,7 +287,7 @@ namespace LGUIPrefabSystem8
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
 #if WITH_EDITOR
-		if (!ULGUIPrefabManagerObject::OnSortChildrenActors.ExecuteIfBound(ChildrenActors))
+		if (!ULGUIPrefabManagerObject::OnSerialize_SortChildrenActors.ExecuteIfBound(ChildrenActors))
 		{
 			//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
 			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
