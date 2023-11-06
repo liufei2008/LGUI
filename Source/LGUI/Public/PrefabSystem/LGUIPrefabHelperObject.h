@@ -114,7 +114,7 @@ private:
 	bool bCanCollectProperty = true;
 	bool bCanNotifyAttachment = false;
 	bool bCanNotifyComponentCreateDelete = true;
-	TArray<UActorComponent*> CreateDeleteComponentMessageQueue;
+	bool bAlreadyShowMessageAtThisFrame = false;
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
