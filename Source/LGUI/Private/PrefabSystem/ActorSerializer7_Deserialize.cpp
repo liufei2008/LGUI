@@ -337,6 +337,7 @@ namespace LGUIPrefabSystem7
 		{
 			if (!TargetWorld->IsGameWorld())
 			{
+				ULGUIPrefabManagerObject::OnDeserialize_ProcessComponentsBeforeRerunConstructionScript.ExecuteIfBound(AllComponents);
 				//refresh it
 				for (auto& Actor : AllActors)
 				{
