@@ -11,6 +11,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIEditorManagerOnComponentCreateDelete, bool, UActorComponent*, AActor*);
 
 class ULGUIPrefab;
+class ULGUIPrefabHelperObject;
 
 UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ULGUIPrefabManagerObject :public UObject, public FTickableGameObject
@@ -86,6 +87,18 @@ public:
 	static FPrefabEditor_GetBounds OnPrefabEditor_GetBounds;
 	DECLARE_DELEGATE_TwoParams(FPrefabEditor_SavePrefab, AActor*, ULGUIPrefab*);
 	static FPrefabEditor_SavePrefab OnPrefabEditor_SavePrefab;
+	DECLARE_DELEGATE(FPrefabEditor_Refresh);
+	static FPrefabEditor_Refresh OnPrefabEditor_Refresh;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_ReplaceObjectPropertyForApplyOrRevert, ULGUIPrefabHelperObject*, UObject*, FName&);
+	static FPrefabEditor_ReplaceObjectPropertyForApplyOrRevert OnPrefabEditor_ReplaceObjectPropertyForApplyOrRevert;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_AfterObjectPropertyApplyOrRevert, ULGUIPrefabHelperObject*, UObject*, FName);
+	static FPrefabEditor_AfterObjectPropertyApplyOrRevert OnPrefabEditor_AfterObjectPropertyApplyOrRevert;
+	DECLARE_DELEGATE_TwoParams(FPrefabEditor_AfterMakePrefabAsSubPrefab, ULGUIPrefabHelperObject*, AActor*);
+	static FPrefabEditor_AfterMakePrefabAsSubPrefab OnPrefabEditor_AfterMakePrefabAsSubPrefab;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_AfterCollectPropertyToOverride, ULGUIPrefabHelperObject*, UObject*, FName);
+	static FPrefabEditor_AfterCollectPropertyToOverride OnPrefabEditor_AfterCollectPropertyToOverride;
+	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_CopyRootObjectParentAnchorData, ULGUIPrefabHelperObject*, UObject*, UObject*);
+	static FPrefabEditor_CopyRootObjectParentAnchorData OnPrefabEditor_CopyRootObjectParentAnchorData;
 #endif
 };
 

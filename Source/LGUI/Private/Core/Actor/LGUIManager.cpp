@@ -21,6 +21,7 @@
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "Layout/ILGUILayoutInterface.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -841,6 +842,67 @@ void ULGUIManagerWorldSubsystem::PostInitialize()
 	ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditor_CreateRootAgent);
 	ULGUIPrefabManagerObject::OnPrefabEditor_GetBounds.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorGetBounds);
 	ULGUIPrefabManagerObject::OnPrefabEditor_SavePrefab.BindUObject(this, &ULGUIManagerWorldSubsystem::OnPrefabEditorSavePrefab);
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.BindStatic([]() {ULGUIManagerWorldSubsystem::RefreshAllUI(); });
+	ULGUIPrefabManagerObject::OnPrefabEditor_ReplaceObjectPropertyForApplyOrRevert.BindStatic([](ULGUIPrefabHelperObject* PrefabHelper, UObject* InObject, FName& InPropertyName) {
+		if (auto UIItem = Cast<UUIItem>(InObject))
+		{
+			if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())
+			{
+				InPropertyName = UUIItem::GetAnchorDataPropertyName();
+			}
+		}
+		});
+	ULGUIPrefabManagerObject::OnPrefabEditor_AfterObjectPropertyApplyOrRevert.BindStatic([](ULGUIPrefabHelperObject* PrefabHelper, UObject* InObject, FName InPropertyName) {
+		if (auto UIItem = Cast<UUIItem>(InObject))
+		{
+			if (InPropertyName == UUIItem::GetAnchorDataPropertyName())
+			{
+				UIItem->CalculateTransformFromAnchor();//calculate transform here, because when NotifyPropertyChanged the PostActorConstruction->MoveComponent will call then anchor will calculate from transform value which is wrong
+				PrefabHelper->RemoveMemberPropertyFromSubPrefab(UIItem->GetOwner(), InObject, USceneComponent::GetRelativeLocationPropertyName());//remove RelativeLocation override because UIItem use AnchorData to calculate RelativeLocation
+			}
+		}
+		});
+	ULGUIPrefabManagerObject::OnPrefabEditor_AfterMakePrefabAsSubPrefab.BindStatic([](ULGUIPrefabHelperObject* PrefabHelper, AActor* InRootActor) {
+		//mark HierarchyIndex as default override parameter
+		auto RootComp = InRootActor->GetRootComponent();
+		if (auto RootUIComp = Cast<UUIItem>(RootComp))
+		{
+			PrefabHelper->AddMemberPropertyToSubPrefab(InRootActor, RootUIComp, UUIItem::GetHierarchyIndexPropertyName());
+		}
+		});
+	ULGUIPrefabManagerObject::OnPrefabEditor_AfterCollectPropertyToOverride.BindStatic([](ULGUIPrefabHelperObject* PrefabHelper, UObject* InObject, FName InPropertyName) {
+		if (auto UIItem = Cast<UUIItem>(InObject))
+		{
+			if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
+			{
+				PrefabHelper->AddMemberPropertyToSubPrefab(UIItem->GetOwner(), InObject, UUIItem::GetAnchorDataPropertyName());
+			}
+			else if (InPropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
+			{
+				PrefabHelper->AddMemberPropertyToSubPrefab(UIItem->GetOwner(), InObject, USceneComponent::GetRelativeLocationPropertyName());
+			}
+		}
+		});
+	ULGUIPrefabManagerObject::OnPrefabEditor_CopyRootObjectParentAnchorData.BindStatic([](ULGUIPrefabHelperObject* PrefabHelper, UObject* InObject, UObject* OriginObject) {
+		auto InObjectUIItem = Cast<UUIItem>(InObject);
+		auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
+		if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+		{
+			auto InObjectParent = InObjectUIItem->GetParentUIItem();
+			auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
+			if (InObjectParent != nullptr && OriginObjectParent != nullptr)
+			{
+				//copy relative location
+				auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
+				RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
+				//copy anchor data
+				auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
+				AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+			}
+		}
+		});
 #endif
 }
 void ULGUIManagerWorldSubsystem::Deinitialize()
