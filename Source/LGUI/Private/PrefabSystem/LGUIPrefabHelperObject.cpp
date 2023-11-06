@@ -700,6 +700,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 			AttachmentActor.Actor = Actor;
 			AttachmentActor.AttachTo = (AActor*)AttachTo;
 			AttachmentActor.DetachFrom = nullptr;
+			this->bAlreadyShowMessageAtThisFrame = false;
 			ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 				if (Object.IsValid())
 				{
@@ -727,7 +728,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
 	AttachmentActor.DetachFrom = (AActor*)DetachFrom;
-
+	this->bAlreadyShowMessageAtThisFrame = false;
 	ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 		if (Object.IsValid())
 		{
@@ -757,12 +758,17 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 		)
 	{
 		this->Modify();
-		ULGUIPrefabManagerObject::AddOneShotTickFunction([]() {
+		this->bAlreadyShowMessageAtThisFrame = false;
+		ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this)]() {
 			if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
-			auto InfoText = LOCTEXT("CannotRestructurePrefabInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
+			if (!Object->bAlreadyShowMessageAtThisFrame)
+			{
+				Object->bAlreadyShowMessageAtThisFrame = true;
+				auto InfoText = LOCTEXT("CannotRestructurePrefabInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
 \n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
-			FMessageDialog::Open(EAppMsgType::Ok, InfoText);
-			GEditor->UndoTransaction(false);
+				FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+				GEditor->UndoTransaction(false);
+			}
 			}, 1);
 	}
 
@@ -826,17 +832,25 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 		break;
 	case EAttachementError::ActorMustBelongToRoot:
 	{
-		auto InfoText = LOCTEXT("ActorMustBelongToRoot", "All actor must attach to root actor.");
-		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
-		GEditor->UndoTransaction(false);
+		if (!bAlreadyShowMessageAtThisFrame)
+		{
+			bAlreadyShowMessageAtThisFrame = true;
+			auto InfoText = LOCTEXT("ActorMustBelongToRoot", "All actor must attach to root actor.");
+			FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+			GEditor->UndoTransaction(false);
+		}
 	}
 	break;
 	case EAttachementError::CannotRestructurePrefabInstance:
 	{
-		auto InfoText = LOCTEXT("CannotRestructurePrefabInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
+		if (!bAlreadyShowMessageAtThisFrame)
+		{
+			bAlreadyShowMessageAtThisFrame = true;
+			auto InfoText = LOCTEXT("CannotRestructurePrefabInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
 \n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
-		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
-		GEditor->UndoTransaction(false);
+			FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+			GEditor->UndoTransaction(false);
+		}
 	}
 	break;
 	}
@@ -850,12 +864,13 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 	if (InComponent->IsDefaultSubobject())return;
 	if (this->IsActorBelongsToSubPrefab(InActor))
 	{
-		if (!CreateDeleteComponentMessageQueue.Contains(InComponent))
-		{
-			CreateDeleteComponentMessageQueue.Add(InComponent);
-			ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this), InCreateOrDelete]() {
-				if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
-				if (!Object.IsValid())return;
+		bAlreadyShowMessageAtThisFrame = false;
+		ULGUIPrefabManagerObject::AddOneShotTickFunction([Object = MakeWeakObjectPtr(this), InCreateOrDelete]() {
+			if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
+			if (!Object.IsValid())return;
+			if (!Object->bAlreadyShowMessageAtThisFrame)
+			{
+				Object->bAlreadyShowMessageAtThisFrame = true;
 				if (InCreateOrDelete)
 				{
 					auto InfoText = LOCTEXT("CannotAddComponentToPrefabInstance", "Children of a Prefab instance cannot add or remove component, the added component will not saved to prefab.\
@@ -868,9 +883,8 @@ void ULGUIPrefabHelperObject::OnComponentCreateDelete(bool InCreateOrDelete, UAc
 \n\nYou can open the prefab in prefab editor to add or remove component, or unpack the prefab instance to remove its prefab connection.");
 					FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 				}
-				Object->CreateDeleteComponentMessageQueue.Pop();
-				}, 1);
-		}
+			}
+			}, 1);
 	}
 #endif
 }
