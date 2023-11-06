@@ -3,7 +3,6 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUI.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
@@ -69,7 +68,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 
 		if (LoadedRootActor == nullptr)return;
 
-		ULGUIManagerWorldSubsystem::RefreshAllUI();
+		ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	}
 }
 #endif
@@ -567,7 +566,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	bCanNotifyAttachment = true;
 	bCanCollectProperty = true;
 	bCanNotifyComponentCreateDelete = true;
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	return AnythingChange;
 }
 
@@ -658,17 +657,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 			{
 				SetAnythingDirty();
 				AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, PropertyName);
-				if (auto UIItem = Cast<UUIItem>(InObject))
-				{
-					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
-					{
-						AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, UUIItem::GetAnchorDataPropertyName());
-					}
-					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
-					{
-						AddMemberPropertyToSubPrefab(PropertyActorInSubPrefab, InObject, USceneComponent::GetRelativeLocationPropertyName());
-					}
-				}
+				ULGUIPrefabManagerObject::OnPrefabEditor_AfterCollectPropertyToOverride.ExecuteIfBound(this, InObject, PropertyName);
 				//refresh override parameter
 			}
 		}
@@ -941,24 +930,7 @@ void ULGUIPrefabHelperObject::CopyRootObjectParentAnchorData(UObject* InObject, 
 	{
 		if (SubPrefabMap.Contains(SceneComp->GetOwner()))//if is sub prefab's root component
 		{
-			auto InObjectUIItem = Cast<UUIItem>(InObject);
-			auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
-			if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
-			{
-				auto InObjectParent = InObjectUIItem->GetParentUIItem();
-				auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
-				if (InObjectParent != nullptr && OriginObjectParent != nullptr)
-				{
-					//copy relative location
-					auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
-					RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-					LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
-					//copy anchor data
-					auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
-					AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-					LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
-				}
-			}
+			ULGUIPrefabManagerObject::OnPrefabEditor_CopyRootObjectParentAnchorData.ExecuteIfBound(this, InObject, OriginObject);
 		}
 	}
 }
@@ -1159,7 +1131,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArr
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1214,7 +1186,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1296,30 +1268,17 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 	}
 	bCanCollectProperty = true;
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 }
 
 FName ULGUIPrefabHelperObject::ReplaceObjectPropertyForApplyOrRevert(UObject* InObject, FName InPropertyName)
 {
-	if (auto UIItem = Cast<UUIItem>(InObject))
-	{
-		if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())
-		{
-			return UUIItem::GetAnchorDataPropertyName();
-		}
-	}
+	ULGUIPrefabManagerObject::OnPrefabEditor_ReplaceObjectPropertyForApplyOrRevert.ExecuteIfBound(this, InObject, InPropertyName);
 	return InPropertyName;
 }
 void ULGUIPrefabHelperObject::AfterObjectPropertyApplyOrRevert(UObject* InObject, FName InPropertyName)
 {
-	if (auto UIItem = Cast<UUIItem>(InObject))
-	{
-		if (InPropertyName == UUIItem::GetAnchorDataPropertyName())
-		{
-			UIItem->CalculateTransformFromAnchor();//calculate transform here, because when NotifyPropertyChanged the PostActorConstruction->MoveComponent will call then anchor will calculate from transform value which is wrong
-			RemoveMemberPropertyFromSubPrefab(UIItem->GetOwner(), InObject, USceneComponent::GetRelativeLocationPropertyName());//remove RelativeLocation override because UIItem use AnchorData to calculate RelativeLocation
-		}
-	}
+	ULGUIPrefabManagerObject::OnPrefabEditor_AfterObjectPropertyApplyOrRevert.ExecuteIfBound(this, InObject, InPropertyName);
 }
 
 void ULGUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInPrefab, const FLGUISubPrefabData& SubPrefabData, int RawArrayIndex, bool IsInsideRawArray)
@@ -1531,7 +1490,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArra
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1597,7 +1556,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1704,7 +1663,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 		GEditor->EndTransaction();
 	}
 	bCanCollectProperty = true;
-	ULGUIManagerWorldSubsystem::RefreshAllUI();
+	ULGUIPrefabManagerObject::OnPrefabEditor_Refresh.ExecuteIfBound();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootActor(Actor));
 }
@@ -1759,13 +1718,7 @@ void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActo
 		}
 	}
 	SubPrefabMap.Add(InActor, SubPrefabData);
-	//mark HierarchyIndex as default override parameter
-	auto RootComp = InActor->GetRootComponent();
-	auto RootUIComp = Cast<UUIItem>(RootComp);
-	if (RootUIComp)
-	{
-		AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetHierarchyIndexPropertyName());
-	}
+	ULGUIPrefabManagerObject::OnPrefabEditor_AfterMakePrefabAsSubPrefab.ExecuteIfBound(this, InActor);
 
 	SetAnythingDirty();
 }
