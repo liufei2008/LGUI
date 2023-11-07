@@ -189,7 +189,10 @@ namespace LGUIPrefabSystem4
 				{
 					RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
 				}
-				RootComp->UpdateComponentToWorld();
+				if (!bIsSubPrefab)//need to do this in root actor and it will propogate to children. If do this in subprefab and parent prefab override transform data on subprefab's actor, then transform goes wrong
+				{
+					RootComp->UpdateComponentToWorld();
+				}
 				if (ReplaceTransform)
 				{
 					RootComp->SetRelativeLocationAndRotation(InLocation, InRotation);
