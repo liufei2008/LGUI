@@ -1217,12 +1217,8 @@ void ULGUIMeshComponent::UpdateChildCanvasSectionBox()
 
 void ULGUIMeshComponent::UpdateLocalBounds()
 {
-	UpdateBounds();// Update global bounds
-	if (bIsSupportUERenderer)//screen space UI no need to update bounds
-	{
-		// Need to send to render thread
-		MarkRenderTransformDirty();
-	}
+	UpdateBounds();// Update global bounds		
+	MarkRenderTransformDirty();// Need to send to render thread
 }
 
 struct FLGUIPrimitiveComponentIdTemporaryModifier
