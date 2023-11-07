@@ -36,6 +36,16 @@ enum class ELGUIRenderMode :uint8
 };
 
 UENUM(BlueprintType, Category = LGUI)
+enum class ELGUICanvasRenderTargetSizeMode : uint8
+{
+	None,
+	/** Change LGUICanvas's size to fit RenderTarget. */
+	CanvasFitToRenderTarget,
+	/** Change RenderTarget's size to fit LGUICanvas. */
+	RenderTargetFitToCanvas,
+};
+
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
 	None		UMETA(DisplayName = "No Clip"),
@@ -228,9 +238,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
-	/** Render to RenderTargets. */
+	/**
+	 * Render to RenderTarget, if not specified then LGUI will create a new one.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<UTextureRenderTarget2D> renderTarget;
+	/**
+	 * How RenderTarget and LGUICanvas's size change depend on the other.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUICanvasRenderTargetSizeMode RenderTargetSizeMode = ELGUICanvasRenderTargetSizeMode::RenderTargetFitToCanvas;
 #if WITH_EDITORONLY_DATA
 	/**
 	 * When in eidt mode, show the Screen-Space-Overlay UI with LGUIRenderer.
@@ -350,6 +367,8 @@ public:
 	/** if renderMode is RenderTarget, then this will change the renderTarget */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTarget(UTextureRenderTarget2D* value);
+	DECLARE_EVENT_TwoParams(ULGUICanvas, FOnRenderTargetCreatedOrChangedEvent, UTextureRenderTarget2D*, bool);
+	FOnRenderTargetCreatedOrChangedEvent OnRenderTargetCreatedOrChanged;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
@@ -517,6 +536,7 @@ public:
 	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip);
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
+	void UpdateRenderTarget(bool CallEvent);
 public:
 	/** Called from LGUIManagerActor. Update this canvas if it is a RootCanvas */
 	void UpdateRootCanvas();
