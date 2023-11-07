@@ -54,25 +54,19 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		{
 			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(world))
 			{
-				auto& allCanvasArray = LGUIManager->GetCanvasArray();
-				int screenSpaceCanvasCount = 0;
-				for (auto item : allCanvasArray)
+				auto& CanvasArray = LGUIManager->GetCanvasArray(ELGUIRenderMode::ScreenSpaceOverlay);
+				int ScreenSpaceRootCanvasCount = 0;
+				for (auto item : CanvasArray)
 				{
 					if (item.IsValid())
 					{
 						if (item->IsRootCanvas())
 						{
-							if (item->GetWorld() == world)
-							{
-								if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-								{
-									screenSpaceCanvasCount++;
-								}
-							}
+							ScreenSpaceRootCanvasCount++;
 						}
 					}
 				}
-				if (screenSpaceCanvasCount > 1)
+				if (ScreenSpaceRootCanvasCount > 1)
 				{
 					auto errMsg = FText::Format(LOCTEXT("MultipleScreenSpaceLGUICanvasError", "[{0}].{1} Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!")
 					, FText::FromString(ANSI_TO_TCHAR(__FUNCTION__)), __LINE__);
@@ -420,8 +414,6 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 		{
 			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(world))
 			{
-				auto& itemList = LGUIManager->GetCanvasArray();
-
 				FText spaceText;
 				if (TargetScript->IsRenderToScreenSpace())
 				{
@@ -451,13 +443,12 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 				}
 
 				auto renderMode = TargetScript->GetActualRenderMode();
+				auto& itemList = LGUIManager->GetCanvasArray(renderMode);
 				int sortOrderCount = 0;
 				for (auto item : itemList)
 				{
 					if (!item.IsValid())continue;
-					if (item->GetWorld() != world)continue;
 					if (item == TargetScript)continue;
-					if (renderMode != item->GetActualRenderMode())continue;
 
 					if (item->GetSortOrder() == TargetScript->GetSortOrder())
 						sortOrderCount++;
@@ -470,75 +461,46 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 	return FText::GetEmpty();
 }
 
-const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray(UWorld* InWorld)
-{
-	if (IsValid(InWorld))
-	{
-		if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(InWorld))
-		{
-			return LGUIManager->GetCanvasArray();
-		}
-	}
-	static TArray<TWeakObjectPtr<ULGUICanvas>> staticArray;//just for the return value
-	return staticArray;
-}
-
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
-	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
+	auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(TargetScriptArray[0]->GetWorld());
+	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid() && LGUIManager)
 	{
-		int drawcallCount = TargetScriptArray[0]->GetDrawcallCount();
-		auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
+		auto& allCanvas = LGUIManager->GetCanvasArray(TargetScriptArray[0]->GetRenderMode());
 		int allDrawcallCount = 0;
-		auto world = TargetScriptArray[0]->GetWorld();
-		for (auto canvasItem : allCanvas)
+		for (auto& canvasItem : allCanvas)
 		{
-			if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
+			if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::RenderTarget)
 			{
-				if (canvasItem->IsRenderToScreenSpace() == TargetScriptArray[0]->IsRenderToScreenSpace()
-					|| canvasItem->IsRenderToWorldSpace() == TargetScriptArray[0]->IsRenderToWorldSpace()
-					)
+				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 				{
-					if (canvasItem->GetWorld() == world)
-					{
-						allDrawcallCount += canvasItem->GetDrawcallCount();
-					}
+					allDrawcallCount += canvasItem->GetDrawcallCount();
 				}
 			}
-			else if (TargetScriptArray[0]->IsRenderToRenderTarget())
+			else
 			{
-				if (canvasItem->IsRenderToRenderTarget())
-				{
-					if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
-					{
-						if (canvasItem->GetWorld() == world)
-						{
-							allDrawcallCount += canvasItem->GetDrawcallCount();
-						}
-					}
-				}
+				allDrawcallCount += canvasItem->GetDrawcallCount();
 			}
 		}
-		return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
+		return FText::FromString(FString::Printf(TEXT("%d/%d"), TargetScriptArray[0]->GetDrawcallCount(), allDrawcallCount));
 	}
 	return FText::FromString(FString::Printf(TEXT("0/0")));
 }
 FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 {
-	int drawcallCount = TargetScriptArray[0]->GetDrawcallCount();
-	auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
-	int allDrawcallCount = 0;
 	FString spaceText;
-	if (TargetScriptArray[0]->IsRenderToScreenSpace())
+	switch (TargetScriptArray[0]->GetActualRenderMode())
 	{
+	case ELGUIRenderMode::ScreenSpaceOverlay:
 		spaceText = TEXT("ScreenSpaceOverlay");
-	}
-	else if (TargetScriptArray[0]->IsRenderToWorldSpace())
-	{
-		spaceText = TEXT("WorldSpace");
-	}
-	else if (TargetScriptArray[0]->IsRenderToRenderTarget())
-	{
+		break;
+	case ELGUIRenderMode::WorldSpace:
+		spaceText = TEXT("WorldSpace UE Renderer");
+		break;
+	case ELGUIRenderMode::WorldSpace_LGUI:
+		spaceText = TEXT("WorldSpace LGUI Renderer");
+		break;
+	case ELGUIRenderMode::RenderTarget:
 		if (IsValid(TargetScriptArray[0]->renderTarget))
 		{
 			spaceText = FString::Printf(TEXT("RenderTarget(%s)"), *(TargetScriptArray[0]->renderTarget->GetName()));
@@ -547,39 +509,32 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 		{
 			spaceText = FString::Printf(TEXT("RenderTarget(NotValid)"));
 		}
+		break;
 	}
 
-	auto world = TargetScriptArray[0]->GetWorld();
-	for (auto canvasItem : allCanvas)
+	if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(TargetScriptArray[0]->GetWorld()))
 	{
-		if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
+		auto& allCanvas = LGUIManager->GetCanvasArray(TargetScriptArray[0]->GetActualRenderMode());
+		int allDrawcallCount = 0;
+		for (auto& canvasItem : allCanvas)
 		{
-			if (canvasItem->IsRenderToScreenSpace() == TargetScriptArray[0]->IsRenderToScreenSpace()
-				|| canvasItem->IsRenderToWorldSpace() == TargetScriptArray[0]->IsRenderToWorldSpace()
-				)
+			if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::RenderTarget)
 			{
-				if (canvasItem->GetWorld() == world)
+				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 				{
 					allDrawcallCount += canvasItem->GetDrawcallCount();
 				}
 			}
-		}
-		else if (TargetScriptArray[0]->IsRenderToRenderTarget())
-		{
-			if (canvasItem->IsRenderToRenderTarget())
+			else
 			{
-				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
-				{
-					if (canvasItem->GetWorld() == world)
-					{
-						allDrawcallCount += canvasItem->GetDrawcallCount();
-					}
-				}
+				allDrawcallCount += canvasItem->GetDrawcallCount();
 			}
 		}
+		auto tooltipStr = FText::Format(LOCTEXT("DrawcallInfoTooltip", "This canvas's drawcall count:{0}, all canvas of {1} drawcall count:{2}")
+			, TargetScriptArray[0]->GetDrawcallCount(), FText::FromString(spaceText), allDrawcallCount);
+		return tooltipStr;
 	}
-	auto tooltipStr = FText::Format(LOCTEXT("DrawcallInfoTooltip", "This canvas's drawcall count:{0}, all canvas of {1} drawcall count:{2}"), drawcallCount, FText::FromString(spaceText), allDrawcallCount);
-	return tooltipStr;
+	return FText::GetEmpty();
 }
 void FLGUICanvasCustomization::OnCopySortOrder()
 {

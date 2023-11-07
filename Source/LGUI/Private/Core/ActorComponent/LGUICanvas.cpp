@@ -389,7 +389,13 @@ bool ULGUICanvas::CheckUIItem()const
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
 	if (!UIItem.IsValid())
 	{
-		UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent!"));
+		FString ActorName =
+#if WITH_EDITOR
+			this->GetOwner()->GetActorLabel();
+#else
+			this->GetOwner()->GetName();
+#endif
+		UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent! Actor:%s"), *ActorName);
 		return false;
 	}
 	else

@@ -9,6 +9,8 @@
 #include "Engine/HitResult.h"
 #include "LGUIBaseRaycaster.generated.h"
 
+enum class ELGUIRenderMode :uint8;
+
 /** 
  * Base interaction component that perform a raycast hit test
  */
@@ -105,6 +107,6 @@ protected:
 	TArray<FHitResult> multiUIHitResult;
 	bool IsHitVisibleUI(class UUIItem* HitUI, const FVector& HitPoint);
 
-	bool RaycastUI(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
+	bool RaycastUI(ULGUIPointerEventData* InPointerEventData, const TArray<ELGUIRenderMode>& InRenderModeArray, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
 	bool RaycastWorld(bool InRequireFaceIndex, ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
 };

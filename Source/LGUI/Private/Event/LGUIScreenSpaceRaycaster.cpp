@@ -15,11 +15,12 @@ ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 void ULGUIScreenSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
+	RenderModeArray = { ELGUIRenderMode::ScreenSpaceOverlay };
 }
 
 bool ULGUIScreenSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
-	return !UICanvas->IsRenderToScreenSpace();
+	return false;
 }
 
 bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
@@ -61,7 +62,7 @@ bool ULGUIScreenSpaceRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEven
 
 bool ULGUIScreenSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
-	return Super::RaycastUI(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
+	return Super::RaycastUI(InPointerEventData, RenderModeArray, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 }
 
 void ULGUIScreenSpaceRaycaster::DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
