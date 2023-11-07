@@ -77,11 +77,11 @@ public:
 	static FSerialize_SortChildrenActors OnSerialize_SortChildrenActors;
 	DECLARE_DELEGATE_OneParam(FDeserialize_Components, const TArray<UActorComponent*>&);
 	static FDeserialize_Components OnDeserialize_ProcessComponentsBeforeRerunConstructionScript;
-	DECLARE_DELEGATE_ThreeParams(FPrefabEditorViewport_MouseClick, const FVector&, const FVector&, AActor*&);
+	DECLARE_DELEGATE_FourParams(FPrefabEditorViewport_MouseClick, UWorld*, const FVector&, const FVector&, AActor*&);
 	static FPrefabEditorViewport_MouseClick OnPrefabEditorViewport_MouseClick;
-	DECLARE_DELEGATE(FPrefabEditorViewport_MouseMove);
+	DECLARE_DELEGATE_OneParam(FPrefabEditorViewport_MouseMove, UWorld*);
 	static FPrefabEditorViewport_MouseMove OnPrefabEditorViewport_MouseMove;
-	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_CreateRootAgent, UClass*, ULGUIPrefab*, AActor*&);
+	DECLARE_DELEGATE_FourParams(FPrefabEditor_CreateRootAgent, UWorld*, UClass*, ULGUIPrefab*, AActor*&);
 	static FPrefabEditor_CreateRootAgent OnPrefabEditor_CreateRootAgent;
 	DECLARE_DELEGATE_ThreeParams(FPrefabEditor_GetBounds, USceneComponent*, FBox&, bool&);
 	static FPrefabEditor_GetBounds OnPrefabEditor_GetBounds;

@@ -47,6 +47,7 @@ private:
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
+	static int IndexOfClickSelectUI;
 #endif
 #if WITH_EDITOR
 	static FDelegateHandle RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction);
@@ -102,6 +103,7 @@ public:
 private:
 #if WITH_EDITOR
 	static TArray<ULGUIManagerWorldSubsystem*> InstanceArray;
+	FDelegateHandle EditorTickDelegateHandle;
 #endif
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
@@ -219,12 +221,6 @@ public:
 private:
 	static void DrawDebugBoxOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
 	static void DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector const& Center, FVector const& Box, const FQuat& Rotation, FColor const& Color);
-	void OnPrefabEditorViewport_MouseClick(const FVector& RayOrigin, const FVector& RayDirection, AActor*& ClickHitActor);
-	void OnPrefabEditorViewport_MouseMove();
-	int IndexOfClickSelectUI = INDEX_NONE;
-	void OnPrefabEditor_CreateRootAgent(UClass* ActorClass, ULGUIPrefab* Prefab, AActor*& OutCreatedRootAgentActor);
-	void OnPrefabEditorGetBounds(USceneComponent* SceneComp, FBox& OutBounds, bool& OutValidBounds);
-	void OnPrefabEditorSavePrefab(AActor* RootAgentActor, ULGUIPrefab* Prefab);
 #endif
 private:
 	/** Map prefab-deserialize-settion-id to LGUILifeCycleBehaviour array */
