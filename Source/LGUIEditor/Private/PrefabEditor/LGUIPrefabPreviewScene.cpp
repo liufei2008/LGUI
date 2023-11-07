@@ -128,7 +128,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	}
 	if (Prefab->ReferenceClassList.Num() > 0)
 	{
-		if (!ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent.ExecuteIfBound(Prefab->ReferenceClassList[0], InPrefab, RootAgentActor))
+		if (!ULGUIPrefabManagerObject::OnPrefabEditor_CreateRootAgent.ExecuteIfBound(this->GetWorld(), Prefab->ReferenceClassList[0], InPrefab, RootAgentActor))
 		{
 			auto CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 			//create SceneComponent

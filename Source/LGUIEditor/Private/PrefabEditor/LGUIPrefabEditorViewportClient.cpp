@@ -347,7 +347,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	FVector RayOrigin, RayDirection;
 	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
 	AActor* ClickHitActor = nullptr;
-	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.ExecuteIfBound(RayOrigin, RayDirection, ClickHitActor);
+	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.ExecuteIfBound(this->GetWorld(), RayOrigin, RayDirection, ClickHitActor);
 	if (ClickHitActor != nullptr)
 	{
 		LGUIPrefabViewportClickHandlers::ClickActor(this, ClickHitActor, Click, true);
@@ -1016,18 +1016,26 @@ void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, i
 	TrackingTransaction.PromotePendingToActive();
 
 	FEditorViewportClient::CapturedMouseMove(InViewport, InMouseX, InMouseY);
-
+	
 	if (InMouseX != PrevMouseX || InMouseY != PrevMouseY)
 	{
-		ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseMove.ExecuteIfBound();
+		ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseMove.ExecuteIfBound(this->GetWorld());
 	}
 	PrevMouseX = InMouseX;
 	PrevMouseY = InMouseY;
 }
 
+void FLGUIPrefabEditorViewportClient::MouseEnter(FViewport* InViewport, int32 x, int32 y)
+{
+	FEditorViewportClient::MouseEnter(InViewport, x, y);
+}
 void FLGUIPrefabEditorViewportClient::MouseMove(FViewport* InViewport, int32 x, int32 y)
 {
 	FEditorViewportClient::MouseMove(InViewport, x, y);
+}
+void FLGUIPrefabEditorViewportClient::MouseLeave(FViewport* InViewport)
+{
+	FEditorViewportClient::MouseLeave(InViewport);
 }
 
 void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)

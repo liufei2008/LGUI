@@ -37,7 +37,9 @@ public:
 	virtual void AbortTracking() override;
 
 	virtual void CapturedMouseMove(FViewport* InViewport, int32 InMouseX, int32 InMouseY) override;
+	virtual void MouseEnter(FViewport* Viewport, int32 x, int32 y) override;
 	virtual void MouseMove(FViewport* InViewport, int32 x, int32 y) override;
+	virtual void MouseLeave(FViewport* Viewport) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type InCurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override;
 
