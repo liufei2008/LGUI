@@ -12,6 +12,7 @@
 class ULGUICanvas;
 class ULGUIRenderTargetGeometrySource;
 class ULGUIEventSystem;
+enum class ELGUIRenderMode :uint8;
 
 /**
  * Perform a raycaster and interaction for LGUIRenderTargetGeometrySource object, which shows the LGUI RenderTarget UI.
@@ -43,6 +44,7 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<ULGUIPointerEventData> PointerEventData = nullptr;
 	TWeakObjectPtr<ULGUIPointerEventData> InputPointerEventData = nullptr;
 
+	TArray<ELGUIRenderMode> RenderModeArray;
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override { return true; }
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
