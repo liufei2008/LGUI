@@ -126,6 +126,10 @@ public:
 	void RemoveActorForPrefabSystem(AActor* InActor, const FGuid& InSessionId);
 	FGuid GetPrefabSystemSessionIdForActor(AActor* InActor);
 
+	/**
+	 * Tell if PrefabSystem is deserializing the actor, can use this function in BeginPlay, if this return true then means properties are not ready yet, then you should use ILGUIPrefabInterface and implement Awake instead of BeginPlay.
+	 * PrefabSystem is deserializing actor during LoadPrefab or DuplicateActor.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool IsPrefabSystemProcessingActor(AActor* InActor);
 };
