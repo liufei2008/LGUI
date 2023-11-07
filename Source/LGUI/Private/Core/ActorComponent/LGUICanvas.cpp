@@ -146,13 +146,10 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasAddToLGUIScreenSpaceRenderer)
 				{
-					if (IsValid(renderTarget))
-					{
-						GetRenderTargetViewExtension();
-						RenderTargetViewExtension->SetScreenSpaceRootCanvas(this);
-						RenderTargetViewExtension->SetRenderToRenderTarget(true);
-						bHasAddToLGUIScreenSpaceRenderer = true;
-					}
+					GetRenderTargetViewExtension();
+					RenderTargetViewExtension->SetScreenSpaceRootCanvas(this);
+					RenderTargetViewExtension->SetRenderToRenderTarget(true);
+					bHasAddToLGUIScreenSpaceRenderer = true;
 				}
 				bIsRenderTargetRenderer = true;
 			}
@@ -187,9 +184,54 @@ void ULGUICanvas::UpdateRootCanvas()
 			)
 		{
 			bAnythingChangedForRenderTarget = false;
-			if (RenderTargetViewExtension.IsValid() && IsValid(renderTarget))
+			UpdateRenderTarget(true);
+			if (RenderTargetViewExtension.IsValid())
 			{
 				RenderTargetViewExtension->UpdateRenderTargetRenderer(renderTarget);
+			}
+		}
+	}
+}
+
+void ULGUICanvas::UpdateRenderTarget(bool CallEvent)
+{
+	FIntPoint DesiredRenderTargetSize(UIItem->GetWidth(), UIItem->GetHeight());
+	if (renderTarget == nullptr)
+	{
+		renderTarget = NewObject<UTextureRenderTarget2D>(this);
+		renderTarget->AddressX = TextureAddress::TA_Clamp;
+		renderTarget->AddressY = TextureAddress::TA_Clamp;
+		renderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+		if (CallEvent)
+		{
+			OnRenderTargetCreatedOrChanged.Broadcast(renderTarget, true);
+		}
+	}
+	else
+	{
+		switch (RenderTargetSizeMode)
+		{
+		case ELGUICanvasRenderTargetSizeMode::None:
+		case ELGUICanvasRenderTargetSizeMode::CanvasFitToRenderTarget:
+			if (renderTarget != nullptr)
+			{
+				DesiredRenderTargetSize.X = renderTarget->SizeX;
+				DesiredRenderTargetSize.Y = renderTarget->SizeY;
+			}
+			break;
+		case ELGUICanvasRenderTargetSizeMode::RenderTargetFitToCanvas:
+			break;
+		}
+		if (renderTarget->SizeX != DesiredRenderTargetSize.X || renderTarget->SizeY != DesiredRenderTargetSize.Y)
+		{
+			renderTarget->ResizeTarget(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y);
+			renderTarget->UpdateResourceImmediate();
+#if WITH_EDITOR
+			renderTarget->Modify();
+#endif
+			if (CallEvent)
+			{
+				OnRenderTargetCreatedOrChanged.Broadcast(renderTarget, false);
 			}
 		}
 	}
@@ -2850,6 +2892,8 @@ void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 	if (renderTarget != value)
 	{
 		renderTarget = value;
+		UpdateRenderTarget(false);
+		OnRenderTargetCreatedOrChanged.Broadcast(renderTarget, false);
 		if (renderMode == ELGUIRenderMode::RenderTarget)
 		{
 			if (RenderTargetViewExtension.IsValid())
