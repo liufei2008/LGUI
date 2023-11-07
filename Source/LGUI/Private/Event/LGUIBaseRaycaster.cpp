@@ -4,6 +4,7 @@
 #include "Core/Actor/LGUIManager.h"
 #include "Engine/SceneCapture2D.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 ULGUIBaseRaycaster::ULGUIBaseRaycaster()
 {
@@ -58,7 +59,7 @@ bool ULGUIBaseRaycaster::ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPoi
 	return false;
 }
 
-bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, const TArray<ELGUIRenderMode>& InRenderModeArray, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection))
@@ -71,32 +72,98 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 
 		if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 		{
-			auto& AllCanvasArray = LGUIManager->GetCanvasArray();
-			for (auto& CanvasItem : AllCanvasArray)
+#if 0//could have some problemn because thread racing
+			// use ParallelFor to speed up the hit process
+			FCriticalSection Mutex;
+			if (InRenderModeArray.Num() == 1)//most case
 			{
-				if (ShouldSkipCanvas(CanvasItem.Get()))continue;
-				auto& AllUIItemArray = CanvasItem->GetUIItemArray();
-				for (auto& uiItem : AllUIItemArray)
-				{
-					if (!IsValid(uiItem))continue;
-
-					FHitResult thisHit;
-					if (
-						uiItem->IsRaycastTarget()
-						&& uiItem->IsGroupAllowInteraction()
-						&& uiItem->GetTraceChannel() == traceChannel
-						&& uiItem->GetIsUIActiveInHierarchy()
-						&& uiItem->GetRenderCanvas() != nullptr//must have valid canvas to render
-						&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
-						)
-					{
-						if (uiItem->GetRenderCanvas()->CalculatePointVisibilityOnClip(thisHit.Location))
+				auto& AllCanvasArray = LGUIManager->GetCanvasArray(InRenderModeArray[0]);
+				ParallelFor(AllCanvasArray.Num(), [&AllCanvasArray, &Mutex, &OutRayOrigin, &OutRayEnd, this](int32 CanvasIndex) {
+					auto& CanvasItem = AllCanvasArray[CanvasIndex];
+					if (ShouldSkipCanvas(CanvasItem.Get()))return;
+					auto& AllUIItemArray = CanvasItem->GetUIItemArray();
+					ParallelFor(AllUIItemArray.Num(), [&AllUIItemArray, &Mutex, &OutRayOrigin, &OutRayEnd, CanvasItem, this](int32 index) {
+						auto uiItem = AllUIItemArray[index];
+						FHitResult thisHit;
+						if (
+							uiItem->IsRaycastTarget()
+							&& uiItem->IsGroupAllowInteraction()
+							&& uiItem->GetTraceChannel() == traceChannel
+							&& uiItem->GetIsUIActiveInHierarchy()
+							&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
+							)
 						{
-							multiHitResult.Add(thisHit);
+							if (CanvasItem->CalculatePointVisibilityOnClip(thisHit.Location))
+							{
+								Mutex.Lock();
+								multiHitResult.Add(thisHit);
+								Mutex.Unlock();
+							}
+						}
+						});
+					});
+			}
+			else if (InRenderModeArray.Num() > 1)//only WorldSpace may use two render mode
+			{
+				ParallelFor(InRenderModeArray.Num(), [&InRenderModeArray, &Mutex, &OutRayOrigin, &OutRayEnd, LGUIManager, this](int32 RenderModeIndex) {
+					auto RenderMode = InRenderModeArray[RenderModeIndex];
+					auto& AllCanvasArray = LGUIManager->GetCanvasArray(RenderMode);
+					ParallelFor(AllCanvasArray.Num(), [&AllCanvasArray, &Mutex, &OutRayOrigin, &OutRayEnd, this](int32 CanvasIndex) {
+						auto& CanvasItem = AllCanvasArray[CanvasIndex];
+						if (ShouldSkipCanvas(CanvasItem.Get()))return;
+						auto& AllUIItemArray = CanvasItem->GetUIItemArray();
+						ParallelFor(AllUIItemArray.Num(), [&AllUIItemArray, &Mutex, &OutRayOrigin, &OutRayEnd, CanvasItem, this](int32 index) {
+							auto uiItem = AllUIItemArray[index];
+							FHitResult thisHit;
+							if (
+								uiItem->IsRaycastTarget()
+								&& uiItem->IsGroupAllowInteraction()
+								&& uiItem->GetTraceChannel() == traceChannel
+								&& uiItem->GetIsUIActiveInHierarchy()
+								&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
+								)
+							{
+								if (CanvasItem->CalculatePointVisibilityOnClip(thisHit.Location))
+								{
+									Mutex.Lock();
+									multiHitResult.Add(thisHit);
+									Mutex.Unlock();
+								}
+							}
+							});
+						});
+					});
+			}
+#else
+			for (auto& InRenderMode : InRenderModeArray)
+			{
+				auto& AllCanvasArray = LGUIManager->GetCanvasArray(InRenderMode);
+				for (auto& CanvasItem : AllCanvasArray)
+				{
+					if (ShouldSkipCanvas(CanvasItem.Get()))continue;
+					auto& AllUIItemArray = CanvasItem->GetUIItemArray();
+					for (auto& uiItem : AllUIItemArray)
+					{
+						if (!IsValid(uiItem))continue;
+
+						FHitResult thisHit;
+						if (
+							uiItem->IsRaycastTarget()
+							&& uiItem->IsGroupAllowInteraction()
+							&& uiItem->GetTraceChannel() == traceChannel
+							&& uiItem->GetIsUIActiveInHierarchy()
+							&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
+							)
+						{
+							if (CanvasItem->CalculatePointVisibilityOnClip(thisHit.Location))
+							{
+								multiHitResult.Add(thisHit);
+							}
 						}
 					}
 				}
 			}
+#endif
 		}
 		else
 		{

@@ -7,6 +7,7 @@
 #include "LGUIScreenSpaceRaycaster.generated.h"
 
 class ULGUICanvas;
+enum class ELGUIRenderMode :uint8;
 
 /**
  * Perform a raycaster interaction for ScreenSpaceUI.
@@ -25,6 +26,7 @@ protected:
 	TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
+	TArray<ELGUIRenderMode> RenderModeArray;
 public:
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;

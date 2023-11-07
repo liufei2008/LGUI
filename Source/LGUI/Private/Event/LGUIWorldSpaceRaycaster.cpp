@@ -54,11 +54,12 @@ void ULGUIWorldSpaceRaycaster::OnRegister()
 		RaycasterSourceObject = NewObject<ULGUIWorldSpaceRaycasterSource_Mouse>(this);
 	}
 	RaycasterSourceObject->Init(this);
+	RenderModeArray = { ELGUIRenderMode::WorldSpace, ELGUIRenderMode::WorldSpace_LGUI };
 }
 
 bool ULGUIWorldSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
-	return !UICanvas->IsRenderToWorldSpace();
+	return false;
 }
 
 bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
@@ -66,7 +67,7 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 	switch (interactionTarget)
 	{
 	case ELGUIInteractionTarget::UI:
-		return Super::RaycastUI(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
+		return Super::RaycastUI(InPointerEventData, RenderModeArray, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 	case ELGUIInteractionTarget::World:
 		return Super::RaycastWorld(bRequireFaceIndex, InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 	case ELGUIInteractionTarget::UIAndWorld:
@@ -75,7 +76,7 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 		FVector WorldRayOrigin, WorldRayDirection, WorldRayEnd;
 		FHitResult UIHitResult, WorldHitResult;
 		TArray<USceneComponent*> UIHoverArray, WorldHoverArray;
-		auto HitUI = Super::RaycastUI(InPointerEventData, UIRayOrigin, UIRayDirection, UIRayEnd, UIHitResult, UIHoverArray);
+		auto HitUI = Super::RaycastUI(InPointerEventData, RenderModeArray, UIRayOrigin, UIRayDirection, UIRayEnd, UIHitResult, UIHoverArray);
 		auto HitWorld = Super::RaycastWorld(bRequireFaceIndex, InPointerEventData, WorldRayOrigin, WorldRayDirection, WorldRayEnd, WorldHitResult, WorldHoverArray);
 		if (HitUI && HitWorld)
 		{

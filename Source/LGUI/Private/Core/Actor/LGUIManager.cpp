@@ -963,17 +963,23 @@ void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 				|| this->GetWorld()->WorldType == EWorldType::EditorPreview
 				)
 			{
-				for (auto& CanvasItem : AllCanvasArray)
-				{
-					auto& UIItemArray = CanvasItem->GetUIItemArray();
-					for (auto& UIItem : UIItemArray)
+				auto bIsGameWorld = this->GetWorld()->IsGameWorld();
+				auto DrawFrame = [bIsGameWorld](const TArray<TWeakObjectPtr<ULGUICanvas>>& CanvasArray) {
+					for (auto& CanvasItem : CanvasArray)
 					{
-						if (!IsValid(UIItem))continue;
-						if (!IsValid(UIItem->GetWorld()))continue;
+						auto& UIItemArray = CanvasItem->GetUIItemArray();
+						for (auto& UIItem : UIItemArray)
+						{
+							if (!IsValid(UIItem))continue;
 
-						ULGUIManagerWorldSubsystem::DrawFrameOnUIItem(UIItem, this->GetWorld()->IsGameWorld() ? UIItem->IsScreenSpaceOverlayUI() : false);
+							ULGUIManagerWorldSubsystem::DrawFrameOnUIItem(UIItem, bIsGameWorld ? UIItem->IsScreenSpaceOverlayUI() : false);
+						}
 					}
-				}
+					};
+				DrawFrame(ScreenSpaceCanvasArray);
+				DrawFrame(WorldSpaceUECanvasArray);
+				DrawFrame(WorldSpaceLGUICanvasArray);
+				DrawFrame(RenderTargetSpaceLGUICanvasArray);
 			}
 		}
 
@@ -1417,7 +1423,19 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 				RootUIItem->EditorForceUpdate();
 			}
 		}
-		for (auto& CanvasItem : Instance->AllCanvasArray)
+		for (auto& CanvasItem : Instance->ScreenSpaceCanvasArray)
+		{
+			CanvasItem->EnsureDrawcallObjectReference();
+		}
+		for (auto& CanvasItem : Instance->WorldSpaceUECanvasArray)
+		{
+			CanvasItem->EnsureDrawcallObjectReference();
+		}
+		for (auto& CanvasItem : Instance->WorldSpaceLGUICanvasArray)
+		{
+			CanvasItem->EnsureDrawcallObjectReference();
+		}
+		for (auto& CanvasItem : Instance->RenderTargetSpaceLGUICanvasArray)
 		{
 			CanvasItem->EnsureDrawcallObjectReference();
 		}
@@ -1458,7 +1476,6 @@ void ULGUIManagerWorldSubsystem::AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMod
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
-		Instance->AllCanvasArray.AddUnique(InCanvas);
 		if (InCurrentRenderMode != ELGUIRenderMode::None)//none means canvas's property not ready yet, so no need to collect it, because it will be collected in "CanvasRenderModeChange" function
 		{
 			switch (InCurrentRenderMode)
@@ -1483,7 +1500,6 @@ void ULGUIManagerWorldSubsystem::RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRender
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
-		Instance->AllCanvasArray.RemoveSingle(InCanvas);
 		switch (InCurrentRenderMode)
 		{
 		case ELGUIRenderMode::ScreenSpaceOverlay:
@@ -1537,6 +1553,26 @@ void ULGUIManagerWorldSubsystem::CanvasRenderModeChange(ULGUICanvas* InCanvas, E
 			Instance->RenderTargetSpaceLGUICanvasArray.Add(InCanvas);
 			break;
 		}
+	}
+}
+const TArray<TWeakObjectPtr<ULGUICanvas>>& ULGUIManagerWorldSubsystem::GetCanvasArray(ELGUIRenderMode RenderMode)
+{
+	switch (RenderMode)
+	{
+	default://this should not happen
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LGUI, Error, TEXT("[%s].%d break here for debug"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+#endif
+		return ScreenSpaceCanvasArray;
+	case ELGUIRenderMode::ScreenSpaceOverlay:
+		return ScreenSpaceCanvasArray;
+	case ELGUIRenderMode::WorldSpace:
+		return WorldSpaceUECanvasArray;
+	case ELGUIRenderMode::WorldSpace_LGUI:
+		return WorldSpaceLGUICanvasArray;
+	case ELGUIRenderMode::RenderTarget:
+		return RenderTargetSpaceLGUICanvasArray;
 	}
 }
 void ULGUIManagerWorldSubsystem::MarkSortScreenSpaceCanvas()

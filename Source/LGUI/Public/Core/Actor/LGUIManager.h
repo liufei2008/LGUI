@@ -106,8 +106,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> ScreenSpaceCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> WorldSpaceUECanvasArray;
@@ -173,7 +171,7 @@ public:
 	static void AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);
 	static void RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);
 	static void CanvasRenderModeChange(ULGUICanvas* InCanvas, ELGUIRenderMode InOldRenderMode, ELGUIRenderMode InNewRenderMode);
-	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return AllCanvasArray; };
+	const TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray(ELGUIRenderMode RenderMode);
 	void MarkSortScreenSpaceCanvas();
 	void MarkSortWorldSpaceLGUICanvas();
 	void MarkSortWorldSpaceCanvas();

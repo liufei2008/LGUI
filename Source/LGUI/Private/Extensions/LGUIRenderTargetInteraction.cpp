@@ -23,6 +23,7 @@ void ULGUIRenderTargetInteraction::BeginPlay()
 	Super::BeginPlay();
 	PointerEventData = NewObject<ULGUIPointerEventData>(this);
 	PointerEventData->pointerID = -1;//make it -1, different from LGUIEventSystem created
+	RenderModeArray = { ELGUIRenderMode::RenderTarget };
 }
 
 void ULGUIRenderTargetInteraction::OnRegister()
@@ -116,7 +117,7 @@ bool ULGUIRenderTargetInteraction::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
 	if (TargetCanvas.IsValid())
 	{
-		return !UICanvas->IsRenderToRenderTarget() || TargetCanvas->GetRenderTarget() != UICanvas->GetActualRenderTarget();
+		return TargetCanvas->GetRenderTarget() != UICanvas->GetActualRenderTarget();
 	}
 	return true;
 }
@@ -129,7 +130,7 @@ bool ULGUIRenderTargetInteraction::ShouldStartDrag(ULGUIPointerEventData* InPoin
 }
 bool ULGUIRenderTargetInteraction::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
-	return Super::RaycastUI(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
+	return Super::RaycastUI(InPointerEventData, RenderModeArray, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 }
 
 
