@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "LGUIPrefabPreviewScene.h"
+#include "LGUIPrefabEditorScene.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "LGUIEditorModule.h"
@@ -10,11 +10,11 @@
 #include "GameFramework/Actor.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 
-#define LOCTEXT_NAMESPACE "LGUIPrefabPreviewScene"
+#define LOCTEXT_NAMESPACE "LGUIPrefabEditorScene"
 
-const FString FLGUIPrefabPreviewScene::RootAgentActorName = TEXT("[temporary_RootAgent]");
+const FString FLGUIPrefabEditorScene::RootAgentActorName = TEXT("[temporary_RootAgent]");
 
-FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPreviewScene(CVS)
+FLGUIPrefabEditorScene::FLGUIPrefabEditorScene(ConstructionValues CVS) :FPrefabScene(CVS)
 {
 	//GetWorld()->GetWorldSettings()->NotifyBeginPlay();
 	//GetWorld()->GetWorldSettings()->NotifyMatchStarted();
@@ -101,7 +101,7 @@ FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPrevi
 	}
 }
 
-USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefab* InPrefab)
+USceneComponent* FLGUIPrefabEditorScene::GetParentComponentForPrefab(ULGUIPrefab* InPrefab)
 {
 	if (RootAgentActor != nullptr)
 	{
@@ -166,7 +166,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 	return nullptr;
 }
 
-bool FLGUIPrefabPreviewScene::IsWorldDefaultActor(AActor* InActor)const
+bool FLGUIPrefabEditorScene::IsWorldDefaultActor(AActor* InActor)const
 {
 	return WorldDefaultActors.Contains(InActor);
 }

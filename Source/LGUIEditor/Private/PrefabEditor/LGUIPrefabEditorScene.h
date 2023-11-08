@@ -2,18 +2,18 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "PreviewScene.h"
+#include "PrefabScene.h"
 
 class UStaticMeshComponent;
 class UExponentialHeightFogComponent;
 class ULGUIPrefab;
 class AActor;
 
-//Encapsulates a simple scene setup for preview or thumbnail rendering.
-class FLGUIPrefabPreviewScene : public FPreviewScene
+//Encapsulates a simple scene setup for Prefab Editor.
+class FLGUIPrefabEditorScene : public FPrefabScene
 {
 public:
-	FLGUIPrefabPreviewScene(ConstructionValues CVS);
+	FLGUIPrefabEditorScene(ConstructionValues CVS);
 
 	static const FString RootAgentActorName;
 	USceneComponent* GetParentComponentForPrefab(ULGUIPrefab* InPrefab);

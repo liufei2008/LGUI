@@ -56,6 +56,11 @@ TStatId FLGUINativeSceneOutlinerExtension::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
 
+void FLGUINativeSceneOutlinerExtension::Restore() 
+{
+	SetDelayRestore(true, false); 
+}
+
 void FLGUINativeSceneOutlinerExtension::OnPreSaveWorld(UWorld* World, FObjectPreSaveContext Context)
 {
 	SaveSceneOutlinerState();

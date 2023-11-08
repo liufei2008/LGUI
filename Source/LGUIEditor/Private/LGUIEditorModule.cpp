@@ -792,6 +792,10 @@ bool FLGUIEditorModule::CanCreatePrefab()
 	return true;
 }
 
+FLGUINativeSceneOutlinerExtension* FLGUIEditorModule::GetNativeSceneOutlinerExtension()const
+{
+	return NativeSceneOutlinerExtension;
+}
 void FLGUIEditorModule::OnOutlinerSelectionChange()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
