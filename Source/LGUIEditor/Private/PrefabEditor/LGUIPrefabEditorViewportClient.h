@@ -9,7 +9,7 @@
 #include "LevelEditorViewport.h"
 
 class FLGUIPrefabPreviewManager;
-class FLGUIPrefabPreviewScene;
+class FLGUIPrefabEditorScene;
 class UUIBaseRenderable;
 class FLGUIPrefabEditor;
 class ULGUIPrefab;
@@ -18,7 +18,7 @@ class ULGUIPrefab;
 class FLGUIPrefabEditorViewportClient : public FEditorViewportClient
 {
 public:
-	FLGUIPrefabEditorViewportClient(FLGUIPrefabPreviewScene& InPreviewScene, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr, const TSharedRef<class SLGUIPrefabEditorViewport>& InEditorViewportPtr);
+	FLGUIPrefabEditorViewportClient(FLGUIPrefabEditorScene& InPreviewScene, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr, const TSharedRef<class SLGUIPrefabEditorViewport>& InEditorViewportPtr);
 
 	virtual ~FLGUIPrefabEditorViewportClient();
 
@@ -92,6 +92,14 @@ public:
 
 	bool FocusViewportToTargets();
 
+	FLGUIPrefabEditorScene* PrefabScene = nullptr;
+	// Begin override because PreviewScene is nullptr
+	virtual UWorld* GetWorld()const override;
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual void DrawPreviewLightVisualization(const FSceneView* View, FPrimitiveDrawInterface* PDI)override;
+	virtual FLinearColor GetBackgroundColor() const override;
+	virtual bool Internal_InputAxis(FViewport* InViewport, FInputDeviceId DeviceID, FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad) override;
+	// End
 private:
 	int PrevMouseX = 0, PrevMouseY = 0;
 

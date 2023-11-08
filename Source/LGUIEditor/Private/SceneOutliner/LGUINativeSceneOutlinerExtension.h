@@ -44,6 +44,11 @@ public:
 	virtual bool IsTickableInEditor()const { return true; }
 	virtual TStatId GetStatId() const override;
 	//end TickableEditorObject interface
+
+	/**
+	 * Temporary store state and then restore it.
+	 */
+	void Restore();
 private:
 	void OnPreSaveWorld(class UWorld* World, class FObjectPreSaveContext Context);
 	void OnMapOpened(const FString& FileName, bool AsTemplate);

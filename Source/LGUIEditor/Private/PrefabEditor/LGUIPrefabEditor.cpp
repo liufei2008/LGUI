@@ -3,7 +3,7 @@
 #include "LGUIPrefabEditor.h"
 #include "LGUIEditorModule.h"
 #include "LGUIPrefabEditorViewport.h"
-#include "LGUIPrefabPreviewScene.h"
+#include "LGUIPrefabEditorScene.h"
 #include "LGUIPrefabEditorDetails.h"
 #include "LGUIPrefabEditorOutliner.h"
 #include "LGUIPrefabRawDataViewer.h"
@@ -30,6 +30,7 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
+#include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
@@ -53,8 +54,13 @@ const FName FLGUIPrefabEditorTabs::ViewportID(TEXT("Viewport"));
 const FName FLGUIPrefabEditorTabs::OutlinerID(TEXT("Outliner"));
 const FName FLGUIPrefabEditorTabs::PrefabRawDataViewerID(TEXT("PrefabRawDataViewer"));
 
+FName GetPrefabWorldName()
+{
+	static uint32 NameSuffix = 0;
+	return FName(*FString::Printf(TEXT("PrefabEditorWorld_%d"), NameSuffix++));
+}
 FLGUIPrefabEditor::FLGUIPrefabEditor()
-	:PreviewScene(FLGUIPrefabPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(false).SetEditor(true))
+	:PreviewScene(FLGUIPrefabEditorScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(false).SetEditor(true).SetName(GetPrefabWorldName()))
 {
 	PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(GetTransientPackage(), NAME_None, EObjectFlags::RF_Transactional);
 	LGUIPrefabEditorInstanceCollection.Add(this);
@@ -67,6 +73,9 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 	LGUIPrefabEditorInstanceCollection.Remove(this);
 
 	GEditor->SelectNone(true, true);
+
+	ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
+	FLGUIEditorModule::Get().GetNativeSceneOutlinerExtension()->Restore();
 }
 
 FLGUIPrefabEditor* FLGUIPrefabEditor::GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab)
@@ -91,6 +100,18 @@ ULGUIPrefabHelperObject* FLGUIPrefabEditor::GetEditorPrefabHelperObjectForActor(
 		}
 	}
 	return nullptr;
+}
+
+bool FLGUIPrefabEditor::WorldIsPrefabEditor(UWorld* InWorld)
+{
+	for (auto Instance : LGUIPrefabEditorInstanceCollection)
+	{
+		if (Instance->GetWorld() == InWorld)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 bool FLGUIPrefabEditor::ActorIsRootAgent(AActor* InActor)
@@ -549,7 +570,7 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 	return true;
 }
 
-FLGUIPrefabPreviewScene& FLGUIPrefabEditor::GetPreviewScene()
+FLGUIPrefabEditorScene& FLGUIPrefabEditor::GetPreviewScene()
 { 
 	return PreviewScene;
 }
@@ -880,7 +901,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				}
 				if (CurrentSelectedActor == GetPreviewScene().GetRootAgentActor())
 				{
-					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
+					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(FLGUIPrefabEditorScene::RootAgentActorName));
 					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 					return FReply::Unhandled();
 				}
