@@ -12,6 +12,7 @@
 
 class FToolBarBuilder;
 class FMenuBuilder;
+class FLGUINativeSceneOutlinerExtension;
 DECLARE_LOG_CATEGORY_EXTERN(LGUIEditor, Log, All);
 
 class FLGUIEditorModule : public IModuleInterface, public FGCObject
@@ -31,6 +32,7 @@ public:
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
 	void OnOutlinerSelectionChange();
+	FLGUINativeSceneOutlinerExtension* GetNativeSceneOutlinerExtension()const;
 private:
 
 	bool IsValidClassName(const FString& InName);
@@ -74,7 +76,7 @@ private:
 	TSharedRef<SDockTab> HandleSpawnDynamicSpriteAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnLGUIPrefabSequenceTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
-	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
+	FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer = nullptr;
 	void CheckPrefabOverrideDataViewerEntry();
 

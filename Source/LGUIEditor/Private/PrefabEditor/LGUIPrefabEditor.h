@@ -4,7 +4,7 @@
 #include "UObject/GCObject.h"
 #include "Toolkits/IToolkitHost.h"
 #include "Toolkits/AssetEditorToolkit.h"
-#include "LGUIPrefabPreviewScene.h"
+#include "LGUIPrefabEditorScene.h"
 #pragma once
 
 class ULGUIPrefab;
@@ -14,7 +14,7 @@ class FLGUIPrefabEditorOutliner;
 class SLGUIPrefabOverrideParameterEditor;
 class SLGUIPrefabRawDataViewer;
 class AActor;
-class FLGUIPrefabPreviewScene;
+class FLGUIPrefabEditorScene;
 class ULGUIPrefabHelperObject;
 class ULGUIPrefabOverrideParameterHelperObject;
 class ULGUIPrefabOverrideHelperObject;
@@ -63,7 +63,7 @@ public:
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
 
-	FLGUIPrefabPreviewScene& GetPreviewScene();
+	FLGUIPrefabEditorScene& GetPreviewScene();
 	UWorld* GetWorld();
 	ULGUIPrefab* GetPrefabBeingEdited()const { return PrefabBeingEdited; }
 
@@ -71,6 +71,7 @@ public:
 
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
 	static ULGUIPrefabHelperObject* GetEditorPrefabHelperObjectForActor(AActor* InActor);
+	static bool WorldIsPrefabEditor(UWorld* InWorld);
 	static bool ActorIsRootAgent(AActor* InActor);
 	static void IterateAllPrefabEditor(const TFunction<void(FLGUIPrefabEditor*)>& InFunction);
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
@@ -101,7 +102,7 @@ private:
 
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
 
-	FLGUIPrefabPreviewScene PreviewScene;
+	FLGUIPrefabEditorScene PreviewScene;
 private:
 
 	void BindCommands();

@@ -29,7 +29,7 @@
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Editor.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
-#include "LGUIPrefabPreviewScene.h"
+#include "LGUIPrefabEditorScene.h"
 #include "LGUIPrefabEditor.h"
 #include "MouseDeltaTracker.h"
 #include "Misc/ITransaction.h"
@@ -53,10 +53,11 @@
 
 IMPLEMENT_HIT_PROXY(HLevelSocketProxy, HHitProxy);
 
-FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPreviewScene& InPreviewScene
+FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabEditorScene& InPreviewScene
 	, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr
 	, const TSharedRef<SLGUIPrefabEditorViewport>& InEditorViewportPtr)
-	: FEditorViewportClient(&GLevelEditorModeTools(), &InPreviewScene, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
+	: FEditorViewportClient(&GLevelEditorModeTools(), nullptr, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
+	, PrefabScene(&InPreviewScene)
 	, TrackingTransaction()
 	, CachedElementsToManipulate(UTypedElementRegistry::GetInstance()->CreateElementList())
 {
@@ -853,7 +854,7 @@ UTypedElementSelectionSet* FLGUIPrefabEditorViewportClient::GetMutableSelectionS
 
 void FLGUIPrefabEditorViewportClient::TickWorld(float DeltaSeconds)
 {
-	PreviewScene->GetWorld()->Tick(LEVELTICK_All, DeltaSeconds);
+	GetWorld()->Tick(LEVELTICK_All, DeltaSeconds);
 }
 
 bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
@@ -872,6 +873,159 @@ bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
 
 	return false;
 }
+
+
+// Begin override because PreviewScene is nullptr
+// These implementation are copied from FEditorViewportClient
+UWorld* FLGUIPrefabEditorViewportClient::GetWorld()const
+{
+	return PrefabScene->GetWorld();
+}
+void FLGUIPrefabEditorViewportClient::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	FEditorViewportClient::AddReferencedObjects(Collector);
+	PrefabScene->AddReferencedObjects(Collector);
+}
+namespace PreviewLightConstants
+{
+	const float MovingPreviewLightTimerDuration = 1.0f;
+
+	const float MinMouseRadius = 100.0f;
+	const float MinArrowLength = 10.0f;
+	const float ArrowLengthToSizeRatio = 0.1f;
+	const float MouseLengthToArrowLenghtRatio = 0.2f;
+
+	const float ArrowLengthToThicknessRatio = 0.05f;
+	const float MinArrowThickness = 2.0f;
+
+	// Note: MinMouseRadius must be greater than MinArrowLength
+}
+void FLGUIPrefabEditorViewportClient::DrawPreviewLightVisualization(const FSceneView* View, FPrimitiveDrawInterface* PDI)
+{
+	// Draw the indicator of the current light direction if it was recently moved
+	if ((PrefabScene != nullptr) && (PrefabScene->DirectionalLight != nullptr) && (MovingPreviewLightTimer > 0.0f))
+	{
+		const float A = MovingPreviewLightTimer / PreviewLightConstants::MovingPreviewLightTimerDuration;
+
+		ULightComponent* Light = PrefabScene->DirectionalLight;
+
+		const FLinearColor ArrowColor = Light->LightColor;
+
+		// Figure out where the light is (ignoring position for directional lights)
+		const FTransform LightLocalToWorldRaw = Light->GetComponentToWorld();
+		FTransform LightLocalToWorld = LightLocalToWorldRaw;
+		if (Light->IsA(UDirectionalLightComponent::StaticClass()))
+		{
+			LightLocalToWorld.SetTranslation(FVector::ZeroVector);
+		}
+		LightLocalToWorld.SetScale3D(FVector(1.0f));
+
+		// Project the last mouse position during the click into world space
+		FVector LastMouseWorldPos;
+		FVector LastMouseWorldDir;
+		View->DeprojectFVector2D(MovingPreviewLightSavedScreenPos, /*out*/ LastMouseWorldPos, /*out*/ LastMouseWorldDir);
+
+		// The world pos may be nuts due to a super distant near plane for orthographic cameras, so find the closest
+		// point to the origin along the ray
+		LastMouseWorldPos = FMath::ClosestPointOnLine(LastMouseWorldPos, LastMouseWorldPos + LastMouseWorldDir * WORLD_MAX, FVector::ZeroVector);
+
+		// Figure out the radius to draw the light preview ray at
+		const FVector LightToMousePos = LastMouseWorldPos - LightLocalToWorld.GetTranslation();
+		const float LightToMouseRadius = FMath::Max<FVector::FReal>(LightToMousePos.Size(), PreviewLightConstants::MinMouseRadius);
+
+		const float ArrowLength = FMath::Max(PreviewLightConstants::MinArrowLength, LightToMouseRadius * PreviewLightConstants::MouseLengthToArrowLenghtRatio);
+		const float ArrowSize = PreviewLightConstants::ArrowLengthToSizeRatio * ArrowLength;
+		const float ArrowThickness = FMath::Max(PreviewLightConstants::ArrowLengthToThicknessRatio * ArrowLength, PreviewLightConstants::MinArrowThickness);
+
+		const FVector ArrowOrigin = LightLocalToWorld.TransformPosition(FVector(-LightToMouseRadius - 0.5f * ArrowLength, 0.0f, 0.0f));
+		const FVector ArrowDirection = LightLocalToWorld.TransformVector(FVector(-1.0f, 0.0f, 0.0f));
+
+		const FQuatRotationTranslationMatrix ArrowToWorld(LightLocalToWorld.GetRotation(), ArrowOrigin);
+
+		DrawDirectionalArrow(PDI, ArrowToWorld, ArrowColor, ArrowLength, ArrowSize, SDPG_World, ArrowThickness);
+	}
+}
+FLinearColor FLGUIPrefabEditorViewportClient::GetBackgroundColor() const
+{
+	return PrefabScene ? PrefabScene->GetBackgroundColor() : FColor(55, 55, 55);
+}
+namespace EditorViewportClient
+{
+	static const float GridSize = 2048.0f;
+	static const int8 CellSize = 16;
+	static const float LightRotSpeed = 0.22f;
+}
+class FCachedJoystickState
+{
+public:
+	uint32 JoystickType;
+	TMap <FKey, float> AxisDeltaValues;
+	TMap <FKey, EInputEvent> KeyEventValues;
+};
+bool FLGUIPrefabEditorViewportClient::Internal_InputAxis(FViewport* InViewport, FInputDeviceId DeviceID, FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad)
+{
+	if (bDisableInput)
+	{
+		return true;
+	}
+
+	const FPlatformUserId UserId = IPlatformInputDeviceMapper::Get().GetUserForInputDevice(DeviceID);
+
+	// Let the current mode have a look at the input before reacting to it.
+	if (ModeTools->InputAxis(this, Viewport, FGenericPlatformMisc::GetUserIndexForPlatformUser(UserId), Key, Delta, DeltaTime))
+	{
+		return true;
+	}
+
+	const bool bMouseButtonDown = InViewport->KeyState(EKeys::LeftMouseButton) || InViewport->KeyState(EKeys::MiddleMouseButton) || InViewport->KeyState(EKeys::RightMouseButton);
+	const bool bLightMoveDown = InViewport->KeyState(EKeys::L);
+
+	// Look at which axis is being dragged and by how much
+	const float DragX = (Key == EKeys::MouseX) ? Delta : 0.f;
+	const float DragY = (Key == EKeys::MouseY) ? Delta : 0.f;
+
+	if (bLightMoveDown && bMouseButtonDown && PrefabScene)
+	{
+		// Adjust the preview light direction
+		FRotator LightDir = PrefabScene->GetLightDirection();
+
+		LightDir.Yaw += -DragX * EditorViewportClient::LightRotSpeed;
+		LightDir.Pitch += -DragY * EditorViewportClient::LightRotSpeed;
+
+		PrefabScene->SetLightDirection(LightDir);
+
+		// Remember that we adjusted it for the visualization
+		MovingPreviewLightTimer = PreviewLightConstants::MovingPreviewLightTimerDuration;
+		MovingPreviewLightSavedScreenPos = FVector2D(LastMouseX, LastMouseY);
+
+		Invalidate();
+	}
+	else
+	{
+		/**Save off axis commands for future camera work*/
+		FCachedJoystickState* JoystickState = GetJoystickState(DeviceID.GetId());
+		if (JoystickState)
+		{
+			JoystickState->AxisDeltaValues.Add(Key, Delta);
+		}
+
+		if (bIsTracking)
+		{
+			// Accumulate and snap the mouse movement since the last mouse button click.
+			MouseDeltaTracker->AddDelta(this, Key, Delta, 0);
+		}
+	}
+
+	// If we are using a drag tool, paint the viewport so we can see it update.
+	if (MouseDeltaTracker->UsingDragTool())
+	{
+		Invalidate(false, false);
+	}
+
+	return true;
+}
+// End override because PreviewScene is nullptr
+
 
 ULGUIPrefab* FLGUIPrefabEditorViewportClient::GetPrefabBeingEdited()const
 {
