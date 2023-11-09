@@ -76,16 +76,15 @@ void ULGUILifeCycleBehaviour::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
-		bool isInWorld = true;
-		if (this->GetWorld()->GetPathName().StartsWith(TEXT("/Engine/Transient.")))
+		if (GetWorld() != ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage())//skip preview world
 		{
-			isInWorld = false;
-		}
-		if (isInWorld)
-		{
-			if (executeInEditMode)
+			//Only allow Editor world, skip EditorPreview (Thumbnail) world
+			if (GetWorld()->WorldType == EWorldType::Editor)
 			{
-				EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
+				if (executeInEditMode)
+				{
+					EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
+				}
 			}
 		}
 	}
@@ -129,7 +128,8 @@ void ULGUILifeCycleBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUILifeCycleBehaviour, enable))
+		auto PropertyName = Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUILifeCycleBehaviour, enable))
 		{
 			if (this->GetWorld())
 			{
@@ -144,6 +144,19 @@ void ULGUILifeCycleBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Prop
 						Call_OnDisable();
 					}
 				}
+			}
+		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUILifeCycleBehaviour, executeInEditMode))
+		{
+			//unregister it to make sure, and register it again
+			if (EditorTickDelegateHandle.IsValid())
+			{
+				ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+				EditorTickDelegateHandle.Reset();
+			}
+			if (executeInEditMode)
+			{
+				EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([=](float deltaTime) {this->Update(deltaTime); });
 			}
 		}
 	}
