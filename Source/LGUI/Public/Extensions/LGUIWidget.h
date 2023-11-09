@@ -3,16 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "Components/WidgetComponent.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIWidget.generated.h"
 
 /**
- * This component render a UMG widget as LGUI's element.
+ * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API ULGUIWidget : public UUIBatchGeometryRenderable
+class LGUI_API ULGUIWidget : public UUIBatchGeometryRenderable, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 	
@@ -24,12 +25,14 @@ protected:
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	virtual void BeginPlay() override;
+	// Begin ILGUIPrefabInterface
+	virtual void Awake_Implementation()override;
+	// End ILGUIPrefabInterface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 	virtual void DestroyComponent(bool bPromoteChildren = false) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -146,6 +149,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void SetRedrawTime(float InRedrawTime) { RedrawTime = InRedrawTime; }
 
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	float GetResolutionScale()const { return ResolutionScale; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetResolutionScale(float value) { ResolutionScale = value; }
+
 	/** Get the fake window we create for widgets displayed in the world. */
 	TSharedPtr< SWindow > GetVirtualWindow() const;
 
@@ -234,8 +242,8 @@ protected:
 	/**
 	 * Scale draw size for the widget.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
-	float RenderSizeScale = 1.0f;
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.01"))
+	float ResolutionScale = 1.0f;
 	/**
 	 * The actual draw size, this changes based on this UI element's size.
 	 */
@@ -314,7 +322,7 @@ private:
 };
 
 /**
- * This actor provide a LGUIWidget component which render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction.
+ * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
  */
 UCLASS(ClassGroup = LGUI)
 class LGUI_API ALGUIWidgetActor : public AUIBaseRenderableActor

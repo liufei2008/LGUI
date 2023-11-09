@@ -36,23 +36,23 @@ void ULGUIRenderTargetInteraction::TickComponent(float DeltaTime, ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!GeometrySource.IsValid())
+	if (!IsValid(LineTraceSource))
 	{
-		GeometrySource = GetOwner()->FindComponentByClass<ULGUIRenderTargetGeometrySource>();
-		if (!GeometrySource.IsValid())
+		LineTraceSource = GetOwner()->FindComponentByInterface<ULGUIRenderTargetInteractionSourceInterface>();
+		if (!IsValid(LineTraceSource))
 		{
-			auto ErrorMsg = LOCTEXT("GeometrySourceNotValid", "[ULGUIRenderTargetInteraction::TickComponent] GeometrySource is not valid! LGUIRenderTargetInteraction need a valid LGUIRenderTargetGeometrySource component on the same actor!");
-			UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
+			UE_LOG(LGUI, Error, TEXT("[%s].%d InteractionSource is not valid! LGUIRenderTargetInteraction need a valid component which inherit %s on the same actor!")
+				, ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(ULGUIRenderTargetInteractionSourceInterface::StaticClass()->GetName()));
 			return;
 		}
 	}
 	if (!TargetCanvas.IsValid())
 	{
-		TargetCanvas = GeometrySource->GetCanvas();
+		TargetCanvas = ILGUIRenderTargetInteractionSourceInterface::Execute_GetTargetCanvas(LineTraceSource);
 		if (!TargetCanvas.IsValid())
 		{
-			auto ErrorMsg = LOCTEXT("TargetCanvasNotValid", "[ULGUIRenderTargetInteraction::TickComponent] TargetCanvas is not valid! LGUIRenderTargetInteraction need to get a vaild LGUICanvas from GeometrySource!");
-			UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
+			UE_LOG(LGUI, Error, TEXT("[%s].%d TargetCanvas is not valid! LGUIRenderTargetInteraction need to get a vaild LGUICanvas from InteractionSource!")
+				, ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return;
 		}
 	}
@@ -84,7 +84,7 @@ bool ULGUIRenderTargetInteraction::LineTrace(FLGUIHitResult& hitResult)
 	auto RayEnd = RayOrigin + RayDirection * rayLength;
 
 	FVector2D HitUV;
-	if (GeometrySource->LineTraceHitUV(InputPointerEventData->faceIndex, InputPointerEventData->worldPoint, RayOrigin, RayEnd, HitUV))
+	if (ILGUIRenderTargetInteractionSourceInterface::Execute_PerformLineTrace(LineTraceSource, InputPointerEventData->faceIndex, InputPointerEventData->worldPoint, RayOrigin, RayEnd, HitUV))
 	{
 		auto ViewProjectionMatrix = TargetCanvas->GetViewProjectionMatrix();
 		FVector2D mousePos01 = HitUV;

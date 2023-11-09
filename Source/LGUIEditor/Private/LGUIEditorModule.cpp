@@ -1504,6 +1504,15 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass, EmptyCallback))
 			);
 		}
+		static void CreateMenuEntryByPrefab(FMenuBuilder& InBuilder, const FString& InControlName, const FText& InLabel, const FText& InTooltip = FText::GetEmpty())
+		{
+			InBuilder.AddMenuEntry(
+				InLabel,
+				InTooltip,
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, LGUIEditorTools::LGUIPresetPrefabPath + InControlName))
+			);
+		}
 	};
 
 	MenuBuilder.BeginSection("UIExtension");
@@ -1514,15 +1523,8 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUIStaticMeshActor::StaticClass());
 		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUI2DLineActor::StaticClass());
 		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, AUI2DLineChildrenAsPointsActor::StaticClass());
-		FunctionContainer::CreateMenuEntryByClass(MenuBuilder, ALGUIWidgetActor::StaticClass(), [](AActor* Actor) {
-			auto LGUIWidgetActor = Cast<ALGUIWidgetActor>(Actor);
-			auto LGUIWidget = LGUIWidgetActor->GetLGUIWidget();
-			LGUIWidget->SetRaycastTarget(true);
-			auto Interaction = NewObject<ULGUIWidgetInteraction>(LGUIWidgetActor, ULGUIWidgetInteraction::StaticClass()->GetFName());
-			Interaction->RegisterComponent();
-			LGUIWidgetActor->AddInstanceComponent(Interaction);
-			});
-
+		FunctionContainer::CreateMenuEntryByPrefab(MenuBuilder, TEXT("LGUIWidget"), LOCTEXT("LGUIWidget", "LGUI Widget"), ALGUIWidgetActor::StaticClass()->GetToolTipText());
+		FunctionContainer::CreateMenuEntryByPrefab(MenuBuilder, TEXT("LGUIRenderTarget"), LOCTEXT("LGUIRenderTarget", "LGUI Render Target"), ALGUIRenderTargetActor::StaticClass()->GetToolTipText());
 	}
 	MenuBuilder.EndSection();
 }

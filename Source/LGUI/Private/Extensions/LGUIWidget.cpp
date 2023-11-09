@@ -12,6 +12,7 @@
 #include "Input/HittestGrid.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Engine/GameInstance.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUIWidget"
 
@@ -43,11 +44,17 @@ void ULGUIWidget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bo
 
 void ULGUIWidget::BeginPlay()
 {
+	Super::BeginPlay();
+	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
+	{
+		Awake_Implementation();
+	}
+}
+void ULGUIWidget::Awake_Implementation()
+{
 	SetComponentTickEnabled(TickMode != ETickMode::Disabled);
 	InitWidget();
-	Super::BeginPlay();
 }
-
 void ULGUIWidget::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
@@ -376,7 +383,7 @@ void ULGUIWidget::DrawWidgetToRenderTarget(float DeltaTime)
 		return;
 	}
 
-	auto DrawSize = FIntPoint(this->GetWidth() * RenderSizeScale, this->GetHeight() * RenderSizeScale);
+	auto DrawSize = FIntPoint(this->GetWidth() * ResolutionScale, this->GetHeight() * ResolutionScale);
 	static const int32 MaxAllowedDrawSize = GetMax2DTextureDimension();
 	if (DrawSize.X <= 0 || DrawSize.Y <= 0)
 	{

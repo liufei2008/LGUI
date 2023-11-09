@@ -363,6 +363,17 @@ FGuid ULGUIPrefabWorldSubsystem::GetPrefabSystemSessionIdForActor(AActor* InActo
 	return FGuid();
 }
 
+bool ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(AActor* InActor)
+{
+	if (auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(InActor->GetWorld()))
+	{
+		if (PrefabManager->IsPrefabSystemProcessingActor(InActor))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 bool ULGUIPrefabWorldSubsystem::IsPrefabSystemProcessingActor(AActor* InActor)
 {
 	return AllActors_PrefabSystemProcessing.Contains(InActor);
