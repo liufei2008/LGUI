@@ -211,7 +211,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Location.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteLocation", "Paste Location"));
-				OnSetTransform(ETransformField::Location, EAxisList::All, Location, false);
+				OnSetTransform(ETransformField::Location, EAxisList::All, Location, true);
 			}
 		}
 		break;
@@ -224,7 +224,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Rotation.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteRotation", "Paste Rotation"));
-				OnSetTransform(ETransformField::Rotation, EAxisList::All, Rotation.Euler(), false);
+				OnSetTransform(ETransformField::Rotation, EAxisList::All, Rotation.Euler(), true);
 			}
 		}
 		break;
@@ -234,7 +234,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Scale.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteScale", "Paste Scale"));
-				OnSetTransform(ETransformField::Scale, EAxisList::All, Scale, false);
+				OnSetTransform(ETransformField::Scale, EAxisList::All, Scale, true);
 			}
 		}
 		break;
@@ -510,7 +510,7 @@ void FComponentTransformDetails::OnLocationResetClicked()
 		targetLocation.Z = Archetype->GetRelativeLocation().Z;
 	}
 
-	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false);
+	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, true);
 }
 
 bool FComponentTransformDetails::GetRotationResetVisibility() const
@@ -528,7 +528,7 @@ void FComponentTransformDetails::OnRotationResetClicked()
 	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return;
 
-	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false);
+	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, true);
 }
 
 bool FComponentTransformDetails::GetScaleResetVisibility() const
@@ -546,7 +546,7 @@ void FComponentTransformDetails::OnScaleResetClicked()
 	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return;
 
-	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false);
+	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), true);
 }
 
 void FComponentTransformDetails::CacheTransform()
