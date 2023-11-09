@@ -27,6 +27,9 @@ protected:
 
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
 private:
 	UPROPERTY(EditAnywhere, Category = "LGUILifeCycleBehaviour")
 		bool enable = true;
@@ -136,8 +139,4 @@ public:
 	/** Same as LoadPrefabWithTransform */
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		AActor* InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale);
-protected:
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 };
