@@ -21,6 +21,8 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void CheckTexture();
 #endif
+	/** Return a solid white texture with size 1x1 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static UTexture* GetDefaultWhiteTexture();
 protected:
 	virtual void BeginPlay()override;
