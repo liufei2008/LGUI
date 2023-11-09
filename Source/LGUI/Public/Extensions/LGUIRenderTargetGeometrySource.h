@@ -7,6 +7,7 @@
 #include "LGUIComponentReference.h"
 #include "Interfaces/Interface_CollisionDataProvider.h"
 #include "DynamicMeshBuilder.h"
+#include "LGUIRenderTargetInteraction.h"
 #include "LGUIRenderTargetGeometrySource.generated.h"
 
 class ULGUICanvas;
@@ -28,8 +29,8 @@ enum class ELGUIRenderTargetGeometryMode : uint8
 /**
  * This component can generate a geometry to display LGUI's render target, and perform interaction source for LGUIRenderTargetInteraction component.
  */
-UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation", Sockets, Base, Lighting, LOD, Mesh))
-class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent, public IInterface_CollisionDataProvider
+UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation"))
+class LGUI_API ULGUIRenderTargetGeometrySource : public UMeshComponent, public IInterface_CollisionDataProvider, public ILGUIRenderTargetInteractionSourceInterface
 {
 	GENERATED_BODY()
 	
@@ -110,6 +111,11 @@ public:
 	virtual bool ContainsPhysicsTriMeshData(bool InUseAllTriData) const override;
 	virtual bool WantsNegXTriMesh() override;
 	//~ End Interface_CollisionDataProvider Interface
+
+	// Begin ILGUIRenderTargetInteractionSourceInterface
+	virtual ULGUICanvas* GetTargetCanvas_Implementation()const override;
+	virtual bool PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)override;
+	// End ILGUIRenderTargetInteractionSourceInterface
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

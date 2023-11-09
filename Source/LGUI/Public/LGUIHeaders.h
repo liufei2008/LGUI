@@ -75,6 +75,8 @@
 #include "Extensions/LGUIRenderTargetGeometrySource.h"
 #include "Extensions/LGUIWidget.h"
 #include "Extensions/LGUIWidgetInteraction.h"
+#include "Extensions/LGUIRenderTarget.h"
+#include "Extensions/LGUIRenderTargetInteraction.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"

@@ -619,6 +619,15 @@ void ULGUIRenderTargetGeometrySource::UpdateMeshData()
 	}
 }
 
+ULGUICanvas* ULGUIRenderTargetGeometrySource::GetTargetCanvas_Implementation()const
+{
+	return GetCanvas();
+}
+bool ULGUIRenderTargetGeometrySource::PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)
+{
+	return LineTraceHitUV(InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
+}
+
 #if WITH_EDITOR
 bool ULGUIRenderTargetGeometrySource::CanEditChange(const FProperty* InProperty) const
 {

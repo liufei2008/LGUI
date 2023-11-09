@@ -129,7 +129,13 @@ public:
 	/**
 	 * Tell if PrefabSystem is deserializing the actor, can use this function in BeginPlay, if this return true then means properties are not ready yet, then you should use ILGUIPrefabInterface and implement Awake instead of BeginPlay.
 	 * PrefabSystem is deserializing actor during LoadPrefab or DuplicateActor.
+	 * (This static version function is for Blueprint easily use).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool IsPrefabSystemProcessingActor(AActor* InActor);
+		static bool IsLGUIPrefabSystemProcessingActor(AActor* InActor);
+	/**
+	 * Tell if PrefabSystem is deserializing the actor, can use this function in BeginPlay, if this return true then means properties are not ready yet, then you should use ILGUIPrefabInterface and implement Awake instead of BeginPlay.
+	 * PrefabSystem is deserializing actor during LoadPrefab or DuplicateActor.
+	 */
+	bool IsPrefabSystemProcessingActor(AActor* InActor);
 };

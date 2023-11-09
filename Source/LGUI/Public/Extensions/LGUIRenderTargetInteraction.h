@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Interface.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
@@ -10,13 +11,33 @@
 #include "LGUIRenderTargetInteraction.generated.h"
 
 class ULGUICanvas;
-class ULGUIRenderTargetGeometrySource;
 class ULGUIEventSystem;
 enum class ELGUIRenderMode :uint8;
 
 /**
- * Perform a raycaster and interaction for LGUIRenderTargetGeometrySource object, which shows the LGUI RenderTarget UI.
- * This component should be placed on a actor which have a LGUIRenderTargetGeometrySource component.
+ * Interface for LGUIRenderTargetInteraction to provide raycast info.
+ */
+UINTERFACE(Blueprintable, MinimalAPI)
+class ULGUIRenderTargetInteractionSourceInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+/**
+ * Interface for LGUIRenderTargetInteraction to provide raycast info.
+ */
+class LGUI_API ILGUIRenderTargetInteractionSourceInterface
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	ULGUICanvas* GetTargetCanvas()const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	bool PerformLineTrace(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV);
+};
+
+/**
+ * Perform a raycaster and interaction for LGUICanvas with RenderMode of RenderTarget.
+ * This component should be placed on a actor which have a ILGUIRenderTargetInteractionSourceInterface component.
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUIRenderTargetInteraction : public ULGUIBaseRaycaster
@@ -39,9 +60,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bAllowEventBubbleUp = false;
 
-	TWeakObjectPtr<ULGUICanvas> TargetCanvas = nullptr;
-	TWeakObjectPtr<ULGUIRenderTargetGeometrySource> GeometrySource = nullptr;
-	UPROPERTY(Transient) TObjectPtr<ULGUIPointerEventData> PointerEventData = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TWeakObjectPtr<ULGUICanvas> TargetCanvas = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<UObject> LineTraceSource = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<ULGUIPointerEventData> PointerEventData = nullptr;
 	TWeakObjectPtr<ULGUIPointerEventData> InputPointerEventData = nullptr;
 
 	TArray<ELGUIRenderMode> RenderModeArray;
