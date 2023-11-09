@@ -184,6 +184,15 @@ void ULGUICanvas::UpdateRootCanvas()
 		{
 			bAnythingChangedForRenderTarget = false;
 			UpdateRenderTarget(true);
+#if WITH_EDITOR
+			if (!this->GetWorld()->IsGameWorld())
+			{
+				if (!renderTarget->GameThread_GetRenderTargetResource())
+				{
+					renderTarget->InitCustomFormat(renderTarget->SizeX, renderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
+				}
+			}
+#endif
 			if (RenderTargetViewExtension.IsValid())
 			{
 				RenderTargetViewExtension->UpdateRenderTargetRenderer(renderTarget);
@@ -194,12 +203,21 @@ void ULGUICanvas::UpdateRootCanvas()
 
 void ULGUICanvas::UpdateRenderTarget(bool CallEvent)
 {
-	FIntPoint DesiredRenderTargetSize(UIItem->GetWidth(), UIItem->GetHeight());
+	FIntPoint DesiredRenderTargetSize(UIItem->GetWidth() * RenderTargetResolutionScale, UIItem->GetHeight() * RenderTargetResolutionScale);
+	static const int32 MaxAllowedDrawSize = GetMax2DTextureDimension();
+	if (DesiredRenderTargetSize.X <= 0 || DesiredRenderTargetSize.Y <= 0)
+	{
+		return;
+	}
+	DesiredRenderTargetSize.X = FMath::Min(DesiredRenderTargetSize.X, MaxAllowedDrawSize);
+	DesiredRenderTargetSize.Y = FMath::Min(DesiredRenderTargetSize.Y, MaxAllowedDrawSize);
+
 	if (renderTarget == nullptr)
 	{
-		renderTarget = NewObject<UTextureRenderTarget2D>(this);
+		renderTarget = NewObject<UTextureRenderTarget2D>(this, NAME_None, EObjectFlags::RF_Transient);
 		renderTarget->AddressX = TextureAddress::TA_Clamp;
 		renderTarget->AddressY = TextureAddress::TA_Clamp;
+		renderTarget->ClearColor = FLinearColor::Transparent;
 		renderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
 		if (CallEvent)
 		{
@@ -223,7 +241,8 @@ void ULGUICanvas::UpdateRenderTarget(bool CallEvent)
 		}
 		if (renderTarget->SizeX != DesiredRenderTargetSize.X || renderTarget->SizeY != DesiredRenderTargetSize.Y)
 		{
-			renderTarget->ResizeTarget(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y);
+			renderTarget->ClearColor = FLinearColor::Transparent;
+			renderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
 			renderTarget->UpdateResourceImmediate();
 #if WITH_EDITOR
 			renderTarget->Modify();
@@ -449,8 +468,7 @@ void ULGUICanvas::CheckRenderMode(bool PropogateToChildrenCanvas)
 	const auto OldRenderMode = CurrentRenderMode;
 	if (this->IsRegistered())
 	{
-		bool bForceRecheckRootCanvas = !RootCanvas->IsRegistered();
-		if (CheckRootCanvas(bForceRecheckRootCanvas))
+		if (CheckRootCanvas(true))
 		{
 			CurrentRenderMode = RootCanvas->GetRenderMode();
 		}
@@ -2274,6 +2292,24 @@ FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 	return FLinearColor(Offset.X, Offset.Y, UIItem->GetWidth(), UIItem->GetHeight());
 }
 
+void ULGUICanvas::SetRenderTargetResolutionScale(float value)
+{
+	if (RenderTargetResolutionScale != value)
+	{
+		RenderTargetResolutionScale = value;
+		bAnythingChangedForRenderTarget = true;
+	}
+}
+
+void ULGUICanvas::SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value)
+{
+	if (RenderTargetSizeMode != value)
+	{
+		RenderTargetSizeMode = value;
+		bAnythingChangedForRenderTarget = true;
+	}
+}
+
 void ULGUICanvas::SetClipType(ELGUICanvasClipType newClipType) 
 {
 	if (clipType != newClipType)
@@ -2841,8 +2877,8 @@ FIntPoint ULGUICanvas::GetViewportSize()const
 			}
 			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
 			{
-				ViewportSize.X = renderTarget->SizeX;
-				ViewportSize.Y = renderTarget->SizeY;
+				ViewportSize.X = renderTarget->SizeX / RenderTargetResolutionScale;
+				ViewportSize.Y = renderTarget->SizeY / RenderTargetResolutionScale;
 			}
 		}
 	}
@@ -3016,6 +3052,40 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 	}
 	return nullptr;
 }
+
+float ULGUICanvas::GetActualRenderTargetResolutionScale()const
+{
+	if (IsRootCanvas())
+	{
+		return this->RenderTargetResolutionScale;
+	}
+	else
+	{
+		if (CheckRootCanvas())
+		{
+			return RootCanvas->RenderTargetResolutionScale;
+		}
+	}
+	return RenderTargetResolutionScale;
+}
+
+ELGUICanvasRenderTargetSizeMode ULGUICanvas::GetActualRenderTargetSizeMode()const
+{
+	if (IsRootCanvas())
+	{
+		return this->RenderTargetSizeMode;
+	}
+	else
+	{
+		if (CheckRootCanvas())
+		{
+			return RootCanvas->RenderTargetSizeMode;
+		}
+	}
+	return RenderTargetSizeMode;
+}
+
+
 int32 ULGUICanvas::GetDrawcallCount()const
 {
 	int32 Result = 0;

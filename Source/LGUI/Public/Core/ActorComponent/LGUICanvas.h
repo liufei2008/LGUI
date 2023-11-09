@@ -248,6 +248,12 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUICanvasRenderTargetSizeMode RenderTargetSizeMode = ELGUICanvasRenderTargetSizeMode::RenderTargetFitToCanvas;
+	/**
+	 * RenderTarget size scale.
+	 * Only valid if RenderTargetSizeMode is RenderTargetFitToCanvas.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.01", EditCondition="RenderTargetSizeMode==ELGUICanvasRenderTargetSizeMode::RenderTargetFitToCanvas"))
+		float RenderTargetResolutionScale = 1.0f;
 #if WITH_EDITORONLY_DATA
 	/**
 	 * When in eidt mode, show the Screen-Space-Overlay UI with LGUIRenderer.
@@ -371,6 +377,11 @@ public:
 	FOnRenderTargetCreatedOrChangedEvent OnRenderTargetCreatedOrChanged;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRenderTargetResolutionScale(float value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRectClipFeather(FVector2D newFeather);
@@ -414,6 +425,14 @@ public:
 	/** Get render target of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetActualRenderTargetResolutionScale()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetRenderTargetResolutionScale()const { return RenderTargetResolutionScale; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasRenderTargetSizeMode GetActualRenderTargetSizeMode()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasRenderTargetSizeMode GetRenderTargetSizeMode()const { return RenderTargetSizeMode; }
 
 	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)

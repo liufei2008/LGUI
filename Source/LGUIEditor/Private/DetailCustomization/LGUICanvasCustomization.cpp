@@ -151,6 +151,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		case ELGUIRenderMode::ScreenSpaceOverlay:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetSizeMode));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetResolutionScale));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, depthFade));
 			break;
@@ -158,6 +159,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetSizeMode));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetResolutionScale));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, depthFade));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
@@ -167,6 +169,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetSizeMode));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetResolutionScale));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, previewWithLGUIRenderer));
 			break;
@@ -213,6 +216,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetSizeMode));
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetResolutionScale));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bEnableDepthTest));
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, previewWithLGUIRenderer));
 		if (TargetScriptArray[0]->GetRootCanvas() != nullptr)
@@ -358,6 +362,13 @@ Click this button to fix it by change texture settings.\
 		{
 			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, customClip)));
 		}
+	}
+	if (!needToHidePropertyNames.Contains(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget)))
+	{
+		IDetailGroup& RenderTargetGroup = category.AddGroup(FName(TEXT("RenderTarget")), LOCTEXT("RenderTarget", "RenderTarget"));
+		RenderTargetGroup.HeaderProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget)));
+		RenderTargetGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetSizeMode)));
+		RenderTargetGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, RenderTargetResolutionScale)));
 	}
 
 	for (auto item : needToHidePropertyNames)
