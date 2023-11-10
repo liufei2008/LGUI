@@ -70,7 +70,7 @@ enum class EUIRenderableRaycastType :uint8
 {
 	/** Hit on rect range */
 	Rect = 0,
-	/** Hit on actual triangle geometry */
+	/** Hit on actual triangle mesh */
 	Geometry = 1,
 	/**
 	 * Hit on main texture's pixel, if the pixel is not transparent then hit test success.

@@ -8,7 +8,7 @@
 #include "Utils/LGUIUtils.h"
 #include "TextureResource.h"
 
-#define LOCTEXT_NAMESPACE "LGUISpriteData"
+#define LOCTEXT_NAMESPACE "UITextureBase"
 
 UUITextureBase::UUITextureBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {

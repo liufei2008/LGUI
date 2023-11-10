@@ -13,6 +13,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Engine/GameInstance.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
+#include "Core/LGUICustomMesh.h"
 
 #define LOCTEXT_NAMESPACE "LGUIWidget"
 
@@ -33,11 +34,19 @@ UTexture* ULGUIWidget::GetTextureToCreateGeometry()
 }
 void ULGUIWidget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	static FLGUISpriteInfo SpriteInfo;
-	UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
-		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SpriteInfo, RenderCanvas.Get(), this, GetFinalColor(),
-		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
-	);
+	if (IsValid(CustomMesh))
+	{
+		CustomMesh->UIGeo = &InGeo;
+		CustomMesh->OnFillMesh(this, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	}
+	else
+	{
+		static FLGUISpriteInfo SpriteInfo;
+		UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
+			this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SpriteInfo, RenderCanvas.Get(), this, GetFinalColor(),
+			InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+		);
+	}
 }
 
 
@@ -468,7 +477,13 @@ void ULGUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 		{
 			SetWindowVisibility(WindowVisibility);
 		}
-
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIWidget, CustomMesh))
+		{
+			if (IsValid(CustomMesh))//custom mesh use geometry raycast to get precise uv
+			{
+				this->SetRaycastType(EUIRenderableRaycastType::Geometry);
+			}
+		}
 	}
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -652,17 +667,28 @@ void ULGUIWidget::UpdateRenderTarget(FIntPoint DesiredRenderTargetSize)
 	}
 }
 
-void ULGUIWidget::GetLocalHitLocation(FVector WorldHitLocation, FVector2D& OutLocalWidgetHitLocation) const
+void ULGUIWidget::GetLocalHitLocation(int32 InHitFaceIndex, const FVector& InWorldHitLocation, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutLocalWidgetHitLocation) const
 {
-	// Find the hit location on the component
-	FVector ComponentHitLocation = GetComponentTransform().InverseTransformPosition(WorldHitLocation);
+	if (IsValid(CustomMesh))
+	{
+		FVector2D HitUV;
+		if (CustomMesh->GetHitUV(this, InHitFaceIndex, InWorldHitLocation, InLineStart, InLineEnd, HitUV))
+		{
+			OutLocalWidgetHitLocation = HitUV * CurrentDrawSize;
+		}
+	}
+	else
+	{
+		// Find the hit location on the component
+		FVector ComponentHitLocation = GetComponentTransform().InverseTransformPosition(InWorldHitLocation);
 
-	// Convert the 3D position of component space, into the 2D equivalent
-	auto LocationRelativeToLeftBottom = FVector2D(ComponentHitLocation.Y, ComponentHitLocation.Z) - this->GetLocalSpaceLeftBottomPoint();
-	auto Location01 = LocationRelativeToLeftBottom / FVector2D(this->GetWidth(), this->GetHeight());
-	Location01.Y = 1.0f - Location01.Y;
+		// Convert the 3D position of component space, into the 2D equivalent
+		auto LocationRelativeToLeftBottom = FVector2D(ComponentHitLocation.Y, ComponentHitLocation.Z) - this->GetLocalSpaceLeftBottomPoint();
+		auto Location01 = LocationRelativeToLeftBottom / FVector2D(this->GetWidth(), this->GetHeight());
+		Location01.Y = 1.0f - Location01.Y;
 
-	OutLocalWidgetHitLocation = Location01 * CurrentDrawSize;
+		OutLocalWidgetHitLocation = Location01 * CurrentDrawSize;
+	}
 }
 
 UUserWidget* ULGUIWidget::GetUserWidgetObject() const
@@ -678,14 +704,6 @@ UTextureRenderTarget2D* ULGUIWidget::GetRenderTarget() const
 const TSharedPtr<SWidget>& ULGUIWidget::GetSlateWidget() const
 {
 	return SlateWidget;
-}
-
-TArray<FWidgetAndPointer> ULGUIWidget::GetHitWidgetPath(FVector WorldHitLocation, bool bIgnoreEnabledStatus, float CursorRadius)
-{
-	FVector2D LocalHitLocation;
-	GetLocalHitLocation(WorldHitLocation, LocalHitLocation);
-
-	return GetHitWidgetPath(LocalHitLocation, bIgnoreEnabledStatus, CursorRadius);
 }
 
 
