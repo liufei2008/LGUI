@@ -149,7 +149,6 @@ bool ULGUICustomMesh_Cylinder::GetHitUV(const UUIBatchGeometryRenderable* InRend
 }
 
 
-#include "Curves/CurveFloat.h"
 ULGUICustomMesh_CurvyPlane::ULGUICustomMesh_CurvyPlane()
 {
 	ShapeCurve.EditorCurveData.SetKeys({

@@ -1450,12 +1450,9 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			TFunction<void(AActor*)> EmptyCallback = nullptr;
-			auto UIItemName = InClass->GetName();
-			auto ShotName = FString(*UIItemName);
-			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
-				FText::FromString(ShotName),
-				FText::Format(LOCTEXT("CreateUIPoseProcessElement", "Create {0}"), FText::FromString(UIItemName)),
+				InClass->GetDisplayNameText(),
+				InClass->GetToolTipText(),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateActorByClass, InClass, EmptyCallback))
 			);

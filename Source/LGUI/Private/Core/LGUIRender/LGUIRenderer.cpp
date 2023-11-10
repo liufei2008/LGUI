@@ -139,7 +139,9 @@ void FLGUIRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate& RH
 
 }
 
-void FLGUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
+void FLGUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst
+	, bool ColorCorrect
+)
 {
 	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
 	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst, TEXT("LGUICopyRenderTarget")), ERenderTargetLoadAction::ELoad);
@@ -147,26 +149,35 @@ void FLGUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap
 		RDG_EVENT_NAME("LGUICopyRenderTarget"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[this, GlobalShaderMap, Src, Dst](FRHICommandListImmediate& RHICmdList)
+		[this, GlobalShaderMap, Src, Dst, ColorCorrect](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
-			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
-
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			if (ColorCorrect)
+			{
+				TShaderMapRef<FLGUISimpleCopyTargetPS_ColorCorrect> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+				PixelShader->SetParameters(RHICmdList, Src);
+			}
+			else
+			{
+				TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+				PixelShader->SetParameters(RHICmdList, Src);
+			}
 			VertexShader->SetParameters(RHICmdList);
-			PixelShader->SetParameters(RHICmdList, Src);
 
 			DrawFullScreenQuad(RHICmdList);
 		});
@@ -181,6 +192,7 @@ void FLGUIRenderer::CopyRenderTargetOnMeshRegion(
 	, const FMatrix44f& MVP
 	, const FIntRect& ViewRect
 	, const FVector4f& SrcTextureScaleOffset
+	, bool ColorCorrect
 )
 {
 	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
@@ -191,12 +203,11 @@ void FLGUIRenderer::CopyRenderTargetOnMeshRegion(
 		RDG_EVENT_NAME("LGUICopyRenderTargetOnMeshRegion"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[Src, GlobalShaderMap, RegionVertexData, MVP, ViewRect, SrcTextureScaleOffset, NumSamples](FRHICommandListImmediate& RHICmdList)
+		[Src, GlobalShaderMap, RegionVertexData, MVP, ViewRect, SrcTextureScaleOffset, NumSamples, ColorCorrect](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 			TShaderMapRef<FLGUICopyMeshRegionVS> VertexShader(GlobalShaderMap);
-			TShaderMapRef<FLGUICopyMeshRegionPS> PixelShader(GlobalShaderMap);
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -204,12 +215,24 @@ void FLGUIRenderer::CopyRenderTargetOnMeshRegion(
 			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessCopyMeshRegionVertexDeclaration();
 			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = NumSamples;
-			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+			if (ColorCorrect)
+			{
+				TShaderMapRef<FLGUICopyMeshRegionPS_ColorCorrect> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-			PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
+				PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
+			}
+			else
+			{
+				TShaderMapRef<FLGUICopyMeshRegionPS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+
+				PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
+			}
 
 			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
 			FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));

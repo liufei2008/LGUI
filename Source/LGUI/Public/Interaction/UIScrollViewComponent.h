@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIEventDelegate.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
