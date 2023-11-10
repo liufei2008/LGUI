@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Core/LGUILifeCycleUIBehaviour.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "Event/LGUIEventDelegate.h"
 #include "UIToggleGroupComponent.generated.h"
 

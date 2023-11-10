@@ -10,7 +10,7 @@
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Widgets/Input/IVirtualKeyboardEntry.h"
 #include "GenericPlatform/ITextInputMethodSystem.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Widgets/Layout/SBox.h"
 #include "UITextInputComponent.generated.h"

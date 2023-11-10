@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Event/LGUIPointerEventData.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "Engine/HitResult.h"
 #include "LGUI_PointerInputModule.generated.h"
 
