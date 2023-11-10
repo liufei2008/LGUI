@@ -90,7 +90,9 @@ bool ULGUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceIn
 	if (IsValid(CustomMesh))
 	{
 		FVector2D HitUV;
-		return CustomMesh->GetHitUV(this, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
+		bool Result = CustomMesh->GetHitUV(this, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
+		OutHitUV.Y = 1.0f - OutHitUV.Y;
+		return Result;
 	}
 	else
 	{
@@ -178,6 +180,15 @@ void ULGUIRenderTarget::SetCanvas(ULGUICanvas* Value)
 	if (TargetCanvasObject.Get() != Value)
 	{
 		TargetCanvasObject = Value;
+	}
+}
+
+void ULGUIRenderTarget::SetCustomMesh(ULGUICustomMesh* Value)
+{
+	if (CustomMesh != Value)
+	{
+		CustomMesh = Value;
+		MarkAllDirty();
 	}
 }
 

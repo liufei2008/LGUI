@@ -203,6 +203,15 @@ bool ULGUIWidget::IsWidgetVisible() const
 	return SlateWidget.IsValid() && SlateWidget->GetVisibility().IsVisible();
 }
 
+void ULGUIWidget::SetCustomMesh(ULGUICustomMesh* Value)
+{
+	if (CustomMesh != Value)
+	{
+		CustomMesh = Value;
+		MarkAllDirty();
+	}
+}
+
 void ULGUIWidget::OnUnregister()
 {
 #if !UE_SERVER

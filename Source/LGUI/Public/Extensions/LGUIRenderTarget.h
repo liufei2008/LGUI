@@ -52,10 +52,14 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUICanvas* GetCanvas()const;
+	ULGUICanvas* GetCanvas()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	ULGUICustomMesh* GetCustomMesh()const { return CustomMesh; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetCanvas(ULGUICanvas* Value);
+	void SetCanvas(ULGUICanvas* Value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetCustomMesh(ULGUICustomMesh* Value);
 private:
 };
 

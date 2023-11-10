@@ -54,7 +54,6 @@ bool ULGUICustomMesh::GetHitUVbyFaceIndex(const UUIBatchGeometryRenderable* InRe
 			auto BaryCoords = FMath::ComputeBaryCentric2D(LocalHitPoint, Pos0, Pos1, Pos2);
 			// Use to blend UVs
 			OutHitUV = (BaryCoords.X * UV0) + (BaryCoords.Y * UV1) + (BaryCoords.Z * UV2);
-			OutHitUV.Y = 1.0f - OutHitUV.Y;
 			return true;
 		}
 	}
