@@ -65,7 +65,8 @@ public:
 		FVector worldNormal = FVector(0, 0, 1);
 	/**
 	 * current hit object's triangle face index.
-	 * only valid when raycast hit world space mesh object and LGUIWorldSpaceRaycaster->bRequireFaceIndex is true.
+	 * For UI element, only valid when target's RaycastType is Geometry.
+	 * For world space static mesh, only valid when LGUIWorldSpaceRaycaster->bRequireFaceIndex is true.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		int32 faceIndex = -1;

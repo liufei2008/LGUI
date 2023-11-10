@@ -236,6 +236,7 @@ bool UUIBaseRenderable::LineTraceUIGeometry(UIGeometry* InGeo, FHitResult& OutHi
 				OutHit.Distance = FVector::Distance(Start, OutHit.Location);
 				OutHit.ImpactPoint = OutHit.Location;
 				OutHit.ImpactNormal = OutHit.Normal;
+				OutHit.FaceIndex = i;
 				return true;
 			}
 		}

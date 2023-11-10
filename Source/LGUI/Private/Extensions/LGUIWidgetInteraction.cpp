@@ -6,6 +6,7 @@
 #include "Event/LGUIEventSystem.h"
 #include "Framework/Application/SlateUser.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Event/LGUIBaseRaycaster.h"
 
 #define LOCTEXT_NAMESPACE "LGUIWidgetInteraction"
 
@@ -225,9 +226,13 @@ FWidgetPath ULGUIWidgetInteraction::DetermineWidgetUnderPointer()
 
 	LastLocalHitLocation = LocalHitLocation;
 	FWidgetTraceResult TraceResult;
-	if (CurrentPointerEventData != nullptr)
+	if (CurrentPointerEventData != nullptr && CurrentPointerEventData->raycaster != nullptr)
 	{
-		WidgetComponent->GetLocalHitLocation(CurrentPointerEventData->worldPoint, TraceResult.LocalHitLocation);
+		auto RayOrigin = CurrentPointerEventData->raycaster->GetRayOrigin();
+		auto RayDirection = CurrentPointerEventData->raycaster->GetRayDirection();
+		auto RayEnd = RayOrigin + RayDirection * CurrentPointerEventData->raycaster->GetRayLength();
+
+		WidgetComponent->GetLocalHitLocation(CurrentPointerEventData->faceIndex, CurrentPointerEventData->worldPoint, RayOrigin, RayEnd, TraceResult.LocalHitLocation);
 		TraceResult.HitWidgetPath = FWidgetPath(WidgetComponent->GetHitWidgetPath(TraceResult.LocalHitLocation, /*bIgnoreEnabledStatus*/ false));
 
 		LocalHitLocation = TraceResult.LocalHitLocation;
