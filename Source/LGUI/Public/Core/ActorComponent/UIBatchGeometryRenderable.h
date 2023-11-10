@@ -7,9 +7,6 @@
 
 class UIGeometry;
 class UMaterialInterface;
-class ULGUICanvas;
-class ULGUIMeshComponent;
-
 
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIGeometryVertex
@@ -50,13 +47,13 @@ public:
 		void AddTriangle(int index0, int index1, int index2);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
+		void SetMesh(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
 
 	/**
 	 * Remove vertices and triangle indices data, left the geometry empty.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void ClearVerticesAndIndices();
+		void Clear();
 	/**
 	 * Add a list of triangles.
 	 * @param	InVertexTriangleStream	Vertices to add, length should be divisible by 3.
@@ -69,8 +66,10 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void GetVertexTriangleStream(TArray<FLGUIGeometryVertex>& OutVertexTriangleStream);
-};
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		static FVector2D CalculatePivotOffset(float InWidth, float InHeight, const FVector2D& InPivot);
+};
 
 /** UI element which have render geometry, and can be batched and renderred by LGUICanvas */
 UCLASS(Abstract, Blueprintable, ClassGroup=(LGUI))

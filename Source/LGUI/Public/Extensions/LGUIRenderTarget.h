@@ -11,6 +11,7 @@
 #include "LGUIRenderTarget.generated.h"
 
 class ULGUICanvas;
+class ULGUICustomMesh;
 
 /**
  * LGUI Render Target provide a solution to display a LGUICanvas with RenderMode of RenderTarget, just like "Retainer Box", and interact it with LGUIRenderTargetInteraction component.
@@ -32,6 +33,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FLGUIComponentReference TargetCanvas;
+	/** Use a mesh generator to create your own mesh instead of a simple rect */
+	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
+		TObjectPtr<ULGUICustomMesh> CustomMesh = nullptr;
+
 	mutable TWeakObjectPtr<class ULGUICanvas> TargetCanvasObject = nullptr;
 public:
 	// Begin ILGUIPrefabInterface

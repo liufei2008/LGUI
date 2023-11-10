@@ -8,6 +8,7 @@
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/UIGeometry.h"
 #include "Core/LGUISpriteInfo.h"
+#include "Core/LGUICustomMesh.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTarget"
 
@@ -42,11 +43,19 @@ UTexture* ULGUIRenderTarget::GetTextureToCreateGeometry()
 }
 void ULGUIRenderTarget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	static FLGUISpriteInfo SpriteInfo;
-	UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
-		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SpriteInfo, RenderCanvas.Get(), this, GetFinalColor(),
-		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
-	);
+	if (IsValid(CustomMesh))
+	{
+		CustomMesh->UIGeo = &InGeo;
+		CustomMesh->OnFillMesh(this, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	}
+	else
+	{
+		static FLGUISpriteInfo SpriteInfo;
+		UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
+			this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), SpriteInfo, RenderCanvas.Get(), this, GetFinalColor(),
+			InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+		);
+	}
 }
 
 void ULGUIRenderTarget::BeginPlay()
@@ -78,15 +87,23 @@ ULGUICanvas* ULGUIRenderTarget::GetTargetCanvas_Implementation()const
 }
 bool ULGUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)
 {
-	// Find the hit location on the component
-	FVector ComponentHitLocation = GetComponentTransform().InverseTransformPosition(InHitPoint);
+	if (IsValid(CustomMesh))
+	{
+		FVector2D HitUV;
+		return CustomMesh->GetHitUV(this, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
+	}
+	else
+	{
+		// Find the hit location on the component
+		FVector ComponentHitLocation = GetComponentTransform().InverseTransformPosition(InHitPoint);
 
-	// Convert the 3D position of component space, into the 2D equivalent
-	auto LocationRelativeToLeftBottom = FVector2D(ComponentHitLocation.Y, ComponentHitLocation.Z) - this->GetLocalSpaceLeftBottomPoint();
-	auto Location01 = LocationRelativeToLeftBottom / FVector2D(this->GetWidth(), this->GetHeight());
+		// Convert the 3D position of component space, into the 2D equivalent
+		auto LocationRelativeToLeftBottom = FVector2D(ComponentHitLocation.Y, ComponentHitLocation.Z) - this->GetLocalSpaceLeftBottomPoint();
+		auto Location01 = LocationRelativeToLeftBottom / FVector2D(this->GetWidth(), this->GetHeight());
 
-	OutHitUV = Location01;
-	return true;
+		OutHitUV = Location01;
+		return true;
+	}
 }
 
 #if WITH_EDITOR
@@ -106,12 +123,19 @@ void ULGUIRenderTarget::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 	if (auto Property = PropertyChangedEvent.MemberProperty)
 	{
-		auto PropertyName = Property->GetName();
+		auto PropertyName = Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTarget, TargetCanvas))
 		{
 			if (!TargetCanvas.IsValidComponentReference())
 			{
 				TargetCanvasObject = nullptr;
+			}
+		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIRenderTarget, CustomMesh))
+		{
+			if (IsValid(CustomMesh))//custom mesh use geometry raycast to get precise uv
+			{
+				this->SetRaycastType(EUIRenderableRaycastType::Geometry);
 			}
 		}
 	}

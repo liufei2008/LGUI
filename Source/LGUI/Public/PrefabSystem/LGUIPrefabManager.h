@@ -38,7 +38,9 @@ private:
 	bool bIsBlueprintCompiling = false;
 	class FLGUIObjectCreateDeleteListener* ObjectCreateDeleteListener = nullptr;
 private:
+	friend class LGUIEditorTools;
 	bool bShouldBroadcastLevelActorListChanged = false;
+	bool bIsProcessingDelete = false;
 #endif
 #if WITH_EDITOR
 private:
@@ -57,6 +59,7 @@ public:
 	static bool AnySelectedIsChildOf(AActor* InObject);
 	static UWorld* GetPreviewWorldForPrefabPackage();
 	static bool GetIsBlueprintCompiling();
+	static bool GetIsProcessingDelete();
 private:
 	FDelegateHandle OnBlueprintPreCompileDelegateHandle;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;

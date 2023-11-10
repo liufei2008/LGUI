@@ -31,6 +31,7 @@
 #include "Core/LGUIRichTextImageData.h"
 #include "Core/LGUIRichTextImageData_BaseObject.h"
 #include "Core/LGUICanvasCustomClip.h"
+#include "Core/LGUICustomMesh.h"
 
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"

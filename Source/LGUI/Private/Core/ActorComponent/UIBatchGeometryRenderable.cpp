@@ -5,7 +5,6 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
-#include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManager.h"
@@ -529,7 +528,7 @@ void UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable Blueprint.OnUpdateGeometry"), STAT_BatchGeometryRenderable_OnUpdateGeometry, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable Blueprint.OnFillMesh"), STAT_BatchGeometryRenderable_OnFillMesh, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
@@ -539,7 +538,7 @@ void UUIBatchGeometryRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTria
 			GeometryHelper = NewObject<ULGUIGeometryHelper>(this);
 		}
 		GeometryHelper->UIGeo = &InGeo;
-		SCOPE_CYCLE_COUNTER(STAT_BatchGeometryRenderable_OnUpdateGeometry);
+		SCOPE_CYCLE_COUNTER(STAT_BatchGeometryRenderable_OnFillMesh);
 		ReceiveOnUpdateGeometry(GeometryHelper, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
 	}
 }
@@ -635,7 +634,7 @@ void ULGUIGeometryHelper::AddTriangle(int index0, int index1, int index2)
 	triangles.Add(index1);
 	triangles.Add(index2);
 }
-void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices)
+void ULGUIGeometryHelper::SetMesh(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices)
 {
 	int vertCount = InVertices.Num();
 #if !UE_BUILD_SHIPPING
@@ -744,7 +743,7 @@ void ULGUIGeometryHelper::AddVertexTriangleStream(const TArray<FLGUIGeometryVert
 	}
 }
 
-void ULGUIGeometryHelper::ClearVerticesAndIndices()
+void ULGUIGeometryHelper::Clear()
 {
 	UIGeo->Clear();
 }
@@ -772,4 +771,12 @@ void ULGUIGeometryHelper::GetVertexTriangleStream(TArray<FLGUIGeometryVertex>& O
 		vertex.tangent = (FVector)originVert.Tangent;
 		OutVertexTriangleStream.Add(vertex);
 	}
+}
+
+FVector2D ULGUIGeometryHelper::CalculatePivotOffset(float InWidth, float InHeight, const FVector2D& InPivot)
+{
+	FVector2D PivotOffset;
+	PivotOffset.X = InWidth * (0.5f - InPivot.X);
+	PivotOffset.Y = InHeight * (0.5f - InPivot.Y);
+	return PivotOffset;
 }

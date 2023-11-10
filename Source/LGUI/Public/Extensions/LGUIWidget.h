@@ -9,6 +9,8 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIWidget.generated.h"
 
+class ULGUICustomMesh;
+
 /**
  * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
  */
@@ -52,10 +54,8 @@ public:
 
 	/**
 	 * Converts a world-space hit result to a hit location on the widget
-	 * @param HitResult The hit on this widget in the world
-	 * @param (Out) The transformed 2D hit location on the widget
 	 */
-	virtual void GetLocalHitLocation(FVector WorldHitLocation, FVector2D& OutLocalHitLocation) const;
+	virtual void GetLocalHitLocation(int32 InHitFaceIndex, const FVector& InWorldHitLocation, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutLocalHitLocation) const;
 
 	/** Gets the last local location that was hit */
 	FVector2D GetLastLocalHitLocation() const
@@ -72,9 +72,6 @@ public:
 
 	/** Returns the Slate widget that was assigned to this component, if any */
 	const TSharedPtr<SWidget>& GetSlateWidget() const;
-
-	/** Returns the list of widgets with their geometry and the cursor position transformed into this Widget component's space. */
-	TArray<FWidgetAndPointer> GetHitWidgetPath(FVector WorldHitLocation, bool bIgnoreEnabledStatus, float CursorRadius = 0.0f);
 
 	/** Returns the list of widgets with their geometry and the cursor position transformed into this Widget space. The widget space is expressed as a Vector2D. */
 	TArray<FWidgetAndPointer> GetHitWidgetPath(FVector2D WidgetSpaceHitCoordinate, bool bIgnoreEnabledStatus, float CursorRadius = 0.0f);
@@ -217,6 +214,10 @@ protected:
 	/** The class of User Widget to create and display an instance of */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 	TSubclassOf<UUserWidget> WidgetClass;
+
+	/** Use a mesh generator to create your own mesh instead of a simple rect */
+	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
+	TObjectPtr<ULGUICustomMesh> CustomMesh = nullptr;
 
 	/** Should we wait to be told to redraw to actually draw? */
 	UPROPERTY(EditAnywhere, Category = LGUI)

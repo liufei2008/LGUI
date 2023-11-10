@@ -85,6 +85,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, co
 					ParallelFor(AllUIItemArray.Num(), [&AllUIItemArray, &Mutex, &OutRayOrigin, &OutRayEnd, CanvasItem, this](int32 index) {
 						auto uiItem = AllUIItemArray[index];
 						FHitResult thisHit;
+						thisHit.FaceIndex = INDEX_NONE;
 						if (
 							uiItem->IsRaycastTarget()
 							&& uiItem->IsGroupAllowInteraction()
@@ -115,6 +116,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, co
 						ParallelFor(AllUIItemArray.Num(), [&AllUIItemArray, &Mutex, &OutRayOrigin, &OutRayEnd, CanvasItem, this](int32 index) {
 							auto uiItem = AllUIItemArray[index];
 							FHitResult thisHit;
+							thisHit.FaceIndex = INDEX_NONE;
 							if (
 								uiItem->IsRaycastTarget()
 								&& uiItem->IsGroupAllowInteraction()
@@ -147,6 +149,7 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, co
 						if (!IsValid(uiItem))continue;
 
 						FHitResult thisHit;
+						thisHit.FaceIndex = INDEX_NONE;
 						if (
 							uiItem->IsRaycastTarget()
 							&& uiItem->IsGroupAllowInteraction()
