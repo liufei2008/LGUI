@@ -194,6 +194,12 @@ public:
 	/** Hook to allow this component modify the local position of the widget after it has been projected from world space to screen space. */
 	virtual FVector2D ModifyProjectedLocalPosition(const FGeometry& ViewportGeometry, const FVector2D& LocalPosition) { return LocalPosition; }
 
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	ULGUICustomMesh* GetCustomMesh()const { return CustomMesh; }
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetCustomMesh(ULGUICustomMesh* Value);
+
 protected:
 	void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld);
 
