@@ -732,6 +732,17 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 	if (!bCanNotifyAttachment)return;
 	if (this->IsInsidePrefabEditor())return;
 
+	if (this->SubPrefabMap.Contains(Actor))
+	{
+		if (!ULGUIPrefabManagerObject::GetIsProcessingDelete())//delete by Unreal, should not allowed, but I can't prevent this operation, so I remove the sub prefab of it
+		{
+			this->Modify();
+			this->RemoveSubPrefabByAnyActorOfSubPrefab(Actor);
+			LGUIUtils::DestroyActorWithHierarchy(Actor);
+			return;
+		}
+	}
+
 	auto ActorBelongsToPrefab = false;
 	for (auto& KeyValue : MapGuidToObject)
 	{
@@ -1771,6 +1782,7 @@ bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 	bool bAnythingChanged = false;
 
 	{
+		SubPrefabMap.Remove(nullptr);
 		//invalid sub prefab
 		TSet<AActor*> SubPrefabKeysToRemove;
 		for (auto& KeyValue : SubPrefabMap)

@@ -41,7 +41,9 @@ PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::Instance = nullptr;
+#if WITH_EDITOR
 int ULGUIEditorManagerObject::IndexOfClickSelectUI = INDEX_NONE;
+#endif
 ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 {
 
@@ -1441,7 +1443,7 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 	{
 		if (InstanceItem != nullptr)
 		{
-			if (InstanceItem->GetWorld() != InWorld)
+			if (InWorld != nullptr && InstanceItem->GetWorld() != InWorld)
 			{
 				continue;
 			}
