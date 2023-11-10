@@ -9,6 +9,7 @@
 #include "Core/LGUIStaticSpriteAtlasData.h"
 #include "Core/Actor/LGUIManager.h"
 #include "Sound/SoundCue.h"
+#include "Core/LGUISpriteData.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"

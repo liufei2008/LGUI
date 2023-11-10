@@ -880,7 +880,7 @@ void LGUIEditorTools::ReplaceActorByClass(UClass* ActorClass)
 	}
 	GEditor->EndTransaction();
 }
-void LGUIEditorTools::DuplicateSelectedActors_Impl()
+void LGUIEditorTools::DuplicateSelectedActors_Impl()//@todo: fix bug: duplicate subprefab then undo, this operation will revert the source copied prefab to orignal state
 {
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
@@ -907,10 +907,8 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		TMap<UObject*, FGuid> InMapObjectToGuid;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
-			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
-			{
-				PrefabHelperObject->Modify();
-			}
+			PrefabHelperObject->CleanupInvalidSubPrefab();//do cleanup before everything else
+			PrefabHelperObject->Modify();
 			PrefabHelperObject->SetCanNotifyAttachment(false);
 			struct LOCAL {
 				static void CollectSubPrefabActors(AActor* InActor, const TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
@@ -1230,6 +1228,7 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
 	if (confirmResult == EAppReturnType::No)return;
 
+	ULGUIPrefabManagerObject::GetInstance(true)->bIsProcessingDelete = true;
 	auto RootActorList = LGUIEditorTools::GetRootActorListFromSelection(InActors);
 	GEditor->BeginTransaction(LOCTEXT("DestroyActor_Transaction", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
@@ -1257,6 +1256,7 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 	}
 	GEditor->EndTransaction();
 	CleanupPrefabsInWorld(RootActorList[0]->GetWorld());
+	ULGUIPrefabManagerObject::GetInstance(true)->bIsProcessingDelete = false;
 }
 
 bool LGUIEditorTools::CanDuplicateActor()
