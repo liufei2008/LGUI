@@ -88,7 +88,8 @@ public:
 	void CopyRenderTarget(
 		FRDGBuilder& GraphBuilder,
 		FGlobalShaderMap* GlobalShaderMap,
-		FTextureRHIRef Src, FTextureRHIRef Dst
+		FTextureRHIRef Src, FTextureRHIRef Dst,
+		bool ColorCorrect = false
 	);
 	void CopyRenderTargetOnMeshRegion(
 		FRDGBuilder& GraphBuilder,
@@ -98,7 +99,8 @@ public:
 		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
 		const FMatrix44f& MVP,
 		const FIntRect& ViewRect,
-		const FVector4f& SrcTextureScaleOffset
+		const FVector4f& SrcTextureScaleOffset,
+		bool ColorCorrect = false
 	);
 	void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList

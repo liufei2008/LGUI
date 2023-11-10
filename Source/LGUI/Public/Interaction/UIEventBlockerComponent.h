@@ -12,7 +12,7 @@
 
 #include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "Components/ActorComponent.h"
 #include "UIEventBlockerComponent.generated.h"
 

@@ -8,14 +8,13 @@ IMPLEMENT_SHADER_TYPE(, FLGUISimplePostProcessVS, TEXT("/Plugin/LGUI/Private/Pos
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessGaussianBlurPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessGaussianBlurWithStrengthTexturePS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUISimpleCopyTargetPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessCustomDepthMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("CustomDepthMaskPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessCustomDepthStencilMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("CustomDepthStencilMaskPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessMobileCustomDepthStencilMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("MobileCustomDepthStencilMaskPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUISimpleCopyTargetPS_ColorCorrect, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 
 
 
 IMPLEMENT_SHADER_TYPE(, FLGUICopyMeshRegionVS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessVertexShader.usf"), TEXT("CopyMeshRegionVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLGUICopyMeshRegionPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessPixelShader.usf"), TEXT("CopyMeshRegionPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUICopyMeshRegionPS_ColorCorrect, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessPixelShader.usf"), TEXT("CopyMeshRegionPS"), SF_Pixel)
 
 
 

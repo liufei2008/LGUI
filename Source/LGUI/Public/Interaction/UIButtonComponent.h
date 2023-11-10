@@ -6,7 +6,7 @@
 #include "UISelectableComponent.h"
 #include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateHandleWrapper.h"
 #include "UIButtonComponent.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE(FLGUIButtonDynamicDelegate);

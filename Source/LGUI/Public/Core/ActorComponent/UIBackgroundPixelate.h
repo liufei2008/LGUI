@@ -8,7 +8,7 @@
 
 /** 
  * UI element that can make the background look pixelated
- * Use it on ScreenSpace or WorldSpace-LGUIRenderer.
+ * Use it in ScreenSpace or WorldSpace-LGUIRenderer.
  * If android OpenGL ES3.1, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))

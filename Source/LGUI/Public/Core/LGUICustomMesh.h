@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Curves/CurveFloat.h"
 #include "LGUICustomMesh.generated.h"
 
 class UIGeometry;
