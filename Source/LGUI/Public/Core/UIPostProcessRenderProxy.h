@@ -34,18 +34,15 @@ public:
 	void SetVisibility(bool value);
 
 	virtual bool CanRender() const { return bIsVisible; };
-	virtual bool PostProcessRequireOriginScreenColorTexture()const = 0;
 	/**
 	 * render thread function that will do the post process draw
 	 * @param	ScreenTargetTexture				The full screen render target
-	 * @param	OriginScreenColorTexture		Origin screen color texture. PostProcessNeedOriginScreenColorTexture must return true for this to work.
 	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
 		FLGUIRenderer* Renderer,
-		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,

@@ -753,11 +753,6 @@ public:
 	{
 		return ParentSceneProxy == nullptr && Sections.Num() > 0;
 	}
-	virtual bool PostProcessRequireOriginScreenColorTexture()const override
-	{
-		if (ParentSceneProxy != nullptr)return false;
-		return PostProcessRequireOriginScreenColorTexture_Implement();
-	}
 	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override 
 	{
 		return FPrimitiveSceneProxy::GetPrimitiveComponentId();
@@ -840,48 +835,6 @@ public:
 			OutRenderDataArray.Add(CurrentRenderData);
 		}
 	}
-	bool PostProcessRequireOriginScreenColorTexture_Implement()const
-	{
-		if (Sections.Num() <= 0)return false;
-		for (int i = 0; i < Sections.Num(); i++)
-		{
-			auto RenderSection = Sections[i];
-			if (RenderSection != nullptr)
-			{
-				switch (RenderSection->Type)
-				{
-				case ELGUIRenderSectionType::PostProcess:
-				{
-					auto Section = (FLGUIPostProcessSectionProxy*)RenderSection;
-					auto PostProcessProxy = Section->PostProcessRenderProxy.Pin();
-					if (PostProcessProxy.IsValid())
-					{
-						if (PostProcessProxy->PostProcessRequireOriginScreenColorTexture())
-						{
-							return true;
-						}
-					}
-				}
-				break;
-				case ELGUIRenderSectionType::ChildCanvas:
-				{
-					auto Section = (FLGUIChildCanvasSectionProxy*)RenderSection;
-					auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
-					if (ChildSceneProxy != nullptr)
-					{
-						if (ChildSceneProxy->PostProcessRequireOriginScreenColorTexture_Implement())
-						{
-							return true;
-						}
-					}
-				}
-				break;
-				}
-			}
-		}
-		return false;
-	}
-
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
 	{
 		FPrimitiveViewRelevance Result;

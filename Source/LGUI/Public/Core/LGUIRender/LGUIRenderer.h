@@ -138,15 +138,11 @@ private:
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
 	TMap<ULGUICanvas*, bool> WorldSpaceCanvasVisibilityMap;
 	bool bNeedSortWorldSpaceRenderCanvas = true;
-	bool bNeedCheckContainsPostProcess = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
 	//if 'bIsRenderToRenderTarget' is true then we need a render target
 	class FTextureRenderTargetResource* RenderTargetResource = nullptr;
-	//some post process component need to blend origin screen image without UI element
-	bool bNeedOriginScreenColorTextureOnPostProcess = false;
-	void CheckContainsPostProcess_RenderThread();	
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
 	//is render to a custom render target? or just render to screen
