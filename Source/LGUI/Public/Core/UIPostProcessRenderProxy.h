@@ -26,14 +26,12 @@ public:
 	}
 private:
 	TWeakPtr<FLGUIRenderer, ESPMode::ThreadSafe> LGUIRenderer;
-	bool bIsVisible = true;
 	bool bIsWorld = false;//is world space or screen space
 	ULGUICanvas* RenderCanvasPtr = nullptr;
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
-	void SetVisibility(bool value);
 
-	virtual bool CanRender() const { return bIsVisible; };
+	virtual bool CanRender() const = 0;
 	/**
 	 * render thread function that will do the post process draw
 	 * @param	ScreenTargetTexture				The full screen render target
@@ -53,12 +51,6 @@ public:
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
 	) = 0;
-private:
-	void SetVisibility_RenderThread(bool value)
-	{
-		bIsVisible = value;
-	}
-
 public:
 	ELGUICanvasClipType clipType;
 

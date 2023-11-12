@@ -28,6 +28,7 @@ void UUIFrameCapture::TickComponent( float DeltaTime, ELevelTick TickType, FActo
 		OnFrameReady.Clear();
 		CapturedFrame = nullptr;
 		UpdateRenderTarget();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -85,7 +86,7 @@ public:
 	}
 	virtual bool CanRender()const override
 	{
-		return FUIPostProcessRenderProxy::CanRender();
+		return bDoCapture;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,

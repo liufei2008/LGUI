@@ -16,15 +16,6 @@ FUIPostProcessRenderProxy::FUIPostProcessRenderProxy()
 	clipType = ELGUICanvasClipType::None;
 	MaskTextureType = EUIPostProcessMaskTextureType::Simple;
 }
-void FUIPostProcessRenderProxy::SetVisibility(bool value)
-{
-	auto renderProxy = this;
-	ENQUEUE_RENDER_COMMAND(FUIPostProcess_SetSortPriority)(
-		[value, renderProxy](FRHICommandListImmediate& RHICmdList)
-		{
-			renderProxy->SetVisibility_RenderThread(value);
-		});
-}
 
 #define SET_PIPELINE_STATE_FOR_CLIP()\
 FGraphicsPipelineStateInitializer GraphicsPSOInit;\
