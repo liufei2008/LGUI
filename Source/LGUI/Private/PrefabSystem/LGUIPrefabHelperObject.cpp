@@ -522,19 +522,32 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			//no need to clear invalid objects, because when SavePrefab it will do the clear work. But if we are in level editor, then there is no SavePrefab, so clear invalid objects is required: ClearInvalidObjectAndGuid()
 
 			//apply override parameter.
-			for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
 			{
-				for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+				//clear invaid first
+				for (int i = SubPrefabData.ObjectOverrideParameterArray.Num() - 1; i >= 0; i--)
 				{
-					LGUIUtils::NotifyPropertyPreChange(ObjectOverrideItem.Object.Get(), PropName);
+					auto& Item = SubPrefabData.ObjectOverrideParameterArray[i];
+					if (!Item.Object.IsValid())
+					{
+						SubPrefabData.ObjectOverrideParameterArray.RemoveAt(i);
+						AnythingChange = true;
+					}
 				}
-			}
-			serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
-			for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
-			{
-				for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+
+				for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
 				{
-					LGUIUtils::NotifyPropertyChanged(ObjectOverrideItem.Object.Get(), PropName);
+					for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+					{
+						LGUIUtils::NotifyPropertyPreChange(ObjectOverrideItem.Object.Get(), PropName);
+					}
+				}
+				serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+				for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
+				{
+					for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+					{
+						LGUIUtils::NotifyPropertyChanged(ObjectOverrideItem.Object.Get(), PropName);
+					}
 				}
 			}
 
