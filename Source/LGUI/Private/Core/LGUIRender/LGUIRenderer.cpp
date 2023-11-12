@@ -367,7 +367,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
-	FTextureRHIRef OriginScreenColorTexture = nullptr;//@todo: can use a normal texture here?
 	TRefCountPtr<IPooledRenderTarget> OriginScreenColorRenderTarget = nullptr;
 
 	uint8 NumSamples = 1;
@@ -412,23 +411,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture();
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
-
-		if (bNeedCheckContainsPostProcess)
-		{
-			bNeedCheckContainsPostProcess = false;
-			CheckContainsPostProcess_RenderThread();
-		}
-
-		if (bNeedOriginScreenColorTextureOnPostProcess)
-		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_ShaderResource, false));
-			desc.NumSamples = NumSamples;
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
-			if (!OriginScreenColorRenderTarget.IsValid())
-				return;
-			OriginScreenColorTexture = OriginScreenColorRenderTarget->GetRHI();
-			RHICmdList.CopyTexture(ScreenColorRenderTargetTexture, OriginScreenColorTexture, FRHICopyTextureInfo());
-		}
 
 		ViewRect = InView.UnscaledViewRect;
 		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
@@ -597,7 +579,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 								GraphBuilder,
 								SceneTextures,
 								this,
-								OriginScreenColorTexture,
 								ScreenColorRenderTargetTexture,
 								GlobalShaderMap,
 								ViewProjectionMatrix,
@@ -824,7 +805,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 							GraphBuilder,
 							SceneTextures,
 							this,
-							OriginScreenColorTexture,
 							ScreenColorRenderTargetTexture,
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
@@ -1009,7 +989,6 @@ void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, I
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
 		bNeedSortWorldSpaceRenderCanvas = true;
-		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1030,7 +1009,6 @@ void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 		else
 		{
 			WorldSpaceRenderCanvasParameterArray.RemoveAt(existIndex);
-			bNeedCheckContainsPostProcess = true;
 		}
 	}
 	else
@@ -1044,7 +1022,6 @@ void FLGUIRenderer::AddScreenSpacePrimitive_RenderThread(ILGUIRendererPrimitive*
 	{
 		ScreenSpaceRenderParameter.PrimitiveArray.AddUnique(InPrimitive);
 		ScreenSpaceRenderParameter.bNeedSortRenderPriority = true;
-		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1056,7 +1033,6 @@ void FLGUIRenderer::RemoveScreenSpacePrimitive_RenderThread(ILGUIRendererPrimiti
 	if (InPrimitive != nullptr)
 	{
 		ScreenSpaceRenderParameter.PrimitiveArray.RemoveSingle(InPrimitive);
-		bNeedCheckContainsPostProcess = true;
 	}
 	else
 	{
@@ -1146,27 +1122,6 @@ void FLGUIRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderT
 				ViewExtension->RenderTargetResource = Resource;
 			}
 		);
-	}
-}
-
-void FLGUIRenderer::CheckContainsPostProcess_RenderThread()
-{
-	bNeedOriginScreenColorTextureOnPostProcess = false;
-	for (auto& item : ScreenSpaceRenderParameter.PrimitiveArray)
-	{
-		if (item->PostProcessRequireOriginScreenColorTexture())
-		{
-			bNeedOriginScreenColorTextureOnPostProcess = true;
-			return;
-		}
-	}
-	for (auto& renderItem : WorldSpaceRenderCanvasParameterArray)
-	{
-		if (renderItem.Primitive->PostProcessRequireOriginScreenColorTexture())
-		{
-			bNeedOriginScreenColorTextureOnPostProcess = true;
-			return;
-		}
 	}
 }
 

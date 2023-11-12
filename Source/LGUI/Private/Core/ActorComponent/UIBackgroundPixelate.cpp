@@ -99,15 +99,10 @@ public:
 	{
 		return FUIPostProcessRenderProxy::CanRender() && pixelateStrength > 0.0f;
 	}
-	virtual bool PostProcessRequireOriginScreenColorTexture()const override
-	{
-		return false;
-	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
 		FLGUIRenderer* Renderer,
-		FTextureRHIRef OriginScreenColorTexture,
 		FTextureRHIRef ScreenTargetTexture,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
