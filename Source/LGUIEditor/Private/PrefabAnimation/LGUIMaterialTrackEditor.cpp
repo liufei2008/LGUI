@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "LGUIMaterialTrackEditor.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "PrefabAnimation/MovieSceneLGUIMaterialTrack.h"
 
 
@@ -27,7 +27,7 @@ UMaterialInterface* FLGUIMaterialTrackEditor::GetMaterialInterfaceForTrack( FGui
 {
 	for (TWeakObjectPtr<> WeakObjectPtr : GetSequencer()->FindObjectsInCurrentSequence(ObjectBinding))
 	{
-		auto Renderable = Cast<UUIBatchGeometryRenderable>( WeakObjectPtr.Get() );
+		auto Renderable = Cast<UUIBatchMeshRenderable>( WeakObjectPtr.Get() );
 		if (Renderable != nullptr)
 		{
 			return Renderable->GetCustomUIMaterial();

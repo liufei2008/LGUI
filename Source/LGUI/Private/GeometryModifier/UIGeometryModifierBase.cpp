@@ -2,7 +2,7 @@
 
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 
 UUIGeometryModifierBase::UUIGeometryModifierBase()
 {
@@ -20,7 +20,7 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 }
-UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()const
+UUIBatchMeshRenderable* UUIGeometryModifierBase::GetUIRenderable()const
 {
 	if(!UIRenderable.IsValid())
 	{
@@ -28,7 +28,7 @@ UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()const
 		{
 			if (auto RootComp = Actor->GetRootComponent())
 			{
-				if (auto UIRenderableComp = Cast<UUIBatchGeometryRenderable>(RootComp))
+				if (auto UIRenderableComp = Cast<UUIBatchMeshRenderable>(RootComp))
 				{
 					UIRenderable = UIRenderableComp;
 				}

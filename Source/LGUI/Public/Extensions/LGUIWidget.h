@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Components/WidgetComponent.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIWidget.generated.h"
@@ -15,7 +15,7 @@ class ULGUICustomMesh;
  * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API ULGUIWidget : public UUIBatchGeometryRenderable, public ILGUIPrefabInterface
+class LGUI_API ULGUIWidget : public UUIBatchMeshRenderable, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 	

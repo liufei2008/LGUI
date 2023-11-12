@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIBatchGeometryRenderable.h"
+#include "UIBatchMeshRenderable.h"
 #include "Engine/Texture.h"
 #include "UITextureBase.generated.h"
 
@@ -10,7 +10,7 @@
  * This is base class for create custom mesh based on UITexture. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
  */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
-class LGUI_API UUITextureBase : public UUIBatchGeometryRenderable
+class LGUI_API UUITextureBase : public UUIBatchMeshRenderable
 {
 	GENERATED_BODY()
 

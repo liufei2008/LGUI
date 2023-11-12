@@ -1,31 +1,31 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "DetailCustomization/UIBatchGeometryRenderableCustomization.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "DetailCustomization/UIBatchMeshRenderableCustomization.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "MaterialDomain.h"
 
-#define LOCTEXT_NAMESPACE "UIBatchGeometryRenderableCustomization"
-FUIBatchGeometryRenderableCustomization::FUIBatchGeometryRenderableCustomization()
+#define LOCTEXT_NAMESPACE "UIBatchMeshRenderableCustomization"
+FUIBatchMeshRenderableCustomization::FUIBatchMeshRenderableCustomization()
 {
 }
 
-FUIBatchGeometryRenderableCustomization::~FUIBatchGeometryRenderableCustomization()
+FUIBatchMeshRenderableCustomization::~FUIBatchMeshRenderableCustomization()
 {
 	
 }
 
-TSharedRef<IDetailCustomization> FUIBatchGeometryRenderableCustomization::MakeInstance()
+TSharedRef<IDetailCustomization> FUIBatchMeshRenderableCustomization::MakeInstance()
 {
-	return MakeShareable(new FUIBatchGeometryRenderableCustomization);
+	return MakeShareable(new FUIBatchMeshRenderableCustomization);
 }
-void FUIBatchGeometryRenderableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
+void FUIBatchMeshRenderableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
 	TArray<TWeakObjectPtr<UObject>> targetObjects;
 	DetailBuilder.GetObjectsBeingCustomized(targetObjects);
-	TargetScriptPtr = Cast<UUIBatchGeometryRenderable>(targetObjects[0].Get());
+	TargetScriptPtr = Cast<UUIBatchMeshRenderable>(targetObjects[0].Get());
 	if (TargetScriptPtr != nullptr)
 	{
 
@@ -37,7 +37,7 @@ void FUIBatchGeometryRenderableCustomization::CustomizeDetails(IDetailLayoutBuil
 
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 
-	auto CustomUIMaterialHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, CustomUIMaterial));
+	auto CustomUIMaterialHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIBatchMeshRenderable, CustomUIMaterial));
 	CustomUIMaterialHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
 		DetailBuilder.ForceRefreshDetails();
 		}));

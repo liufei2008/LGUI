@@ -6,7 +6,7 @@
 #include "DynamicMeshBuilder.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/LGUISettings.h"
 
@@ -51,7 +51,7 @@ void UUIDrawcall::CopyUpdateState(UUIDrawcall* Target)
 	if (bVertexPositionChanged)Target->bVertexPositionChanged = true;
 }
 
-bool UUIDrawcall::CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount)
+bool UUIDrawcall::CanConsumeUIBatchMeshRenderable(UIGeometry* geo, int32 itemVertCount)
 {
 	return this->Type == EUIDrawcallType::BatchGeometry
 		&& this->Material == geo->material

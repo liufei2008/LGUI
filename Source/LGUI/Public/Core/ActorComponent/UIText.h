@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIBatchGeometryRenderable.h"
+#include "UIBatchMeshRenderable.h"
 #include "Core/ILGUICultureChangedInterface.h"
 #include "Layout/ILGUILayoutInterface.h"
 #include "Core/LGUITextData.h"
@@ -14,7 +14,7 @@ class ULGUIRichTextImageData_BaseObject;
 class ULGUIRichTextCustomStyleData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
+class LGUI_API UUIText : public UUIBatchMeshRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
 {
 	GENERATED_BODY()
 

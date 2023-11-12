@@ -15,7 +15,7 @@ struct FMovieSceneEntityComponentFieldBuilder;
 struct FMovieSceneEvaluationFieldEntityMetaData;
 
 /**
- * A material track which is specialized for LGUI's UIBatchGeometryRenderable's CustomUIMaterial.
+ * A material track which is specialized for LGUI's UIBatchMeshRenderable's CustomUIMaterial.
  */
 UCLASS(MinimalAPI)
 class UMovieSceneLGUIMaterialTrack

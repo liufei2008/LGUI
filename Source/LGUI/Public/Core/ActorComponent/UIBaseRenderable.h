@@ -42,7 +42,7 @@ protected:
 	 * Will fallback to Geometry if ui element not support this raycast type.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		static bool GetRaycastPixelFromUIBatchGeometryRenderable(class UUIBatchGeometryRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal);
+		static bool GetRaycastPixelFromUIBatchMeshRenderable(class UUIBatchMeshRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal);
 public:
 	/**
 	 * Called by UIBaseRenderable when do raycast hit test.
@@ -60,7 +60,7 @@ UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableType :uint8
 {
 	None,
-	UIBatchGeometryRenderable,
+	UIBatchMeshRenderable,
 	UIPostProcessRenderable,
 	UIDirectMeshRenderable,
 };
@@ -71,14 +71,14 @@ enum class EUIRenderableRaycastType :uint8
 	/** Hit on rect range */
 	Rect = 0,
 	/** Hit on actual triangle mesh */
-	Geometry = 1,
+	Mesh = 1,
 	/**
 	 * Hit on main texture's pixel, if the pixel is not transparent then hit test success.
 	 * Only support UI element type which can read pixel value from texture:
 	 *		1. UISprite which use LGUIStaticSpriteAtlasData can work perfectly.
 	 *		2. UITexture can work with some specific setting.
 	 *		3. UIText which use dynamic font can not work. (Currently all LGUI's built-in font is dynamic)
-	 * Will fallback to Geometry if ui element not support this raycast type.
+	 * Will fallback to Mesh if ui element not support this raycast type.
 	 */
 	VisiblePixel = 3,
 	/** Use a user defined UIRenderableCustomRaycast to process the raycast hit. */

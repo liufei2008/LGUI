@@ -12,7 +12,7 @@
 #include "Core/LGUISettings.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Core/Actor/UIBaseActor.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Engine/Engine.h"
@@ -182,7 +182,7 @@ bool ULGUIEditorManagerObject::InitCheck()
 			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(World))
 			{
 				float LineTraceLength = 100000;
-				//find hit UIBatchGeometryRenderable
+				//find hit UIBatchMeshRenderable
 				auto LineStart = RayOrigin;
 				auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
 				UUIBaseRenderable* ClickHitUI = nullptr;
@@ -876,7 +876,7 @@ bool ULGUIManagerWorldSubsystem::RaycastHitUI(UWorld* InWorld, const TArray<UUII
 					FHitResult hitInfo;
 					auto OriginRaycastType = uiRenderable->GetRaycastType();
 					auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
-					uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
+					uiRenderable->SetRaycastType(EUIRenderableRaycastType::Mesh);//in editor selection, make the ray hit actural triangle
 					uiRenderable->SetRaycastTarget(true);
 					if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
 					{
