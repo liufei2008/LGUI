@@ -80,7 +80,7 @@ public:
 	}
 	virtual bool CanRender()const override
 	{
-		return FUIPostProcessRenderProxy::CanRender() && blurStrength > 0.0f;
+		return blurStrength > 0.0f;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
