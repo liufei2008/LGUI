@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIBatchGeometryRenderable.h"
+#include "UIBatchMeshRenderable.h"
 #include "Core/IUISpriteRenderableInterface.h"
 #include "UIProceduralRect.generated.h"
 
@@ -31,7 +31,7 @@ enum class EUIProceduralBodyTextureMode : uint8
 class ULGUISpriteData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIProceduralRect : public UUIBatchGeometryRenderable
+class LGUI_API UUIProceduralRect : public UUIBatchMeshRenderable
 	, public IUISpriteRenderableInterface
 {
 	GENERATED_BODY()

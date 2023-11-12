@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Utils/LGUIUtils.h"
@@ -9,12 +9,12 @@
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManager.h"
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable GeometryModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchMeshRenderable GeometryModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
-UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIBatchMeshRenderable::UUIBatchMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	UIRenderableType = EUIRenderableType::UIBatchGeometryRenderable;
+	UIRenderableType = EUIRenderableType::UIBatchMeshRenderable;
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bLocalVertexPositionChanged = true;
@@ -22,7 +22,7 @@ UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer&
 	bTriangleChanged = true;
 }
 
-void UUIBatchGeometryRenderable::BeginPlay()
+void UUIBatchMeshRenderable::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -31,13 +31,13 @@ void UUIBatchGeometryRenderable::BeginPlay()
 	bTriangleChanged = true;
 }
 
-void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void UUIBatchMeshRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
 #if WITH_EDITOR
-void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIBatchMeshRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
@@ -46,16 +46,16 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 	}
 }
 #endif
-void UUIBatchGeometryRenderable::OnRegister()
+void UUIBatchMeshRenderable::OnRegister()
 {
 	Super::OnRegister();
 }
-void UUIBatchGeometryRenderable::OnUnregister()
+void UUIBatchMeshRenderable::OnUnregister()
 {
 	Super::OnUnregister();
 }
 
-void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
+void UUIBatchMeshRenderable::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache)
 {
     Super::OnAnchorChange(InPivotChange, InWidthChange, InHeightChange, InDiscardCache);
 	if (InPivotChange || InWidthChange || InHeightChange)
@@ -64,7 +64,7 @@ void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InWidth
     }
 }
 
-void UUIBatchGeometryRenderable::MarkVerticesDirty()
+void UUIBatchMeshRenderable::MarkVerticesDirty()
 {
 	bTriangleChanged = true;
 	bLocalVertexPositionChanged = true;
@@ -73,7 +73,7 @@ void UUIBatchGeometryRenderable::MarkVerticesDirty()
 	MarkCanvasUpdate(false, false, false, true);
 }
 
-void UUIBatchGeometryRenderable::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
+void UUIBatchMeshRenderable::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
 {
 	bTriangleChanged = bTriangleChanged || InTriangleDirty;
 	bLocalVertexPositionChanged = bLocalVertexPositionChanged || InVertexPositionDirty;
@@ -82,16 +82,16 @@ void UUIBatchGeometryRenderable::MarkVerticesDirty(bool InTriangleDirty, bool In
 	MarkCanvasUpdate(false, bLocalVertexPositionChanged, false);
 }
 
-void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
+void UUIBatchMeshRenderable::MarkVertexPositionDirty()
 {
 	MarkVerticesDirty(false, true, false, false);
 }
-void UUIBatchGeometryRenderable::MarkUVDirty()
+void UUIBatchMeshRenderable::MarkUVDirty()
 {
 	MarkVerticesDirty(false, false, true, false);
 }
 
-void UUIBatchGeometryRenderable::MarkTextureDirty()
+void UUIBatchMeshRenderable::MarkTextureDirty()
 {
 	if (RenderCanvas.IsValid())
 	{
@@ -103,7 +103,7 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 		MarkCanvasUpdate(true, false, false);
 	}
 }
-void UUIBatchGeometryRenderable::MarkMaterialDirty()
+void UUIBatchMeshRenderable::MarkMaterialDirty()
 {
 	if (RenderCanvas.IsValid())
 	{
@@ -116,7 +116,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 	}
 }
 
-void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
+void UUIBatchMeshRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	auto Index = GeometryModifierComponentArray.AddUnique(InModifier);
 	if (Index > 0)
@@ -125,12 +125,12 @@ void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBa
 	}
 	MarkVerticesDirty(true, true, true, true);
 }
-void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
+void UUIBatchMeshRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	GeometryModifierComponentArray.Remove(InModifier);
 	MarkVerticesDirty(true, true, true, true);
 }
-void UUIBatchGeometryRenderable::SortGeometryModifier()
+void UUIBatchMeshRenderable::SortGeometryModifier()
 {
 	GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
 		return A.GetExecuteOrder() < B.GetExecuteOrder();
@@ -138,7 +138,7 @@ void UUIBatchGeometryRenderable::SortGeometryModifier()
 	MarkVerticesDirty(true, true, true, true);
 }
 
-void UUIBatchGeometryRenderable::MarkAllDirty()
+void UUIBatchMeshRenderable::MarkAllDirty()
 {
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -157,7 +157,7 @@ void UUIBatchGeometryRenderable::MarkAllDirty()
 	}
 	Super::MarkAllDirty();
 }
-void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
+void UUIBatchMeshRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 {
 	if (CustomUIMaterial != inMat)
 	{
@@ -166,7 +166,7 @@ void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 	}
 }
 
-UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()const
+UMaterialInstanceDynamic* UUIBatchMeshRenderable::GetMaterialInstanceDynamic()const
 {
 	if (IsValid(CustomUIMaterial))
 	{
@@ -181,7 +181,7 @@ UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic
 	}
 	return nullptr;
 }
-bool UUIBatchGeometryRenderable::HaveGeometryModifier(bool includeDisabled)
+bool UUIBatchMeshRenderable::HaveGeometryModifier(bool includeDisabled)
 {
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -214,7 +214,7 @@ bool UUIBatchGeometryRenderable::HaveGeometryModifier(bool includeDisabled)
 	return false;
 }
 
-void UUIBatchGeometryRenderable::GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
+void UUIBatchMeshRenderable::GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
 {
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -245,7 +245,7 @@ void UUIBatchGeometryRenderable::GeometryModifierWillChangeVertexData(bool& OutT
 	}
 }
 
-void UUIBatchGeometryRenderable::ApplyGeometryModifier(bool triangleChanged, bool uvChanged, bool colorChanged, bool vertexPositionChanged)
+void UUIBatchMeshRenderable::ApplyGeometryModifier(bool triangleChanged, bool uvChanged, bool colorChanged, bool vertexPositionChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
 
@@ -263,8 +263,8 @@ void UUIBatchGeometryRenderable::ApplyGeometryModifier(bool triangleChanged, boo
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable UpdateGeometry"), STAT_UpdateGeometry, STATGROUP_LGUI);
-void UUIBatchGeometryRenderable::UpdateGeometry()
+DECLARE_CYCLE_STAT(TEXT("UIBatchMeshRenderable UpdateGeometry"), STAT_UpdateGeometry, STATGROUP_LGUI);
+void UUIBatchMeshRenderable::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateGeometry);
 
@@ -315,7 +315,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	}
 	if (geometry->vertices.Num() >= LGUI_MAX_VERTEX_COUNT)
 	{
-		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchGeometryRenderable", "TooManyTrianglesInSingleUIElement", "{0} Too many vertex ({1}) in single UI element: {2}")
+		auto errorMsg = FText::Format(NSLOCTEXT("UIBatchMeshRenderable", "TooManyTrianglesInSingleUIElement", "{0} Too many vertex ({1}) in single UI element: {2}")
 			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
 			, geometry->vertices.Num()
 #if WITH_EDITOR
@@ -337,7 +337,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	bTransformChanged = false;
 }
 
-bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
+bool UUIBatchMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	switch (RaycastType)
 	{
@@ -345,7 +345,7 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 	case EUIRenderableRaycastType::Rect:
 		return LineTraceUIRect(OutHit, Start, End);
 		break;
-	case EUIRenderableRaycastType::Geometry:
+	case EUIRenderableRaycastType::Mesh:
 		return LineTraceUIGeometry(geometry.Get(), OutHit, Start, End);
 		break;
 	case EUIRenderableRaycastType::VisiblePixel:
@@ -356,7 +356,7 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 		break;
 	}
 }
-bool UUIBatchGeometryRenderable::LineTraceVisiblePixel(float InAlphaThreshold, FHitResult& OutHit, const FVector& Start, const FVector& End)
+bool UUIBatchMeshRenderable::LineTraceVisiblePixel(float InAlphaThreshold, FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	const auto InverseTf = GetComponentTransform().Inverse();
 	const auto LocalSpaceRayOrigin = InverseTf.TransformPosition(Start);
@@ -425,7 +425,7 @@ bool UUIBatchGeometryRenderable::LineTraceVisiblePixel(float InAlphaThreshold, F
 	return false;
 }
 
-void UUIBatchGeometryRenderable::CalculateLocalBounds()
+void UUIBatchMeshRenderable::CalculateLocalBounds()
 {
 	auto& originVertices = geometry->originVertices;
 	float horizontalMin = MAX_flt, horizontalMax = -MAX_flt;
@@ -481,21 +481,21 @@ void UUIBatchGeometryRenderable::CalculateLocalBounds()
 #endif
 }
 
-void UUIBatchGeometryRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
+void UUIBatchMeshRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
 {
 	OutMinPoint = this->LocalMinPoint;
 	OutMaxPoint = this->LocalMaxPoint;
 }
 
 #if WITH_EDITOR
-void UUIBatchGeometryRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const
+void UUIBatchMeshRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const
 {
 	OutMinPoint = this->LocalMinPoint3D;
 	OutMaxPoint = this->LocalMaxPoint3D;
 }
 #endif
 
-UTexture* UUIBatchGeometryRenderable::GetTextureToCreateGeometry()
+UTexture* UUIBatchMeshRenderable::GetTextureToCreateGeometry()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -504,7 +504,7 @@ UTexture* UUIBatchGeometryRenderable::GetTextureToCreateGeometry()
 	return nullptr;
 }
 
-UMaterialInterface* UUIBatchGeometryRenderable::GetMaterialToCreateGeometry()
+UMaterialInterface* UUIBatchMeshRenderable::GetMaterialToCreateGeometry()
 {
 	if (IsValid(CustomUIMaterial))
 	{
@@ -520,7 +520,7 @@ UMaterialInterface* UUIBatchGeometryRenderable::GetMaterialToCreateGeometry()
 	return nullptr;
 }
 
-void UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry()
+void UUIBatchMeshRenderable::OnBeforeCreateOrUpdateGeometry()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -528,8 +528,8 @@ void UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable Blueprint.OnFillMesh"), STAT_BatchGeometryRenderable_OnFillMesh, STATGROUP_LGUI);
-void UUIBatchGeometryRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+DECLARE_CYCLE_STAT(TEXT("UIBatchMeshRenderable Blueprint.OnFillMesh"), STAT_BatchGeometryRenderable_OnFillMesh, STATGROUP_LGUI);
+void UUIBatchMeshRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{

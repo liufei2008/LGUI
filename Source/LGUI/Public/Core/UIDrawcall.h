@@ -12,7 +12,7 @@ struct FLGUIMeshVertex;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UUIItem;
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 class UUIDirectMeshRenderable;
 class ULGUIMeshComponent;
 struct FLGUIRenderSection;
@@ -62,7 +62,7 @@ public:
 
 	TWeakObjectPtr<UUIDirectMeshRenderable> DirectMeshRenderableObject;
 
-	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> RenderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
+	TArray<TWeakObjectPtr<UUIBatchMeshRenderable>> RenderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
 	bool bNeedToSortRenderObjectList = false;//need to sort RenderObjectList?
 	TUniquePtr<UIQuadTree::Node> RenderObjectListTreeRootNode = nullptr;
 	int32 VerticesCount = 0;//vertices count of all renderObjectList
@@ -74,5 +74,5 @@ public:
 public:
 	void GetCombined(TArray<FLGUIMeshVertex>& vertices, TArray<FLGUIMeshIndexBufferType>& triangles)const;
 	void CopyUpdateState(UUIDrawcall* Target);
-	bool CanConsumeUIBatchGeometryRenderable(UIGeometry* geo, int32 itemVertCount);
+	bool CanConsumeUIBatchMeshRenderable(UIGeometry* geo, int32 itemVertCount);
 };

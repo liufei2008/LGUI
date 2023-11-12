@@ -3,7 +3,7 @@
 #pragma once
 
 #include "UIBaseRenderable.h"
-#include "UIBatchGeometryRenderable.generated.h"
+#include "UIBatchMeshRenderable.generated.h"
 
 class UIGeometry;
 class UMaterialInterface;
@@ -73,20 +73,20 @@ public:
 
 /** UI element which have render geometry, and can be batched and renderred by LGUICanvas */
 UCLASS(Abstract, Blueprintable, ClassGroup=(LGUI))
-class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
+class LGUI_API UUIBatchMeshRenderable : public UUIBaseRenderable
 {
 	GENERATED_BODY()
 
 public:	
-	UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer);
+	UUIBatchMeshRenderable(const FObjectInitializer& ObjectInitializer);
 
 public:
 	static const FName GetCustomUIMaterialPropertyName()
 	{
-		return GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, CustomUIMaterial);
+		return GET_MEMBER_NAME_CHECKED(UUIBatchMeshRenderable, CustomUIMaterial);
 	}
 protected:
-	friend class FUIBatchGeometryRenderableCustomization;
+	friend class FUIBatchMeshRenderableCustomization;
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 #if WITH_EDITOR

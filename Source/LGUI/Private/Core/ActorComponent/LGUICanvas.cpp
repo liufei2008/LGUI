@@ -14,7 +14,7 @@
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/ActorComponent/UIItem.h"
@@ -769,10 +769,10 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 		{
 			switch (UIRenderableItem->GetUIRenderableType())
 			{
-			case EUIRenderableType::UIBatchGeometryRenderable:
+			case EUIRenderableType::UIBatchMeshRenderable:
 			{
-				auto UIBatchGeometryRenderable = (UUIBatchGeometryRenderable*)UIRenderableItem;
-				auto index = Drawcall->RenderObjectList.IndexOfByKey(UIBatchGeometryRenderable);
+				auto UIBatchMeshRenderable = (UUIBatchMeshRenderable*)UIRenderableItem;
+				auto index = Drawcall->RenderObjectList.IndexOfByKey(UIBatchMeshRenderable);
 				if (index != INDEX_NONE)
 				{
 					Drawcall->RenderObjectList.RemoveAt(index);
@@ -937,7 +937,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 	};
 
 	int FitInDrawcallMinIndex = InUIDrawcallList.Num();//0 means the first canvas that processing drawcall. if not 0 means this is child canvas, then we should skip the previours canvas when batch drawcall, because child canvas's UI element can't batch into other canvas's drawcall
-	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, int32 InUIItemVerticesCount, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
+	auto CanFitInDrawcall = [&](UUIBatchMeshRenderable* InUIItem, bool InIs2DUI, int32 InUIItemVerticesCount, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
 	{
 		const auto LastDrawcallIndex = InUIDrawcallList.Num() - 1;
 		if (LastDrawcallIndex < 0)
@@ -947,7 +947,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		//first step, check last drawcall, because 3d UI can only batch into last drawcall
 		{
 			const auto LastDrawcall = InUIDrawcallList[LastDrawcallIndex];
-			if (LastDrawcall->CanConsumeUIBatchGeometryRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))
+			if (LastDrawcall->CanConsumeUIBatchMeshRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))
 			{
 				OutDrawcallIndexToFitin = LastDrawcallIndex;
 				return true;
@@ -966,7 +966,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				return false;
 			}
 
-			if (!DrawcallItem->CanConsumeUIBatchGeometryRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))//can't fit in this drawcall, should check overlap
+			if (!DrawcallItem->CanConsumeUIBatchMeshRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))//can't fit in this drawcall, should check overlap
 			{
 				if (OverlapWithOtherDrawcall(InUIItemToCanvasTf, DrawcallItem))//overlap with other drawcall, can't batch
 				{
@@ -1033,7 +1033,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				DrawcallItem->Material = InItemGeo->material.Get();
 #if LGUI_Test_ResetRenderObjectList
 				DrawcallItem->RenderObjectList.Reset();
-				DrawcallItem->RenderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
+				DrawcallItem->RenderObjectList.Add((UUIBatchMeshRenderable*)InUIItem);
 #endif
 				DrawcallItem->RenderObjectListTreeRootNode = MakeUnique<UIQuadTree::Node>(CanvasRect);
 				DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
@@ -1064,7 +1064,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				DrawcallItem->bNeedToUpdateVertex = true;
 				DrawcallItem->Texture = InItemGeo->texture;
 				DrawcallItem->Material = InItemGeo->material.Get();
-				DrawcallItem->RenderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
+				DrawcallItem->RenderObjectList.Add((UUIBatchMeshRenderable*)InUIItem);
 				DrawcallItem->VerticesCount = InItemGeo->vertices.Num();
 				DrawcallItem->IndicesCount = InItemGeo->triangles.Num();
 				DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(InItemToCanvasTf.BoundsMin2D, InItemToCanvasTf.BoundsMax2D));
@@ -1103,7 +1103,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		}
 		//OutNeedToSortRenderPriority = true;//@todo: this line could make it sort every time, which is not good performance
 	};
-	auto ClearObjectFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable) {
+	auto ClearObjectFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, UUIBatchMeshRenderable* InUIBatchMeshRenderable) {
 		if (InDrawcallItem->DrawcallRenderSection.IsValid())
 		{
 			InDrawcallItem->DrawcallMesh->DeleteRenderSection(InDrawcallItem->DrawcallRenderSection.Pin());
@@ -1112,9 +1112,9 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 
 		InDrawcallItem->bNeedToUpdateVertex = true;
 		InDrawcallItem->bMaterialNeedToReassign = true;
-		int index = InDrawcallItem->RenderObjectList.IndexOfByKey(InUIBatchGeometryRenderable);
+		int index = InDrawcallItem->RenderObjectList.IndexOfByKey(InUIBatchMeshRenderable);
 		InDrawcallItem->RenderObjectList.RemoveAt(index);
-		InUIBatchGeometryRenderable->drawcall = nullptr;
+		InUIBatchMeshRenderable->drawcall = nullptr;
 	};
 	auto ClearChildCanvasFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, ULGUICanvas* InChildCanvas) {
 		if (InDrawcallItem->DrawcallRenderSection.IsValid())
@@ -1196,23 +1196,23 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			switch (UIRenderableItem->GetUIRenderableType())
 			{
 			default:
-			case EUIRenderableType::UIBatchGeometryRenderable:
+			case EUIRenderableType::UIBatchMeshRenderable:
 			{
-				auto UIBatchGeometryRenderableItem = (UUIBatchGeometryRenderable*)UIRenderableItem;
-				auto ItemGeo = UIBatchGeometryRenderableItem->GetGeometry();
+				auto UIBatchMeshRenderableItem = (UUIBatchMeshRenderable*)UIRenderableItem;
+				auto ItemGeo = UIBatchMeshRenderableItem->GetGeometry();
 				if (ItemGeo == nullptr)continue;
 				if (ItemGeo->vertices.Num() == 0)continue;
 				if (ItemGeo->vertices.Num() > LGUI_MAX_VERTEX_COUNT)continue;
 
 				int DrawcallIndexToFitin;
-				if (CanFitInDrawcall(UIBatchGeometryRenderableItem, is2DUIItem, ItemGeo->vertices.Num(), UIItemToCanvasTf, DrawcallIndexToFitin))
+				if (CanFitInDrawcall(UIBatchMeshRenderableItem, is2DUIItem, ItemGeo->vertices.Num(), UIItemToCanvasTf, DrawcallIndexToFitin))
 				{
 					auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
 					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
-					if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
+					if (UIBatchMeshRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
 					{
 #if LGUI_Test_ResetRenderObjectList
-						DrawcallItem->RenderObjectList.Add(UIBatchGeometryRenderableItem);
+						DrawcallItem->RenderObjectList.Add(UIBatchMeshRenderableItem);
 #else
 						//mark sort list
 						DrawcallItem->bNeedToSortRenderObjectList = true;
@@ -1224,18 +1224,18 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 					}
 					else//not exist in this drawcall
 					{
-						auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+						auto OldDrawcall = UIBatchMeshRenderableItem->drawcall;
 						if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 						{
-							ClearObjectFromDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
+							ClearObjectFromDrawcall(OldDrawcall, UIBatchMeshRenderableItem);
 						}
 						//add to this drawcall
-						DrawcallItem->RenderObjectList.Add(UIBatchGeometryRenderableItem);
+						DrawcallItem->RenderObjectList.Add(UIBatchMeshRenderableItem);
 						DrawcallItem->RenderObjectListTreeRootNode->Insert(UIQuadTree::Rectangle(UIItemToCanvasTf.BoundsMin2D, UIItemToCanvasTf.BoundsMax2D));
 						DrawcallItem->VerticesCount += ItemGeo->vertices.Num();
 						DrawcallItem->IndicesCount += ItemGeo->triangles.Num();
 						DrawcallItem->bNeedToUpdateVertex = true;
-						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
+						UIBatchMeshRenderableItem->drawcall = DrawcallItem;
 						//copy update state from old to new
 						if (OldDrawcall.IsValid())
 						{
@@ -1246,17 +1246,17 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 				}
 				else//cannot fit in any other drawcall
 				{
-					auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+					auto OldDrawcall = UIBatchMeshRenderableItem->drawcall;
 					if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 					{
 						if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall.
 						{
-							ClearObjectFromDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
+							ClearObjectFromDrawcall(OldDrawcall, UIBatchMeshRenderableItem);
 						}
 					}
 					//make a new drawacll
-					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry, UIItemToCanvasTf);
-					check(UIBatchGeometryRenderableItem->drawcall->VerticesCount < LGUI_MAX_VERTEX_COUNT);
+					PushSingleDrawcall(UIBatchMeshRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry, UIItemToCanvasTf);
+					check(UIBatchMeshRenderableItem->drawcall->VerticesCount < LGUI_MAX_VERTEX_COUNT);
 				}
 			}
 			break;
@@ -1293,7 +1293,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		if (DrawcallItem->bNeedToSortRenderObjectList)
 		{
 			DrawcallItem->bNeedToSortRenderObjectList = false;
-			DrawcallItem->RenderObjectList.Sort([](const TWeakObjectPtr<UUIBatchGeometryRenderable>& A, const TWeakObjectPtr<UUIBatchGeometryRenderable>& B) {
+			DrawcallItem->RenderObjectList.Sort([](const TWeakObjectPtr<UUIBatchMeshRenderable>& A, const TWeakObjectPtr<UUIBatchMeshRenderable>& B) {
 				return A->GetFlattenHierarchyIndex() < B->GetFlattenHierarchyIndex();
 				});
 		}

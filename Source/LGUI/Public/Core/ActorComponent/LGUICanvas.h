@@ -107,7 +107,7 @@ public:
 
 class UUIItem;
 class UUIBaseRenderable;
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 class UUIDirectMeshRenderable;
 class ULGUIMeshComponent;
 class UUIDrawcall;

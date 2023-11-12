@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Extensions/UIRenderableCustomRaycastExtensions.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Utils/LGUIUtils.h"
 
 #if 0
@@ -34,10 +34,10 @@ bool UUIRenderableCustomRaycast_Circle::Raycast(UUIBaseRenderable* InUIRenderabl
 
 bool UUIRenderableCustomRaycast_VisiblePixel::Raycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)
 {
-	if (auto BatchGeometry = Cast<UUIBatchGeometryRenderable>(InUIRenderable))
+	if (auto BatchGeometry = Cast<UUIBatchMeshRenderable>(InUIRenderable))
 	{
 		FVector2D HitUV; FColor HitPixel;
-		if (UUIRenderableCustomRaycast::GetRaycastPixelFromUIBatchGeometryRenderable(BatchGeometry, InLocalSpaceRayStart, InLocalSpaceRayEnd, HitUV, HitPixel, OutHitPoint, OutHitNormal))
+		if (UUIRenderableCustomRaycast::GetRaycastPixelFromUIBatchMeshRenderable(BatchGeometry, InLocalSpaceRayStart, InLocalSpaceRayEnd, HitUV, HitPixel, OutHitPoint, OutHitNormal))
 		{
 			uint8 ChannelValue = 0;
 			switch (PixelChannel)

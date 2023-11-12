@@ -6,7 +6,7 @@
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -21,7 +21,7 @@ bool UUIRenderableCustomRaycast::Raycast(UUIBaseRenderable* InUIRenderable, cons
 	return false;
 }
 
-bool UUIRenderableCustomRaycast::GetRaycastPixelFromUIBatchGeometryRenderable(UUIBatchGeometryRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal)
+bool UUIRenderableCustomRaycast::GetRaycastPixelFromUIBatchMeshRenderable(UUIBatchMeshRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal)
 {
 	if (auto UIGeo = InUIRenderable->GetGeometry())
 	{

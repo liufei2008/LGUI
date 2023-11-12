@@ -98,7 +98,7 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 	{
 		return Super::LineTraceUI(OutHit, Start, End);
 	}
-	else if (RaycastType == EUIRenderableRaycastType::Geometry)
+	else if (RaycastType == EUIRenderableRaycastType::Mesh)
 	{
 		if (!drawcall.IsValid())return false;
 		if (!drawcall->DrawcallRenderSection.IsValid())return false;
