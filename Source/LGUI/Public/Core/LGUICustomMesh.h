@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Curves/CurveFloat.h"
 #include "LGUICustomMesh.generated.h"
 
 class UIGeometry;
 class ULGUICanvas;
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 
 UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULGUICustomMesh : public ULGUIGeometryHelper
@@ -23,7 +23,7 @@ public:
 	 * @param InVertexUVChanged Normally just ignore this.
 	 * @param InVertexColorChanged Normally just ignore this.
 	 */
-	virtual void OnFillMesh(UUIBatchGeometryRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	virtual void OnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/**
 	 * Get uv value on raycast hit point
 	 * @param InRenderable The UI element which will use this mesh.
@@ -34,7 +34,7 @@ public:
 	 * @param OutHitUV result uv
 	 * @return true if hit suceess
 	 */
-	virtual bool GetHitUV(const UUIBatchGeometryRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
+	virtual bool GetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
 protected:
 	/**
 	 * Fill the mesh data.
@@ -45,7 +45,7 @@ protected:
 	 * @param InVertexColorChanged Normally just ignore this.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateMesh", AdvancedDisplay = 1))
-	void ReceiveOnFillMesh(UUIBatchGeometryRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	void ReceiveOnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/**
 	 * Get uv value on raycast hit point
 	 * @param InRenderable The UI element which will use this mesh.
@@ -57,10 +57,10 @@ protected:
 	 * @return true if hit suceess
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetHitUV"))
-	bool ReceiveGetHitUV(const UUIBatchGeometryRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
+	bool ReceiveGetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	bool GetHitUVbyFaceIndex(const UUIBatchGeometryRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, FVector2D& OutHitUV)const;
+	bool GetHitUVbyFaceIndex(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, FVector2D& OutHitUV)const;
 };
 
 UCLASS(ClassGroup = LGUI, DisplayName="LGUICustomMesh Cylinder")
@@ -68,8 +68,8 @@ class LGUI_API ULGUICustomMesh_Cylinder : public ULGUICustomMesh
 {
 	GENERATED_BODY()
 public:
-	virtual void OnFillMesh(UUIBatchGeometryRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-	virtual bool GetHitUV(const UUIBatchGeometryRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
+	virtual void OnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual bool GetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
 protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = -180.0f, ClampMax = 180.0f))
 	float CylinderArcAngle = 45;
@@ -81,8 +81,8 @@ class LGUI_API ULGUICustomMesh_CurvyPlane : public ULGUICustomMesh
 	GENERATED_BODY()
 public:
 	ULGUICustomMesh_CurvyPlane();
-	virtual void OnFillMesh(UUIBatchGeometryRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-	virtual bool GetHitUV(const UUIBatchGeometryRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
+	virtual void OnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual bool GetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
 protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = 1, ClampMax = 200))
 	int Segment = 10;

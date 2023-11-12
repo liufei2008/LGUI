@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIBatchGeometryRenderable.h"
+#include "UIBatchMeshRenderable.h"
 #include "Core/IUISpriteRenderableInterface.h"
 #include "UISpriteBase.generated.h"
 
@@ -12,7 +12,7 @@ class ULGUISpriteData_BaseObject;
  * This is base class for create custom mesh based on UISprite.
  */
 UCLASS(ClassGroup = (LGUI), Abstract, NotBlueprintable)
-class LGUI_API UUISpriteBase : public UUIBatchGeometryRenderable
+class LGUI_API UUISpriteBase : public UUIBatchMeshRenderable
 	, public IUISpriteRenderableInterface
 {
 	GENERATED_BODY()

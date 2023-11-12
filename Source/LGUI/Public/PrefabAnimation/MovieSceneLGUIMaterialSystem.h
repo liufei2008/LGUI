@@ -10,7 +10,7 @@
 
 #include "MovieSceneLGUIMaterialSystem.generated.h"
 
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 class UMovieScenePiecewiseDoubleBlenderSystem;
 
 namespace UE::MovieScene
@@ -37,7 +37,7 @@ struct FLGUIMaterialAccessor
 {
 	using KeyType = FLGUIMaterialKey;
 
-	UUIBatchGeometryRenderable* Renderable;
+	UUIBatchMeshRenderable* Renderable;
 	FLGUIMaterialHandle LGUIMaterialHandle;
 
 	FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey);

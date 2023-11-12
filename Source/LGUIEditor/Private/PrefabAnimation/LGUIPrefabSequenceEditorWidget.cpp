@@ -32,7 +32,7 @@ DECLARE_DELEGATE_OneParam(FPrefabAnimationOnComponentSelected, TSharedPtr<FSCSEd
 DECLARE_DELEGATE_RetVal_OneParam(bool, FPrefabAnimationIsComponentValid, UActorComponent*);
 
 
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "PrefabAnimation/MovieSceneLGUIMaterialTrack.h"
 
 class SLGUIPrefabSequenceEditorWidgetImpl : public SCompoundWidget, public FEditorUndoClient
@@ -487,13 +487,13 @@ private:
 	{
 		if (ContextObjects.Num() == 1)
 		{
-			auto Renderable = Cast<UUIBatchGeometryRenderable>(ContextObjects[0]);
+			auto Renderable = Cast<UUIBatchMeshRenderable>(ContextObjects[0]);
 
 			if (Renderable != nullptr)
 			{
 				if (Renderable != nullptr && Renderable->GetCustomUIMaterial() != nullptr)
 				{
-					auto MaterialProperty = Renderable->GetClass()->FindPropertyByName(UUIBatchGeometryRenderable::GetCustomUIMaterialPropertyName());
+					auto MaterialProperty = Renderable->GetClass()->FindPropertyByName(UUIBatchMeshRenderable::GetCustomUIMaterialPropertyName());
 					AddTrackMenuBuilder.BeginSection("Materials", LOCTEXT("MaterialsSection", "Materials"));
 					{
 						FText DisplayNameText = MaterialProperty->GetDisplayNameText();
@@ -508,7 +508,7 @@ private:
 		}
 	}
 
-	void AddMaterialTrack(UUIBatchGeometryRenderable* Renderable, FProperty* MaterialProperty, FText MaterialPropertyDisplayName)
+	void AddMaterialTrack(UUIBatchMeshRenderable* Renderable, FProperty* MaterialProperty, FText MaterialPropertyDisplayName)
 	{
 		FGuid WidgetHandle = Sequencer->GetHandleToObject(Renderable);
 		if (WidgetHandle.IsValid())

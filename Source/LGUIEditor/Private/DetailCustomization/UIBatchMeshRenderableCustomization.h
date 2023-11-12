@@ -6,15 +6,15 @@
 /**
  * 
  */
-class FUIBatchGeometryRenderableCustomization : public IDetailCustomization
+class FUIBatchMeshRenderableCustomization : public IDetailCustomization
 {
 public:
-	FUIBatchGeometryRenderableCustomization();
-	~FUIBatchGeometryRenderableCustomization();
+	FUIBatchMeshRenderableCustomization();
+	~FUIBatchMeshRenderableCustomization();
 
 	static TSharedRef<IDetailCustomization> MakeInstance();
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class UUIBatchGeometryRenderable> TargetScriptPtr;
+	TWeakObjectPtr<class UUIBatchMeshRenderable> TargetScriptPtr;
 };

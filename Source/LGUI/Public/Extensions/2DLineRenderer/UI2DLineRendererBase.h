@@ -54,10 +54,10 @@ protected:
 	//if OverrideEndPointTangentDirection return true, then this function must be implemented
 	virtual FVector2D GetEndPointTangentDirection();
 
-	//Begin UIBatchGeometryRenderable interface
+	//Begin UIBatchMeshRenderable interface
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
-	//End UIBatchGeometryRenderable interface
+	//End UIBatchMeshRenderable interface
 
 	FORCEINLINE bool AngleLargerThanPi(const FVector2D& A, const FVector2D& B)
 	{

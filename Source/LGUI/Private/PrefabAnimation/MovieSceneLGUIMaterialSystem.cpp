@@ -12,7 +12,7 @@
 
 #include "Materials/MaterialInstanceDynamic.h"
 
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MovieSceneLGUIMaterialSystem)
 
@@ -20,12 +20,12 @@ namespace UE::MovieScene
 {
 
 FLGUIMaterialAccessor::FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey)
-	: Renderable(Cast<UUIBatchGeometryRenderable>(InKey.Object.ResolveObjectPtr()))
+	: Renderable(Cast<UUIBatchMeshRenderable>(InKey.Object.ResolveObjectPtr()))
 	, LGUIMaterialHandle(InKey.LGUIMaterialHandle)
 {}
 
 FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialPath)
-	: Renderable(Cast<UUIBatchGeometryRenderable>(InObject))
+	: Renderable(Cast<UUIBatchMeshRenderable>(InObject))
 	, LGUIMaterialHandle(MoveTemp(InLGUIMaterialPath))
 {
 	check(!InObject || Renderable);

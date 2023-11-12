@@ -490,7 +490,7 @@ void ULGUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 		{
 			if (IsValid(CustomMesh))//custom mesh use geometry raycast to get precise uv
 			{
-				this->SetRaycastType(EUIRenderableRaycastType::Geometry);
+				this->SetRaycastType(EUIRenderableRaycastType::Mesh);
 			}
 		}
 	}

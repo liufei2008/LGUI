@@ -3,11 +3,11 @@
 #pragma once
 
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "Components/ActorComponent.h"
 #include "UIGeometryModifierBase.generated.h"
 
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 class UUIText;
 
 UENUM(BlueprintType)
@@ -63,7 +63,7 @@ public:
 
 /** 
  * For modify ui geometry, act like a filter.
- * Need UIBatchGeometryRenderable component.
+ * Need UIBatchMeshRenderable component.
  */
 UCLASS(Abstract, Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIGeometryModifierBase : public UActorComponent
@@ -90,15 +90,15 @@ protected:
 		int executeOrder = 0;
 
 private:
-	mutable TWeakObjectPtr<UUIBatchGeometryRenderable> UIRenderable;
+	mutable TWeakObjectPtr<UUIBatchMeshRenderable> UIRenderable;
 	void RemoveFromUIBatchGeometry();
 	void AddToUIBatchGeometry();
 public:
 	UE_DEPRECATED(4.24, "Use GetUIRenderable instead.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetUIRenderable instead."))
-		UUIBatchGeometryRenderable* GetRenderableUIItem()const { return GetUIRenderable(); }
+		UUIBatchMeshRenderable* GetRenderableUIItem()const { return GetUIRenderable(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UUIBatchGeometryRenderable* GetUIRenderable()const;
+		UUIBatchMeshRenderable* GetUIRenderable()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetEnable()const { return bEnable; }
 

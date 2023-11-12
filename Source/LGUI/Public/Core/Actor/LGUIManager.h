@@ -8,7 +8,7 @@
 
 class UUIItem;
 class UUIText;
-class UUIBatchGeometryRenderable;
+class UUIBatchMeshRenderable;
 class UUIBaseRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
