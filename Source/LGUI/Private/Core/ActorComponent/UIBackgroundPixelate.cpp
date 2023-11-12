@@ -97,7 +97,7 @@ public:
 	}
 	virtual bool CanRender()const override
 	{
-		return FUIPostProcessRenderProxy::CanRender() && pixelateStrength > 0.0f;
+		return pixelateStrength > 0.0f;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
