@@ -484,7 +484,10 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
-		OnApply();//apply change
+		if (GetAnythingDirty())
+		{
+			OnApply();//apply change
+		}
 		FAssetEditorToolkit::SaveAsset_Execute();//save asset
 	}
 }
@@ -647,12 +650,26 @@ void FLGUIPrefabEditor::ExtendToolbar()
 
 		FToolMenuInsert InsertAfterAssetSection("Asset", EToolMenuInsertType::After);
 		{
+			auto ApplyButtonMenuEntry = FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply
+				, LOCTEXT("Apply", "Apply")
+				, TAttribute<FText>::CreateLambda([this]() {return GetAnythingDirty() ? LOCTEXT("Apply_Tooltip", "Dirty, need to apply") : LOCTEXT("Apply_Tooltip", "Good to go"); })
+				, TAttribute<FSlateIcon>(this, &FLGUIPrefabEditor::GetApplyButtonStatusImage));
+
 			FToolMenuSection& Section = ToolBar->AddSection("LGUIPrefabCommands", TAttribute<FText>(), InsertAfterAssetSection);
-			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply));
+			Section.AddEntry(ApplyButtonMenuEntry);
 			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().RawDataViewer));
 			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().OpenPrefabHelperObject));
 		}
 	}
+}
+
+FSlateIcon FLGUIPrefabEditor::GetApplyButtonStatusImage()const
+{
+	static const FName CompileStatusBackground("Blueprint.CompileStatus.Background");
+	static const FName CompileStatusUnknown("Blueprint.CompileStatus.Overlay.Unknown");
+	static const FName CompileStatusGood("Blueprint.CompileStatus.Overlay.Good");
+
+	return FSlateIcon(FAppStyle::GetAppStyleSetName(), CompileStatusBackground, NAME_None, GetAnythingDirty() ? CompileStatusUnknown : CompileStatusGood);
 }
 
 TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
