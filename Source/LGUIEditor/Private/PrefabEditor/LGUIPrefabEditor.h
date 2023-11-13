@@ -109,6 +109,8 @@ private:
 	//void ExtendMenu();
 	void ExtendToolbar();
 
+	FSlateIcon GetApplyButtonStatusImage()const;
+
 	void OnApply();
 	void OnOpenRawDataViewerPanel();
 	void OnOpenPrefabHelperObjectDetailsPanel();
