@@ -8,6 +8,7 @@
 #include "Utils/LGUIUtils.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/IUISpriteRenderableInterface.h"
+#include "TextureResource.h"
 
 #define LOCTEXT_NAMESPACE "LGUIStaticSpriteAtlasData"
 
@@ -650,7 +651,7 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 			while (true)
 			{
 				// Allocate next mipmap.
-				FTexture2DMipMap* mip = new FTexture2DMipMap;
+				auto mip = new FTexture2DMipMap;
 				texture->GetPlatformData()->Mips.Add(mip);
 				mip->SizeX = mipSize;
 				mip->SizeY = mipSize;
