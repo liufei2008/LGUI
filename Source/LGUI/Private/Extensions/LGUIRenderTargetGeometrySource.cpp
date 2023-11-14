@@ -700,7 +700,7 @@ ULGUICanvas* ULGUIRenderTargetGeometrySource::GetCanvas()const
 	}
 	if (Canvas->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Canvas->GetRenderTarget()))
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
+		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTargetGeometrySource::GetCanvas]TargetCanvas's render mode must be RenderTarget!"));
 		return nullptr;
 	}
 	TargetCanvasObject = Canvas;

@@ -93,7 +93,7 @@ private:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 	/** Does the actual work of converting mesh data into slate vector art */
-	void InitFromStaticMesh(const UStaticMesh& InSourceMesh);
+	void InitFromStaticMesh(const UStaticMesh* InSourceMesh);
 	void ClearMeshData();
 #endif
 
