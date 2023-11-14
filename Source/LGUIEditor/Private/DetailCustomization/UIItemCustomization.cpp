@@ -12,7 +12,7 @@
 #include "Widget/AnchorPreviewWidget.h"
 #include "PropertyCustomizationHelpers.h"
 #include "HAL/PlatformApplicationMisc.h"
-#include "EditorViewportClient.h"
+#include "LevelEditorViewport.h"
 #include "LGUIEditorUtils.h"
 #include "LGUIEditorTools.h"
 #include "Layout/UILayoutBase.h"
@@ -80,28 +80,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
-
-	if (auto world = TargetScriptArray[0]->GetWorld())
-	{
-		if (world->WorldType == EWorldType::Editor)
-		{
-			//something weird may happen if not realtime edit
-			if (GEditor)
-			{
-				if (auto viewport = GEditor->GetActiveViewport())
-				{
-					if (auto viewportClient = (FEditorViewportClient*)viewport->GetClient())
-					{
-						if (!viewportClient->IsRealtime())
-						{
-							viewportClient->SetRealtime(true);
-							UE_LOG(LGUIEditor, Warning, TEXT("[UIItemCustomization]Editor viewport set to realtime.(Something weird may happen if not realtime edit)"));
-						}
-					}
-				}
-			}
-		}
-	}
 
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 	DetailBuilder.HideCategory("TransformCommon");
