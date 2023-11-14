@@ -646,23 +646,29 @@ void FLGUIPrefabEditor::ExtendToolbar()
 	const FName MenuName = GetToolMenuToolbarName();
 	if (!UToolMenus::Get()->IsMenuRegistered(MenuName))
 	{
-		UToolMenu* ToolBar = UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
+		UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
+	}
 
-		FToolMenuInsert InsertAfterAssetSection("Asset", EToolMenuInsertType::After);
-		{
-			auto ApplyButtonMenuEntry = FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply
-				, LOCTEXT("Apply", "Apply")
-				, TAttribute<FText>::CreateLambda([this]() {return GetAnythingDirty() ? LOCTEXT("Apply_Tooltip", "Dirty, need to apply") : LOCTEXT("Apply_Tooltip", "Good to go"); })
-				, TAttribute<FSlateIcon>(this, &FLGUIPrefabEditor::GetApplyButtonStatusImage));
+	UToolMenu* ToolBar = UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
 
-			FToolMenuSection& Section = ToolBar->AddSection("LGUIPrefabCommands", TAttribute<FText>(), InsertAfterAssetSection);
-			Section.AddEntry(ApplyButtonMenuEntry);
-			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().RawDataViewer));
-			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().OpenPrefabHelperObject));
-		}
+	FToolMenuInsert InsertAfterAssetSection("Asset", EToolMenuInsertType::After);
+	{
+		auto ApplyButtonMenuEntry = FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply
+			, LOCTEXT("Apply", "Apply")
+			, TAttribute<FText>(this, &FLGUIPrefabEditor::GetApplyButtonStatusTooltip)
+			, TAttribute<FSlateIcon>(this, &FLGUIPrefabEditor::GetApplyButtonStatusImage));
+
+		FToolMenuSection& Section = ToolBar->AddSection("LGUIPrefabCommands", TAttribute<FText>(), InsertAfterAssetSection);
+		Section.AddEntry(ApplyButtonMenuEntry);
+		Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().RawDataViewer));
+		Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().OpenPrefabHelperObject));
 	}
 }
 
+FText FLGUIPrefabEditor::GetApplyButtonStatusTooltip()const
+{
+	return GetAnythingDirty() ? LOCTEXT("Apply_Tooltip", "Dirty, need to apply") : LOCTEXT("Apply_Tooltip", "Good to go");
+}
 FSlateIcon FLGUIPrefabEditor::GetApplyButtonStatusImage()const
 {
 	static const FName CompileStatusBackground("Blueprint.CompileStatus.Background");
