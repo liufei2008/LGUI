@@ -450,13 +450,17 @@ bool ULGUICanvas::CheckUIItem()const
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
 	if (!UIItem.IsValid())
 	{
-		FString ActorName =
+		if (this->IsRegistered())
+		{
+			FString ActorName =
 #if WITH_EDITOR
-			this->GetOwner()->GetActorLabel();
+				this->GetOwner()->GetActorLabel();
 #else
-			this->GetOwner()->GetName();
+				this->GetOwner()->GetName();
 #endif
-		UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent! Actor:%s"), *ActorName);
+			UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent! Actor:%s"), *ActorName);
+			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+		}
 		return false;
 	}
 	else
@@ -1531,6 +1535,14 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		}
 	};
 	bool bNeedToUpdateBounds = false;
+	if (UIDrawcallList.Num() == 0)
+	{
+		/** 
+		 * no drawcall, need to mark it dirty so the previous created SceneProxy will be deleted.
+		 * Solve the case: Set child-canvas inactive, but UIMesh of child-canvas did not clear scene-proxy, and the scene-proxy still contains reference of parent-scene-proxy.
+		 */
+		UIMesh->MarkRenderStateDirty();
+	}
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -2040,7 +2052,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 	if (bNeedToVerifyMaterials)
 	{
 		bNeedToVerifyMaterials = false;
-		UIMesh->VarifyMaterials();
+		UIMesh->VerifyMaterials();
 	}
 }
 

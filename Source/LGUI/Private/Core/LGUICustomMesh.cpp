@@ -21,7 +21,7 @@ bool ULGUICustomMesh::GetHitUV(const UUIBatchMeshRenderable* InRenderable, const
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		SCOPE_CYCLE_COUNTER(STAT_LGUICustomMesh_GetHitUV);
-		ReceiveGetHitUV(InRenderable, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
+		return ReceiveGetHitUV(InRenderable, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
 	}
 	return false;
 }

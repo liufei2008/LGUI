@@ -10,6 +10,10 @@ class UIGeometry;
 class ULGUICanvas;
 class UUIBatchMeshRenderable;
 
+/**
+ * UI mesh generator.
+ * This class only hold the method of generating mesh, the actural mesh data is stored inside outer class (UIBatchMeshRenderable) which hold this instance.
+ */
 UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULGUICustomMesh : public ULGUIGeometryHelper
 {
@@ -25,7 +29,7 @@ public:
 	 */
 	virtual void OnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/**
-	 * Get uv value on raycast hit point
+	 * Get uv value on raycast hit point. Normally just use "GetHitUVbyFaceIndex".
 	 * @param InRenderable The UI element which will use this mesh.
 	 * @param InHitFaceIndex Hit point face id on the this mesh.
 	 * @param InHitPoint Hit point.
@@ -47,7 +51,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateMesh", AdvancedDisplay = 1))
 	void ReceiveOnFillMesh(UUIBatchMeshRenderable* InRenderable, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/**
-	 * Get uv value on raycast hit point
+	 * Get uv value on raycast hit point. Normally just use "GetHitUVbyFaceIndex".
 	 * @param InRenderable The UI element which will use this mesh.
 	 * @param InHitFaceIndex Hit point face id on the this mesh.
 	 * @param InHitPoint Hit point.

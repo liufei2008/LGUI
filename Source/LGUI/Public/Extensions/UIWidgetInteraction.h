@@ -8,22 +8,22 @@
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
-#include "LGUIWidgetInteraction.generated.h"
+#include "UIWidgetInteraction.generated.h"
 
-class ULGUIWidget;
-class ULGUIWidgetInteraction;
+class UUIWidget;
+class UUIWidgetInteraction;
 
 UCLASS()
-class LGUI_API ULGUIWidgetInteractionManager : public UObject
+class LGUI_API UUIWidgetInteractionManager : public UObject
 {
 	GENERATED_BODY()
 public:
 
-	static ULGUIWidgetInteractionManager* Instance;
+	static UUIWidgetInteractionManager* Instance;
 	struct FInteractionContainer
 	{
-		TArray<ULGUIWidgetInteraction*> AllInteractions;
-		ULGUIWidgetInteraction* CurrentInteraction = nullptr;
+		TArray<UUIWidgetInteraction*> AllInteractions;
+		UUIWidgetInteraction* CurrentInteraction = nullptr;
 	};
 	TMap<int, FInteractionContainer> MapVirtualUserIndexToInteraction;
 };
@@ -33,7 +33,7 @@ public:
  * This component should be placed on a actor which have a LGUIRenderTargetGeometrySource component.
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIWidgetInteraction : public ULGUILifeCycleBehaviour
+class LGUI_API UUIWidgetInteraction : public ULGUILifeCycleBehaviour
 	, public ILGUIPointerEnterExitInterface
 	, public ILGUIPointerDownUpInterface
 	, public ILGUIPointerScrollInterface
@@ -41,14 +41,14 @@ class LGUI_API ULGUIWidgetInteraction : public ULGUILifeCycleBehaviour
 	GENERATED_BODY()
 	
 public:	
-	ULGUIWidgetInteraction();
+	UUIWidgetInteraction();
 	
 protected:
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bAllowEventBubbleUp = false;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay)
-		ULGUIWidgetInteractionManager* Helper = nullptr;
+		UUIWidgetInteractionManager* Helper = nullptr;
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
@@ -212,7 +212,7 @@ protected:
 	void GetRelatedComponentsToIgnoreInAutomaticHitTesting(TArray<UPrimitiveComponent*>& IgnorePrimitives) const;
 
 	/** Returns true if the inteaction component can interact with the supplied widget component */
-	bool CanInteractWithComponent(ULGUIWidget* Component) const;
+	bool CanInteractWithComponent(UUIWidget* Component) const;
 
 protected:
 
@@ -239,7 +239,7 @@ protected:
 
 	/** The widget component we're currently hovering over. */
 	UPROPERTY(Transient)
-	TObjectPtr<ULGUIWidget> WidgetComponent;
+	TObjectPtr<UUIWidget> WidgetComponent;
 
 	/** Are we hovering over any interactive widgets. */
 	UPROPERTY(Transient)

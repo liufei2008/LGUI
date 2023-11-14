@@ -5,24 +5,24 @@
 #include "CoreMinimal.h"
 #include "LGUIComponentReference.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
-#include "Core/ActorComponent/UIBatchMeshRenderable.h"
+#include "Core/ActorComponent/UICustomMesh.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIRenderTargetInteraction.h"
-#include "LGUIRenderTarget.generated.h"
+#include "UIRenderTarget.generated.h"
 
 class ULGUICanvas;
 class ULGUICustomMesh;
 
 /**
- * LGUI Render Target provide a solution to display a LGUICanvas with RenderMode of RenderTarget, just like "Retainer Box", and interact it with LGUIRenderTargetInteraction component.
+ * LGUI Render Target provide a solution to display a LGUICanvas with RenderMode of RenderTarget, just like "Retainer Box", and interact it with UIRenderTargetInteraction component.
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent), hidecategories = (Object, Activation, "Components|Activation"))
-class LGUI_API ULGUIRenderTarget : public UUIBatchMeshRenderable, public ILGUIPrefabInterface, public ILGUIRenderTargetInteractionSourceInterface
+class LGUI_API UUIRenderTarget : public UUICustomMesh, public ILGUIPrefabInterface, public ILGUIRenderTargetInteractionSourceInterface
 {
 	GENERATED_BODY()
 	
 public:	
-	ULGUIRenderTarget(const FObjectInitializer& ObjectInitializer);
+	UUIRenderTarget(const FObjectInitializer& ObjectInitializer);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
@@ -33,9 +33,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FLGUIComponentReference TargetCanvas;
-	/** Use a mesh generator to create your own mesh instead of a simple rect */
-	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
-		TObjectPtr<ULGUICustomMesh> CustomMesh = nullptr;
 
 	mutable TWeakObjectPtr<class ULGUICanvas> TargetCanvasObject = nullptr;
 public:
@@ -43,43 +40,39 @@ public:
 	virtual void Awake_Implementation()override;
 	// End ILGUIPrefabInterface
 
-	// Begin ILGUIRenderTargetInteractionSourceInterface
+	// Begin IUIRenderTargetInteractionSourceInterface
 	virtual ULGUICanvas* GetTargetCanvas_Implementation()const override;
 	virtual bool PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)override;
-	// End ILGUIRenderTargetInteractionSourceInterface
+	// End IUIRenderTargetInteractionSourceInterface
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ULGUICanvas* GetCanvas()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-	ULGUICustomMesh* GetCustomMesh()const { return CustomMesh; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void SetCanvas(ULGUICanvas* Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-	void SetCustomMesh(ULGUICustomMesh* Value);
 private:
 };
 
 /**
- * LGUI Render Target provide a solution to display a LGUICanvas with RenderMode of RenderTarget, just like "Retainer Box", and interact it with LGUIRenderTargetInteraction component.
+ * LGUI Render Target provide a solution to display a LGUICanvas with RenderMode of RenderTarget, just like "Retainer Box", and interact it with UIRenderTargetInteraction component.
  */
 UCLASS(ClassGroup = LGUI)
-class LGUI_API ALGUIRenderTargetActor : public AUIBaseRenderableActor
+class LGUI_API AUIRenderTargetActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
-	ALGUIRenderTargetActor();
+	AUIRenderTargetActor();
 
-	virtual UUIItem* GetUIItem()const override { return LGUIRenderTarget; }
-	virtual class UUIBaseRenderable* GetUIRenderable()const override { return LGUIRenderTarget; }
+	virtual UUIItem* GetUIItem()const override { return UIRenderTarget; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIRenderTarget; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	ULGUIRenderTarget* Get2DLineRing()const { return LGUIRenderTarget; }
+	UUIRenderTarget* Get2DLineRing()const { return UIRenderTarget; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class ULGUIRenderTarget> LGUIRenderTarget;
+	TObjectPtr<class UUIRenderTarget> UIRenderTarget;
 
 };

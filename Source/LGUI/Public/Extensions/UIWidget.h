@@ -4,23 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
-#include "Core/ActorComponent/UIBatchMeshRenderable.h"
+#include "Core/ActorComponent/UICustomMesh.h"
 #include "Components/WidgetComponent.h"
 #include "Core/Actor/UIBaseActor.h"
-#include "LGUIWidget.generated.h"
+#include "UIWidget.generated.h"
 
 class ULGUICustomMesh;
 
 /**
- * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
+ * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by UIWidgetInteraction component.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API ULGUIWidget : public UUIBatchMeshRenderable, public ILGUIPrefabInterface
+class LGUI_API UUIWidget : public UUICustomMesh, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 	
 public:	
-	ULGUIWidget(const FObjectInitializer& ObjectInitializer);
+	UUIWidget(const FObjectInitializer& ObjectInitializer);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
@@ -194,12 +194,6 @@ public:
 	/** Hook to allow this component modify the local position of the widget after it has been projected from world space to screen space. */
 	virtual FVector2D ModifyProjectedLocalPosition(const FGeometry& ViewportGeometry, const FVector2D& LocalPosition) { return LocalPosition; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-	ULGUICustomMesh* GetCustomMesh()const { return CustomMesh; }
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-	void SetCustomMesh(ULGUICustomMesh* Value);
-
 protected:
 	void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld);
 
@@ -220,10 +214,6 @@ protected:
 	/** The class of User Widget to create and display an instance of */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 	TSubclassOf<UUserWidget> WidgetClass;
-
-	/** Use a mesh generator to create your own mesh instead of a simple rect */
-	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
-	TObjectPtr<ULGUICustomMesh> CustomMesh = nullptr;
 
 	/** Should we wait to be told to redraw to actually draw? */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -329,23 +319,23 @@ private:
 };
 
 /**
- * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by LGUIWidgetInteraction component.
+ * LGUI Widget can render a UMG widget as LGUI's element, and interact with it by UIWidgetInteraction component.
  */
 UCLASS(ClassGroup = LGUI)
-class LGUI_API ALGUIWidgetActor : public AUIBaseRenderableActor
+class LGUI_API AUIWidgetActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 
 public:
-	ALGUIWidgetActor();
+	AUIWidgetActor();
 
-	virtual UUIItem* GetUIItem()const override { return LGUIWidget; }
-	virtual class UUIBaseRenderable* GetUIRenderable()const override { return LGUIWidget; }
+	virtual UUIItem* GetUIItem()const override { return UIWidget; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIWidget; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		ULGUIWidget* GetLGUIWidget()const { return LGUIWidget; }
+		UUIWidget* GetUIWidget()const { return UIWidget; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<class ULGUIWidget> LGUIWidget;
+		TObjectPtr<class UUIWidget> UIWidget;
 
 };
 
