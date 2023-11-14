@@ -242,7 +242,7 @@ protected:
 	/**
 	 * Render to RenderTarget, if not specified then LGUI will create a new one.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", DuplicateTransient)
 		TObjectPtr<UTextureRenderTarget2D> renderTarget;
 	/**
 	 * How RenderTarget and LGUICanvas's size change depend on the other.

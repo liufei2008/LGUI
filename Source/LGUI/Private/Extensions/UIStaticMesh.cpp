@@ -16,17 +16,13 @@
 
 #define LOCTEXT_NAMESPACE "UIStaticMesh"
 
-static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray<FLGUIStaticMeshVertex>& OutVerts, TArray<uint32>& OutIndexes)
+static void StaticMeshToLGUIMeshRenderData(const UStaticMesh* DataSource, TArray<FLGUIStaticMeshVertex>& OutVerts, TArray<uint32>& OutIndexes)
 {
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
-	const FStaticMeshLODResources& LOD = DataSource.RenderData->LODResources[0];
-#else
-	const FStaticMeshLODResources& LOD = DataSource.GetRenderData()->LODResources[0];
-#endif
+	const FStaticMeshLODResources& LOD = DataSource->GetRenderData()->LODResources[0];
 	const int32 NumSections = LOD.Sections.Num();
 	if (NumSections > 1)
 	{
-		auto WarningText = FText::Format(LOCTEXT("StaticMeshHasMultipleSections", "StaticMesh {0} has {1} sections. UIStaticMesh expects a static mesh with 1 section."), FText::FromString(DataSource.GetName()), NumSections);
+		auto WarningText = FText::Format(LOCTEXT("StaticMeshHasMultipleSections", "StaticMesh {0} has {1} sections. UIStaticMesh expects a static mesh with 1 section."), FText::FromString(DataSource->GetName()), NumSections);
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(WarningText, 10);
 #endif
@@ -44,7 +40,7 @@ static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray
 		const int32 TexCoordsPerVertex = LOD.GetNumTexCoords();
 		if (TexCoordsPerVertex > MAX_SUPPORTED_UV_SETS)
 		{
-			auto WarningText = FText::Format(LOCTEXT("StaticMeshHasTooManyUVSets", "StaticMesh {0} has {1} UV sets; LGUI vertex data supports at most {2}."), FText::FromString(DataSource.GetName()), TexCoordsPerVertex, MAX_SUPPORTED_UV_SETS);
+			auto WarningText = FText::Format(LOCTEXT("StaticMeshHasTooManyUVSets", "StaticMesh {0} has {1} UV sets; LGUI vertex data supports at most {2}."), FText::FromString(DataSource->GetName()), TexCoordsPerVertex, MAX_SUPPORTED_UV_SETS);
 #if WITH_EDITOR
 			LGUIUtils::EditorNotification(WarningText, 10);
 #endif
@@ -139,7 +135,7 @@ void ULGUIStaticMeshCacheData::EnsureValidData()
 #if WITH_EDITORONLY_DATA
 	if (IsValid(MeshAsset))
 	{
-		InitFromStaticMesh(*MeshAsset);
+		InitFromStaticMesh(MeshAsset);
 	}
 #endif
 }
@@ -148,7 +144,6 @@ void ULGUIStaticMeshCacheData::EnsureValidData()
 void ULGUIStaticMeshCacheData::PreSave(FObjectPreSaveContext SaveContext)
 {
 	Super::PreSave(SaveContext);
-	EnsureValidData();
 }
 #if WITH_EDITOR
 void ULGUIStaticMeshCacheData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -173,15 +168,15 @@ void ULGUIStaticMeshCacheData::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	}
 }
 
-void ULGUIStaticMeshCacheData::InitFromStaticMesh(const UStaticMesh& InSourceMesh)
+void ULGUIStaticMeshCacheData::InitFromStaticMesh(const UStaticMesh* InSourceMesh)
 {
-	if (SourceMaterial != InSourceMesh.GetMaterial(0))
+	if (SourceMaterial != InSourceMesh->GetMaterial(0))
 	{
-		SourceMaterial = InSourceMesh.GetMaterial(0);
+		SourceMaterial = InSourceMesh->GetMaterial(0);
 		Material = SourceMaterial;
 	}
 
-	ensureMsgf(Material != nullptr, TEXT("ULGUIStaticMeshCacheData::InitFromStaticMesh() expected %s to have a material assigned."), *InSourceMesh.GetFullName());
+	ensureMsgf(Material != nullptr, TEXT("[%s].%d Expected %s to have a material assigned."), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *InSourceMesh->GetFullName());
 
 	StaticMeshToLGUIMeshRenderData(InSourceMesh, VertexData, IndexData);
 	OnMeshDataChange.Broadcast();
