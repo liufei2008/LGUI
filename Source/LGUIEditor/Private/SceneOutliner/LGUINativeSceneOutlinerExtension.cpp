@@ -17,6 +17,7 @@
 #include "EngineUtils.h"
 #include "Utils/LGUIUtils.h"
 #include "UObject/ObjectSaveContext.h"
+#include "Core/ActorComponent/UIItem.h"
 
 UE_DISABLE_OPTIMIZATION
 
@@ -306,6 +307,8 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 			for (TActorIterator<AActor> ActorItr(world); ActorItr; ++ActorItr)
 			{
 				if (!IsValid(*ActorItr))continue;
+				if (ActorItr->GetRootComponent() && Cast<UUIItem>(ActorItr->GetRootComponent()) != nullptr)//skip UI
+					continue;
 				if (storageActor->GetLevel() == (ActorItr->GetLevel()))
 				{
 					if (storageActor->TemporarilyHiddenActorArray.Contains((*ActorItr)))
