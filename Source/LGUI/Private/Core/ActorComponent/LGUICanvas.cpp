@@ -452,14 +452,10 @@ bool ULGUICanvas::CheckUIItem()const
 	{
 		if (this->IsRegistered())
 		{
-			FString ActorName =
-#if WITH_EDITOR
-				this->GetOwner()->GetActorLabel();
-#else
-				this->GetOwner()->GetName();
-#endif
-			UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent! Actor:%s"), *ActorName);
+			UE_LOG(LGUI, Warning, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent! %s"), *this->GetPathName());
+#if !UE_BUILD_SHIPPING
 			FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
+#endif
 		}
 		return false;
 	}
