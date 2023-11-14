@@ -166,9 +166,9 @@ ULGUICanvas* UUIRenderTarget::GetCanvas()const
 		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas must be a root canvas!"));
 		return nullptr;
 	}
-	if (Canvas->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Canvas->GetRenderTarget()))
+	if (Canvas->GetRenderMode() != ELGUIRenderMode::RenderTarget)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
+		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas's render mode must be RenderTarget!"));
 		return nullptr;
 	}
 	TargetCanvasObject = Canvas;
