@@ -777,7 +777,7 @@ void UUITextInputComponent::BackSpace()
 				RemoveCount = NextCharIndex - CharIndex;
 			}
 			Text.RemoveAt(CharIndex, RemoveCount);
-			UpdateAfterTextChange(false);
+			UpdateAfterTextChange(true);
 			PressCaretPositionIndex = CaretPositionIndex;
 		}
 	}
@@ -789,7 +789,7 @@ void UUITextInputComponent::BackSpace()
 		int32 TempCharIndex = CharIndexAtPressCaretPosition > CharIndexAtCaretPosition ? CharIndexAtCaretPosition : CharIndexAtPressCaretPosition;
 		Text.RemoveAt(TempCharIndex, FMath::Abs(CharIndexAtPressCaretPosition - CharIndexAtCaretPosition));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateAfterTextChange(false);
+		UpdateAfterTextChange(true);
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
@@ -809,7 +809,7 @@ void UUITextInputComponent::ForwardSpace()
 		if (CharIndex < Text.Len() && CharIndex + RemoveCount <= Text.Len())
 		{
 			Text.RemoveAt(CharIndex, RemoveCount);
-			UpdateAfterTextChange(false);
+			UpdateAfterTextChange(true);
 			PressCaretPositionIndex = CaretPositionIndex;
 		}
 	}
@@ -821,7 +821,7 @@ void UUITextInputComponent::ForwardSpace()
 		int32 TempCharIndex = CharIndexAtPressCaretPosition > CharIndexAtCaretPosition ? CharIndexAtCaretPosition : CharIndexAtPressCaretPosition;
 		Text.RemoveAt(TempCharIndex, FMath::Abs(CharIndexAtPressCaretPosition - CharIndexAtCaretPosition));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateAfterTextChange(false);
+		UpdateAfterTextChange(true);
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
