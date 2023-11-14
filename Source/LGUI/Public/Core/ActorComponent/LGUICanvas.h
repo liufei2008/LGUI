@@ -201,6 +201,7 @@ public:
 	bool IsRenderByLGUIRendererOrUERenderer()const;
 
 	/** Return UIItem component which this LGUICanvas attach to. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 	UUIItem* GetUIItem()const { return UIItem.Get(); }
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas()const { return ParentCanvas; }

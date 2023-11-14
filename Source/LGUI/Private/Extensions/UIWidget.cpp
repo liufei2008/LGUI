@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Extensions/LGUIWidget.h"
+#include "Extensions/UIWidget.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
@@ -14,24 +14,24 @@
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/LGUICustomMesh.h"
 
-#define LOCTEXT_NAMESPACE "LGUIWidget"
+#define LOCTEXT_NAMESPACE "UIWidget"
 
-ULGUIWidget::ULGUIWidget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIWidget::UUIWidget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	bTickInEditor = true;
 }
 
-void ULGUIWidget::OnBeforeCreateOrUpdateGeometry()
+void UUIWidget::OnBeforeCreateOrUpdateGeometry()
 {
 
 }
-UTexture* ULGUIWidget::GetTextureToCreateGeometry()
+UTexture* UUIWidget::GetTextureToCreateGeometry()
 {
 	return RenderTarget;
 }
-void ULGUIWidget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIWidget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (IsValid(CustomMesh))
 	{
@@ -50,7 +50,7 @@ void ULGUIWidget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bo
 
 
 
-void ULGUIWidget::BeginPlay()
+void UUIWidget::BeginPlay()
 {
 	Super::BeginPlay();
 	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
@@ -58,19 +58,19 @@ void ULGUIWidget::BeginPlay()
 		Awake_Implementation();
 	}
 }
-void ULGUIWidget::Awake_Implementation()
+void UUIWidget::Awake_Implementation()
 {
 	SetComponentTickEnabled(TickMode != ETickMode::Disabled);
 	InitWidget();
 }
-void ULGUIWidget::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UUIWidget::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
 	ReleaseResources();
 }
 
-void ULGUIWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+void UUIWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	// If the InLevel is null, it's a signal that the entire world is about to disappear, so
 	// go ahead and remove this widget from the viewport, it could be holding onto too many
@@ -81,7 +81,7 @@ void ULGUIWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 	}
 }
 
-void ULGUIWidget::OnRegister()
+void UUIWidget::OnRegister()
 {
 	Super::OnRegister();
 
@@ -107,7 +107,7 @@ void ULGUIWidget::OnRegister()
 #endif // !UE_SERVER
 }
 
-void ULGUIWidget::SetWindowFocusable(bool bInWindowFocusable)
+void UUIWidget::SetWindowFocusable(bool bInWindowFocusable)
 {
 	bWindowFocusable = bInWindowFocusable;
 	if (SlateWindow.IsValid())
@@ -116,7 +116,7 @@ void ULGUIWidget::SetWindowFocusable(bool bInWindowFocusable)
 	}
 };
 
-EVisibility ULGUIWidget::ConvertWindowVisibilityToVisibility(EWindowVisibility visibility)
+EVisibility UUIWidget::ConvertWindowVisibilityToVisibility(EWindowVisibility visibility)
 {
 	switch (visibility)
 	{
@@ -130,7 +130,7 @@ EVisibility ULGUIWidget::ConvertWindowVisibilityToVisibility(EWindowVisibility v
 	}
 }
 
-void ULGUIWidget::OnWidgetVisibilityChanged(ESlateVisibility InVisibility)
+void UUIWidget::OnWidgetVisibilityChanged(ESlateVisibility InVisibility)
 {
 	ensure(TickMode != ETickMode::Enabled);
 	ensure(Widget);
@@ -151,7 +151,7 @@ void ULGUIWidget::OnWidgetVisibilityChanged(ESlateVisibility InVisibility)
 	}
 }
 
-void ULGUIWidget::SetWindowVisibility(EWindowVisibility InVisibility)
+void UUIWidget::SetWindowVisibility(EWindowVisibility InVisibility)
 {
 	WindowVisibility = InVisibility;
 	if (SlateWindow.IsValid())
@@ -177,13 +177,13 @@ void ULGUIWidget::SetWindowVisibility(EWindowVisibility InVisibility)
 	}
 }
 
-void ULGUIWidget::SetTickMode(ETickMode InTickMode)
+void UUIWidget::SetTickMode(ETickMode InTickMode)
 {
 	TickMode = InTickMode;
 	SetComponentTickEnabled(InTickMode != ETickMode::Disabled);
 }
 
-bool ULGUIWidget::IsWidgetVisible() const
+bool UUIWidget::IsWidgetVisible() const
 {
 	//  If we are in World Space, if the component or the SlateWindow is not visible the Widget is not visible.
 	if ((!IsVisible() || !SlateWindow.IsValid() || !SlateWindow->GetVisibility().IsVisible()))
@@ -201,16 +201,7 @@ bool ULGUIWidget::IsWidgetVisible() const
 	return SlateWidget.IsValid() && SlateWidget->GetVisibility().IsVisible();
 }
 
-void ULGUIWidget::SetCustomMesh(ULGUICustomMesh* Value)
-{
-	if (CustomMesh != Value)
-	{
-		CustomMesh = Value;
-		MarkAllDirty();
-	}
-}
-
-void ULGUIWidget::OnUnregister()
+void UUIWidget::OnUnregister()
 {
 #if !UE_SERVER
 	FWorldDelegates::LevelRemovedFromWorld.RemoveAll(this);
@@ -226,14 +217,14 @@ void ULGUIWidget::OnUnregister()
 	Super::OnUnregister();
 }
 
-void ULGUIWidget::DestroyComponent(bool bPromoteChildren/*= false*/)
+void UUIWidget::DestroyComponent(bool bPromoteChildren/*= false*/)
 {
 	Super::DestroyComponent(bPromoteChildren);
 
 	ReleaseResources();
 }
 
-void ULGUIWidget::ReleaseResources()
+void UUIWidget::ReleaseResources()
 {
 	if (Widget)
 	{
@@ -259,7 +250,7 @@ void ULGUIWidget::ReleaseResources()
 	UnregisterWindow();
 }
 
-void ULGUIWidget::RegisterWindow()
+void UUIWidget::RegisterWindow()
 {
 	if (SlateWindow.IsValid())
 	{
@@ -287,7 +278,7 @@ void ULGUIWidget::RegisterWindow()
 	}
 }
 
-void ULGUIWidget::UnregisterWindow()
+void UUIWidget::UnregisterWindow()
 {
 	if (SlateWindow.IsValid())
 	{
@@ -300,7 +291,7 @@ void ULGUIWidget::UnregisterWindow()
 	}
 }
 
-void ULGUIWidget::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UUIWidget::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -328,7 +319,7 @@ void ULGUIWidget::TickComponent(float DeltaTime, enum ELevelTick TickType, FActo
 			SetComponentTickEnabled(false);
 			if (!bOnWidgetVisibilityChangedRegistered)
 			{
-				Widget->OnNativeVisibilityChanged.AddUObject(this, &ULGUIWidget::OnWidgetVisibilityChanged);
+				Widget->OnNativeVisibilityChanged.AddUObject(this, &UUIWidget::OnWidgetVisibilityChanged);
 				bOnWidgetVisibilityChangedRegistered = true;
 			}
 		}
@@ -359,12 +350,12 @@ void ULGUIWidget::TickComponent(float DeltaTime, enum ELevelTick TickType, FActo
 #endif // !UE_SERVER
 }
 
-bool ULGUIWidget::ShouldReenableComponentTickWhenWidgetBecomesVisible() const
+bool UUIWidget::ShouldReenableComponentTickWhenWidgetBecomesVisible() const
 {
 	return (TickMode != ETickMode::Disabled) || bRedrawRequested;
 }
 
-bool ULGUIWidget::ShouldDrawWidget() const
+bool UUIWidget::ShouldDrawWidget() const
 {
 	const float RenderTimeThreshold = .5f;
 	if (GetIsUIActiveInHierarchy() && RenderCanvas.IsValid())
@@ -383,7 +374,7 @@ bool ULGUIWidget::ShouldDrawWidget() const
 	return false;
 }
 
-void ULGUIWidget::DrawWidgetToRenderTarget(float DeltaTime)
+void UUIWidget::DrawWidgetToRenderTarget(float DeltaTime)
 {
 	if (GUsingNullRHI)
 	{
@@ -442,14 +433,14 @@ void ULGUIWidget::DrawWidgetToRenderTarget(float DeltaTime)
 	}
 }
 
-double ULGUIWidget::GetCurrentTime() const
+double UUIWidget::GetCurrentTime() const
 {
 	return (TimingPolicy == EWidgetTimingPolicy::RealTime) ? FApp::GetCurrentTime() : static_cast<double>(GetWorld()->GetTimeSeconds());
 }
 
 #if WITH_EDITOR
 
-bool ULGUIWidget::CanEditChange(const FProperty* InProperty) const
+bool UUIWidget::CanEditChange(const FProperty* InProperty) const
 {
 	if (InProperty)
 	{
@@ -459,7 +450,7 @@ bool ULGUIWidget::CanEditChange(const FProperty* InProperty) const
 	return Super::CanEditChange(InProperty);
 }
 
-void ULGUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	FProperty* Property = PropertyChangedEvent.MemberProperty;
 
@@ -485,7 +476,7 @@ void ULGUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 		{
 			SetWindowVisibility(WindowVisibility);
 		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIWidget, CustomMesh))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIWidget, CustomMesh))
 		{
 			if (IsValid(CustomMesh))//custom mesh use geometry raycast to get precise uv
 			{
@@ -499,7 +490,7 @@ void ULGUIWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 
 #endif
 
-void ULGUIWidget::InitWidget()
+void UUIWidget::InitWidget()
 {
 	if (IsRunningDedicatedServer())
 	{
@@ -532,17 +523,17 @@ void ULGUIWidget::InitWidget()
 	}
 }
 
-void ULGUIWidget::SetManuallyRedraw(bool bUseManualRedraw)
+void UUIWidget::SetManuallyRedraw(bool bUseManualRedraw)
 {
 	bManuallyRedraw = bUseManualRedraw;
 }
 
-UUserWidget* ULGUIWidget::GetWidget() const
+UUserWidget* UUIWidget::GetWidget() const
 {
 	return Widget;
 }
 
-void ULGUIWidget::SetWidget(UUserWidget* InWidget)
+void UUIWidget::SetWidget(UUserWidget* InWidget)
 {
 	if (InWidget != nullptr)
 	{
@@ -554,7 +545,7 @@ void ULGUIWidget::SetWidget(UUserWidget* InWidget)
 	UpdateWidget();
 }
 
-void ULGUIWidget::SetSlateWidget(const TSharedPtr<SWidget>& InSlateWidget)
+void UUIWidget::SetSlateWidget(const TSharedPtr<SWidget>& InSlateWidget)
 {
 	if (Widget != nullptr)
 	{
@@ -571,7 +562,7 @@ void ULGUIWidget::SetSlateWidget(const TSharedPtr<SWidget>& InSlateWidget)
 	UpdateWidget();
 }
 
-void ULGUIWidget::UpdateWidget()
+void UUIWidget::UpdateWidget()
 {
 	// Don't do any work if Slate is not initialized
 	if (FSlateApplication::IsInitialized() && IsValid(this))
@@ -640,7 +631,7 @@ void ULGUIWidget::UpdateWidget()
 	}
 }
 
-void ULGUIWidget::UpdateRenderTarget(FIntPoint DesiredRenderTargetSize)
+void UUIWidget::UpdateRenderTarget(FIntPoint DesiredRenderTargetSize)
 {
 	bool bClearColorChanged = false;
 
@@ -675,7 +666,7 @@ void ULGUIWidget::UpdateRenderTarget(FIntPoint DesiredRenderTargetSize)
 	}
 }
 
-void ULGUIWidget::GetLocalHitLocation(int32 InHitFaceIndex, const FVector& InWorldHitLocation, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutLocalWidgetHitLocation) const
+void UUIWidget::GetLocalHitLocation(int32 InHitFaceIndex, const FVector& InWorldHitLocation, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutLocalWidgetHitLocation) const
 {
 	if (IsValid(CustomMesh))
 	{
@@ -699,23 +690,23 @@ void ULGUIWidget::GetLocalHitLocation(int32 InHitFaceIndex, const FVector& InWor
 	}
 }
 
-UUserWidget* ULGUIWidget::GetUserWidgetObject() const
+UUserWidget* UUIWidget::GetUserWidgetObject() const
 {
 	return Widget;
 }
 
-UTextureRenderTarget2D* ULGUIWidget::GetRenderTarget() const
+UTextureRenderTarget2D* UUIWidget::GetRenderTarget() const
 {
 	return RenderTarget;
 }
 
-const TSharedPtr<SWidget>& ULGUIWidget::GetSlateWidget() const
+const TSharedPtr<SWidget>& UUIWidget::GetSlateWidget() const
 {
 	return SlateWidget;
 }
 
 
-TArray<FWidgetAndPointer> ULGUIWidget::GetHitWidgetPath(FVector2D WidgetSpaceHitCoordinate, bool bIgnoreEnabledStatus, float CursorRadius /*= 0.0f*/)
+TArray<FWidgetAndPointer> UUIWidget::GetHitWidgetPath(FVector2D WidgetSpaceHitCoordinate, bool bIgnoreEnabledStatus, float CursorRadius /*= 0.0f*/)
 {
 	const FVector2D& LocalHitLocation = WidgetSpaceHitCoordinate;
 	const FVirtualPointerPosition VirtualMouseCoordinate(LocalHitLocation, LastLocalHitLocation);
@@ -739,17 +730,17 @@ TArray<FWidgetAndPointer> ULGUIWidget::GetHitWidgetPath(FVector2D WidgetSpaceHit
 	return ArrangedWidgets;
 }
 
-TSharedPtr<SWindow> ULGUIWidget::GetSlateWindow() const
+TSharedPtr<SWindow> UUIWidget::GetSlateWindow() const
 {
 	return SlateWindow;
 }
 
-FVector2D ULGUIWidget::GetCurrentDrawSize() const
+FVector2D UUIWidget::GetCurrentDrawSize() const
 {
 	return CurrentDrawSize;
 }
 
-void ULGUIWidget::RequestRenderUpdate()
+void UUIWidget::RequestRenderUpdate()
 {
 	bRedrawRequested = true;
 	if (TickMode == ETickMode::Disabled)
@@ -758,7 +749,7 @@ void ULGUIWidget::RequestRenderUpdate()
 	}
 }
 
-void ULGUIWidget::SetBackgroundColor(const FLinearColor NewBackgroundColor)
+void UUIWidget::SetBackgroundColor(const FLinearColor NewBackgroundColor)
 {
 	if (NewBackgroundColor != this->BackgroundColor)
 	{
@@ -767,12 +758,12 @@ void ULGUIWidget::SetBackgroundColor(const FLinearColor NewBackgroundColor)
 	}
 }
 
-TSharedPtr< SWindow > ULGUIWidget::GetVirtualWindow() const
+TSharedPtr< SWindow > UUIWidget::GetVirtualWindow() const
 {
 	return StaticCastSharedPtr<SWindow>(SlateWindow);
 }
 
-void ULGUIWidget::SetWidgetClass(TSubclassOf<UUserWidget> InWidgetClass)
+void UUIWidget::SetWidgetClass(TSubclassOf<UUserWidget> InWidgetClass)
 {
 	if (WidgetClass != InWidgetClass)
 	{
@@ -796,12 +787,12 @@ void ULGUIWidget::SetWidgetClass(TSubclassOf<UUserWidget> InWidgetClass)
 	}
 }
 
-ALGUIWidgetActor::ALGUIWidgetActor()
+AUIWidgetActor::AUIWidgetActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	LGUIWidget = CreateDefaultSubobject<ULGUIWidget>(TEXT("LGUIWidget"));
-	RootComponent = LGUIWidget;
+	UIWidget = CreateDefaultSubobject<UUIWidget>(TEXT("UIWidget"));
+	RootComponent = UIWidget;
 }
 
 #undef LOCTEXT_NAMESPACE

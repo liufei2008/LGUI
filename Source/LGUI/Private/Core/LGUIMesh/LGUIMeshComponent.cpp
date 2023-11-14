@@ -1102,7 +1102,7 @@ void ULGUIMeshComponent::SetMeshSectionMaterial(TSharedPtr<FLGUIRenderSection> I
 	((FLGUIMeshSection*)InRenderSection.Get())->material = InMaterial;
 }
 
-void ULGUIMeshComponent::VarifyMaterials()
+void ULGUIMeshComponent::VerifyMaterials()
 {
 	this->EmptyOverrideMaterials();
 

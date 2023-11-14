@@ -689,7 +689,7 @@ void LGUIEditorTools::CreateEmptyActor()
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(LOCTEXT("CreateUIElement_Transaction", "LGUI Create UI Element"));
+	GEditor->BeginTransaction(LOCTEXT("CreateEmptyActor_Transaction", "LGUI create empty actor"));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
