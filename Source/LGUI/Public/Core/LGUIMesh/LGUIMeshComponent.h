@@ -104,7 +104,7 @@ public:
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 
-	void VarifyMaterials();
+	void VerifyMaterials();
 
 	//~ Begin UPrimitiveComponent Interface.
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;

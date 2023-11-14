@@ -30,7 +30,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<UTexture> texture = nullptr;
 
-	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual UTexture* GetTextureToCreateGeometry()override;
 
 	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const override;

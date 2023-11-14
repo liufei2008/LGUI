@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Extensions/LGUIRenderTarget.h"
+#include "Extensions/UIRenderTarget.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -10,9 +10,9 @@
 #include "Core/LGUISpriteInfo.h"
 #include "Core/LGUICustomMesh.h"
 
-#define LOCTEXT_NAMESPACE "LGUIRenderTarget"
+#define LOCTEXT_NAMESPACE "UIRenderTarget"
 
-ULGUIRenderTarget::ULGUIRenderTarget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIRenderTarget::UUIRenderTarget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
@@ -20,11 +20,11 @@ ULGUIRenderTarget::ULGUIRenderTarget(const FObjectInitializer& ObjectInitializer
 	TargetCanvas = FLGUIComponentReference(ULGUICanvas::StaticClass());
 }
 
-void ULGUIRenderTarget::OnBeforeCreateOrUpdateGeometry()
+void UUIRenderTarget::OnBeforeCreateOrUpdateGeometry()
 {
 
 }
-UTexture* ULGUIRenderTarget::GetTextureToCreateGeometry()
+UTexture* UUIRenderTarget::GetTextureToCreateGeometry()
 {
 	UTexture* Result = nullptr;
 	if (auto Canvas = GetCanvas())
@@ -41,7 +41,7 @@ UTexture* ULGUIRenderTarget::GetTextureToCreateGeometry()
 #endif
 	return Result;
 }
-void ULGUIRenderTarget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIRenderTarget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (IsValid(CustomMesh))
 	{
@@ -58,7 +58,7 @@ void ULGUIRenderTarget::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 	}
 }
 
-void ULGUIRenderTarget::BeginPlay()
+void UUIRenderTarget::BeginPlay()
 {
 	Super::BeginPlay();
 	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
@@ -66,12 +66,12 @@ void ULGUIRenderTarget::BeginPlay()
 		Awake_Implementation();
 	}
 }
-void ULGUIRenderTarget::EndPlay(EEndPlayReason::Type Reason)
+void UUIRenderTarget::EndPlay(EEndPlayReason::Type Reason)
 {
 	Super::EndPlay(Reason);
 }
 
-void ULGUIRenderTarget::Awake_Implementation()
+void UUIRenderTarget::Awake_Implementation()
 {
 	if (auto Canvas = GetCanvas())
 	{
@@ -81,11 +81,11 @@ void ULGUIRenderTarget::Awake_Implementation()
 			});
 	}
 }
-ULGUICanvas* ULGUIRenderTarget::GetTargetCanvas_Implementation()const
+ULGUICanvas* UUIRenderTarget::GetTargetCanvas_Implementation()const
 {
 	return GetCanvas();
 }
-bool ULGUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)
+bool UUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)
 {
 	if (IsValid(CustomMesh))
 	{
@@ -109,7 +109,7 @@ bool ULGUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceIn
 }
 
 #if WITH_EDITOR
-bool ULGUIRenderTarget::CanEditChange(const FProperty* InProperty) const
+bool UUIRenderTarget::CanEditChange(const FProperty* InProperty) const
 {
 	if (InProperty)
 	{
@@ -119,21 +119,21 @@ bool ULGUIRenderTarget::CanEditChange(const FProperty* InProperty) const
 
 	return Super::CanEditChange(InProperty);
 }
-void ULGUIRenderTarget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIRenderTarget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	if (auto Property = PropertyChangedEvent.MemberProperty)
 	{
 		auto PropertyName = Property->GetFName();
-		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ULGUIRenderTarget, TargetCanvas))
+		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(UUIRenderTarget, TargetCanvas))
 		{
 			if (!TargetCanvas.IsValidComponentReference())
 			{
 				TargetCanvasObject = nullptr;
 			}
 		}
-		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIRenderTarget, CustomMesh))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRenderTarget, CustomMesh))
 		{
 			if (IsValid(CustomMesh))//custom mesh use geometry raycast to get precise uv
 			{
@@ -144,7 +144,7 @@ void ULGUIRenderTarget::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 #endif
 
-ULGUICanvas* ULGUIRenderTarget::GetCanvas()const
+ULGUICanvas* UUIRenderTarget::GetCanvas()const
 {
 	if (TargetCanvasObject.IsValid())
 	{
@@ -152,30 +152,30 @@ ULGUICanvas* ULGUIRenderTarget::GetCanvas()const
 	}
 	if (!TargetCanvas.IsValidComponentReference())
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTarget::GetCanvas]TargetCanvas not valid!"));
+		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas not valid!"));
 		return nullptr;
 	}
 	auto Canvas = TargetCanvas.GetComponent<ULGUICanvas>();
 	if (Canvas == nullptr)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTarget::GetCanvas]TargetCanvas not valid!"));
+		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas not valid!"));
 		return nullptr;
 	}
 	if (!Canvas->IsRootCanvas())
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTarget::GetCanvas]TargetCanvas must be a root canvas!"));
+		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas must be a root canvas!"));
 		return nullptr;
 	}
 	if (Canvas->GetRenderMode() != ELGUIRenderMode::RenderTarget || !IsValid(Canvas->GetRenderTarget()))
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ULGUIRenderTarget::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
+		UE_LOG(LGUI, Warning, TEXT("[UUIRenderTarget::GetCanvas]TargetCanvas's render mode must be RenderTarget, and must have a valid RenderTarget2D"));
 		return nullptr;
 	}
 	TargetCanvasObject = Canvas;
 	return Canvas;
 }
 
-void ULGUIRenderTarget::SetCanvas(ULGUICanvas* Value)
+void UUIRenderTarget::SetCanvas(ULGUICanvas* Value)
 {
 	if (TargetCanvasObject.Get() != Value)
 	{
@@ -183,22 +183,12 @@ void ULGUIRenderTarget::SetCanvas(ULGUICanvas* Value)
 	}
 }
 
-void ULGUIRenderTarget::SetCustomMesh(ULGUICustomMesh* Value)
-{
-	if (CustomMesh != Value)
-	{
-		CustomMesh = Value;
-		MarkAllDirty();
-	}
-}
-
-
-ALGUIRenderTargetActor::ALGUIRenderTargetActor()
+AUIRenderTargetActor::AUIRenderTargetActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	LGUIRenderTarget = CreateDefaultSubobject<ULGUIRenderTarget>(TEXT("LGUIRenderTarget"));
-	RootComponent = LGUIRenderTarget;
+	UIRenderTarget = CreateDefaultSubobject<UUIRenderTarget>(TEXT("UIRenderTarget"));
+	RootComponent = UIRenderTarget;
 }
 
 #undef LOCTEXT_NAMESPACE

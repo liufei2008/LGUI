@@ -20,7 +20,7 @@ enum class EUIPostProcessMaskTextureType :uint8
 
 /** 
  * UI element that can do post processing effect on screen space.
- * Only valid on ScreenSpaceUI.
+ * Only valid on LGUIRenderer (ScreenSpaceUI or WorldSpace-LGUIRenderer).
  */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIPostProcessRenderable : public UUIBaseRenderable

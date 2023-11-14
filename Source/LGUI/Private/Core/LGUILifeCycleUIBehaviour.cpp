@@ -44,7 +44,7 @@ bool ULGUILifeCycleUIBehaviour::CheckRootUIComponent() const
 		RootUIComp = Cast<UUIItem>(Owner->GetRootComponent());
 		if(RootUIComp.IsValid())return true;
 	}
-	UE_LOG(LGUI, Error, TEXT("[%s].%d LGUILifeCycleUIBehaviour must attach to a UI actor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+	UE_LOG(LGUI, Warning, TEXT("[%s].%d LGUILifeCycleUIBehaviour must attach to a UI actor!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	return false;
 }
 

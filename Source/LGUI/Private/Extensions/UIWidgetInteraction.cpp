@@ -1,29 +1,29 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Extensions/LGUIWidgetInteraction.h"
+#include "Extensions/UIWidgetInteraction.h"
 #include "LGUI.h"
-#include "Extensions/LGUIWidget.h"
+#include "Extensions/UIWidget.h"
 #include "Event/LGUIEventSystem.h"
 #include "Framework/Application/SlateUser.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Event/LGUIBaseRaycaster.h"
 
-#define LOCTEXT_NAMESPACE "LGUIWidgetInteraction"
+#define LOCTEXT_NAMESPACE "UIWidgetInteraction"
 
-ULGUIWidgetInteractionManager* ULGUIWidgetInteractionManager::Instance = nullptr;
+UUIWidgetInteractionManager* UUIWidgetInteractionManager::Instance = nullptr;
 
-ULGUIWidgetInteraction::ULGUIWidgetInteraction()
+UUIWidgetInteraction::UUIWidgetInteraction()
 {
 	
 }
 
-bool ULGUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
+bool UUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (CurrentPointerEventData == nullptr)
 	{
 		CurrentPointerEventData = eventData;
 
-		auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+		auto& Interactions = UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
 		if (Interactions.CurrentInteraction == nullptr)
 		{
 			Interactions.CurrentInteraction = this;
@@ -32,13 +32,13 @@ bool ULGUIWidgetInteraction::OnPointerEnter_Implementation(ULGUIPointerEventData
 	}
 	return bAllowEventBubbleUp;
 }
-bool ULGUIWidgetInteraction::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
+bool UUIWidgetInteraction::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (CurrentPointerEventData == eventData)
 	{
 		CurrentPointerEventData = nullptr;
 
-		auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+		auto& Interactions = UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
 		if (Interactions.CurrentInteraction == this)
 		{
 			SimulatePointerMovement();//pointer exit;
@@ -48,7 +48,7 @@ bool ULGUIWidgetInteraction::OnPointerExit_Implementation(ULGUIPointerEventData*
 	}
 	return bAllowEventBubbleUp;
 }
-bool ULGUIWidgetInteraction::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
+bool UUIWidgetInteraction::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	FKey PressKey;
 	switch (eventData->mouseButtonType)
@@ -69,7 +69,7 @@ bool ULGUIWidgetInteraction::OnPointerDown_Implementation(ULGUIPointerEventData*
 	}
 	return bAllowEventBubbleUp;
 }
-bool ULGUIWidgetInteraction::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
+bool UUIWidgetInteraction::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	FKey ReleaseKey;
 	switch (eventData->mouseButtonType)
@@ -90,7 +90,7 @@ bool ULGUIWidgetInteraction::OnPointerUp_Implementation(ULGUIPointerEventData* e
 	}
 	return bAllowEventBubbleUp;
 }
-bool ULGUIWidgetInteraction::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
+bool UUIWidgetInteraction::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
 	auto inAxisValue = eventData->scrollAxisValue;
 	ScrollWheel(inAxisValue.Y);
@@ -101,31 +101,31 @@ bool ULGUIWidgetInteraction::OnPointerScroll_Implementation(ULGUIPointerEventDat
 
 
 
-void ULGUIWidgetInteraction::Awake()
+void UUIWidgetInteraction::Awake()
 {
 	Super::Awake();
 
-	if (ULGUIWidgetInteractionManager::Instance == nullptr)
+	if (UUIWidgetInteractionManager::Instance == nullptr)
 	{
-		ULGUIWidgetInteractionManager::Instance = NewObject<ULGUIWidgetInteractionManager>();
-		ULGUIWidgetInteractionManager::Instance->AddToRoot();
+		UUIWidgetInteractionManager::Instance = NewObject<UUIWidgetInteractionManager>();
+		UUIWidgetInteractionManager::Instance->AddToRoot();
 	}
-	Helper = ULGUIWidgetInteractionManager::Instance;
+	Helper = UUIWidgetInteractionManager::Instance;
 	// Only create another user in a real world. FindOrCreateVirtualUser changes focus
 	if (FSlateApplication::IsInitialized() && !GetWorld()->IsPreviewWorld())
 	{
 		if (!VirtualUser.IsValid())
 		{
 			VirtualUser = FSlateApplication::Get().FindOrCreateVirtualUser(VirtualUserIndex);
-			auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.FindOrAdd(VirtualUserIndex);
+			auto& Interactions = UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.FindOrAdd(VirtualUserIndex);
 			Interactions.AllInteractions.Add(this);
 		}
 	}
-	WidgetComponent = GetOwner()->FindComponentByClass<ULGUIWidget>();
+	WidgetComponent = GetOwner()->FindComponentByClass<UUIWidget>();
 	this->SetEnable(false);//disable update by default
 }
 
-void ULGUIWidgetInteraction::OnDestroy()
+void UUIWidgetInteraction::OnDestroy()
 {
 	Super::OnDestroy();
 
@@ -135,40 +135,40 @@ void ULGUIWidgetInteraction::OnDestroy()
 		{
 			FSlateApplication::Get().UnregisterUser(VirtualUser->GetUserIndex());
 			VirtualUser.Reset();
-			auto& Interactions = ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
+			auto& Interactions = UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction[VirtualUserIndex];
 			Interactions.AllInteractions.Remove(this);
 			if (Interactions.AllInteractions.Num() == 0)
 			{
-				ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Remove(VirtualUserIndex);
+				UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Remove(VirtualUserIndex);
 			}
 		}
 	}
 
-	if (ULGUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Num() == 0)
+	if (UUIWidgetInteractionManager::Instance->MapVirtualUserIndexToInteraction.Num() == 0)
 	{
-		ULGUIWidgetInteractionManager::Instance->ConditionalBeginDestroy();
-		ULGUIWidgetInteractionManager::Instance = nullptr;
+		UUIWidgetInteractionManager::Instance->ConditionalBeginDestroy();
+		UUIWidgetInteractionManager::Instance = nullptr;
 	}
 }
 
-void ULGUIWidgetInteraction::Update(float DeltaTime)
+void UUIWidgetInteraction::Update(float DeltaTime)
 {
 	Super::Update(DeltaTime);
 	
 	SimulatePointerMovement();
 }
 
-bool ULGUIWidgetInteraction::CanSendInput()
+bool UUIWidgetInteraction::CanSendInput()
 {
 	return FSlateApplication::IsInitialized() && VirtualUser.IsValid() && WidgetComponent != nullptr;
 }
 
-void ULGUIWidgetInteraction::SetCustomHitResult(const FHitResult& HitResult)
+void UUIWidgetInteraction::SetCustomHitResult(const FHitResult& HitResult)
 {
 	CustomHitResult = HitResult;
 }
 
-void ULGUIWidgetInteraction::SetFocus(UWidget* FocusWidget)
+void UUIWidgetInteraction::SetFocus(UWidget* FocusWidget)
 {
 	if (VirtualUser.IsValid())
 	{
@@ -176,7 +176,7 @@ void ULGUIWidgetInteraction::SetFocus(UWidget* FocusWidget)
 	}
 }
 
-void ULGUIWidgetInteraction::GetRelatedComponentsToIgnoreInAutomaticHitTesting(TArray<UPrimitiveComponent*>& IgnorePrimitives) const
+void UUIWidgetInteraction::GetRelatedComponentsToIgnoreInAutomaticHitTesting(TArray<UPrimitiveComponent*>& IgnorePrimitives) const
 {
 	TArray<USceneComponent*> SceneChildren;
 	if (AActor* Owner = GetOwner())
@@ -194,7 +194,7 @@ void ULGUIWidgetInteraction::GetRelatedComponentsToIgnoreInAutomaticHitTesting(T
 		if (UPrimitiveComponent* PrimtiveComponet = Cast<UPrimitiveComponent>(SceneComponent))
 		{
 			// Don't ignore widget components that are siblings.
-			if (SceneComponent->IsA<ULGUIWidget>())
+			if (SceneComponent->IsA<UUIWidget>())
 			{
 				continue;
 			}
@@ -204,7 +204,7 @@ void ULGUIWidgetInteraction::GetRelatedComponentsToIgnoreInAutomaticHitTesting(T
 	}
 }
 
-bool ULGUIWidgetInteraction::CanInteractWithComponent(ULGUIWidget* Component) const
+bool UUIWidgetInteraction::CanInteractWithComponent(UUIWidget* Component) const
 {
 	bool bCanInteract = false;
 
@@ -216,7 +216,7 @@ bool ULGUIWidgetInteraction::CanInteractWithComponent(ULGUIWidget* Component) co
 	return bCanInteract;
 }
 
-FWidgetPath ULGUIWidgetInteraction::DetermineWidgetUnderPointer()
+FWidgetPath UUIWidgetInteraction::DetermineWidgetUnderPointer()
 {
 	FWidgetPath WidgetPathUnderPointer;
 
@@ -270,7 +270,7 @@ FWidgetPath ULGUIWidgetInteraction::DetermineWidgetUnderPointer()
 	return WidgetPathUnderPointer;
 }
 
-void ULGUIWidgetInteraction::SimulatePointerMovement()
+void UUIWidgetInteraction::SimulatePointerMovement()
 {
 	if (!CanSendInput())
 	{
@@ -310,7 +310,7 @@ void ULGUIWidgetInteraction::SimulatePointerMovement()
 	}
 }
 
-void ULGUIWidgetInteraction::PressPointerKey(FKey Key)
+void UUIWidgetInteraction::PressPointerKey(FKey Key)
 {
 	if (!CanSendInput())
 	{
@@ -367,7 +367,7 @@ void ULGUIWidgetInteraction::PressPointerKey(FKey Key)
 	}
 }
 
-void ULGUIWidgetInteraction::ReleasePointerKey(FKey Key)
+void UUIWidgetInteraction::ReleasePointerKey(FKey Key)
 {
 	if (!CanSendInput())
 	{
@@ -414,7 +414,7 @@ void ULGUIWidgetInteraction::ReleasePointerKey(FKey Key)
 	}
 }
 
-bool ULGUIWidgetInteraction::PressKey(FKey Key, bool bRepeat)
+bool UUIWidgetInteraction::PressKey(FKey Key, bool bRepeat)
 {
 	if (!CanSendInput())
 	{
@@ -438,7 +438,7 @@ bool ULGUIWidgetInteraction::PressKey(FKey Key, bool bRepeat)
 	return bDownResult || bKeyCharResult;
 }
 
-bool ULGUIWidgetInteraction::ReleaseKey(FKey Key)
+bool UUIWidgetInteraction::ReleaseKey(FKey Key)
 {
 	if (!CanSendInput())
 	{
@@ -453,7 +453,7 @@ bool ULGUIWidgetInteraction::ReleaseKey(FKey Key)
 	return FSlateApplication::Get().ProcessKeyUpEvent(KeyEvent);
 }
 
-void ULGUIWidgetInteraction::GetKeyAndCharCodes(const FKey& Key, bool& bHasKeyCode, uint32& KeyCode, bool& bHasCharCode, uint32& CharCode)
+void UUIWidgetInteraction::GetKeyAndCharCodes(const FKey& Key, bool& bHasKeyCode, uint32& KeyCode, bool& bHasCharCode, uint32& CharCode)
 {
 	const uint32* KeyCodePtr;
 	const uint32* CharCodePtr;
@@ -487,7 +487,7 @@ void ULGUIWidgetInteraction::GetKeyAndCharCodes(const FKey& Key, bool& bHasKeyCo
 	}
 }
 
-bool ULGUIWidgetInteraction::PressAndReleaseKey(FKey Key)
+bool UUIWidgetInteraction::PressAndReleaseKey(FKey Key)
 {
 	const bool PressResult = PressKey(Key, false);
 	const bool ReleaseResult = ReleaseKey(Key);
@@ -495,7 +495,7 @@ bool ULGUIWidgetInteraction::PressAndReleaseKey(FKey Key)
 	return PressResult || ReleaseResult;
 }
 
-bool ULGUIWidgetInteraction::SendKeyChar(FString Characters, bool bRepeat)
+bool UUIWidgetInteraction::SendKeyChar(FString Characters, bool bRepeat)
 {
 	if (!CanSendInput())
 	{
@@ -515,7 +515,7 @@ bool ULGUIWidgetInteraction::SendKeyChar(FString Characters, bool bRepeat)
 	return bProcessResult;
 }
 
-void ULGUIWidgetInteraction::ScrollWheel(float ScrollDelta)
+void UUIWidgetInteraction::ScrollWheel(float ScrollDelta)
 {
 	if (!CanSendInput())
 	{
@@ -539,27 +539,27 @@ void ULGUIWidgetInteraction::ScrollWheel(float ScrollDelta)
 	}
 }
 
-bool ULGUIWidgetInteraction::IsOverInteractableWidget() const
+bool UUIWidgetInteraction::IsOverInteractableWidget() const
 {
 	return bIsHoveredWidgetInteractable;
 }
 
-bool ULGUIWidgetInteraction::IsOverFocusableWidget() const
+bool UUIWidgetInteraction::IsOverFocusableWidget() const
 {
 	return bIsHoveredWidgetFocusable;
 }
 
-bool ULGUIWidgetInteraction::IsOverHitTestVisibleWidget() const
+bool UUIWidgetInteraction::IsOverHitTestVisibleWidget() const
 {
 	return bIsHoveredWidgetHitTestVisible;
 }
 
-const FWeakWidgetPath& ULGUIWidgetInteraction::GetHoveredWidgetPath() const
+const FWeakWidgetPath& UUIWidgetInteraction::GetHoveredWidgetPath() const
 {
 	return LastWidgetPath;
 }
 
-FVector2D ULGUIWidgetInteraction::Get2DHitLocation() const
+FVector2D UUIWidgetInteraction::Get2DHitLocation() const
 {
 	return LocalHitLocation;
 }
