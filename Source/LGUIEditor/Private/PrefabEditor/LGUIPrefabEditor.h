@@ -109,6 +109,7 @@ private:
 	//void ExtendMenu();
 	void ExtendToolbar();
 
+	FText GetApplyButtonStatusTooltip()const;
 	FSlateIcon GetApplyButtonStatusImage()const;
 
 	void OnApply();

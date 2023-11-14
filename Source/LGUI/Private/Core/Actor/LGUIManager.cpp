@@ -193,15 +193,15 @@ bool ULGUIEditorManagerObject::InitCheck()
 					{
 						AllUIItemArray.Append(CanvasItem->GetUIItemArray());
 					}
-					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::ScreenSpaceOverlay))
+					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::RenderTarget))
 					{
 						AllUIItemArray.Append(CanvasItem->GetUIItemArray());
 					}
-					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::ScreenSpaceOverlay))
+					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::WorldSpace))
 					{
 						AllUIItemArray.Append(CanvasItem->GetUIItemArray());
 					}
-					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::ScreenSpaceOverlay))
+					for (auto& CanvasItem : LGUIManager->GetCanvasArray(ELGUIRenderMode::WorldSpace_LGUI))
 					{
 						AllUIItemArray.Append(CanvasItem->GetUIItemArray());
 					}
@@ -865,8 +865,9 @@ bool ULGUIManagerWorldSubsystem::RaycastHitUI(UWorld* InWorld, const TArray<UUII
 )
 {
 	TArray<FHitResult> HitResultArray;
-	for (auto& uiItem : InUIItems)
+	for (auto uiItem : InUIItems)
 	{
+		if (!IsValid(uiItem))continue;
 		if (uiItem->GetWorld() == InWorld)
 		{
 			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
