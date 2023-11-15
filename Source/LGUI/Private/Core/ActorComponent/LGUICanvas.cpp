@@ -80,11 +80,10 @@ void ULGUICanvas::BeginPlay()
 	}
 	MarkCanvasUpdate(true, true, true, true);
 
-	bClipTypeChanged = true;
-	bRectClipParameterChanged = true;
+	MarkClipTypeChanged_Recursive();
+	MarkRectClipParameterChanged_Recursive();
 	bTextureClipParameterChanged = true;
 	bNeedToUpdateCustomClipParameter = true;
-	bRectRangeCalculated = false;	
 	bNeedToSortRenderPriority = true;
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -513,10 +512,9 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	CheckRootCanvas(true);
 	CheckRenderMode(true);
 
-	bClipTypeChanged = true;
-	bRectClipParameterChanged = true;
+	MarkRectClipParameterChanged_Recursive();
+	MarkClipTypeChanged_Recursive();
 	bTextureClipParameterChanged = true;
-	bRectRangeCalculated = false;
 	bNeedToUpdateCustomClipParameter = true;
 
 	ULGUICanvas* NewParentCanvas = nullptr;
@@ -620,10 +618,15 @@ bool ULGUICanvas::CanEditChange(const FProperty* InProperty) const
 }
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	bClipTypeChanged = true;
-	bRectClipParameterChanged = true;
+	if (CheckRootCanvas())
+	{
+		RootCanvas->MarkClipTypeChanged_Recursive();
+	}
+	if (CheckRootCanvas())
+	{
+		RootCanvas->MarkRectClipParameterChanged_Recursive();
+	}
 	bTextureClipParameterChanged = true;
-	bRectRangeCalculated = false;
 	bNeedToUpdateCustomClipParameter = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
@@ -1331,8 +1334,7 @@ void ULGUICanvas::MarkCanvasLayoutDirty()
 		break;
 	case ELGUICanvasClipType::Rect:
 	{
-		bRectClipParameterChanged = true;
-		bRectRangeCalculated = false;
+		MarkRectClipParameterChanged_Recursive();
 	}
 		break;
 	case ELGUICanvasClipType::Texture:
@@ -2270,6 +2272,32 @@ void ULGUICanvas::ConditionalCalculateRectRange()
 	}
 }
 
+void ULGUICanvas::MarkRectClipParameterChanged_Recursive()
+{
+	bCanTickUpdate = true;
+	bRectClipParameterChanged = true;
+	bRectRangeCalculated = false;
+	for (auto ChildCanvas : ChildrenCanvasArray)
+	{
+		if (ChildCanvas.IsValid())
+		{
+			ChildCanvas->MarkRectClipParameterChanged_Recursive();
+		}
+	}
+}
+void ULGUICanvas::MarkClipTypeChanged_Recursive()
+{
+	bCanTickUpdate = true;
+	bClipTypeChanged = true;
+	for (auto ChildCanvas : ChildrenCanvasArray)
+	{
+		if (ChildCanvas.IsValid())
+		{
+			ChildCanvas->MarkClipTypeChanged_Recursive();
+		}
+	}
+}
+
 
 FLinearColor ULGUICanvas::GetRectClipOffsetAndSize()
 {
@@ -2322,7 +2350,7 @@ void ULGUICanvas::SetClipType(ELGUICanvasClipType newClipType)
 {
 	if (clipType != newClipType)
 	{
-		bClipTypeChanged = true;
+		MarkClipTypeChanged_Recursive();
 		clipType = newClipType;
 		MarkCanvasUpdate(true, true, false);
 	}
@@ -2331,7 +2359,7 @@ void ULGUICanvas::SetRectClipFeather(FVector2D newFeather)
 {
 	if (clipFeather != newFeather)
 	{
-		bRectClipParameterChanged = true;
+		MarkRectClipParameterChanged_Recursive();
 		clipFeather = newFeather;
 		MarkCanvasUpdate(true, true, false);
 	}
@@ -2340,8 +2368,7 @@ void ULGUICanvas::SetRectClipOffset(FMargin newOffset)
 {
 	if (clipRectOffset != newOffset)
 	{
-		bRectClipParameterChanged = true;
-		bRectRangeCalculated = false;
+		MarkRectClipParameterChanged_Recursive();
 		MarkCanvasUpdate(true, true, false);
 	}
 }
@@ -2370,7 +2397,7 @@ void ULGUICanvas::SetCustomClip(ULGUICanvasCustomClip* value)
 		customClip = value;
 		if (clipType == ELGUICanvasClipType::Custom)
 		{
-			bClipTypeChanged = true;
+			MarkClipTypeChanged_Recursive();
 			bNeedToUpdateCustomClipParameter = true;
 			MarkCanvasUpdate(true, true, false);
 		}

@@ -625,6 +625,9 @@ private:
 	FVector2D clipRectMax = FVector2D(0, 0);
 
 	TMap<UUIBaseRenderable*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
+
+	void MarkRectClipParameterChanged_Recursive();//Rect clip can inherit from parent, so we need to update child canvas too
+	void MarkClipTypeChanged_Recursive();//Rect clip can inherit from parent, so we need to update child canvas too
 public:
 	void GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, FLGUICacheTransformContainer& outResult);
 	const TArray<TSharedPtr<UUIDrawcall>>& GetUIDrawcallList()const { return UIDrawcallList; }
