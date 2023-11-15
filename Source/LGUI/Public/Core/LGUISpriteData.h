@@ -90,7 +90,7 @@ public:
 	 * @param inPackingTag				see "packingTag" property
 	 * @return							Created LGUISpriteData, nullptr if something wrong.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		static ULGUISpriteData* CreateLGUISpriteData(UObject* Outer, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
 
 	/**
