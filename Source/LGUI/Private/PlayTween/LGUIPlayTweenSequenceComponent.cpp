@@ -4,10 +4,18 @@
 #include "PlayTween/LGUIPlayTween.h"
 #include "LTweener.h"
 #include "LTweenManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 void ULGUIPlayTweenSequenceComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
+	{
+		Awake_Implementation();
+	}
+}
+void ULGUIPlayTweenSequenceComponent::Awake_Implementation()
+{
 	if (playOnStart)
 	{
 		Play();
