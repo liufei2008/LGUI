@@ -5,7 +5,7 @@
 #include "LGUIPlayTween_Params.generated.h"
 
 
-UCLASS(BlueprintType, meta = (DisplayName = "LGUIPlayTween Float"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPlayTween Float (Single)"))
 class LGUI_API ULGUIPlayTween_Float : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -25,7 +25,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LGUIPlayTween Double"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPlayTween Float (Double)"))
 class LGUI_API ULGUIPlayTween_Double : public ULGUIPlayTween
 {
 	GENERATED_BODY()
