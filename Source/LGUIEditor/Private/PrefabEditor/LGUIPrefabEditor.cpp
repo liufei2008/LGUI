@@ -649,7 +649,7 @@ void FLGUIPrefabEditor::ExtendToolbar()
 		UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
 	}
 
-	UToolMenu* ToolBar = UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
+	UToolMenu* ToolBar = UToolMenus::Get()->FindMenu(MenuName);
 
 	FToolMenuInsert InsertAfterAssetSection("Asset", EToolMenuInsertType::After);
 	{
