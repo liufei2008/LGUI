@@ -75,21 +75,28 @@ bool ULGUIProceduralRectData::ExpandTexture()
 
 	//copy existing data
 	auto NewTexture = Texture;
-	ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectUpdateAndCopyDataTexture)(
-		[OldTexture, NewTexture, OldTextureSize](FRHICommandListImmediate& RHICmdList)
-		{
-			FRHICopyTextureInfo CopyInfo;
-			CopyInfo.SourcePosition = FIntVector(0, 0, 0);
-			CopyInfo.Size = FIntVector(OldTextureSize, OldTextureSize, 0);
-			CopyInfo.DestPosition = FIntVector(0, 0, 0);
-			RHICmdList.CopyTexture(
-				((FTexture2DResource*)OldTexture->GetResource())->GetTexture2DRHI(),
-				((FTexture2DResource*)NewTexture->GetResource())->GetTexture2DRHI(),
-				CopyInfo
-			);
-			RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
-			OldTexture->RemoveFromRoot();//ready for gc
-		});
+	if (OldTexture->GetResource() != nullptr && NewTexture->GetResource() != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectUpdateAndCopyDataTexture)(
+			[OldTexture, NewTexture, OldTextureSize](FRHICommandListImmediate& RHICmdList)
+			{
+				FRHICopyTextureInfo CopyInfo;
+				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+				CopyInfo.Size = FIntVector(OldTextureSize, OldTextureSize, 0);
+				CopyInfo.DestPosition = FIntVector(0, 0, 0);
+				RHICmdList.CopyTexture(
+					((FTexture2DResource*)OldTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DResource*)NewTexture->GetResource())->GetTexture2DRHI(),
+					CopyInfo
+				);
+				RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
+				OldTexture->RemoveFromRoot();//ready for gc
+			});
+	}
+	else
+	{
+		OldTexture->RemoveFromRoot();//ready for gc
+	}
 	// right top quater as not using position
 	for (int h = 0; h < OldTextureSize; h += 1)
 	{

@@ -45,29 +45,33 @@ void FLGUIDynamicSpriteAtlasData::CreateAtlasTexture(const FName& packingTag, in
 	texture->Filter = filter;
 	texture->UpdateResource();
 	texture->AddToRoot();//@todo: is this really need to AddToRoot?
-	auto oldTexture = this->atlasTexture;
+	auto OldTexture = this->atlasTexture;
 	this->atlasTexture = texture;
 
 	//copy old texture to new one
-	if (IsValid(oldTexture) && oldTextureSize > 0)
+	if (IsValid(OldTexture) && oldTextureSize > 0)
 	{
-		auto newTexture = texture;
-		if (oldTexture->GetResource() != nullptr && newTexture->GetResource() != nullptr)
+		auto NewTexture = texture;
+		if (OldTexture->GetResource() != nullptr && NewTexture->GetResource() != nullptr)
 		{
 			ENQUEUE_RENDER_COMMAND(FLGUIDynamicSpriteAtlas_CopyAtlasTexture)(
-				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
+				[OldTexture, NewTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
 				FRHICopyTextureInfo CopyInfo;
 				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
 				CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
 				CopyInfo.DestPosition = FIntVector(0, 0, 0);
 				RHICmdList.CopyTexture(
-					((FTexture2DResource*)oldTexture->GetResource())->GetTexture2DRHI(),
-					((FTexture2DResource*)newTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DResource*)OldTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DResource*)NewTexture->GetResource())->GetTexture2DRHI(),
 					CopyInfo
 				);
-				oldTexture->RemoveFromRoot();//ready for gc
+				OldTexture->RemoveFromRoot();//ready for gc
 			});
+		}
+		else
+		{
+			OldTexture->RemoveFromRoot();//ready for gc
 		}
 	}
 }
