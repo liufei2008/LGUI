@@ -3,11 +3,12 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Event/LGUIEventDelegate.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "LGUIPlayTweenSequenceComponent.generated.h"
 
 //play tween array sequentially, one after one.
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIPlayTweenSequenceComponent : public UActorComponent
+class LGUI_API ULGUIPlayTweenSequenceComponent : public UActorComponent, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 protected:
@@ -30,6 +31,9 @@ protected:
 	FDelegateHandle onCompleteDelegateHandle;
 
 	virtual void BeginPlay()override;
+	// Begin ILGUIPrefabInterface
+	virtual void Awake_Implementation()override;
+	// End ILGUIPrefabInterface
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void Play();

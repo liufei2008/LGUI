@@ -3,11 +3,12 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "LGUIPlayTweenComponent.generated.h"
 
 
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIPlayTweenComponent : public UActorComponent
+class LGUI_API ULGUIPlayTweenComponent : public UActorComponent, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 protected:
@@ -17,6 +18,9 @@ protected:
 		TObjectPtr<class ULGUIPlayTween> playTween;
 
 	virtual void BeginPlay() override;
+	// Begin ILGUIPrefabInterface
+	virtual void Awake_Implementation()override;
+	// End ILGUIPrefabInterface
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		class ULGUIPlayTween* GetPlayTween()const { return playTween; }

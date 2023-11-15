@@ -2,10 +2,18 @@
 
 #include "PlayTween/LGUIPlayTweenComponent.h"
 #include "PlayTween/LGUIPlayTween.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 void ULGUIPlayTweenComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
+	{
+		Awake_Implementation();
+	}
+}
+void ULGUIPlayTweenComponent::Awake_Implementation()
+{
 	if (playOnStart)
 	{
 		if (IsValid(playTween))
