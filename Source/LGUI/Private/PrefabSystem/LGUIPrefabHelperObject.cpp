@@ -364,6 +364,10 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 	{
 		Actor = Component->GetOwner();
 	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
+	}
 
 	for (auto& SubPrefabKeyValue : SubPrefabMap)
 	{
@@ -386,6 +390,10 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 	else if (Component)
 	{
 		Actor = Component->GetOwner();
+	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
 	}
 
 	for (auto& SubPrefabKeyValue : SubPrefabMap)
@@ -631,6 +639,16 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 			{
 				PropertyActorInSubPrefab = Actor;
 			}
+
+			if (PropertyActorInSubPrefab != nullptr//if drag in level editor, then property change event will notify actor, so we need to collect property on actor's root component
+				&& (PropertyName == USceneComponent::GetRelativeLocationPropertyName()
+					|| PropertyName == USceneComponent::GetRelativeRotationPropertyName()
+					|| PropertyName == USceneComponent::GetRelativeScale3DPropertyName()
+					)
+				)
+			{
+				InObject = PropertyActorInSubPrefab->GetRootComponent();
+			}
 		}
 		if (auto Component = Cast<UActorComponent>(InObject))
 		{
@@ -654,16 +672,16 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 				}
 			}
 		}
-		else if(PropertyActorInSubPrefab != nullptr//if drag in level editor, then property change event will notify actor, so we need to collect property on actor's root component
-			&& (PropertyName == USceneComponent::GetRelativeLocationPropertyName()
-				|| PropertyName == USceneComponent::GetRelativeRotationPropertyName()
-				|| PropertyName == USceneComponent::GetRelativeScale3DPropertyName()
-				)
-			)
+
+		if (auto OuterActor = InObject->GetTypedOuter<AActor>())
 		{
-			InObject = PropertyActorInSubPrefab->GetRootComponent();
+			if (IsActorBelongsToSubPrefab(OuterActor))
+			{
+				PropertyActorInSubPrefab = OuterActor;
+			}
 		}
-		if (PropertyActorInSubPrefab)//only allow actor or component's member property
+
+		if (PropertyActorInSubPrefab)//object's member property
 		{
 			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
 			if (Property != nullptr)
@@ -1116,6 +1134,10 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArr
 	{
 		Actor = Component->GetOwner();
 	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
+	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
 	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
@@ -1169,6 +1191,10 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 	else if (Component)
 	{
 		Actor = Component->GetOwner();
+	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
 	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
@@ -1227,6 +1253,10 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 		else if (Component)
 		{
 			Actor = Component->GetOwner();
+		}
+		else
+		{
+			Actor = InObject->GetTypedOuter<AActor>();
 		}
 		auto SubPrefabData = GetSubPrefabData(Actor);
 		auto SubPrefabRootActor = GetSubPrefabRootActor(Actor);
@@ -1464,6 +1494,10 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArra
 	{
 		Actor = Component->GetOwner();
 	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
+	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
 	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
@@ -1528,6 +1562,10 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 	else if (Component)
 	{
 		Actor = Component->GetOwner();
+	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
 	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
@@ -1594,6 +1632,10 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 	else if (Component)
 	{
 		Actor = Component->GetOwner();
+	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
 	}
 	auto SubPrefabData = GetSubPrefabData(Actor);
 	auto SubPrefabRootActor = GetSubPrefabRootActor(Actor);
@@ -1786,6 +1828,10 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetPrefabAssetBySubPrefabObject(UObject* I
 	else if (Component)
 	{
 		Actor = Component->GetOwner();
+	}
+	else
+	{
+		Actor = InObject->GetTypedOuter<AActor>();
 	}
 	return GetSubPrefabData(Actor).PrefabAsset;
 }
