@@ -369,7 +369,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
-	TRefCountPtr<IPooledRenderTarget> OriginScreenColorRenderTarget = nullptr;
 
 	uint8 NumSamples = 1;
 	FIntRect ViewRect;
@@ -971,12 +970,8 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 #if WITH_EDITOR
 	END_LGUI_RENDER :
+	;
 #endif
-
-	if (OriginScreenColorRenderTarget.IsValid())
-	{
-		OriginScreenColorRenderTarget.SafeRelease();
-	}
 }
 
 void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)

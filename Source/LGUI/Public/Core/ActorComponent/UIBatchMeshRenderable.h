@@ -49,11 +49,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMesh(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
 
+	UE_DEPRECATED(5.1, "Use Clear instead.")
+	void ClearVerticesAndIndices() { Clear(); }
 	/**
 	 * Remove vertices and triangle indices data, left the geometry empty.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void Clear();
+
 	/**
 	 * Add a list of triangles.
 	 * @param	InVertexTriangleStream	Vertices to add, length should be divisible by 3.
