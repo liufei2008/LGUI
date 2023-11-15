@@ -46,105 +46,8 @@ int ULGUIEditorManagerObject::IndexOfClickSelectUI = INDEX_NONE;
 #endif
 ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 {
-
-}
-void ULGUIEditorManagerObject::BeginDestroy()
-{
-#if WITH_EDITORONLY_DATA
-	if (OnAssetReimportDelegateHandle.IsValid())
+	if (this == GetDefault<ULGUIEditorManagerObject>())
 	{
-		if (GEditor)
-		{
-			if (auto ImportSubsystem = GEditor->GetEditorSubsystem<UImportSubsystem>())
-			{
-				ImportSubsystem->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
-			}
-		}
-	}
-	if (OnActorLabelChangedDelegateHandle.IsValid())
-	{
-		FCoreDelegates::OnActorLabelChanged.Remove(OnActorLabelChangedDelegateHandle);
-	}
-	if (OnMapOpenedDelegateHandle.IsValid())
-	{
-		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
-	}
-	if (OnPackageReloadedDelegateHandle.IsValid())
-	{
-		FCoreUObjectDelegates::OnPackageReloaded.Remove(OnPackageReloadedDelegateHandle);
-	}
-	if (OnBlueprintPreCompileDelegateHandle.IsValid())
-	{
-		if (GEditor)
-		{
-			GEditor->OnBlueprintPreCompile().Remove(OnBlueprintPreCompileDelegateHandle);
-		}
-	}
-	if (OnBlueprintCompiledDelegateHandle.IsValid())
-	{
-		if (GEditor)
-		{
-			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
-		}
-	}
-#endif
-	Instance = nullptr;
-	Super::BeginDestroy();
-}
-
-void ULGUIEditorManagerObject::Tick(float DeltaTime)
-{
-#if WITH_EDITOR
-	CheckEditorViewportIndexAndKey();
-#endif
-}
-TStatId ULGUIEditorManagerObject::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
-}
-
-#if WITH_EDITOR
-FDelegateHandle ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction)
-{
-	InitCheck();
-	return Instance->EditorViewportIndexAndKeyChange.AddLambda(InFunction);
-}
-void ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle)
-{
-	if (Instance != nullptr)
-	{
-		Instance->EditorViewportIndexAndKeyChange.Remove(InDelegateHandle);
-	}
-}
-
-ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)
-{
-	if (CreateIfNotValid)
-	{
-		InitCheck();
-	}
-	return Instance;
-}
-bool ULGUIEditorManagerObject::InitCheck()
-{
-	if (Instance == nullptr)
-	{
-		Instance = NewObject<ULGUIEditorManagerObject>();
-		Instance->AddToRoot();
-		UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
-		Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
-		//open map
-		Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
-		Instance->OnPackageReloadedDelegateHandle = FCoreUObjectDelegates::OnPackageReloaded.AddUObject(Instance, &ULGUIEditorManagerObject::OnPackageReloaded);
-		if (GEditor)
-		{
-			//reimport asset
-			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
-			//blueprint recompile
-			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintPreCompile);
-			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintCompiled);
-		}
-
 #if WITH_EDITOR
 		ULGUIPrefabManagerObject::OnSerialize_SortChildrenActors.BindStatic([](TArray<AActor*>& ChildrenActors) {
 			//Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
@@ -352,6 +255,104 @@ bool ULGUIEditorManagerObject::InitCheck()
 			}
 			});
 #endif
+	}
+}
+void ULGUIEditorManagerObject::BeginDestroy()
+{
+#if WITH_EDITORONLY_DATA
+	if (OnAssetReimportDelegateHandle.IsValid())
+	{
+		if (GEditor)
+		{
+			if (auto ImportSubsystem = GEditor->GetEditorSubsystem<UImportSubsystem>())
+			{
+				ImportSubsystem->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
+			}
+		}
+	}
+	if (OnActorLabelChangedDelegateHandle.IsValid())
+	{
+		FCoreDelegates::OnActorLabelChanged.Remove(OnActorLabelChangedDelegateHandle);
+	}
+	if (OnMapOpenedDelegateHandle.IsValid())
+	{
+		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
+	}
+	if (OnPackageReloadedDelegateHandle.IsValid())
+	{
+		FCoreUObjectDelegates::OnPackageReloaded.Remove(OnPackageReloadedDelegateHandle);
+	}
+	if (OnBlueprintPreCompileDelegateHandle.IsValid())
+	{
+		if (GEditor)
+		{
+			GEditor->OnBlueprintPreCompile().Remove(OnBlueprintPreCompileDelegateHandle);
+		}
+	}
+	if (OnBlueprintCompiledDelegateHandle.IsValid())
+	{
+		if (GEditor)
+		{
+			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
+		}
+	}
+#endif
+	Instance = nullptr;
+	Super::BeginDestroy();
+}
+
+void ULGUIEditorManagerObject::Tick(float DeltaTime)
+{
+#if WITH_EDITOR
+	CheckEditorViewportIndexAndKey();
+#endif
+}
+TStatId ULGUIEditorManagerObject::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
+}
+
+#if WITH_EDITOR
+FDelegateHandle ULGUIEditorManagerObject::RegisterEditorViewportIndexAndKeyChange(const TFunction<void()>& InFunction)
+{
+	InitCheck();
+	return Instance->EditorViewportIndexAndKeyChange.AddLambda(InFunction);
+}
+void ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(const FDelegateHandle& InDelegateHandle)
+{
+	if (Instance != nullptr)
+	{
+		Instance->EditorViewportIndexAndKeyChange.Remove(InDelegateHandle);
+	}
+}
+
+ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(bool CreateIfNotValid)
+{
+	if (CreateIfNotValid)
+	{
+		InitCheck();
+	}
+	return Instance;
+}
+bool ULGUIEditorManagerObject::InitCheck()
+{
+	if (Instance == nullptr)
+	{
+		Instance = NewObject<ULGUIEditorManagerObject>();
+		Instance->AddToRoot();
+		UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
+		Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
+		//open map
+		Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
+		Instance->OnPackageReloadedDelegateHandle = FCoreUObjectDelegates::OnPackageReloaded.AddUObject(Instance, &ULGUIEditorManagerObject::OnPackageReloaded);
+		if (GEditor)
+		{
+			//reimport asset
+			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
+			//blueprint recompile
+			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintPreCompile);
+			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::OnBlueprintCompiled);
+		}
 	}
 	return true;
 }
