@@ -52,7 +52,9 @@ public:
 	ULGUIPrefabSequence* DuplicateAnimationByIndex(int32 InIndex);
 	
 	virtual void BeginPlay()override;
+	// Begin ILGUIPrefabInterface
 	virtual void Awake_Implementation()override;
+	// End ILGUIPrefabInterface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
