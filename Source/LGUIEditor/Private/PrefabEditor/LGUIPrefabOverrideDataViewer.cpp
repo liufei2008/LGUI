@@ -61,6 +61,22 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLGUIPrefabOverrid
 			Actor = Component->GetOwner();
 			DisplayName = Actor->GetActorLabel() + TEXT(".") + Component->GetName();
 		}
+		else
+		{
+			DisplayName = DataItem.Object->GetName();
+			for (UObject* NextOuter = DataItem.Object->GetOuter(); NextOuter != NULL; NextOuter = NextOuter->GetOuter())
+			{
+				if (NextOuter->IsA(AActor::StaticClass()))
+				{
+					DisplayName = ((AActor*)NextOuter)->GetActorLabel() + "." + DisplayName;
+					break;
+				}
+				else
+				{
+					DisplayName = NextOuter->GetName() + "." + DisplayName;
+				}
+			}
+		}
 
 		auto FilteredMemeberPropertyNames = DataItem.MemberPropertyNames;
 
