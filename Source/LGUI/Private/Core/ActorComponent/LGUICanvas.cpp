@@ -1628,6 +1628,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				auto RenderSection = UIMesh->CreateRenderSection(ELGUIRenderSectionType::ChildCanvas);
 				auto ChildCanvasSection = (FLGUIChildCanvasSection*)RenderSection.Get();
 				ChildCanvasSection->ChildCanvasMeshComponent = DrawcallItem->ChildCanvas->GetUIMesh();
+				ChildCanvasSection->ChildCanvasMeshComponent->SetParentCavansMeshComp(this->UIMesh.Get());
 				UIMesh->CreateRenderSectionRenderData(RenderSection);
 				DrawcallItem->DrawcallRenderSection = RenderSection;
 				//create new section, need to sort it
