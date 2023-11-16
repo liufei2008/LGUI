@@ -105,6 +105,8 @@ public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 
 	void VerifyMaterials();
+	void SetParentCavansMeshComp(ULGUIMeshComponent* InMesh);
+	void ClearParentCavansMeshComp(ULGUIMeshComponent* InMesh);
 
 	//~ Begin UPrimitiveComponent Interface.
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -130,6 +132,7 @@ protected:
 	bool bIsLGUIRenderToWorld = false;//LGUI renderer render to world or screen
 	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	bool bIsSupportUERenderer = true;
+	TWeakObjectPtr<ULGUIMeshComponent> ParentCanvasMeshComp = nullptr;
 
 public:
 	FLGUIMeshSceneProxyCreateDeleteDelegate OnSceneProxyCreated;
