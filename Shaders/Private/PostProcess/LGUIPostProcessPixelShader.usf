@@ -5,6 +5,22 @@
 Texture2D _MainTex;
 SamplerState _MainTexSampler;
 
+// reference from CompositeUIPixelShader.usf
+float3 LinearizeColor(float3 EncodedColor)
+{
+#if MAC
+		// Note, MacOSX native output is raw gamma 2.2 not sRGB!
+		return pow(EncodedColor, 2.2);
+#else
+#if USE_709
+			// Didn't profile yet if the branching version would be faster (different linear segment).
+			return Rec709ToLinear(EncodedColor);
+#else
+    return sRGBToLinear(EncodedColor);
+#endif
+#endif
+}
+
 void SimpleCopyTargetPS(
     SimpleVSToPS input,
     out float4 OutColor : SV_Target0
@@ -12,7 +28,7 @@ void SimpleCopyTargetPS(
 {
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 #if LGUI_COLORCORRECT
-    OutColor.rgb = sRGBToLinear(OutColor.rgb);
+    OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif
 }
 
@@ -32,6 +48,6 @@ void CopyMeshRegionPS(
     uv.y = 1.0f - uv.y;
     OutColor = _MainTex.Sample(_MainTexSampler, uv);
 #if LGUI_COLORCORRECT
-    OutColor.rgb = sRGBToLinear(OutColor.rgb);
+    OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif
 }
