@@ -532,12 +532,15 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					if (InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 					{
 						FWorldSpaceRenderParameterSequence Item;
-						Item.BlendDepth = WorldRenderParameter.BlendDepth;
-						Item.DepthFade = WorldRenderParameter.DepthFade;
-						Item.WorldPosition = WorldRenderParameter.Primitive->GetWorldPositionForSortTranslucent();
-						Item.RenderPriority = WorldRenderParameter.Primitive->GetRenderPriority();
 						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
-						RenderSequenceArray.Add(Item);
+						if (Item.RenderDataArray.Num() > 0)
+						{
+							Item.BlendDepth = WorldRenderParameter.BlendDepth;
+							Item.DepthFade = WorldRenderParameter.DepthFade;
+							Item.WorldPosition = WorldRenderParameter.Primitive->GetWorldPositionForSortTranslucent();
+							Item.RenderPriority = WorldRenderParameter.Primitive->GetRenderPriority();
+							RenderSequenceArray.Add(Item);
+						}
 					}
 				}
 			}

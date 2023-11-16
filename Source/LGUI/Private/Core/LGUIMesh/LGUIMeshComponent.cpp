@@ -198,7 +198,7 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIRenderSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder)
+	FLGUIRenderSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, FLGUIRenderSceneProxy* InParentSceneProxy)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
@@ -211,6 +211,7 @@ public:
 		RenderCanvasPtr = InCanvasPtr;
 		CanvasLastRenderTime = &RenderCanvasPtr->LastRenderTime;
 		bIsLGUIRenderToWorld = InComponent->bIsLGUIRenderToWorld;
+		ParentSceneProxy = InParentSceneProxy;
 		if (LGUIRenderer.IsValid())
 		{
 			auto TempRenderer = LGUIRenderer;
@@ -878,6 +879,10 @@ public:
 		return(FPrimitiveSceneProxy::GetAllocatedSize());
 	}
 
+	void SetParentSceneProxy_RenderThread(FLGUIRenderSceneProxy* InParentSceneProxy)
+	{
+		ParentSceneProxy = InParentSceneProxy;
+	}
 private:
 	TArray<FLGUIRenderSectionProxy*> Sections;
 
@@ -1076,6 +1081,12 @@ void ULGUIMeshComponent::DeleteRenderSection(TSharedPtr<FLGUIRenderSection> InRe
 		}
 	}
 
+	if (InRenderSection->Type == ELGUIRenderSectionType::ChildCanvas)
+	{
+		auto ChildCanvasSection = (FLGUIChildCanvasSection*)InRenderSection.Get();
+		ChildCanvasSection->ChildCanvasMeshComponent->ClearParentCavansMeshComp(this);
+	}
+
 	auto index = RenderSections.IndexOfByKey(InRenderSection);
 	if (index != INDEX_NONE)
 	{
@@ -1132,6 +1143,21 @@ void ULGUIMeshComponent::VerifyMaterials()
 		}
 		break;
 		}
+	}
+}
+
+void ULGUIMeshComponent::SetParentCavansMeshComp(ULGUIMeshComponent* InMesh)
+{
+	if (ParentCanvasMeshComp != InMesh)
+	{
+		ParentCanvasMeshComp = InMesh;
+	}
+}
+void ULGUIMeshComponent::ClearParentCavansMeshComp(ULGUIMeshComponent* InMesh)
+{
+	if (ParentCanvasMeshComp == InMesh)//check, incase parent already change
+	{
+		ParentCanvasMeshComp = nullptr;
 	}
 }
 
@@ -1208,7 +1234,7 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 			//turns out not work as I want, so comment the codes
 			//auto RootCanvasUIMesh = RenderCanvas->GetRootCanvas()->GetUIMesh();
 			//FLGUIPrimitiveComponentIdTemporaryModifier TempModifier(this, RootCanvasUIMesh->ComponentId);
-			Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get(), RenderCanvas->GetActualSortOrder());
+			Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get(), RenderCanvas->GetActualSortOrder(), ParentCanvasMeshComp.IsValid() ? (FLGUIRenderSceneProxy*)ParentCanvasMeshComp->SceneProxy : nullptr);
 		}
 		OnSceneProxyCreated.Broadcast(this, Proxy);
 	}
