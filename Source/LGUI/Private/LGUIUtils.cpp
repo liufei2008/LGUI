@@ -9,6 +9,7 @@
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "TextureResource.h"
+#include "Engine/Texture2D.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorStyleSet.h"
