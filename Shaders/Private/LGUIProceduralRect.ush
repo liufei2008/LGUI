@@ -296,7 +296,7 @@ float LGUI_CalculateBuffer(Texture2D MainTex, SamplerState MainTexSampler, float
         }
         
         float2 texUV = lerp(lerp(stretchUV, fitUV, _TextureScaleMode), envelopUV, max(0, _TextureScaleMode - 1));
-        float4 MainTexColor = MainTex.Sample(MainTexSampler, texUV);
+        float4 MainTexColor = Texture2DSample(MainTex, MainTexSampler, texUV);
         color = MainTexColor * _BodyColor;
 
         half4 gradientColor;
