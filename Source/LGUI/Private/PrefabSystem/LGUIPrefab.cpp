@@ -550,9 +550,34 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
-		case ELGUIPrefabVersion::NEWEST:
+		case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent);
+		}
+		break;
+		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
+		{
+			LoadedRootActor = LGUIPrefabSystem7::ActorSerializer::LoadPrefab(World, this, InParent);
+		}
+		break;
+		case ELGUIPrefabVersion::CommonActor:
+		{
+			LoadedRootActor = LGUIPrefabSystem6::ActorSerializer::LoadPrefab(World, this, InParent);
+		}
+		break;
+		case ELGUIPrefabVersion::ObjectName:
+		{
+			LoadedRootActor = LGUIPrefabSystem5::ActorSerializer::LoadPrefab(World, this, InParent);
+		}
+		break;
+		case ELGUIPrefabVersion::NestedDefaultSubObject:
+		{
+			LoadedRootActor = LGUIPrefabSystem4::ActorSerializer::LoadPrefab(World, this, InParent);
+		}
+		break;
+		case ELGUIPrefabVersion::BuildinFArchive:
+		{
+			LoadedRootActor = LGUIPrefabSystem3::ActorSerializer::LoadPrefab(World, this, InParent);
 		}
 		break;
 		default:
