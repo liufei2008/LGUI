@@ -100,7 +100,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		;
 	};
 
-	auto CreateVectorPropertyWithUnitMode = [&](FName PropertyName, IDetailGroup& Group, FText PropertyDisplayName) {
+	auto CreateVectorPropertyWithUnitMode = [&](FName PropertyName, IDetailGroup& Group, FText PropertyDisplayName, bool PropertyVisible) {
 		auto PropertyHandle = DetailBuilder.GetProperty(PropertyName);
 		PropertyHandle->SetPropertyDisplayName(PropertyDisplayName);
 		auto PropertyUnitHandle = DetailBuilder.GetProperty(FName(*(PropertyName.ToString() + TEXT("UnitMode"))));
@@ -126,6 +126,7 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		}
 		Group.AddWidgetRow()
 		.PropertyHandleList({ PropertyHandle })
+		.Visibility(PropertyVisible ? EVisibility::Visible : EVisibility::Hidden)
 		.NameContent()
 		[
 			SNew(SBox)
@@ -152,13 +153,13 @@ void FUIProceduralRectCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 
 #define TO_TEXT(x) #x
 
-#define AddPropertyRowToGroup(PropertyName, DisplayName, Group)\
+#define AddPropertyRowToGroup(PropertyName, DisplayName, Group, PropertyVisible)\
 auto PropertyName##Handle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, PropertyName));\
 PropertyName##Handle->SetPropertyDisplayName(LOCTEXT(TO_TEXT(PropertyName##_DisplayName), TO_TEXT(DisplayName)));\
-Group.AddPropertyRow(PropertyName##Handle);
+Group.AddPropertyRow(PropertyName##Handle).Visibility(PropertyVisible ? EVisibility::Visible : EVisibility::Hidden);
 
-#define AddVectorPropertyRowToGroup(PropertyName, DisplayName, Group)\
-CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, PropertyName), Group, LOCTEXT(TO_TEXT(PropertyName##_DisplayName), TO_TEXT(DisplayName)));
+#define AddVectorPropertyRowToGroup(PropertyName, DisplayName, Group, PropertyVisible)\
+CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, PropertyName), Group, LOCTEXT(TO_TEXT(PropertyName##_DisplayName), TO_TEXT(DisplayName)), PropertyVisible);
 
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 	
@@ -299,161 +300,175 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 		]
 	;
 
-	AddPropertyRowToGroup(BodyColor, Color, BodyGroup);
-	auto EnableBodyGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBodyGradient));
-	EnableBodyGradientHandle->SetPropertyDisplayName(LOCTEXT("EnableBodyGradient_DisplayName", "Gradient"));
-	auto& BodyGradientGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBodyGradient), EnableBodyGradientHandle->GetPropertyDisplayName(), true);
-	BodyGradientGroup.HeaderRow()
-		.PropertyHandleList({ EnableBodyGradientHandle })
-		.NameContent()
-		[
-			EnableBodyGradientHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			EnableBodyGradientHandle->CreatePropertyValueWidget()
-		]
-	;
-	AddPropertyRowToGroup(BodyGradientColor, Color, BodyGradientGroup);
-	AddVectorPropertyRowToGroup(BodyGradientCenter, Center, BodyGradientGroup);
-	AddVectorPropertyRowToGroup(BodyGradientRadius, Radius, BodyGradientGroup);
-	AddPropertyRowToGroup(BodyGradientRotation, Rotation, BodyGradientGroup);
+	bool bEnableBody = true;
+	EnableBodyHandle->GetValue(bEnableBody);
+	EnableBodyHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+	if (bEnableBody)
+	{
+		AddPropertyRowToGroup(BodyColor, Color, BodyGroup, bEnableBody);
 
-	EUIProceduralBodyTextureMode BodyTextureMode;
-	auto BodyTextureModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTextureMode));
-	BodyTextureModeHandle->GetValue(*(uint8*)&BodyTextureMode);
-	BodyTextureModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {
-		DetailBuilder.ForceRefreshDetails();
-		}));
-	auto BodyTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture));
-	BodyTextureHandle->SetPropertyDisplayName(LOCTEXT("BodyTexture_DisplayName", "Texture"));
-	auto BodySpriteTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture));
-	BodySpriteTextureHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
-		for (auto item : TargetScriptArray)
-		{
-			if (item.IsValid())
+		EUIProceduralBodyTextureMode BodyTextureMode;
+		auto BodyTextureModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTextureMode));
+		BodyTextureModeHandle->GetValue(*(uint8*)&BodyTextureMode);
+		BodyTextureModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {
+			DetailBuilder.ForceRefreshDetails();
+			}));
+		auto BodyTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture));
+		BodyTextureHandle->SetPropertyDisplayName(LOCTEXT("BodyTexture_DisplayName", "Texture"));
+		auto BodySpriteTextureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture));
+		BodySpriteTextureHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
+			for (auto item : TargetScriptArray)
 			{
-				item->OnPreChangeSpriteProperty();
+				if (item.IsValid())
+				{
+					item->OnPreChangeSpriteProperty();
+				}
 			}
-		}
-		}));
-	BodySpriteTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
-		for (auto item : TargetScriptArray)
-		{
-			if (item.IsValid())
+			}));
+		BodySpriteTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
+			for (auto item : TargetScriptArray)
 			{
-				item->OnPostChangeSpriteProperty();
+				if (item.IsValid())
+				{
+					item->OnPostChangeSpriteProperty();
+				}
 			}
-		}
-		}));
-	BodySpriteTextureHandle->SetPropertyDisplayName(LOCTEXT("BodySpriteTexture_DisplayName", "Sprite"));
-	auto& TextureGroup = BodyTextureMode == EUIProceduralBodyTextureMode::Texture
-		? BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture), BodyTextureHandle->GetPropertyDisplayName(), true)
-		: BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture), BodySpriteTextureHandle->GetPropertyDisplayName(), true)
-		;
-	auto TempBodyTextureHandle = BodyTextureMode == EUIProceduralBodyTextureMode::Texture ? BodyTextureHandle : BodySpriteTextureHandle;
-	TextureGroup.HeaderRow()
-		.PropertyHandleList({ TempBodyTextureHandle })
-		.NameContent()
-		[
-			SNew(SBox)
-			.MinDesiredWidth(1000)
+			}));
+		BodySpriteTextureHandle->SetPropertyDisplayName(LOCTEXT("BodySpriteTexture_DisplayName", "Sprite"));
+		auto& TextureGroup = BodyTextureMode == EUIProceduralBodyTextureMode::Texture
+			? BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodyTexture), BodyTextureHandle->GetPropertyDisplayName(), true)
+			: BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, BodySpriteTexture), BodySpriteTextureHandle->GetPropertyDisplayName(), true)
+			;
+		auto TempBodyTextureHandle = BodyTextureMode == EUIProceduralBodyTextureMode::Texture ? BodyTextureHandle : BodySpriteTextureHandle;
+		TextureGroup.HeaderRow()
+			.PropertyHandleList({ TempBodyTextureHandle })
+			.NameContent()
 			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				[
-					TempBodyTextureHandle->CreatePropertyNameWidget()
-				]
-				+SHorizontalBox::Slot()
-				.HAlign(HAlign_Right)
+				SNew(SBox)
+				.MinDesiredWidth(1000)
 				[
 					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(EVerticalAlignment::VAlign_Center)
-					.Padding(OuterPadding)
+					+SHorizontalBox::Slot()
 					[
-						SNew( SCheckBox )
-						.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
-						.ToolTipText(LOCTEXT("Texture_Tooltip", "Use texture"))
-						.Padding(ContentPadding)
-						.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState){
-							BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Texture);
-							})
-						.IsChecked_Lambda([=] {
-							uint8 Value;
-							BodyTextureModeHandle->GetValue(Value);
-							return Value == (uint8)EUIProceduralBodyTextureMode::Texture ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-							})
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("Texture", "T"))
-							.Font(IDetailLayoutBuilder::GetDetailFont())
-						]
+						TempBodyTextureHandle->CreatePropertyNameWidget()
 					]
-
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(EVerticalAlignment::VAlign_Center)
-					.Padding(OuterPadding)
+					+SHorizontalBox::Slot()
+					.HAlign(HAlign_Right)
 					[
-						SNew(SCheckBox)
-						.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
-						.ToolTipText(LOCTEXT("Sprite_Tooltip", "Use sprite"))
-						.Padding(ContentPadding)
-						.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState) {
-							BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Sprite);
-							})
-						.IsChecked_Lambda([=] {
-							uint8 Value;
-							BodyTextureModeHandle->GetValue(Value);
-							return Value == (uint8)EUIProceduralBodyTextureMode::Sprite ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-							})
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						.Padding(OuterPadding)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("Sprite", "S"))
-							.Font(IDetailLayoutBuilder::GetDetailFont())
+							SNew( SCheckBox )
+							.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+							.ToolTipText(LOCTEXT("Texture_Tooltip", "Use texture"))
+							.Padding(ContentPadding)
+							.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState){
+								BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Texture);
+								})
+							.IsChecked_Lambda([=] {
+								uint8 Value;
+								BodyTextureModeHandle->GetValue(Value);
+								return Value == (uint8)EUIProceduralBodyTextureMode::Texture ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+								})
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("Texture", "T"))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
+						]
+
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						.Padding(OuterPadding)
+						[
+							SNew(SCheckBox)
+							.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+							.ToolTipText(LOCTEXT("Sprite_Tooltip", "Use sprite"))
+							.Padding(ContentPadding)
+							.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState) {
+								BodyTextureModeHandle->SetValue((uint8)EUIProceduralBodyTextureMode::Sprite);
+								})
+							.IsChecked_Lambda([=] {
+								uint8 Value;
+								BodyTextureModeHandle->GetValue(Value);
+								return Value == (uint8)EUIProceduralBodyTextureMode::Sprite ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+								})
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("Sprite", "S"))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
 						]
 					]
 				]
 			]
-		]
-		.ValueContent()
-		[
-			TempBodyTextureHandle->CreatePropertyValueWidget()
-		]
-	;
-	TextureGroup.AddWidgetRow()
-		.ValueContent()
-		[
-			SNew(SButton)
-			.HAlign(EHorizontalAlignment::HAlign_Center)
-			.VAlign(EVerticalAlignment::VAlign_Center)
+			.ValueContent()
 			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("SnapSize_Button", "Snap Size"))
-				.Font(IDetailLayoutBuilder::GetDetailFont())
+				TempBodyTextureHandle->CreatePropertyValueWidget()
 			]
-			.OnClicked_Lambda([=, this]()
-			{
-				GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UIProceduralRect texture snap size"));
-				for (auto item : TargetScriptArray)
+		;
+		TextureGroup.AddWidgetRow()
+			.ValueContent()
+			[
+				SNew(SButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("SnapSize_Button", "Snap Size"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+				.OnClicked_Lambda([=]()
 				{
-					if (item.IsValid())
+					GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UIProceduralRect texture snap size"));
+					for (auto item : TargetScriptArray)
 					{
-						item->Modify();
-						item->SetSizeFromBodyTexture();
-						LGUIUtils::NotifyPropertyChanged(item.Get(), UUIItem::GetAnchorDataPropertyName());
-						item->EditorForceUpdate();
+						if (item.IsValid())
+						{
+							item->Modify();
+							item->SetSizeFromBodyTexture();
+							LGUIUtils::NotifyPropertyChanged(item.Get(), UUIItem::GetAnchorDataPropertyName());
+							item->EditorForceUpdate();
+						}
 					}
-				}
-				GEditor->EndTransaction();
-				return FReply::Handled();
-			})
-		]
-	;
+					GEditor->EndTransaction();
+					return FReply::Handled();
+				})
+			]
+		;
 
-	AddPropertyRowToGroup(BodyTextureScaleMode, Scale Mode, TextureGroup);
+		UObject* BodyTexture = nullptr;
+		TempBodyTextureHandle->GetValue(BodyTexture);
+		TempBodyTextureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+		AddPropertyRowToGroup(BodyTextureScaleMode, Scale Mode, TextureGroup, BodyTexture != nullptr);
+
+		auto EnableBodyGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBodyGradient));
+		EnableBodyGradientHandle->SetPropertyDisplayName(LOCTEXT("EnableBodyGradient_DisplayName", "Gradient"));
+		auto& BodyGradientGroup = BodyGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBodyGradient), EnableBodyGradientHandle->GetPropertyDisplayName(), true);
+		BodyGradientGroup.HeaderRow()
+			.PropertyHandleList({ EnableBodyGradientHandle })
+			.NameContent()
+			[
+				EnableBodyGradientHandle->CreatePropertyNameWidget()
+			]
+		.ValueContent()
+			[
+				EnableBodyGradientHandle->CreatePropertyValueWidget()
+			]
+		;
+
+		bool bEnableBodyGradient;
+		EnableBodyGradientHandle->GetValue(bEnableBodyGradient);
+		EnableBodyGradientHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+		AddPropertyRowToGroup(BodyGradientColor, Color, BodyGradientGroup, bEnableBodyGradient);
+		AddVectorPropertyRowToGroup(BodyGradientCenter, Center, BodyGradientGroup, bEnableBodyGradient);
+		AddVectorPropertyRowToGroup(BodyGradientRadius, Radius, BodyGradientGroup, bEnableBodyGradient);
+		AddPropertyRowToGroup(BodyGradientRotation, Rotation, BodyGradientGroup, bEnableBodyGradient);
+	}
 
 	auto BorderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBorder));
 	BorderHandle->SetPropertyDisplayName(LOCTEXT("bEnableBorder_DisplayName", "Border"));
@@ -469,27 +484,37 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 			BorderHandle->CreatePropertyValueWidget()
 		]
 	;
-	AddVectorPropertyRowToGroup(BorderWidth, Width, BorderGroup);
-	AddPropertyRowToGroup(BorderColor, Color, BorderGroup);
+	bool bEnableBorder = false;
+	BorderHandle->GetValue(bEnableBorder);
+	BorderHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+	AddVectorPropertyRowToGroup(BorderWidth, Width, BorderGroup, bEnableBorder);
+	AddPropertyRowToGroup(BorderColor, Color, BorderGroup, bEnableBorder);
 
-	auto BorderGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBorderGradient));
-	BorderGradientHandle->SetPropertyDisplayName(LOCTEXT("bEnableBorderGradient_DisplayName", "Gradient"));
-	auto& BorderGradientGroup = BorderGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBorderGradient), BorderGradientHandle->GetPropertyDisplayName(), true);
-	BorderGradientGroup.HeaderRow()
-		.PropertyHandleList({ BorderGradientHandle })
-		.NameContent()
-		[
-			BorderGradientHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			BorderGradientHandle->CreatePropertyValueWidget()
-		]
-	;
-	AddPropertyRowToGroup(BorderGradientColor, Color, BorderGradientGroup);
-	AddVectorPropertyRowToGroup(BorderGradientCenter, Center, BorderGradientGroup);
-	AddVectorPropertyRowToGroup(BorderGradientRadius, Radius, BorderGradientGroup);
-	AddPropertyRowToGroup(BorderGradientRotation, Rotation, BorderGradientGroup);
+	if (bEnableBorder)
+	{
+		auto BorderGradientHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBorderGradient));
+		BorderGradientHandle->SetPropertyDisplayName(LOCTEXT("bEnableBorderGradient_DisplayName", "Gradient"));
+		auto& BorderGradientGroup = BorderGroup.AddGroup(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableBorderGradient), BorderGradientHandle->GetPropertyDisplayName(), true);
+		BorderGradientGroup.HeaderRow()
+			.PropertyHandleList({ BorderGradientHandle })
+			.NameContent()
+			[
+				BorderGradientHandle->CreatePropertyNameWidget()
+			]
+			.ValueContent()
+			[
+				BorderGradientHandle->CreatePropertyValueWidget()
+			]
+			.Visibility(bEnableBorder ? EVisibility::Visible : EVisibility::Hidden)
+		;
+		bool bEnableBorderGradient = false;
+		BorderGradientHandle->GetValue(bEnableBorderGradient);
+		BorderGradientHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+		AddPropertyRowToGroup(BorderGradientColor, Color, BorderGradientGroup, bEnableBorderGradient);
+		AddVectorPropertyRowToGroup(BorderGradientCenter, Center, BorderGradientGroup, bEnableBorderGradient);
+		AddVectorPropertyRowToGroup(BorderGradientRadius, Radius, BorderGradientGroup, bEnableBorderGradient);
+		AddPropertyRowToGroup(BorderGradientRotation, Rotation, BorderGradientGroup, bEnableBorderGradient);
+	}
 
 	auto InnerShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableInnerShadow));
 	InnerShadowHandle->SetPropertyDisplayName(LOCTEXT("bEnableInnerShadow_DisplayName", "Inner Shadow"));
@@ -505,11 +530,14 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 			InnerShadowHandle->CreatePropertyValueWidget()
 		]
 	;
-	AddPropertyRowToGroup(InnerShadowColor, Color, InnerShadowGroup);
-	AddVectorPropertyRowToGroup(InnerShadowSize, Size, InnerShadowGroup);
-	AddVectorPropertyRowToGroup(InnerShadowBlur, Blur, InnerShadowGroup);
-	AddPropertyRowToGroup(InnerShadowAngle, Angle, InnerShadowGroup);
-	AddVectorPropertyRowToGroup(InnerShadowDistance, Distance, InnerShadowGroup);
+	bool bEnableInnerShadow = false;
+	InnerShadowHandle->GetValue(bEnableInnerShadow);
+	InnerShadowHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+	AddPropertyRowToGroup(InnerShadowColor, Color, InnerShadowGroup, bEnableInnerShadow);
+	AddVectorPropertyRowToGroup(InnerShadowSize, Size, InnerShadowGroup, bEnableInnerShadow);
+	AddVectorPropertyRowToGroup(InnerShadowBlur, Blur, InnerShadowGroup, bEnableInnerShadow);
+	AddPropertyRowToGroup(InnerShadowAngle, Angle, InnerShadowGroup, bEnableInnerShadow);
+	AddVectorPropertyRowToGroup(InnerShadowDistance, Distance, InnerShadowGroup, bEnableInnerShadow);
 
 	auto OuterShadowHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableOuterShadow));
 	OuterShadowHandle->SetPropertyDisplayName(LOCTEXT("EnableOuterShadow_DisplayName", "Outer Shadow"));
@@ -525,11 +553,14 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 			OuterShadowHandle->CreatePropertyValueWidget()
 		]
 	;
-	AddPropertyRowToGroup(OuterShadowColor, Color, OuterShadowGroup);
-	AddVectorPropertyRowToGroup(OuterShadowSize, Size, OuterShadowGroup);
-	AddVectorPropertyRowToGroup(OuterShadowBlur, Blur, OuterShadowGroup);
-	AddPropertyRowToGroup(OuterShadowAngle, Angle, OuterShadowGroup);
-	AddVectorPropertyRowToGroup(OuterShadowDistance, Distance, OuterShadowGroup);
+	bool bEnableOuterShadow = false;
+	OuterShadowHandle->GetValue(bEnableOuterShadow);
+	OuterShadowHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+	AddPropertyRowToGroup(OuterShadowColor, Color, OuterShadowGroup, bEnableOuterShadow);
+	AddVectorPropertyRowToGroup(OuterShadowSize, Size, OuterShadowGroup, bEnableOuterShadow);
+	AddVectorPropertyRowToGroup(OuterShadowBlur, Blur, OuterShadowGroup, bEnableOuterShadow);
+	AddPropertyRowToGroup(OuterShadowAngle, Angle, OuterShadowGroup, bEnableOuterShadow);
+	AddVectorPropertyRowToGroup(OuterShadowDistance, Distance, OuterShadowGroup, bEnableOuterShadow);
 
 	auto RadialFillHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, bEnableRadialFill));
 	RadialFillHandle->SetPropertyDisplayName(LOCTEXT("EnableRadialFill_DisplayName", "Radial Fill"));
@@ -545,10 +576,12 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 			RadialFillHandle->CreatePropertyValueWidget()
 		]
 	;
-
-	AddVectorPropertyRowToGroup(RadialFillCenter, Center, RadialFillGroup);
-	AddPropertyRowToGroup(RadialFillRotation, Rotation, RadialFillGroup);
-	AddPropertyRowToGroup(RadialFillAngle, Angle, RadialFillGroup);
+	bool bEnableRadialFill = false;
+	RadialFillHandle->GetValue(bEnableRadialFill);
+	RadialFillHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder]() {DetailBuilder.ForceRefreshDetails(); }));
+	AddVectorPropertyRowToGroup(RadialFillCenter, Center, RadialFillGroup, bEnableRadialFill);
+	AddPropertyRowToGroup(RadialFillRotation, Rotation, RadialFillGroup, bEnableRadialFill);
+	AddPropertyRowToGroup(RadialFillAngle, Angle, RadialFillGroup, bEnableRadialFill);
 
 	auto TintColorHandle = DetailBuilder.GetProperty(UUIProceduralRect::GetColorPropertyName(), UUIBaseRenderable::StaticClass());
 	TintColorHandle->SetPropertyDisplayName(LOCTEXT("TintColor", "Tint Color"));
