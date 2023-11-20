@@ -19,6 +19,19 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
 
+/**
+ * Aniti Aliasing(MSAA) for LGUI Renderer
+ */
+UENUM(BlueprintType)
+enum class ELGUIRendererAntiAliasing :uint8
+{
+	Hidden = 0				UMETA(Hidden),
+	Disabled = 1,
+	SampleCount_2x = 2		UMETA(DisplayName = "2x"),
+	SampleCount_4x = 4		UMETA(DisplayName = "4x"),
+	SampleCount_8x = 8		UMETA(DisplayName = "8x"),
+};
+
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIAtlasSettings
 {
@@ -70,6 +83,9 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
 		float AutoBatchThreshold = 0.01f;
+
+	UPROPERTY(EditAnywhere, config, Category = "Rendering")
+		ELGUIRendererAntiAliasing AntiAliasing = ELGUIRendererAntiAliasing::SampleCount_8x;
 
 #if WITH_EDITORONLY_DATA
 	static float CacheAutoBatchThreshold;

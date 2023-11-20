@@ -367,8 +367,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 	//create render target
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
+	TRefCountPtr<IPooledRenderTarget> MSAARenderTarget = nullptr;
 
-	uint8 NumSamples = 1;
+	uint8 NumSamples = (uint8)GetDefault<ULGUISettings>()->AntiAliasing;
 	FIntRect ViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
@@ -383,7 +384,20 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
 			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
-			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
+
+			if (NumSamples > 1)
+			{
+				//get msaa render target
+				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+				desc.NumSamples = NumSamples;
+				GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LGUI_MSAA_RenderTarget"));
+				if (!MSAARenderTarget.IsValid())
+					return;
+
+				CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
+				ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+			}
+
 			//clear render target
 			{
 				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
@@ -413,7 +427,19 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture();
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
-		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
+
+		if (NumSamples > 1)
+		{
+			//get msaa render target
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = NumSamples;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LGUI_MSAA_RenderTarget"));
+			if (!MSAARenderTarget.IsValid())
+				return;
+
+			CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
+			ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+		}
 
 		ViewRect = InView.UnscaledViewRect;
 		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
@@ -977,10 +1003,21 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 	}
 
+	if (NumSamples > 1)
+	{
+		auto Src = RegisterExternalTexture(GraphBuilder, MSAARenderTarget->GetRHI(), TEXT("LGUISrc"));
+		auto Dst = RegisterExternalTexture(GraphBuilder, (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), TEXT("LGUIDst"));
+		AddCopyToResolveTargetPass(GraphBuilder, Src, Dst, FResolveParams());
+	}
+
 #if WITH_EDITOR
 	END_LGUI_RENDER :
 	;
 #endif
+	if (MSAARenderTarget.IsValid())
+	{
+		MSAARenderTarget.SafeRelease();
+	}
 }
 
 void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)
