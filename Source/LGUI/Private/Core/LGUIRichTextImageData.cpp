@@ -8,6 +8,7 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 #include "Engine/World.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 
