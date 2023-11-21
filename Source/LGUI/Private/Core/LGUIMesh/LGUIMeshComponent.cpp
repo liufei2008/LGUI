@@ -593,10 +593,7 @@ public:
 		{
 			auto LGUIMeshSceneProxy = const_cast<FLGUIRenderSceneProxy*>(this);
 			LGUIMeshSceneProxy->bNeedToSortRenderSections = false;
-			ENQUEUE_RENDER_COMMAND(FLGUIMeshSectionProxy_SortMeshSectionRenderPriority_Create)(
-				[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList) {
-					LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
-				});
+			LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
 		}
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
@@ -766,11 +763,7 @@ public:
 		if (bNeedToSortRenderSections)
 		{
 			bNeedToSortRenderSections = false;
-			auto LGUIMeshSceneProxy = this;
-			ENQUEUE_RENDER_COMMAND(FLGUIMeshSectionProxy_SortMeshSectionRenderPriority_Create)(
-				[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList) {
-					LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
-				});
+			this->SortMeshSectionRenderPriority_RenderThread();
 		}
 		*CanvasLastRenderTime = CurrentWorldTime;
 
