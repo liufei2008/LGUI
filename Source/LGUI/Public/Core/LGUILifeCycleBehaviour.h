@@ -131,12 +131,15 @@ public:
 		USceneComponent* GetRootSceneComponent() const;
 
 	/** Same as DuplicateActor */
-	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeterminesOutputType = "OriginObject"))
+	UE_DEPRECATED(5.1, "Use LGUIBPLibrary.DuplicateActor instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeterminesOutputType = "OriginObject", DeprecatedFunction, DeprecationMessage = "Use LGUIBPLibrary.DuplicateActor instead."))
 		AActor* InstantiateActor(AActor* OriginObject, USceneComponent* Parent);
 	/** Same as LoadPrefab */
-	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
+	UE_DEPRECATED(5.1, "Use LGUIBPLibrary.LoadPrefab instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeprecatedFunction, DeprecationMessage = "Use LGUIBPLibrary.LoadPrefab instead."))
 		AActor* InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent);
 	/** Same as LoadPrefabWithTransform */
-	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
+	UE_DEPRECATED(5.1, "Use LGUIBPLibrary.LoadPrefabWithTransform instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeprecatedFunction, DeprecationMessage = "Use LGUIBPLibrary.LoadPrefabWithTransform instead."))
 		AActor* InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale);
 };
