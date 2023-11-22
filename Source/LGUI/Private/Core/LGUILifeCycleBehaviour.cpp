@@ -531,5 +531,5 @@ AActor* ULGUILifeCycleBehaviour::InstantiatePrefab(class ULGUIPrefab* OriginObje
 }
 AActor* ULGUILifeCycleBehaviour::InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale)
 {
-	return OriginObject->LoadPrefabWithTransform(this, Parent, Location, Rotation.Quaternion(), Scale);
+	return OriginObject->LoadPrefabWithTransform(this->GetWorld(), Parent, Location, Rotation.Quaternion(), Scale, nullptr);
 }
