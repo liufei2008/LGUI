@@ -1202,6 +1202,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			case EUIRenderableType::UIBatchMeshRenderable:
 			{
 				auto UIBatchMeshRenderableItem = (UUIBatchMeshRenderable*)UIRenderableItem;
+				if (!UIBatchMeshRenderableItem->SupportDrawcallBatching())continue;
 				auto ItemGeo = UIBatchMeshRenderableItem->GetGeometry();
 				if (ItemGeo == nullptr)continue;
 				if (ItemGeo->vertices.Num() == 0)continue;

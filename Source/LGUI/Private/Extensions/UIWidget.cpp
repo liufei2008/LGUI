@@ -23,6 +23,17 @@ UUIWidget::UUIWidget(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	bTickInEditor = true;
 }
 
+bool UUIWidget::SupportDrawcallBatching()const
+{
+	if (IsValid(CustomMesh))
+	{
+		return CustomMesh->SupportDrawcallBatching();
+	}
+	else
+	{
+		return true;
+	}
+}
 void UUIWidget::OnBeforeCreateOrUpdateGeometry()
 {
 

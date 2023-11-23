@@ -152,6 +152,8 @@ public:
 	UIGeometry* GetGeometry()const { return geometry.Get(); }
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
+	/** is this UI element type support drawcall batching? */
+	virtual bool SupportDrawcallBatching()const { return true; }
 protected:
 	virtual bool LineTraceVisiblePixel(float InAlphaThreshold, FHitResult& OutHit, const FVector& Start, const FVector& End);
 	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const { return false; }
