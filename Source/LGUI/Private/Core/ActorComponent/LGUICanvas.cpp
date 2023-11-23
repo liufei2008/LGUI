@@ -1790,6 +1790,7 @@ FName ULGUICanvas::LGUI_RectClipOffsetAndSize_MaterialParameterName = FName(TEXT
 FName ULGUICanvas::LGUI_RectClipFeather_MaterialParameterName = FName(TEXT("RectClipFeather"));
 FName ULGUICanvas::LGUI_TextureClip_MaterialParameterName = FName(TEXT("ClipTexture"));
 FName ULGUICanvas::LGUI_TextureClipOffsetAndSize_MaterialParameterName = FName(TEXT("TextureClipOffsetAndSize"));
+FName ULGUICanvas::LGUI_ClipType_MaterialParameterName = FName(TEXT("LGUIClipType"));
 
 bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial, ELGUICanvasClipType InClipType, ULGUICanvasCustomClip* InCustomClip)
 {
@@ -1822,6 +1823,15 @@ bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial
 				return
 					Item.Name == LGUI_RectClipFeather_MaterialParameterName || Item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName
 					|| Item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName
+					;
+			});
+	}
+	if (FoundIndex == INDEX_NONE)
+	{
+		InMaterial->GetAllScalarParameterInfo(ParameterInfos, ParameterIds);
+		FoundIndex = ParameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& Item)
+			{
+				return Item.Name == LGUI_ClipType_MaterialParameterName
 					;
 			});
 	}
@@ -1912,6 +1922,11 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				DrawcallItem->bMaterialNeedToReassign = false;
 				bNeedToSetClipParameter = true;
 				bNeedToVerifyMaterials = true;
+
+				if (DrawcallItem->DirectMeshRenderableObject.IsValid())
+				{
+					DrawcallItem->DirectMeshRenderableObject->SetClipType(TempClipType);
+				}
 			}
 			if (DrawcallItem->bTextureChanged)
 			{
@@ -1950,6 +1965,26 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		switch (TempClipType)
 		{
 		case ELGUICanvasClipType::None:
+		{
+			if (bNeedToSetClipParameter
+				|| this->bNeedToUpdateCustomClipParameter)
+			{
+				switch (DrawcallItem->Type)
+				{
+				default:
+				case EUIDrawcallType::BatchGeometry:
+				case EUIDrawcallType::DirectMesh:
+				{
+					auto RenderMaterial = DrawcallItem->RenderMaterial;
+					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
+					{
+						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetScalarParameterValue(LGUI_ClipType_MaterialParameterName, (float)TempClipType);
+					}
+				}
+				break;
+				}
+			}
+		}
 			break;
 		case ELGUICanvasClipType::Rect:
 		{
@@ -1962,14 +1997,19 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				switch (DrawcallItem->Type)
 				{
 				default:
-				case EUIDrawcallType::BatchGeometry:
 				case EUIDrawcallType::DirectMesh:
+				case EUIDrawcallType::BatchGeometry:
 				{
 					auto RenderMaterial = DrawcallItem->RenderMaterial;
 					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
 					{
+						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetScalarParameterValue(LGUI_ClipType_MaterialParameterName, (float)TempClipType);
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetVectorParameterValue(LGUI_RectClipOffsetAndSize_MaterialParameterName, TempRectClipOffsetAndSize);
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetVectorParameterValue(LGUI_RectClipFeather_MaterialParameterName, TempRectClipFeather);
+					}
+					if (DrawcallItem->DirectMeshRenderableObject.IsValid())
+					{
+						DrawcallItem->DirectMeshRenderableObject->SetRectClipParameter(TempRectClipOffsetAndSize, TempRectClipFeather);
 					}
 				}
 				break;
@@ -1996,14 +2036,19 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				switch (DrawcallItem->Type)
 				{
 				default:
-				case EUIDrawcallType::BatchGeometry:
 				case EUIDrawcallType::DirectMesh:
+				case EUIDrawcallType::BatchGeometry:
 				{
 					auto RenderMaterial = DrawcallItem->RenderMaterial;
 					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
 					{
+						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetScalarParameterValue(LGUI_ClipType_MaterialParameterName, (float)TempClipType);
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetTextureParameterValue(LGUI_TextureClip_MaterialParameterName, TempClipTexture);
 						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetVectorParameterValue(LGUI_TextureClipOffsetAndSize_MaterialParameterName, TempTextureClipOffsetAndSize);
+					}
+					if (DrawcallItem->DirectMeshRenderableObject.IsValid())
+					{
+						DrawcallItem->DirectMeshRenderableObject->SetTextureClipParameter(TempClipTexture, TempTextureClipOffsetAndSize);
 					}
 				}
 				break;
@@ -2033,6 +2078,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 					auto RenderMaterial = DrawcallItem->RenderMaterial;
 					if (RenderMaterial.IsValid() && DrawcallItem->bMaterialContainsLGUIParameter)
 					{
+						((UMaterialInstanceDynamic*)RenderMaterial.Get())->SetScalarParameterValue(LGUI_ClipType_MaterialParameterName, (float)TempClipType);
 						TempCustomClip->ApplyMaterialParameter((UMaterialInstanceDynamic*)RenderMaterial.Get(), this, UIItem.Get());
 					}
 				}
