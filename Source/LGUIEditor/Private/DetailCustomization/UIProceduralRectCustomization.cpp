@@ -422,7 +422,7 @@ CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(UUIProceduralRect, Prop
 					.Text(LOCTEXT("SnapSize_Button", "Snap Size"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
-				.OnClicked_Lambda([=]()
+				.OnClicked_Lambda([=, this]()
 				{
 					GEditor->BeginTransaction(LOCTEXT("TextureSnapSize_Transaction", "UIProceduralRect texture snap size"));
 					for (auto item : TargetScriptArray)
