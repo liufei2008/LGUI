@@ -9,7 +9,7 @@
 struct FLGUIRenderSection;
 class ULGUIMeshComponent;
 /** 
- * UI element that use mesh to render directly
+ * UI element that render directly to LGUICanvas's mesh section. Each UIDirectMeshRenderable is considered as a drawcall.
  */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIDirectMeshRenderable : public UUIBaseRenderable

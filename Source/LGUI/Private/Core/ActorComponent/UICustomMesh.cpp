@@ -15,6 +15,14 @@ UUICustomMesh::UUICustomMesh(const FObjectInitializer& ObjectInitializer) :Super
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
+bool UUICustomMesh::SupportDrawcallBatching()const
+{
+	if (IsValid(CustomMesh))
+	{
+		return CustomMesh->SupportDrawcallBatching();
+	}
+	return true;
+}
 void UUICustomMesh::OnBeforeCreateOrUpdateGeometry()
 {
 

@@ -25,6 +25,14 @@ bool ULGUICustomMesh::GetHitUV(const UUIBatchMeshRenderable* InRenderable, const
 	}
 	return false;
 }
+bool ULGUICustomMesh::SupportDrawcallBatching()const
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		return ReceiveSupportDrawcallBatching();
+	}
+	return false;
+}
 bool ULGUICustomMesh::GetHitUVbyFaceIndex(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, FVector2D& OutHitUV)const
 {
 	auto& Vertices = UIGeo->vertices;
