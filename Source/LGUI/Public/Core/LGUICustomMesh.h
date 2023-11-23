@@ -39,6 +39,10 @@ public:
 	 * @return true if hit suceess
 	 */
 	virtual bool GetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
+	/**
+	 * Is this mesh type support drawcall batching? When the mesh comes in 3d then should not do drawcall batching. Normally just leave it return false.
+	 */
+	virtual bool SupportDrawcallBatching()const;
 protected:
 	/**
 	 * Fill the mesh data.
@@ -62,6 +66,11 @@ protected:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetHitUV"))
 	bool ReceiveGetHitUV(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
+	/**
+	 * Is this mesh type support drawcall batching? When the mesh comes in 3d then should not do drawcall batching. Normally just leave it return false.
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "SupportDrawcallBatching"))
+	bool ReceiveSupportDrawcallBatching()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	bool GetHitUVbyFaceIndex(const UUIBatchMeshRenderable* InRenderable, const int32& InHitFaceIndex, const FVector& InHitPoint, FVector2D& OutHitUV)const;

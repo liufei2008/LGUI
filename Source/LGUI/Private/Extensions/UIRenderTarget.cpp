@@ -20,6 +20,17 @@ UUIRenderTarget::UUIRenderTarget(const FObjectInitializer& ObjectInitializer) :S
 	TargetCanvas = FLGUIComponentReference(ULGUICanvas::StaticClass());
 }
 
+bool UUIRenderTarget::SupportDrawcallBatching()const
+{
+	if (IsValid(CustomMesh))
+	{
+		return CustomMesh->SupportDrawcallBatching();
+	}
+	else
+	{
+		return true;
+	}
+}
 void UUIRenderTarget::OnBeforeCreateOrUpdateGeometry()
 {
 
