@@ -64,7 +64,7 @@ void UUISprite::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool
 	{
 	case EUISpriteType::Normal:
 		UIGeometry::UpdateUIRectSimpleVertex(&InGeo, 
-			this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot()), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(), 
+			this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(), 
 			InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 		);
 		break;
@@ -72,7 +72,7 @@ void UUISprite::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool
 	case EUISpriteType::SlicedFrame:
 		if (sprite->GetSpriteInfo().HasBorder())
 		{
-			UIGeometry::UpdateUIRectBorderVertex(&InGeo, type == EUISpriteType::Sliced, this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot()), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(),
+			UIGeometry::UpdateUIRectBorderVertex(&InGeo, type == EUISpriteType::Sliced, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 		}
@@ -107,22 +107,22 @@ void UUISprite::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool
 		{
 		case EUISpriteFillMethod::Horizontal:
 		case EUISpriteFillMethod::Vertical:
-			UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(&InGeo, this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot()), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, fillMethod == UISpriteFillMethod::Horizontal, RenderCanvas.Get(), this, GetFinalColor(),
+			UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, fillMethod == EUISpriteFillMethod::Horizontal, RenderCanvas.Get(), this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case EUISpriteFillMethod::Radial90:
-			UIGeometry::UpdateUIRectFillRadial90Vertex(&InGeo, this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot()), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+			UIGeometry::UpdateUIRectFillRadial90Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (EUISpriteFillOriginType_Radial90)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case EUISpriteFillMethod::Radial180:
-			UIGeometry::UpdateUIRectFillRadial180Vertex(&InGeo, this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot()), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+			UIGeometry::UpdateUIRectFillRadial180Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (EUISpriteFillOriginType_Radial180)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case EUISpriteFillMethod::Radial360:
-			UIGeometry::UpdateUIRectFillRadial360Vertex(&InGeo, this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot()), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+			UIGeometry::UpdateUIRectFillRadial360Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (EUISpriteFillOriginType_Radial360)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;

@@ -783,23 +783,23 @@ void ALGUIManagerActor::DrawDebugRectOnScreenSpace(UWorld* InWorld, FVector cons
 		FTransform const Transform(Rotation);
 		FVector Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
 		FVector End = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + End), Color);
 
 		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
 		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + End), Color);
 
 		Start = Transform.TransformPosition(FVector(Box.X, Box.Y, Box.Z));
 		End = Transform.TransformPosition(FVector(Box.X, Box.Y, -Box.Z));
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + End), Color);
 
 		Start = Transform.TransformPosition(FVector(Box.X, -Box.Y, Box.Z));
 		End = Transform.TransformPosition(FVector(Box.X, -Box.Y, -Box.Z));
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + Start), Color);
-		new(Lines) FLGUIHelperLineVertex(FVector3f(Center + End), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + Start), Color);
+		new(Lines) FLGUIHelperLineVertex(FVector(Center + End), Color);
 
 		ViewExtension->AddLineRender(FLGUIHelperLineRenderParameter(Lines));
 	}

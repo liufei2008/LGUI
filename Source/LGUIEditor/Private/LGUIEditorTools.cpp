@@ -1482,13 +1482,13 @@ bool LGUIEditorTools::CreateTraceChannel_BasicSetup(ETraceTypeQuery& OutTraceTyp
 	};
 	auto GetLGUIChannelResponse = [=](ECollisionResponse& Response, ECollisionChannel& OutChannelIndex) {
 		return OnLGUIChannel([&](FByteProperty* DefaultResponseProperty, void* StructPtr) {
-			DefaultResponseProperty->GetValue_InContainer(StructPtr, (uint8*)&Response);
+			*((uint8*)&Response) = DefaultResponseProperty->GetPropertyValue_InContainer(StructPtr);
 			}, OutChannelIndex);
 	};
 	auto SetLGUIChannelResponse = [=](ECollisionChannel& OutChannelIndex) {
 		return OnLGUIChannel([](FByteProperty* DefaultResponseProperty, void* StructPtr) {
 			auto Response = ECollisionResponse::ECR_Ignore;
-			DefaultResponseProperty->SetValue_InContainer(StructPtr, (uint8)Response);
+			DefaultResponseProperty->SetPropertyValue_InContainer(StructPtr, (uint8)Response);
 			}, OutChannelIndex);
 	};
 

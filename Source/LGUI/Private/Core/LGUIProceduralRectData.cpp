@@ -42,7 +42,7 @@ void ULGUIProceduralRectData::CreateTexture()
 	auto* pixelPtr = static_cast<FLinearColor*>(dataPtr);
 	FMemory::Memzero(pixelPtr, NumDataCount);
 	Mip->BulkData.Unlock();
-	Texture->SetPlatformData(PlatformData);
+	Texture->PlatformData = PlatformData;
 
 	Texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	Texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
@@ -92,7 +92,7 @@ bool ULGUIProceduralRectData::ExpandTexture()
 	{
 		for (int w = CurrentPosition.X; w + BlockPixelCount < TextureSize; w += BlockPixelCount)
 		{
-			NotUsingPositionArray.Add(FIntVector2(w, h));
+			NotUsingPositionArray.Add(FIntPoint(w, h));
 		}
 	}
 	// set start position to left bottom quater
@@ -121,7 +121,7 @@ void ULGUIProceduralRectData::Init(int InBlockSizeInByte)
 	CreateTexture();
 }
 
-FIntVector2 ULGUIProceduralRectData::RegisterBuffer()
+FIntPoint ULGUIProceduralRectData::RegisterBuffer()
 {
 	if (NotUsingPositionArray.Num() > 0)
 	{
@@ -149,11 +149,11 @@ FIntVector2 ULGUIProceduralRectData::RegisterBuffer()
 	}
 	return PrevPos;
 }
-void ULGUIProceduralRectData::UnregisterBuffer(const FIntVector2& InPosition)
+void ULGUIProceduralRectData::UnregisterBuffer(const FIntPoint& InPosition)
 {
 	NotUsingPositionArray.Add(InPosition);
 }
-void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, uint8* InData)
+void ULGUIProceduralRectData::UpdateBlock(const FIntPoint& InPosition, uint8* InData)
 {
 	if (Texture->GetResource())
 	{

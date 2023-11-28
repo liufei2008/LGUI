@@ -33,12 +33,12 @@ void UUIProceduralRect::FillData(uint8* Data, float width, float height)
 		, 0, 0
 		, DataOffset);
 
-	FillVector2ToData(Data, FVector2f(width, height), DataOffset);
+	FillVector2ToData(Data, FVector2D(width, height), DataOffset);
 
 	FillVector4ToData(Data, GetValueWithUnitMode(CornerRadius, CornerRadiusUnitMode, width, height, 0.5f), DataOffset);
 	FillColorToData(Data, BodyColor, DataOffset);
 	FillVector2ToData(Data
-		, (BodyTextureMode == EUIProceduralBodyTextureMode::Sprite && IsValid(BodySpriteTexture)) ? FVector2f(BodySpriteTexture->GetSpriteInfo().GetUVCenter()) : FVector2f(0.5f, 0.5f)
+		, (BodyTextureMode == EUIProceduralBodyTextureMode::Sprite && IsValid(BodySpriteTexture)) ? FVector2D(BodySpriteTexture->GetSpriteInfo().GetUVCenter()) : FVector2D(0.5f, 0.5f)
 		, DataOffset);
 
 	FillColorToData(Data, BodyGradientColor, DataOffset);
@@ -72,30 +72,30 @@ float UUIProceduralRect::GetValueWithUnitMode(float SourceValue, EUIProceduralRe
 {
 	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
 }
-FVector4f UUIProceduralRect::GetValueWithUnitMode(const FVector4f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
+FVector4 UUIProceduralRect::GetValueWithUnitMode(const FVector4& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale)
 {
 	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
 }
-FVector2f UUIProceduralRect::GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight)
+FVector2D UUIProceduralRect::GetValueWithUnitMode(const FVector2D& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight)
 {
-	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * FVector2f(RectWidth, RectHeight));
+	return UnitMode == EUIProceduralRectUnitMode::Value ? SourceValue : (SourceValue * 0.01f * FVector2D(RectWidth, RectHeight));
 }
 
-FVector2f UUIProceduralRect::GetInnerShadowOffset(float RectWidth, float RectHeight)
+FVector2D UUIProceduralRect::GetInnerShadowOffset(float RectWidth, float RectHeight)
 {
 	float AngleRadian = FMath::DegreesToRadians(InnerShadowAngle + 90);
 	float Sin = FMath::Sin(AngleRadian);
 	float Cos = FMath::Cos(AngleRadian);
 	float Distance = GetValueWithUnitMode(InnerShadowDistance, InnerShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
-	return FVector2f(-Sin, Cos) * Distance;
+	return FVector2D(-Sin, Cos) * Distance;
 }
-FVector2f UUIProceduralRect::GetOuterShadowOffset(float RectWidth, float RectHeight)
+FVector2D UUIProceduralRect::GetOuterShadowOffset(float RectWidth, float RectHeight)
 {
 	float AngleRadian = FMath::DegreesToRadians(OuterShadowAngle + 90);
 	float Sin = FMath::Sin(AngleRadian);
 	float Cos = FMath::Cos(AngleRadian);
 	float Distance = GetValueWithUnitMode(OuterShadowDistance, OuterShadowDistanceUnitMode, RectWidth, RectHeight, 0.5f);
-	return FVector2f(-Sin, Cos) * Distance;
+	return FVector2D(-Sin, Cos) * Distance;
 }
 
 constexpr int UUIProceduralRect::DataCountInBytes()
@@ -192,13 +192,13 @@ void UUIProceduralRect::FillFloatToData(uint8* Data, const float& InValue, int& 
 	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
 	InOutDataOffset += ByteCount;
 }
-void UUIProceduralRect::FillVector2ToData(uint8* Data, const FVector2f& InValue, int& InOutDataOffset)
+void UUIProceduralRect::FillVector2ToData(uint8* Data, const FVector2D& InValue, int& InOutDataOffset)
 {
 	int ByteCount = 8;
 	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
 	InOutDataOffset += ByteCount;
 }
-void UUIProceduralRect::FillVector4ToData(uint8* Data, const FVector4f& InValue, int& InOutDataOffset)
+void UUIProceduralRect::FillVector4ToData(uint8* Data, const FVector4& InValue, int& InOutDataOffset)
 {
 	int ByteCount = 16;
 	FMemory::Memcpy(Data + InOutDataOffset, &InValue, ByteCount);
@@ -591,7 +591,7 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		, this->GetValueWithUnitMode(OuterShadowSize, OuterShadowSizeUnitMode, this->GetWidth(), this->GetHeight(), 0.5f)
 		, this->GetValueWithUnitMode(OuterShadowBlur, OuterShadowBlurUnitMode, this->GetWidth(), this->GetHeight(), 1)
 		, this->bSoftEdge,
-		this->GetWidth(), this->GetHeight(), FVector2f(this->GetPivot())
+		this->GetWidth(), this->GetHeight(), FVector2D(this->GetPivot())
 		, SimpleRectSpriteData, IsValid(BodySpriteTexture) ? BodySpriteTexture->GetSpriteInfo() : SimpleRectSpriteData
 		, RenderCanvas.Get(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
@@ -604,19 +604,19 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		{
 			for (int i = 0; i < 8; i++)
 			{
-				vertices[i].TextureCoordinate[1] = FVector2f(DataStartPosition.X, DataStartPosition.Y);
+				vertices[i].TextureCoordinate[1] = FVector2D(DataStartPosition.X, DataStartPosition.Y);
 			}
 			for (int i = 0; i < 4; i++)
 			{
-				vertices[i].TextureCoordinate[2] = FVector2f(1, 0);
+				vertices[i].TextureCoordinate[2] = FVector2D(1, 0);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < 4; i++)
 			{
-				vertices[i].TextureCoordinate[1] = FVector2f(DataStartPosition.X, DataStartPosition.Y);
-				vertices[i].TextureCoordinate[2] = FVector2f(0, 0);
+				vertices[i].TextureCoordinate[1] = FVector2D(DataStartPosition.X, DataStartPosition.Y);
+				vertices[i].TextureCoordinate[2] = FVector2D(0, 0);
 			}
 		}
 		bNeedUpdateBlockData = true;
@@ -684,7 +684,7 @@ void UUIProceduralRect::ApplyAtlasTextureScaleUp_Implementation()
 
 void UUIProceduralRect::SetCornerRadius(const FVector4& value)
 {
-	this->CornerRadius = (FVector4f)value;
+	this->CornerRadius = (FVector4)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
@@ -795,13 +795,13 @@ void UUIProceduralRect::SetBodyGradientColor(const FColor& value)
 }
 void UUIProceduralRect::SetBodyGradientCenter(const FVector2D& value)
 {
-	this->BodyGradientCenter = (FVector2f)value;
+	this->BodyGradientCenter = (FVector2D)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBodyGradientRadius(const FVector2D& value)
 {
-	this->BodyGradientRadius = (FVector2f)value;
+	this->BodyGradientRadius = (FVector2D)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
@@ -844,13 +844,13 @@ void UUIProceduralRect::SetBorderGradientColor(const FColor& value)
 }
 void UUIProceduralRect::SetBorderGradientCenter(const FVector2D& value)
 {
-	this->BorderGradientCenter = (FVector2f)value;
+	this->BorderGradientCenter = (FVector2D)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
 void UUIProceduralRect::SetBorderGradientRadius(const FVector2D& value)
 {
-	this->BorderGradientRadius = (FVector2f)value;
+	this->BorderGradientRadius = (FVector2D)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }
@@ -906,7 +906,7 @@ void UUIProceduralRect::SetEnableRadialFill(bool value)
 }
 void UUIProceduralRect::SetRadialFillCenter(const FVector2D& value)
 {
-	this->RadialFillCenter = (FVector2f)value;
+	this->RadialFillCenter = (FVector2D)value;
 	bNeedUpdateBlockData = true;
 	MarkCanvasUpdate(false, false, false, false);
 }

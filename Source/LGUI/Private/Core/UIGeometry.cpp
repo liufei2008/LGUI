@@ -221,8 +221,8 @@ void UIGeometry::UpdateUIRectSimpleVertex(UIGeometry* uiGeo,
 }
 void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 	bool bEnableBody,
-	bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
-	const float& width, const float& height, const FVector2f& pivot, 
+	bool bOuterShadow, const FVector2D& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
+	const float& width, const float& height, const FVector2D& pivot, 
 	const FLGUISpriteInfo& uniformSpriteInfo, const FLGUISpriteInfo& spriteInfo,
 	ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -272,24 +272,24 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			{
 				if (bSoftEdge)//offset 1 pixel to make edge smooth
 				{
-					originVertices[4].Position = FVector3f(0, minX - 1, minY - 1);
-					originVertices[5].Position = FVector3f(0, maxX + 1, minY - 1);
-					originVertices[6].Position = FVector3f(0, minX - 1, maxY + 1);
-					originVertices[7].Position = FVector3f(0, maxX + 1, maxY + 1);
+					originVertices[4].Position = FVector(0, minX - 1, minY - 1);
+					originVertices[5].Position = FVector(0, maxX + 1, minY - 1);
+					originVertices[6].Position = FVector(0, minX - 1, maxY + 1);
+					originVertices[7].Position = FVector(0, maxX + 1, maxY + 1);
 				}
 				else
 				{
-					originVertices[4].Position = FVector3f(0, minX, minY);
-					originVertices[5].Position = FVector3f(0, maxX, minY);
-					originVertices[6].Position = FVector3f(0, minX, maxY);
-					originVertices[7].Position = FVector3f(0, maxX, maxY);
+					originVertices[4].Position = FVector(0, minX, minY);
+					originVertices[5].Position = FVector(0, maxX, minY);
+					originVertices[6].Position = FVector(0, minX, maxY);
+					originVertices[7].Position = FVector(0, maxX, maxY);
 				}
 				if (!bEnableBody)//if disable body, then hide vertices
 				{
-					originVertices[4].Position = FVector3f::ZeroVector;
-					originVertices[5].Position = FVector3f::ZeroVector;
-					originVertices[6].Position = FVector3f::ZeroVector;
-					originVertices[7].Position = FVector3f::ZeroVector;
+					originVertices[4].Position = FVector::ZeroVector;
+					originVertices[5].Position = FVector::ZeroVector;
+					originVertices[6].Position = FVector::ZeroVector;
+					originVertices[7].Position = FVector::ZeroVector;
 				}
 
 				minX += outerShadowOffset.X;
@@ -301,10 +301,10 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				maxX += additionalShadowSize;
 				minY -= additionalShadowSize;
 				maxY += additionalShadowSize;
-				originVertices[0].Position = FVector3f(0, minX, minY);
-				originVertices[1].Position = FVector3f(0, maxX, minY);
-				originVertices[2].Position = FVector3f(0, minX, maxY);
-				originVertices[3].Position = FVector3f(0, maxX, maxY);
+				originVertices[0].Position = FVector(0, minX, minY);
+				originVertices[1].Position = FVector(0, maxX, minY);
+				originVertices[2].Position = FVector(0, minX, maxY);
+				originVertices[3].Position = FVector(0, maxX, maxY);
 			}
 			else
 			{
@@ -315,17 +315,17 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 					minY -= 1;
 					maxY += 1;
 				}
-				originVertices[0].Position = FVector3f(0, minX, minY);
-				originVertices[1].Position = FVector3f(0, maxX, minY);
-				originVertices[2].Position = FVector3f(0, minX, maxY);
-				originVertices[3].Position = FVector3f(0, maxX, maxY);
+				originVertices[0].Position = FVector(0, minX, minY);
+				originVertices[1].Position = FVector(0, maxX, minY);
+				originVertices[2].Position = FVector(0, minX, maxY);
+				originVertices[3].Position = FVector(0, maxX, maxY);
 
 				if (!bEnableBody)//if disable body, then hide vertices
 				{
-					originVertices[0].Position = FVector3f::ZeroVector;
-					originVertices[1].Position = FVector3f::ZeroVector;
-					originVertices[2].Position = FVector3f::ZeroVector;
-					originVertices[3].Position = FVector3f::ZeroVector;
+					originVertices[0].Position = FVector::ZeroVector;
+					originVertices[1].Position = FVector::ZeroVector;
+					originVertices[2].Position = FVector::ZeroVector;
+					originVertices[3].Position = FVector::ZeroVector;
 				}
 			}
 			//snap pixel
@@ -345,10 +345,10 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 			{
 				auto UV0 = uniformSpriteInfo.GetUV0();
 				auto UV3 = uniformSpriteInfo.GetUV3();
-				vertices[0].TextureCoordinate[0] = FVector2f(UV0.X, UV0.Y);
-				vertices[1].TextureCoordinate[0] = FVector2f(UV3.X, UV0.Y);
-				vertices[2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
-				vertices[3].TextureCoordinate[0] = FVector2f(UV3.X, UV3.Y);
+				vertices[0].TextureCoordinate[0] = FVector2D(UV0.X, UV0.Y);
+				vertices[1].TextureCoordinate[0] = FVector2D(UV3.X, UV0.Y);
+				vertices[2].TextureCoordinate[0] = FVector2D(UV0.X, UV3.Y);
+				vertices[3].TextureCoordinate[0] = FVector2D(UV3.X, UV3.Y);
 
 				float additionalShadowSize = outerShadowSize + outerShadowBlur * 0.5f;
 				float additionalUVWidth = additionalShadowSize / width;
@@ -357,10 +357,10 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				UV3.X += additionalUVWidth;
 				UV0.Y += additionalUVHeight;
 				UV3.Y -= additionalUVHeight;
-				vertices[0].TextureCoordinate[3] = FVector2f(UV0.X, UV0.Y);
-				vertices[1].TextureCoordinate[3] = FVector2f(UV3.X, UV0.Y);
-				vertices[2].TextureCoordinate[3] = FVector2f(UV0.X, UV3.Y);
-				vertices[3].TextureCoordinate[3] = FVector2f(UV3.X, UV3.Y);
+				vertices[0].TextureCoordinate[3] = FVector2D(UV0.X, UV0.Y);
+				vertices[1].TextureCoordinate[3] = FVector2D(UV3.X, UV0.Y);
+				vertices[2].TextureCoordinate[3] = FVector2D(UV0.X, UV3.Y);
+				vertices[3].TextureCoordinate[3] = FVector2D(UV3.X, UV3.Y);
 
 				vertStartIndex = 4;
 			}
@@ -375,10 +375,10 @@ void UIGeometry::UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 				UV3.X += onePixelUVWidth;
 				UV0.Y += onePixelUVHeight;
 				UV3.Y -= onePixelUVHeight;
-				vertices[vertStartIndex].TextureCoordinate[0] = FVector2f(UV0.X, UV0.Y);
-				vertices[vertStartIndex + 1].TextureCoordinate[0] = FVector2f(UV3.X, UV0.Y);
-				vertices[vertStartIndex + 2].TextureCoordinate[0] = FVector2f(UV0.X, UV3.Y);
-				vertices[vertStartIndex + 3].TextureCoordinate[0] = FVector2f(UV3.X, UV3.Y);
+				vertices[vertStartIndex].TextureCoordinate[0] = FVector2D(UV0.X, UV0.Y);
+				vertices[vertStartIndex + 1].TextureCoordinate[0] = FVector2D(UV3.X, UV0.Y);
+				vertices[vertStartIndex + 2].TextureCoordinate[0] = FVector2D(UV0.X, UV3.Y);
+				vertices[vertStartIndex + 3].TextureCoordinate[0] = FVector2D(UV3.X, UV3.Y);
 			}
 			else
 			{

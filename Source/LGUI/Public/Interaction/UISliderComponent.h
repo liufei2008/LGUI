@@ -65,7 +65,7 @@ protected:
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
-		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
+		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Float);
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")

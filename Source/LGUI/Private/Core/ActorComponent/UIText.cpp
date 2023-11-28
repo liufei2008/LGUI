@@ -247,7 +247,7 @@ void UUIText::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETel
 	if (IsValid(font) && font->GetNeedObjectScale())
 	{
 		auto CompScale3D = this->GetComponentScale();
-		auto CompScale2D = FVector2f(CompScale3D.Y, CompScale3D.Z);
+		auto CompScale2D = FVector2D(CompScale3D.Y, CompScale3D.Z);
 		if (!PrevScale2D.Equals(CompScale2D))
 		{
 			PrevScale2D = CompScale2D;

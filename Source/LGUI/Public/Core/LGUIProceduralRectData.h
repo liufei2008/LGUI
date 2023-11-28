@@ -19,10 +19,10 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TObjectPtr<UMaterialInterface> DefaultMaterials[(int)ELGUICanvasClipType::Custom];
+		UMaterialInterface* DefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Texture to fill buffer data, and decode to buffer in shader. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		TObjectPtr<UTexture2D> Texture = nullptr;
+		UTexture2D* Texture = nullptr;
 
 	//how many bytes in single block
 	int BlockSizeInByte = 4;
@@ -31,9 +31,9 @@ private:
 
 	int TextureSize = 1;
 	//Pixel position
-	FIntVector2 CurrentPosition = FIntVector2(0, 0);
+	FIntPoint CurrentPosition = FIntPoint(0, 0);
 	bool bIsInitialized = false;
-	TArray<FIntVector2> NotUsingPositionArray;
+	TArray<FIntPoint> NotUsingPositionArray;
 
 	void CreateTexture();
 	bool ExpandTexture();
@@ -51,9 +51,9 @@ public:
 	 * Request a new block area with initialize block size.
 	 * @return Start position in texture's data
 	 */
-	FIntVector2 RegisterBuffer();
-	void UnregisterBuffer(const FIntVector2& InPosition);
-	void UpdateBlock(const FIntVector2& InPosition, uint8* InData);
+	FIntPoint RegisterBuffer();
+	void UnregisterBuffer(const FIntPoint& InPosition);
+	void UpdateBlock(const FIntPoint& InPosition, uint8* InData);
 
 	UTexture2D* GetDataTexture()const { return Texture; }
 	UMaterialInterface* GetMaterial(ELGUICanvasClipType clipType);

@@ -120,17 +120,17 @@ void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstance
 	auto LocalSpaceCenter = InUIItem->GetLocalSpaceCenter();
 	auto CenterAndSize = FLinearColor(LocalSpaceCenter.X, LocalSpaceCenter.Y, InUIItem->GetWidth(), InUIItem->GetHeight());
 	auto TempCornerRadius = GetCornerRadiusWithUnitMode(InUIItem->GetWidth(), InUIItem->GetHeight(), 0.5f);
-	ApplyMaterialParameter(InMaterial, CenterAndSize, TempCornerRadius);
+	ApplyMaterialParameter(InMaterial, CenterAndSize, (FLinearColor)TempCornerRadius);
 }
 void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, const FLinearColor& InCenterAndSize, const FLinearColor& InConerRadius)
 {
 	InMaterial->SetVectorParameterValue(CenterAndSizeParameterName, InCenterAndSize);
 	InMaterial->SetVectorParameterValue(CornerRadiusParameterName, InConerRadius);
 }
-FVector4f ULGUICanvasCustomClip_RoundedRect::GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale)
+FVector4 ULGUICanvasCustomClip_RoundedRect::GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale)
 {
 	auto Result = CornerRadiusUnitMode == ELGUICanvasCustomClip_RoundedRect_UnitMode::Value ? CornerRadius : (CornerRadius * 0.01f * (RectWidth < RectHeight ? RectWidth : RectHeight) * AdditionalScale);
-	Result = FVector4f(Result.Y, Result.X, Result.W, Result.Z);//change the order so it is the same as UIProceduralRect
+	Result = FVector4(Result.Y, Result.X, Result.W, Result.Z);//change the order so it is the same as UIProceduralRect
 	return Result;
 }
 
@@ -141,7 +141,7 @@ bool ULGUICanvasCustomClip_RoundedRect::CheckPointVisible(const FVector& InWorld
 	{
 		auto InLocalHitPoint = FVector2D(LocalPoint.Y, LocalPoint.Z);
 		auto TempCornerRadius = GetCornerRadiusWithUnitMode(InUIItem->GetWidth(), InUIItem->GetHeight(), 0.5f);
-		TempCornerRadius = FVector4f(TempCornerRadius.Y, TempCornerRadius.X, TempCornerRadius.W, TempCornerRadius.Z);//flip vertical
+		TempCornerRadius = FVector4(TempCornerRadius.Y, TempCornerRadius.X, TempCornerRadius.W, TempCornerRadius.Z);//flip vertical
 		auto HalfWidth = InUIItem->GetWidth() * 0.5f;
 		auto HalfHeight = InUIItem->GetHeight() * 0.5f;
 		auto MinSize = FMath::Min(HalfWidth, HalfHeight);
@@ -234,7 +234,7 @@ void ULGUICanvasCustomClip_RoundedRect::ApplyMaterialParameterOnCanvas()
 			{
 				if (Item->bMaterialContainsLGUIParameter)
 				{
-					ApplyMaterialParameter((UMaterialInstanceDynamic*)Item->RenderMaterial.Get(), CenterAndSize, TempCornerRadius);
+					ApplyMaterialParameter((UMaterialInstanceDynamic*)Item->RenderMaterial.Get(), CenterAndSize, (FLinearColor)TempCornerRadius);
 				}
 			}
 		}
@@ -296,7 +296,7 @@ void ULGUICanvasCustomClip_RoundedRect::OnCornerRadiusUnitModeChanged(float widt
 	}
 }
 
-void ULGUICanvasCustomClip_RoundedRect::SetCornerRadius(const FVector4f& value)
+void ULGUICanvasCustomClip_RoundedRect::SetCornerRadius(const FVector4& value)
 {
 	if (CornerRadius != value)
 	{

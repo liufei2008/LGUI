@@ -52,7 +52,7 @@ void FLGUICanvasCustomClip_RoundedRect_Customization::CustomizeDetails(IDetailLa
 		.Padding(OuterPadding)
 		[
 			SNew( SCheckBox )
-			.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+			.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
 			.ToolTipText(LOCTEXT("Value_Tooltip", "Use direct value"))
 			.Padding(ContentPadding)
 			.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState){
@@ -76,7 +76,7 @@ void FLGUICanvasCustomClip_RoundedRect_Customization::CustomizeDetails(IDetailLa
 		.Padding(OuterPadding)
 		[
 			SNew(SCheckBox)
-			.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+			.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
 			.ToolTipText(LOCTEXT("Percentage_Tooltip", "Use percentage of rect width and height"))
 			.Padding(ContentPadding)
 			.OnCheckStateChanged_Lambda([=](ECheckBoxState InCheckboxState) {
@@ -155,14 +155,14 @@ void FLGUICanvasCustomClip_RoundedRect_Customization::CustomizeDetails(IDetailLa
 					bool bUniformSetCornerRadius = (NewState == ECheckBoxState::Checked) ? true : false;
 					UniformSetCornerRadiusHandle->SetValue(bUniformSetCornerRadius);
 					})
-				.Style(FAppStyle::Get(), "TransparentCheckBox")
+				.Style(FEditorStyle::Get(), "TransparentCheckBox")
 				.ToolTipText(LOCTEXT("UniformSetCornerRadiusToolTip", "When locked, corner radius will all set with x value"))
 				[
 					SNew(SImage)
 					.Image_Lambda([=] {
 						bool bUniformSetCornerRadius = false;
 						UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
-						return bUniformSetCornerRadius ? FAppStyle::GetBrush(TEXT("Icons.Lock")) : FAppStyle::GetBrush(TEXT("Icons.Unlock"));
+						return bUniformSetCornerRadius ? FEditorStyle::GetBrush(TEXT("Icons.Lock")) : FEditorStyle::GetBrush(TEXT("Icons.Unlock"));
 						})
 					.ColorAndOpacity(FSlateColor::UseForeground())
 				]

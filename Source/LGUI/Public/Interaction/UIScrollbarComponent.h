@@ -57,7 +57,7 @@ protected:
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
-		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
+		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Float);
 
 	float PressValue = 0;
 public:

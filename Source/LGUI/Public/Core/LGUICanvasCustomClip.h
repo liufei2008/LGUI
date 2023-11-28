@@ -121,7 +121,7 @@ public:
 private:
 	friend class FLGUICanvasCustomClip_RoundedRect_Customization;
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		FVector4f CornerRadius = FVector4f(1, 1, 1, 1);
+		FVector4 CornerRadius = FVector4(1, 1, 1, 1);
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		ELGUICanvasCustomClip_RoundedRect_UnitMode CornerRadiusUnitMode = ELGUICanvasCustomClip_RoundedRect_UnitMode::Percentage;
 #if WITH_EDITORONLY_DATA
@@ -132,15 +132,15 @@ private:
 	static FName CornerRadiusParameterName;
 	void ApplyMaterialParameter(UMaterialInstanceDynamic* InMaterial, const FLinearColor& InCenterAndSize, const FLinearColor& InConerRadius);
 	void ApplyMaterialParameterOnCanvas();
-	FVector4f GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale);
+	FVector4 GetCornerRadiusWithUnitMode(float RectWidth, float RectHeight, float AdditionalScale);
 	void OnCornerRadiusUnitModeChanged(float width, float height);
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		FVector4f GetCornerRadius()const { return CornerRadius; }
+		FVector4 GetCornerRadius()const { return CornerRadius; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasCustomClip_RoundedRect_UnitMode GetCornerRadiusUnitMode()const { return CornerRadiusUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetCornerRadius(const FVector4f& value);
+		void SetCornerRadius(const FVector4& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCornerRadiusUnitMode(ELGUICanvasCustomClip_RoundedRect_UnitMode value);
 };

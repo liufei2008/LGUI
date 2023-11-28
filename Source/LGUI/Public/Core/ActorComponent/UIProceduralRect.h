@@ -58,7 +58,7 @@ protected:
 
 #pragma region BlockData
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector4f CornerRadius = FVector4f::One();
+		FVector4 CornerRadius = FVector4(1,1,1,1);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode CornerRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	/** Prevent edge aliasing, useful when in 3d. */
@@ -72,9 +72,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralBodyTextureMode BodyTextureMode = EUIProceduralBodyTextureMode::Texture;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
-		TObjectPtr<class UTexture> BodyTexture = nullptr;
+		class UTexture* BodyTexture = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
-		TObjectPtr<ULGUISpriteData_BaseObject> BodySpriteTexture = nullptr;
+		ULGUISpriteData_BaseObject* BodySpriteTexture = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (EditCondition = "BodyTexture"))
 		EUIProceduralRectTextureScaleMode BodyTextureScaleMode = EUIProceduralRectTextureScaleMode::Stretch;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
@@ -82,11 +82,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BodyGradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector2f BodyGradientCenter = FVector2f(50, 50);
+		FVector2D BodyGradientCenter = FVector2D(50, 50);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BodyGradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector2f BodyGradientRadius = FVector2f(50, 50);
+		FVector2D BodyGradientRadius = FVector2D(50, 50);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BodyGradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
@@ -105,11 +105,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		FColor BorderGradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector2f BorderGradientCenter = FVector2f(50, 50);
+		FVector2D BorderGradientCenter = FVector2D(50, 50);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BorderGradientCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector2f BorderGradientRadius = FVector2f(50, 50);
+		FVector2D BorderGradientRadius = FVector2D(50, 50);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode BorderGradientRadiusUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
@@ -137,7 +137,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		bool bEnableRadialFill = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
-		FVector2f RadialFillCenter = FVector2f(50, 50);
+		FVector2D RadialFillCenter = FVector2D(50, 50);
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
 		EUIProceduralRectUnitMode RadialFillCenterUnitMode = EUIProceduralRectUnitMode::Percentage;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
@@ -166,10 +166,10 @@ protected:
 
 	void FillData(uint8* Data, float width, float height);
 	float GetValueWithUnitMode(float SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
-	FVector4f GetValueWithUnitMode(const FVector4f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
-	FVector2f GetValueWithUnitMode(const FVector2f& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight);
-	FVector2f GetInnerShadowOffset(float RectWidth, float RectHeight);
-	FVector2f GetOuterShadowOffset(float RectWidth, float RectHeight);
+	FVector4 GetValueWithUnitMode(const FVector4& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight, float AdditionalScale);
+	FVector2D GetValueWithUnitMode(const FVector2D& SourceValue, EUIProceduralRectUnitMode UnitMode, float RectWidth, float RectHeight);
+	FVector2D GetInnerShadowOffset(float RectWidth, float RectHeight);
+	FVector2D GetOuterShadowOffset(float RectWidth, float RectHeight);
 	static constexpr int DataCountInBytes();
 
 	void FillColorToData(uint8* Data, const FColor& InValue, int& InOutDataOffset);
@@ -185,8 +185,8 @@ protected:
 	);
 	void Fill4BytesToData(uint8* Data, uint8 InValue0, uint8 InValue1, uint8 InValue2, uint8 InValue3, int& InOutDataOffset);
 	void FillFloatToData(uint8* Data, const float& InValue, int& InOutDataOffset);
-	void FillVector2ToData(uint8* Data, const FVector2f& InValue, int& InOutDataOffset);
-	void FillVector4ToData(uint8* Data, const FVector4f& InValue, int& InOutDataOffset);
+	void FillVector2ToData(uint8* Data, const FVector2D& InValue, int& InOutDataOffset);
+	void FillVector4ToData(uint8* Data, const FVector4& InValue, int& InOutDataOffset);
 
 
 #define OnFloatUnitModeChanged(Property, AdditionalScale)\
@@ -243,12 +243,12 @@ protected:
 #endif
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-		TObjectPtr<class ULGUIProceduralRectData> ProceduralRectData = nullptr;
+		class ULGUIProceduralRectData* ProceduralRectData = nullptr;
 	/** When do raycast interaction, will the CornerRadius be considerred? Only support RaycastType.Rect. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Rect"))
 		bool bRaycastSupportCornerRadius = true;
 
-	FIntVector2 DataStartPosition = FIntVector2(0, 0);
+	FIntPoint DataStartPosition = FIntPoint(0, 0);
 	static FName DataTextureParameterName;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
@@ -278,7 +278,7 @@ public:
 #pragma endregion
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector4f& GetCornerRadius()const { return CornerRadius; }
+		const FVector4& GetCornerRadius()const { return CornerRadius; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetCornerRadiusUnitMode()const { return CornerRadiusUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -301,11 +301,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const FColor& GetBodyGradientColor()const { return BodyGradientColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector2f& GetBodyGradientCenter()const { return BodyGradientCenter; }
+		const FVector2D& GetBodyGradientCenter()const { return BodyGradientCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetBodyGradientCenterUnitMode()const { return BodyGradientCenterUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector2f& GetBodyGradientRadius()const { return BodyGradientRadius; }
+		const FVector2D& GetBodyGradientRadius()const { return BodyGradientRadius; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetBodyGradientRadiusUnitMode()const { return BodyGradientRadiusUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -324,11 +324,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const FColor& GetBorderGradientColor()const { return BorderGradientColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector2f& GetBorderGradientCenter()const { return BorderGradientCenter; }
+		const FVector2D& GetBorderGradientCenter()const { return BorderGradientCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetBorderGradientCenterUnitMode()const { return CornerRadiusUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector2f& GetBorderGradientRadius()const { return BorderGradientRadius; }
+		const FVector2D& GetBorderGradientRadius()const { return BorderGradientRadius; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetBorderGradientRadiusUnitMode()const { return BorderGradientRadiusUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -356,7 +356,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetEnableRadialFill()const { return bEnableRadialFill; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const FVector2f& GetRadialFillCenter()const { return RadialFillCenter; }
+		const FVector2D& GetRadialFillCenter()const { return RadialFillCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUIProceduralRectUnitMode GetRadialFillCenterUnitMode()const { return RadialFillCenterUnitMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

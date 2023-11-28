@@ -136,8 +136,8 @@ public:
 	);
 	static void UpdateUIProceduralRectSimpleVertex(UIGeometry* uiGeo,
 		bool bEnableBody,
-		bool bOuterShadow, const FVector2f& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
-		const float& width, const float& height, const FVector2f& pivot, 
+		bool bOuterShadow, const FVector2D& outerShadowOffset, const float& outerShadowSize, const float& outerShadowBlur, bool bSoftEdge,
+		const float& width, const float& height, const FVector2D& pivot, 
 		const FLGUISpriteInfo& uniformSpriteInfo, const FLGUISpriteInfo& spriteInfo,
 		ULGUICanvas* renderCanvas, UUIBaseRenderable* uiComp, const FColor& color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
@@ -195,7 +195,7 @@ public:
 		, const FColor& color, uint8 canvasGroupAlpha, const FVector2D& fontSpace, UIGeometry* uiGeo, float fontSize
 		, EUITextParagraphHorizontalAlign paragraphHAlign, EUITextParagraphVerticalAlign paragraphVAlign, EUITextOverflowType overflowType
 		, float maxHorizontalWidth, bool kerning
-		, UITextFontStyle fontStyle, FVector2f& textRealSize
+		, EUITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas, class UUIText* uiComp
 		, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
 		, TArray<FUIText_RichTextImageTag>& cacheRichTextImageTagArray
