@@ -22,9 +22,6 @@ TSharedRef<IDetailCustomization> FUIBaseRenderableCustomization::MakeInstance()
 }
 void FUIBaseRenderableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	auto RaycastTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIBaseRenderable, RaycastType));
-	RaycastTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
-		DetailBuilder.ForceRefreshDetails();
-		}));
+
 }
 #undef LOCTEXT_NAMESPACE
