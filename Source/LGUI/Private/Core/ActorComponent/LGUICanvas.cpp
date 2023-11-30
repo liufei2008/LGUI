@@ -1202,14 +1202,13 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			case EUIRenderableType::UIBatchMeshRenderable:
 			{
 				auto UIBatchMeshRenderableItem = (UUIBatchMeshRenderable*)UIRenderableItem;
-				if (!UIBatchMeshRenderableItem->SupportDrawcallBatching())continue;
 				auto ItemGeo = UIBatchMeshRenderableItem->GetGeometry();
 				if (ItemGeo == nullptr)continue;
 				if (ItemGeo->vertices.Num() == 0)continue;
 				if (ItemGeo->vertices.Num() > LGUI_MAX_VERTEX_COUNT)continue;
 
 				int DrawcallIndexToFitin;
-				if (CanFitInDrawcall(UIBatchMeshRenderableItem, is2DUIItem, ItemGeo->vertices.Num(), UIItemToCanvasTf, DrawcallIndexToFitin))
+				if (UIBatchMeshRenderableItem->SupportDrawcallBatching() && CanFitInDrawcall(UIBatchMeshRenderableItem, is2DUIItem, ItemGeo->vertices.Num(), UIItemToCanvasTf, DrawcallIndexToFitin))
 				{
 					auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
 					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
