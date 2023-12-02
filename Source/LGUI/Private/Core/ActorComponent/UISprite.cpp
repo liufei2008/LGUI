@@ -54,6 +54,11 @@ void UUISprite::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 				}
 			}
 		}
+		if (IsValid(sprite) && type == EUISpriteType::Tiled)
+		{
+			CalculateTiledWidth();
+			CalculateTiledHeight();
+		}
 	}
 }
 #endif
