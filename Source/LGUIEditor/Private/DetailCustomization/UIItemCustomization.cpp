@@ -1977,6 +1977,7 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 			{
 				auto itemWidget = item->GetAnchorData();
 				item->SetAnchorData(AnchorData);
+				LGUIUtils::NotifyPropertyChanged(item.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 				item->MarkPackageDirty();
 			}
 		}
