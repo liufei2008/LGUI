@@ -20,6 +20,7 @@
 #include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/ActorSerializer7.h"
 #include "PrefabSystem/ActorSerializer8.h"
+#include "PhysicsEngine/BodyInstance.h"
 #include "Utils/LGUIUtils.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -187,9 +188,10 @@ namespace LGUIPrefabSystem6
 #else//In this method I search all "ApplyToComponent" function and get the important part (I think), so result may miss something, if it does then contact me and I will add the missing part
 		if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
 		{
-#if WITH_EDITOR
-			PrimitiveComp->UpdateCollisionProfile();
-#endif
+			//fix collision data. this is same as UPrimitiveComponent.UpdateCollisionProfile
+			{
+				PrimitiveComp->BodyInstance.LoadProfileData(false);
+			}
 			if (auto SplineComp = Cast<USplineComponent>(Comp))
 			{
 				SplineComp->UpdateSpline();
