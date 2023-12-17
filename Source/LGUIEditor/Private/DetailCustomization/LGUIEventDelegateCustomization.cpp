@@ -42,11 +42,30 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 	bool bIsInWorld = false;
 	TArray<UObject*> NodeSet;
 	PropertyHandle->GetOuterObjects(NodeSet);
-	for (UObject* obj : NodeSet)
+	if (NodeSet.Num() > 1)
 	{
-		bIsInWorld = obj->GetWorld() != nullptr;
-		break;
+		auto TipText = LOCTEXT("NotSupportMultipleEdit_Content", "(Not support multiple edit)");
+		ChildBuilder.AddCustomRow(LOCTEXT("NotSupportMultipleEdit_Row", "NotSupportMultipleEdit"))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
+			.ToolTipText(PropertyHandle->GetToolTipText())
+		]
+		.ValueContent()
+		[
+			SNew(STextBlock)
+			.Text(TipText)
+			.ToolTipText(TipText)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.ColorAndOpacity(FLinearColor(FColor::Red))
+			.AutoWrapText(true)
+		]
+		;
+		return;
 	}
+	auto OutObject = NodeSet[0];
+	bIsInWorld = OutObject->GetWorld() != nullptr;
 	if (!bIsInWorld)
 	{
 		if (CanChangeParameterType)
@@ -54,6 +73,31 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
 		}
 		return;
+	}
+	if (auto Component = Cast<UActorComponent>(OutObject))
+	{
+		if (Component->GetOwner() && Component->GetOwner()->BlueprintCreatedComponents.Contains(Component))
+		{
+			auto TipText = LOCTEXT("NotSupportActorBlueprintComponent_Content", "(Not support ActorBlueprint's component)");
+			ChildBuilder.AddCustomRow(LOCTEXT("NotSupportActorBlueprintComponent_Row", "NotSupportActorBlueprintComponent"))
+				.NameContent()
+				[
+					SNew(STextBlock)
+					.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
+					.ToolTipText(PropertyHandle->GetToolTipText())
+				]
+				.ValueContent()
+				[
+					SNew(STextBlock)
+					.Text(TipText)
+					.ToolTipText(TipText)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.ColorAndOpacity(FLinearColor(FColor::Red))
+					.AutoWrapText(true)
+				]
+				;
+			return;
+		}
 	}
 
 	// copy all EventDelegate I'm accessing right now
@@ -1689,8 +1733,8 @@ void FLGUIEventDelegateCustomization::ObjectValueChange(const FAssetData& InObj,
 {
 	if (ObjectOrActor)
 	{
-		//ObjectReferenct is not for HelperActor reference
-		if (InObj.GetClass()->IsChildOf(AActor::StaticClass()))
+		//ObjectReference is not for HelperActor reference
+		if (InObj.IsValid() && InObj.GetClass()->IsChildOf(AActor::StaticClass()))
 		{
 			UE_LOG(LGUIEditor, Error, TEXT("Please use Actor type for referece Actor, UObject is for asset object referece"));
 			AActor* NullActor = nullptr;
