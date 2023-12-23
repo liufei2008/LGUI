@@ -30,7 +30,7 @@ namespace ETransformField
 /**
  * Manages the Transform section of a details view                    
  */
-class FComponentTransformDetails : public TSharedFromThis<FComponentTransformDetails>, public IDetailCustomNodeBuilder, public TNumericUnitTypeInterface<float>
+class FComponentTransformDetails : public TSharedFromThis<FComponentTransformDetails>, public IDetailCustomNodeBuilder, public TNumericUnitTypeInterface<FVector::FReal>
 {
 public:
 	FComponentTransformDetails( const TArray< TWeakObjectPtr<UUIItem> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder& DetailBuilder );
@@ -74,7 +74,7 @@ private:
 	 * @param Axis				Bitfield of which axis to set, can be multiple
 	 * @param bCommittted	true if the value was committed, false is the value comes from the slider
 	 */
-	void OnSetTransformAxis(float NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted);
+	void OnSetTransformAxis(FVector::FReal NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted);
 
 	/**
 	 * Helper to begin a new transaction for a slider interaction.
@@ -91,19 +91,19 @@ private:
 	/**
 	 * Called when the one of the axis sliders for object rotation is released
 	 */
-	void OnEndRotationSlider(float NewValue);
+	void OnEndRotationSlider(FVector::FReal NewValue);
 
 	/** Called when one of the axis sliders for object location begins to change */
 	void OnBeginLocationSlider();
 
 	/** Called when one of the axis sliders for object location is released */
-	void OnEndLocationSlider(float NewValue);
+	void OnEndLocationSlider(FVector::FReal NewValue);
 
 	/** Called when one of the axis sliders for object scale begins to change */
 	void OnBeginScaleSlider();
 
 	/** Called when one of the axis sliders for object scale is released */
-	void OnEndScaleSlider(float NewValue);
+	void OnEndScaleSlider(FVector::FReal NewValue);
 
 	/** @return Icon to use in the preserve scale ratio check box */
 	const FSlateBrush* GetPreserveScaleRatioImage() const;
@@ -161,29 +161,29 @@ private:
 	void OnScaleResetClicked();
 
 	/** @return The X component of location */
-	TOptional<float> GetLocationX() const { return CachedLocation.X; }
+	TOptional<FVector::FReal> GetLocationX() const { return CachedLocation.X; }
 	/** @return The Y component of location */
-	TOptional<float> GetLocationY() const { return CachedLocation.Y; }
+	TOptional<FVector::FReal> GetLocationY() const { return CachedLocation.Y; }
 	/** @return The Z component of location */
-	TOptional<float> GetLocationZ() const { return CachedLocation.Z; }
+	TOptional<FVector::FReal> GetLocationZ() const { return CachedLocation.Z; }
 	/** @return The visibility of the "Reset to Default" button for the location component */
 	bool GetLocationResetVisibility() const;
 
 	/** @return The X component of rotation */
-	TOptional<float> GetRotationX() const { return CachedRotation.X; }
+	TOptional<FVector::FReal> GetRotationX() const { return CachedRotation.X; }
 	/** @return The Y component of rotation */
-	TOptional<float> GetRotationY() const { return CachedRotation.Y; }
+	TOptional<FVector::FReal> GetRotationY() const { return CachedRotation.Y; }
 	/** @return The Z component of rotation */
-	TOptional<float> GetRotationZ() const { return CachedRotation.Z; }
+	TOptional<FVector::FReal> GetRotationZ() const { return CachedRotation.Z; }
 	/** @return The visibility of the "Reset to Default" button for the rotation component */
 	bool GetRotationResetVisibility() const;
 
 	/** @return The X component of scale */
-	TOptional<float> GetScaleX() const { return CachedScale.X; }
+	TOptional<FVector::FReal> GetScaleX() const { return CachedScale.X; }
 	/** @return The Y component of scale */
-	TOptional<float> GetScaleY() const { return CachedScale.Y; }
+	TOptional<FVector::FReal> GetScaleY() const { return CachedScale.Y; }
 	/** @return The Z component of scale */
-	TOptional<float> GetScaleZ() const { return CachedScale.Z; }
+	TOptional<FVector::FReal> GetScaleZ() const { return CachedScale.Z; }
 	/** @return The visibility of the "Reset to Default" button for the scale component */
 	bool GetScaleResetVisibility() const;
 
@@ -194,6 +194,7 @@ private:
 	TSharedPtr<IPropertyHandle> GeneratePropertyHandle(FName PropertyName, IDetailChildrenBuilder& ChildrenBuilder);
 private:
 	/** A vector where it may optionally be unset */
+	template <typename NumericType>
 	struct FOptionalVector
 	{
 		/**
@@ -223,20 +224,20 @@ private:
 			return X.IsSet() && Y.IsSet() && Z.IsSet();
 		}
 
-		TOptional<float> X;
-		TOptional<float> Y;
-		TOptional<float> Z;
+		TOptional<NumericType> X;
+		TOptional<NumericType> Y;
+		TOptional<NumericType> Z;
 	};
 	
 	FSelectedActorInfo SelectedActorInfo;
 	/** Copy of selected actor references in the details view */
 	TArray< TWeakObjectPtr<UUIItem> > SelectedObjects;
 	/** Cache translation value of the selected set */
-	FOptionalVector CachedLocation;
+	FOptionalVector<FVector::FReal> CachedLocation;
 	/** Cache rotation value of the selected set */
-	FOptionalVector CachedRotation;
+	FOptionalVector<FVector::FReal> CachedRotation;
 	/** Cache scale value of the selected set */
-	FOptionalVector CachedScale;
+	FOptionalVector<FVector::FReal> CachedScale;
 	/** Notify hook to use */
 	FNotifyHook* NotifyHook;
 	/** Whether or not to preserve scale ratios */
