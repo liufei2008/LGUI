@@ -26,7 +26,6 @@
 #include "Editor.h"
 #include "UnrealEdGlobals.h"
 #include "DetailLayoutBuilder.h"
-#include "Widget/LGUIVectorInputBox.h"
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "ScopedTransaction.h"
 #include "IPropertyUtilities.h"
@@ -36,7 +35,6 @@
 #include "HAL/PlatformApplicationMisc.h"
 
 #include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/LGUICanvas.h"
 
 #include "DetailCategoryBuilder.h"
 #include "Algo/Transform.h"
@@ -272,7 +270,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 
 	// Location
 	{
-		TSharedPtr<INumericTypeInterface<float>> TypeInterface;
+		TSharedPtr<INumericTypeInterface<FVector::FReal>> TypeInterface;
 		if( FUnitConversion::Settings().ShouldDisplayUnits() )
 		{
 			TypeInterface = SharedThis(this);
@@ -293,16 +291,10 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.MaxDesiredWidth(125.0f * 3.0f)
 		.VAlign( VAlign_Center )
 		[
-			SNew( SLGUIVectorInputBox )
+			SNew(SNumericVectorInputBox<FVector::FReal>)
 			.X( this, &FComponentTransformDetails::GetLocationX )
 			.Y( this, &FComponentTransformDetails::GetLocationY )
 			.Z( this, &FComponentTransformDetails::GetLocationZ )
-			.EnableX(this, &FComponentTransformDetails::IsLocationXEnable)
-			.EnableY(this, &FComponentTransformDetails::IsLocationYEnable)
-			.EnableZ(this, &FComponentTransformDetails::IsLocationZEnable)
-			.ShowX(true)
-			.ShowY(true)
-			.ShowZ(true)
 			.bColorAxisLabels( true )
 			.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
 			.OnXChanged(this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Location, EAxisList::X, false)
@@ -322,10 +314,10 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 	
 	// Rotation
 	{
-		TSharedPtr<INumericTypeInterface<float>> TypeInterface;
+		TSharedPtr<INumericTypeInterface<FVector::FReal>> TypeInterface;
 		if( FUnitConversion::Settings().ShouldDisplayUnits() )
 		{
-			TypeInterface = MakeShareable( new TNumericUnitTypeInterface<float>(EUnit::Degrees) );
+			TypeInterface = MakeShareable( new TNumericUnitTypeInterface<FVector::FReal>(EUnit::Degrees) );
 		}
 
 		ChildrenBuilder.AddCustomRow( LOCTEXT("RotationFilter", "Rotation") )
@@ -343,7 +335,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.MaxDesiredWidth(125.0f * 3.0f)
 		.VAlign( VAlign_Center )
 		[
-			SNew( SRotatorInputBox )
+			SNew(SNumericRotatorInputBox<FRotator::FReal>)
 			.AllowSpin( SelectedObjects.Num() == 1 ) 
 			.Roll( this, &FComponentTransformDetails::GetRotationX )
 			.Pitch( this, &FComponentTransformDetails::GetRotationY )
@@ -380,7 +372,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.MaxDesiredWidth(125.0f * 3.0f)
 		.VAlign(VAlign_Center)
 		[
-			SNew(SVectorInputBox)
+			SNew(SNumericVectorInputBox<FVector::FReal>)
 			.X( this, &FComponentTransformDetails::GetScaleX )
 			.Y( this, &FComponentTransformDetails::GetScaleY )
 			.Z( this, &FComponentTransformDetails::GetScaleZ )
@@ -587,17 +579,17 @@ void FComponentTransformDetails::CacheTransform()
 				else if( CurLoc != Loc || CurRot != Rot || CurScale != Scale )
 				{
 					// Check which values differ and unset the different values
-					CachedLocation.X = Loc.X == CurLoc.X && CachedLocation.X.IsSet() ? Loc.X : TOptional<float>();
-					CachedLocation.Y = Loc.Y == CurLoc.Y && CachedLocation.Y.IsSet() ? Loc.Y : TOptional<float>();
-					CachedLocation.Z = Loc.Z == CurLoc.Z && CachedLocation.Z.IsSet() ? Loc.Z : TOptional<float>();
+					CachedLocation.X = Loc.X == CurLoc.X && CachedLocation.X.IsSet() ? Loc.X : TOptional<FVector::FReal>();
+					CachedLocation.Y = Loc.Y == CurLoc.Y && CachedLocation.Y.IsSet() ? Loc.Y : TOptional<FVector::FReal>();
+					CachedLocation.Z = Loc.Z == CurLoc.Z && CachedLocation.Z.IsSet() ? Loc.Z : TOptional<FVector::FReal>();
 
-					CachedRotation.X = Rot.Roll == CurRot.Roll && CachedRotation.X.IsSet() ? Rot.Roll : TOptional<float>();
-					CachedRotation.Y = Rot.Pitch == CurRot.Pitch && CachedRotation.Y.IsSet() ? Rot.Pitch : TOptional<float>();
-					CachedRotation.Z = Rot.Yaw == CurRot.Yaw && CachedRotation.Z.IsSet() ? Rot.Yaw : TOptional<float>();
+					CachedRotation.X = Rot.Roll == CurRot.Roll && CachedRotation.X.IsSet() ? Rot.Roll : TOptional<FVector::FReal>();
+					CachedRotation.Y = Rot.Pitch == CurRot.Pitch && CachedRotation.Y.IsSet() ? Rot.Pitch : TOptional<FVector::FReal>();
+					CachedRotation.Z = Rot.Yaw == CurRot.Yaw && CachedRotation.Z.IsSet() ? Rot.Yaw : TOptional<FVector::FReal>();
 
-					CachedScale.X = Scale.X == CurScale.X && CachedScale.X.IsSet() ? Scale.X : TOptional<float>();
-					CachedScale.Y = Scale.Y == CurScale.Y && CachedScale.Y.IsSet() ? Scale.Y : TOptional<float>();
-					CachedScale.Z = Scale.Z == CurScale.Z && CachedScale.Z.IsSet() ? Scale.Z : TOptional<float>();
+					CachedScale.X = Scale.X == CurScale.X && CachedScale.X.IsSet() ? Scale.X : TOptional<FVector::FReal>();
+					CachedScale.Y = Scale.Y == CurScale.Y && CachedScale.Y.IsSet() ? Scale.Y : TOptional<FVector::FReal>();
+					CachedScale.Z = Scale.Z == CurScale.Z && CachedScale.Z.IsSet() ? Scale.Z : TOptional<FVector::FReal>();
 
 					// If all values are unset all values are different and we can stop looking
 					const bool bAllValuesDiffer = !CachedLocation.IsSet() && !CachedRotation.IsSet() && !CachedScale.IsSet();
@@ -1001,7 +993,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 	GUnrealEd->RedrawLevelEditingViewports();
 }
 
-void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted)
+void FComponentTransformDetails::OnSetTransformAxis(FVector::FReal NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted)
 {
 	if (SelectedObjects.Num() <= 0)return;
 	UUIItem* Archetype = SelectedObjects[0].Get();
@@ -1106,7 +1098,7 @@ void FComponentTransformDetails::OnBeginRotationSlider()
 	}
 }
 
-void FComponentTransformDetails::OnEndRotationSlider(float NewValue)
+void FComponentTransformDetails::OnEndRotationSlider(FVector::FReal NewValue)
 {
 	// Commit gets called right before this, only need to end the transaction
 	bEditingRotationInUI = false;
@@ -1122,7 +1114,7 @@ void FComponentTransformDetails::OnBeginLocationSlider()
 	BeginSliderTransaction(ActorTransaction, ComponentTransaction);
 }
 
-void FComponentTransformDetails::OnEndLocationSlider(float NewValue)
+void FComponentTransformDetails::OnEndLocationSlider(FVector::FReal NewValue)
 {
 	bIsSliderTransaction = false;
 	GEditor->EndTransaction();
@@ -1141,7 +1133,7 @@ void FComponentTransformDetails::OnBeginScaleSlider()
 	BeginSliderTransaction(ActorTransaction, ComponentTransaction);
 }
 
-void FComponentTransformDetails::OnEndScaleSlider(float NewValue)
+void FComponentTransformDetails::OnEndScaleSlider(FVector::FReal NewValue)
 {
 	bIsSliderTransaction = false;
 	GEditor->EndTransaction();
