@@ -74,6 +74,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	auto& TreeView = SceneOutlinerPtr->GetTree();
 	TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 	TreeView.GetExpandedItems(VisitingItems);
+	auto& MutableTreeView = const_cast<STreeView<FSceneOutlinerTreeItemPtr>&>(TreeView);
 	for (auto& Item : VisitingItems)
 	{
 		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
@@ -82,7 +83,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 			{
 				if (InUnexpendActorSet.Contains(ActorTreeItem->Actor.Get()))
 				{
-					ActorTreeItem->Flags.bIsExpanded = false;
+					MutableTreeView.SetItemExpansion(Item, false);
 				}
 			}
 		}
@@ -102,11 +103,12 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	USelection::SelectionChangedEvent.AddRaw(this, &FLGUIPrefabEditorOutliner::OnEditorSelectionChanged);
 }
 
-void FLGUIPrefabEditorOutliner::UnexpandActor(AActor* InActor)
+void FLGUIPrefabEditorOutliner::UnexpandActorForDragDroppedPrefab(AActor* InActor)
 {
 	auto& TreeView = SceneOutlinerPtr->GetTree();
 	TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 	TreeView.GetExpandedItems(VisitingItems);
+	auto& MutableTreeView = const_cast<STreeView<FSceneOutlinerTreeItemPtr>&>(TreeView);
 	for (auto& Item : VisitingItems)
 	{
 		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
@@ -115,12 +117,11 @@ void FLGUIPrefabEditorOutliner::UnexpandActor(AActor* InActor)
 			{
 				if (ActorTreeItem->Actor->IsAttachedTo(InActor) || ActorTreeItem->Actor.Get() == InActor)
 				{
-					ActorTreeItem->Flags.bIsExpanded = false;
+					MutableTreeView.SetItemExpansion(Item, false);
 				}
 			}
 		}
 	}
-	SceneOutlinerPtr->Refresh();
 }
 
 void FLGUIPrefabEditorOutliner::OnDelete(const TArray<TWeakPtr<ISceneOutlinerTreeItem>>& InSelectedTreeItemArray)
@@ -241,10 +242,7 @@ void FLGUIPrefabEditorOutliner::GetUnexpendActor(TArray<AActor*>& InOutAllActors
 		{
 			if (ActorTreeItem->Actor.IsValid())
 			{
-				if (ActorTreeItem->Flags.bIsExpanded)
-				{
-					InOutAllActors.Remove(ActorTreeItem->Actor.Get());
-				}
+				InOutAllActors.Remove(ActorTreeItem->Actor.Get());
 			}
 		}
 	}
