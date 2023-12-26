@@ -98,7 +98,7 @@ void FLGUINativeSceneOutlinerExtension::PreserveHierarchyStateChange()
 	}
 }
 
-void FLGUINativeSceneOutlinerExtension::OnIterateTreeItem(const TFunction<void(FSceneOutlinerTreeItemPtr&)>& Function)
+void FLGUINativeSceneOutlinerExtension::OnIterateTreeItem(const TFunction<void(STreeView<FSceneOutlinerTreeItemPtr>&, FSceneOutlinerTreeItemPtr&)>& Function)
 {
 	TWeakPtr<class ILevelEditor> LevelEditor = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor")).GetLevelEditorInstance();
 	if (LevelEditor.IsValid())
@@ -106,12 +106,13 @@ void FLGUINativeSceneOutlinerExtension::OnIterateTreeItem(const TFunction<void(F
 		TWeakPtr<class ISceneOutliner> SceneOutlinerPtr = LevelEditor.Pin()->GetMostRecentlyUsedSceneOutliner();
 		if (TSharedPtr<class ISceneOutliner> SceneOutlinerPin = SceneOutlinerPtr.Pin())
 		{
-			const auto& TreeView = SceneOutlinerPin->GetTree();
+			auto& TreeView = SceneOutlinerPin->GetTree();
 			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
+			auto& MutableTreeView = const_cast<STreeView<FSceneOutlinerTreeItemPtr>&>(TreeView);
 			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
 			{
-				Function(Item);
+				Function(MutableTreeView, Item);
 			}
 		}
 	}
@@ -125,7 +126,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 	storageActor->ExpandedFolderArray.Reset();
 	storageActor->ExpandedActorArray.Reset();
 	storageActor->ExpandedSoftActorArray.Reset();
-	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+	OnIterateTreeItem([&](STreeView<FSceneOutlinerTreeItemPtr>& TreeView, FSceneOutlinerTreeItemPtr& Item) {
 		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 		{
 			if (ActorTreeItem->Actor.IsValid())
@@ -181,7 +182,7 @@ void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerStateForPIE()
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	ExpandedActorArray.Reset();
 	ExpandedFolderArray.Reset();
-	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+	OnIterateTreeItem([&](STreeView<FSceneOutlinerTreeItemPtr>& TreeView, FSceneOutlinerTreeItemPtr& Item) {
 		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 		{
 			if (ActorTreeItem->Actor.IsValid())
@@ -249,7 +250,7 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindDataStorageActor();
 	if (!storageActor)return;
-	OnIterateTreeItem([&](FSceneOutlinerTreeItemPtr& Item) {
+	OnIterateTreeItem([&](STreeView<FSceneOutlinerTreeItemPtr>& TreeView, FSceneOutlinerTreeItemPtr& Item) {
 		if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 		{
 			if (ActorTreeItem->Actor.IsValid())
@@ -258,19 +259,19 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 				if (shouldRestoreUseFNameData)
 				{
 					bool needToExpand = ExpandedActorArray.Contains(ActorTreeItem->Actor->GetFName());
-					ActorTreeItem->Flags.bIsExpanded = needToExpand;
+					TreeView.SetItemExpansion(Item, needToExpand);
 				}
 				else
 				{
 					if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
 					{
 						bool needToExpand = storageActor->ExpandedActorArray.Contains(ActorTreeItem->Actor);
-						ActorTreeItem->Flags.bIsExpanded = needToExpand;
+						TreeView.SetItemExpansion(Item, needToExpand);
 					}
 					else
 					{
 						bool needToExpand = storageActor->ExpandedSoftActorArray.Contains(ActorTreeItem->Actor.Get());
-						ActorTreeItem->Flags.bIsExpanded = needToExpand;
+						TreeView.SetItemExpansion(Item, needToExpand);
 					}
 				}
 			}
@@ -281,12 +282,12 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 			if (shouldRestoreUseFNameData)
 			{
 				bool needToExpand = ExpandedFolderArray.Contains(FolderTreeItem->Path);
-				FolderTreeItem->Flags.bIsExpanded = needToExpand;
+				TreeView.SetItemExpansion(Item, needToExpand);
 			}
 			else
 			{
 				bool needToExpand = storageActor->ExpandedFolderArray.Contains(FolderTreeItem->Path);
-				FolderTreeItem->Flags.bIsExpanded = needToExpand;
+				TreeView.SetItemExpansion(Item, needToExpand);
 			}
 		}
 		else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
@@ -297,7 +298,6 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 			}
 		}
 		});
-	GEditor->BroadcastLevelActorListChanged();
 
 	if (shouldRestoreTemporarilyHidden)
 	{

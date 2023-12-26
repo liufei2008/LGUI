@@ -37,7 +37,7 @@ public:
 	AActor* GetSelectedActor() const { return SelectedActor.Get(); }
 	void ClearSelectedActor();
 	void GetUnexpendActor(TArray<AActor*>& InOutAllActors)const;
-	void UnexpandActor(AActor* InActor);
+	void UnexpandActorForDragDroppedPrefab(AActor* InActor);
 private:
 	void OnSceneOutlinerDoubleClick(FSceneOutlinerTreeItemPtr ItemPtr);
 	void OnEditorSelectionChanged(UObject* Object);
