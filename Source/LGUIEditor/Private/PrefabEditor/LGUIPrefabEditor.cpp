@@ -956,12 +956,12 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 				if (OutlinerPtr.IsValid())
 				{
-					OutlinerPtr->FullRefresh();
 					ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
 						for (auto& Actor : CreatedActorArray)
 						{
-							OutlinerPtr->UnexpandActor(Actor);
+							OutlinerPtr->UnexpandActorForDragDroppedPrefab(Actor);
 						}
+						OutlinerPtr->FullRefresh();
 						}, 1);//delay execute, because the outliner not create actor yet
 				}
 			}

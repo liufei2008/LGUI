@@ -67,7 +67,7 @@ private:
 	void SaveSceneOutlinerStateForPIE();
 	void RestoreSceneOutlinerState();
 	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
-	void OnIterateTreeItem(const TFunction<void(FSceneOutlinerTreeItemPtr&)>& Function);
+	void OnIterateTreeItem(const TFunction<void(STreeView<FSceneOutlinerTreeItemPtr>&, FSceneOutlinerTreeItemPtr&)>& Function);
 	float delayRestoreTime = 0;
 	bool needToRestore = false;
 	bool shouldRestoreTemporarilyHidden = false;
