@@ -235,10 +235,6 @@ namespace LGUIPrefabSystem7
 		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
 		Time = FDateTime::Now();
 #endif
-#if LGUIPREFAB_LOG_DETAIL_TIME
-		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
-		Time = FDateTime::Now();
-#endif
 		//properties
 		for (auto& KeyValue : SaveData.SavedObjectData)
 		{
@@ -253,6 +249,11 @@ namespace LGUIPrefabSystem7
 		{
 			WriterOrReaderFunctionForSubPrefabOverride(Item.Object, Item.ParameterDatas, Item.ParameterNames);
 		}
+
+#if LGUIPREFAB_LOG_DETAIL_TIME
+		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
+		Time = FDateTime::Now();
+#endif
 
 		//component attachment
 		for (auto& CompData : ComponentsInThisPrefab)
