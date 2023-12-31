@@ -665,3 +665,142 @@ ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UPrimitiveComponent* 
 }
 #pragma endregion
 
+#pragma region UMG
+#include "Components/CanvasPanelSlot.h"
+ULTweener* ULTweenBPLibrary::UMG_CanvasPanelSlot_PositionTo(UObject* WorldContextObject, UCanvasPanelSlot* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateUObject(target, &UCanvasPanelSlot::GetPosition),
+		FLTweenVector2DSetterFunction::CreateUObject(target, &UCanvasPanelSlot::SetPosition), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* ULTweenBPLibrary::UMG_CanvasPanelSlot_SizeTo(UObject* WorldContextObject, class UCanvasPanelSlot* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateUObject(target, &UCanvasPanelSlot::GetSize),
+		FLTweenVector2DSetterFunction::CreateUObject(target, &UCanvasPanelSlot::SetSize), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/Widget.h"
+ULTweener* ULTweenBPLibrary::UMG_RenderTransform_TranslationTo(UObject* WorldContextObject, class UWidget* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateWeakLambda(target, [=] {
+		return target->GetRenderTransform().Translation;
+		}),
+		FLTweenVector2DSetterFunction::CreateUObject(target, &UWidget::SetRenderTranslation), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* ULTweenBPLibrary::UMG_RenderTransform_AngleTo(UObject* WorldContextObject, UWidget* target, float endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenFloatGetterFunction::CreateUObject(target, &UWidget::GetRenderTransformAngle),
+		FLTweenFloatSetterFunction::CreateUObject(target, &UWidget::SetRenderTransformAngle), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* ULTweenBPLibrary::UMG_RenderTransform_ScaleTo(UObject* WorldContextObject, UWidget* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateWeakLambda(target, [=] {
+		return target->GetRenderTransform().Scale;
+		}),
+		FLTweenVector2DSetterFunction::CreateUObject(target, &UWidget::SetRenderScale), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* ULTweenBPLibrary::UMG_RenderTransform_ShearTo(UObject* WorldContextObject, UWidget* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateWeakLambda(target, [=] {
+		return target->GetRenderTransform().Shear;
+		}),
+		FLTweenVector2DSetterFunction::CreateUObject(target, &UWidget::SetRenderShear), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+ULTweener* ULTweenBPLibrary::UMG_RenderOpacityTo(UObject* WorldContextObject, UWidget* target, float endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenFloatGetterFunction::CreateUObject(target, &UWidget::GetRenderOpacity),
+		FLTweenFloatSetterFunction::CreateUObject(target, &UWidget::SetRenderOpacity), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Blueprint/UserWidget.h"
+ULTweener* ULTweenBPLibrary::UMG_UserWidget_ColorAndOpacityTo(UObject* WorldContextObject, UUserWidget* target, const FLinearColor& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
+		return target->ColorAndOpacity;
+		}),
+		FLTweenLinearColorSetterFunction::CreateUObject(target, &UUserWidget::SetColorAndOpacity), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/Image.h"
+ULTweener* ULTweenBPLibrary::UMG_Image_ColorAndOpacityTo(UObject* WorldContextObject, UImage* target, const FLinearColor& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
+		return target->ColorAndOpacity;
+		}), FLTweenLinearColorSetterFunction::CreateUObject(target, &UImage::SetColorAndOpacity), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/Button.h"
+ULTweener* ULTweenBPLibrary::UMG_Button_ColorAndOpacityTo(UObject* WorldContextObject, UButton* target, const FLinearColor& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
+		return target->ColorAndOpacity;
+		}), FLTweenLinearColorSetterFunction::CreateUObject(target, &UButton::SetColorAndOpacity), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/Border.h"
+ULTweener* ULTweenBPLibrary::UMG_Border_ContentColorAndOpacityTo(UObject* WorldContextObject, UBorder* target, const FLinearColor& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateUObject(target, &UBorder::GetContentColorAndOpacity),
+		FLTweenLinearColorSetterFunction::CreateUObject(target, &UBorder::SetContentColorAndOpacity), endValue, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#pragma endregion

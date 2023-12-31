@@ -24,7 +24,7 @@ public class LTween : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-
+				"UMG",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
