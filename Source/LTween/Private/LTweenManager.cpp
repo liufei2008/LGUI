@@ -2,6 +2,7 @@
 
 #include "LTweenManager.h"
 #include "Tweener/LTweenerFloat.h"
+#include "Tweener/LTweenerDouble.h"
 #include "Tweener/LTweenerInteger.h"
 #include "Tweener/LTweenerVector.h"
 #include "Tweener/LTweenerColor.h"
@@ -165,6 +166,17 @@ ULTweener* ULTweenManager::To(UObject* WorldContextObject, const FLTweenFloatGet
 	if (!IsValid(Instance))return nullptr;
 
 	auto tweener = NewObject<ULTweenerFloat>(WorldContextObject);
+	tweener->SetInitialValue(getter, setter, endValue, duration);
+	Instance->tweenerList.Add(tweener);
+	return tweener;
+}
+//float
+ULTweener* ULTweenManager::To(UObject* WorldContextObject, const FLTweenDoubleGetterFunction& getter, const FLTweenDoubleSetterFunction& setter, double endValue, float duration)
+{
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
+	auto tweener = NewObject<ULTweenerDouble>(WorldContextObject);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
 	return tweener;

@@ -21,6 +21,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLTweenUpdateMulticastDelegate, float);
 DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenFloatSetterFunction, float);
 
+DECLARE_DELEGATE_RetVal(double, FLTweenDoubleGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenDoubleSetterFunction, double);
+
 DECLARE_DELEGATE_RetVal(int, FLTweenIntGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenIntSetterFunction, int);
 
