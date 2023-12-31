@@ -18,6 +18,17 @@ ULTweener* ULTweenBPLibrary::FloatTo(UObject* WorldContextObject, FLTweenFloatSe
 			setter.Execute(value);
 	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
+ULTweener* ULTweenBPLibrary::DoubleTo(UObject* WorldContextObject, FLTweenDoubleSetterDynamic setter, double startValue, double endValue, float duration, float delay, ELTweenEase ease)
+{
+	return ULTweenManager::To(WorldContextObject, FLTweenDoubleGetterFunction::CreateLambda([startValue]
+		{
+			return startValue;
+		}), FLTweenDoubleSetterFunction::CreateLambda([setter](auto value)
+			{
+				if (setter.IsBound())
+					setter.Execute(value);
+			}), endValue, duration)->SetDelay(delay)->SetEase(ease);
+}
 ULTweener* ULTweenBPLibrary::IntTo(UObject* WorldContextObject, FLTweenIntSetterDynamic setter, int startValue, int endValue, float duration, float delay, ELTweenEase ease)
 {
 	return ULTweenManager::To(WorldContextObject, FLTweenIntGetterFunction::CreateLambda([startValue]
@@ -108,91 +119,91 @@ ULTweener* ULTweenBPLibrary::RotatorTo(UObject* WorldContextObject, FLTweenRotat
 }
 
 #pragma region PositionXYZ
-ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionXTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().X;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.X = value;
 		target->SetRelativeLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionYTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().Y;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.Y = value;
 		target->SetRelativeLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionZTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().Z;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [=](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [=](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.Z = value;
 		target->SetRelativeLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionXTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().X;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.X = value;
 		target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionYTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().Y;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.Y = value;
 		target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionZTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetRelativeLocation().Z;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetRelativeLocation();
 		location.Z = value;
 		target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
@@ -201,91 +212,91 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, flo
 
 
 
-ULTweener* ULTweenBPLibrary::WorldPositionXTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionXTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionXTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().X;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target](auto value) {
 		auto location = target->GetComponentLocation();
 		location.X = value;
 		target->SetWorldLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionYTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().Y;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target](auto value) {
 		auto location = target->GetComponentLocation();
 		location.Y = value;
 		target->SetWorldLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, float endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, double endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionZTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().Z;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target](auto value) {
 		auto location = target->GetComponentLocation();
 		location.Z = value;
 		target->SetWorldLocation(location);
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionXTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().X;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetComponentLocation();
 		location.X = value;
 		target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionYTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().Y;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetComponentLocation();
 		location.Y = value;
 		target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
+ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, double endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionZTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateWeakLambda(target, [target] {
+	return ULTweenManager::To(target, FLTweenDoubleGetterFunction::CreateWeakLambda(target, [target] {
 		return target->GetComponentLocation().Z;
-	}), FLTweenFloatSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenDoubleSetterFunction::CreateWeakLambda(target, [target, &sweepHitResult, sweep, teleport](auto value) {
 		auto location = target->GetComponentLocation();
 		location.Z = value;
 		target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
@@ -546,7 +557,7 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo_Sweep(USceneComponent* target, FRota
 #pragma endregion Rotation
 
 
-
+#pragma region Material
 ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UObject* WorldContextObject, UMaterialInstanceDynamic* target, FName parameterName, float endValue, float duration, float delay, ELTweenEase ease)
 {
 	if (!IsValid(WorldContextObject))
@@ -652,3 +663,5 @@ ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UPrimitiveComponent* 
 			return material->GetVectorParameterValue(parameterName, result);
 		}), FLTweenMaterialVectorSetterFunction::CreateUObject(material, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
+#pragma endregion
+

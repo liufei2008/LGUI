@@ -78,6 +78,7 @@ public:
 	static void RemoveTweener(UObject* WorldContextObject, ULTweener* item);
 
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenDoubleGetterFunction& getter, const FLTweenDoubleSetterFunction& setter, double endValue, float duration);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration);
