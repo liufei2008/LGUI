@@ -689,6 +689,92 @@ ULTweener* ULTweenBPLibrary::UMG_CanvasPanelSlot_SizeTo(UObject* WorldContextObj
 		FLTweenVector2DSetterFunction::CreateUObject(target, &UCanvasPanelSlot::SetSize), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
 }
+#include "Components/HorizontalBoxSlot.h"
+ULTweener* ULTweenBPLibrary::UMG_HorizontalBoxSlot_PaddingTo(UObject* WorldContextObject, UHorizontalBoxSlot* target, const FMargin& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	auto endValueVector4 = FVector4(endValue.Left, endValue.Top, endValue.Right, endValue.Bottom);
+	return ULTweenManager::To(WorldContextObject, FLTweenVector4GetterFunction::CreateWeakLambda(target, [=] {
+			auto padding = target->GetPadding();
+			return FVector4(padding.Left, padding.Top, padding.Right, padding.Bottom);
+		}), FLTweenVector4SetterFunction::CreateWeakLambda(target, [=](const FVector4& value) {
+			target->SetPadding(FMargin(value.X, value.Y, value.Z, value.W));
+		}), endValueVector4, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/VerticalBoxSlot.h"
+ULTweener* ULTweenBPLibrary::UMG_VerticalBoxSlot_PaddingTo(UObject* WorldContextObject, UVerticalBoxSlot* target, const FMargin& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	auto endValueVector4 = FVector4(endValue.Left, endValue.Top, endValue.Right, endValue.Bottom);
+	return ULTweenManager::To(WorldContextObject, FLTweenVector4GetterFunction::CreateWeakLambda(target, [=] {
+		auto padding = target->GetPadding();
+		return FVector4(padding.Left, padding.Top, padding.Right, padding.Bottom);
+		}), FLTweenVector4SetterFunction::CreateWeakLambda(target, [=](const FVector4& value) {
+			target->SetPadding(FMargin(value.X, value.Y, value.Z, value.W));
+			}), endValueVector4, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/OverlaySlot.h"
+ULTweener* ULTweenBPLibrary::UMG_OverlaySlot_PaddingTo(UObject* WorldContextObject, UOverlaySlot* target, const FMargin& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	auto endValueVector4 = FVector4(endValue.Left, endValue.Top, endValue.Right, endValue.Bottom);
+	return ULTweenManager::To(WorldContextObject, FLTweenVector4GetterFunction::CreateWeakLambda(target, [=] {
+		auto padding = target->GetPadding();
+		return FVector4(padding.Left, padding.Top, padding.Right, padding.Bottom);
+		}), FLTweenVector4SetterFunction::CreateWeakLambda(target, [=](const FVector4& value) {
+			target->SetPadding(FMargin(value.X, value.Y, value.Z, value.W));
+			}), endValueVector4, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/ButtonSlot.h"
+ULTweener* ULTweenBPLibrary::UMG_ButtonSlot_PaddingTo(UObject* WorldContextObject, UButtonSlot* target, const FMargin& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	auto endValueVector4 = FVector4(endValue.Left, endValue.Top, endValue.Right, endValue.Bottom);
+	return ULTweenManager::To(WorldContextObject, FLTweenVector4GetterFunction::CreateWeakLambda(target, [=] {
+		auto padding = target->GetPadding();
+		return FVector4(padding.Left, padding.Top, padding.Right, padding.Bottom);
+		}), FLTweenVector4SetterFunction::CreateWeakLambda(target, [=](const FVector4& value) {
+			target->SetPadding(FMargin(value.X, value.Y, value.Z, value.W));
+			}), endValueVector4, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+#include "Components/BorderSlot.h"
+ULTweener* ULTweenBPLibrary::UMG_BorderSlot_PaddingTo(UObject* WorldContextObject, UBorderSlot* target, const FMargin& endValue, float duration, float delay, ELTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[%s] target is not valid:%s"), ANSI_TO_TCHAR(__FUNCTION__), *(target->GetPathName()));
+		return nullptr;
+	}
+	auto endValueVector4 = FVector4(endValue.Left, endValue.Top, endValue.Right, endValue.Bottom);
+	return ULTweenManager::To(WorldContextObject, FLTweenVector4GetterFunction::CreateWeakLambda(target, [=] {
+		auto padding = target->GetPadding();
+		return FVector4(padding.Left, padding.Top, padding.Right, padding.Bottom);
+		}), FLTweenVector4SetterFunction::CreateWeakLambda(target, [=](const FVector4& value) {
+			target->SetPadding(FMargin(value.X, value.Y, value.Z, value.W));
+			}), endValueVector4, duration)
+		->SetDelay(delay)->SetEase(ease);
+}
+
 #include "Components/Widget.h"
 ULTweener* ULTweenBPLibrary::UMG_RenderTransform_TranslationTo(UObject* WorldContextObject, class UWidget* target, const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
 {
