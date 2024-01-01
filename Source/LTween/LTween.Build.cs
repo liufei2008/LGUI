@@ -25,6 +25,7 @@ public class LTween : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"UMG",
+				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
