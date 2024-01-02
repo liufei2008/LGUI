@@ -58,6 +58,26 @@ void UUIRecyclableScrollViewComponent::PostEditChangeProperty(FPropertyChangedEv
         {
             RestrictRectArea = !bInfiniteLoop;
         }
+        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollViewComponent, Rows))
+        {
+            if (Horizontal)
+            {
+                if (Rows != 1)
+                {
+                    bInfiniteLoop = false;
+                }
+            }
+        }
+        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollViewComponent, Columns))
+        {
+            if (Vertical)
+            {
+                if (Columns != 1)
+                {
+                    bInfiniteLoop = false;
+                }
+            }
+        }
     }
 }
 bool UUIRecyclableScrollViewComponent::CanEditChange(const FProperty* InProperty)const
