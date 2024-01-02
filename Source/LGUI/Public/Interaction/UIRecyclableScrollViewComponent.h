@@ -119,6 +119,12 @@ protected:
 	/** When use vertical scroll, this can set the column count in every cell. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Vertical"))
 		uint16 Columns = 1;
+	/**
+	 * Make the scrollview loop infinite.
+	 * Only valid if Rows and Columns equals 1.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+		bool bInfiniteLoop = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
 		FMargin Padding = FMargin(0);
 	/** Space between cells */
@@ -131,6 +137,8 @@ public:
 		int GetRows()const { return Rows; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		int GetColumns()const { return Columns; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		bool GetInfiniteLoop()const { return bInfiniteLoop; }
 	/**
 	 * Get all created cell object array. Note this just directly return cell list, which is not in user-friendly order (first one may not at the left-top position).
 	 * Use "GetUserFriendlyCacheCellList" can get the cell list in good order.
@@ -164,6 +172,8 @@ public:
 	/** Set horizontal row count, will automatically recreate cells if current is horizontal scroll. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetRows(int value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+		void SetInfiniteLoop(bool value);
 	/** Set vertical column count, will automatically recreate cells if current is vertical scroll. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetColumns(int value);
@@ -190,7 +200,7 @@ public:
 	UE_DEPRECATED(4.26, "Use RecreateList instead.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView", meta = (DeprecatedFunction, DeprecationMessage = "Use RecreateList instead."))
 		void UpdateWithDataSource() { RecreateList(); }
-	/** Update list cell's date, this will not change current layout, only set data. */
+	/** Update list cell's data, this will not change current layout, only set data. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void UpdateCellData();
 	/**
@@ -226,8 +236,9 @@ private:
 	int DataItemCount = 0;
 	int MinCellIndexInCacheCellList = 0;
 	int MaxCellIndexInCacheCellList = 0;
-	float MinCellPosition = 0;//horizontal left cell position.y, or vertical top cell position.z
+	double MinCellPosition = 0;//horizontal left cell position.y, or vertical top cell position.z
 	int MinCellDataIndex = 0;//horizontal left-top cell data index, or vertical left-top cell data index.
+	int GetValidCellDataIndex(int InMinCellDataIndex)const;
 	void IncreaseMinMaxCellIndexInCacheCellList(int Count);
 	void DecreaseMinMaxCellIndexInCacheCellList(int Count);
 };
