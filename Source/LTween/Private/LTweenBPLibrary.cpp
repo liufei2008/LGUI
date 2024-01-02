@@ -846,7 +846,7 @@ ULTweener* ULTweenBPLibrary::UMG_UserWidget_ColorAndOpacityTo(UObject* WorldCont
 		return nullptr;
 	}
 	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
-		return target->ColorAndOpacity;
+		return target->GetColorAndOpacity();
 		}),
 		FLTweenLinearColorSetterFunction::CreateUObject(target, &UUserWidget::SetColorAndOpacity), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
@@ -860,7 +860,7 @@ ULTweener* ULTweenBPLibrary::UMG_Image_ColorAndOpacityTo(UObject* WorldContextOb
 		return nullptr;
 	}
 	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
-		return target->ColorAndOpacity;
+		return target->GetColorAndOpacity();
 		}), FLTweenLinearColorSetterFunction::CreateUObject(target, &UImage::SetColorAndOpacity), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
 }
@@ -873,7 +873,7 @@ ULTweener* ULTweenBPLibrary::UMG_Button_ColorAndOpacityTo(UObject* WorldContextO
 		return nullptr;
 	}
 	return ULTweenManager::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateWeakLambda(target, [=] {
-		return target->ColorAndOpacity;
+		return target->GetColorAndOpacity();
 		}), FLTweenLinearColorSetterFunction::CreateUObject(target, &UButton::SetColorAndOpacity), endValue, duration)
 		->SetDelay(delay)->SetEase(ease);
 }
