@@ -77,45 +77,64 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 }
 bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 {
+	bool bHorizontalValid = false;
+	bool bVerticalValid = false;
 	if (Horizontal)
 	{
-		if (HorizontalScrollbarComp.IsValid() && HorizontalScrollbar.IsValid())
+		if (HorizontalScrollbar.IsValid())
 		{
-			return true;
-		}
-		if (!HorizontalScrollbar.IsValid())
-		{
-			return false;
-		}
-		if (!HorizontalScrollbarComp.IsValid())
-		{
-			HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
 			if (HorizontalScrollbarComp.IsValid())
 			{
-				HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
-				return true;
+				bHorizontalValid = true;
+			}
+			else
+			{
+				HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+				if (HorizontalScrollbarComp.IsValid())
+				{
+					HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
+					bHorizontalValid = true;
+				}
 			}
 		}
 	}
 
 	if (Vertical)
 	{
-		if (VerticalScrollbarComp.IsValid() && VerticalScrollbar.IsValid())
+		if (VerticalScrollbar.IsValid())
+		{
+			if (VerticalScrollbarComp.IsValid())
+			{
+				bVerticalValid = true;
+			}
+			else
+			{
+				VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+				if (VerticalScrollbarComp.IsValid())
+				{
+					VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
+					bVerticalValid = true;
+				}
+			}
+		}
+	}
+
+	if (Horizontal && Vertical)
+	{
+		if (bHorizontalValid && bVerticalValid)
 		{
 			return true;
 		}
-		if (!VerticalScrollbar.IsValid())
+	}
+	else
+	{
+		if (Horizontal)
 		{
-			return false;
+			return bHorizontalValid;
 		}
-		if (!VerticalScrollbarComp.IsValid())
+		if (Vertical)
 		{
-			VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-			if (VerticalScrollbarComp.IsValid())
-			{
-				VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
-				return true;
-			}
+			return bVerticalValid;
 		}
 	}
 
