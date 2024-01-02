@@ -275,7 +275,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetReadOnly(bool value);
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 	void ActivateInput(ULGUIPointerEventData* eventData = nullptr);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 	void DeactivateInput(bool InFireEvent = true);
 
 	FDelegateHandle RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate);

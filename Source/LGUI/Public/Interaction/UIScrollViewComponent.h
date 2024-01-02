@@ -67,6 +67,9 @@ protected:
 	/** Determines how quickly the contents stop moving. A value of 0 means the movement will never slow down, larger value will stop the movement faster. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0"))
 		float DecelerateRate = 0.135f;
+	/** Limit Content inside Viewport's rect area, if out-of-range then move it back. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		bool RestrictRectArea = true;
 	/** Decrease movement value when drag content out of range. A value of 0 means not allowed out of range. A value of 1 means no damp effect. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float OutOfRangeDamper = 0.5f;
@@ -146,6 +149,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		float GetDecelerateRate()const { return DecelerateRate; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		bool GetRestrictRectArea()const { return RestrictRectArea; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		float GetOutOfRangeDamper()const { return OutOfRangeDamper; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		FVector2D GetScrollProgress()const { return Progress; }
@@ -170,6 +175,8 @@ public:
 		void SetVelocity(const FVector2D& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetDecelerateRate(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetRestrictRectArea(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetOutOfRangeDamper(float value);
 
