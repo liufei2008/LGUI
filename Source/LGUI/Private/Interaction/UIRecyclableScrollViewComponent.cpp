@@ -50,6 +50,10 @@ void UUIRecyclableScrollViewComponent::PostEditChangeProperty(FPropertyChangedEv
         {
             Horizontal = !Vertical;
         }
+        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollViewComponent, OnlyOneDirection))
+        {
+            OnlyOneDirection = true;
+        }
     }
 }
 bool UUIRecyclableScrollViewComponent::CanEditChange(const FProperty* InProperty)const
@@ -64,6 +68,10 @@ bool UUIRecyclableScrollViewComponent::CanEditChange(const FProperty* InProperty
         else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollViewComponent, CellTemplatePrefab))
         {
             return CellTemplateType == EUIRecyclableScrollViewCellTemplateType::Prefab;
+        }
+        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollViewComponent, OnlyOneDirection))
+        {
+            return false;
         }
         return true;
     }
