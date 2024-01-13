@@ -92,11 +92,11 @@ void UUIFlexibleGridLayout::OnRebuildLayout()
 	rectSize.X = RootUIComp->GetWidth() - Padding.Left - Padding.Right;
 	rectSize.Y = RootUIComp->GetHeight() - Padding.Top - Padding.Bottom;
 
-	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+	EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+		tempAnimationType = EUILayoutAnimationType::Immediately;
 	}
 #endif
 

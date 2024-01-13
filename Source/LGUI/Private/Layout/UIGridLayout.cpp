@@ -151,11 +151,11 @@ void UUIGridLayout::OnRebuildLayout()
 		}
 	}
 
-	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+	EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+		tempAnimationType = EUILayoutAnimationType::Immediately;
 	}
 #endif
 
@@ -480,7 +480,7 @@ void UUIGridLayout::OnRebuildLayout()
 		}
 	}
 
-	if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
 		SetOnCompleteTween();
 	}

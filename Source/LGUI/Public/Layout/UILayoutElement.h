@@ -41,7 +41,7 @@ public:
 
 private:
 	friend class FUILayoutElementCustomization;
-	UPROPERTY(Transient) TObjectPtr<class UUILayoutBase> ParentLayout = nullptr;
+	UPROPERTY(Transient) TObjectPtr<class UUILayoutWithChildren> ParentLayout = nullptr;
 	bool CheckParentLayout();
 	/** find new parent layout when attachement change */
 	virtual void OnUIAttachmentChanged()override;
