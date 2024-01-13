@@ -70,16 +70,16 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	auto AnimationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationType), UUILayoutWithAnimation::StaticClass());
 	category.AddProperty(AnimationTypeHandle);
 	AnimationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
-	EUILayoutChangePositionAnimationType AnimationType;
+	EUILayoutAnimationType AnimationType;
 	AnimationTypeHandle->GetValue(*(uint8*)&AnimationType);
 	switch (AnimationType)
 	{
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass());
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass()));
 	}

@@ -36,17 +36,17 @@ void UUILayoutWithAnimation::SetOnCompleteTween()
 	TweenerArray.Add(tweener);
 }
 
-void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, FVector2D offset, UUIItem* target)
+void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D offset, UUIItem* target)
 {
 	switch (tempAnimationType)
 	{
 	default:
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		ApplyUIItemAnchoredPosition(target, offset);
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		if (target->GetAnchoredPosition() != offset)
 		{
@@ -58,17 +58,39 @@ void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutChangeP
 	}
 }
 
-void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, float width, UUIItem* target)
+void UUILayoutWithAnimation::ApplyRotatorWithAnimation(EUILayoutAnimationType tempAnimationType, const FRotator& value, UUIItem* target)
 {
 	switch (tempAnimationType)
 	{
 	default:
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
+	{
+		target->SetRelativeRotation(value);
+	}
+	break;
+	case EUILayoutAnimationType::EaseAnimation:
+	{
+		if (target->GetRelativeRotation() != value)
+		{
+			auto tweener = ULTweenBPLibrary::LocalRotatorTo(target, value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
+			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	}
+}
+
+void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutAnimationType tempAnimationType, float width, UUIItem* target)
+{
+	switch (tempAnimationType)
+	{
+	default:
+	case EUILayoutAnimationType::Immediately:
 	{
 		ApplyUIItemWidth(target, width);
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		if (target->GetWidth() != width)
 		{
@@ -80,17 +102,17 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutChangePositionAnim
 	}
 }
 
-void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, float height, UUIItem* target)
+void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutAnimationType tempAnimationType, float height, UUIItem* target)
 {
 	switch (tempAnimationType)
 	{
 	default:
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		ApplyUIItemHeight(target, height);
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		if (target->GetHeight() != height)
 		{
@@ -102,17 +124,17 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAni
 	}
 }
 
-void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutChangePositionAnimationType tempAnimationType, FVector2D sizeDelta, UUIItem* target)
+void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D sizeDelta, UUIItem* target)
 {
 	switch (tempAnimationType)
 	{
 	default:
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		ApplyUIItemSizeDelta(target, sizeDelta);
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		if (target->GetSizeDelta() != sizeDelta)
 		{
@@ -124,7 +146,7 @@ void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutChangePosition
 	}
 }
 
-void UUILayoutWithAnimation::SetAnimationType(EUILayoutChangePositionAnimationType value)
+void UUILayoutWithAnimation::SetAnimationType(EUILayoutAnimationType value)
 {
 	if (AnimationType != value)
 	{

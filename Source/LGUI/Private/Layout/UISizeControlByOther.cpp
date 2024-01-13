@@ -140,11 +140,11 @@ void UUISizeControlByOther::OnRebuildLayout()
     }
     CancelAnimation();
 
-    EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+    EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
     if (!this->GetWorld()->IsGameWorld())
     {
-        tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+        tempAnimationType = EUILayoutAnimationType::Immediately;
     }
 #endif
     if (ControlWidth)
@@ -155,7 +155,7 @@ void UUISizeControlByOther::OnRebuildLayout()
     {
         ApplyHeightWithAnimation(tempAnimationType, TargetUIItem->GetHeight() + AdditionalHeight, RootUIComp.Get());
     }
-    if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+    if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
     {
         SetOnCompleteTween();
     }

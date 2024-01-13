@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutWithAnimation.h"
+#include "UILayoutWithChildren.h"
 #include "Layout/Margin.h"
 #include "UIHorizontalLayout.generated.h"
 
@@ -11,7 +11,7 @@
  * Layout child elements side by side horizontally
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIHorizontalLayout : public UUILayoutWithAnimation
+class LGUI_API UUIHorizontalLayout : public UUILayoutWithChildren
 {
 	GENERATED_BODY()
 public:

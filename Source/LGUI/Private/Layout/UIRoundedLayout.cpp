@@ -10,6 +10,15 @@ void UUIRoundedLayout::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
 	if (!GetEnable())return;
+	CancelAnimation();
+
+	EUILayoutAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		tempAnimationType = EUILayoutAnimationType::Immediately;
+	}
+#endif
 
 	const auto& uiChildrenList = GetLayoutUIItemChildren();
 	int childrenCount = uiChildrenList.Num();
@@ -26,7 +35,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 		cos = FMath::Cos(angle);
 		x = cos * Radius;
 		y = sin * Radius;
-		ApplyUIItemAnchoredPosition(uiItem.Get(), FVector2D(x, y));
+		ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(x, y), uiItem.Get());
 		if (bSetChildAngle)
 		{
 			auto angleInDegree = FMath::RadiansToDegrees(angle);
@@ -35,10 +44,15 @@ void UUIRoundedLayout::OnRebuildLayout()
 			if (Rotator.Roll != angleInDegree)
 			{
 				Rotator.Roll = angleInDegree;
-				uiItem->SetRelativeRotation(Rotator);
+				ApplyRotatorWithAnimation(tempAnimationType, Rotator, uiItem.Get());
 			}
 		}
 		angle += angleInterval;
+	}
+
+	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
+	{
+		SetOnCompleteTween();
 	}
 }
 

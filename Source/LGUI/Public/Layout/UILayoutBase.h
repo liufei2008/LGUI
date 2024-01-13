@@ -42,8 +42,6 @@ protected:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 public:
-	/** Mark layout children changed, so we need RebuildChildrenList when we need to. */
-	void MarkNeedRebuildChildrenList();
 	/**
 	 * Rebuild layout immediately
 	 */
@@ -51,7 +49,7 @@ public:
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
-	virtual void MarkRebuildLayout_Implementation()override { MarkNeedRebuildLayout(); MarkNeedRebuildChildrenList(); }
+	virtual void MarkRebuildLayout_Implementation()override { MarkNeedRebuildLayout(); }
 	// End LGUILayout interface
 
 	/**
@@ -66,33 +64,11 @@ protected:
 	virtual void OnUIAttachmentChanged()override;
 	virtual void OnUIActiveInHierachy(bool activeOrInactive)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
-	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
-	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
-	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;
-
-	struct FAvaliableChild
-	{
-		TWeakObjectPtr<UUIItem> uiItem;
-		TWeakObjectPtr<UActorComponent> layoutElement;
-		bool operator == (const FAvaliableChild& Other)const
-		{
-			return uiItem.Get() == Other.uiItem.Get();
-		}
-	};
-	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const;
-	void EnsureChildValid();
-	void RebuildChildrenList()const;
-	void SortChildrenList()const;
-	virtual void GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
 	uint8 bNeedRebuildLayout : 1;
-	mutable uint8 bNeedRebuildChildrenList : 1;
-	mutable uint8 bNeedSortChildrenList : 1;
 
 	void ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth);
 	void ApplyUIItemHeight(UUIItem* InUIItem, const float& InHeight);
 	void ApplyUIItemAnchoredPosition(UUIItem* InUIItem, const FVector2D& InAnchoredPosition);
 	void ApplyUIItemSizeDelta(UUIItem* InUIItem, const FVector2D& InSizedDelta);
-private:
-	mutable TArray<FAvaliableChild> LayoutUIItemChildrenArray;
 };

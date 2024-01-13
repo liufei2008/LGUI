@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutWithAnimation.h"
+#include "UILayoutWithChildren.h"
 #include "Layout/Margin.h"
 #include "UIGridLayout.generated.h"
 
@@ -20,7 +20,7 @@
  * Layout child elements in grid
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIGridLayout : public UUILayoutWithAnimation
+class LGUI_API UUIGridLayout : public UUILayoutWithChildren
 {
 	GENERATED_BODY()
 
