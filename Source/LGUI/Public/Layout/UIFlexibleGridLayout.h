@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutWithAnimation.h"
+#include "UILayoutWithChildren.h"
 #include "Layout/Margin.h"
 #include "UIFlexibleGridLayout.generated.h"
 
@@ -45,7 +45,7 @@ class UUIFlexibleGridLayoutElement;
  * Flexible & Responsive grid based layout.
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent))
-class LGUI_API UUIFlexibleGridLayout : public UUILayoutWithAnimation
+class LGUI_API UUIFlexibleGridLayout : public UUILayoutWithChildren
 {
 	GENERATED_BODY()
 

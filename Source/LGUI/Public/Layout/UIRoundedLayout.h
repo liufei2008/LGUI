@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutBase.h"
+#include "UILayoutWithChildren.h"
 #include "UIRoundedLayout.generated.h"
 
 /**
  * Rounded layout, only affect children's position and angle, not affect size
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIRoundedLayout : public UUILayoutBase
+class LGUI_API UUIRoundedLayout : public UUILayoutWithChildren
 {
 	GENERATED_BODY()
 

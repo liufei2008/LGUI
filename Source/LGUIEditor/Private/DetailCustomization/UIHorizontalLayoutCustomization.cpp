@@ -71,12 +71,12 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 	AnimationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
 	switch (TargetScriptPtr->AnimationType)
 	{
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass());
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, AnimationDuration), UUILayoutWithAnimation::StaticClass()));
 	}

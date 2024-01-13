@@ -70,12 +70,12 @@ void FUIGridLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
 	switch (TargetScriptPtr->AnimationType)
 	{
-	case EUILayoutChangePositionAnimationType::Immediately:
+	case EUILayoutAnimationType::Immediately:
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, AnimationDuration));
 	}
 	break;
-	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	case EUILayoutAnimationType::EaseAnimation:
 	{
 
 	}

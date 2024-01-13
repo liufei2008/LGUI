@@ -360,11 +360,11 @@ void UUIHorizontalLayout::OnRebuildLayout()
         }
     }
 
-	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+	EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
     if (!this->GetWorld()->IsGameWorld())
 	{
-		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+		tempAnimationType = EUILayoutAnimationType::Immediately;
 	}
 #endif
     float posX = startPosition.X, posY = startPosition.Y;
@@ -502,7 +502,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
         auto thisHeight = FMath::Lerp(tempVerticalMinSize, tempVerticalMaxSize, HeightFitToChildrenFromMinToMax);
         ApplyHeightWithAnimation(tempAnimationType, thisHeight, RootUIComp.Get());
     }
-	if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
 		SetOnCompleteTween();
 	}

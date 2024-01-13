@@ -2,7 +2,7 @@
 
 #include "Layout/UILayoutElement.h"
 #include "LGUI.h"
-#include "Layout/UILayoutBase.h"
+#include "Layout/UILayoutWithChildren.h"
 #include "Core/ActorComponent/UIItem.h"
 
 void UUILayoutElement::Awake()
@@ -76,7 +76,7 @@ bool UUILayoutElement::CheckParentLayout()
 	{
 		if (auto parentActor = owner->GetAttachParentActor())
 		{
-			ParentLayout = parentActor->FindComponentByClass<UUILayoutBase>();
+			ParentLayout = parentActor->FindComponentByClass<UUILayoutWithChildren>();
 			if (IsValid(ParentLayout))
 				return true;
 		}

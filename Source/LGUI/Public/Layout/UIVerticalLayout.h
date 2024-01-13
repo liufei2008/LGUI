@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutWithAnimation.h"
+#include "UILayoutWithChildren.h"
 #include "Layout/Margin.h"
 #include "UIVerticalLayout.generated.h"
 
@@ -11,7 +11,7 @@
  * Layout child elements side by side vertically
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIVerticalLayout : public UUILayoutWithAnimation
+class LGUI_API UUIVerticalLayout : public UUILayoutWithChildren
 {
 	GENERATED_BODY()
 public:

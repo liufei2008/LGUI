@@ -7,7 +7,7 @@
 #include "UILayoutWithAnimation.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
-enum class EUILayoutChangePositionAnimationType :uint8
+enum class EUILayoutAnimationType :uint8
 {
 	/** Immediately change position and size */
 	Immediately,
@@ -25,8 +25,8 @@ class LGUI_API UUILayoutWithAnimation : public UUILayoutBase
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="AnimationType==EUILayoutChangePositionAnimationType::EaseAnimation"))
+		EUILayoutAnimationType AnimationType = EUILayoutAnimationType::Immediately;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="AnimationType==EUILayoutAnimationType::EaseAnimation"))
 		float AnimationDuration = 0.3f;
 	UPROPERTY(Transient)
 		TArray<TObjectPtr<class ULTweener>> TweenerArray;
@@ -36,21 +36,23 @@ protected:
 	/** This function can be override. */
 	virtual void SetOnCompleteTween();
 	/** This function can be override to make your own animation effect. */
-	virtual void ApplyAnchoredPositionWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D offset, UUIItem* target);
+	virtual void ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType animationType, FVector2D offset, UUIItem* target);
 	/** This function can be override to make your own animation effect. */
-	virtual void ApplyWidthWithAnimation(EUILayoutChangePositionAnimationType animationType, float width, UUIItem* target);
+	virtual void ApplyRotatorWithAnimation(EUILayoutAnimationType animationType, const FRotator& value, UUIItem* target);
 	/** This function can be override to make your own animation effect. */
-	virtual void ApplyHeightWithAnimation(EUILayoutChangePositionAnimationType animationType, float height, UUIItem* target);
+	virtual void ApplyWidthWithAnimation(EUILayoutAnimationType animationType, float width, UUIItem* target);
 	/** This function can be override to make your own animation effect. */
-	virtual void ApplySizeDeltaWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D sizeDelta, UUIItem* target);
+	virtual void ApplyHeightWithAnimation(EUILayoutAnimationType animationType, float height, UUIItem* target);
+	/** This function can be override to make your own animation effect. */
+	virtual void ApplySizeDeltaWithAnimation(EUILayoutAnimationType animationType, FVector2D sizeDelta, UUIItem* target);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		EUILayoutChangePositionAnimationType GetAnimationType()const { return AnimationType; }
+		EUILayoutAnimationType GetAnimationType()const { return AnimationType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAnimationDuration()const { return AnimationDuration; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetAnimationType(EUILayoutChangePositionAnimationType value);
+		void SetAnimationType(EUILayoutAnimationType value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAnimationDuration(float value);
 
