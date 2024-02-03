@@ -143,6 +143,11 @@ void UUISliderComponent::SetMaxValue(float InMaxValue, bool KeepRelativeValue, b
 	}
 }
 
+void UUISliderComponent::SetNavigationChangeInterval(float InValue)
+{
+    NavigationChangeInterval = InValue;
+}
+
 FDelegateHandle UUISliderComponent::RegisterSlideEvent(const FLGUIFloatDelegate &InDelegate)
 {
     return OnValueChangeCPP.Add(InDelegate);
@@ -203,12 +208,12 @@ bool UUISliderComponent::OnNavigate_Implementation(ELGUINavigationDirection dire
     if (
         (DirectionType == UISliderDirectionType::LeftToRight && direction == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::RightToLeft && direction == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::BottomToTop && direction == ELGUINavigationDirection::Down) || (DirectionType == UISliderDirectionType::TopToBottom && direction == ELGUINavigationDirection::Up))
     {
-        valueIntervalMultiply = -0.1f;
+        valueIntervalMultiply = -NavigationChangeInterval;
     }
     else if (
         (DirectionType == UISliderDirectionType::LeftToRight && direction == ELGUINavigationDirection::Right) || (DirectionType == UISliderDirectionType::RightToLeft && direction == ELGUINavigationDirection::Left) || (DirectionType == UISliderDirectionType::BottomToTop && direction == ELGUINavigationDirection::Up) || (DirectionType == UISliderDirectionType::TopToBottom && direction == ELGUINavigationDirection::Down))
     {
-        valueIntervalMultiply = 0.1f;
+        valueIntervalMultiply = NavigationChangeInterval;
     }
     if (valueIntervalMultiply == 0.0f)
     {
