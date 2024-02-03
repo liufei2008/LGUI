@@ -109,6 +109,11 @@ void UUIScrollbarComponent::SetValueAndSize(float InValue, float InSize, bool Fi
         }
     }
 }
+void UUIScrollbarComponent::SetNavigationChangeInterval(float InValue)
+{
+    NavigationChangeInterval = InValue;
+}
+
 FDelegateHandle UUIScrollbarComponent::RegisterSlideEvent(const FLGUIFloatDelegate &InDelegate)
 {
     return OnValueChangeCPP.Add(InDelegate);
@@ -242,12 +247,12 @@ bool UUIScrollbarComponent::OnNavigate_Implementation(ELGUINavigationDirection d
     if (
         (DirectionType == UIScrollbarDirectionType::LeftToRight && direction == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::RightToLeft && direction == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::BottomToTop && direction == ELGUINavigationDirection::Down) || (DirectionType == UIScrollbarDirectionType::TopToBottom && direction == ELGUINavigationDirection::Up))
     {
-        valueIntervalMultiply = -0.1f;
+        valueIntervalMultiply = -NavigationChangeInterval;
     }
     else if (
         (DirectionType == UIScrollbarDirectionType::LeftToRight && direction == ELGUINavigationDirection::Right) || (DirectionType == UIScrollbarDirectionType::RightToLeft && direction == ELGUINavigationDirection::Left) || (DirectionType == UIScrollbarDirectionType::BottomToTop && direction == ELGUINavigationDirection::Up) || (DirectionType == UIScrollbarDirectionType::TopToBottom && direction == ELGUINavigationDirection::Down))
     {
-        valueIntervalMultiply = 0.1f;
+        valueIntervalMultiply = NavigationChangeInterval;
     }
     if (valueIntervalMultiply == 0.0f)
     {

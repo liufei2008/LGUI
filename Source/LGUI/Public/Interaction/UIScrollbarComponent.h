@@ -51,6 +51,9 @@ protected:
 		TWeakObjectPtr<AUIBaseActor> HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
 		UIScrollbarDirectionType DirectionType;
+	/** When use navigation input to change the scroll value, each press will change value as NavigationChangeInterval. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float NavigationChangeInterval = 0.1f;
 
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> Handle;
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> HandleArea;
@@ -66,11 +69,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		float GetSize()const { return Size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+		float GetNavigationChangeInterval()const { return NavigationChangeInterval; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		void SetValue(float InValue, bool FireEvent = true);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		void SetSize(float InSize);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		void SetValueAndSize(float InValue, float InSize, bool FireEvent = true);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		void SetNavigationChangeInterval(float InValue);
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		AUIBaseActor* GetHandleActor()const { return HandleActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
