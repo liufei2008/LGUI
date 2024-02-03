@@ -57,6 +57,9 @@ protected:
 		TWeakObjectPtr<AUIBaseActor> HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		UISliderDirectionType DirectionType;
+	/** When use navigation input to change the slider value, each press will change value as (MaxValue - MinValue) * NavigationChangeInterval. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Slider", meta=(ClampMin = "0.0", ClampMax = "1.0"))
+		float NavigationChangeInterval = 0.1f;
 
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> Fill;
 	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> FillArea;
@@ -83,6 +86,8 @@ public:
 		AUIBaseActor* GetHandleActor()const { return HandleActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		UISliderDirectionType GetDirectionType()const { return DirectionType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		float GetNavigationChangeInterval()const { return NavigationChangeInterval; }
 
 	/**
 	 * @param	InValue				New value set for Value
@@ -104,6 +109,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		void SetMaxValue(float InMaxValue, bool KeepRelativeValue, bool FireEvent = true);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		void SetNavigationChangeInterval(float InValue);
 
 	FDelegateHandle RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
 	FDelegateHandle RegisterSlideEvent(const TFunction<void(float)>& InFunction);

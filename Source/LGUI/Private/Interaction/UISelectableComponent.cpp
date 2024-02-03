@@ -636,7 +636,18 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		{
 			selCenter = sel->GetRootSceneComponent()->GetRelativeLocation();
 		}
-		FVector myVector = sel->GetRootSceneComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+		auto selCenterInWorld = sel->GetRootSceneComponent()->GetComponentTransform().TransformPosition(selCenter);
+		if (selRootUIComp)
+		{
+			if (auto RenderCanvas = selRootUIComp->GetRenderCanvas())
+			{
+				if (!RenderCanvas->CalculatePointVisibilityOnClip(selCenterInWorld))
+				{
+					continue;//if clip by canvas then skip it
+				}
+			}
+		}
+		FVector myVector = selCenterInWorld - pos;
 
 		float dot = FVector::DotProduct(InDirection, myVector);
 		if (dot <= 0.0f)

@@ -192,12 +192,12 @@ public:
 
 	/**
 	 * Try to scroll the scrollview so the child can sit at center. Will clamp it in valid range.
-	 * @param InChild Target child actor. Can also work on not child actor.
+	 * @param InChild Target child actor.
 	 * @param InEaseAnimation true-use tween animation to make smooth scroll, false-immediate set.
 	 * @param InAnimationDuration Animation duration if InEaseAnimation = true.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
-		void ScrollTo(AUIBaseActor* InChild, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
+		void ScrollTo(UUIItem* InChild, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
 };
 
 
