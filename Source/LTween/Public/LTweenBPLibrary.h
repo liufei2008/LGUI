@@ -26,25 +26,25 @@ class LTWEEN_API ULTweenBPLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* FloatTo(UObject* WorldContextObject, FLTweenFloatSetterDynamic setter, float startValue = 0.0f, float endValue = 1.0f, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* FloatTo(UObject* WorldContextObject, const FLTweenFloatSetterDynamic& setter, float startValue = 0.0f, float endValue = 1.0f, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* DoubleTo(UObject* WorldContextObject, FLTweenDoubleSetterDynamic setter, double startValue = 0.0f, double endValue = 1.0f, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* DoubleTo(UObject* WorldContextObject, const FLTweenDoubleSetterDynamic& setter, double startValue = 0.0f, double endValue = 1.0f, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* IntTo(UObject* WorldContextObject, FLTweenIntSetterDynamic setter, int startValue, int endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* IntTo(UObject* WorldContextObject, const FLTweenIntSetterDynamic& setter, int startValue, int endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* Vector2To(UObject* WorldContextObject, FLTweenVector2SetterDynamic setter, FVector2D startValue, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* Vector2To(UObject* WorldContextObject, const FLTweenVector2SetterDynamic& setter, FVector2D startValue, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* Vector3To(UObject* WorldContextObject, FLTweenVector3SetterDynamic setter, FVector startValue, FVector endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* Vector3To(UObject* WorldContextObject, const FLTweenVector3SetterDynamic& setter, FVector startValue, FVector endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* Vector4To(UObject* WorldContextObject, FLTweenVector4SetterDynamic setter, FVector4 startValue, FVector4 endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* Vector4To(UObject* WorldContextObject, const FLTweenVector4SetterDynamic& setter, FVector4 startValue, FVector4 endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* ColorTo(UObject* WorldContextObject, FLTweenColorSetterDynamic setter, FColor startValue, FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* ColorTo(UObject* WorldContextObject, const FLTweenColorSetterDynamic& setter, FColor startValue, FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* LinearColorTo(UObject* WorldContextObject, FLTweenLinearColorSetterDynamic setter, FLinearColor startValue, FLinearColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* LinearColorTo(UObject* WorldContextObject, const FLTweenLinearColorSetterDynamic& setter, FLinearColor startValue, FLinearColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* QuaternionTo(UObject* WorldContextObject, FLTweenQuaternionSetterDynamic setter, FQuat startValue, FQuat endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* QuaternionTo(UObject* WorldContextObject, const FLTweenQuaternionSetterDynamic& setter, FQuat startValue, FQuat endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, Category = LTween, meta = (AdvancedDisplay = "delay,ease", WorldContext = "WorldContextObject"), Category = "LTween")
-		static ULTweener* RotatorTo(UObject* WorldContextObject, FLTweenRotatorSetterDynamic setter, FRotator startValue, FRotator endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+		static ULTweener* RotatorTo(UObject* WorldContextObject, const FLTweenRotatorSetterDynamic& setter, FRotator startValue, FRotator endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 #pragma region PositionXYZ
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Local Position X To"), Category = "LTween")
 		static ULTweener* LocalPositionXTo(USceneComponent* target, double endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
