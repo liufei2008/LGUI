@@ -28,8 +28,7 @@ bool ULGUISDFFontData::GetCharDataFromCache(const TCHAR& charCode, const float& 
 	if (auto charData = charDataMap.Find(charCode))
 	{
 		OutResult = FLGUICharData_HighPrecision(*charData);
-		float vertexOffset = SDFRadius;
-		vertexOffset -= SDFRadius * BoldRatio;
+		float vertexOffset = SDFRadius - SDFRadius * BoldRatio;
 		OutResult.width -= vertexOffset + vertexOffset;
 		OutResult.height -= vertexOffset + vertexOffset;
 		OutResult.xoffset += vertexOffset;
@@ -163,6 +162,7 @@ void ULGUISDFFontData::PrepareForPushCharData(UUIText* InText)
 	oneDivideFontSize = 1.0f / FontSize;
 	auto CompScale = InText->GetComponentScale();
 	objectScale = FMath::Max(CompScale.X, CompScale.Y);
+	SDFRadius = FontSize * 0.25f;//use 1/4 of FontSize can get good result
 }
 
 uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
@@ -333,20 +333,20 @@ void ULGUISDFFontData::PushCharData(
 	//uv
 	{
 		int addVertCount = 0;
-		auto tempFontSize = richTextProperty.size * oneDivideFontSize * objectScale;
+		auto tempFontScale = richTextProperty.size * objectScale;
 		{
 			vertices[verticesStartIndex].TextureCoordinate[0] = charData.GetUV0();
 			vertices[verticesStartIndex + 1].TextureCoordinate[0] = charData.GetUV1();
 			vertices[verticesStartIndex + 2].TextureCoordinate[0] = charData.GetUV2();
 			vertices[verticesStartIndex + 3].TextureCoordinate[0] = charData.GetUV3();
 
-			//bold and font size
+			//bold and scale
 			{
 				auto tempBoldSize = richTextProperty.bold ? BoldRatio : 0.0f;
-				vertices[verticesStartIndex].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
 			}
 
 			addVertCount = 4;
@@ -358,13 +358,13 @@ void ULGUISDFFontData::PushCharData(
 			vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[0] = underlineCharGeo.GetUV2();
 			vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[0] = underlineCharGeo.GetUV3();
 
-			//bold and font size, bold is not needed for underline and strikethrough, but font size is needed
+			//bold and scale, bold is not needed for underline and strikethrough, but scale is needed
 			{
 				auto tempBoldSize = 0.0f;
-				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
 			}
 
 			addVertCount += 4;
@@ -376,13 +376,13 @@ void ULGUISDFFontData::PushCharData(
 			vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[0] = strikethroughCharGeo.GetUV2();
 			vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[0] = strikethroughCharGeo.GetUV3();
 
-			//bold and font size, bold is not needed for underline and strikethrough, but font size is needed
+			//bold and scale, bold is not needed for underline and strikethrough, but scale is needed
 			{
 				auto tempBoldSize = 0.0f;
-				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
-				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontSize);
+				vertices[verticesStartIndex + addVertCount].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 1].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 2].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
+				vertices[verticesStartIndex + addVertCount + 3].TextureCoordinate[1] = FVector2f(tempBoldSize, tempFontScale);
 			}
 
 			addVertCount += 4;

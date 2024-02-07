@@ -40,10 +40,10 @@ private:
 		TObjectPtr<UMaterialInterface> SDFDefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Font size when render glyph. */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "16", UIMax = "100"))
-		int FontSize = 32;
-	/** The radius of the distance field in pixels */
-	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "2", UIMax = "30"))
-		int SDFRadius = 6;
+		int FontSize = 64;
+	/** The radius of the distance field in pixels. Will automatically set to a quarter of FontSize since LGUI 3.4.11. */
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI SDF Font")
+		int SDFRadius = 16;
 	/** Angle of italic style in degree */
 	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
 		float ItalicAngle = 15.0f;
@@ -51,13 +51,13 @@ private:
 	 * bold size radio for bold style, large number create more bold effect.
 	 * this parameter is related with SDFRadius & FontSize, smaller SDFRadius & FontSize will need larger BoldRatio to render.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font")
-		float BoldRatio = 0.15f;
+	UPROPERTY(EditAnywhere, Category = "LGUI SDF Font", meta = (UIMin = "0.0", UIMax = "1.0"))
+		float BoldRatio = 0.1f;
 	/** -1 means not set yet. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI SDF Font", Transient)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI SDF Font", Transient)
 		int LineHeight = -1;
 	/** -1 means not set yet. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI SDF Font", Transient)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI SDF Font", Transient)
 		int VerticalOffset = -1;
 
 public:
