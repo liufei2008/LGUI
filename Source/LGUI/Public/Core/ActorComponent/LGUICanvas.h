@@ -578,6 +578,7 @@ private:
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
 	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
+	uint32 bPrevAnythingChangedForRenderTarget : 1;//same as upper one, but the prev frame
 	uint32 bHasSetIntialStateforLGUIWorldSpaceRenderer : 1;//is LGUI world space renderer's initial state set
 	uint32 bNeedToVerifyMaterials : 1;
 	uint32 bRootCanvasNeedToUpdateChildrenCanvasBounds : 1;//if child canvas's UIMesh's bounds change, then need to notify root canvas to update it's UIMesh's bounds
