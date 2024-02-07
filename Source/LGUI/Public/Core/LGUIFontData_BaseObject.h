@@ -101,6 +101,7 @@ public:
 	virtual uint8 GetRequireAdditionalShaderChannels() { return 0; }
 	virtual bool GetShouldAffectByPixelPerfect() { return true; }
 	virtual bool GetNeedObjectScale() { return false; }
+	virtual bool GetSupportDynamicPixelsPerUnit() { return false; }
 
 	/** this is called every time before create a string of char geometry */
 	virtual void PrepareForPushCharData(UUIText* InText) {};

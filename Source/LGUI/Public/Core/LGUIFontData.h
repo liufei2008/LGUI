@@ -64,6 +64,8 @@ protected:
 	virtual void ScaleDownUVofCachedChars()override;
 	virtual bool RenderGlyph(const TCHAR& charCode, const float& charSize, FGlyphBitmap& OutResult)override;
 	virtual void ClearCharDataCache()override;
+
+	virtual bool GetSupportDynamicPixelsPerUnit() { return true; }
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
