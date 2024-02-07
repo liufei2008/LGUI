@@ -11,6 +11,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/LGUIRender/LGUIRenderer.h"
 #include "EditorViewportClient.h"
+#include "LevelEditorViewport.h"
 #endif
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/GameViewportClient.h"
@@ -321,12 +322,12 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 						FViewport* viewport = nullptr;
 
 						int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-						auto& viewportClients = GEditor->GetAllViewportClients();
-						for (auto& viewportClient : viewportClients)
+						auto& LevelViewportClients = GEditor->GetLevelViewportClients();
+						for (auto& ViewportClient : LevelViewportClients)
 						{
-							if (viewportClient->ViewIndex == editorViewIndex)
+							if (ViewportClient->ViewIndex == editorViewIndex)
 							{
-								viewport = viewportClient->Viewport;
+								viewport = ViewportClient->Viewport;
 								break;
 							}
 						}
