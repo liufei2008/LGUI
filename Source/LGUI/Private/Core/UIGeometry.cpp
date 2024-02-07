@@ -2416,7 +2416,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	if (renderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
 	{
 		pixelPerfect = false;
-		if (dynamicPixelsPerUnit != 1.0f)
+		if (dynamicPixelsPerUnit != 1.0f && font->GetSupportDynamicPixelsPerUnit())
 		{
 			shouldScaleFontSizeWithRootCanvas = true;
 		}
@@ -2429,7 +2429,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 		else
 		{
-			if (dynamicPixelsPerUnit != 1.0f)
+			if (dynamicPixelsPerUnit != 1.0f && font->GetSupportDynamicPixelsPerUnit())
 			{
 				shouldScaleFontSizeWithRootCanvas = true;
 			}
