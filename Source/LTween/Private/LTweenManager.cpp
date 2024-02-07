@@ -79,7 +79,7 @@ UWorld* ULTweenManager::GetTickableGameObjectWorld() const
 ULTweenManager* ULTweenManager::GetLTweenInstance(UObject* WorldContextObject)
 {
 	auto GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
-	return GameInstance->GetSubsystem<ULTweenManager>();
+	return GameInstance != nullptr ? GameInstance->GetSubsystem<ULTweenManager>() : nullptr;
 }
 
 void ULTweenManager::OnTick(float DeltaTime)
