@@ -60,6 +60,7 @@ ULGUICanvas::ULGUICanvas()
 	bShouldRebuildDrawcall = true;
 	bShouldSortRenderableOrder = true;
 	bAnythingChangedForRenderTarget = true;
+	bPrevAnythingChangedForRenderTarget = true;
 
 	bIsViewProjectionMatrixDirty = true;
 
@@ -179,9 +180,10 @@ void ULGUICanvas::UpdateRootCanvas()
 		}
 
 		if (bIsRenderTargetRenderer
-			&& bAnythingChangedForRenderTarget
+			&& (bAnythingChangedForRenderTarget || bPrevAnythingChangedForRenderTarget)
 			)
 		{
+			bPrevAnythingChangedForRenderTarget = bAnythingChangedForRenderTarget;
 			bAnythingChangedForRenderTarget = false;
 			UpdateRenderTarget(true);
 #if WITH_EDITOR
