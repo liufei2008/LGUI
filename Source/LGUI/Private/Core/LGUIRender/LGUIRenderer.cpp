@@ -375,8 +375,12 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ColorTextureScaleOffset;
-	if (bIsRenderToRenderTarget)
+	if (bIsRenderToRenderTarget)//rendertarget mode
 	{
+		if (!bIsMainViewport)//render to scene capture (or other capture)
+		{
+			return;
+		}
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
 			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
@@ -407,7 +411,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 		ColorTextureScaleOffset = DepthTextureScaleOffset = FVector4f(1, 1, 0, 0);
 	}
-	else
+	else//world space or screen space mode
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture();
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
@@ -473,30 +477,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
-		//use a copied view. 
-		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
-		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
-		FSceneView* RenderView = new FSceneView(InView);
-		auto GlobalShaderMap = GetGlobalShaderMap(RenderView->GetFeatureLevel());
-
-		const FMinimalSceneTextures& SceneTextures = ((FViewFamilyInfo*)InView.Family)->GetSceneTextures();
-
-		RenderView->ViewMatrices = InView.ViewMatrices;
-		RenderView->ViewMatrices.HackRemoveTemporalAAProjectionJitter();
-		auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetViewProjectionMatrix());
-
-		FViewUniformShaderParameters ViewUniformShaderParameters;
-		RenderView->SetupCommonViewUniformBufferParameters(
-			ViewUniformShaderParameters,
-			ViewRect.Size(),
-			1,
-			ViewRect,
-			RenderView->ViewMatrices,
-			FViewMatrices()
-		);
-
-		RenderView->ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
-
 		//collect render primitive to a sequence
 		struct FWorldSpaceRenderParameterSequence
 		{
@@ -545,6 +525,34 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				}
 			}
 		}
+		if (RenderSequenceArray.Num() <= 0)
+		{
+			return;
+		}
+
+		//use a copied view. 
+		//NOTE!!! world-space and screen-space must use different 'RenderView' (actually different ViewUniformBuffer), because RDG is async. 
+		//if use same one, after world-space when modify 'RenderView' for screen-space, the screen-space ViewUniformBuffer will be applyed to world-space
+		FSceneView* RenderView = new FSceneView(InView);
+		auto GlobalShaderMap = GetGlobalShaderMap(RenderView->GetFeatureLevel());
+
+		const FMinimalSceneTextures& SceneTextures = ((FViewFamilyInfo*)InView.Family)->GetSceneTextures();
+
+		RenderView->ViewMatrices = InView.ViewMatrices;
+		RenderView->ViewMatrices.HackRemoveTemporalAAProjectionJitter();
+		auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetViewProjectionMatrix());
+
+		FViewUniformShaderParameters ViewUniformShaderParameters;
+		RenderView->SetupCommonViewUniformBufferParameters(
+			ViewUniformShaderParameters,
+			ViewRect.Size(),
+			1,
+			ViewRect,
+			RenderView->ViewMatrices,
+			FViewMatrices()
+		);
+
+		RenderView->ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
 
 		//if (bNeedSortWorldSpaceRenderCanvas)//@todo: mark dirty when need to
 		{
