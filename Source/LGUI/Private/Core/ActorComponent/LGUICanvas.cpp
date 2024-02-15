@@ -101,7 +101,7 @@ TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetRenderTarge
 {
 	if (!RenderTargetViewExtension.IsValid())
 	{
-		RenderTargetViewExtension = FSceneViewExtensions::NewExtension<FLGUIRenderer>(GetWorld());
+		RenderTargetViewExtension = FSceneViewExtensions::NewExtension<FLGUIRenderer>(GetWorld(), ELGUIRendererType::RenderTarget);
 	}
 	return RenderTargetViewExtension;
 }
@@ -145,9 +145,7 @@ void ULGUICanvas::UpdateRootCanvas()
 			{
 				if (!bHasAddToLGUIScreenSpaceRenderer)
 				{
-					GetRenderTargetViewExtension();
-					RenderTargetViewExtension->SetScreenSpaceRootCanvas(this);
-					RenderTargetViewExtension->SetRenderToRenderTarget(true);
+					GetRenderTargetViewExtension()->SetScreenSpaceRootCanvas(this);
 					bHasAddToLGUIScreenSpaceRenderer = true;
 				}
 				bIsRenderTargetRenderer = true;
@@ -358,11 +356,6 @@ void ULGUICanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
 	if (bHasSetIntialStateforLGUIWorldSpaceRenderer)
 	{
 		bHasSetIntialStateforLGUIWorldSpaceRenderer = false;
-	}
-
-	if (RenderTargetViewExtension.IsValid())
-	{
-		RenderTargetViewExtension->SetRenderToRenderTarget(false);
 	}
 
 	if (PropogateToChildrenCanvas)
@@ -3013,13 +3006,6 @@ void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 		renderTarget = value;
 		UpdateRenderTarget(false);
 		OnRenderTargetCreatedOrChanged.Broadcast(renderTarget, false);
-		if (renderMode == ELGUIRenderMode::RenderTarget)
-		{
-			if (RenderTargetViewExtension.IsValid())
-			{
-				RenderTargetViewExtension->SetRenderToRenderTarget(true);
-			}
-		}
 	}
 }
 

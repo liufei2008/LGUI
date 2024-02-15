@@ -38,10 +38,16 @@ public:
 };
 #endif
 
+enum class ELGUIRendererType :uint8
+{
+	ScreenSpace_and_WorldSpace,
+	RenderTarget,
+};
+
 class LGUI_API FLGUIRenderer : public FSceneViewExtensionBase
 {
 public:
-	FLGUIRenderer(const FAutoRegister&, UWorld* InWorld);
+	FLGUIRenderer(const FAutoRegister&, UWorld* InWorld, ELGUIRendererType InRendererType);
 	virtual ~FLGUIRenderer();
 
 	//begin ISceneViewExtension interfaces
@@ -80,7 +86,6 @@ public:
 	void SetScreenSpaceRootCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRootCanvas();
 
-	void SetRenderToRenderTarget(bool InValue);
 	void UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget);
 
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
@@ -154,10 +159,9 @@ private:
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
-	//is render to a custom render target? or just render to screen
-	bool bIsRenderToRenderTarget = false;
 	//render thread sample count for MSAA
 	uint8 NumSamples_MSAA = 1;
+	ELGUIRendererType RendererType = ELGUIRendererType::ScreenSpace_and_WorldSpace;
 
 	void RenderLGUI_RenderThread(
 		FRDGBuilder& GraphBuilder

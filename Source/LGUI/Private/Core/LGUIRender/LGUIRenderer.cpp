@@ -37,10 +37,11 @@ PRAGMA_DISABLE_OPTIMIZATION
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIRenderer::EditorPreview_ViewKey = 0;
 #endif
-FLGUIRenderer::FLGUIRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld)
+FLGUIRenderer::FLGUIRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld, ELGUIRendererType InRendererType)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	World = InWorld;
+	RendererType = InRendererType;
 
 #if WITH_EDITORONLY_DATA
 	bIsEditorPreview = !World->IsGameWorld();
@@ -55,15 +56,7 @@ void FLGUIRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView
 {
 	if (!World.IsValid())return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
-	if (!bIsRenderToRenderTarget)
-	{
-
-	}
-	//world space
-	{
-
-	}
-	//screen space
+	
 	if (ScreenSpaceRenderParameter.RootCanvas.IsValid())
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
@@ -375,8 +368,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	if (ScreenSpaceRenderParameter.PrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
 	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
 
-	//create render target
+	FTextureRHIRef OrignScreenColorRenderTargetTexture = nullptr;
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
+	//msaa render target
 	TRefCountPtr<IPooledRenderTarget> MSAARenderTarget = nullptr;
 
 	uint8 NumSamples = NumSamples_MSAA;
@@ -385,7 +379,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ColorTextureScaleOffset;
 	float InstancedStereoWidth = 0;
-	if (bIsRenderToRenderTarget)//rendertarget mode
+	if (RendererType == ELGUIRendererType::RenderTarget)//rendertarget mode
 	{
 		if (!bIsMainViewport)//render to scene capture (or other capture)
 		{
@@ -393,7 +387,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
+			ScreenColorRenderTargetTexture = RenderTargetResource->GetRenderTargetTexture();
 			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 
 			if (NumSamples > 1)
@@ -405,7 +399,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				if (!MSAARenderTarget.IsValid())
 					return;
 
-				CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
+				OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
 				ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
 			}
 
@@ -436,7 +430,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	}
 	else//world space or screen space mode
 	{
-		ScreenColorRenderTargetTexture = (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture();
+		ScreenColorRenderTargetTexture = InView.Family->RenderTarget->GetRenderTargetTexture();
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
 
 		if (NumSamples > 1)
@@ -449,6 +443,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				return;
 
 			CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
+			OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
 			ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
 		}
 
@@ -462,7 +457,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 		else
 		{
-			check(0);
 			ScreenPercentage = 1.0f;
 		}
 		const FMinimalSceneTextures& SceneTextures = ((FViewFamilyInfo*)InView.Family)->GetSceneTextures();
@@ -508,7 +502,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 	const float EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
 	float GammaValue =
-		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
+		(RendererType == ELGUIRendererType::RenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
 
 	auto CurrentWorldTime = InView.Family->Time.GetWorldTimeSeconds();
 	//Render world space
@@ -759,7 +753,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			SortScreenSpacePrimitiveRenderPriority_RenderThread();
 		}
 #if WITH_EDITOR
-		if (bIsRenderToRenderTarget)
+		if (RendererType == ELGUIRendererType::RenderTarget)
 		{
 
 		}
@@ -1018,8 +1012,8 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 	if (NumSamples > 1)
 	{
-		auto Src = RegisterExternalTexture(GraphBuilder, MSAARenderTarget->GetRHI(), TEXT("LGUIResolveSrc"));
-		auto Dst = RegisterExternalTexture(GraphBuilder, (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), TEXT("LGUIResolveDst"));
+		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIResolveSrc"));
+		auto Dst = RegisterExternalTexture(GraphBuilder, OrignScreenColorRenderTargetTexture, TEXT("LGUIResolveDst"));
 
 		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), InView.IsInstancedStereoPass(), InstancedStereoWidth, ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}
@@ -1255,16 +1249,6 @@ void FLGUIRenderer::ClearScreenSpaceRootCanvas()
 	ScreenSpaceRenderParameter.RootCanvas = nullptr;
 }
 
-void FLGUIRenderer::SetRenderToRenderTarget(bool InValue)
-{
-	auto ViewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SetRenderToRenderTarget)(
-		[ViewExtension, InValue](FRHICommandListImmediate& RHICmdList)
-		{
-			ViewExtension->bIsRenderToRenderTarget = InValue;
-		}
-	);
-}
 void FLGUIRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget)
 {
 	auto Resource = InRenderTarget->GameThread_GetRenderTargetResource();
