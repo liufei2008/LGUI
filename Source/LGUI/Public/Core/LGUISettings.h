@@ -19,17 +19,24 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
 
+UENUM(BlueprintType)
+enum class ELGUIRendererAntiAliasingMethod :uint8
+{
+	None,
+	MSAA = AAM_MSAA UMETA(DisplayName = "Multisample Anti-Aliasing (MSAA)"),
+};
+
 /**
  * Aniti Aliasing(MSAA) for LGUI Renderer
  */
 UENUM(BlueprintType)
-enum class ELGUIRendererAntiAliasing :uint8
+enum class ELGUIRendererMSAASampleCount :uint8
 {
-	Hidden = 0				UMETA(Hidden),
-	Disabled = 1,
-	SampleCount_2x = 2		UMETA(DisplayName = "2x"),
-	SampleCount_4x = 4		UMETA(DisplayName = "4x"),
-	SampleCount_8x = 8		UMETA(DisplayName = "8x"),
+	Hidden = 0		UMETA(Hidden),
+	One = 1			UMETA(DisplayName = "No MSAA"),
+	Two = 2			UMETA(DisplayName = "2x MSAA"),
+	Four = 4		UMETA(DisplayName = "4x MSAA"),
+	Eight = 8		UMETA(DisplayName = "8x MSAA"),
 };
 
 USTRUCT(BlueprintType)
@@ -84,8 +91,18 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
 		float AutoBatchThreshold = 0.01f;
 
-	UPROPERTY(EditAnywhere, config, Category = "Rendering")
-		ELGUIRendererAntiAliasing AntiAliasing = ELGUIRendererAntiAliasing::SampleCount_8x;
+	/**
+	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).
+	 * Tested on Windows DX11 & DX12, Mac (intel), Android (vulkan), not valid on Android (gles).
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName="Anti-Aliasing Method"))
+		ELGUIRendererAntiAliasingMethod AntiAliasingMothod = ELGUIRendererAntiAliasingMethod::None;
+	/**
+	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).
+	 * Tested on Windows DX11 & DX12, Mac (intel), Android (vulkan), not valid on Android (gles).
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName="MSAA Sample Count"))
+		ELGUIRendererMSAASampleCount MSAASampleCount = ELGUIRendererMSAASampleCount::Four;
 
 #if WITH_EDITORONLY_DATA
 	static float CacheAutoBatchThreshold;
