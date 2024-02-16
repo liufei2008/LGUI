@@ -169,6 +169,7 @@ uint8 ULGUISDFFontData::GetRequireAdditionalShaderChannels()
 {
 	return
 		(1 << (int)ELGUICanvasAdditionalChannelType::UV1)//UV1.x = boldSize, UV1.y = richTextProperty.size * oneDivideFontSize * objectScale
+		| (1 << (int)ELGUICanvasAdditionalChannelType::Normal)//for tilt look
 		;
 }
 
