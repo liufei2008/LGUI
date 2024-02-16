@@ -100,7 +100,7 @@ protected:
 		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType = ECameraProjectionMode::Perspective;
 	/** Virtual Camera field of view (in degrees). */
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
-		float FOVAngle = 90;
+		float FOVAngle = 60;
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		float NearClipPlane = 1;
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
