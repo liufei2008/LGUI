@@ -81,7 +81,7 @@ public:
 
 	void MarkNeedToSortScreenSpacePrimitiveRenderPriority();
 	void MarkNeedToSortWorldSpacePrimitiveRenderPriority();
-	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
+	void SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade);
 
 	void SetScreenSpaceRootCanvas(ULGUICanvas* InCanvas);
 	void ClearScreenSpaceRootCanvas();
@@ -133,7 +133,7 @@ private:
 		//blend depth, 0-occlude by depth, 1-all visible
 		float BlendDepth = 0.0f;
 		//depth fade effect
-		float DepthFade = 0.0f;
+		int DepthFade = 0;
 
 		ILGUIRendererPrimitive* Primitive = nullptr;
 	};
@@ -158,7 +158,7 @@ private:
 	//if 'bIsRenderToRenderTarget' is true then we need a render target
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
-	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade);
+	void SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade);
 	//render thread sample count for MSAA
 	uint8 NumSamples_MSAA = 1;
 	ELGUIRendererType RendererType = ELGUIRendererType::ScreenSpace_and_WorldSpace;

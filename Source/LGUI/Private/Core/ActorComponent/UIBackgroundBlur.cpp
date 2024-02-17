@@ -90,7 +90,7 @@ public:
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		float DepthFadeForWorld,
+		int DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
