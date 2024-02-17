@@ -107,7 +107,7 @@ void FLGUIWorldRenderDepthFadePS::ModifyCompilationEnvironment(const FMaterialSh
 	OutEnvironment.SetDefine(TEXT("LGUI_DEPTH_FADE"), true);
 	FLGUIWorldRenderPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 }
-void FLGUIWorldRenderDepthFadePS::SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade)
+void FLGUIWorldRenderDepthFadePS::SetDepthFadeParameter(FRHICommandList& RHICmdList, int DepthFade)
 {
 	SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), SceneDepthFadeParameter, DepthFade);
 }

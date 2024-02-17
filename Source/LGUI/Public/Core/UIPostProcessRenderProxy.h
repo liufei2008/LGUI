@@ -44,7 +44,7 @@ public:
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		float DepthFadeForWorld,
+		int DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
@@ -77,7 +77,7 @@ public:
 		, const FMatrix44f & ModelViewProjectionMatrix
 		, bool IsWorldSpace
 		, float BlendDepthForWorld
-		, float DepthFadeForWorld
+		, int DepthFadeForWorld
 		, const FVector4f& DepthTextureScaleOffset
 		, const FIntRect& ViewRect
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()

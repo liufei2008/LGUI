@@ -26,7 +26,8 @@ SamplerState _SceneDepthTexSampler;
 float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #if LGUI_DEPTH_FADE
-float _SceneDepthFade;
+int _SceneDepthFade;
+float2 _ViewSizeInv;
 #endif
 #endif
 
@@ -59,10 +60,24 @@ void RenderMeshPS(
 	float2 ScreenUV = input.screenPosition.xy / input.screenPosition.w;
 	ScreenUV = ScreenUV * 0.5f + float2(0.5f, 0.5f);
 	ScreenUV.y = 1.0f - ScreenUV.y;
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 #if LGUI_DEPTH_FADE
-	float DepthFadeValue = smoothstep(0, 1, saturate((PixelDepth - ExistDepth) / (_SceneDepthFade * ExistDepth * ExistDepth)));//if without the "ExistDepth * ExistDepth" then the fade distance will be affect by camera distance.
+	float DepthFadeValue = 0;
+	int SampleCount = 0;
+	int SampleSize = _SceneDepthFade;
+	ScreenUV = ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw;
+	for (int w = -SampleSize; w <= SampleSize; w++)
+	{
+		for (int h = -SampleSize; h <= SampleSize; h++)
+		{
+			float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV + float2(w, h) * _ViewSizeInv.xy).x;
+			DepthFadeValue += step(ExistDepth, PixelDepth);
+			SampleCount++;
+		}
+	}
+	DepthFadeValue /= SampleCount;
+	DepthFadeValue = smoothstep(0, 1, DepthFadeValue);
 #else
+    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	float DepthFadeValue = step(ExistDepth, PixelDepth);
 #endif
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, DepthFadeValue);

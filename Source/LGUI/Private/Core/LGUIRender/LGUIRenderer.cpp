@@ -517,7 +517,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			//blend depth, 0-occlude by depth, 1-all visible
 			float BlendDepth = 0.0f;
 			//depth fade effect
-			float DepthFade = 0.0f;
+			int DepthFade = 0;
 
 			//for sort translucent
 			FVector3f WorldPosition;
@@ -669,7 +669,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
 								);
 
-								if (DepthFade <= 0.0f)
+								if (DepthFade <= 0)
 								{
 									TShaderRef<FLGUIScreenRenderVS> VertexShader;
 									TShaderRef<FLGUIWorldRenderPS> PixelShader;
@@ -1219,7 +1219,7 @@ void FLGUIRenderer::MarkNeedToSortWorldSpacePrimitiveRenderPriority()
 	);
 }
 
-void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
+void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade)
 {
 	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
@@ -1230,7 +1230,7 @@ void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, f
 	);
 }
 
-void FLGUIRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
+void FLGUIRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade)
 {
 	for (auto& RenderParameter : WorldSpaceRenderCanvasParameterArray)
 	{
