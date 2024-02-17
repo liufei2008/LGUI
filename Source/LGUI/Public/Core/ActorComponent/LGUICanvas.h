@@ -324,8 +324,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float blendDepth = 0.0f;
 	/** For "World Space - LGUI Renderer" only, render with depth fade effect. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "10.0"))
-		float depthFade = 0.05f;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0", ClampMax = "10"))
+		int depthFade = 0;
 	/**
 	 * Create a depth texture so we can do depth test. This is very useful for UIStaticMesh which use Opaque material.
 	 * Only valid for ScreenSpaceOverlay and RenderTarget mode.
@@ -446,12 +446,12 @@ public:
 
 	/** Get depthFade value of canvas. Actually canvas's depthFade property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetActualDepthFade()const;
+		int GetActualDepthFade()const;
 	/** Get blendDepth value of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetDepthFade()const { return depthFade; }
+		int GetDepthFade()const { return depthFade; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetDepthFade(float value);
+		void SetDepthFade(int value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetEnableDepthTest()const { return bEnableDepthTest; }

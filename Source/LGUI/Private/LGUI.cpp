@@ -24,4 +24,4 @@ void FLGUIModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FLGUIModule, LGUI)//if second param is wrong, an error like "EmptyLinkFunctionForStaticInitialization(XXX)" will occor when package project
+IMPLEMENT_MODULE(FLGUIModule, LGUI)

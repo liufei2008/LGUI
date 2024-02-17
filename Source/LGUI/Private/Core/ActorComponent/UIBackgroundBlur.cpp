@@ -91,7 +91,7 @@ public:
 		const FMatrix44f& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		float DepthFadeForWorld,
+		int DepthFadeForWorld,
 		const FIntRect& ViewRect,
 		const FVector4f& DepthTextureScaleOffset,
 		const FVector4f& ViewTextureScaleOffset
@@ -130,7 +130,7 @@ public:
 				return;
 			auto ResolveSrc = RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIBlurEffectResolveSource"));
 			auto ResolveDst = RegisterExternalTexture(GraphBuilder, ScreenResolvedTexture->GetRHI(), TEXT("LGUIBlurEffectResolveTarget"));
-			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), false, 0, FIntRect(0, 0, Size.X, Size.Y), NumSamples, GlobalShaderMap);
+			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, Size.X, Size.Y), NumSamples, GlobalShaderMap);
 		}
 
 		float width = RectSize.X;

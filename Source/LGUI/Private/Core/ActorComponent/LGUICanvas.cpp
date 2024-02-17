@@ -2647,7 +2647,7 @@ float ULGUICanvas::GetActualBlendDepth()const
 	return blendDepth;
 }
 
-float ULGUICanvas::GetActualDepthFade()const
+int ULGUICanvas::GetActualDepthFade()const
 {
 	if (IsRootCanvas())
 	{
@@ -3077,7 +3077,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 	}
 }
 
-void ULGUICanvas::SetDepthFade(float value)
+void ULGUICanvas::SetDepthFade(int value)
 {
 	if (depthFade != value)
 	{

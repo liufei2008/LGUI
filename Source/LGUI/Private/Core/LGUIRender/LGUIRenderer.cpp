@@ -380,7 +380,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ColorTextureScaleOffset;
-	float InstancedStereoWidth = 0;
 	if (RendererType == ELGUIRendererType::RenderTarget)//rendertarget mode
 	{
 		if (!bIsMainViewport)//render to scene capture (or other capture)
@@ -455,7 +454,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			auto& ViewInfo = static_cast<FViewInfo&>(InView);
 			ScreenPercentage = (float)ViewInfo.ViewRect.Width() / ViewRect.Width();
-			InstancedStereoWidth = ViewInfo.InstancedStereoWidth;
 		}
 		else
 		{
@@ -517,7 +515,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			//blend depth, 0-occlude by depth, 1-all visible
 			float BlendDepth = 0.0f;
 			//depth fade effect
-			float DepthFade = 0.0f;
+			int DepthFade = 0;
 
 			//for sort translucent
 			FVector3f WorldPosition;
@@ -669,7 +667,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
 								);
 
-								if (DepthFade <= 0.0f)
+								if (DepthFade <= 0)
 								{
 									TShaderRef<FLGUIScreenRenderVS> VertexShader;
 									TShaderRef<FLGUIWorldRenderPS> PixelShader;
@@ -1017,7 +1015,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIResolveSrc"));
 		auto Dst = RegisterExternalTexture(GraphBuilder, OrignScreenColorRenderTargetTexture, TEXT("LGUIResolveDst"));
 
-		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), InView.IsInstancedStereoPass(), InstancedStereoWidth, ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
+		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}
 
 #if WITH_EDITOR
@@ -1034,15 +1032,15 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 class FLGUIDummySceneColorResolveBuffer : public FVertexBuffer
 {
 public:
-	virtual void InitRHI() override
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override
 	{
 		const int32 NumDummyVerts = 3;
 		const uint32 Size = sizeof(FVector4f) * NumDummyVerts;
 		FRHIResourceCreateInfo CreateInfo(TEXT("FLGUIDummySceneColorResolveBuffer"));
-		VertexBufferRHI = RHICreateBuffer(Size, BUF_Static | BUF_VertexBuffer, 0, ERHIAccess::VertexOrIndexBuffer, CreateInfo);
-		void* BufferData = RHILockBuffer(VertexBufferRHI, 0, Size, RLM_WriteOnly);
+		VertexBufferRHI = RHICmdList.CreateBuffer(Size, BUF_Static | BUF_VertexBuffer, 0, ERHIAccess::VertexOrIndexBuffer, CreateInfo);
+		void* BufferData = RHICmdList.LockBuffer(VertexBufferRHI, 0, Size, RLM_WriteOnly);
 		FMemory::Memset(BufferData, 0, Size);
-		RHIUnlockBuffer(VertexBufferRHI);
+		RHICmdList.UnlockBuffer(VertexBufferRHI);
 	}
 };
 
@@ -1057,8 +1055,6 @@ END_SHADER_PARAMETER_STRUCT()
 void FLGUIRenderer::AddResolvePass(
 	FRDGBuilder& GraphBuilder
 	, FRDGTextureMSAA SceneColor
-	, bool bIsInstancedStereoPass
-	, float InstancedStereoWidth
 	, const FIntRect& ViewRect
 	, uint8 NumSamples
 	, FGlobalShaderMap* GlobalShaderMap
@@ -1074,7 +1070,7 @@ void FLGUIRenderer::AddResolvePass(
 		RDG_EVENT_NAME("LGUIResolveColor"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[bIsInstancedStereoPass, ViewRect, InstancedStereoWidth, SceneColorTargetable, NumSamples, GlobalShaderMap](FRHICommandList& RHICmdList)
+		[ViewRect, SceneColorTargetable, NumSamples, GlobalShaderMap](FRHICommandList& RHICmdList)
 		{
 			FRHITexture* SceneColorTargetableRHI = SceneColorTargetable->GetRHI();
 
@@ -1089,8 +1085,7 @@ void FLGUIRenderer::AddResolvePass(
 
 			// Resolve views individually. In the case of adaptive resolution, the view family will be much larger than the views individually.
 			RHICmdList.SetViewport(0.0f, 0.0f, 0.0f, SceneColorExtent.X, SceneColorExtent.Y, 1.0f);
-			RHICmdList.SetScissorRect(true, bIsInstancedStereoPass ? 0 : ViewRect.Min.X, ViewRect.Min.Y,
-				bIsInstancedStereoPass ? InstancedStereoWidth : ViewRect.Max.X, ViewRect.Max.Y);
+			RHICmdList.SetScissorRect(true, ViewRect.Min.X, ViewRect.Min.Y, ViewRect.Max.X, ViewRect.Max.Y);
 
 			TShaderMapRef<FLGUIResolveShaderVS> VertexShader(GlobalShaderMap);
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetVertexDeclarationFVector4();
@@ -1219,7 +1214,7 @@ void FLGUIRenderer::MarkNeedToSortWorldSpacePrimitiveRenderPriority()
 	);
 }
 
-void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
+void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade)
 {
 	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
@@ -1230,7 +1225,7 @@ void FLGUIRenderer::SetRenderCanvasDepthParameter(ULGUICanvas* InRenderCanvas, f
 	);
 }
 
-void FLGUIRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, float InDepthFade)
+void FLGUIRenderer::SetRenderCanvasDepthFade_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth, int InDepthFade)
 {
 	for (auto& RenderParameter : WorldSpaceRenderCanvasParameterArray)
 	{

@@ -64,7 +64,7 @@ public:
 	FLGUIWorldRenderDepthFadePS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
 	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 
-	void SetDepthFadeParameter(FRHICommandList& RHICmdList, float DepthFade);
+	void SetDepthFadeParameter(FRHICommandList& RHICmdList, int DepthFade);
 private:
 	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
 };
