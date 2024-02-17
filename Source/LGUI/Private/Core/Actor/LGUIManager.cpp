@@ -957,9 +957,9 @@ void ULGUIManagerWorldSubsystem::Deinitialize()
 		EditorTickDelegateHandle.Reset();
 	}
 #endif
-	if (ScreenSpaceOverlayViewExtension.IsValid())
+	if (MainViewportViewExtension.IsValid())
 	{
-		ScreenSpaceOverlayViewExtension.Reset();
+		MainViewportViewExtension.Reset();
 	}
 	if (OnCultureChangedDelegateHandle.IsValid())
 	{
@@ -1181,9 +1181,9 @@ void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 			bShouldSortScreenSpaceCanvas = false;
 			SortCanvas(ScreenSpaceCanvasArray);
 			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, this->ScreenSpaceCanvasArray);
-			if (ScreenSpaceOverlayViewExtension.IsValid())
+			if (MainViewportViewExtension.IsValid())
 			{
-				ScreenSpaceOverlayViewExtension->MarkNeedToSortScreenSpacePrimitiveRenderPriority();
+				MainViewportViewExtension->MarkNeedToSortScreenSpacePrimitiveRenderPriority();
 			}
 		}
 		if (bShouldSortWorldSpaceLGUICanvas)
@@ -1191,9 +1191,9 @@ void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 			bShouldSortWorldSpaceLGUICanvas = false;
 			SortCanvas(WorldSpaceLGUICanvasArray);
 			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI, this->WorldSpaceLGUICanvasArray);
-			if (ScreenSpaceOverlayViewExtension.IsValid())
+			if (MainViewportViewExtension.IsValid())
 			{
-				ScreenSpaceOverlayViewExtension->MarkNeedToSortWorldSpacePrimitiveRenderPriority();
+				MainViewportViewExtension->MarkNeedToSortWorldSpacePrimitiveRenderPriority();
 			}
 		}
 		if (bShouldSortWorldSpaceCanvas)
@@ -1642,14 +1642,14 @@ TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ULGUIManagerWorldSubsystem:
 {
 	if (auto Instance = GetInstance(InWorld))
 	{
-		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
+		if (!Instance->MainViewportViewExtension.IsValid())
 		{
 			if (InCreateIfNotExist)
 			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIRenderer>(InWorld);
+				Instance->MainViewportViewExtension = FSceneViewExtensions::NewExtension<FLGUIRenderer>(InWorld, ELGUIRendererType::ScreenSpace_and_WorldSpace);
 			}
 		}
-		return Instance->ScreenSpaceOverlayViewExtension;
+		return Instance->MainViewportViewExtension;
 	}
 	return nullptr;
 }

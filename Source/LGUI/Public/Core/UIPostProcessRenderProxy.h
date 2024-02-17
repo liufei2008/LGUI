@@ -28,8 +28,6 @@ private:
 	bool bIsWorld = false;//is world space or screen space
 	ULGUICanvas* RenderCanvasPtr = nullptr;
 public:
-	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
-
 	virtual bool CanRender() const = 0;
 	/**
 	 * render thread function that will do the post process draw

@@ -1,0 +1,56 @@
+﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+#include "/Engine/Private/Common.ush"
+
+float4 LGUIResolveVS(uint Id : SV_VertexID) : SV_POSITION
+{
+    int x = Id & 1;
+    int y = Id >> 1;
+
+    return float4(x * 4 - 1, y * 4 - 1, 0, 1);
+}
+
+#if LGUI_RESOLVE_2X
+
+	Texture2DMS<float4,2> Tex;
+	float4 LGUIResolve2xPS(float4 Pos : SV_POSITION) : SV_Target0
+	{
+		uint2 P = uint2(Pos.xy);
+		float4 C0 = Tex.Load(P, 0);
+		float4 C1 = Tex.Load(P, 1);
+		return C0*0.5 + C1*0.5;
+	}
+	
+#endif
+
+#if LGUI_RESOLVE_4X
+
+	Texture2DMS<float4,4> Tex;
+	float4 LGUIResolve4xPS(float4 Pos : SV_POSITION) : SV_Target0
+	{
+		uint2 P = uint2(Pos.xy);
+		float4 C0 = (Tex.Load(P, 0));
+		float4 C1 = (Tex.Load(P, 1));
+		float4 C2 = (Tex.Load(P, 2));
+		float4 C3 = (Tex.Load(P, 3));
+		return (C0*0.25 + C1*0.25 + C2*0.25 + C3*0.25);
+	}
+
+#endif
+
+#if LGUI_RESOLVE_8X
+
+	Texture2DMS<float4,8> Tex;
+	float4 LGUIResolve8xPS(float4 Pos : SV_POSITION) : SV_Target0
+	{
+		uint2 P = uint2(Pos.xy);
+		float4 C0 = (Tex.Load(P, 0));
+		float4 C1 = (Tex.Load(P, 1));
+		float4 C2 = (Tex.Load(P, 2));
+		float4 C3 = (Tex.Load(P, 3));
+		float4 C4 = (Tex.Load(P, 4));
+		float4 C5 = (Tex.Load(P, 5));
+		float4 C6 = (Tex.Load(P, 6));
+		float4 C7 = (Tex.Load(P, 7));
+		return (C0*0.125 + C1*0.125 + C2*0.125 + C3*0.125 + C4*0.125 + C5*0.125 + C6*0.125 + C7*0.125);
+	}
+#endif
