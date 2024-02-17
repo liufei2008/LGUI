@@ -6,6 +6,7 @@
 #include "Core/LGUIRender/LGUIRenderer.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "GameFramework/PlayerController.h"
+#include "RenderTargetPool.h"
 
 UUIFrameCapture::UUIFrameCapture(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -109,10 +110,26 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_FrameGrabber);
 		auto& RHICmdList = GraphBuilder.RHICmdList;
 
+		TRefCountPtr<IPooledRenderTarget> ScreenResolvedTexture;
+		uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
+		if (NumSamples > 1)
+		{
+			auto Size = ScreenTargetTexture->GetSizeXY();
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(Size, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenResolvedTexture, TEXT("LGUIBlurEffectResolveTarget"));
+			if (!ScreenResolvedTexture.IsValid())
+				return;
+			auto ResolveSrc = RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIBlurEffectResolveSource"));
+			auto ResolveDst = RegisterExternalTexture(GraphBuilder, ScreenResolvedTexture->GetRHI(), TEXT("LGUIBlurEffectResolveTarget"));
+			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), false, 0, FIntRect(0, 0, Size.X, Size.Y), NumSamples, GlobalShaderMap);
+		}
+
 		auto CapturedFrameTexture = (FTextureRHIRef)CapturedFrameResource->GetRenderTargetTexture();
 		if (bCaptureFullScreen)
 		{
-			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, ScreenTargetTexture, CapturedFrameTexture, true);
+			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap
+				, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
+				, CapturedFrameTexture, true);
 		}
 		else
 		{
@@ -120,7 +137,7 @@ public:
 			auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
 				, RegisterExternalTexture(GraphBuilder, CapturedFrameTexture, TEXT("LGUI_FrameCaptureTargetTexture"))
-				, ScreenTargetTexture
+				, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
 				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
@@ -130,6 +147,11 @@ public:
 			);
 		}
 		*OwnerIsFrameReady = true;
+		
+		if (ScreenResolvedTexture.IsValid())
+		{
+			ScreenResolvedTexture.SafeRelease();
+		}
 	}
 };
 
