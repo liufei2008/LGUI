@@ -149,7 +149,7 @@ private:
 	bool bShouldUpdateOnCultureChanged = false;
 	FDelegateHandle OnCultureChangedDelegateHandle;
 
-	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
+	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> MainViewportViewExtension;
 
 	void UpdateLayout();
 	bool bNeedUpdateLayout = false;

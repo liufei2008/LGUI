@@ -4,6 +4,7 @@
 #include "Core/LGUIRender/LGUIShaders.h"
 #include "Core/LGUIRender/LGUIVertex.h"
 #include "Core/LGUIRender/LGUIPostProcessShaders.h"
+#include "Core/LGUIRender/LGUIResolveShaders.h"
 #include "Modules/ModuleManager.h"
 #include "LGUI.h"
 #include "SceneView.h"
@@ -38,10 +39,11 @@ UE_DISABLE_OPTIMIZATION
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIRenderer::EditorPreview_ViewKey = 0;
 #endif
-FLGUIRenderer::FLGUIRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld)
+FLGUIRenderer::FLGUIRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld, ELGUIRendererType InRendererType)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	World = InWorld;
+	RendererType = InRendererType;
 
 #if WITH_EDITORONLY_DATA
 	bIsEditorPreview = !World->IsGameWorld();
@@ -56,15 +58,7 @@ void FLGUIRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView
 {
 	if (!World.IsValid())return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
-	if (!bIsRenderToRenderTarget)
-	{
-
-	}
-	//world space
-	{
-
-	}
-	//screen space
+	
 	if (ScreenSpaceRenderParameter.RootCanvas.IsValid())
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
@@ -82,6 +76,15 @@ void FLGUIRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView
 		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = FMatrix44f(ViewProjectionMatrix);
 		ScreenSpaceRenderParameter.bEnableDepthTest = ScreenSpaceRenderParameter.RootCanvas->GetEnableDepthTest();
+	}
+
+	if (auto LGUISettings = GetDefault<ULGUISettings>())
+	{
+		NumSamples_MSAA = LGUISettings->AntiAliasingMothod == ELGUIRendererAntiAliasingMethod::MSAA ? (uint8)LGUISettings->MSAASampleCount : 1;
+	}
+	else
+	{
+		NumSamples_MSAA = 1;
 	}
 }
 void FLGUIRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
@@ -367,15 +370,18 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	if (ScreenSpaceRenderParameter.PrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
 	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
 
-	//create render target
+	FTextureRHIRef OrignScreenColorRenderTargetTexture = nullptr;
 	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
+	//msaa render target
+	TRefCountPtr<IPooledRenderTarget> MSAARenderTarget = nullptr;
 
-	uint8 NumSamples = 1;
+	uint8 NumSamples = NumSamples_MSAA;
 	FIntRect ViewRect;
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ColorTextureScaleOffset;
-	if (bIsRenderToRenderTarget)//rendertarget mode
+	float InstancedStereoWidth = 0;
+	if (RendererType == ELGUIRendererType::RenderTarget)//rendertarget mode
 	{
 		if (!bIsMainViewport)//render to scene capture (or other capture)
 		{
@@ -383,9 +389,22 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
-			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderTargetResource->GetRenderTargetTexture();
+			ScreenColorRenderTargetTexture = RenderTargetResource->GetRenderTargetTexture();
 			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
-			NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
+
+			if (NumSamples > 1)
+			{
+				//get msaa render target
+				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+				desc.NumSamples = NumSamples;
+				GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LGUI_MSAA_RenderTarget"));
+				if (!MSAARenderTarget.IsValid())
+					return;
+
+				OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
+				ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+			}
+
 			//clear render target
 			{
 				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
@@ -413,9 +432,22 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	}
 	else//world space or screen space mode
 	{
-		ScreenColorRenderTargetTexture = (FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture();
+		ScreenColorRenderTargetTexture = InView.Family->RenderTarget->GetRenderTargetTexture();
 		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
-		NumSamples = ScreenColorRenderTargetTexture->GetNumSamples();
+
+		if (NumSamples > 1)
+		{
+			//get msaa render target
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = NumSamples;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LGUI_MSAA_RenderTarget"));
+			if (!MSAARenderTarget.IsValid())
+				return;
+
+			CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
+			OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
+			ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+		}
 
 		ViewRect = InView.UnscaledViewRect;
 		float ScreenPercentage = 1.0f;//this can affect scale on depth texture
@@ -423,6 +455,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			auto& ViewInfo = static_cast<FViewInfo&>(InView);
 			ScreenPercentage = (float)ViewInfo.ViewRect.Width() / ViewRect.Width();
+			InstancedStereoWidth = ViewInfo.InstancedStereoWidth;
 		}
 		else
 		{
@@ -471,7 +504,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIRendererTargetTexture"));
 	const float EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
 	float GammaValue =
-		(bIsRenderToRenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
+		(RendererType == ELGUIRendererType::RenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
 
 	auto CurrentWorldTime = InView.Family->Time.GetWorldTimeSeconds();
 	//Render world space
@@ -722,7 +755,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			SortScreenSpacePrimitiveRenderPriority_RenderThread();
 		}
 #if WITH_EDITOR
-		if (bIsRenderToRenderTarget)
+		if (RendererType == ELGUIRendererType::RenderTarget)
 		{
 
 		}
@@ -979,10 +1012,120 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 	}
 
+	if (NumSamples > 1)
+	{
+		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIResolveSrc"));
+		auto Dst = RegisterExternalTexture(GraphBuilder, OrignScreenColorRenderTargetTexture, TEXT("LGUIResolveDst"));
+
+		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), InView.IsInstancedStereoPass(), InstancedStereoWidth, ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
+	}
+
 #if WITH_EDITOR
 	END_LGUI_RENDER :
 	;
 #endif
+	if (MSAARenderTarget.IsValid())
+	{
+		MSAARenderTarget.SafeRelease();
+	}
+}
+
+
+class FLGUIDummySceneColorResolveBuffer : public FVertexBuffer
+{
+public:
+	virtual void InitRHI() override
+	{
+		const int32 NumDummyVerts = 3;
+		const uint32 Size = sizeof(FVector4f) * NumDummyVerts;
+		FRHIResourceCreateInfo CreateInfo(TEXT("FLGUIDummySceneColorResolveBuffer"));
+		VertexBufferRHI = RHICreateBuffer(Size, BUF_Static | BUF_VertexBuffer, 0, ERHIAccess::VertexOrIndexBuffer, CreateInfo);
+		void* BufferData = RHILockBuffer(VertexBufferRHI, 0, Size, RLM_WriteOnly);
+		FMemory::Memset(BufferData, 0, Size);
+		RHIUnlockBuffer(VertexBufferRHI);
+	}
+};
+
+TGlobalResource<FLGUIDummySceneColorResolveBuffer> GLGUIResolveDummyVertexBuffer;
+
+BEGIN_SHADER_PARAMETER_STRUCT(FLGUIResolveParameters, )
+RDG_TEXTURE_ACCESS(MainTex, ERHIAccess::SRVGraphics)
+RENDER_TARGET_BINDING_SLOTS()
+END_SHADER_PARAMETER_STRUCT()
+
+//reference from SceneRendering.cpp::AddResolveSceneColorPass
+void FLGUIRenderer::AddResolvePass(
+	FRDGBuilder& GraphBuilder
+	, FRDGTextureMSAA SceneColor
+	, bool bIsInstancedStereoPass
+	, float InstancedStereoWidth
+	, const FIntRect& ViewRect
+	, uint8 NumSamples
+	, FGlobalShaderMap* GlobalShaderMap
+)
+{
+	FLGUIResolveParameters* PassParameters = GraphBuilder.AllocParameters<FLGUIResolveParameters>();
+	PassParameters->MainTex = SceneColor.Target;
+	PassParameters->RenderTargets[0] = FRenderTargetBinding(SceneColor.Resolve, SceneColor.Resolve->HasBeenProduced() ? ERenderTargetLoadAction::ELoad : ERenderTargetLoadAction::ENoAction);
+
+	FRDGTextureRef SceneColorTargetable = SceneColor.Target;
+
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("LGUIResolveColor"),
+		PassParameters,
+		ERDGPassFlags::Raster,
+		[bIsInstancedStereoPass, ViewRect, InstancedStereoWidth, SceneColorTargetable, NumSamples, GlobalShaderMap](FRHICommandList& RHICmdList)
+		{
+			FRHITexture* SceneColorTargetableRHI = SceneColorTargetable->GetRHI();
+
+			FGraphicsPipelineStateInitializer GraphicsPSOInit;
+			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+
+			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
+
+			const FIntPoint SceneColorExtent = SceneColorTargetable->Desc.Extent;
+
+			// Resolve views individually. In the case of adaptive resolution, the view family will be much larger than the views individually.
+			RHICmdList.SetViewport(0.0f, 0.0f, 0.0f, SceneColorExtent.X, SceneColorExtent.Y, 1.0f);
+			RHICmdList.SetScissorRect(true, bIsInstancedStereoPass ? 0 : ViewRect.Min.X, ViewRect.Min.Y,
+				bIsInstancedStereoPass ? InstancedStereoWidth : ViewRect.Max.X, ViewRect.Max.Y);
+
+			TShaderMapRef<FLGUIResolveShaderVS> VertexShader(GlobalShaderMap);
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetVertexDeclarationFVector4();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			GraphicsPSOInit.PrimitiveType = PT_TriangleList;
+			if (NumSamples == 2)
+			{
+				TShaderMapRef<FLGUIResolveShader2xPS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0);
+				PixelShader->SetParameters(RHICmdList, SceneColorTargetableRHI);
+			}
+			else if (NumSamples == 4)
+			{
+				TShaderMapRef<FLGUIResolveShader4xPS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0);
+				PixelShader->SetParameters(RHICmdList, SceneColorTargetableRHI);
+			}
+			else if (NumSamples == 8)
+			{
+				TShaderMapRef<FLGUIResolveShader8xPS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0);
+				PixelShader->SetParameters(RHICmdList, SceneColorTargetableRHI);
+			}
+
+			RHICmdList.SetStreamSource(0, GLGUIResolveDummyVertexBuffer.VertexBufferRHI, 0);
+			RHICmdList.DrawPrimitive(0, 1, 1);
+			RHICmdList.SetScissorRect(false, 0, 0, 0, 0);
+		}
+	);
 }
 
 void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)
@@ -1108,16 +1251,6 @@ void FLGUIRenderer::ClearScreenSpaceRootCanvas()
 	ScreenSpaceRenderParameter.RootCanvas = nullptr;
 }
 
-void FLGUIRenderer::SetRenderToRenderTarget(bool InValue)
-{
-	auto ViewExtension = this;
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_SetRenderToRenderTarget)(
-		[ViewExtension, InValue](FRHICommandListImmediate& RHICmdList)
-		{
-			ViewExtension->bIsRenderToRenderTarget = InValue;
-		}
-	);
-}
 void FLGUIRenderer::UpdateRenderTargetRenderer(UTextureRenderTarget2D* InRenderTarget)
 {
 	auto Resource = InRenderTarget->GameThread_GetRenderTargetResource();
