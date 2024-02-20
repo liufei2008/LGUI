@@ -113,8 +113,6 @@ public:
 	void AddResolvePass(
 		FRDGBuilder& GraphBuilder
 		, FRDGTextureMSAA SceneColor
-		, bool bIsInstancedStereoPass
-		, float InstancedStereoWidth
 		, const FIntRect& ViewRect
 		, uint8 NumSamples
 		, FGlobalShaderMap* GlobalShaderMap

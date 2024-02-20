@@ -378,7 +378,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	FVector4f DepthTextureScaleOffset;
 	FVector4f ColorTextureScaleOffset;
-	float InstancedStereoWidth = 0;
 	if (RendererType == ELGUIRendererType::RenderTarget)//rendertarget mode
 	{
 		if (!bIsMainViewport)//render to scene capture (or other capture)
@@ -453,7 +452,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		{
 			auto& ViewInfo = static_cast<FViewInfo&>(InView);
 			ScreenPercentage = (float)ViewInfo.ViewRect.Width() / ViewRect.Width();
-			InstancedStereoWidth = ViewInfo.InstancedStereoWidth;
 		}
 		else
 		{
@@ -1015,7 +1013,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIResolveSrc"));
 		auto Dst = RegisterExternalTexture(GraphBuilder, OrignScreenColorRenderTargetTexture, TEXT("LGUIResolveDst"));
 
-		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), InView.IsInstancedStereoPass(), InstancedStereoWidth, ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
+		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}
 
 #if WITH_EDITOR
@@ -1055,8 +1053,6 @@ END_SHADER_PARAMETER_STRUCT()
 void FLGUIRenderer::AddResolvePass(
 	FRDGBuilder& GraphBuilder
 	, FRDGTextureMSAA SceneColor
-	, bool bIsInstancedStereoPass
-	, float InstancedStereoWidth
 	, const FIntRect& ViewRect
 	, uint8 NumSamples
 	, FGlobalShaderMap* GlobalShaderMap
@@ -1072,7 +1068,7 @@ void FLGUIRenderer::AddResolvePass(
 		RDG_EVENT_NAME("LGUIResolveColor"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[bIsInstancedStereoPass, ViewRect, InstancedStereoWidth, SceneColorTargetable, NumSamples, GlobalShaderMap](FRHICommandList& RHICmdList)
+		[ViewRect, SceneColorTargetable, NumSamples, GlobalShaderMap](FRHICommandList& RHICmdList)
 		{
 			FRHITexture* SceneColorTargetableRHI = SceneColorTargetable->GetRHI();
 
@@ -1087,8 +1083,7 @@ void FLGUIRenderer::AddResolvePass(
 
 			// Resolve views individually. In the case of adaptive resolution, the view family will be much larger than the views individually.
 			RHICmdList.SetViewport(0.0f, 0.0f, 0.0f, SceneColorExtent.X, SceneColorExtent.Y, 1.0f);
-			RHICmdList.SetScissorRect(true, bIsInstancedStereoPass ? 0 : ViewRect.Min.X, ViewRect.Min.Y,
-				bIsInstancedStereoPass ? InstancedStereoWidth : ViewRect.Max.X, ViewRect.Max.Y);
+			RHICmdList.SetScissorRect(true, ViewRect.Min.X, ViewRect.Min.Y, ViewRect.Max.X, ViewRect.Max.Y);
 
 			TShaderMapRef<FLGUIResolveShaderVS> VertexShader(GlobalShaderMap);
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetVertexDeclarationFVector4();
