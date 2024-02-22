@@ -935,6 +935,10 @@ void ULGUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection
 			}
 			});
 	}
+	if (this->GetWorld()->IsGameWorld())
+	{
+		bIsPlaying = true;
+	}
 #endif
 	//localization
 	OnCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ULGUIManagerWorldSubsystem::OnCultureChanged);
@@ -955,6 +959,10 @@ void ULGUIManagerWorldSubsystem::Deinitialize()
 	{
 		ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
 		EditorTickDelegateHandle.Reset();
+	}
+	if (this->GetWorld()->IsGameWorld())
+	{
+		bIsPlaying = false;
 	}
 #endif
 	if (MainViewportViewExtension.IsValid())
@@ -988,6 +996,7 @@ ULGUIManagerWorldSubsystem* ULGUIManagerWorldSubsystem::GetInstance(UWorld* InWo
 
 #if WITH_EDITOR
 TArray<ULGUIManagerWorldSubsystem*> ULGUIManagerWorldSubsystem::InstanceArray;
+bool ULGUIManagerWorldSubsystem::bIsPlaying = false;
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);

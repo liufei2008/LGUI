@@ -100,10 +100,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	static ULGUIManagerWorldSubsystem* GetInstance(UWorld* InWorld);
+#if WITH_EDITOR
+	static bool GetIsPlaying() { return bIsPlaying; }
+#endif
 private:
 #if WITH_EDITOR
 	static TArray<ULGUIManagerWorldSubsystem*> InstanceArray;
 	FDelegateHandle EditorTickDelegateHandle;
+	static bool bIsPlaying;
 #endif
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
