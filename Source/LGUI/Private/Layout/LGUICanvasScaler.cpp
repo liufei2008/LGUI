@@ -256,7 +256,7 @@ void ULGUICanvasScaler::OnRegister()
 {
 	Super::OnRegister();
 #if WITH_EDITOR
-	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
+	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
 		EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([=](float deltaTime) {
 			this->OnEditorTick(deltaTime);
@@ -272,16 +272,16 @@ void ULGUICanvasScaler::OnUnregister()
 {
 	Super::OnUnregister();
 #if WITH_EDITOR
-	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
+	if (EditorTickDelegateHandle.IsValid())
 	{
-		if (EditorTickDelegateHandle.IsValid())
-		{
-			ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
-		}
-		if (EditorViewportIndexAndKeyChangeDelegateHandle.IsValid())
-		{
-			ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(EditorViewportIndexAndKeyChangeDelegateHandle);
-		}
+		ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+	}
+	if (EditorViewportIndexAndKeyChangeDelegateHandle.IsValid())
+	{
+		ULGUIEditorManagerObject::UnregisterEditorViewportIndexAndKeyChange(EditorViewportIndexAndKeyChangeDelegateHandle);
+	}
+	if (LGUIPreview_ViewportIndexChangeDelegateHandle.IsValid())
+	{
 		ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
 	}
 #endif
@@ -304,6 +304,8 @@ void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 {
+	if (ULGUIManagerWorldSubsystem::GetIsPlaying())//When hit play there is still a editor world and DrawViewportArea is called, which could cause frame dropdown, so skip it when playing
+		return;
 	if (CheckCanvas())
 	{
 		if (Canvas->IsRootCanvas())
@@ -313,9 +315,11 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 				)
 			{
 				DrawViewportArea();
-				DrawVirtualCamera();
+				if (ULGUIPrefabManagerObject::IsSelected(this->GetOwner()))
+				{
+					DrawVirtualCamera();
+				}
 				
-#if WITH_EDITORONLY_DATA
 				if (!GetWorld()->IsGameWorld())
 				{
 					if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
@@ -358,7 +362,6 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 					}
 				}
 				else
-#endif
 				{
 					auto newViewportSize = Canvas->GetViewportSize();
 					if (newViewportSize != ViewportSize)
@@ -427,7 +430,7 @@ void ULGUICanvasScaler::DrawViewportArea()
 		RelativeOffset.Z = (0.5f - Canvas->GetUIItem()->GetPivot().Y) * Canvas->GetUIItem()->GetHeight();
 		auto WorldLocation = WorldTransform.TransformPosition(RelativeOffset);
 
-		DrawDebugBox(Canvas->GetUIItem()->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
+		DrawDebugBox(Canvas->GetUIItem()->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);
 	}
 }
 
@@ -435,8 +438,6 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 {
 	if (CheckCanvas())
 	{
-		if (!ULGUIPrefabManagerObject::IsSelected(this->GetOwner()))return;
-
 		auto ViewLocation = Canvas->GetViewLocation();
 		auto ViewRotationMatrix = FInverseRotationMatrix(Canvas->GetViewRotator()) * FMatrix(
 			FPlane(0, 0, 1, 0),
