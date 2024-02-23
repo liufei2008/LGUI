@@ -24,7 +24,7 @@ struct FLGUIBasePassVSToPS
 
 FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 TexCoord0, float2 TexCoord1
 , FMaterialVertexParameters VertexParameters
-, half4 VertexColor
+, HALF4_TYPE VertexColor
 , half3x3 TangentToWorld
 , float TangentToWorldSign
 )
@@ -58,7 +58,7 @@ FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 T
 }
 
 /** Converts from vertex factory specific input to a FMaterialVertexParameters, which is used by vertex shader material inputs. */
-FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 WorldPosition, float2 UVs[4], half3x3 TangentToWorld)
+FMaterialVertexParameters GetMaterialVertexParameters(HALF4_TYPE VertexColor, float3 WorldPosition, float2 UVs[4], half3x3 TangentToWorld)
 {
     FMaterialVertexParameters Result = (FMaterialVertexParameters) 0;
     Result.WorldPosition = WorldPosition;
@@ -87,14 +87,14 @@ float4 TransformLocalToTranslatedWorld(float3 LocalPosition, FLWCMatrix LocalToW
 
 void MainVS(
     in float3 Position : ATTRIBUTE0,
-    in half4 Color : ATTRIBUTE1,
+    in HALF4_TYPE Color : ATTRIBUTE1,
     in float2 TextureCoord0 : ATTRIBUTE2,
     in float2 TextureCoord1 : ATTRIBUTE3,
     in float2 TextureCoord2 : ATTRIBUTE4,
     in float2 TextureCoord3 : ATTRIBUTE5,
-	in half3 TangentX : ATTRIBUTE6,
+	in HALF3_TYPE TangentX : ATTRIBUTE6,
 	// TangentZ.w contains sign of tangent basis determinant
-	in half4 TangentZ : ATTRIBUTE7,
+	in HALF4_TYPE TangentZ : ATTRIBUTE7,
 	out FLGUIBasePassVSToPS Output
 )
 {
@@ -117,7 +117,7 @@ void MainVS(
     UVs[3] = TextureCoord3;
 
     FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz, UVs, TangentToWorld);
-    half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
+    HALF3_TYPE WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
     WorldPosition.xyz += WorldPositionOffset;
 
 	Output.Position = mul(WorldPosition, ResolvedView.TranslatedWorldToClip);
@@ -151,8 +151,8 @@ FMaterialPixelParameters GetMaterialPixelParameters(FLGUIVertexFactoryInterpolan
 	}
 #endif
 	
-    half3 TangentToWorld0 = GetTangentToWorld0(Interpolants).xyz;
-    half4 TangentToWorld2 = GetTangentToWorld2(Interpolants);
+    HALF3_TYPE TangentToWorld0 = GetTangentToWorld0(Interpolants).xyz;
+    HALF4_TYPE TangentToWorld2 = GetTangentToWorld2(Interpolants);
     Result.UnMirrored = TangentToWorld2.w;
 
 	Result.VertexColor = GetColor(Interpolants);
@@ -193,14 +193,14 @@ float _SceneDepthBlend;
 int _SceneDepthFade;
 #endif
 #endif
-half4 _LGUIGammaValues;
+HALF4_TYPE _LGUIGammaValues;
 
 void MainPS(
 	FLGUIVertexFactoryInterpolantsVSToPS Interpolants
 	, FLGUIBasePassInterpolants BasePassInterpolants
 	, in float4 SvPosition : SV_Position
 	OPTIONAL_IsFrontFace
-	, out half4 OutColor	: SV_Target0
+	, out HALF4_TYPE OutColor : SV_Target0
 #if OUTPUT_PIXEL_DEPTH_OFFSET
     , out float OutDepth : SV_Depth
 #endif
@@ -223,8 +223,30 @@ void MainPS(
 #if OUTPUT_PIXEL_DEPTH_OFFSET
 	ApplyPixelDepthOffsetForLGUIBasePass(MaterialParameters, PixelMaterialInputs, OutDepth);
 #endif
+
+
+#if STRATA_ENABLED
+
+	// UI element are always rendered with a unlit BSDF behind the scene
+	FStrataBSDF UnlitBSDF = PixelMaterialInputs.FrontMaterial.InlinedBSDF;
+	UnlitBSDF.StrataSanitizeBSDF();
 	
-	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
+	HALF3_TYPE Color = BSDF_GETEMISSIVE(UnlitBSDF);
+
+#if STRATA_USE_PREMULTALPHA_OVERRIDE // AlphaComposite - Premultiplied alpha blending
+	HALF_TYPE Coverage = GetMaterialOpacity(PixelMaterialInputs);
+#else
+	HALF_TYPE Coverage = saturate(1.0f - UNLIT_TRANSMITTANCE(UnlitBSDF).x);	// Unlit node transmittance is only generated from opacity
+	Color /= Coverage;//Restore color value because material node "Substrate UE4 Unlit Shading"
+#endif
+	
+	OutColor = HALF4_TYPE(Color, Coverage);
+
+#else // STRATA_ENABLED
+	
+    OutColor = HALF4_TYPE(GetMaterialEmissive(PixelMaterialInputs), GetMaterialOpacity(PixelMaterialInputs));
+	
+#endif // STRATA_ENABLED
 	
 	// Gamma Correct
     OutColor.rgb = GammaCorrect(OutColor.rgb, _LGUIGammaValues);
