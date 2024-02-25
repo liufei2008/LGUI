@@ -888,6 +888,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 						FSceneRenderingBulkObjectAllocator Allocator;
 						FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator);
 						RenderSequenceItem.Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderSequenceItem, MeshBatchArray);
+
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
 							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
@@ -1010,6 +1011,11 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		}
 	}
 
+#if WITH_EDITOR
+	END_LGUI_RENDER :
+	;
+#endif
+
 	if (NumSamples > 1)
 	{
 		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LGUIResolveSrc"));
@@ -1018,10 +1024,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}
 
-#if WITH_EDITOR
-	END_LGUI_RENDER :
-	;
-#endif
 	if (MSAARenderTarget.IsValid())
 	{
 		MSAARenderTarget.SafeRelease();
