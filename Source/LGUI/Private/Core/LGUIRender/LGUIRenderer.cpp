@@ -660,6 +660,10 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 								auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
 								if (!Material)return;
+								FRHIUniformBuffer* SceneTextureUniformBuffer = GetSceneTextureExtracts().GetUniformBuffer();
+								if (!SceneTextureUniformBuffer)return;
+								const FUniformBufferStaticBindings StaticUniformBuffers(SceneTextureUniformBuffer);
+								SCOPED_UNIFORM_BUFFER_STATIC_BINDINGS(RHICmdList, StaticUniformBuffers);
 
 								FLGUIRenderer::SetGraphicPipelineState(RenderView->GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
@@ -893,6 +897,10 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 							auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
 							if (!Material)return;
+							FRHIUniformBuffer* SceneTextureUniformBuffer = GetSceneTextureExtracts().GetUniformBuffer();
+							if (!SceneTextureUniformBuffer)return;
+							const FUniformBufferStaticBindings StaticUniformBuffers(SceneTextureUniformBuffer);
+							SCOPED_UNIFORM_BUFFER_STATIC_BINDINGS(RHICmdList, StaticUniformBuffers);
 
 							TShaderRef<FLGUIScreenRenderVS> VertexShader;
 							TShaderRef<FLGUIScreenRenderPS> PixelShader;
