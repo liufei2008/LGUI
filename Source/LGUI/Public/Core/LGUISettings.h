@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/Texture.h"
+#include "SceneUtils.h"
 #include "LGUISettings.generated.h"
 
 /** Atlas texture size must be power of 2 */
