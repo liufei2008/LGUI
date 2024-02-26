@@ -24,7 +24,26 @@
 #define MIN_SEG 4
 #define MAX_SEG 32
 
-class FLGUIRenderTargetGeometrySource_Sceneproxy : public FPrimitiveSceneProxy
+class FLGUIRenderTargetGeometrySourceMeshProxySection
+{
+public:
+	/** Vertex buffer for this section */
+	FStaticMeshVertexBuffers VertexBuffers;
+	/** Index buffer for this section */
+	FDynamicMeshIndexBuffer16 IndexBuffer;
+	/** Vertex factory for this section */
+	FLocalVertexFactory VertexFactory;
+
+#if RHI_RAYTRACING
+	FRayTracingGeometry RayTracingGeometry;
+#endif
+
+	FLGUIRenderTargetGeometrySourceMeshProxySection(ERHIFeatureLevel::Type InFeatureLevel)
+		: VertexFactory(InFeatureLevel, "FLGUIRenderTargetGeometrySourceMeshProxySection")
+	{}
+};
+
+class FLGUIRenderTargetGeometrySource_SceneProxy : public FPrimitiveSceneProxy
 {
 public:
 	SIZE_T GetTypeHash() const override
@@ -32,15 +51,159 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIRenderTargetGeometrySource_Sceneproxy(ULGUIRenderTargetGeometrySource* InComponent)
-		: FPrimitiveSceneProxy(InComponent)
-		, RenderTarget(InComponent->GetRenderTarget())
-		, MaterialInstance(InComponent->GetMaterialInstance())
-		, GeometryMode(InComponent->GetGeometryMode())
-		, Vertices(InComponent->GetMeshVertices())
-		, Triangles(InComponent->GetMeshIndices())
+	FLGUIRenderTargetGeometrySource_SceneProxy(ULGUIRenderTargetGeometrySource* Component)
+		: FPrimitiveSceneProxy(Component)
+		, RenderTarget(Component->GetRenderTarget())
+		, MaterialInstance(Component->GetMaterialInstance())
+		, GeometryMode(Component->GetGeometryMode())
 	{
 		MaterialRelevance = MaterialInstance->GetRelevance_Concurrent(GetScene().GetFeatureLevel());
+
+		Section = new FLGUIRenderTargetGeometrySourceMeshProxySection(GetScene().GetFeatureLevel());
+
+		// Copy index buffer
+		Section->IndexBuffer.Indices = Component->Triangles;
+
+		Section->VertexBuffers.InitFromDynamicVertex(&Section->VertexFactory, Component->Vertices, 4);
+
+		// Enqueue initialization of render resource
+		BeginInitResource(&Section->VertexBuffers.PositionVertexBuffer);
+		BeginInitResource(&Section->VertexBuffers.StaticMeshVertexBuffer);
+		BeginInitResource(&Section->VertexBuffers.ColorVertexBuffer);
+		BeginInitResource(&Section->IndexBuffer);
+		BeginInitResource(&Section->VertexFactory);
+
+#if RHI_RAYTRACING
+		if (IsRayTracingEnabled())
+		{
+			ENQUEUE_RENDER_COMMAND(InitProceduralMeshRayTracingGeometry)(
+				[this, DebugName = Component->GetFName()](FRHICommandListImmediate& RHICmdList)
+				{
+					FRayTracingGeometryInitializer Initializer;
+					Initializer.DebugName = DebugName;
+					Initializer.IndexBuffer = nullptr;
+					Initializer.TotalPrimitiveCount = 0;
+					Initializer.GeometryType = RTGT_Triangles;
+					Initializer.bFastBuild = true;
+					Initializer.bAllowUpdate = false;
+
+					Section->RayTracingGeometry.SetInitializer(Initializer);
+					Section->RayTracingGeometry.InitResource();
+
+					Section->RayTracingGeometry.Initializer.IndexBuffer = Section->IndexBuffer.IndexBufferRHI;
+					Section->RayTracingGeometry.Initializer.TotalPrimitiveCount = Section->IndexBuffer.Indices.Num() / 3;
+
+					FRayTracingGeometrySegment Segment;
+					Segment.VertexBuffer = Section->VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
+					Segment.NumPrimitives = Section->RayTracingGeometry.Initializer.TotalPrimitiveCount;
+					Segment.MaxVertices = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
+					Section->RayTracingGeometry.Initializer.Segments.Add(Segment);
+
+					//#dxr_todo: add support for segments?
+
+					Section->RayTracingGeometry.UpdateRHI();
+				});
+		}
+#endif
+	}
+
+	virtual ~FLGUIRenderTargetGeometrySource_SceneProxy()
+	{
+		if (Section != nullptr)
+		{
+			Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+			Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+			Section->IndexBuffer.ReleaseResource();
+			Section->VertexFactory.ReleaseResource();
+
+#if RHI_RAYTRACING
+			if (IsRayTracingEnabled())
+			{
+				Section->RayTracingGeometry.ReleaseResource();
+			}
+#endif
+
+			delete Section;
+		}
+	}
+
+	/** Called on render thread to assign new dynamic data */
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, int32 NumIndex)
+	{
+		check(IsInRenderingThread());
+
+		// Iterate through vertex data, copying in new info
+		for (int32 i = 0; i < NumVerts; i++)
+		{
+			auto& Vertex = MeshVertexData[i];
+
+			Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = Vertex.Position;
+			Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i, Vertex.TangentX.ToFVector3f(), Vertex.GetTangentY(), Vertex.TangentZ.ToFVector3f());
+			Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, Vertex.TextureCoordinate[0]);
+			Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 1, Vertex.TextureCoordinate[1]);
+			Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 2, Vertex.TextureCoordinate[2]);
+			Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 3, Vertex.TextureCoordinate[3]);
+			Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = Vertex.Color;
+		}
+
+		{
+			auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
+			void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+			FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+			RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+		}
+
+		{
+			auto& VertexBuffer = Section->VertexBuffers.ColorVertexBuffer;
+			void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+			FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+			RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+		}
+
+		{
+			auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+			void* VertexBufferData = RHILockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
+			FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTangentData(), VertexBuffer.GetTangentSize());
+			RHIUnlockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
+		}
+
+		{
+			auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+			void* VertexBufferData = RHILockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
+			FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
+			RHIUnlockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+		}
+
+		// Lock index buffer
+		auto IndexBufferData = RHILockBuffer(Section->IndexBuffer.IndexBufferRHI, 0, NumIndex, RLM_WriteOnly);
+		FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, NumIndex);
+		RHIUnlockBuffer(Section->IndexBuffer.IndexBufferRHI);
+
+#if RHI_RAYTRACING
+		if (IsRayTracingEnabled())
+		{
+			Section->RayTracingGeometry.ReleaseResource();
+
+			FRayTracingGeometryInitializer Initializer;
+			Initializer.IndexBuffer = Section->IndexBuffer.IndexBufferRHI;
+			Initializer.TotalPrimitiveCount = Section->IndexBuffer.Indices.Num() / 3;
+			Initializer.GeometryType = RTGT_Triangles;
+			Initializer.bFastBuild = true;
+			Initializer.bAllowUpdate = false;
+
+			Section->RayTracingGeometry.SetInitializer(Initializer);
+			Section->RayTracingGeometry.InitResource();
+
+			FRayTracingGeometrySegment Segment;
+			Segment.VertexBuffer = Section->VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
+			Segment.NumPrimitives = Section->RayTracingGeometry.Initializer.TotalPrimitiveCount;
+			Segment.MaxVertices = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
+			Section->RayTracingGeometry.Initializer.Segments.Add(Segment);
+
+			Section->RayTracingGeometry.UpdateRHI();
+		}
+#endif
 	}
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
@@ -69,24 +232,15 @@ public:
 			ParentMaterialProxy = MaterialInstance->GetRenderProxy();
 		}
 #else
+		const bool bWireframe = false;
 		FMaterialRenderProxy* ParentMaterialProxy = MaterialInstance->GetRenderProxy();
 #endif
-
-		const FMatrix& ViewportLocalToWorld = GetLocalToWorld();
-
-		FMatrix PreviousLocalToWorld;
-
-		if (!GetScene().GetPreviousLocalToWorld(GetPrimitiveSceneInfo(), PreviousLocalToWorld))
-		{
-			PreviousLocalToWorld = GetLocalToWorld();
-		}
 
 		if (RenderTarget)
 		{
 			auto TextureResource = RenderTarget->GetResource();
 			if (TextureResource)
 			{
-				const EShaderPlatform ShaderPlatform = GShaderPlatformForFeatureLevel[ViewFamily.GetFeatureLevel()];
 				switch (GeometryMode)
 				{
 				case ELGUIRenderTargetGeometryMode::Plane:
@@ -98,14 +252,35 @@ public:
 
 						if (VisibilityMap & (1 << ViewIndex))
 						{
-							MeshBuilder.AddVertices(Vertices);
-							MeshBuilder.AddTriangles(Triangles);
+							const FSceneView* View = Views[ViewIndex];
+							// Draw the mesh.
+							FMeshBatch& Mesh = Collector.AllocateMesh();
+							FMeshBatchElement& BatchElement = Mesh.Elements[0];
+							BatchElement.IndexBuffer = &Section->IndexBuffer;
+							Mesh.bWireframe = bWireframe;
+							Mesh.VertexFactory = &Section->VertexFactory;
+							Mesh.MaterialRenderProxy = ParentMaterialProxy;
 
-							FDynamicMeshBuilderSettings Settings;
-							Settings.bDisableBackfaceCulling = false;
-							Settings.bReceivesDecals = true;
-							Settings.bUseSelectionOutline = true;
-							MeshBuilder.GetMesh(ViewportLocalToWorld, PreviousLocalToWorld, ParentMaterialProxy, SDPG_World, Settings, nullptr, ViewIndex, Collector, FHitProxyId());
+							bool bHasPrecomputedVolumetricLightmap;
+							FMatrix PreviousLocalToWorld;
+							int32 SingleCaptureIndex;
+							bool bOutputVelocity;
+							GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
+							bOutputVelocity |= AlwaysHasVelocity();
+
+							FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+							DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity, GetCustomPrimitiveData());
+							BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+
+							BatchElement.FirstIndex = 0;
+							BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+							BatchElement.MinVertexIndex = 0;
+							BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
+							Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+							Mesh.Type = PT_TriangleList;
+							Mesh.DepthPriorityGroup = SDPG_World;
+							Mesh.bCanApplyViewModeOverrides = false;
+							Collector.AddMesh(ViewIndex, Mesh);
 						}
 					}
 				}
@@ -136,6 +311,21 @@ public:
 		return Result;
 	}
 
+	virtual bool CanBeOccluded() const override
+	{
+		return !MaterialRelevance.bDisableDepthTest;
+	}
+
+	virtual uint32 GetMemoryFootprint(void) const
+	{
+		return(sizeof(*this) + GetAllocatedSize());
+	}
+
+	uint32 GetAllocatedSize(void) const
+	{
+		return(FPrimitiveSceneProxy::GetAllocatedSize());
+	}
+
 	virtual void GetLightRelevance(const FLightSceneProxy* LightSceneProxy, bool& bDynamic, bool& bRelevant, bool& bLightMapped, bool& bShadowMapped) const override
 	{
 		bDynamic = false;
@@ -144,19 +334,72 @@ public:
 		bShadowMapped = false;
 	}
 
-	virtual bool CanBeOccluded() const override
+
+#if RHI_RAYTRACING
+	virtual bool IsRayTracingRelevant() const override { return true; }
+
+	virtual bool HasRayTracingRepresentation() const override { return true; }
+
+	virtual void GetDynamicRayTracingInstances(FRayTracingMaterialGatheringContext& Context, TArray<FRayTracingInstance>& OutRayTracingInstances) override final
 	{
-		return !MaterialRelevance.bDisableDepthTest;
+		if (Section != nullptr)
+		{
+			FMaterialRenderProxy* MaterialProxy = MaterialInstance->GetRenderProxy();
+
+			if (Section->RayTracingGeometry.RayTracingGeometryRHI.IsValid())
+			{
+				check(Section->RayTracingGeometry.Initializer.IndexBuffer.IsValid());
+
+				FRayTracingInstance RayTracingInstance;
+				RayTracingInstance.Geometry = &Section->RayTracingGeometry;
+				RayTracingInstance.InstanceTransforms.Add(GetLocalToWorld());
+
+				uint32 SectionIdx = 0;
+				FMeshBatch MeshBatch;
+
+				MeshBatch.VertexFactory = &Section->VertexFactory;
+				MeshBatch.SegmentIndex = 0;
+				MeshBatch.MaterialRenderProxy = MaterialInstance->GetRenderProxy();
+				MeshBatch.ReverseCulling = IsLocalToWorldDeterminantNegative();
+				MeshBatch.Type = PT_TriangleList;
+				MeshBatch.DepthPriorityGroup = SDPG_World;
+				MeshBatch.bCanApplyViewModeOverrides = false;
+				MeshBatch.CastRayTracedShadow = IsShadowCast(Context.ReferenceView);
+
+				FMeshBatchElement& BatchElement = MeshBatch.Elements[0];
+				BatchElement.IndexBuffer = &Section->IndexBuffer;
+
+				bool bHasPrecomputedVolumetricLightmap;
+				FMatrix PreviousLocalToWorld;
+				int32 SingleCaptureIndex;
+				bool bOutputVelocity;
+				GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
+				bOutputVelocity |= AlwaysHasVelocity();
+
+				FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Context.RayTracingMeshResourceCollector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+				DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity, GetCustomPrimitiveData());
+				BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+
+				BatchElement.FirstIndex = 0;
+				BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+				BatchElement.MinVertexIndex = 0;
+				BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
+
+				RayTracingInstance.Materials.Add(MeshBatch);
+
+				RayTracingInstance.BuildInstanceMaskAndFlags(GetScene().GetFeatureLevel());
+				OutRayTracingInstances.Add(RayTracingInstance);
+			}
+		}
 	}
 
-	virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
+#endif
 
 private:
 	UTextureRenderTarget2D* RenderTarget = nullptr;
 	UMaterialInstanceDynamic* MaterialInstance = nullptr;
 	ELGUIRenderTargetGeometryMode GeometryMode = ELGUIRenderTargetGeometryMode::Plane;
-	TArray<FDynamicMeshVertex> Vertices;
-	TArray<uint32> Triangles;
+	FLGUIRenderTargetGeometrySourceMeshProxySection* Section = nullptr;
 
 	FMaterialRelevance MaterialRelevance;
 };
@@ -256,7 +499,13 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 		UpdateMaterialInstance();
 		if (MaterialInstance != nullptr)
 		{
-			return new FLGUIRenderTargetGeometrySource_Sceneproxy(this);
+			if (Vertices.Num() > 0 && Triangles.Num() > 0)
+			{
+#if WITH_EDITOR
+				bIsValidSceneProxy = true;
+#endif
+				return new FLGUIRenderTargetGeometrySource_SceneProxy(this);
+			}
 		}
 	}
 
@@ -321,6 +570,7 @@ FPrimitiveSceneProxy* ULGUIRenderTargetGeometrySource::CreateSceneProxy()
 			const FVector	BoxExtents;
 		};
 
+		bIsValidSceneProxy = false;
 		return new FWidgetBoxProxy(this);
 	}
 #endif
@@ -507,10 +757,21 @@ void ULGUIRenderTargetGeometrySource::UpdateCollision()
 }
 void ULGUIRenderTargetGeometrySource::UpdateMeshData()
 {
-	auto RenderTarget = GetRenderTarget();
-	if (!RenderTarget)return;
+	auto PrevNumVerts = Vertices.Num();
+	auto PrevNumIndex = Triangles.Num();
 	Vertices.Reset();
 	Triangles.Reset();
+
+	auto RenderTarget = GetRenderTarget();
+	if (!RenderTarget)
+	{
+		if (PrevNumVerts != 0 || PrevNumIndex != 0)
+		{
+			MarkRenderStateDirty();
+		}
+		return;
+	}
+	
 	switch (GeometryMode)
 	{
 	case ELGUIRenderTargetGeometryMode::Plane:
@@ -617,6 +878,41 @@ void ULGUIRenderTargetGeometrySource::UpdateMeshData()
 	}
 	break;
 	}
+
+	if (PrevNumVerts == Vertices.Num() && PrevNumIndex == Triangles.Num())//if buffer size not change then we can do update
+	{
+		if (SceneProxy != nullptr
+#if WITH_EDITOR
+			&& bIsValidSceneProxy
+#endif
+			)
+		{
+			struct FUpdateMeshDataStruct
+			{
+				TArray<FDynamicMeshVertex> VertexData;
+				TArray<uint16> IndexData;
+				FLGUIRenderTargetGeometrySource_SceneProxy* Proxy = nullptr;
+			};
+			auto UpdateData = new FUpdateMeshDataStruct();
+			UpdateData->VertexData = Vertices;
+			UpdateData->IndexData = Triangles;
+			UpdateData->Proxy = (FLGUIRenderTargetGeometrySource_SceneProxy*)SceneProxy;
+			ENQUEUE_RENDER_COMMAND(FLGUIRenderTargetGeometrySourceMeshSectionUpdate)
+				([UpdateData](FRHICommandListImmediate& RHICmdList) {
+				UpdateData->Proxy->UpdateSection_RenderThread(
+					UpdateData->VertexData.GetData()
+					, UpdateData->VertexData.Num()
+					, UpdateData->IndexData.GetData()
+					, UpdateData->IndexData.Num()
+				);
+				delete UpdateData;
+					});
+		}
+	}
+	else
+	{
+		MarkRenderStateDirty();
+	}
 }
 
 ULGUICanvas* ULGUIRenderTargetGeometrySource::GetTargetCanvas_Implementation()const
@@ -719,7 +1015,6 @@ void ULGUIRenderTargetGeometrySource::SetCanvas(ULGUICanvas* Value)
 		UpdateMeshData();
 		UpdateLocalBounds(); // Update overall bounds
 		UpdateCollision(); // Mark collision as dirty
-		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 
@@ -732,7 +1027,6 @@ void ULGUIRenderTargetGeometrySource::SetGeometryMode(ELGUIRenderTargetGeometryM
 		UpdateMeshData();
 		UpdateLocalBounds(); // Update overall bounds
 		UpdateCollision(); // Mark collision as dirty
-		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
@@ -744,7 +1038,6 @@ void ULGUIRenderTargetGeometrySource::SetPivot(const FVector2D Value)
 		UpdateMeshData();
 		UpdateLocalBounds(); // Update overall bounds
 		UpdateCollision(); // Mark collision as dirty
-		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
@@ -757,7 +1050,6 @@ void ULGUIRenderTargetGeometrySource::SetCylinderArcAngle(float Value)
 		UpdateMeshData();
 		UpdateLocalBounds(); // Update overall bounds
 		UpdateCollision(); // Mark collision as dirty
-		MarkRenderStateDirty(); // New section requires recreating scene proxy
 	}
 }
 
