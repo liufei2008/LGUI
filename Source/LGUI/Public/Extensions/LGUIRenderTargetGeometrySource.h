@@ -89,8 +89,12 @@ private:
 	void UpdateLocalBounds();
 	void UpdateCollision();
 	void UpdateMeshData();
+	friend class FLGUIRenderTargetGeometrySource_SceneProxy;
 	TArray<FDynamicMeshVertex> Vertices;
-	TArray<uint32> Triangles;
+	TArray<uint16> Triangles;
+#if WITH_EDITOR
+	bool bIsValidSceneProxy = false;
+#endif
 public:
 	/* UPrimitiveComponent Interface */
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -122,7 +126,7 @@ public:
 #endif
 	bool LineTraceHitUV(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
 	const TArray<FDynamicMeshVertex>& GetMeshVertices()const { return Vertices; }
-	const TArray<uint32> GetMeshIndices()const { return Triangles; }
+	const TArray<uint16> GetMeshIndices()const { return Triangles; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUICanvas* GetCanvas()const;

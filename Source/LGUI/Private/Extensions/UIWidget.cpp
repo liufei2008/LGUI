@@ -521,17 +521,6 @@ void UUIWidget::InitWidget()
 				Widget = CreateWidget(World, WidgetClass);
 				SetTickMode(TickMode);
 			}
-
-#if WITH_EDITOR
-			if (Widget && !World->IsGameWorld() && !bEditTimeUsable)
-			{
-				if (!GEnableVREditorHacks)
-				{
-					// Prevent native ticking of editor component previews
-					Widget->SetDesignerFlags(EWidgetDesignFlags::Designing);
-				}
-			}
-#endif
 		}
 	}
 }
