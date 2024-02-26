@@ -12,6 +12,7 @@
 #include "Input/HittestGrid.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Engine/GameInstance.h"
+#include "Engine/GameViewportClient.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/LGUICustomMesh.h"
 
