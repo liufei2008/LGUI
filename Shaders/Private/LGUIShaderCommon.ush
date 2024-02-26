@@ -62,17 +62,17 @@ void SetTangents(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float3
     Interpolants.TangentToWorld2 = float4(InTangentToWorld2, InTangentToWorldSign);
 }
 
-half3x3 CalcTangentToLocal(half3 TangentInputX, half4 TangentInputZ, out float TangentSign)
+half3x3 CalcTangentToLocal(HALF3_TYPE TangentInputX, HALF4_TYPE TangentInputZ, out float TangentSign)
 {
     half3x3 Result;
 
-    half3 TangentX = TangentBias(TangentInputX);
-    half4 TangentZ = TangentBias(TangentInputZ);
+    HALF3_TYPE TangentX = TangentBias(TangentInputX);
+    HALF4_TYPE TangentZ = TangentBias(TangentInputZ);
 
     TangentSign = TangentZ.w;
 
 	// derive the binormal by getting the cross product of the normal and tangent
-    half3 TangentY = cross(TangentZ.xyz, TangentX) * TangentZ.w;
+    HALF3_TYPE TangentY = cross(TangentZ.xyz, TangentX) * TangentZ.w;
 	
 	// Recalculate TangentX off of the other two vectors
 	// This corrects quantization error since TangentX was passed in as a quantized vertex input
@@ -84,7 +84,7 @@ half3x3 CalcTangentToLocal(half3 TangentInputX, half4 TangentInputZ, out float T
     return Result;
 }
 
-half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal, half3x3 LocalToWorld, half3 InvScale)
+half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal, half3x3 LocalToWorld, HALF3_TYPE InvScale)
 {
     LocalToWorld[0] *= InvScale.x;
     LocalToWorld[1] *= InvScale.y;
@@ -92,7 +92,7 @@ half3x3 CalcTangentToWorldNoScale(half3x3 TangentToLocal, half3x3 LocalToWorld, 
     return mul(TangentToLocal, LocalToWorld);
 }
 
-half3x3 CalcTangentToWorld(half3x3 TangentToLocal, half3x3 LocalToWorld, half3 InvScale)
+half3x3 CalcTangentToWorld(half3x3 TangentToLocal, half3x3 LocalToWorld, HALF3_TYPE InvScale)
 {
     half3x3 TangentToWorld = CalcTangentToWorldNoScale(TangentToLocal, LocalToWorld, InvScale);
     return TangentToWorld;

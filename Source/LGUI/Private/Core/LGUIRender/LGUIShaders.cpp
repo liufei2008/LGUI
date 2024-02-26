@@ -22,7 +22,7 @@ FLGUIScreenRenderVS::FLGUIScreenRenderVS(const FMaterialShaderType::CompiledShad
 bool FLGUIScreenRenderVS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
 	return
-		Parameters.MaterialParameters.MaterialDomain == MD_Surface
+		(Parameters.MaterialParameters.MaterialDomain == MD_Surface && (Parameters.MaterialParameters.ShadingModels.CountShadingModels() == 1 && Parameters.MaterialParameters.ShadingModels.GetFirstShadingModel() == EMaterialShadingModel::MSM_Unlit))
 		|| Parameters.MaterialParameters.MaterialDomain == MD_UI
 		;
 }
@@ -51,7 +51,7 @@ FLGUIScreenRenderPS::FLGUIScreenRenderPS(const FMaterialShaderType::CompiledShad
 bool FLGUIScreenRenderPS::ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters)
 {
 	return
-		Parameters.MaterialParameters.MaterialDomain == MD_Surface
+		(Parameters.MaterialParameters.MaterialDomain == MD_Surface && (Parameters.MaterialParameters.ShadingModels.CountShadingModels() == 1 && Parameters.MaterialParameters.ShadingModels.GetFirstShadingModel() == EMaterialShadingModel::MSM_Unlit))
 		|| Parameters.MaterialParameters.MaterialDomain == MD_UI
 		;
 }
