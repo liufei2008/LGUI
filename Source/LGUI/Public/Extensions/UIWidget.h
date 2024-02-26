@@ -158,10 +158,6 @@ public:
 	/** Sets the widget class used to generate the widget for this component */
 	void SetWidgetClass(TSubclassOf<UUserWidget> InWidgetClass);
 
-	bool GetEditTimeUsable() const { return bEditTimeUsable; }
-
-	void SetEditTimeUsable(bool Value) { bEditTimeUsable = Value; }
-
 	/** @see bWindowFocusable */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool GetWindowFocusable() const
@@ -273,12 +269,6 @@ protected:
 	/** The target to which the user widget is rendered */
 	UPROPERTY(Transient, DuplicateTransient)
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget;
-
-	/**
-	 * Allows the widget component to be used at editor time.  For use in the VR-Editor.
-	 */
-	UPROPERTY()
-	bool bEditTimeUsable;
 
 protected:
 
