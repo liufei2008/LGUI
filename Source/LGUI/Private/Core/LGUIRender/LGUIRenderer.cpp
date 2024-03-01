@@ -359,6 +359,10 @@ void FLGUIRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel,
 	}
 }
 
+#ifndef LGUI_ENABLE_SCENETEXTURES
+#define LGUI_ENABLE_SCENETEXTURES 1//can't make it work on mobile platform, so diable it
+#endif
+
 DECLARE_CYCLE_STAT(TEXT("LGUI RHIRender"), STAT_LGUI_RHIRender, STATGROUP_LGUI);
 void FLGUIRenderer::RenderLGUI_RenderThread(
 	FRDGBuilder& GraphBuilder
@@ -660,10 +664,12 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 								auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
 								if (!Material)return;
+#if LGUI_ENABLE_SCENETEXTURES
 								FRHIUniformBuffer* SceneTextureUniformBuffer = GetSceneTextureExtracts().GetUniformBuffer();
 								if (!SceneTextureUniformBuffer)return;
 								const FUniformBufferStaticBindings StaticUniformBuffers(SceneTextureUniformBuffer);
 								SCOPED_UNIFORM_BUFFER_STATIC_BINDINGS(RHICmdList, StaticUniformBuffers);
+#endif
 
 								FLGUIRenderer::SetGraphicPipelineState(RenderView->GetFeatureLevel(), GraphicsPSOInit, Material->GetBlendMode()
 									, Material->IsWireframe(), Material->IsTwoSided(), Material->ShouldDisableDepthTest(), false, Mesh.ReverseCulling
@@ -897,10 +903,12 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 							auto Material = Mesh.MaterialRenderProxy->GetMaterialNoFallback(RenderView->GetFeatureLevel());//why not use "GetIncompleteMaterialWithFallback" here? because fallback material cann't render with LGUIRenderer
 							if (!Material)return;
+#if LGUI_ENABLE_SCENETEXTURES
 							FRHIUniformBuffer* SceneTextureUniformBuffer = GetSceneTextureExtracts().GetUniformBuffer();
 							if (!SceneTextureUniformBuffer)return;
 							const FUniformBufferStaticBindings StaticUniformBuffers(SceneTextureUniformBuffer);
 							SCOPED_UNIFORM_BUFFER_STATIC_BINDINGS(RHICmdList, StaticUniformBuffers);
+#endif
 
 							TShaderRef<FLGUIScreenRenderVS> VertexShader;
 							TShaderRef<FLGUIScreenRenderPS> PixelShader;
