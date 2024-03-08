@@ -153,15 +153,16 @@ void UUIRecyclableScrollViewComponent::ClearAllCells()
 
 void UUIRecyclableScrollViewComponent::SetDataSource(TScriptInterface<IUIRecyclableScrollViewDataSource> InDataSource)
 {
-    if (InDataSource == nullptr)
+    auto InDataSourceObject = InDataSource.GetObject();
+    if (!IsValid(InDataSourceObject))
     {
         DataSource = nullptr;
         InitializeOnDataSource();
         return;
     }
-    if (DataSource != InDataSource.GetObject())
+    if (DataSource != InDataSourceObject)
     {
-        DataSource = InDataSource.GetObject();
+        DataSource = InDataSourceObject;
         InitializeOnDataSource();
     }
 }
