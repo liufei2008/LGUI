@@ -176,25 +176,51 @@ void ULGUICanvas::UpdateRootCanvas()
 			}
 		}
 
-		if (bIsRenderTargetRenderer
-			&& (bAnythingChangedForRenderTarget || bPrevAnythingChangedForRenderTarget)
-			)
+		if (bIsRenderTargetRenderer)
 		{
-			bPrevAnythingChangedForRenderTarget = bAnythingChangedForRenderTarget;
-			bAnythingChangedForRenderTarget = false;
-			UpdateRenderTarget(true);
-#if WITH_EDITOR
-			if (!this->GetWorld()->IsGameWorld())
+			bool bCanUpdateRenderTarget = false;
+			switch (RenderTargetUpdateMode)
 			{
-				if (!renderTarget->GameThread_GetRenderTargetResource())
+			default:
+			case ELGUICanvasRenderTargetUpdateMode::Automatic:
+			{
+				if (bAnythingChangedForRenderTarget || bPrevAnythingChangedForRenderTarget)
 				{
-					renderTarget->InitCustomFormat(renderTarget->SizeX, renderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
+					bPrevAnythingChangedForRenderTarget = bAnythingChangedForRenderTarget;
+					bAnythingChangedForRenderTarget = false;
+					bCanUpdateRenderTarget = true;
 				}
 			}
-#endif
-			if (RenderTargetViewExtension.IsValid())
+				break;
+			case ELGUICanvasRenderTargetUpdateMode::Always:
+				bCanUpdateRenderTarget = true;
+				break;
+			case ELGUICanvasRenderTargetUpdateMode::WhenRequest:
 			{
-				RenderTargetViewExtension->UpdateRenderTargetRenderer(renderTarget);
+				if (bRequestUpdateForRenderTarget)
+				{
+					bRequestUpdateForRenderTarget = false;
+					bCanUpdateRenderTarget = true;
+				}
+			}
+				break;
+			}
+			if (bCanUpdateRenderTarget)
+			{
+				UpdateRenderTarget(true);
+#if WITH_EDITOR
+				if (!this->GetWorld()->IsGameWorld())
+				{
+					if (!renderTarget->GameThread_GetRenderTargetResource())
+					{
+						renderTarget->InitCustomFormat(renderTarget->SizeX, renderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
+					}
+				}
+#endif
+				if (RenderTargetViewExtension.IsValid())
+				{
+					RenderTargetViewExtension->UpdateRenderTargetRenderer(renderTarget);
+				}
 			}
 		}
 	}
@@ -2385,6 +2411,14 @@ void ULGUICanvas::SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value)
 	{
 		RenderTargetSizeMode = value;
 		bAnythingChangedForRenderTarget = true;
+	}
+}
+
+void ULGUICanvas::RequestUpdateForRenderTarget()
+{
+	if (RootCanvas == this)
+	{
+		bRequestUpdateForRenderTarget = true;
 	}
 }
 
