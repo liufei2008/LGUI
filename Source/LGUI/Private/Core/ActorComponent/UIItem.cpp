@@ -733,12 +733,14 @@ void UUIItem::OnUIAttachedToParent()
 		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
 		check(ParentUIItem.IsValid());
 		{
-			auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld());
-			LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-				if (Child.IsValid() && Parent.IsValid())
-				{
-					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
-				}});
+			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
+			{
+				LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+					}});
+			}
 		}
 	}
 	else
@@ -803,12 +805,14 @@ void UUIItem::OnUIDetachedFromParent()
 	{
 		if (ParentUIItem.IsValid())//tell old parent
 		{
-			auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld());
-			LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
-				if (Child.IsValid() && Parent.IsValid())
-				{
-					Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
-				}});
+			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
+			{
+				LGUIManager->AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
+					}});
+			}
 		}
 	}
 	else
