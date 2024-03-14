@@ -46,6 +46,17 @@ enum class ELGUICanvasRenderTargetSizeMode : uint8
 };
 
 UENUM(BlueprintType, Category = LGUI)
+enum class ELGUICanvasRenderTargetUpdateMode : uint8
+{
+	/** LGUI will automatic manage update, only draw to RenderTarget when it detect something change. */
+	Automatic,
+	/** Alway draw to RenderTarget every frame. */
+	Always,
+	/** Only draw to RenderTarget when call RequestUpdateForRenderTarget. */
+	WhenRequest,
+};
+
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
 	None		UMETA(DisplayName = "No Clip"),
@@ -244,6 +255,9 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI", DuplicateTransient)
 		TObjectPtr<UTextureRenderTarget2D> renderTarget;
+	/** Controls how LGUICanvas render to RenderTarget. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUICanvasRenderTargetUpdateMode RenderTargetUpdateMode = ELGUICanvasRenderTargetUpdateMode::Automatic;
 	/**
 	 * How RenderTarget and LGUICanvas's size change depend on the other.
 	 */
@@ -381,6 +395,9 @@ public:
 		void SetRenderTargetResolutionScale(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value);
+	/** Only valid when call this on root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void RequestUpdateForRenderTarget();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
@@ -577,6 +594,7 @@ private:
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
+	uint32 bRequestUpdateForRenderTarget : 1;//request update when RenderTargetUpdateMode is WhenRequest
 	uint32 bAnythingChangedForRenderTarget : 1;//if children canvas anything changed, then mark this property for root canvas, good for RenderTarget mode to update
 	uint32 bPrevAnythingChangedForRenderTarget : 1;//same as upper one, but the prev frame
 	uint32 bHasSetIntialStateforLGUIWorldSpaceRenderer : 1;//is LGUI world space renderer's initial state set
