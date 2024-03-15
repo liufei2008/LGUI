@@ -13,11 +13,13 @@
 #include "Utils/LGUIUtils.h"
 #include "PrimitiveViewRelevance.h"
 #include "PrimitiveSceneProxy.h"
-#include "Components/StaticMeshComponent.h"
+#include "StaticMeshResources.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "LTweenBPLibrary.h"
 #include "Materials/MaterialRenderProxy.h"
 #include "SceneInterface.h"
+#include "RayTracingInstance.h"
+#include "RayTracingGeometry.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 
@@ -88,7 +90,7 @@ public:
 					Initializer.bAllowUpdate = false;
 
 					Section->RayTracingGeometry.SetInitializer(Initializer);
-					Section->RayTracingGeometry.InitResource(RHICmdList);
+					Section->RayTracingGeometry.InitResource();
 
 					Section->RayTracingGeometry.Initializer.IndexBuffer = Section->IndexBuffer.IndexBufferRHI;
 					Section->RayTracingGeometry.Initializer.TotalPrimitiveCount = Section->IndexBuffer.Indices.Num() / 3;
@@ -101,7 +103,7 @@ public:
 
 					//#dxr_todo: add support for segments?
 
-					Section->RayTracingGeometry.UpdateRHI(RHICmdList);
+					Section->RayTracingGeometry.UpdateRHI();
 				});
 		}
 #endif
@@ -193,7 +195,7 @@ public:
 			Initializer.bAllowUpdate = false;
 
 			Section->RayTracingGeometry.SetInitializer(Initializer);
-			Section->RayTracingGeometry.InitResource(RHICmdList);
+			Section->RayTracingGeometry.InitResource();
 
 			FRayTracingGeometrySegment Segment;
 			Segment.VertexBuffer = Section->VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
@@ -201,7 +203,7 @@ public:
 			Segment.MaxVertices = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
 			Section->RayTracingGeometry.Initializer.Segments.Add(Segment);
 
-			Section->RayTracingGeometry.UpdateRHI(RHICmdList);
+			Section->RayTracingGeometry.UpdateRHI();
 		}
 #endif
 	}
