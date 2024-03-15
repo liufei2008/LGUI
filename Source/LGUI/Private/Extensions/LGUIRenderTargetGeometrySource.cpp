@@ -13,11 +13,13 @@
 #include "Utils/LGUIUtils.h"
 #include "PrimitiveViewRelevance.h"
 #include "PrimitiveSceneProxy.h"
-#include "Components/StaticMeshComponent.h"
+#include "StaticMeshResources.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "LTweenBPLibrary.h"
 #include "Materials/MaterialRenderProxy.h"
 #include "SceneInterface.h"
+#include "RayTracingInstance.h"
+#include "RayTracingGeometry.h"
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 
