@@ -360,7 +360,7 @@ void FLGUIRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel,
 }
 
 #ifndef LGUI_ENABLE_SCENETEXTURES
-#define LGUI_ENABLE_SCENETEXTURES 1//can't make it work on mobile platform, so diable it
+#define LGUI_ENABLE_SCENETEXTURES 0//not render in clean project, so disable it
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("LGUI RHIRender"), STAT_LGUI_RHIRender, STATGROUP_LGUI);
