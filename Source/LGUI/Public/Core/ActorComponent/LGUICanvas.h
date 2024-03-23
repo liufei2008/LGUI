@@ -253,7 +253,7 @@ protected:
 	/**
 	 * Render to RenderTarget, if not specified then LGUI will create a new one.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", DuplicateTransient)
+	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<UTextureRenderTarget2D> renderTarget;
 	/** Controls how LGUICanvas render to RenderTarget. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
