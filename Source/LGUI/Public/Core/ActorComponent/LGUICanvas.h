@@ -395,6 +395,8 @@ public:
 		void SetRenderTargetResolutionScale(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRenderTargetUpdateMode(ELGUICanvasRenderTargetUpdateMode value);
 	/** Only valid when call this on root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void RequestUpdateForRenderTarget();
@@ -451,6 +453,10 @@ public:
 		ELGUICanvasRenderTargetSizeMode GetActualRenderTargetSizeMode()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasRenderTargetSizeMode GetRenderTargetSizeMode()const { return RenderTargetSizeMode; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasRenderTargetUpdateMode GetActualRenderTargetUpdateMode()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasRenderTargetUpdateMode GetRenderTargetUpdateMode()const { return RenderTargetUpdateMode; }
 
 	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)

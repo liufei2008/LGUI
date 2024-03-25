@@ -2415,6 +2415,15 @@ void ULGUICanvas::SetRenderTargetSizeMode(ELGUICanvasRenderTargetSizeMode value)
 	}
 }
 
+void ULGUICanvas::SetRenderTargetUpdateMode(ELGUICanvasRenderTargetUpdateMode value)
+{
+	if (RenderTargetUpdateMode != value)
+	{
+		RenderTargetUpdateMode = value;
+		bAnythingChangedForRenderTarget = true;
+	}
+}
+
 void ULGUICanvas::RequestUpdateForRenderTarget()
 {
 	if (RootCanvas == this)
@@ -3190,6 +3199,21 @@ ELGUICanvasRenderTargetSizeMode ULGUICanvas::GetActualRenderTargetSizeMode()cons
 	return RenderTargetSizeMode;
 }
 
+ELGUICanvasRenderTargetUpdateMode ULGUICanvas::GetActualRenderTargetUpdateMode()const
+{
+	if (IsRootCanvas())
+	{
+		return this->RenderTargetUpdateMode;
+	}
+	else
+	{
+		if (CheckRootCanvas())
+		{
+			return RootCanvas->RenderTargetUpdateMode;
+		}
+	}
+	return RenderTargetUpdateMode;
+}
 
 int32 ULGUICanvas::GetDrawcallCount()const
 {
