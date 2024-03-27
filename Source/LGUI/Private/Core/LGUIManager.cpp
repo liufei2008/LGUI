@@ -926,13 +926,16 @@ void ULGUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection
 	Super::Initialize(Collection);
 #if WITH_EDITOR
 	InstanceArray.Add(this);
-	if (this->GetWorld()->WorldType == EWorldType::EditorPreview)//EditorPreview world don't tick, so mannually tick it
+	if (this->GetWorld()->WorldType == EWorldType::EditorPreview//EditorPreview world don't tick, so mannually tick it
+		|| this->GetWorld()->WorldType == EWorldType::Editor)
 	{
-		EditorTickDelegateHandle = ULGUIPrefabManagerObject::RegisterEditorTickFunction([WeakThis = MakeWeakObjectPtr(this)](float DeltaTime) {
+		EditorTickDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(TEXT("LGUIManagerEditorTick"), 0, [WeakThis = MakeWeakObjectPtr(this)](float DeltaTime) {
 			if (WeakThis.IsValid())
 			{
 				WeakThis->Tick(DeltaTime);
+				return true;
 			}
+			return false;
 			});
 	}
 	if (this->GetWorld()->IsGameWorld())
@@ -957,7 +960,7 @@ void ULGUIManagerWorldSubsystem::Deinitialize()
 	InstanceArray.Remove(this);
 	if (EditorTickDelegateHandle.IsValid())
 	{
-		ULGUIPrefabManagerObject::UnregisterEditorTickFunction(EditorTickDelegateHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(EditorTickDelegateHandle);
 		EditorTickDelegateHandle.Reset();
 	}
 	if (this->GetWorld()->IsGameWorld())
