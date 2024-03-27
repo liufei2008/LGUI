@@ -96,7 +96,7 @@ public:
 	virtual void Deinitialize()override;
 
 	virtual TStatId GetStatId() const override;
-	virtual bool IsTickableInEditor()const { return true; }
+	virtual bool IsTickableInEditor()const { return false; }//use Ticker in editor, because Ticker can also tick when drag vector2/3 value while normal tick can't
 	virtual void Tick(float DeltaTime) override;
 
 	static ULGUIManagerWorldSubsystem* GetInstance(UWorld* InWorld);
@@ -106,7 +106,7 @@ public:
 private:
 #if WITH_EDITOR
 	static TArray<ULGUIManagerWorldSubsystem*> InstanceArray;
-	FDelegateHandle EditorTickDelegateHandle;
+	FTSTicker::FDelegateHandle EditorTickDelegateHandle;
 	static bool bIsPlaying;
 #endif
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
