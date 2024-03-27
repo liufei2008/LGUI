@@ -1922,7 +1922,7 @@ void ULGUIPrefabHelperObject::SetAnythingDirty()
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorActorFolders.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #endif

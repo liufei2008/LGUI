@@ -43,7 +43,7 @@
 #include "Core/Actor/UICustomMeshActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
 #include "Core/Actor/UIBackgroundPixelateActor.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 
 #include "Event/LGUIEventSystem.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"

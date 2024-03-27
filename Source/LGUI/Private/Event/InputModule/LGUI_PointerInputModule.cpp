@@ -3,7 +3,7 @@
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "LGUI.h"
 #include "Event/LGUIPointerEventData.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Event/LGUIEventSystem.h"
 #include "Event/LGUIBaseRaycaster.h"
 #include "Event/Interface/LGUINavigationInterface.h"

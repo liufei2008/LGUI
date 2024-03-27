@@ -7,7 +7,7 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIBatchMeshRenderable GeometryModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 

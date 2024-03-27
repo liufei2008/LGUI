@@ -7,7 +7,7 @@
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/LGUISettings.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Layout/LGUICanvasScaler.h"

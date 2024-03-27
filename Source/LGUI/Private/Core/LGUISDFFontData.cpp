@@ -4,7 +4,7 @@
 
 #include "Core/LGUISDFFontData.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Materials/MaterialInterface.h"
 #include "TextureResource.h"

@@ -8,7 +8,7 @@
 #include "DrawDebugHelpers.h"
 #endif
 #include "Core/LGUISettings.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/LGUIRender/LGUIRenderer.h"
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
