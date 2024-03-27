@@ -7,7 +7,7 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Core/LGUIDynamicSpriteAtlasData.h"
 #include "Core/LGUIStaticSpriteAtlasData.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Sound/SoundCue.h"
 #include "Core/LGUISpriteData.h"
 

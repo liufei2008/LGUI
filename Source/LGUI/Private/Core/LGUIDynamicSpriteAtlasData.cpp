@@ -4,7 +4,7 @@
 #include "Core/LGUIStaticSpriteAtlasData.h"
 #include "LGUI.h"
 #include "Core/LGUISettings.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUISpriteData.h"
 #include "Utils/LGUIUtils.h"

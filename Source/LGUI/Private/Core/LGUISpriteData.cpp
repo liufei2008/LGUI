@@ -9,7 +9,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "RHI.h"
 #include "Rendering/Texture2DResource.h"
 #include "TextureCompiler.h"

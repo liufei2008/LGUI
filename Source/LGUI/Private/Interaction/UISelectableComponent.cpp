@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "LTweenManager.h"
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/ActorComponent/LGUICanvas.h"
