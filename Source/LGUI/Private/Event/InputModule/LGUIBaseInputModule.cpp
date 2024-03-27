@@ -2,7 +2,7 @@
 
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "LGUI.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "Engine/World.h"
 
 ULGUIBaseInputModule::ULGUIBaseInputModule()

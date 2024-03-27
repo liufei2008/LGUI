@@ -6,7 +6,7 @@
 #include "Core/LGUIRichTextImageData.h"
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 

@@ -9,7 +9,7 @@
 #include "Core/LGUIRichTextImageData_BaseObject.h"
 #include "Core/LGUIRichTextCustomStyleData.h"
 #include "Core/UIDrawcall.h"
-#include "Core/Actor/LGUIManager.h"
+#include "Core/LGUIManager.h"
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
