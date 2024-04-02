@@ -7,6 +7,15 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout SizeControlByOtherRebuildLayout"), STAT_SizeControlByOther, STATGROUP_LGUI);
 
+void UUISizeControlByOther::SetTargetActor(AUIBaseActor* value)
+{
+    if (TargetActor != value)
+    {
+        TargetActor = value;
+        TargetUIItem = nullptr;//force check
+        MarkNeedRebuildLayout();
+    }
+}
 void UUISizeControlByOther::SetControlWidth(bool value)
 {
     if (ControlWidth != value)
@@ -112,17 +121,19 @@ bool UUISizeControlByOther::CheckTargetUIItem()
         return false;
     if (!TargetUIItem.IsValid())
     {
-        if (auto tempUIItem = Cast<UUIItem>(TargetActor->GetRootComponent()))
+        TargetUIItem = TargetActor->GetUIItem();
+        //delete old
+        if (HelperComp.IsValid())
         {
-            TargetUIItem = tempUIItem;
-            if (HelperComp == nullptr)
-            {
-                HelperComp = NewObject<UUISizeControlByOtherHelper>(TargetActor.Get());
-                HelperComp->TargetComp = this;
-				HelperComp->RegisterComponent();
-            }
-            return true;
+            HelperComp->DestroyComponent();
         }
+        //create new
+        {
+            HelperComp = NewObject<UUISizeControlByOtherHelper>(TargetActor.Get());
+            HelperComp->TargetComp = this;
+            HelperComp->RegisterComponent();
+        }
+        return true;
     }
     return false;
 }

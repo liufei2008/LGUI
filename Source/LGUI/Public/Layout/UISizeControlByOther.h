@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAdditionalHeight()const { return AdditionalHeight; }
 
+	//Set TargetActor which will control size of this UI
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetTargetActor(class AUIBaseActor* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetControlWidth(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -59,7 +62,7 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
 
-	//Target object's size control this object's size
+	//Target object's will control this UI's size
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TWeakObjectPtr<class AUIBaseActor> TargetActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
