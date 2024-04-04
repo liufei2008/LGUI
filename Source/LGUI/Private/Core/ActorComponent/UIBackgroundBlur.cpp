@@ -383,6 +383,7 @@ void UUIBackgroundBlur::SetBlurStrength(float newValue)
 	if (blurStrength != newValue)
 	{
 		blurStrength = newValue;
+		MarkCanvasUpdate(false, false, false, false);
 		SendOthersDataToRenderProxy();
 	}
 }
@@ -392,6 +393,7 @@ void UUIBackgroundBlur::SetApplyAlphaToBlur(bool newValue)
 	if (applyAlphaToBlur != newValue)
 	{
 		applyAlphaToBlur = newValue;
+		MarkCanvasUpdate(false, false, false, false);
 		SendOthersDataToRenderProxy();
 	}
 }
@@ -402,6 +404,7 @@ void UUIBackgroundBlur::SetMaxDownSampleLevel(int newValue)
 	{
 		maxDownSampleLevel = newValue;
 		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
+		MarkCanvasUpdate(false, false, false, false);
 		SendOthersDataToRenderProxy();
 	}
 }
@@ -411,6 +414,7 @@ void UUIBackgroundBlur::SetStrengthTexture(UTexture2D* newValue)
 	if (strengthTexture != newValue)
 	{
 		strengthTexture = newValue;
+		MarkCanvasUpdate(false, false, false, false);
 		SendStrengthTextureToRenderProxy();
 	}
 }

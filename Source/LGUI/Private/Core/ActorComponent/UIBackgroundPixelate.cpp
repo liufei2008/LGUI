@@ -58,6 +58,7 @@ void UUIBackgroundPixelate::SetPixelateStrength(float newValue)
 	if (pixelateStrength != newValue)
 	{
 		pixelateStrength = newValue;
+		MarkCanvasUpdate(false, false, false, false);
 		SendOthersDataToRenderProxy();
 	}
 }
@@ -67,6 +68,7 @@ void UUIBackgroundPixelate::SetApplyAlphaToStrength(bool newValue)
 	if (applyAlphaToStrength != newValue)
 	{
 		applyAlphaToStrength = newValue;
+		MarkCanvasUpdate(false, false, false, false);
 		SendOthersDataToRenderProxy();
 	}
 }
