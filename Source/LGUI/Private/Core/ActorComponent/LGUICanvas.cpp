@@ -185,10 +185,11 @@ void ULGUICanvas::UpdateRootCanvas()
 			default:
 			case ELGUICanvasRenderTargetUpdateMode::Automatic:
 			{
-				if (bAnythingChangedForRenderTarget || bPrevAnythingChangedForRenderTarget)
+				if (bAnythingChangedForRenderTarget || bPrevAnythingChangedForRenderTarget || bRequestUpdateForRenderTarget)
 				{
 					bPrevAnythingChangedForRenderTarget = bAnythingChangedForRenderTarget;
 					bAnythingChangedForRenderTarget = false;
+					bRequestUpdateForRenderTarget = false;
 					bCanUpdateRenderTarget = true;
 				}
 			}
