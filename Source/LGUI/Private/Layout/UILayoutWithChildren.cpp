@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Layout/UILayoutWithChildren.h"
+#include "Layout/UILayoutElement.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
