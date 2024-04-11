@@ -26,7 +26,7 @@ public:
 
 class ULGUIPrefab;
 
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, NotPlaceable, HideCategories = (Rendering, Actor, Input))
+UCLASS(ClassGroup = (LGUI), Transient, NotBlueprintable, NotBlueprintType, NotPlaceable, HideCategories = (Rendering, Actor, Input))
 class ALGUIPrefabLoadHelperActor : public AActor
 {
 	GENERATED_BODY()
@@ -46,7 +46,5 @@ public:
 	void LoadPrefab(USceneComponent* InParent);
 	void MoveActorToPrefabFolder();
 
-public:
-	bool bAutoDestroyLoadedActors = true;
 };
 

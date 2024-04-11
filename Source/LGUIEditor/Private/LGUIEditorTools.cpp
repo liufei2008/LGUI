@@ -2063,15 +2063,6 @@ ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisA
 
 void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 {
-	for (TActorIterator<ALGUIPrefabLoadHelperActor> ActorItr(World); ActorItr; ++ActorItr)
-	{
-		auto PrefabActor = *ActorItr;
-		if (IsValid(PrefabActor))
-		{
-			PrefabActor->bAutoDestroyLoadedActors = false;
-			LGUIUtils::DestroyActorWithHierarchy(PrefabActor, false);
-		}
-	}
 	for (TObjectIterator<ULGUIPrefabHelperObject> Itr; Itr; ++Itr)
 	{
 		Itr->CleanupInvalidSubPrefab();

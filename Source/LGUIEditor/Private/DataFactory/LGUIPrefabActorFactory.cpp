@@ -65,13 +65,9 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 		PrefabActor->LoadPrefab(nullptr);
 	}
 	PrefabActor->MoveActorToPrefabFolder();
-	PrefabActor->SetFlags(EObjectFlags::RF_Transient);
 	ULGUIPrefabManagerObject::AddOneShotTickFunction([=]() {
-		auto LoadedRootActor = PrefabActor->LoadedRootActor;
-		PrefabActor->LoadedRootActor = nullptr;
-		LGUIUtils::DestroyActorWithHierarchy(PrefabActor);
-		//GEditor->SelectNone(true, true);
-		GEditor->SelectActor(LoadedRootActor, true, true, false, true);
+		GEditor->SelectActor(PrefabActor, false, true, false, true);
+		GEditor->SelectActor(PrefabActor->LoadedRootActor, true, true, false, true);
 		});
 }
 
@@ -103,6 +99,7 @@ ALGUIPrefabLoadHelperActor::ALGUIPrefabLoadHelperActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	bIsEditorOnlyActor = true;
+	bListedInSceneOutliner = false;
 }
 
 void ALGUIPrefabLoadHelperActor::BeginPlay()
@@ -113,15 +110,12 @@ void ALGUIPrefabLoadHelperActor::BeginPlay()
 void ALGUIPrefabLoadHelperActor::Destroyed()
 {
 	Super::Destroyed();
-	if (bAutoDestroyLoadedActors)
+	if (IsValid(LoadedRootActor))
 	{
-		if (IsValid(LoadedRootActor))
+		if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(this->GetLevel()))
 		{
-			if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(this->GetLevel()))
-			{
-				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(LoadedRootActor);
-				LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
-			}
+			PrefabManagerActor->PrefabHelperObject->RemoveSubPrefabByAnyActorOfSubPrefab(LoadedRootActor);
+			LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
 		}
 	}
 }
