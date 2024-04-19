@@ -525,6 +525,7 @@ namespace LGUIRichTextParser
 			{
 				outEndIndex = endIndex;
 				FString colorString = text.Mid(startIndex, endIndex - startIndex);
+				colorString.ToLowerInline();
 				if (colorString == TEXT("black"))
 				{
 					outColor = FColor::Black;
