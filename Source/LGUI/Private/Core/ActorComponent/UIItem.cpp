@@ -480,10 +480,8 @@ void UUIItem::MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode
 
 void UUIItem::ForceRefreshRenderCanvasRecursive()
 {
-	if (RenderCanvas.IsValid())
-	{
-		OnRenderCanvasChanged(RenderCanvas.Get(), RenderCanvas.Get());
-	}
+	auto NewRenderCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(this->GetOwner(), false);
+	SetRenderCanvas(NewRenderCanvas);
 
 	for (auto& uiChild : UIChildren)
 	{
