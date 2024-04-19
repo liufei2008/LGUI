@@ -374,10 +374,17 @@ void ULGUICanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
 	if (bHasAddToLGUIScreenSpaceRenderer)
 	{
 		bHasAddToLGUIScreenSpaceRenderer = false;
-		auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
-		if (ViewExtension.IsValid())
+		if (RenderTargetViewExtension.IsValid())//could be RenderTarget mode
 		{
-			ViewExtension->ClearScreenSpaceRootCanvas();
+			RenderTargetViewExtension->ClearScreenSpaceRootCanvas();
+		}
+		else//if not RenderTarget mode, then should be ScreenSpaceOverlay
+		{
+			auto ViewExtension = ULGUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
+			if (ViewExtension.IsValid())
+			{
+				ViewExtension->ClearScreenSpaceRootCanvas();
+			}
 		}
 	}
 	if (bHasSetIntialStateforLGUIWorldSpaceRenderer)
