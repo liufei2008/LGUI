@@ -387,7 +387,7 @@ void UUIGridLayout::OnRebuildLayout()
 	int tempLineIndex = 1;
 	for (int i = 0; i < childrenCount; i++)
 	{
-		auto uiItem = uiChildrenList[i].uiItem;
+		auto uiItem = uiChildrenList[i].ChildUIItem;
 		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal
 		{
@@ -497,9 +497,9 @@ bool UUIGridLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUI
 	else
 	{
 		if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-		UActorComponent* layoutElement = nullptr;
+		UObject* layoutElement = nullptr;
 		bool ignoreLayout = false;
-		GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
+		GetLayoutElement(InUIItem, layoutElement, ignoreLayout);
 		if (ignoreLayout)
 		{
 			return true;

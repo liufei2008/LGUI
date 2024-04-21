@@ -28,7 +28,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 	float sin = 0, cos = 0, x = 0, y = 0;
 	for (int i = 0; i < childrenCount; i ++)
 	{
-		auto uiItem = uiChildrenList[i].uiItem;
+		auto uiItem = uiChildrenList[i].ChildUIItem;
 		uiItem->SetAnchorMin(FVector2D(0.5f, 0.5f));
 		uiItem->SetAnchorMax(FVector2D(0.5f, 0.5f));
 		sin = FMath::Sin(angle);
@@ -65,9 +65,9 @@ bool UUIRoundedLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* I
 	else
 	{
 		if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-		UActorComponent* layoutElement = nullptr;
+		UObject* layoutElement = nullptr;
 		bool ignoreLayout = false;
-		GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
+		GetLayoutElement(InUIItem, layoutElement, ignoreLayout);
 		if (ignoreLayout)
 		{
 			return true;

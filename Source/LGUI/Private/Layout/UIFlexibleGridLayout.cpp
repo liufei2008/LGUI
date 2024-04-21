@@ -24,9 +24,9 @@ void UUIFlexibleGridLayout::PostEditChangeProperty(FPropertyChangedEvent& Proper
 }
 #endif
 
-void UUIFlexibleGridLayout::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
+void UUIFlexibleGridLayout::GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const
 {
-	auto LayoutElement = InActor->FindComponentByClass<UUIFlexibleGridLayoutElement>();
+	auto LayoutElement = InChild->GetOwner()->FindComponentByClass<UUIFlexibleGridLayoutElement>();
 	if (LayoutElement == nullptr || !LayoutElement->GetEnable())
 	{
 		OutLayoutElement = nullptr;
@@ -164,7 +164,7 @@ void UUIFlexibleGridLayout::OnRebuildLayout()
 	const auto& LayoutElementList = GetLayoutUIItemChildren();
 	for (auto& Item : LayoutElementList)
 	{
-		auto LayoutElement = (UUIFlexibleGridLayoutElement*)Item.layoutElement.Get();
+		auto LayoutElement = (UUIFlexibleGridLayoutElement*)Item.LayoutInterface.Get();
 		float columnRatio = 0, columnConstant = 0;
 		for (int i = LayoutElement->GetColumnIndex(), count = FMath::Min(i + LayoutElement->GetColumnCount(), Columns.Num()); i < count; i++)
 		{
@@ -193,7 +193,7 @@ void UUIFlexibleGridLayout::OnRebuildLayout()
 		}
 		float columnSize = thisFreeWidth * columnRatio * invColumnTotalRatio + columnConstant + (LayoutElement->GetColumnCount() - 1) * Spacing.X;
 		float rowSize = thisFreeHeight * rowRatio * invRowTotalRatio + rowConstant + (LayoutElement->GetRowCount() - 1) * Spacing.Y;
-		auto uiItem = Item.uiItem;
+		auto uiItem = Item.ChildUIItem;
 		float anchorOffsetX, anchorOffsetY;
 		auto anchorOffset = GetOffset(FMath::Min(LayoutElement->GetColumnIndex(), Columns.Num() - 1), FMath::Min(LayoutElement->GetRowIndex(), Rows.Num() - 1));
 		anchorOffsetX = columnSize * (uiItem->GetPivot().X) + anchorOffset.X;
@@ -223,9 +223,9 @@ bool UUIFlexibleGridLayout::GetCanLayoutControlAnchor_Implementation(class UUIIt
 	else
 	{
 		if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-		UActorComponent* layoutElement = nullptr;
+		UObject* layoutElement = nullptr;
 		bool ignoreLayout = false;
-		GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
+		GetLayoutElement(InUIItem, layoutElement, ignoreLayout);
 		if (ignoreLayout)
 		{
 			return true;
