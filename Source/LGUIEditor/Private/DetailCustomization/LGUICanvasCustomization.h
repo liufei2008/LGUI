@@ -25,4 +25,6 @@ private:
 	void OnPasteSortOrder(TSharedRef<class IPropertyHandle> PropertyHandle);
 	FReply OnClickFixClipTextureSetting(TSharedRef<IPropertyHandle> ClipTextureHandle);
 	bool IsFixClipTextureEnabled(TSharedRef<IPropertyHandle> ClipTextureHandle)const;
+
+	TSharedPtr<class IDetailsView> PropertyView;
 };
