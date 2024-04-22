@@ -33,7 +33,7 @@ protected:
 
 	const TArray<FLayoutChild>& GetLayoutUIItemChildren()const;
 	void EnsureChildValid();
-	void RebuildChildrenList()const;
+	virtual void RebuildChildrenList()const;
 	void SortChildrenList()const;
 	virtual void GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const;
 

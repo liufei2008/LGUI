@@ -118,6 +118,8 @@
 #include "Layout/ILGUILayoutInterface.h"
 #include "Layout/UIFlexibleGridLayout.h"
 #include "Layout/UIFlexibleGridLayoutElement.h"
+#include "Layout/UIPanelLayout_HorizontalBox.h"
+#include "Layout/UIPanelLayoutBase.h"
 
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabLevelManagerActor.h"
