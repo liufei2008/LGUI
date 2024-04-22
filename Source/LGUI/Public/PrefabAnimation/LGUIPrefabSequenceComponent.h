@@ -24,8 +24,11 @@ public:
 
 	ULGUIPrefabSequenceComponent();
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UE_DEPRECATED(5.0, "Use GetSequenceByDisplayName instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta=(DeprecatedFunction, DeprecationMessage = "Use GetSequenceByDisplayName instead"))
 		ULGUIPrefabSequence* GetSequenceByName(FName InName) const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUIPrefabSequence* GetSequenceByDisplayName(const FString& InName) const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIPrefabSequence* GetSequenceByIndex(int32 InIndex) const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -37,8 +40,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSequenceByIndex(int32 InIndex);
 	/** Find animation in SequenceArray by Name, then set it to SequencePlayer */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UE_DEPRECATED(5.0, "Use SetSequenceByDisplayName instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use SetSequenceByDisplayName instead"))
 		void SetSequenceByName(FName InName);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetSequenceByDisplayName(const FString& InName);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetCurrentSequenceIndex()const { return CurrentSequenceIndex; }
 

@@ -251,6 +251,29 @@ public:
 		Sequencer = FModuleManager::LoadModuleChecked<ISequencerModule>("Sequencer").CreateSequencer(SequencerInitParams);
 		Content->SetContent(Sequencer->GetSequencerWidget());
 		Sequencer->GetSelectionChangedObjectGuids().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::SyncSelectedWidgetsWithSequencerSelection);
+		Sequencer->OnMovieSceneBindingsChanged().AddLambda([=]() {
+			if (!WeakSequence.IsValid())return;
+			if (!IsValid(WeakSequence->GetMovieScene()))return;
+			auto& Bindings = WeakSequence->GetMovieScene()->GetBindings();
+			for (auto& BindingItem : Bindings)
+			{
+				auto ObjectArray = Sequencer->FindObjectsInCurrentSequence(BindingItem.GetObjectGuid());
+				if (ObjectArray.Num() > 0)
+				{
+					if (auto Actor = Cast<AActor>(ObjectArray[0]))
+					{
+						WeakSequence->GetMovieScene()->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(Actor->GetActorLabel()));
+					}
+					else if (auto Comp = Cast<UActorComponent>(ObjectArray[0]))
+					{
+						if (auto CompActor = Comp->GetOwner())
+						{
+							WeakSequence->GetMovieScene()->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(CompActor->GetActorLabel()));
+						}
+					}
+				}
+			}
+			});
 
 		FLevelEditorSequencerIntegrationOptions Options;
 		Options.bRequiresLevelEvents = false;

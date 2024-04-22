@@ -109,6 +109,17 @@ ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByName(FName InNam
 	}
 	return nullptr;
 }
+ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByDisplayName(const FString& InName) const
+{
+	for (auto Item : SequenceArray)
+	{
+		if (Item->GetDisplayName().ToString() == InName)
+		{
+			return Item;
+		}
+	}
+	return nullptr;
+}
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::GetSequenceByIndex(int32 InIndex) const
 {
 	if (InIndex < 0 || InIndex >= SequenceArray.Num())
@@ -152,6 +163,18 @@ void ULGUIPrefabSequenceComponent::SetSequenceByName(FName InName)
 		InitSequencePlayer();
 	}
 }
+void ULGUIPrefabSequenceComponent::SetSequenceByDisplayName(const FString& InName)
+{
+	int FoundIndex = -1;
+	FoundIndex = SequenceArray.IndexOfByPredicate([InName](const ULGUIPrefabSequence* Item) {
+		return Item->GetDisplayName().ToString() == InName;
+		});
+	if (FoundIndex != INDEX_NONE)
+	{
+		CurrentSequenceIndex = FoundIndex;
+		InitSequencePlayer();
+	}
+}
 
 ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::AddNewAnimation()
 {
@@ -184,6 +207,13 @@ ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::DuplicateAnimationByIndex(int
 	}
 	auto SourceSequence = SequenceArray[InIndex];
 	auto NewSequence = DuplicateObject(SourceSequence, this);
+	NewSequence->GetMovieScene()->Rename(*NewSequence->GetName(), nullptr, REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+	NewSequence->SetDisplayName(NewSequence->GetName());
+	{
+		NewSequence->GetMovieScene()->SetTickResolutionDirectly(SourceSequence->GetMovieScene()->GetTickResolution());
+		NewSequence->GetMovieScene()->SetPlaybackRange(SourceSequence->GetMovieScene()->GetPlaybackRange());
+		NewSequence->GetMovieScene()->SetDisplayRate(SourceSequence->GetMovieScene()->GetDisplayRate());
+	}
 	SequenceArray.Insert(NewSequence, InIndex + 1);
 	return NewSequence;
 }

@@ -31,11 +31,13 @@ public:
 	virtual UObject* CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID) override;
 
 #if WITH_EDITOR
+	virtual FText GetDisplayName() const override { return FText::FromString(DisplayName); }
 	virtual ETrackSupport IsTrackSupported(TSubclassOf<class UMovieSceneTrack> InTrackClass) const override;
 #endif
 
 	bool IsEditable() const;
 	
+	void SetDisplayName(const FString& Value) { DisplayName = Value; }
 private:
 
 	//~ UObject interface
@@ -50,6 +52,9 @@ private:
 	/** Collection of object references. */
 	UPROPERTY()
 	FLGUIPrefabSequenceObjectReferenceMap ObjectReferences;
+
+	UPROPERTY()
+	FString DisplayName;
 
 #if WITH_EDITOR
 public:
