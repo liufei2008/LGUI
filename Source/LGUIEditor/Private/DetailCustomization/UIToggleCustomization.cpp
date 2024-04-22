@@ -159,35 +159,6 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		}
 	}
 }
-void FUIToggleCustomization::CreateSpriteSelector(IDetailCategoryBuilder* category, IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> handle)
-{
-	DetailBuilder->HideProperty(handle);
-	category->AddCustomRow(handle->GetPropertyDisplayName())
-		.NameContent()
-		[
-			SNew(SBox)
-			.Padding(FMargin(10, 0, 0, 0))
-			[
-				handle->CreatePropertyNameWidget()
-			]
-		]
-		.ValueContent()
-		[
-			handle->CreatePropertyValueWidget()
-			/*SNew(SButton)
-			.Text(FText::FromName(sprite))
-			.OnClicked_Lambda([&]()
-			{
-				TargetScriptPtr->TransitionSpriteIndex = index;
-				SLGUISpriteSelector::TargetScript = TargetScriptPtr.Get();
-				SLGUISpriteSelector::TargetSprite = sprite;
-				if (TargetScriptPtr->TargetSpriteComp != nullptr)
-					SLGUISpriteSelector::TargetAtlas = TargetScriptPtr->TargetSpriteComp->GetAtlasData();
-				FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUISpriteSelectorTabName);
-				return FReply::Handled();
-			})*/
-		];
-}
 void FUIToggleCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
 	if (TargetScriptPtr.IsValid())

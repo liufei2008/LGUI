@@ -17,5 +17,4 @@ public:
 private:
 	TWeakObjectPtr<class UUIToggleComponent> TargetScriptPtr;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
-	void CreateSpriteSelector(IDetailCategoryBuilder* category, IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> handle);
 };

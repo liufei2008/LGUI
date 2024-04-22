@@ -742,6 +742,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		[
 			hierarchyIndexWidget
 		]
+		.PropertyHandleList({ HierarchyIndexHandle })
 		;
 
 		TransformCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, flattenHierarchyIndex)), EPropertyLocation::Advanced);

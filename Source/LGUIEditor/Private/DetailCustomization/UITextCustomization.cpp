@@ -49,6 +49,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto hAlignPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, hAlign));
 		auto vAlignPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, vAlign));
 		category.AddCustomRow(LOCTEXT("Alignment", "Alignment"))
+		.PropertyHandleList({ hAlignPropertyHandle, vAlignPropertyHandle })
 		.CopyAction(FUIAction(
 			FExecuteAction::CreateSP(this, &FUITextCustomization::OnCopyAlignment)
 		))
