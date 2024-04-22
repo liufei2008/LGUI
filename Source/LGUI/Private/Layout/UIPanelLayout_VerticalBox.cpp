@@ -1,19 +1,19 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Layout/UIPanelLayout_HorizontalBox.h"
+#include "Layout/UIPanelLayout_VerticalBox.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
-DECLARE_CYCLE_STAT(TEXT("UIPanelLayout HorizontalBox RebuildLayout"), STAT_PanelLayout_Horizontal, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIPanelLayout VerticalBox RebuildLayout"), STAT_PanelLayout_Vertical, STATGROUP_LGUI);
 
-void UUIPanelLayout_HorizontalBox::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
+void UUIPanelLayout_VerticalBox::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
     //skip UILayoutBase
     Super::Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
     if (this->GetWorld() == nullptr)return;
     if (child->GetIsUIActiveInHierarchy())
     {
-        if (horizontalPositionChanged 
+        if (horizontalPositionChanged
             || verticalPositionChanged
             || widthChanged
             || heightChanged
@@ -24,9 +24,9 @@ void UUIPanelLayout_HorizontalBox::OnUIChildDimensionsChanged(UUIItem* child, bo
     }
 }
 
-void UUIPanelLayout_HorizontalBox::OnRebuildLayout()
+void UUIPanelLayout_VerticalBox::OnRebuildLayout()
 {
-    SCOPE_CYCLE_COUNTER(STAT_PanelLayout_Horizontal);
+    SCOPE_CYCLE_COUNTER(STAT_PanelLayout_Vertical);
     if (!CheckRootUIComponent())return;
     if (!GetEnable())return;
 	if (bIsAnimationPlaying)
@@ -46,75 +46,75 @@ void UUIPanelLayout_HorizontalBox::OnRebuildLayout()
 
     FVector2D RectSize(RootUIComp->GetWidth(), RootUIComp->GetHeight());
     float TotalFillRatio = 0.0f;
-    float TotalFillWidth = 0.0f;
-    float TotalAutoWidth = 0.0f;
-    float TotalPaddingWidth = 0.0f;
-    float ChildHeightMin = MAX_FLT, ChildHeightMax = -MAX_FLT;
+    float TotalFillHeight = 0.0f;
+    float TotalAutoHeight = 0.0f;
+    float TotalPaddingHeight = 0.0f;
+    float ChildWidthMin = MAX_FLT, ChildWidthMax = -MAX_FLT;
     auto& LayoutChildrenList = GetLayoutUIItemChildren();
     for (int i = 0; i < LayoutChildrenList.Num(); i++)
     {
         auto& LayoutChild = LayoutChildrenList[i];
-        if (auto Slot = Cast<UUIPanelLayout_HorizontalBox_Slot>(LayoutChild.LayoutInterface.Get()))
+        if (auto Slot = Cast<UUIPanelLayout_VerticalBox_Slot>(LayoutChild.LayoutInterface.Get()))
         {
             if (Slot->GetIgnoreLayout())continue;
             auto& Size = Slot->GetSizeRule();
             if (Size.SizeRule == ESlateSizeRule::Fill)
             {
                 TotalFillRatio += Size.Value;
-                TotalFillWidth += Slot->GetDesiredSize().X;
+                TotalFillHeight += Slot->GetDesiredSize().Y;
             }
             else
             {
-                TotalAutoWidth += Slot->GetDesiredSize().X;
+                TotalAutoHeight += Slot->GetDesiredSize().Y;
             }
             auto& Padding = Slot->GetPadding();
-            TotalPaddingWidth += Padding.Left + Padding.Right;
+            TotalPaddingHeight += Padding.Top + Padding.Bottom;
 
-            if (bHeightFitToChildren)
+            if (bWidthFitToChildren)
             {
-                auto HeightWithPadding = Padding.Top + Padding.Bottom + Slot->GetDesiredSize().Y;
-                if (ChildHeightMin > HeightWithPadding)
+                auto WidthWithPadding = Padding.Left + Padding.Right + Slot->GetDesiredSize().X;
+                if (ChildWidthMin > WidthWithPadding)
                 {
-                    ChildHeightMin = HeightWithPadding;
+                    ChildWidthMin = WidthWithPadding;
                 }
-                if (ChildHeightMax < HeightWithPadding)
+                if (ChildWidthMax < WidthWithPadding)
                 {
-                    ChildHeightMax = HeightWithPadding;
+                    ChildWidthMax = WidthWithPadding;
                 }
             }
         }
     }
     if (bWidthFitToChildren)
     {
-        RectSize.X = TotalFillWidth + TotalAutoWidth + TotalPaddingWidth;
+        RectSize.X = FMath::Lerp(ChildWidthMin, ChildWidthMax, WidthFitToChildrenFromMinToMax);
         RootUIComp->SetWidth(RectSize.X);
     }
     if (bHeightFitToChildren)
     {
-        RectSize.Y = FMath::Lerp(ChildHeightMin, ChildHeightMax, HeightFitToChildrenFromMinToMax);
+        RectSize.Y = TotalFillHeight + TotalAutoHeight + TotalPaddingHeight;
         RootUIComp->SetHeight(RectSize.Y);
     }
-    auto TotalFillSize = RectSize.X - TotalAutoWidth - TotalPaddingWidth;
+    auto TotalFillSize = RectSize.Y - TotalAutoHeight - TotalPaddingHeight;
     float Inv_TotalFillRatio = 1.0f / TotalFillRatio;
     float PosX = 0, PosY = 0;
     for (int i = 0; i < LayoutChildrenList.Num(); i++)
     {
         auto& LayoutChild = LayoutChildrenList[i];
-        if (auto Slot = Cast<UUIPanelLayout_HorizontalBox_Slot>(LayoutChild.LayoutInterface.Get()))
+        if (auto Slot = Cast<UUIPanelLayout_VerticalBox_Slot>(LayoutChild.LayoutInterface.Get()))
         {
             if (Slot->GetIgnoreLayout())continue;
             auto& Padding = Slot->GetPadding();
             auto UIItem = LayoutChild.ChildUIItem.Get();
             auto& Size = Slot->GetSizeRule();
-            float ItemAreaWidth = 0;
-            float ItemAreaHeight = RectSize.Y - (Padding.Top + Padding.Bottom);
+            float ItemAreaHeight = 0;
+            float ItemAreaWidth = RectSize.X - (Padding.Left + Padding.Right);
             if (Size.SizeRule == ESlateSizeRule::Fill)
             {
-                ItemAreaWidth = TotalFillSize * Size.Value * Inv_TotalFillRatio;
+                ItemAreaHeight = TotalFillSize * Size.Value * Inv_TotalFillRatio;
             }
             else
             {
-                ItemAreaWidth = Slot->GetDesiredSize().X;
+                ItemAreaHeight = Slot->GetDesiredSize().Y;
             }
             auto HAlign = Slot->GetHorizontalAlignment();
             auto VAlign = Slot->GetVerticalAlignment();
@@ -190,8 +190,8 @@ void UUIPanelLayout_HorizontalBox::OnRebuildLayout()
             ApplyWidthWithAnimation(TempAnimationType, ItemWidth, UIItem);
             ApplyHeightWithAnimation(TempAnimationType, ItemHeight, UIItem);
 
-            PosX += Padding.Left + Padding.Right;
-            PosX += ItemAreaWidth;
+            PosY -= Padding.Top + Padding.Bottom;
+            PosY -= ItemAreaHeight;
         }
     }
     
@@ -201,7 +201,7 @@ void UUIPanelLayout_HorizontalBox::OnRebuildLayout()
 	}
 }
 
-bool UUIPanelLayout_HorizontalBox::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
+bool UUIPanelLayout_VerticalBox::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
     if (this->GetRootUIComponent() == InUIItem)//self
     {
@@ -218,7 +218,7 @@ bool UUIPanelLayout_HorizontalBox::GetCanLayoutControlAnchor_Implementation(clas
         {
             return true;
         }
-        auto Slot = Cast<UUIPanelLayout_HorizontalBox_Slot>(LayoutElementInterface);
+        auto Slot = Cast<UUIPanelLayout_VerticalBox_Slot>(LayoutElementInterface);
         if (!Slot)return false;
 
         OutResult.bCanControlHorizontalAnchor = this->GetEnable();
@@ -232,18 +232,18 @@ bool UUIPanelLayout_HorizontalBox::GetCanLayoutControlAnchor_Implementation(clas
     return false;
 }
 
-UClass* UUIPanelLayout_HorizontalBox::GetPanelLayoutSlotClass()const
+UClass* UUIPanelLayout_VerticalBox::GetPanelLayoutSlotClass()const
 {
-    return UUIPanelLayout_HorizontalBox_Slot::StaticClass();
+    return UUIPanelLayout_VerticalBox_Slot::StaticClass();
 }
 
 #if WITH_EDITOR
-FText UUIPanelLayout_HorizontalBox::GetCategoryDisplayName()const
+FText UUIPanelLayout_VerticalBox::GetCategoryDisplayName()const
 {
-    return NSLOCTEXT("UIPanelLayout_HorizontalBox", "CategoryDisplayName", "HorizontalBox");
+    return NSLOCTEXT("UIPanelLayout_VerticalBox", "CategoryDisplayName", "VerticalBox");
 }
 #endif
-void UUIPanelLayout_HorizontalBox::SetWidthFitToChildren(bool Value)
+void UUIPanelLayout_VerticalBox::SetWidthFitToChildren(bool Value)
 {
     if (bWidthFitToChildren != Value)
     {
@@ -251,7 +251,7 @@ void UUIPanelLayout_HorizontalBox::SetWidthFitToChildren(bool Value)
         MarkNeedRebuildLayout();
     }
 }
-void UUIPanelLayout_HorizontalBox::SetHeightFitToChildren(bool Value)
+void UUIPanelLayout_VerticalBox::SetHeightFitToChildren(bool Value)
 {
     if (bHeightFitToChildren != Value)
     {
@@ -259,54 +259,54 @@ void UUIPanelLayout_HorizontalBox::SetHeightFitToChildren(bool Value)
         MarkNeedRebuildLayout();
     }
 }
-void UUIPanelLayout_HorizontalBox::SetHeightFitToChildrenFromMinToMax(float Value)
+void UUIPanelLayout_VerticalBox::SetWidthFitToChildrenFromMinToMax(float Value)
 {
-    if (HeightFitToChildrenFromMinToMax != Value)
+    if (WidthFitToChildrenFromMinToMax != Value)
     {
-        HeightFitToChildrenFromMinToMax = Value;
+        WidthFitToChildrenFromMinToMax = Value;
         MarkNeedRebuildLayout();
     }
 }
 
-void UUIPanelLayout_HorizontalBox_Slot::SetPadding(const FMargin& Value)
+void UUIPanelLayout_VerticalBox_Slot::SetPadding(const FMargin& Value)
 {
     if (Padding != Value)
     {
         Padding = Value;
-        if (auto Layout = GetTypedOuter<UUIPanelLayout_HorizontalBox>())
+        if (auto Layout = GetTypedOuter<UUIPanelLayout_VerticalBox>())
         {
             Layout->MarkNeedRebuildLayout();
         }
     }
 }
-void UUIPanelLayout_HorizontalBox_Slot::SetSizeRule(const FSlateChildSize& Value)
+void UUIPanelLayout_VerticalBox_Slot::SetSizeRule(const FSlateChildSize& Value)
 {
     if (SizeRule.SizeRule != Value.SizeRule || SizeRule.Value != Value.Value)
     {
         SizeRule = Value;
-        if (auto Layout = GetTypedOuter<UUIPanelLayout_HorizontalBox>())
+        if (auto Layout = GetTypedOuter<UUIPanelLayout_VerticalBox>())
         {
             Layout->MarkNeedRebuildLayout();
         }
     }
 }
-void UUIPanelLayout_HorizontalBox_Slot::SetHorizontalAlignment(const EHorizontalAlignment& Value)
+void UUIPanelLayout_VerticalBox_Slot::SetHorizontalAlignment(const EHorizontalAlignment& Value)
 {
     if (HorizontalAlignment != Value)
     {
         HorizontalAlignment = Value;
-        if (auto Layout = GetTypedOuter<UUIPanelLayout_HorizontalBox>())
+        if (auto Layout = GetTypedOuter<UUIPanelLayout_VerticalBox>())
         {
             Layout->MarkNeedRebuildLayout();
         }
     }
 }
-void UUIPanelLayout_HorizontalBox_Slot::SetVerticalAlignment(const EVerticalAlignment& Value)
+void UUIPanelLayout_VerticalBox_Slot::SetVerticalAlignment(const EVerticalAlignment& Value)
 {
     if (VerticalAlignment != Value)
     {
         VerticalAlignment = Value;
-        if (auto Layout = GetTypedOuter<UUIPanelLayout_HorizontalBox>())
+        if (auto Layout = GetTypedOuter<UUIPanelLayout_VerticalBox>())
         {
             Layout->MarkNeedRebuildLayout();
         }

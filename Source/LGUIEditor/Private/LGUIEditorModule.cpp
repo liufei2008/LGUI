@@ -75,6 +75,7 @@
 #include "DetailCustomization/LGUICanvasCustomClip_RoundedRect_Customization.h"
 
 #include "DetailCustomization/UIPanelLayoutHorizontalBoxSlotCustomization.h"
+#include "DetailCustomization/UIPanelLayoutVerticalBoxSlotCustomization.h"
 
 #include "PrefabEditor/LGUIPrefabOverrideDataViewer.h"
 #include "Engine/Selection.h"
@@ -318,6 +319,7 @@ void FLGUIEditorModule::StartupModule()
 
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabSequenceComponentCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutHorizontalBoxSlotCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutVerticalBoxSlotCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -537,6 +539,7 @@ void FLGUIEditorModule::ShutdownModule()
 
 		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName());
 	}
 	//unregister asset
 	{
