@@ -46,6 +46,8 @@ ULGUIPrefabSequence::ULGUIPrefabSequence(const FObjectInitializer& ObjectInitial
 
 	MovieScene = ObjectInitializer.CreateDefaultSubobject<UMovieScene>(this, "MovieScene");
 	MovieScene->SetFlags(RF_Transactional);
+
+	DisplayName = this->GetFName().ToString();
 }
 
 bool ULGUIPrefabSequence::IsEditable() const

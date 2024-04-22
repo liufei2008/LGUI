@@ -86,7 +86,7 @@ private:
 	{
 		if (ListItem.IsValid())
 		{
-			return FText::FromName(ListItem.Pin()->Animation->GetFName());
+			return ListItem.Pin()->Animation->GetDisplayName();
 		}
 
 		return FText::GetEmpty();
@@ -96,31 +96,23 @@ private:
 	{
 		auto Animation = ListItem.Pin()->Animation;
 
-		const FName NewName = *InText.ToString().Left(NAME_SIZE - 1);
-		UObject* ExistingObject = StaticFindObject(NULL, Animation->GetOuter(), *NewName.ToString(), true);
-		if (ExistingObject != nullptr && ExistingObject != Animation)
+		auto SequenceComp = Editor->GetSequenceComponent();
+		if (SequenceComp)
 		{
-			OutErrorMessage = LOCTEXT("NameInUseByAnimation", "An animation with this name already exists");
-			return false;
-		}
-
-		if (Animation->GetFName() != NewName)
-		{
-			auto SequenceComp = Editor->GetSequenceComponent();
-			if (SequenceComp)
-			{
-				auto& SequenceArray = SequenceComp->GetSequenceArray();
-				for (auto& Item : SequenceArray)
+			auto& SequenceArray = SequenceComp->GetSequenceArray();
+			auto ExistIndex = SequenceArray.IndexOfByPredicate([InText, this](const ULGUIPrefabSequence* Item) {
+				if (ListItem.Pin()->Animation == Item)
 				{
-					if (Item->GetFName() == NewName)
-					{
-						OutErrorMessage = LOCTEXT("NameInUseByAnimation", "An animation with this name already exists");
-						return false;
-					}
+					return false;
 				}
+				return Item->GetDisplayName().EqualTo(InText);
+				});
+			if (ExistIndex != INDEX_NONE)
+			{
+				OutErrorMessage = LOCTEXT("NameInUseByAnimation", "An animation with this name already exists");
+				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -129,27 +121,24 @@ private:
 		auto Animation = ListItem.Pin()->Animation;
 
 		// Name has already been checked in VerifyAnimationRename
-		const FName NewFName = *InText.ToString();
-		const FName OldFName = Animation->GetFName();
+		auto NewName = InText.ToString();
+		auto OldName = Animation->GetDisplayName().ToString();
 
 		//FObjectPropertyBase* ExistingProperty = CastField<FObjectPropertyBase>(Blueprint->ParentClass->FindPropertyByName(NewFName));
 		//const bool bBindWidgetAnim = ExistingProperty && FWidgetBlueprintEditorUtils::IsBindWidgetAnimProperty(ExistingProperty) && ExistingProperty->PropertyClass->IsChildOf(UWidgetAnimation::StaticClass());
 
-		const bool bValidName = !OldFName.IsEqual(NewFName) && !InText.IsEmpty();
+		const bool bValidName = !OldName.Equals(NewName) && !InText.IsEmpty();
 		const bool bCanRename = (bValidName/* || bBindWidgetAnim*/);
 
 		const bool bNewAnimation = ListItem.Pin()->bNewAnimation;
 		if (bCanRename)
 		{
-			const FString NewNameStr = NewFName.ToString();
-			const FString OldNameStr = OldFName.ToString();
-
 			FText TransactionName = bNewAnimation ? LOCTEXT("NewAnimation", "New Animation") : LOCTEXT("RenameAnimation", "Rename Animation");
 			{
 				const FScopedTransaction Transaction(TransactionName);
 				Animation->Modify();
 
-				Animation->Rename(*NewNameStr);
+				Animation->SetDisplayName(NewName);
 
 				if (bNewAnimation)
 				{
@@ -547,9 +536,8 @@ void SLGUIPrefabSequenceEditor::OnDuplicateAnimation()
 		{
 			bool bRequestRename = true;
 			bool bNewAnimation = true;
-			auto ListItem = MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation));
-			Animations.Insert(ListItem, CurrentSelectedAnimationIndex + 1);
-			AnimationListView->RequestScrollIntoView(ListItem);
+			int32 NewIndex = Animations.Insert(MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation)), CurrentSelectedAnimationIndex + 1);
+			AnimationListView->RequestScrollIntoView(Animations[NewIndex]);
 		}
 	}
 }
