@@ -34,7 +34,7 @@ protected:
 	const TArray<FLayoutChild>& GetLayoutUIItemChildren()const;
 	void EnsureChildValid();
 	virtual void RebuildChildrenList()const;
-	void SortChildrenList()const;
+	virtual void SortChildrenList()const;
 	virtual void GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
@@ -43,5 +43,6 @@ protected:
 public:
 	/** Mark layout children changed, so we need RebuildChildrenList when we need to. */
 	void MarkNeedRebuildChildrenList();
+	void MarkNeedSortChildrenList();
 	virtual void MarkRebuildLayout_Implementation()override;
 };

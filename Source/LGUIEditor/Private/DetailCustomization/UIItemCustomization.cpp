@@ -67,7 +67,7 @@ void FUIItemCustomization::AddSlotProperty(IDetailLayoutBuilder& DetailBuilder)
 	auto Slot = PanelLayout->GetChildSlot(UIItem.Get());
 	if (!IsValid(Slot))return;
 	IDetailCategoryBuilder& PanelLayoutSlotCategory = DetailBuilder.EditCategory("LGUILayoutSlot"
-		, FText::Format(LOCTEXT("LGUIPanelLayoutSlotFormat", "LGUI-PanelLayout-Slot({0})"), PanelLayout->GetCategoryDisplayName())
+		, FText::Format(LOCTEXT("LGUIPanelLayoutSlotFormat", "LGUI-PanelLayout-Slot ({0})"), PanelLayout->GetCategoryDisplayName())
 		, ECategoryPriority::Transform);
 	PanelLayoutSlotCategory.AddExternalObjects({ Slot }, EPropertyLocation::Default,
 		FAddPropertyParams().CreateCategoryNodes(false).HideRootObjectNode(true));

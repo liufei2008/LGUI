@@ -23,6 +23,11 @@ void UUILayoutWithChildren::MarkNeedRebuildChildrenList()
     bNeedRebuildChildrenList = true;
 }
 
+void UUILayoutWithChildren::MarkNeedSortChildrenList()
+{
+    bNeedSortChildrenList = true;
+}
+
 void UUILayoutWithChildren::EnsureChildValid()
 {
     for (int i = 0; i < LayoutUIItemChildrenArray.Num(); i++)
