@@ -98,7 +98,10 @@ void FLGUICanvasCustomClip_RoundedRect_Customization::CustomizeDetails(IDetailLa
 
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 	
+	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, replaceMaterialMap));
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, CornerRadius));
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, bUniformSetCornerRadius));
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, CornerRadiusUnitMode));
 
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, bUniformSetCornerRadius));
 	auto CornerRadiusUnitModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasCustomClip_RoundedRect, CornerRadiusUnitMode));

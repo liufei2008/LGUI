@@ -112,7 +112,7 @@ void UUIGridLayout::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
@@ -387,7 +387,7 @@ void UUIGridLayout::OnRebuildLayout()
 	int tempLineIndex = 1;
 	for (int i = 0; i < childrenCount; i++)
 	{
-		auto uiItem = uiChildrenList[i].uiItem;
+		auto uiItem = uiChildrenList[i].ChildUIItem;
 		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal
 		{
@@ -482,7 +482,7 @@ void UUIGridLayout::OnRebuildLayout()
 
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 
@@ -497,9 +497,9 @@ bool UUIGridLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUI
 	else
 	{
 		if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-		UActorComponent* layoutElement = nullptr;
+		UObject* layoutElement = nullptr;
 		bool ignoreLayout = false;
-		GetLayoutElement(InUIItem->GetOwner(), layoutElement, ignoreLayout);
+		GetLayoutElement(InUIItem, layoutElement, ignoreLayout);
 		if (ignoreLayout)
 		{
 			return true;

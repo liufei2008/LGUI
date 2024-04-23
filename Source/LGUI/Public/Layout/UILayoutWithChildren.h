@@ -18,24 +18,24 @@ public:
 protected:
 	virtual void Awake() override;
 
-	struct FAvaliableChild
+	struct FLayoutChild
 	{
-		TWeakObjectPtr<UUIItem> uiItem;
-		TWeakObjectPtr<UActorComponent> layoutElement;
-		bool operator == (const FAvaliableChild& Other)const
+		TWeakObjectPtr<UUIItem> ChildUIItem;
+		TWeakObjectPtr<UObject> LayoutInterface;
+		bool operator == (const FLayoutChild& Other)const
 		{
-			return uiItem.Get() == Other.uiItem.Get();
+			return ChildUIItem.Get() == Other.ChildUIItem.Get();
 		}
 	};
 	mutable uint8 bNeedRebuildChildrenList : 1;
 	mutable uint8 bNeedSortChildrenList : 1;
-	mutable TArray<FAvaliableChild> LayoutUIItemChildrenArray;
+	mutable TArray<FLayoutChild> LayoutUIItemChildrenArray;
 
-	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const;
+	const TArray<FLayoutChild>& GetLayoutUIItemChildren()const;
 	void EnsureChildValid();
-	void RebuildChildrenList()const;
-	void SortChildrenList()const;
-	virtual void GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const;
+	virtual void RebuildChildrenList()const;
+	virtual void SortChildrenList()const;
+	virtual void GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
@@ -43,5 +43,6 @@ protected:
 public:
 	/** Mark layout children changed, so we need RebuildChildrenList when we need to. */
 	void MarkNeedRebuildChildrenList();
+	void MarkNeedSortChildrenList();
 	virtual void MarkRebuildLayout_Implementation()override;
 };

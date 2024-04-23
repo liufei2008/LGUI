@@ -54,6 +54,24 @@ void FUIItemCustomization::ForceUpdateUI()
 		}
 	}
 }
+
+#include "Layout/UIPanelLayoutBase.h"
+void FUIItemCustomization::AddSlotProperty(IDetailLayoutBuilder& DetailBuilder)
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+	auto UIItem = TargetScriptArray[0];
+	auto ParentUIItem = UIItem->GetParentUIItem();
+	if (!IsValid(ParentUIItem))return;
+	auto PanelLayout = ParentUIItem->GetOwner()->FindComponentByClass<UUIPanelLayoutBase>();
+	if (!IsValid(PanelLayout))return;
+	auto Slot = PanelLayout->GetChildSlot(UIItem.Get());
+	if (!IsValid(Slot))return;
+	IDetailCategoryBuilder& PanelLayoutSlotCategory = DetailBuilder.EditCategory("LGUILayoutSlot"
+		, FText::Format(LOCTEXT("LGUIPanelLayoutSlotFormat", "LGUI-PanelLayout-Slot ({0})"), PanelLayout->GetCategoryDisplayName())
+		, ECategoryPriority::Transform);
+	PanelLayoutSlotCategory.AddExternalObjects({ Slot }, EPropertyLocation::Default,
+		FAddPropertyParams().CreateCategoryNodes(false).HideRootObjectNode(true));
+}
 void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
 	TArray<TWeakObjectPtr<UObject>> targetObjects;
@@ -80,6 +98,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
+
+	AddSlotProperty(DetailBuilder);
 
 	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
 	DetailBuilder.HideCategory("TransformCommon");
@@ -722,6 +742,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		[
 			hierarchyIndexWidget
 		]
+		.PropertyHandleList({ HierarchyIndexHandle })
 		;
 
 		TransformCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, flattenHierarchyIndex)), EPropertyLocation::Advanced);

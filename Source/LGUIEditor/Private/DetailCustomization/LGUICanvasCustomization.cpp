@@ -364,7 +364,17 @@ Click this button to fix it by change texture settings.\
 		}
 		else if (clipType == ELGUICanvasClipType::Custom)
 		{
-			ClipTypeGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, customClip)));
+			IDetailGroup& CustomClipGroup = ClipTypeGroup.AddGroup(FName(TEXT("CustomClip")), LOCTEXT("CustomClip", "CustomClip"));
+			CustomClipGroup.HeaderProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, customClip)));
+
+			UObject* customClipObject = nullptr;
+			auto customClipObjectProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, customClip));
+			customClipObjectProperty->GetValue(customClipObject);
+
+			IDetailCategoryBuilder& CustomClipCategory = DetailBuilder.EditCategory("LGUI-CustomClip");
+
+			CustomClipCategory.AddExternalObjects({ customClipObject }, EPropertyLocation::Default
+				, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
 		}
 	}
 	if (!needToHidePropertyNames.Contains(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget)))
