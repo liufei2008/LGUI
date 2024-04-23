@@ -112,7 +112,7 @@ void UUIGridLayout::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
@@ -482,7 +482,7 @@ void UUIGridLayout::OnRebuildLayout()
 
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

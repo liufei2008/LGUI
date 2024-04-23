@@ -34,7 +34,7 @@ void UUIPanelLayout_VerticalBox::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
     EUILayoutAnimationType TempAnimationType = AnimationType;
 #if WITH_EDITOR
@@ -197,7 +197,7 @@ void UUIPanelLayout_VerticalBox::OnRebuildLayout()
     
 	if (TempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

@@ -125,7 +125,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
     FVector2D startPosition;
     startPosition.X = Padding.Left;
@@ -504,7 +504,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     }
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

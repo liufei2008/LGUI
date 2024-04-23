@@ -34,7 +34,7 @@ void UUIPanelLayout_UniformGrid::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
     EUILayoutAnimationType TempAnimationType = AnimationType;
 #if WITH_EDITOR
@@ -198,7 +198,7 @@ void UUIPanelLayout_UniformGrid::OnRebuildLayout()
     
 	if (TempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

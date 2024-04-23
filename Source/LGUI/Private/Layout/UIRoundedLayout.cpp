@@ -10,7 +10,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
 	if (!GetEnable())return;
-	CancelAnimation();
+	CancelAllAnimations();
 
 	EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
@@ -52,7 +52,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

@@ -6,7 +6,71 @@
 #include "LTweenManager.h"
 #include "LTweenBPLibrary.h"
 
-void UUILayoutWithAnimation::CancelAnimation(bool callComplete)
+
+UUILayoutWithAnimation_CustomAnimation::UUILayoutWithAnimation_CustomAnimation()
+{
+	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
+}
+void UUILayoutWithAnimation_CustomAnimation::BeginSetupAnimations()
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveBeginSetupAnimations();
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::ApplyAnchoredPositionAnimation(const FVector2D& Value, UUIItem* Target)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveApplyAnchoredPositionAnimation(Value, Target);
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::ApplyRotatorAnimation(const FRotator& Value, UUIItem* Target)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveApplyRotatorAnimation(Value, Target);
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::ApplyWidthAnimation(float Value, UUIItem* Target)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveApplyWidthAnimation(Value, Target);
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::ApplyHeightAnimation(float Value, UUIItem* Target)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveApplyHeightAnimation(Value, Target);
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::ApplySizeDeltaAnimation(const FVector2D& Value, UUIItem* Target)
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveApplySizeDeltaAnimation(Value, Target);
+	}
+}
+void UUILayoutWithAnimation_CustomAnimation::EndSetupAnimations()
+{
+	if (bCanExecuteBlueprintEvent)
+	{
+		ReceiveEndSetupAnimations();
+	}
+}
+
+
+void UUILayoutWithAnimation::BeginSetupAnimations()
+{
+	if (AnimationType == EUILayoutAnimationType::Custom && IsValid(CustomAnimation))
+	{
+		CustomAnimation->BeginSetupAnimations();
+	}
+	CancelAllAnimations(false);
+}
+void UUILayoutWithAnimation::CancelAllAnimations(bool callComplete)
 {
 	if (TweenerArray.Num() > 0)
 	{
@@ -22,8 +86,12 @@ void UUILayoutWithAnimation::CancelAnimation(bool callComplete)
 	bIsAnimationPlaying = false;
 }
 
-void UUILayoutWithAnimation::SetOnCompleteTween()
+void UUILayoutWithAnimation::EndSetupAnimations()
 {
+	if (AnimationType == EUILayoutAnimationType::Custom && IsValid(CustomAnimation))
+	{
+		CustomAnimation->EndSetupAnimations();
+	}
 	bIsAnimationPlaying = true;
 	auto tweener = ULTweenManager::VirtualTo(this, AnimationDuration)->OnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
 		bIsAnimationPlaying = false;
@@ -36,127 +104,210 @@ void UUILayoutWithAnimation::SetOnCompleteTween()
 	TweenerArray.Add(tweener);
 }
 
-void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D offset, UUIItem* target)
+void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D Value, UUIItem* Target)
 {
 	switch (tempAnimationType)
 	{
 	default:
 	case EUILayoutAnimationType::Immediately:
 	{
-		ApplyUIItemAnchoredPosition(target, offset);
+		ApplyUIItemAnchoredPosition(Target, Value);
 	}
 	break;
 	case EUILayoutAnimationType::EaseAnimation:
 	{
-		if (target->GetAnchoredPosition() != offset)
+		if (Target->GetAnchoredPosition() != Value)
 		{
-			auto tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), offset, AnimationDuration)->SetEase(ELTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(Target
+				, FLTweenVector2DGetterFunction::CreateUObject(Target, &UUIItem::GetAnchoredPosition)
+				, FLTweenVector2DSetterFunction::CreateUObject(Target, &UUIItem::SetAnchoredPosition)
+				, Value, AnimationDuration)
+				->SetEase(ELTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	case EUILayoutAnimationType::Custom:
+	{
+		if (IsValid(CustomAnimation))
+		{
+			CustomAnimation->ApplyAnchoredPositionAnimation(Value, Target);
+		}
+		else
+		{
+			ApplyUIItemAnchoredPosition(Target, Value);
 		}
 	}
 	break;
 	}
 }
 
-void UUILayoutWithAnimation::ApplyRotatorWithAnimation(EUILayoutAnimationType tempAnimationType, const FRotator& value, UUIItem* target)
+void UUILayoutWithAnimation::ApplyRotatorWithAnimation(EUILayoutAnimationType tempAnimationType, const FRotator& Value, UUIItem* Target)
 {
 	switch (tempAnimationType)
 	{
 	default:
 	case EUILayoutAnimationType::Immediately:
 	{
-		target->SetRelativeRotation(value);
+		Target->SetRelativeRotation(Value);
 	}
 	break;
 	case EUILayoutAnimationType::EaseAnimation:
 	{
-		if (target->GetRelativeRotation() != value)
+		if (Target->GetRelativeRotation() != Value)
 		{
-			auto tweener = ULTweenBPLibrary::LocalRotatorTo(target, value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
+			auto tweener = ULTweenBPLibrary::LocalRotatorTo(Target, Value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	case EUILayoutAnimationType::Custom:
+	{
+		if (IsValid(CustomAnimation))
+		{
+			CustomAnimation->ApplyRotatorAnimation(Value, Target);
+		}
+		else
+		{
+			Target->SetRelativeRotation(Value);
 		}
 	}
 	break;
 	}
 }
 
-void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutAnimationType tempAnimationType, float width, UUIItem* target)
+void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutAnimationType tempAnimationType, float Value, UUIItem* Target)
 {
 	switch (tempAnimationType)
 	{
 	default:
 	case EUILayoutAnimationType::Immediately:
 	{
-		ApplyUIItemWidth(target, width);
+		ApplyUIItemWidth(Target, Value);
 	}
 	break;
 	case EUILayoutAnimationType::EaseAnimation:
 	{
-		if (target->GetWidth() != width)
+		if (Target->GetWidth() != Value)
 		{
-			auto tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), width, AnimationDuration)->SetEase(ELTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(Target
+				, FLTweenFloatGetterFunction::CreateUObject(Target, &UUIItem::GetWidth)
+				, FLTweenFloatSetterFunction::CreateUObject(Target, &UUIItem::SetWidth)
+				, Value, AnimationDuration)
+				->SetEase(ELTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	case EUILayoutAnimationType::Custom:
+	{
+		if (IsValid(CustomAnimation))
+		{
+			CustomAnimation->ApplyWidthAnimation(Value, Target);
+		}
+		else
+		{
+			ApplyUIItemWidth(Target, Value);
 		}
 	}
 	break;
 	}
 }
 
-void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutAnimationType tempAnimationType, float height, UUIItem* target)
+void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutAnimationType tempAnimationType, float Value, UUIItem* Target)
 {
 	switch (tempAnimationType)
 	{
 	default:
 	case EUILayoutAnimationType::Immediately:
 	{
-		ApplyUIItemHeight(target, height);
+		ApplyUIItemHeight(Target, Value);
 	}
 	break;
 	case EUILayoutAnimationType::EaseAnimation:
 	{
-		if (target->GetHeight() != height)
+		if (Target->GetHeight() != Value)
 		{
-			auto tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), height, AnimationDuration)->SetEase(ELTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(Target
+				, FLTweenFloatGetterFunction::CreateUObject(Target, &UUIItem::GetHeight)
+				, FLTweenFloatSetterFunction::CreateUObject(Target, &UUIItem::SetHeight)
+				, Value, AnimationDuration)
+				->SetEase(ELTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	case EUILayoutAnimationType::Custom:
+	{
+		if (IsValid(CustomAnimation))
+		{
+			CustomAnimation->ApplyHeightAnimation(Value, Target);
+		}
+		else
+		{
+			ApplyUIItemHeight(Target, Value);
 		}
 	}
 	break;
 	}
 }
 
-void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D sizeDelta, UUIItem* target)
+void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D Value, UUIItem* Target)
 {
 	switch (tempAnimationType)
 	{
 	default:
 	case EUILayoutAnimationType::Immediately:
 	{
-		ApplyUIItemSizeDelta(target, sizeDelta);
+		ApplyUIItemSizeDelta(Target, Value);
 	}
 	break;
 	case EUILayoutAnimationType::EaseAnimation:
 	{
-		if (target->GetSizeDelta() != sizeDelta)
+		if (Target->GetSizeDelta() != Value)
 		{
-			auto tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetSizeDelta), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetSizeDelta), sizeDelta, AnimationDuration)->SetEase(ELTweenEase::InOutSine);
+			auto tweener = ULTweenManager::To(Target
+				, FLTweenVector2DGetterFunction::CreateUObject(Target, &UUIItem::GetSizeDelta)
+				, FLTweenVector2DSetterFunction::CreateUObject(Target, &UUIItem::SetSizeDelta)
+				, Value, AnimationDuration)
+				->SetEase(ELTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
+		}
+	}
+	break;
+	case EUILayoutAnimationType::Custom:
+	{
+		if (IsValid(CustomAnimation))
+		{
+			CustomAnimation->ApplySizeDeltaAnimation(Value, Target);
+		}
+		else
+		{
+			ApplyUIItemSizeDelta(Target, Value);
 		}
 	}
 	break;
 	}
 }
 
-void UUILayoutWithAnimation::SetAnimationType(EUILayoutAnimationType value)
+void UUILayoutWithAnimation::SetAnimationType(EUILayoutAnimationType Value)
 {
-	if (AnimationType != value)
+	if (AnimationType != Value)
 	{
-		AnimationType = value;
+		AnimationType = Value;
 	}
 }
-void UUILayoutWithAnimation::SetAnimationDuration(float value)
+void UUILayoutWithAnimation::SetAnimationDuration(float Value)
 {
-	if (AnimationDuration != value)
+	if (AnimationDuration != Value)
 	{
-		AnimationDuration = value;
+		AnimationDuration = Value;
+	}
+}
+void UUILayoutWithAnimation::SetCustomAnimation(UUILayoutWithAnimation_CustomAnimation* Value)
+{
+	if (CustomAnimation != Value)
+	{
+		CustomAnimation = Value;
 	}
 }
