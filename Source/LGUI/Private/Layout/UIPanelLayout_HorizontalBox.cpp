@@ -87,12 +87,12 @@ void UUIPanelLayout_HorizontalBox::OnRebuildLayout()
     if (bWidthFitToChildren)
     {
         RectSize.X = TotalFillWidth + TotalAutoWidth + TotalPaddingWidth;
-        RootUIComp->SetWidth(RectSize.X);
+        ApplyWidthWithAnimation(TempAnimationType, RectSize.X, RootUIComp.Get());
     }
     if (bHeightFitToChildren)
     {
         RectSize.Y = FMath::Lerp(ChildHeightMin, ChildHeightMax, HeightFitToChildrenFromMinToMax);
-        RootUIComp->SetHeight(RectSize.Y);
+        ApplyHeightWithAnimation(TempAnimationType, RectSize.Y, RootUIComp.Get());
     }
     auto TotalFillSize = RectSize.X - TotalAutoWidth - TotalPaddingWidth;
     float Inv_TotalFillRatio = 1.0f / TotalFillRatio;

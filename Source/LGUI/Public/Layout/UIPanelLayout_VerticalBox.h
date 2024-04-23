@@ -11,7 +11,7 @@
  * Layout child elements side by side horizontally
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIPanelLayout_VerticalBox : public UUIPanelLayoutBase
+class LGUI_API UUIPanelLayout_VerticalBox : public UUIPanelLayoutWithOverrideOrder
 {
 	GENERATED_BODY()
 protected:
@@ -51,7 +51,7 @@ protected:
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable)
-class LGUI_API UUIPanelLayout_VerticalBox_Slot : public UUIPanelLayoutSlotBase
+class LGUI_API UUIPanelLayout_VerticalBox_Slot : public UUIPanelLayoutSlotWithOverrideOrder
 {
 	GENERATED_BODY()
 protected:
@@ -74,9 +74,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		const FSlateChildSize& GetSizeRule()const { return SizeRule; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		const EHorizontalAlignment GetHorizontalAlignment()const { return HorizontalAlignment; }
+		EHorizontalAlignment GetHorizontalAlignment()const { return HorizontalAlignment; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		const EVerticalAlignment GetVerticalAlignment()const { return VerticalAlignment; }
+		EVerticalAlignment GetVerticalAlignment()const { return VerticalAlignment; }
 
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetPadding(const FMargin& Value);

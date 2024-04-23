@@ -28,40 +28,6 @@ void UUIPanelLayoutBase::RebuildChildrenList()const
     Super::RebuildChildrenList();
     const_cast<UUIPanelLayoutBase*>(this)->CleanMapChildToSlot();
 }
-void UUIPanelLayoutBase::SortChildrenList()const
-{
-    LayoutUIItemChildrenArray.Sort([](FLayoutChild A, FLayoutChild B) //sort children by HierarchyIndex
-        {
-            auto ASlot = Cast<UUIPanelLayoutSlotBase>(A.LayoutInterface);
-            auto BSlot = Cast<UUIPanelLayoutSlotBase>(B.LayoutInterface);
-            if (ASlot && BSlot)
-            {
-                if (ASlot->GetOverrideLayoutOrder() < BSlot->GetOverrideLayoutOrder())
-                {
-                    return true;
-                }
-                else if (ASlot->GetOverrideLayoutOrder() > BSlot->GetOverrideLayoutOrder())
-                {
-                    return false;
-                }
-                //else use HierarchyIndex
-            }
-            else
-            {
-                if (ASlot && ASlot->GetOverrideLayoutOrder() != 0)
-                {
-                    return ASlot->GetOverrideLayoutOrder() < 0;
-                }
-                if (BSlot && BSlot->GetOverrideLayoutOrder() != 0)
-                {
-                    return BSlot->GetOverrideLayoutOrder() < 0;
-                }
-            }
-            if (A.ChildUIItem->GetHierarchyIndex() < B.ChildUIItem->GetHierarchyIndex())
-                return true;
-            return false;
-        });
-}
 void UUIPanelLayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)
 {
     Super::OnUIChildAcitveInHierarchy(InChild, InUIActive);
@@ -144,18 +110,6 @@ void UUIPanelLayoutSlotBase::SetIgnoreLayout(bool Value)
         }
     }
 }
-void UUIPanelLayoutSlotBase::SetOverrideLayoutOrder(int Value)
-{
-    if (OverrideLayoutOrder != Value)
-    {
-        OverrideLayoutOrder = Value;
-        if (auto Layout = GetTypedOuter<UUIPanelLayoutBase>())
-        {
-            Layout->MarkNeedRebuildLayout();
-            Layout->MarkNeedSortChildrenList();
-        }
-    }
-}
 void UUIPanelLayoutSlotBase::SetDesiredSize(const FVector2D& Value)
 {
     if (DesiredSize != Value)
@@ -164,6 +118,53 @@ void UUIPanelLayoutSlotBase::SetDesiredSize(const FVector2D& Value)
         if (auto Layout = GetTypedOuter<UUIPanelLayoutBase>())
         {
             Layout->MarkNeedRebuildLayout();
+        }
+    }
+}
+
+void UUIPanelLayoutWithOverrideOrder::SortChildrenList()const
+{
+    LayoutUIItemChildrenArray.Sort([](FLayoutChild A, FLayoutChild B) //sort children by HierarchyIndex
+        {
+            auto ASlot = Cast<UUIPanelLayoutSlotWithOverrideOrder>(A.LayoutInterface);
+            auto BSlot = Cast<UUIPanelLayoutSlotWithOverrideOrder>(B.LayoutInterface);
+            if (ASlot && BSlot)
+            {
+                if (ASlot->GetOverrideLayoutOrder() < BSlot->GetOverrideLayoutOrder())
+                {
+                    return true;
+                }
+                else if (ASlot->GetOverrideLayoutOrder() > BSlot->GetOverrideLayoutOrder())
+                {
+                    return false;
+                }
+                //else use HierarchyIndex
+            }
+            else
+            {
+                if (ASlot && ASlot->GetOverrideLayoutOrder() != 0)
+                {
+                    return ASlot->GetOverrideLayoutOrder() < 0;
+                }
+                if (BSlot && BSlot->GetOverrideLayoutOrder() != 0)
+                {
+                    return BSlot->GetOverrideLayoutOrder() < 0;
+                }
+            }
+            if (A.ChildUIItem->GetHierarchyIndex() < B.ChildUIItem->GetHierarchyIndex())
+                return true;
+            return false;
+        });
+}
+void UUIPanelLayoutSlotWithOverrideOrder::SetOverrideLayoutOrder(int Value)
+{
+    if (OverrideLayoutOrder != Value)
+    {
+        OverrideLayoutOrder = Value;
+        if (auto Layout = GetTypedOuter<UUIPanelLayoutBase>())
+        {
+            Layout->MarkNeedRebuildLayout();
+            Layout->MarkNeedSortChildrenList();
         }
     }
 }

@@ -76,6 +76,7 @@
 
 #include "DetailCustomization/UIPanelLayoutHorizontalBoxSlotCustomization.h"
 #include "DetailCustomization/UIPanelLayoutVerticalBoxSlotCustomization.h"
+#include "DetailCustomization/UIPanelLayoutUniformGridSlotCustomization.h"
 
 #include "PrefabEditor/LGUIPrefabOverrideDataViewer.h"
 #include "Engine/Selection.h"
@@ -318,8 +319,10 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentReferenceCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabSequenceComponentCustomization::MakeInstance));
+
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutHorizontalBoxSlotCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutVerticalBoxSlotCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_UniformGrid_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutUniformGridSlotCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -538,8 +541,10 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName());
 
 		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName());
+
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_UniformGrid_Slot::StaticClass()->GetFName());
 	}
 	//unregister asset
 	{

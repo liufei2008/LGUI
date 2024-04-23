@@ -18,7 +18,6 @@ public:
 protected:
 	virtual void GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const;
 	virtual void RebuildChildrenList()const override;
-	virtual void SortChildrenList()const override;
 	virtual void Awake() override;
 
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
@@ -50,12 +49,6 @@ protected:
 	/** The desired with and height that this layout element trying to fit. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
 		FVector2D DesiredSize = FVector2D(100, 100);
-	/**
-	 * Use this value as layout order instead of HierarchyIndex. Lower value will go left-top position.
-	 * If 0 then use default order.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
-		int OverrideLayoutOrder = 0;
 	/** Ignore parent layout. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
 		bool bIgnoreLayout = false;
@@ -63,13 +56,37 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		FVector2D GetDesiredSize()const { return DesiredSize; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		int GetOverrideLayoutOrder()const { return OverrideLayoutOrder; }
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		bool GetIgnoreLayout()const { return bIgnoreLayout; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetIgnoreLayout(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		void SetOverrideLayoutOrder(int Value);
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetDesiredSize(const FVector2D& Value);
 };
+
+UCLASS(Abstract)
+class LGUI_API UUIPanelLayoutWithOverrideOrder : public UUIPanelLayoutBase
+{
+	GENERATED_BODY()
+public:
+	virtual void SortChildrenList()const override;
+};
+
+UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced)
+class LGUI_API UUIPanelLayoutSlotWithOverrideOrder : public UUIPanelLayoutSlotBase
+{
+	GENERATED_BODY()
+protected:
+	/**
+	 * Use this value as layout order instead of HierarchyIndex. Lower value will go left-top position.
+	 * If 0 then use default order.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
+		int OverrideLayoutOrder = 0;
+public:
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		int GetOverrideLayoutOrder()const { return OverrideLayoutOrder; }
+
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		void SetOverrideLayoutOrder(int Value);
+};
+

@@ -5,24 +5,27 @@
 #include "CoreMinimal.h"
 #include "UIPanelLayoutBase.h"
 #include "Components/SlateWrapperTypes.h"
-#include "UIPanelLayout_HorizontalBox.generated.h"
+#include "UIPanelLayout_UniformGrid.generated.h"
 
 /**
  * Layout child elements side by side horizontally
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIPanelLayout_HorizontalBox : public UUIPanelLayoutWithOverrideOrder
+class LGUI_API UUIPanelLayout_UniformGrid : public UUIPanelLayoutBase
 {
 	GENERATED_BODY()
 protected:
 	/** this object's width set to all children's range */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout")
 		bool bWidthFitToChildren = false;
+	/** lerp from min child's width to max child's width */
+	UPROPERTY(EditAnywhere, Category = "Panel Layout", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition = "bWidthFitToChildren"))
+		float WidthFitToChildrenFromMinToMax = 1.0f;
 	/** this object's height set to children height */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout")
 		bool bHeightFitToChildren = false;
 	/** lerp from min child's height to max child's height */
-	UPROPERTY(EditAnywhere, Category = "Panel Layout", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition="bHeightFitToChildren"))
+	UPROPERTY(EditAnywhere, Category = "Panel Layout", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition = "bHeightFitToChildren"))
 		float HeightFitToChildrenFromMinToMax = 1.0f;
 public:
 	virtual void OnRebuildLayout()override;
@@ -37,31 +40,28 @@ public:
 		bool GetWidthFitToChildren()const { return bWidthFitToChildren; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		bool GetHeightFitToChildren()const { return bHeightFitToChildren; }
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		float GetHeightFitToChildrenFromMinToMax()const { return HeightFitToChildrenFromMinToMax; }
 
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		void SetWidthFitToChildren(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		void SetHeightFitToChildren(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		void SetHeightFitToChildrenFromMinToMax(float Value);
 protected:
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable)
-class LGUI_API UUIPanelLayout_HorizontalBox_Slot : public UUIPanelLayoutSlotWithOverrideOrder
+class LGUI_API UUIPanelLayout_UniformGrid_Slot : public UUIPanelLayoutSlotBase
 {
 	GENERATED_BODY()
 protected:
-	friend class FUIPanelLayoutHorizontalBoxSlotCustomization;
+	friend class FUIPanelLayoutUniformGridSlotCustomization;
 	/** The padding area between the slot and the content it contains. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
 		FMargin Padding;
-	/** How much space this slot should occupy in the direction of the panel. */
-	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
-		FSlateChildSize SizeRule;
+	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "0"))
+		int Column = 0;
+	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "0"))
+		int Row = 0;
 	/** The alignment of the object horizontally. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
 		TEnumAsByte<EHorizontalAlignment> HorizontalAlignment;
@@ -72,7 +72,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		const FMargin& GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		const FSlateChildSize& GetSizeRule()const { return SizeRule; }
+		int GetColumn()const { return Column; }
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		int GetRow()const { return Row; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		EHorizontalAlignment GetHorizontalAlignment()const { return HorizontalAlignment; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
@@ -81,7 +83,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetPadding(const FMargin& Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		void SetSizeRule(const FSlateChildSize& Value);
+		void SetColumn(int Value);
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		void SetRow(int Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetHorizontalAlignment(const EHorizontalAlignment& Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
