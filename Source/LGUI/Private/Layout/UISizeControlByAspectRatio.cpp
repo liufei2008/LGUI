@@ -35,7 +35,7 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
 	EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
@@ -113,7 +113,7 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 	}
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 

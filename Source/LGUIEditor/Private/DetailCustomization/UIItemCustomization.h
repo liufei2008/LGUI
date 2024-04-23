@@ -22,6 +22,7 @@ private:
 	TArray<TWeakObjectPtr<class UUIItem>> TargetScriptArray;
 	static TArray<float> ValueRangeArray;
 
+	void AddSlotProperty(IDetailLayoutBuilder& DetailBuilder);
 	bool GetIsAnchorsEnabled()const;
 	FText GetAnchorsTooltipText()const;
 

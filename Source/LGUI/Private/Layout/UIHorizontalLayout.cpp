@@ -125,7 +125,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 		bShouldRebuildLayoutAfterAnimation = true;
 		return;
 	}
-	CancelAnimation();
+	CancelAllAnimations();
 
     FVector2D startPosition;
     startPosition.X = Padding.Left;
@@ -147,19 +147,19 @@ void UUIHorizontalLayout::OnRebuildLayout()
         {
             auto& item = uiChildrenList[i];
             float tempChildWidth = 0;
-            if (item.layoutElement.IsValid())
+            if (item.LayoutInterface.IsValid())
             {
-                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                 switch (layoutType)
                 {
                 case ELayoutElementType::AutoSize:
                     autoSizeChildrenCount++;
                     break;
                 case ELayoutElementType::ConstantSize:
-                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get(), ELayoutElementSizeType::Horizontal);
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetConstantSize(item.LayoutInterface.Get(), ELayoutElementSizeType::Horizontal);
                     break;
                 case ELayoutElementType::RatioSize:
-                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get(), ELayoutElementSizeType::Horizontal) * sizeWithoutSpacing;
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetRatioSize(item.LayoutInterface.Get(), ELayoutElementSizeType::Horizontal) * sizeWithoutSpacing;
                     break;
                 }
             }
@@ -169,7 +169,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
             }
             if (UseChildScaleOnWidth)
             {
-                tempChildWidth *= item.uiItem->GetRelativeScale3D().Y;
+                tempChildWidth *= item.ChildUIItem->GetRelativeScale3D().Y;
             }
             autoSizeChildrenTotalWidth -= tempChildWidth;
             childrenWidthList[i].AreaWidth = tempChildWidth;
@@ -181,9 +181,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
         {
             auto& item = uiChildrenList[i];
             bool bCanCollectSize = false;
-            if (item.layoutElement != nullptr)
+            if (item.LayoutInterface != nullptr)
             {
-                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                 bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
             }
             else
@@ -192,7 +192,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
             }
             if (bCanCollectSize)
             {
-                autoSizeChildScaleSum += UseChildScaleOnWidth ? item.uiItem->GetRelativeScale3D().Y : 1.0f;
+                autoSizeChildScaleSum += UseChildScaleOnWidth ? item.ChildUIItem->GetRelativeScale3D().Y : 1.0f;
             }
         }
 
@@ -203,9 +203,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
             {
                 auto& item = uiChildrenList[i];
                 bool bCanSetSize = false;
-                if (item.layoutElement != nullptr)
+                if (item.LayoutInterface != nullptr)
                 {
-                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                     bCanSetSize = layoutType == ELayoutElementType::AutoSize;
                 }
                 else
@@ -218,7 +218,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
                     childrenWidthList[i].Width = childWidth;
                     if (UseChildScaleOnWidth)
                     {
-                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                        childWidth *= item.ChildUIItem->GetRelativeScale3D().Y;
                     }
                     childrenWidthList[i].AreaWidth = childWidth;
                 }
@@ -231,9 +231,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
             {
                 auto& item = uiChildrenList[i];
                 bool bCanCollectSize = false;
-                if (item.layoutElement != nullptr)
+                if (item.LayoutInterface != nullptr)
                 {
-                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                     bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
                 }
                 else
@@ -242,10 +242,10 @@ void UUIHorizontalLayout::OnRebuildLayout()
                 }
                 if (bCanCollectSize)
                 {
-                    auto childWidth = item.uiItem->GetWidth();
+                    auto childWidth = item.ChildUIItem->GetWidth();
                     if (UseChildScaleOnWidth)
                     {
-                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                        childWidth *= item.ChildUIItem->GetRelativeScale3D().Y;
                     }
                     autoSizeChildSizeSum += childWidth;
                 }
@@ -256,9 +256,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
             {
                 auto& item = uiChildrenList[i];
                 bool bCanCollectSize = false;
-                if (item.layoutElement != nullptr)
+                if (item.LayoutInterface != nullptr)
                 {
-                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                    auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                     bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
                 }
                 else
@@ -267,12 +267,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
                 }
                 if (bCanCollectSize)
                 {
-                    auto childWidth = item.uiItem->GetWidth();
+                    auto childWidth = item.ChildUIItem->GetWidth();
                     float extraChildWidth;
                     if (UseChildScaleOnWidth)
                     {
-                        childWidth *= item.uiItem->GetRelativeScale3D().Y;
-                        extraChildWidth = extraChildWidthTotal * item.uiItem->GetRelativeScale3D().Y / autoSizeChildScaleSum;
+                        childWidth *= item.ChildUIItem->GetRelativeScale3D().Y;
+                        extraChildWidth = extraChildWidthTotal * item.ChildUIItem->GetRelativeScale3D().Y / autoSizeChildScaleSum;
                     }
                     else
                     {
@@ -301,11 +301,11 @@ void UUIHorizontalLayout::OnRebuildLayout()
             float totalWidth = 0;
             for (int i = 0; i < childrenCount; i++)
             {
-                auto& uiItem = uiChildrenList[i].uiItem;
-                auto itemWidth = uiItem->GetWidth();
+                auto& ChildUIItem = uiChildrenList[i].ChildUIItem;
+                auto itemWidth = ChildUIItem->GetWidth();
                 if (UseChildScaleOnWidth)
                 {
-                    itemWidth *= uiItem->GetRelativeScale3D().Y;
+                    itemWidth *= ChildUIItem->GetRelativeScale3D().Y;
                 }
                 totalWidth += itemWidth;
             }
@@ -320,11 +320,11 @@ void UUIHorizontalLayout::OnRebuildLayout()
             float totalWidth = 0;
             for (int i = 0; i < childrenCount; i++)
             {
-                auto& uiItem = uiChildrenList[i].uiItem;
-                auto itemWidth = uiItem->GetWidth();
+                auto& ChildUIItem = uiChildrenList[i].ChildUIItem;
+                auto itemWidth = ChildUIItem->GetWidth();
                 if (UseChildScaleOnWidth)
                 {
-                    itemWidth *= uiItem->GetRelativeScale3D().Y;
+                    itemWidth *= ChildUIItem->GetRelativeScale3D().Y;
                 }
                 totalWidth += itemWidth;
             }
@@ -338,9 +338,9 @@ void UUIHorizontalLayout::OnRebuildLayout()
         {
             auto& item = uiChildrenList[i];
             bool bCanCollectSize = false;
-            if (item.layoutElement != nullptr)
+            if (item.LayoutInterface != nullptr)
             {
-                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.LayoutInterface.Get());
                 bCanCollectSize = layoutType == ELayoutElementType::AutoSize;
             }
             else
@@ -349,11 +349,11 @@ void UUIHorizontalLayout::OnRebuildLayout()
             }
             if (bCanCollectSize)
             {
-                auto childWidth = item.uiItem->GetWidth();
+                auto childWidth = item.ChildUIItem->GetWidth();
                 childrenWidthList[i].Width = childWidth;
                 if (UseChildScaleOnWidth)
                 {
-                    childWidth *= item.uiItem->GetRelativeScale3D().Y;
+                    childWidth *= item.ChildUIItem->GetRelativeScale3D().Y;
                 }
                 childrenWidthList[i].AreaWidth = childWidth;
             }
@@ -373,14 +373,14 @@ void UUIHorizontalLayout::OnRebuildLayout()
     float tempVerticalMaxSize = MIN_flt;
     for (int i = 0; i < childrenCount; i++)
     {
-        auto uiItem = uiChildrenList[i].uiItem;
+        auto ChildUIItem = uiChildrenList[i].ChildUIItem;
         float childWidthArea = childrenWidthList[i].AreaWidth;
         float childWidth = childrenWidthList[i].Width;
         if (ExpandChildWidthArea)
         {
             if (ControlChildWidth)
             {
-                ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
+                ApplyWidthWithAnimation(tempAnimationType, childWidth, ChildUIItem.Get());
             }
         }
 
@@ -388,12 +388,12 @@ void UUIHorizontalLayout::OnRebuildLayout()
         {
             if (ControlChildHeight)
             {
-                ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
+                ApplyHeightWithAnimation(tempAnimationType, childHeight, ChildUIItem.Get());
             }
         }
         else
         {
-            childHeight = uiItem->GetHeight();
+            childHeight = ChildUIItem->GetHeight();
             switch (Align)
             {
             default:
@@ -421,21 +421,21 @@ void UUIHorizontalLayout::OnRebuildLayout()
             }
         }
 
-        auto AnchorMin = uiItem->GetAnchorMin();
-        auto AnchorMax = uiItem->GetAnchorMax();
+        auto AnchorMin = ChildUIItem->GetAnchorMin();
+        auto AnchorMax = ChildUIItem->GetAnchorMax();
         if (AnchorMin.X != AnchorMax.X)//custom anchor not support
         {
-            uiItem->SetHorizontalAnchorMinMax(FVector2D(0, 0), true, true);
+            ChildUIItem->SetHorizontalAnchorMinMax(FVector2D(0, 0), true, true);
         }
         if (ExpandChildHeightArea || ControlChildHeight)
         {
             if (AnchorMin.Y != AnchorMax.Y)
             {
-                uiItem->SetVerticalAnchorMinMax(FVector2D(1, 1), true, true);
+                ChildUIItem->SetVerticalAnchorMinMax(FVector2D(1, 1), true, true);
             }
         }
-        float anchorOffsetX = posX + uiItem->GetPivot().X * childWidthArea;
-        float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
+        float anchorOffsetX = posX + ChildUIItem->GetPivot().X * childWidthArea;
+        float anchorOffsetY = posY - (1.0f - ChildUIItem->GetPivot().Y) * childHeight;
         if (ExpandChildWidthArea)
         {
             switch (Align)
@@ -444,21 +444,21 @@ void UUIHorizontalLayout::OnRebuildLayout()
             case ELGUILayoutAlignmentType::MiddleLeft:
             case ELGUILayoutAlignmentType::LowerLeft:
             {
-                anchorOffsetX += (childWidthArea - childWidth) * (0.0f - uiItem->GetPivot().X);
+                anchorOffsetX += (childWidthArea - childWidth) * (0.0f - ChildUIItem->GetPivot().X);
             }
             break;
             case ELGUILayoutAlignmentType::UpperCenter:
             case ELGUILayoutAlignmentType::MiddleCenter:
             case ELGUILayoutAlignmentType::LowerCenter:
             {
-                anchorOffsetX += (childWidthArea - childWidth) * (0.5f - uiItem->GetPivot().X);
+                anchorOffsetX += (childWidthArea - childWidth) * (0.5f - ChildUIItem->GetPivot().X);
             }
             break;
             case ELGUILayoutAlignmentType::UpperRight:
             case ELGUILayoutAlignmentType::MiddleRight:
             case ELGUILayoutAlignmentType::LowerRight:
             {
-                anchorOffsetX += (childWidthArea - childWidth) * (1.0f - uiItem->GetPivot().X);
+                anchorOffsetX += (childWidthArea - childWidth) * (1.0f - ChildUIItem->GetPivot().X);
             }
             break;
             }
@@ -469,10 +469,10 @@ void UUIHorizontalLayout::OnRebuildLayout()
         }
         else
         {
-            anchorOffsetY = uiItem->GetAnchoredPosition().Y;
+            anchorOffsetY = ChildUIItem->GetAnchoredPosition().Y;
         }
         anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
-        ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
+        ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), ChildUIItem.Get());
 
         posX += childWidthArea + Spacing;
         tempActuralHorizontalRange += childWidthArea;
@@ -504,7 +504,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     }
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
-		SetOnCompleteTween();
+		EndSetupAnimations();
 	}
 }
 
@@ -519,9 +519,9 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
     else
     {
         if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
-        UActorComponent* LayoutElementInterface = nullptr;
+        UObject* LayoutElementInterface = nullptr;
         bool bIgnoreLayout = false;
-        GetLayoutElement(InUIItem->GetOwner(), LayoutElementInterface, bIgnoreLayout);
+        GetLayoutElement(InUIItem, LayoutElementInterface, bIgnoreLayout);
         if (bIgnoreLayout)
         {
             return true;

@@ -23,11 +23,16 @@ void UUILayoutWithChildren::MarkNeedRebuildChildrenList()
     bNeedRebuildChildrenList = true;
 }
 
+void UUILayoutWithChildren::MarkNeedSortChildrenList()
+{
+    bNeedSortChildrenList = true;
+}
+
 void UUILayoutWithChildren::EnsureChildValid()
 {
     for (int i = 0; i < LayoutUIItemChildrenArray.Num(); i++)
     {
-        if (!LayoutUIItemChildrenArray[i].uiItem.IsValid())
+        if (!LayoutUIItemChildrenArray[i].ChildUIItem.IsValid())
         {
             LayoutUIItemChildrenArray.RemoveAt(i);
             i--;
@@ -40,24 +45,24 @@ void UUILayoutWithChildren::RebuildChildrenList()const
     if (CheckRootUIComponent())
     {
         LayoutUIItemChildrenArray.Reset();
-        const auto& children = RootUIComp->GetAttachUIChildren();
-        for (auto uiItem : children)
+        const auto& UIChildren = RootUIComp->GetAttachUIChildren();
+        for (auto UIChild : UIChildren)
         {
-            if (!IsValid(uiItem))continue;
-            if (uiItem->GetIsUIActiveInHierarchy())
+            if (!IsValid(UIChild))continue;
+            if (UIChild->GetIsUIActiveInHierarchy())
             {
-                if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
-                UActorComponent* layoutElement = nullptr;
+                if (UIChild->GetOwner()->GetRootComponent() != UIChild)continue;//only use root component
+                UObject* layoutElement = nullptr;
                 bool ignoreLayout = false;
-                GetLayoutElement(uiItem->GetOwner(), layoutElement, ignoreLayout);
+                GetLayoutElement(UIChild, layoutElement, ignoreLayout);
                 if (ignoreLayout)
                 {
                     continue;
                 }
 
-                FAvaliableChild child;
-                child.uiItem = uiItem;
-                child.layoutElement = layoutElement;
+                FLayoutChild child;
+                child.ChildUIItem = UIChild;
+                child.LayoutInterface = layoutElement;
                 LayoutUIItemChildrenArray.Add(child);
             }
         }
@@ -67,17 +72,17 @@ void UUILayoutWithChildren::RebuildChildrenList()const
 
 void UUILayoutWithChildren::SortChildrenList()const
 {
-    LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+    LayoutUIItemChildrenArray.Sort([](FLayoutChild A, FLayoutChild B) //sort children by HierarchyIndex
         {
-            if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+            if (A.ChildUIItem->GetHierarchyIndex() < B.ChildUIItem->GetHierarchyIndex())
                 return true;
             return false;
         });
 }
 
-void UUILayoutWithChildren::GetLayoutElement(AActor* InActor, UActorComponent*& OutLayoutElement, bool& OutIgnoreLayout)const
+void UUILayoutWithChildren::GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const
 {
-    auto LayoutElement = InActor->FindComponentByClass<UUILayoutElement>();
+    auto LayoutElement = InChild->GetOwner()->FindComponentByClass<UUILayoutElement>();
     if (LayoutElement != nullptr && LayoutElement->GetEnable())
     {
         OutLayoutElement = LayoutElement;
@@ -85,7 +90,7 @@ void UUILayoutWithChildren::GetLayoutElement(AActor* InActor, UActorComponent*& 
     }
 }
 
-const TArray<UUILayoutWithChildren::FAvaliableChild>& UUILayoutWithChildren::GetLayoutUIItemChildren()const
+const TArray<UUILayoutWithChildren::FLayoutChild>& UUILayoutWithChildren::GetLayoutUIItemChildren()const
 {
     if (bNeedRebuildChildrenList)
     {
@@ -105,21 +110,21 @@ void UUILayoutWithChildren::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool In
 {
     Super::OnUIChildAcitveInHierarchy(InChild, InUIActive);
     int32 index;
-    FAvaliableChild childData;
-    childData.uiItem = InChild;
+    FLayoutChild childData;
+    childData.ChildUIItem = InChild;
     if (InUIActive)
     {
         EnsureChildValid();
         if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
-            UActorComponent* layoutElement = nullptr;
+            UObject* layoutElement = nullptr;
             bool ignoreLayout = false;
-            GetLayoutElement(InChild->GetOwner(), layoutElement, ignoreLayout);
+            GetLayoutElement(InChild, layoutElement, ignoreLayout);
             if (ignoreLayout)
             {
                 return;
             }
-            childData.layoutElement = layoutElement;
+            childData.LayoutInterface = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
             bNeedSortChildrenList = true;
         }
@@ -139,21 +144,21 @@ void UUILayoutWithChildren::OnUIChildAttachmentChanged(UUIItem* InChild, bool at
 {
     Super::OnUIChildAttachmentChanged(InChild, attachOrDetach);
     int32 index;
-    FAvaliableChild childData;
-    childData.uiItem = InChild;
+    FLayoutChild childData;
+    childData.ChildUIItem = InChild;
     if (attachOrDetach && InChild->GetIsUIActiveInHierarchy())
     {
         EnsureChildValid();
         if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
-            UActorComponent* layoutElement = nullptr;
+            UObject* layoutElement = nullptr;
             bool ignoreLayout = false;
-            GetLayoutElement(InChild->GetOwner(), layoutElement, ignoreLayout);
+            GetLayoutElement(InChild, layoutElement, ignoreLayout);
             if (ignoreLayout)
             {
                 return;
             }
-            childData.layoutElement = layoutElement;
+            childData.LayoutInterface = layoutElement;
             LayoutUIItemChildrenArray.Add(childData);
             bNeedSortChildrenList = true;
         }
@@ -171,8 +176,8 @@ void UUILayoutWithChildren::OnUIChildAttachmentChanged(UUIItem* InChild, bool at
 void UUILayoutWithChildren::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
 {
     int32 index;
-    FAvaliableChild childData;
-    childData.uiItem = InChild;
+    FLayoutChild childData;
+    childData.ChildUIItem = InChild;
     EnsureChildValid();
     if (LayoutUIItemChildrenArray.Find(childData, index))
     {
