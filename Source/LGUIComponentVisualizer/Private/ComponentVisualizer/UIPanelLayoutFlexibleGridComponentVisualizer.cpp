@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "UIFlexibleGridLayoutComponentVisualizer.h"
-#include "Layout/UIFlexibleGridLayout.h"
+#include "UIPanelLayoutFlexibleGridComponentVisualizer.h"
+#include "Layout/UIPanelLayout_FlexibleGrid.h"
 #include "LGUIComponentVisualizerModule.h"
 #include "LGUI.h"
 
@@ -9,77 +9,75 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
-#define LOCTEXT_NAMESPACE "UIFlexibleGridLayoutComponentVisualizer"
+#define LOCTEXT_NAMESPACE "UIPanelLayoutFlexibleGridComponentVisualizer"
 
 
-FUIFlexibleGridLayoutComponentVisualizer::FUIFlexibleGridLayoutComponentVisualizer()
+FUIPanelLayoutFlexibleGridComponentVisualizer::FUIPanelLayoutFlexibleGridComponentVisualizer()
 	: FComponentVisualizer()
 {
-	SelectionState = NewObject<UUIFlexibleGridLayoutVisualizerSelectionState>(GetTransientPackage(), TEXT("UIFlexibleGridLayout_Visualizer_SelectionState"), RF_Transactional);
+	SelectionState = NewObject<UUIPanelLayoutFlexibleGridVisualizerSelectionState>(GetTransientPackage(), TEXT("UIPanelLayoutFlexibleGrid_Visualizer_SelectionState"), RF_Transactional);
 }
-void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorComponent* Component, const FSceneView* View, FPrimitiveDrawInterface* PDI)
+void FUIPanelLayoutFlexibleGridComponentVisualizer::DrawVisualization(const UActorComponent* Component, const FSceneView* View, FPrimitiveDrawInterface* PDI)
 {
-	auto Layout = Cast<UUIFlexibleGridLayout>(Component);
+	auto Layout = Cast<UUIPanelLayout_FlexibleGrid>(Component);
 	if (!Layout)return;
 	auto UIItem = Layout->GetRootUIComponent();
 	if (!UIItem)return;
 
-	TargetComp = (UUIFlexibleGridLayout*)Layout;
+	TargetComp = (UUIPanelLayout_FlexibleGrid*)Layout;
 	if (TargetComp->GetWorld() != View->Family->Scene->GetWorld())return;
 
 	auto& Columns = Layout->GetColumns();
 	auto& Rows = Layout->GetRows();
 
 	FVector2D rectSize;
-	rectSize.X = UIItem->GetWidth() - Layout->GetPadding().Left - Layout->GetPadding().Right;
-	rectSize.Y = UIItem->GetHeight() - Layout->GetPadding().Top - Layout->GetPadding().Bottom;
+	rectSize.X = UIItem->GetWidth();
+	rectSize.Y = UIItem->GetHeight();
 
 	float columnTotalRatio = 0, rowTotalRatio = 0;
 	float columnTotalContstantSize = 0, rowTotalConstantSize = 0;
 	for (auto& Item : Columns)
 	{
-		if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+		if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 		{
-			columnTotalRatio += Item.Size;
+			columnTotalRatio += Item.Value;
 		}
 		else
 		{
-			columnTotalContstantSize += Item.Size;
+			columnTotalContstantSize += Item.Value;
 		}
 	}
 	for (auto& Item : Rows)
 	{
-		if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+		if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 		{
-			rowTotalRatio += Item.Size;
+			rowTotalRatio += Item.Value;
 		}
 		else
 		{
-			rowTotalConstantSize += Item.Size;
+			rowTotalConstantSize += Item.Value;
 		}
 	}
 	float invColumnTotalRatio = 1.0f / columnTotalRatio;
 	float invRowTotalRatio = 1.0f / rowTotalRatio;
-	float thisFreeWidth = rectSize.X - columnTotalContstantSize - Layout->GetSpacing().X * (Columns.Num() - 1);//width exclude constant size and all space
-	float thisFreeHeight = rectSize.Y - rowTotalConstantSize - Layout->GetSpacing().Y * (Rows.Num() - 1);//height exclude constant size and all space
+	float thisFreeWidth = rectSize.X - columnTotalContstantSize;
+	float thisFreeHeight = rectSize.Y - rowTotalConstantSize;
 
 	//darw line at column's left
-	float offsetX = Layout->GetPadding().Left, offsetY = Layout->GetPadding().Bottom;
-	float halfSpaceX = Layout->GetSpacing().X * 0.5f;
-	float halfSpaceY = Layout->GetSpacing().Y * 0.5f;
+	float offsetX = 0, offsetY = 0;
 	auto lineColor = FLinearColor(0, 1, 1, 1);
 	auto handleSize = 10;
 	for (int i = 0; i < Columns.Num(); i++)
 	{
 		auto& item = Columns[i];
 		float itemWidth =
-			item.SizeType == EUIFlexibleGridLayoutCellSizeType::Constant ?
-			item.Size :
-			item.Size * invColumnTotalRatio * thisFreeWidth
+			item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Constant ?
+			item.Value :
+			item.Value * invColumnTotalRatio * thisFreeWidth
 			;
 		if (i != 0)
 		{
-			auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft() + offsetX - halfSpaceX, UIItem->GetLocalSpaceTop());
+			auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft() + offsetX, UIItem->GetLocalSpaceTop());
 			auto LineEnd = FVector(0, LineStart.Y, UIItem->GetLocalSpaceBottom());
 			LineStart = UIItem->GetComponentTransform().TransformPosition(LineStart);
 			LineEnd = UIItem->GetComponentTransform().TransformPosition(LineEnd);
@@ -91,31 +89,31 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 				SDPG_Foreground
 			);
 
-			PDI->SetHitProxy(new HUIFlexibleGridLayoutSpliterVisProxy(Layout, true, true, i));
+			PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridSpliterVisProxy(Layout, true, true, i));
 			//draw click point
 			PDI->DrawPoint(
 				LineStart, lineColor, handleSize, SDPG_Foreground
 			);
 			PDI->SetHitProxy(NULL);
-			PDI->SetHitProxy(new HUIFlexibleGridLayoutSpliterVisProxy(Layout, true, false, i));
+			PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridSpliterVisProxy(Layout, true, false, i));
 			PDI->DrawPoint(
 				LineEnd, lineColor, handleSize, SDPG_Foreground
 			);
 			PDI->SetHitProxy(NULL);
 		}
-		offsetX += itemWidth + Layout->GetSpacing().X;
+		offsetX += itemWidth;
 	}
 	for (int i = 0; i < Rows.Num(); i++)
 	{
 		auto item = Rows[i];
 		float itemHeight =
-			item.SizeType == EUIFlexibleGridLayoutCellSizeType::Constant ?
-			item.Size :
-			item.Size * invRowTotalRatio * thisFreeHeight
+			item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Constant ?
+			item.Value :
+			item.Value * invRowTotalRatio * thisFreeHeight
 			;
 		if (i != 0)
 		{
-			auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceTop() - offsetY + halfSpaceY);
+			auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceTop() - offsetY);
 			auto LineEnd = FVector(0, UIItem->GetLocalSpaceRight(), LineStart.Z);
 			LineStart = UIItem->GetComponentTransform().TransformPosition(LineStart);
 			LineEnd = UIItem->GetComponentTransform().TransformPosition(LineEnd);
@@ -127,18 +125,18 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 				SDPG_Foreground
 			);
 			//draw click point
-			PDI->SetHitProxy(new HUIFlexibleGridLayoutSpliterVisProxy(Layout, false, true, i));
+			PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridSpliterVisProxy(Layout, false, true, i));
 			PDI->DrawPoint(
 				LineStart, lineColor, handleSize, SDPG_Foreground
 			);
 			PDI->SetHitProxy(NULL);
-			PDI->SetHitProxy(new HUIFlexibleGridLayoutSpliterVisProxy(Layout, false, false, i));
+			PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridSpliterVisProxy(Layout, false, false, i));
 			PDI->DrawPoint(
 				LineEnd, lineColor, handleSize, SDPG_Foreground
 			);
 			PDI->SetHitProxy(NULL);
 		}
-		offsetY += itemHeight + Layout->GetSpacing().Y;
+		offsetY += itemHeight;
 	}
 
 	lineColor = FLinearColor(0, 1, 0, 1);
@@ -152,32 +150,32 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 	LeftBottom = UIItem->GetComponentTransform().TransformPosition(LeftBottom);
 	RightBottom = UIItem->GetComponentTransform().TransformPosition(RightBottom);
 	//left frame line
-	PDI->SetHitProxy(new HUIFlexibleGridLayoutFrameLineVisProxy(Layout, HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Left));
+	PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridFrameLineVisProxy(Layout, HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Left));
 	PDI->DrawLine(LeftTop, LeftBottom, lineColor, SDPG_Foreground, FrameLineThickness);
 	PDI->SetHitProxy(NULL);
 	//top frame line
-	PDI->SetHitProxy(new HUIFlexibleGridLayoutFrameLineVisProxy(Layout, HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Top));
+	PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridFrameLineVisProxy(Layout, HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Top));
 	PDI->DrawLine(LeftTop, RightTop, lineColor, SDPG_Foreground, FrameLineThickness);
 	PDI->SetHitProxy(NULL);
 	//right frame line
-	PDI->SetHitProxy(new HUIFlexibleGridLayoutFrameLineVisProxy(Layout, HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Right));
+	PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridFrameLineVisProxy(Layout, HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Right));
 	PDI->DrawLine(RightBottom, RightTop, lineColor, SDPG_Foreground, FrameLineThickness);
 	PDI->SetHitProxy(NULL);
 	//bottom frame line
-	PDI->SetHitProxy(new HUIFlexibleGridLayoutFrameLineVisProxy(Layout, HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Bottom));
+	PDI->SetHitProxy(new HUIPanelLayoutFlexibleGridFrameLineVisProxy(Layout, HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Bottom));
 	PDI->DrawLine(RightBottom, LeftBottom, lineColor, SDPG_Foreground, FrameLineThickness);
 	PDI->SetHitProxy(NULL);
 }
-bool FUIFlexibleGridLayoutComponentVisualizer::VisProxyHandleClick(FEditorViewportClient* InViewportClient, HComponentVisProxy* VisProxy, const FViewportClick& Click)
+bool FUIPanelLayoutFlexibleGridComponentVisualizer::VisProxyHandleClick(FEditorViewportClient* InViewportClient, HComponentVisProxy* VisProxy, const FViewportClick& Click)
 {
 	if (!TargetComp.IsValid())return false;
 	auto UIItem = TargetComp->GetRootUIComponent();
 	if (!UIItem)return false;
 
-	if (VisProxy->IsA(HUIFlexibleGridLayoutSpliterVisProxy::StaticGetType()))
+	if (VisProxy->IsA(HUIPanelLayoutFlexibleGridSpliterVisProxy::StaticGetType()))
 	{
-		const HUIFlexibleGridLayoutSpliterVisProxy* Proxy = (HUIFlexibleGridLayoutSpliterVisProxy*)VisProxy;
-		SelectionState->ProxyType = UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Spliter;
+		const HUIPanelLayoutFlexibleGridSpliterVisProxy* Proxy = (HUIPanelLayoutFlexibleGridSpliterVisProxy*)VisProxy;
+		SelectionState->ProxyType = UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Spliter;
 		SelectionState->SelectedSpliterIndex = Proxy->SpliterIndex;
 		SelectionState->bHorizontalOrVertical = Proxy->bHorizontalOrVertical;
 		SelectionState->bFirstOrSecond = Proxy->bFirstOrSecond;
@@ -197,10 +195,10 @@ bool FUIFlexibleGridLayoutComponentVisualizer::VisProxyHandleClick(FEditorViewpo
 		}
 		return true;
 	}
-	else if (VisProxy->IsA(HUIFlexibleGridLayoutFrameLineVisProxy::StaticGetType()))
+	else if (VisProxy->IsA(HUIPanelLayoutFlexibleGridFrameLineVisProxy::StaticGetType()))
 	{
-		const HUIFlexibleGridLayoutFrameLineVisProxy* Proxy = (HUIFlexibleGridLayoutFrameLineVisProxy*)VisProxy;
-		SelectionState->ProxyType = UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame;
+		const HUIPanelLayoutFlexibleGridFrameLineVisProxy* Proxy = (HUIPanelLayoutFlexibleGridFrameLineVisProxy*)VisProxy;
+		SelectionState->ProxyType = UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Frame;
 		SelectionState->FrameType = Proxy->FrameType;
 		auto Plane = FPlane(UIItem->GetComponentLocation(), UIItem->GetForwardVector());
 		SelectionState->CurrentClickPoint = FMath::RayPlaneIntersection(Click.GetOrigin(), Click.GetDirection(), Plane);
@@ -208,7 +206,7 @@ bool FUIFlexibleGridLayoutComponentVisualizer::VisProxyHandleClick(FEditorViewpo
 	}
 	return false;
 }
-bool FUIFlexibleGridLayoutComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& DeltaTranslate, FRotator& DeltalRotate, FVector& DeltaScale)
+bool FUIPanelLayoutFlexibleGridComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& DeltaTranslate, FRotator& DeltalRotate, FVector& DeltaScale)
 {
 	if (!DeltaTranslate.IsZero())
 	{
@@ -229,9 +227,9 @@ bool FUIFlexibleGridLayoutComponentVisualizer::HandleInputDelta(FEditorViewportC
 				auto Columns = TargetComp->GetColumns();
 				auto& ColumnItem = Columns[SelectionState->SelectedSpliterIndex];
 				auto& PrevColumnItem = Columns[SelectionState->SelectedSpliterIndex - 1];
-				ColumnItem.Size -= LocalSpaceTranslate.Y;
-				PrevColumnItem.Size += LocalSpaceTranslate.Y;
-				if (ColumnItem.Size > 0 && PrevColumnItem.Size > 0)
+				ColumnItem.Value -= LocalSpaceTranslate.Y;
+				PrevColumnItem.Value += LocalSpaceTranslate.Y;
+				if (ColumnItem.Value > 0 && PrevColumnItem.Value > 0)
 				{
 					TargetComp->SetColumns(Columns);
 					return true;
@@ -246,9 +244,9 @@ bool FUIFlexibleGridLayoutComponentVisualizer::HandleInputDelta(FEditorViewportC
 				auto Rows = TargetComp->GetRows();
 				auto& RowItem = Rows[SelectionState->SelectedSpliterIndex];
 				auto& PrevRowItem = Rows[SelectionState->SelectedSpliterIndex - 1];
-				RowItem.Size += LocalSpaceTranslate.Z;
-				PrevRowItem.Size -= LocalSpaceTranslate.Z;
-				if (RowItem.Size > 0 && PrevRowItem.Size > 0)
+				RowItem.Value += LocalSpaceTranslate.Z;
+				PrevRowItem.Value -= LocalSpaceTranslate.Z;
+				if (RowItem.Value > 0 && PrevRowItem.Value > 0)
 				{
 					TargetComp->SetRows(Rows);
 					return true;
@@ -258,75 +256,73 @@ bool FUIFlexibleGridLayoutComponentVisualizer::HandleInputDelta(FEditorViewportC
 	}
 	return true;
 }
-bool FUIFlexibleGridLayoutComponentVisualizer::GetWidgetLocation(const FEditorViewportClient* ViewportClient, FVector& OutLocation) const
+bool FUIPanelLayoutFlexibleGridComponentVisualizer::GetWidgetLocation(const FEditorViewportClient* ViewportClient, FVector& OutLocation) const
 {
 	if (!TargetComp.IsValid())return false;
 
 	auto UIItem = TargetComp->GetRootUIComponent();
 	if (!UIItem)return false;
 
-	if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame)return false;
+	if (SelectionState->ProxyType == UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Frame)return false;
 	if (SelectionState->SelectedSpliterIndex == -1)return false;
 
 	auto& Columns = TargetComp->GetColumns();
 	auto& Rows = TargetComp->GetRows();
 
 	FVector2D rectSize;
-	rectSize.X = UIItem->GetWidth() - TargetComp->GetPadding().Left - TargetComp->GetPadding().Right;
-	rectSize.Y = UIItem->GetHeight() - TargetComp->GetPadding().Top - TargetComp->GetPadding().Bottom;
+	rectSize.X = UIItem->GetWidth();
+	rectSize.Y = UIItem->GetHeight();
 
 	float columnTotalRatio = 0, rowTotalRatio = 0;
 	float columnTotalContstantSize = 0, rowTotalConstantSize = 0;
 	for (auto& Item : Columns)
 	{
-		if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+		if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 		{
-			columnTotalRatio += Item.Size;
+			columnTotalRatio += Item.Value;
 		}
 		else
 		{
-			columnTotalContstantSize += Item.Size;
+			columnTotalContstantSize += Item.Value;
 		}
 	}
 	for (auto& Item : Rows)
 	{
-		if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+		if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 		{
-			rowTotalRatio += Item.Size;
+			rowTotalRatio += Item.Value;
 		}
 		else
 		{
-			rowTotalConstantSize += Item.Size;
+			rowTotalConstantSize += Item.Value;
 		}
 	}
 	float invColumnTotalRatio = 1.0f / columnTotalRatio;
 	float invRowTotalRatio = 1.0f / rowTotalRatio;
-	float thisFreeWidth = rectSize.X - columnTotalContstantSize - TargetComp->GetSpacing().X * (Columns.Num() - 1);//width exclude constant size and all space
-	float thisFreeHeight = rectSize.Y - rowTotalConstantSize - TargetComp->GetSpacing().Y * (Rows.Num() - 1);//height exclude constant size and all space
+	float thisFreeWidth = rectSize.X - columnTotalContstantSize;
+	float thisFreeHeight = rectSize.Y - rowTotalConstantSize;
 
 	float offsetX = 0, offsetY = 0;
-	float halfSpaceX = TargetComp->GetSpacing().X * 0.5f;
-	float halfSpaceY = TargetComp->GetSpacing().Y * 0.5f;
 	if (SelectionState->bHorizontalOrVertical)
 	{
 		for (int i = 0; i < Columns.Num(); i++)
 		{
 			auto& item = Columns[i];
 			float itemWidth =
-				item.SizeType == EUIFlexibleGridLayoutCellSizeType::Constant ?
-				item.Size :
-				item.Size * invColumnTotalRatio * thisFreeWidth
+				item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Constant ?
+				item.Value :
+				item.Value * invColumnTotalRatio * thisFreeWidth
 				;
 			if (i == SelectionState->SelectedSpliterIndex)
 			{
-				auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft() + offsetX - halfSpaceX, UIItem->GetLocalSpaceTop());
+				auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft() + offsetX, UIItem->GetLocalSpaceTop());
 				auto LineEnd = FVector(0, LineStart.Y, UIItem->GetLocalSpaceBottom());
 				LineStart = UIItem->GetComponentTransform().TransformPosition(LineStart);
 				LineEnd = UIItem->GetComponentTransform().TransformPosition(LineEnd);
 				OutLocation = SelectionState->bFirstOrSecond ? LineStart : LineEnd;
 				return true;
 			}
-			offsetX += itemWidth + TargetComp->GetSpacing().X;
+			offsetX += itemWidth;
 		}
 	}
 	else
@@ -335,38 +331,38 @@ bool FUIFlexibleGridLayoutComponentVisualizer::GetWidgetLocation(const FEditorVi
 		{
 			auto item = Rows[i];
 			float itemHeight =
-				item.SizeType == EUIFlexibleGridLayoutCellSizeType::Constant ?
-				item.Size :
-				item.Size * invRowTotalRatio * thisFreeHeight
+				item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Constant ?
+				item.Value :
+				item.Value * invRowTotalRatio * thisFreeHeight
 				;
 			if (i == SelectionState->SelectedSpliterIndex)
 			{
-				auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceTop() - offsetY + halfSpaceY);
+				auto LineStart = FVector(0, UIItem->GetLocalSpaceLeft(), UIItem->GetLocalSpaceTop() - offsetY);
 				auto LineEnd = FVector(0, UIItem->GetLocalSpaceRight(), LineStart.Z);
 				LineStart = UIItem->GetComponentTransform().TransformPosition(LineStart);
 				LineEnd = UIItem->GetComponentTransform().TransformPosition(LineEnd);
 				OutLocation = SelectionState->bFirstOrSecond ? LineStart : LineEnd;
 				return true;
 			}
-			offsetY += itemHeight + TargetComp->GetSpacing().Y;
+			offsetY += itemHeight;
 		}
 	}
 	return false;
 }
-TSharedPtr<SWidget> FUIFlexibleGridLayoutComponentVisualizer::GenerateContextMenu() const
+TSharedPtr<SWidget> FUIPanelLayoutFlexibleGridComponentVisualizer::GenerateContextMenu() const
 {
 	FMenuBuilder MenuBuilder(true, nullptr);
 
-	MenuBuilder.BeginSection("EditUIFlexibleGridLayout", LOCTEXT("EditUIFlexibleGridLayout", "UI FlexibleGridLayout"));
+	MenuBuilder.BeginSection("EditUIPanelLayoutFlexibleGrid", LOCTEXT("EditUIPanelLayoutFlexibleGrid", "UI FlexibleGridLayout"));
 	{
-		if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Spliter)
+		if (SelectionState->ProxyType == UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Spliter)
 		{
 			//@todo
 			//MenuBuilder.AddMenuEntry(
 			//	LOCTEXT("ChangeSpliterType", "Change Spliter Type"),
 			//	LOCTEXT("ChangeSpliterType_Tooltip", "Change size type of this spliter"),
 			//	FSlateIcon(),
-			//	FUIAction(FExecuteAction::CreateSP((FUIFlexibleGridLayoutComponentVisualizer*)this, &FUIFlexibleGridLayoutComponentVisualizer::ChangeSpliterType))
+			//	FUIAction(FExecuteAction::CreateSP((FUIPanelLayoutFlexibleGridComponentVisualizer*)this, &FUIPanelLayoutFlexibleGridComponentVisualizer::ChangeSpliterType))
 			//);
 			if (SelectionState->SelectedSpliterIndex != -1)
 			{
@@ -374,17 +370,17 @@ TSharedPtr<SWidget> FUIFlexibleGridLayoutComponentVisualizer::GenerateContextMen
 					LOCTEXT("DeleteSpliter", "Delete Spliter"),
 					LOCTEXT("DeleteSpliter_Tooltip", "Delete this spliter"),
 					FSlateIcon(),
-					FUIAction(FExecuteAction::CreateSP((FUIFlexibleGridLayoutComponentVisualizer*)this, &FUIFlexibleGridLayoutComponentVisualizer::RemoveSpliter))
+					FUIAction(FExecuteAction::CreateSP((FUIPanelLayoutFlexibleGridComponentVisualizer*)this, &FUIPanelLayoutFlexibleGridComponentVisualizer::RemoveSpliter))
 				);
 			}
 		}
-		else if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame)
+		else if (SelectionState->ProxyType == UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Frame)
 		{
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("AddSpliterHere", "Add Spliter Here"),
 				LOCTEXT("AddSpliter_Tooltip", "Add a new spliter at click point"),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateSP((FUIFlexibleGridLayoutComponentVisualizer*)this, &FUIFlexibleGridLayoutComponentVisualizer::AddSpliter))
+				FUIAction(FExecuteAction::CreateSP((FUIPanelLayoutFlexibleGridComponentVisualizer*)this, &FUIPanelLayoutFlexibleGridComponentVisualizer::AddSpliter))
 			);
 		}
 	}
@@ -393,60 +389,56 @@ TSharedPtr<SWidget> FUIFlexibleGridLayoutComponentVisualizer::GenerateContextMen
 	TSharedPtr<SWidget> MenuWidget = MenuBuilder.MakeWidget();
 	return MenuWidget;
 }
-void FUIFlexibleGridLayoutComponentVisualizer::AddSpliter()
+void FUIPanelLayoutFlexibleGridComponentVisualizer::AddSpliter()
 {
 	if (!TargetComp.IsValid())return;
 	auto UIItem = TargetComp->GetRootUIComponent();
 	if (!UIItem)return;
 
-	GEditor->BeginTransaction(LOCTEXT("AddSpliter_Transaction", "UIFlexibleGridLayout AddSpliter"));
+	GEditor->BeginTransaction(LOCTEXT("AddSpliter_Transaction", "UIPanelLayoutFlexibleGrid AddSpliter"));
 	TargetComp->Modify();
 	auto LocalClickPoint = UIItem->GetComponentTransform().InverseTransformPosition(SelectionState->CurrentClickPoint);
 	switch (SelectionState->FrameType)
 	{
-	case HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Left:
-	case HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Right:
+	case HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Left:
+	case HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Right:
 	{
 		LayoutChangeSizeToPixelRelevant(false);
 		auto SplitPoint = LocalClickPoint.Z - UIItem->GetLocalSpaceTop();
 		SplitPoint = -SplitPoint;
 		auto Rows = TargetComp->GetRows();
-		auto Space = TargetComp->GetSpacing().Y;
 		float CumulativeSplitSize = 0;
 		for (int i = 0; i < Rows.Num(); i++)
 		{
 			auto PrevCumulativeSplitSize = CumulativeSplitSize;
-			CumulativeSplitSize += Rows[i].Size;
+			CumulativeSplitSize += Rows[i].Value;
 			if (SplitPoint < CumulativeSplitSize)
 			{
-				Rows[i].Size = CumulativeSplitSize - SplitPoint - Space * 0.5f;
-				Rows.Insert(FUIFlexibleGridLayoutCellData(SplitPoint - PrevCumulativeSplitSize - Space * 0.5f), i);
+				Rows[i].Value = CumulativeSplitSize - SplitPoint;
+				Rows.Insert(FUIPanelLayout_FlexibleGridSize(SplitPoint - PrevCumulativeSplitSize), i);
 				break;
 			}
-			SplitPoint -= Space;
 		}
 		TargetComp->SetRows(Rows);
 	}
 	break;
-	case HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Top:
-	case HUIFlexibleGridLayoutFrameLineVisProxy::EFrameType::Bottom:
+	case HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Top:
+	case HUIPanelLayoutFlexibleGridFrameLineVisProxy::EFrameType::Bottom:
 	{
 		LayoutChangeSizeToPixelRelevant(true);
 		auto SplitPoint = LocalClickPoint.Y - UIItem->GetLocalSpaceLeft();
 		auto Columns = TargetComp->GetColumns();
-		auto Space = TargetComp->GetSpacing().X;
 		float CumulativeSplitSize = 0;
 		for (int i = 0; i < Columns.Num(); i++)
 		{
 			auto PrevCumulativeSplitSize = CumulativeSplitSize;
-			CumulativeSplitSize += Columns[i].Size;
+			CumulativeSplitSize += Columns[i].Value;
 			if (SplitPoint < CumulativeSplitSize)
 			{
-				Columns[i].Size = CumulativeSplitSize - SplitPoint - Space * 0.5f;
-				Columns.Insert(FUIFlexibleGridLayoutCellData(SplitPoint - PrevCumulativeSplitSize - Space * 0.5f), i);
+				Columns[i].Value = CumulativeSplitSize - SplitPoint;
+				Columns.Insert(FUIPanelLayout_FlexibleGridSize(SplitPoint - PrevCumulativeSplitSize), i);
 				break;
 			}
-			SplitPoint -= Space;
 		}
 		TargetComp->SetColumns(Columns);
 	}
@@ -454,22 +446,22 @@ void FUIFlexibleGridLayoutComponentVisualizer::AddSpliter()
 	}
 	GEditor->EndTransaction();
 }
-void FUIFlexibleGridLayoutComponentVisualizer::RemoveSpliter()
+void FUIPanelLayoutFlexibleGridComponentVisualizer::RemoveSpliter()
 {
 	if (!TargetComp.IsValid())return;
 	auto UIItem = TargetComp->GetRootUIComponent();
 	if (!UIItem)return;
-	if (SelectionState->ProxyType == UUIFlexibleGridLayoutVisualizerSelectionState::EHitProxyType::Frame)return;
+	if (SelectionState->ProxyType == UUIPanelLayoutFlexibleGridVisualizerSelectionState::EHitProxyType::Frame)return;
 	if (SelectionState->SelectedSpliterIndex == -1)return;
 
-	GEditor->BeginTransaction(LOCTEXT("RemoveSpliter_Transaction", "UIFlexibleGridLayout RemoveSpliter"));
+	GEditor->BeginTransaction(LOCTEXT("RemoveSpliter_Transaction", "UIPanelLayoutFlexibleGrid RemoveSpliter"));
 	TargetComp->Modify();
 
 	if (SelectionState->bHorizontalOrVertical)
 	{
 		LayoutChangeSizeToPixelRelevant(true);
 		auto Columns = TargetComp->GetColumns();
-		Columns[SelectionState->SelectedSpliterIndex - 1].Size += Columns[SelectionState->SelectedSpliterIndex].Size + TargetComp->GetSpacing().X;
+		Columns[SelectionState->SelectedSpliterIndex - 1].Value += Columns[SelectionState->SelectedSpliterIndex].Value;
 		Columns.RemoveAt(SelectionState->SelectedSpliterIndex);
 		TargetComp->SetColumns(Columns);
 	}
@@ -477,14 +469,14 @@ void FUIFlexibleGridLayoutComponentVisualizer::RemoveSpliter()
 	{
 		LayoutChangeSizeToPixelRelevant(false);
 		auto Rows = TargetComp->GetRows();
-		Rows[SelectionState->SelectedSpliterIndex - 1].Size += Rows[SelectionState->SelectedSpliterIndex].Size + TargetComp->GetSpacing().Y;
+		Rows[SelectionState->SelectedSpliterIndex - 1].Value += Rows[SelectionState->SelectedSpliterIndex].Value;
 		Rows.RemoveAt(SelectionState->SelectedSpliterIndex);
 		TargetComp->SetRows(Rows);
 	}
 	SelectionState->SelectedSpliterIndex = -1;
 	GEditor->EndTransaction();
 }
-void FUIFlexibleGridLayoutComponentVisualizer::ChangeSpliterType()
+void FUIPanelLayoutFlexibleGridComponentVisualizer::ChangeSpliterType()
 {
 	if (!TargetComp.IsValid())return;
 	auto UIItem = TargetComp->GetRootUIComponent();
@@ -492,7 +484,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::ChangeSpliterType()
 
 
 }
-void FUIFlexibleGridLayoutComponentVisualizer::LayoutChangeSizeToPixelRelevant(bool InHorizontalOrVertical)
+void FUIPanelLayoutFlexibleGridComponentVisualizer::LayoutChangeSizeToPixelRelevant(bool InHorizontalOrVertical)
 {
 	if (!TargetComp.IsValid())return;
 	auto UIItem = TargetComp->GetRootUIComponent();
@@ -504,24 +496,24 @@ void FUIFlexibleGridLayoutComponentVisualizer::LayoutChangeSizeToPixelRelevant(b
 		float columnTotalRatio = 0, columnTotalContstantSize = 0;
 		for (auto& Item : Columns)
 		{
-			if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+			if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 			{
-				columnTotalRatio += Item.Size;
+				columnTotalRatio += Item.Value;
 			}
 			else
 			{
-				columnTotalContstantSize += Item.Size;
+				columnTotalContstantSize += Item.Value;
 			}
 		}
 		float invColumnTotalRatio = 1.0f / columnTotalRatio;
-		float thisWidth = UIItem->GetWidth() - TargetComp->GetPadding().Left - TargetComp->GetPadding().Right;
-		float thisFreeWidth = thisWidth - columnTotalContstantSize - TargetComp->GetSpacing().X * (Columns.Num() - 1);//width exclude constant size and all space
+		float thisWidth = UIItem->GetWidth();
+		float thisFreeWidth = thisWidth - columnTotalContstantSize;
 		for (int i = 0; i < Columns.Num(); i++)
 		{
 			auto& Column = Columns[i];
-			if (Column.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+			if (Column.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 			{
-				Column.Size = thisFreeWidth * Column.Size * invColumnTotalRatio;
+				Column.Value = thisFreeWidth * Column.Value * invColumnTotalRatio;
 			}
 		}
 		TargetComp->SetColumns(Columns);
@@ -532,24 +524,24 @@ void FUIFlexibleGridLayoutComponentVisualizer::LayoutChangeSizeToPixelRelevant(b
 		float rowTotalRatio = 0, rowTotalConstantSize = 0;
 		for (auto& Item : Rows)
 		{
-			if (Item.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+			if (Item.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 			{
-				rowTotalRatio += Item.Size;
+				rowTotalRatio += Item.Value;
 			}
 			else
 			{
-				rowTotalConstantSize += Item.Size;
+				rowTotalConstantSize += Item.Value;
 			}
 		}
 		float invRowTotalRatio = 1.0f / rowTotalRatio;
-		float thisHeight = UIItem->GetHeight() - TargetComp->GetPadding().Top - TargetComp->GetPadding().Bottom;
-		float thisFreeHeight = thisHeight - rowTotalConstantSize - TargetComp->GetSpacing().Y * (Rows.Num() - 1);//height exclude constant size and all space
+		float thisHeight = UIItem->GetHeight();
+		float thisFreeHeight = thisHeight - rowTotalConstantSize;
 		for (int i = 0; i < Rows.Num(); i++)
 		{
 			auto& Row = Rows[i];
-			if (Row.SizeType == EUIFlexibleGridLayoutCellSizeType::Ratio)
+			if (Row.SizeType == EUIPanelLayout_FlexibleGridSizeRule::Ratio)
 			{
-				Row.Size = thisFreeHeight * Row.Size * invRowTotalRatio;
+				Row.Value = thisFreeHeight * Row.Value * invRowTotalRatio;
 			}
 		}
 		TargetComp->SetRows(Rows);
@@ -557,8 +549,8 @@ void FUIFlexibleGridLayoutComponentVisualizer::LayoutChangeSizeToPixelRelevant(b
 }
 
 
-IMPLEMENT_HIT_PROXY(HUIFlexibleGridLayoutSpliterVisProxy, HComponentVisProxy);
-HUIFlexibleGridLayoutSpliterVisProxy::HUIFlexibleGridLayoutSpliterVisProxy(const UUIFlexibleGridLayout* InComponent, bool InHorizontalOrVertical, bool InFirstOrSecond, int32 InSelectingSpliterIndex
+IMPLEMENT_HIT_PROXY(HUIPanelLayoutFlexibleGridSpliterVisProxy, HComponentVisProxy);
+HUIPanelLayoutFlexibleGridSpliterVisProxy::HUIPanelLayoutFlexibleGridSpliterVisProxy(const UUIPanelLayout_FlexibleGrid* InComponent, bool InHorizontalOrVertical, bool InFirstOrSecond, int32 InSelectingSpliterIndex
 )
 	: HComponentVisProxy(InComponent, HPP_Foreground)
 {
@@ -567,8 +559,8 @@ HUIFlexibleGridLayoutSpliterVisProxy::HUIFlexibleGridLayoutSpliterVisProxy(const
 	SpliterIndex = InSelectingSpliterIndex;
 }
 
-IMPLEMENT_HIT_PROXY(HUIFlexibleGridLayoutFrameLineVisProxy, HComponentVisProxy);
-HUIFlexibleGridLayoutFrameLineVisProxy::HUIFlexibleGridLayoutFrameLineVisProxy(const UUIFlexibleGridLayout* InComponent, EFrameType InFrameType
+IMPLEMENT_HIT_PROXY(HUIPanelLayoutFlexibleGridFrameLineVisProxy, HComponentVisProxy);
+HUIPanelLayoutFlexibleGridFrameLineVisProxy::HUIPanelLayoutFlexibleGridFrameLineVisProxy(const UUIPanelLayout_FlexibleGrid* InComponent, EFrameType InFrameType
 )
 	: HComponentVisProxy(InComponent, HPP_Foreground)
 {

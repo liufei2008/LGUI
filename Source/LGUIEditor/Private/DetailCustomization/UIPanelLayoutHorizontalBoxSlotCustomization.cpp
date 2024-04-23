@@ -31,7 +31,7 @@ void FUIPanelLayoutHorizontalBoxSlotCustomization::CustomizeDetails(IDetailLayou
 	}
 	if (TargetScriptArray.Num() == 0)
 	{
-		UE_LOG(LGUIEditor, Log, TEXT("[UIItemCustomization]Get TargetScript is null"));
+		UE_LOG(LGUIEditor, Log, TEXT("[UIPanelLayoutHorizontalBoxSlotCustomization]Get TargetScript is null"));
 		return;
 	}
 	DetailBuilder.RegisterInstancedCustomPropertyTypeLayout(TEXT("EHorizontalAlignment"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FHorizontalAlignmentCustomization::MakeInstance));

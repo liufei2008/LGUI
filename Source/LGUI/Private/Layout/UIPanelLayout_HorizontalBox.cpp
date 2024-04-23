@@ -13,14 +13,7 @@ void UUIPanelLayout_HorizontalBox::OnUIChildDimensionsChanged(UUIItem* child, bo
     if (this->GetWorld() == nullptr)return;
     if (child->GetIsUIActiveInHierarchy())
     {
-        if (horizontalPositionChanged 
-            || verticalPositionChanged
-            || widthChanged
-            || heightChanged
-            )
-        {
-            MarkNeedRebuildLayout();
-        }
+        MarkNeedRebuildLayout();
     }
 }
 

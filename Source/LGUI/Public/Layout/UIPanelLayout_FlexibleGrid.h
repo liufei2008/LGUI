@@ -5,28 +5,53 @@
 #include "CoreMinimal.h"
 #include "UIPanelLayoutBase.h"
 #include "Components/SlateWrapperTypes.h"
-#include "UIPanelLayout_UniformGrid.generated.h"
+#include "UIPanelLayout_FlexibleGrid.generated.h"
+
+UENUM(BlueprintType)
+enum class EUIPanelLayout_FlexibleGridSizeRule :uint8
+{
+	Constant,
+	Ratio,
+};
+
+USTRUCT(BlueprintType)
+struct LGUI_API FUIPanelLayout_FlexibleGridSize
+{
+	GENERATED_BODY()
+public:
+	FUIPanelLayout_FlexibleGridSize() {}
+	FUIPanelLayout_FlexibleGridSize(float InSize, EUIPanelLayout_FlexibleGridSizeRule InSizeType = EUIPanelLayout_FlexibleGridSizeRule::Ratio)
+	{
+		this->Value = InSize;
+		this->SizeType = InSizeType;
+	}
+
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0"))
+		float Value = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUIPanelLayout_FlexibleGridSizeRule SizeType = EUIPanelLayout_FlexibleGridSizeRule::Ratio;
+
+	bool operator == (const FUIPanelLayout_FlexibleGridSize& Other)const
+	{
+		return this->Value == Other.Value
+			&& this->SizeType == Other.SizeType
+			;
+	}
+};
 
 /**
  * Layout child elements side by side horizontally
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIPanelLayout_UniformGrid : public UUIPanelLayoutBase
+class LGUI_API UUIPanelLayout_FlexibleGrid : public UUIPanelLayoutBase
 {
 	GENERATED_BODY()
+	UUIPanelLayout_FlexibleGrid();
 protected:
-	/** this object's width set to all children's range */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout")
-		bool bWidthFitToChildren = false;
-	/** lerp from min child's width to max child's width */
-	UPROPERTY(EditAnywhere, Category = "Panel Layout", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition = "bWidthFitToChildren"))
-		float WidthFitToChildrenFromMinToMax = 1.0f;
-	/** this object's height set to children height */
+		TArray<FUIPanelLayout_FlexibleGridSize> Columns;
 	UPROPERTY(EditAnywhere, Category = "Panel Layout")
-		bool bHeightFitToChildren = false;
-	/** lerp from min child's height to max child's height */
-	UPROPERTY(EditAnywhere, Category = "Panel Layout", meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition = "bHeightFitToChildren"))
-		float HeightFitToChildrenFromMinToMax = 1.0f;
+		TArray<FUIPanelLayout_FlexibleGridSize> Rows;
 public:
 	virtual void OnRebuildLayout()override;
 
@@ -37,32 +62,28 @@ public:
 	virtual FText GetCategoryDisplayName()const override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		bool GetWidthFitToChildren()const { return bWidthFitToChildren; }
+		const TArray<FUIPanelLayout_FlexibleGridSize>& GetColumns()const { return Columns; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		bool GetHeightFitToChildren()const { return bHeightFitToChildren; }
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		float GetWidthFitToChildrenFromMinToMax()const { return WidthFitToChildrenFromMinToMax; }
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		float GetHeightFitToChildrenFromMinToMax()const { return HeightFitToChildrenFromMinToMax; }
+		const TArray<FUIPanelLayout_FlexibleGridSize>& GetRows()const { return Rows; }
 
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		void SetWidthFitToChildren(bool Value);
+		void SetColumns(const TArray<FUIPanelLayout_FlexibleGridSize>& Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		void SetHeightFitToChildren(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		void SetWidthFitToChildrenFromMinToMax(float Value);
-	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
-		void SetHeightFitToChildrenFromMinToMax(float Value);
+		void SetRows(const TArray<FUIPanelLayout_FlexibleGridSize>& Value);
 protected:
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable)
-class LGUI_API UUIPanelLayout_UniformGrid_Slot : public UUIPanelLayoutSlotBase
+class LGUI_API UUIPanelLayout_FlexibleGrid_Slot : public UUIPanelLayoutSlotBase
 {
 	GENERATED_BODY()
 protected:
-	friend class FUIPanelLayoutUniformGridSlotCustomization;
+#if WITH_EDITOR
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+	void PostEditUndo()override;
+#endif
+	friend class FUIPanelLayoutFlexibleGridSlotCustomization;
 	/** The padding area between the slot and the content it contains. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
 		FMargin Padding;
@@ -74,8 +95,12 @@ protected:
 		TEnumAsByte<EVerticalAlignment> VerticalAlignment;
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "0"))
 		int Column = 0;
+	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "1"))
+		int ColumnSpan = 1;
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "0"))
 		int Row = 0;
+	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "1"))
+		int RowSpan = 1;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		const FMargin& GetPadding()const { return Padding; }
@@ -86,7 +111,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		int GetColumn()const { return Column; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		int GetColumnSpan()const { return ColumnSpan; }
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		int GetRow()const { return Row; }
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		int GetRowSpan()const { return RowSpan; }
 
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetPadding(const FMargin& Value);
@@ -97,5 +126,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetColumn(int Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		void SetColumnSpan(int Value);
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetRow(int Value);
+	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
+		void SetRowSpan(int Value);
 };

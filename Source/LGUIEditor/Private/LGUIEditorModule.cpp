@@ -77,6 +77,7 @@
 #include "DetailCustomization/UIPanelLayoutHorizontalBoxSlotCustomization.h"
 #include "DetailCustomization/UIPanelLayoutVerticalBoxSlotCustomization.h"
 #include "DetailCustomization/UIPanelLayoutUniformGridSlotCustomization.h"
+#include "DetailCustomization/UIPanelLayoutFlexibleGridSlotCustomization.h"
 
 #include "PrefabEditor/LGUIPrefabOverrideDataViewer.h"
 #include "Engine/Selection.h"
@@ -323,6 +324,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutHorizontalBoxSlotCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutVerticalBoxSlotCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_UniformGrid_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutUniformGridSlotCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIPanelLayout_FlexibleGrid_Slot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelLayoutFlexibleGridSlotCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -545,6 +547,7 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_HorizontalBox_Slot::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_VerticalBox_Slot::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_UniformGrid_Slot::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIPanelLayout_FlexibleGrid_Slot::StaticClass()->GetFName());
 	}
 	//unregister asset
 	{

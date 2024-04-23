@@ -13,14 +13,7 @@ void UUIPanelLayout_UniformGrid::OnUIChildDimensionsChanged(UUIItem* child, bool
     if (this->GetWorld() == nullptr)return;
     if (child->GetIsUIActiveInHierarchy())
     {
-        if (horizontalPositionChanged
-            || verticalPositionChanged
-            || widthChanged
-            || heightChanged
-            )
-        {
-            MarkNeedRebuildLayout();
-        }
+        MarkNeedRebuildLayout();
     }
 }
 
@@ -106,7 +99,6 @@ void UUIPanelLayout_UniformGrid::OnRebuildLayout()
     float Inv_RowCount = 1.0f / RowCount;
     float CellWidth = RectSize.X * Inv_ColumnCount;
     float CellHeight = RectSize.Y * Inv_RowCount;
-    float PosX = 0, PosY = 0;
     for (int i = 0; i < LayoutChildrenList.Num(); i++)
     {
         auto& LayoutChild = LayoutChildrenList[i];
@@ -117,8 +109,8 @@ void UUIPanelLayout_UniformGrid::OnRebuildLayout()
             auto UIItem = LayoutChild.ChildUIItem.Get();
             float ItemAreaHeight = CellHeight - (Padding.Top + Padding.Bottom);
             float ItemAreaWidth = CellWidth - (Padding.Left + Padding.Right);
-            PosX = CellWidth * Slot->GetColumn();
-            PosY = -CellHeight * Slot->GetRow();
+            float PosX = CellWidth * Slot->GetColumn();
+            float PosY = -CellHeight * Slot->GetRow();
 
             auto HAlign = Slot->GetHorizontalAlignment();
             auto VAlign = Slot->GetVerticalAlignment();
@@ -257,6 +249,22 @@ void UUIPanelLayout_UniformGrid::SetHeightFitToChildren(bool Value)
     if (bHeightFitToChildren != Value)
     {
         bHeightFitToChildren = Value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIPanelLayout_UniformGrid::SetWidthFitToChildrenFromMinToMax(float Value)
+{
+    if (WidthFitToChildrenFromMinToMax != Value)
+    {
+        WidthFitToChildrenFromMinToMax = Value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIPanelLayout_UniformGrid::SetHeightFitToChildrenFromMinToMax(float Value)
+{
+    if (HeightFitToChildrenFromMinToMax != Value)
+    {
+        HeightFitToChildrenFromMinToMax = Value;
         MarkNeedRebuildLayout();
     }
 }
