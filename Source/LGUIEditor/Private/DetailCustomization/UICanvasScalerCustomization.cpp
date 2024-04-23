@@ -51,6 +51,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 
 	auto CreateSlider = [this, &lguiCategory](const FText& FilterString, TSharedPtr<IPropertyHandle> Property) {
 		lguiCategory.AddCustomRow(FilterString)
+		.PropertyHandleList({ Property })
 		.NameContent()
 		[
 			SNew(SBox)

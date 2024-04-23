@@ -276,6 +276,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 			TypeInterface = SharedThis(this);
 		}
 
+		TSharedPtr<SNumericVectorInputBox<FVector::FReal>> LocationWidget;
 		ChildrenBuilder.AddCustomRow( LOCTEXT("LocationFilter", "Location") )
 		.CopyAction( CreateCopyAction( ETransformField::Location ) )
 		.PasteAction( CreatePasteAction( ETransformField::Location ) )
@@ -291,7 +292,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.MaxDesiredWidth(125.0f * 3.0f)
 		.VAlign( VAlign_Center )
 		[
-			SNew(SNumericVectorInputBox<FVector::FReal>)
+			SAssignNew(LocationWidget, SNumericVectorInputBox<FVector::FReal>)
 			.X( this, &FComponentTransformDetails::GetLocationX )
 			.Y( this, &FComponentTransformDetails::GetLocationY )
 			.Z( this, &FComponentTransformDetails::GetLocationZ )
@@ -310,6 +311,13 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 			.OnBeginSliderMovement(this, &FComponentTransformDetails::OnBeginLocationSlider)
 			.OnEndSliderMovement(this, &FComponentTransformDetails::OnEndLocationSlider)
 		];
+		//Disable Y&Z for UIItem
+		{
+			auto Child = LocationWidget->GetChildren()->GetChildAt(0);
+			auto HorizontalBox = StaticCastSharedRef<SHorizontalBox>(Child);
+			HorizontalBox->GetSlot(1).GetWidget()->SetEnabled(false);
+			HorizontalBox->GetSlot(2).GetWidget()->SetEnabled(false);
+		}
 	}
 	
 	// Rotation

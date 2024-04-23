@@ -149,7 +149,7 @@ void UUISizeControlByOther::OnRebuildLayout()
         bShouldRebuildLayoutAfterAnimation = true;
         return;
     }
-    CancelAnimation();
+    CancelAllAnimations();
 
     EUILayoutAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
@@ -168,7 +168,7 @@ void UUISizeControlByOther::OnRebuildLayout()
     }
     if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
     {
-        SetOnCompleteTween();
+        EndSetupAnimations();
     }
 }
 
