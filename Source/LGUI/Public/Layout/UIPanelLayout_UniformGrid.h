@@ -35,6 +35,8 @@ public:
 	virtual UClass* GetPanelLayoutSlotClass()const override;
 #if WITH_EDITOR
 	virtual FText GetCategoryDisplayName()const override;
+	virtual bool CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const override;
+	virtual void MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		bool GetWidthFitToChildren()const { return bWidthFitToChildren; }
@@ -62,6 +64,10 @@ class LGUI_API UUIPanelLayout_UniformGrid_Slot : public UUIPanelLayoutSlotBase
 {
 	GENERATED_BODY()
 protected:
+#if WITH_EDITOR
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+	void PostEditUndo()override;
+#endif
 	friend class FUIPanelLayoutUniformGridSlotCustomization;
 	/** The padding area between the slot and the content it contains. */
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot")
@@ -77,6 +83,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "0"))
 		int Row = 0;
 public:
+	void VerifyColumnAndRow(UUIPanelLayout_UniformGrid* Layout);
+
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		const FMargin& GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")

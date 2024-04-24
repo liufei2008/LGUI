@@ -12,6 +12,7 @@ enum class EUIItemVisualizerSelectorType
 	Left, Right, Top, Bottom,
 	LeftTop, RightTop, LeftBottom, RightBottom,
 	Pivot,
+	PanelLayout_Left, PanelLayout_Right, PanelLayout_Top, PanelLayout_Bottom,
 };
 
 struct HUIItemAnchorVisProxy : public HComponentVisProxy
@@ -20,7 +21,26 @@ struct HUIItemAnchorVisProxy : public HComponentVisProxy
 	HUIItemAnchorVisProxy(const UUIItem* InComponent, EUIItemVisualizerSelectorType InType);
 	virtual EMouseCursor::Type GetMouseCursor()override
 	{
-		return EMouseCursor::CardinalCross;
+		switch (Type)
+		{
+		case EUIItemVisualizerSelectorType::Left:
+		case EUIItemVisualizerSelectorType::Right:
+		case EUIItemVisualizerSelectorType::Top:
+		case EUIItemVisualizerSelectorType::Bottom:
+		case EUIItemVisualizerSelectorType::LeftTop:
+		case EUIItemVisualizerSelectorType::RightTop:
+		case EUIItemVisualizerSelectorType::LeftBottom:
+		case EUIItemVisualizerSelectorType::RightBottom:
+		case EUIItemVisualizerSelectorType::Pivot:
+			return EMouseCursor::CardinalCross;
+		case EUIItemVisualizerSelectorType::PanelLayout_Left:
+		case EUIItemVisualizerSelectorType::PanelLayout_Right:
+		case EUIItemVisualizerSelectorType::PanelLayout_Top:
+		case EUIItemVisualizerSelectorType::PanelLayout_Bottom:
+			return EMouseCursor::Hand;
+		default:
+			return EMouseCursor::Default;
+		}
 	}
 	EUIItemVisualizerSelectorType Type;
 };

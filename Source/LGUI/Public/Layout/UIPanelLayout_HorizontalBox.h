@@ -32,6 +32,8 @@ public:
 	virtual UClass* GetPanelLayoutSlotClass()const override;
 #if WITH_EDITOR
 	virtual FText GetCategoryDisplayName()const override;
+	virtual bool CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const override;
+	virtual void MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		bool GetWidthFitToChildren()const { return bWidthFitToChildren; }

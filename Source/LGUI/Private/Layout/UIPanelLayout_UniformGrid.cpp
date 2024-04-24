@@ -235,6 +235,34 @@ FText UUIPanelLayout_UniformGrid::GetCategoryDisplayName()const
 {
     return NSLOCTEXT("UIPanelLayout_UniformGrid", "CategoryDisplayName", "UniformGrid");
 }
+bool UUIPanelLayout_UniformGrid::CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const
+{
+    return true;
+}
+void UUIPanelLayout_UniformGrid::MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)
+{
+    int MoveColumnValue = 0, MoveRowValue = 0;
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Left:
+        MoveColumnValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Right:
+        MoveColumnValue = 1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Top:
+        MoveRowValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Bottom:
+        MoveRowValue = 1;
+        break;
+    }
+    if (auto Slot = Cast<UUIPanelLayout_UniformGrid_Slot>(GetChildSlot(InChild)))
+    {
+        Slot->SetColumn(Slot->GetColumn() + MoveColumnValue);
+        Slot->SetRow(Slot->GetRow() + MoveRowValue);
+    }
+}
 #endif
 void UUIPanelLayout_UniformGrid::SetWidthFitToChildren(bool Value)
 {
@@ -269,6 +297,33 @@ void UUIPanelLayout_UniformGrid::SetHeightFitToChildrenFromMinToMax(float Value)
     }
 }
 
+#if WITH_EDITOR
+void UUIPanelLayout_UniformGrid_Slot::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+    if (auto Layout = GetTypedOuter<UUIPanelLayout_UniformGrid>())
+    {
+        VerifyColumnAndRow(Layout);
+        Layout->MarkNeedRebuildLayout();
+        Layout->MarkNeedRebuildChildrenList();
+    }
+}
+void UUIPanelLayout_UniformGrid_Slot::PostEditUndo()
+{
+    Super::PostEditUndo();
+    if (auto Layout = GetTypedOuter<UUIPanelLayout_UniformGrid>())
+    {
+        VerifyColumnAndRow(Layout);
+        Layout->MarkNeedRebuildLayout();
+        Layout->MarkNeedRebuildChildrenList();
+    }
+}
+#endif
+void UUIPanelLayout_UniformGrid_Slot::VerifyColumnAndRow(UUIPanelLayout_UniformGrid* Layout)
+{
+    Row = FMath::Max(Row, 0);
+    Column = FMath::Max(Column, 0);
+}
 void UUIPanelLayout_UniformGrid_Slot::SetPadding(const FMargin& Value)
 {
     if (Padding != Value)
@@ -287,6 +342,7 @@ void UUIPanelLayout_UniformGrid_Slot::SetColumn(int Value)
         Column = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_UniformGrid>())
         {
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
@@ -298,6 +354,7 @@ void UUIPanelLayout_UniformGrid_Slot::SetRow(int Value)
         Row = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_UniformGrid>())
         {
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
