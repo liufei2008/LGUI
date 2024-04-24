@@ -161,7 +161,7 @@ struct FLGUIMeshSectionProxy : public FLGUIRenderSectionProxy
 				Self->StaticMeshVertexBuffer.BindPackedTexCoordVertexBuffer(VertexFactoryPtr, Data);
 				Self->StaticMeshVertexBuffer.BindLightMapVertexBuffer(VertexFactoryPtr, Data, LightMapIndex);
 				Self->ColorVertexBuffer.BindColorVertexBuffer(VertexFactoryPtr, Data);
-				VertexFactoryPtr->SetData(Data);
+				VertexFactoryPtr->SetData(RHICmdList, Data);
 
 				InitOrUpdateResource(RHICmdList, VertexFactoryPtr);
 			});
@@ -340,7 +340,7 @@ public:
 			auto NewSectionProxy = new FLGUIChildCanvasSectionProxy();
 
 			auto& ChildCanvasMeshItem = SrcSection->ChildCanvasMeshComponent;
-			NewSectionProxy->PrimitiveComponentID = ChildCanvasMeshItem->ComponentId;
+			NewSectionProxy->PrimitiveComponentID = ChildCanvasMeshItem->GetPrimitiveSceneId();
 			if (ChildCanvasMeshItem->SceneProxy != nullptr)
 			{
 				NewSectionProxy->ChildCanvasSceneProxy = (FLGUIRenderSceneProxy*)ChildCanvasMeshItem->SceneProxy;
@@ -645,7 +645,7 @@ public:
 						GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
 
 						FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-						DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity);
+						DynamicPrimitiveUniformBuffer.Set(Collector.GetRHICommandList(), GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity);
 						BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
 
 						BatchElement.FirstIndex = 0;
@@ -718,7 +718,7 @@ public:
 			Mesh.MaterialRenderProxy = MaterialProxy;
 
 			FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-			DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false);
+			DynamicPrimitiveUniformBuffer.Set(Collector->GetRHICommandList(), GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false);
 			BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
 			//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
 
@@ -979,7 +979,7 @@ void ULGUIMeshComponent::CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSec
 			{
 				auto ThisSceneProxy = (FLGUIRenderSceneProxy*)this->SceneProxy;//SceneProxy could change before the RENDER_COMMAND execute, so do necessary check in SetChildCanvasSectionData_RenderThread
 				ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_ReassignChildCanvasSectionData)(
-					[ThisSceneProxy, CompID = InMesh->ComponentId, InSceneProxy](FRHICommandListImmediate& RHICmdList) {
+					[ThisSceneProxy, CompID = InMesh->GetPrimitiveSceneId(), InSceneProxy](FRHICommandListImmediate& RHICmdList) {
 						ThisSceneProxy->SetChildCanvasSectionData_RenderThread(CompID, InSceneProxy);
 					});
 			}
@@ -1207,12 +1207,12 @@ struct FLGUIPrimitiveComponentIdTemporaryModifier
 	FLGUIPrimitiveComponentIdTemporaryModifier(ULGUIMeshComponent* InComp, FPrimitiveComponentId InNewId)
 	{
 		Comp = InComp;
-		OriginId = Comp->ComponentId;
-		Comp->ComponentId = InNewId;
+		OriginId = Comp->GetPrimitiveSceneId();
+		Comp->GetPrimitiveSceneId() = InNewId;
 	}
 	~FLGUIPrimitiveComponentIdTemporaryModifier()
 	{
-		Comp->ComponentId = OriginId;
+		Comp->GetPrimitiveSceneId() = OriginId;
 	}
 };
 

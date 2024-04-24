@@ -499,7 +499,9 @@ namespace LGUIPrefabSystem3
 
 				//Collect default sub objects
 				TArray<UObject*> DefaultSubObjects;
-				NewActor->CollectDefaultSubobjects(DefaultSubObjects, true);
+				ForEachObjectWithOuter(NewActor, [&DefaultSubObjects](UObject* SubObj) {
+					DefaultSubObjects.Add(SubObj);
+					});
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					auto Index = InActorData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());

@@ -91,8 +91,8 @@ public:
 	ULGUIPrefabHelperObject* GetPrefabManagerObject()const { return PrefabHelperObject; }
 	void ApplyPrefab();
 private:
-	ULGUIPrefab* PrefabBeingEdited = nullptr;
-	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
+	TObjectPtr<ULGUIPrefab> PrefabBeingEdited = nullptr;
+	TObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
 	static TArray<FLGUIPrefabEditor*> LGUIPrefabEditorInstanceCollection;
 
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;

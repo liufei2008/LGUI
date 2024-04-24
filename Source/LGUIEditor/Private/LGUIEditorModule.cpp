@@ -592,10 +592,7 @@ void FLGUIEditorModule::ShutdownModule()
 
 void FLGUIEditorModule::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	if (LGUIPrefabSequencerSettings)
-	{
-		Collector.AddReferencedObject(LGUIPrefabSequencerSettings);
-	}
+	Collector.AddReferencedObject(LGUIPrefabSequencerSettings);
 }
 FString FLGUIEditorModule::GetReferencerName() const 
 {

@@ -18,10 +18,10 @@ class FGlobalShaderMap;
 class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
 {
 public:
-	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel, FSceneRenderingBulkObjectAllocator& Allocator)
+	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel, FSceneRenderingBulkObjectAllocator& Allocator, FRHICommandList& InRHICmdList)
 		:FMeshElementCollector(InFeatureLevel, Allocator)
 	{
-
+		RHICmdList = &InRHICmdList;
 	}
 };
 

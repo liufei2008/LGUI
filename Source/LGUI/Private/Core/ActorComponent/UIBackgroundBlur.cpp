@@ -200,7 +200,7 @@ public:
 							FGraphicsPipelineStateInitializer GraphicsPSOInit;
 							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -227,7 +227,7 @@ public:
 							FGraphicsPipelineStateInitializer GraphicsPSOInit;
 							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -281,7 +281,7 @@ public:
 							FGraphicsPipelineStateInitializer GraphicsPSOInit;
 							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -307,7 +307,7 @@ public:
 							FGraphicsPipelineStateInitializer GraphicsPSOInit;
 							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();

@@ -162,7 +162,7 @@ void FLGUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
@@ -216,7 +216,7 @@ void FLGUIRenderer::CopyRenderTargetOnMeshRegion(
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessCopyMeshRegionVertexDeclaration();
 			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -327,17 +327,17 @@ void FLGUIRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel,
 	{
 		if (bIsTwoSided)
 		{
-			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
 		}
 		else
 		{
 			if (bReverseCulling)
 			{
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_CCW, false>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_CCW>::GetRHI();
 			}
 			else
 			{
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_CW, false>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_CW>::GetRHI();
 			}
 		}
 	}
@@ -345,17 +345,17 @@ void FLGUIRenderer::SetGraphicPipelineState(ERHIFeatureLevel::Type FeatureLevel,
 	{
 		if (bIsTwoSided)
 		{
-			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_None, true>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_None>::GetRHI();
 		}
 		else
 		{
 			if (bReverseCulling)
 			{
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_CCW, true>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_CCW>::GetRHI();
 			}
 			else
 			{
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_CW, true>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_CW>::GetRHI();
 			}
 		}
 	}
@@ -658,7 +658,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 							MeshBatchArray.Reset();
 							FSceneRenderingBulkObjectAllocator Allocator;
-							FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator);
+							FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
 							RenderPrimitiveItem.Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderPrimitiveItem, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
@@ -896,7 +896,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					{
 						MeshBatchArray.Reset();
 						FSceneRenderingBulkObjectAllocator Allocator;
-						FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator);
+						FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
 						RenderSequenceItem.Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderSequenceItem, MeshBatchArray);
 
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)

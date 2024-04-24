@@ -464,7 +464,6 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGl
 		OutResult.uv3Y = oneDivideTextureSize * (packedRect.y - SPACE_NEED_EXPEND);
 		return true;
 	}
-	return false;
 }
 void ULGUIFreeTypeRenderFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)
 {

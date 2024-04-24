@@ -78,11 +78,9 @@ FMaterialVertexParameters GetMaterialVertexParameters(HALF4_TYPE VertexColor, fl
     return Result;
 }
 
-float4 TransformLocalToTranslatedWorld(float3 LocalPosition, FLWCMatrix LocalToWorld)
+float4 TransformLocalToTranslatedWorld(float3 LocalPosition, FDFMatrix LocalToWorld)
 {	
-    FLWCVector3 WorldPosition = LWCMultiply(LocalPosition, LocalToWorld);
-    FLWCVector3 TranslatedWorldPosition = LWCAdd(WorldPosition, ResolvedView.PreViewTranslation);
-    return float4(LWCToFloat(TranslatedWorldPosition), 1.0f);
+    return DFTransformLocalToTranslatedWorld(LocalPosition, LocalToWorld, ResolvedView.PreViewTranslation);
 }
 
 void MainVS(
@@ -107,7 +105,7 @@ void MainVS(
 	
     float TangentSign;
     half3x3 TangentToLocal = CalcTangentToLocal(TangentX, TangentZ, TangentSign);
-    half3x3 TangentToWorld = CalcTangentToWorld(TangentToLocal, LWCToFloat3x3(Primitive.LocalToWorld), Primitive.InvNonUniformScale);
+    half3x3 TangentToWorld = CalcTangentToWorld(TangentToLocal, DFDemote(Primitive.LocalToWorld), Primitive.InvNonUniformScale);
     float TangentToWorldSign = TangentSign * GetPrimitive_DeterminantSign_FromFlags(Primitive.Flags);
 
     float2 UVs[4];

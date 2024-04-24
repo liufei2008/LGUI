@@ -112,7 +112,9 @@ namespace LGUIPrefabSystem6
 				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
 			}
 			TArray<UObject*> DefaultSubObjects;
-			Actor->CollectDefaultSubobjects(DefaultSubObjects);
+			ForEachObjectWithOuter(Actor, [&DefaultSubObjects](UObject* SubObj) {
+				DefaultSubObjects.Add(SubObj);
+				});
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
 				FGuid DefaultSubObjectGuid;
@@ -298,7 +300,9 @@ namespace LGUIPrefabSystem6
 			}
 			WriterOrReaderFunction(Object, SavedObjectData.Add(MapObjectToGuid[Object]), SceneComp != nullptr);
 			TArray<UObject*> DefaultSubObjects;
-			Object->CollectDefaultSubobjects(DefaultSubObjects);
+			ForEachObjectWithOuter(Object, [&DefaultSubObjects](UObject* SubObj) {
+				DefaultSubObjects.Add(SubObj);
+				});
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
 				FGuid DefaultSubObjectGuid;

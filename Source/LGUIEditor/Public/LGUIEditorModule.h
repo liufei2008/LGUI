@@ -86,7 +86,7 @@ private:
 	FName LGUIPrefabSequenceComponentName;
 	static void OnInitializeSequence(class ULGUIPrefabSequence* Sequence);
 	FDelegateHandle LGUIMaterialTrackEditorCreateTrackEditorHandle;
-	class USequencerSettings* LGUIPrefabSequencerSettings = nullptr;
+	TObjectPtr<class USequencerSettings> LGUIPrefabSequencerSettings = nullptr;
 
 	/** FGCObject interface */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;

@@ -168,9 +168,9 @@ void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 	ObjectReferences.RemoveBinding(ObjectId);
 }
 
-UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
+UObject* ULGUIPrefabSequence::CreateDirectorInstance(TSharedRef<const FSharedPlaybackState> SharedPlaybackState, FMovieSceneSequenceID SequenceID)
 {
-	if (auto Actor = CastChecked<AActor>(Player.GetPlaybackContext()))
+	if (auto Actor = CastChecked<AActor>(SharedPlaybackState->GetPlaybackContext()))
 	{
 		if (auto Comp = Actor->FindComponentByClass<ULGUIPrefabSequenceComponent>())
 		{

@@ -16,5 +16,5 @@ public:
 	/** Called when any data change, and need UIText to refresh. */
 	FLGUIRichTextImageDataRefreshEvent OnDataChange;
 	/** Create or update image object. */
-	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<class UUIItem*>& inOutCreatedImageObjectArray, bool listImageObjectInEditorOutliner) {};
+	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<TObjectPtr<class UUIItem>>& inOutCreatedImageObjectArray, bool listImageObjectInEditorOutliner) {};
 };

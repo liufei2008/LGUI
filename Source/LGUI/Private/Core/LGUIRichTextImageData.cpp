@@ -35,7 +35,7 @@ void ULGUIRichTextImageData::BroadcastOnDataChange()
 	OnDataChange.Broadcast();
 }
 
-void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<UUIItem*>& createdImageObjectArray, bool listImageObjectInEditorOutliner)
+void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagData, TArray<TObjectPtr<UUIItem>>& createdImageObjectArray, bool listImageObjectInEditorOutliner)
 {
 	//destroy extra
 	while (createdImageObjectArray.Num() > imageTagData.Num())
@@ -56,7 +56,7 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 	//apply data
 	for (int i = 0; i < imageTagData.Num(); i++)
 	{
-		auto imageObj = (UUISprite*)createdImageObjectArray[i];
+		auto imageObj = (UUISprite*)createdImageObjectArray[i].Get();
 #if WITH_EDITOR
 		imageObj->GetOwner()->SetActorLabel(FString::Printf(TEXT("[%s]"), *imageTagData[i].TagName.ToString()));
 		if (!parent->GetWorld()->IsGameWorld())//set it only in edit mode

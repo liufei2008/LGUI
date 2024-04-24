@@ -560,7 +560,6 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	{
 		return FindSelectable(InDirection, nullptr);
 	}
-	return nullptr;
 }
 
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)

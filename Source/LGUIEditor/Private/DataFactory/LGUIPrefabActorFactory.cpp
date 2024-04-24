@@ -71,17 +71,6 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 		});
 }
 
-void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
-{
-	if (Asset != NULL && CDO != NULL)
-	{
-		auto Prefab = CastChecked<ULGUIPrefab>(Asset);
-		auto PrefabActor = CastChecked<ALGUIPrefabLoadHelperActor>(CDO);
-
-		PrefabActor->PrefabAsset = Prefab;
-	}
-}
-
 UObject* ULGUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstance)
 {
 	check(ActorInstance->IsA(NewActorClass));

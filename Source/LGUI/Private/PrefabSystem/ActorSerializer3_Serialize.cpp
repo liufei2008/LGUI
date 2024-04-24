@@ -92,7 +92,9 @@ namespace LGUIPrefabSystem3
 				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
 			}
 			TArray<UObject*> DefaultSubObjects;
-			Actor->CollectDefaultSubobjects(DefaultSubObjects, true);
+			ForEachObjectWithOuter(Actor, [&DefaultSubObjects](UObject* SubObj) {
+				DefaultSubObjects.Add(SubObj);
+				});
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
 				OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
