@@ -8,6 +8,8 @@
 #include "Utils/LGUIUtils.h"
 #include "Interfaces/IPluginManager.h"
 #include "Core/LGUISettings.h"
+#include "Layout/UIPanelLayoutBase.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -24,7 +26,6 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 {
 	auto UIItem = Cast<UUIItem>(Component);
 	if (!UIItem)return;
-	if (!GetDefault<ULGUIEditorSettings>()->bShowAnchorTool)return;
 	TargetComp = (UUIItem*)UIItem;
 	if (TargetComp->GetWorld() != View->Family->Scene->GetWorld())return;
 
@@ -43,16 +44,12 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 	auto RightBottomPoint = TargetComp->GetComponentTransform().TransformPosition(FVector(0, Right, Bottom));
 	auto RightTopPoint = TargetComp->GetComponentTransform().TransformPosition(FVector(0, Right, Top));
 
-	//draw selector
-	static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();
-	auto AnchorVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/AnchorVisSelector.png"));
-	auto PivotVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PivotVisSelector.png"));
 	auto Area = TargetComp->GetWidth() * TargetComp->GetHeight();
 	Area = FMath::Sqrt(Area);
-	auto DrawHitProxy = [=](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture) {
+	auto DrawHitProxy = [=](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture, float AreaMultiply = 1.0f) {
 		float DistScale = View->WorldToScreen(Position).W * (4.0f / View->UnscaledViewRect.Width() / View->ViewMatrices.GetProjectionMatrix().M[0][0]);
 		float Scale = DistScale * 0.25f;
-		float AreaScale = 100 - DistScale / (Area * 0.001f);
+		float AreaScale = 100 - DistScale / (Area * 0.001f) * AreaMultiply;
 		AreaScale = FMath::Clamp(AreaScale, 0.0f, 1.0f);
 		if (AreaScale > 0.01f)
 		{
@@ -62,17 +59,66 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 			PDI->SetHitProxy(NULL);
 		}
 	};
-	DrawHitProxy(LeftPoint, EUIItemVisualizerSelectorType::Left, AnchorVisTexture);
-	DrawHitProxy(RightPoint, EUIItemVisualizerSelectorType::Right, AnchorVisTexture);
-	DrawHitProxy(TopPoint, EUIItemVisualizerSelectorType::Top, AnchorVisTexture);
-	DrawHitProxy(BottomPoint, EUIItemVisualizerSelectorType::Bottom, AnchorVisTexture);
 
-	DrawHitProxy(LeftBottomPoint, EUIItemVisualizerSelectorType::LeftBottom, AnchorVisTexture);
-	DrawHitProxy(RightBottomPoint, EUIItemVisualizerSelectorType::RightBottom, AnchorVisTexture);
-	DrawHitProxy(LeftTopPoint, EUIItemVisualizerSelectorType::LeftTop, AnchorVisTexture);
-	DrawHitProxy(RightTopPoint, EUIItemVisualizerSelectorType::RightTop, AnchorVisTexture);
+	static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();
 
-	DrawHitProxy(TargetComp->GetComponentLocation(), EUIItemVisualizerSelectorType::Pivot, PivotVisTexture);
+	//draw panel layout button
+	bool bHaveDrawPanelLayout = false;
+	if (auto Parent = TargetComp->GetParentUIItem())
+	{
+		if (auto PanelLayout = Parent->GetOwner()->FindComponentByClass<UUIPanelLayoutBase>())
+		{
+			if (auto Slot = PanelLayout->GetChildSlot(TargetComp.Get()))
+			{
+				if (!Slot->GetIgnoreLayout())
+				{
+					const float AreaScale = 3.0f;
+					static auto PanelLayoutReorderButton_Left_Texture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PanelLayoutReorderButton_Left.png"));
+					static auto PanelLayoutReorderButton_Right_Texture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PanelLayoutReorderButton_Right.png"));
+					static auto PanelLayoutReorderButton_Top_Texture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PanelLayoutReorderButton_Top.png"));
+					static auto PanelLayoutReorderButton_Bottom_Texture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PanelLayoutReorderButton_Bottom.png"));
+					if (PanelLayout->CanMoveChildToCell(TargetComp.Get(), UUIPanelLayoutBase::EMoveChildDirectionType::Left))
+					{
+						DrawHitProxy(LeftPoint, EUIItemVisualizerSelectorType::PanelLayout_Left, PanelLayoutReorderButton_Left_Texture, AreaScale);
+					}
+					if (PanelLayout->CanMoveChildToCell(TargetComp.Get(), UUIPanelLayoutBase::EMoveChildDirectionType::Right))
+					{
+						DrawHitProxy(RightPoint, EUIItemVisualizerSelectorType::PanelLayout_Right, PanelLayoutReorderButton_Right_Texture, AreaScale);
+					}
+					if (PanelLayout->CanMoveChildToCell(TargetComp.Get(), UUIPanelLayoutBase::EMoveChildDirectionType::Top))
+					{
+						DrawHitProxy(TopPoint, EUIItemVisualizerSelectorType::PanelLayout_Top, PanelLayoutReorderButton_Top_Texture, AreaScale);
+					}
+					if (PanelLayout->CanMoveChildToCell(TargetComp.Get(), UUIPanelLayoutBase::EMoveChildDirectionType::Bottom))
+					{
+						DrawHitProxy(BottomPoint, EUIItemVisualizerSelectorType::PanelLayout_Bottom, PanelLayoutReorderButton_Bottom_Texture, AreaScale);
+					}
+					bHaveDrawPanelLayout = true;
+				}
+			}
+		}
+	}
+
+	//draw anchor tool
+	if (GetDefault<ULGUIEditorSettings>()->bShowAnchorTool)
+	{
+		if (!bHaveDrawPanelLayout)//anchor is controlled by panel layout, so no need to draw it
+		{
+			static auto AnchorVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/AnchorVisSelector.png"));
+			DrawHitProxy(LeftPoint, EUIItemVisualizerSelectorType::Left, AnchorVisTexture);
+			DrawHitProxy(RightPoint, EUIItemVisualizerSelectorType::Right, AnchorVisTexture);
+			DrawHitProxy(TopPoint, EUIItemVisualizerSelectorType::Top, AnchorVisTexture);
+			DrawHitProxy(BottomPoint, EUIItemVisualizerSelectorType::Bottom, AnchorVisTexture);
+
+			DrawHitProxy(LeftBottomPoint, EUIItemVisualizerSelectorType::LeftBottom, AnchorVisTexture);
+			DrawHitProxy(RightBottomPoint, EUIItemVisualizerSelectorType::RightBottom, AnchorVisTexture);
+			DrawHitProxy(LeftTopPoint, EUIItemVisualizerSelectorType::LeftTop, AnchorVisTexture);
+			DrawHitProxy(RightTopPoint, EUIItemVisualizerSelectorType::RightTop, AnchorVisTexture);
+		}
+
+		static auto PivotVisTexture = LGUIEditorUtils::LoadTexture(LGUIBasePath + TEXT("/Resources/Icons/PivotVisSelector.png"));
+		DrawHitProxy(TargetComp->GetComponentLocation(), EUIItemVisualizerSelectorType::Pivot, PivotVisTexture);
+	}
 }
 bool FUIItemComponentVisualizer::VisProxyHandleClick(FEditorViewportClient* InViewportClient, HComponentVisProxy* VisProxy, const FViewportClick& Click)
 {
@@ -81,7 +127,44 @@ bool FUIItemComponentVisualizer::VisProxyHandleClick(FEditorViewportClient* InVi
 	if (VisProxy->IsA(HUIItemAnchorVisProxy::StaticGetType()))
 	{
 		const HUIItemAnchorVisProxy* Proxy = (HUIItemAnchorVisProxy*)VisProxy;
-		SelectorType = Proxy->Type;
+		switch (Proxy->Type)
+		{
+		case EUIItemVisualizerSelectorType::Left:
+		case EUIItemVisualizerSelectorType::Right:
+		case EUIItemVisualizerSelectorType::Top:
+		case EUIItemVisualizerSelectorType::Bottom:
+		case EUIItemVisualizerSelectorType::LeftTop:
+		case EUIItemVisualizerSelectorType::RightTop:
+		case EUIItemVisualizerSelectorType::LeftBottom:
+		case EUIItemVisualizerSelectorType::RightBottom:
+		case EUIItemVisualizerSelectorType::Pivot:
+		{
+			SelectorType = Proxy->Type;
+		}
+		break;
+		case EUIItemVisualizerSelectorType::PanelLayout_Left:
+		case EUIItemVisualizerSelectorType::PanelLayout_Right:
+		case EUIItemVisualizerSelectorType::PanelLayout_Top:
+		case EUIItemVisualizerSelectorType::PanelLayout_Bottom:
+		{
+			if (auto Parent = TargetComp->GetParentUIItem())
+			{
+				if (auto PanelLayout = Parent->GetOwner()->FindComponentByClass<UUIPanelLayoutBase>())
+				{
+					GEditor->BeginTransaction(LOCTEXT("ChangeLayoutOrder", "Change Layout Order"));
+					TargetComp->Modify();
+					PanelLayout->GetChildSlot(TargetComp.Get())->Modify();
+					auto Direction = (int)Proxy->Type - (int)EUIItemVisualizerSelectorType::PanelLayout_Left;
+					PanelLayout->MoveChildToCell(TargetComp.Get(), (UUIPanelLayoutBase::EMoveChildDirectionType)Direction);
+					GEditor->EndTransaction();
+					ULGUIPrefabManagerObject::AddOneShotTickFunction([] {
+						GEditor->RedrawAllViewports();
+						}, 1);
+				}
+			}
+		}
+		break;
+		}
 		return true;
 	}
 	return false;
