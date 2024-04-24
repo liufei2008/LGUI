@@ -34,6 +34,12 @@ public:
 #if WITH_EDITOR
 	/** Return category name for editor display */
 	virtual FText GetCategoryDisplayName()const;
+	enum class EMoveChildDirectionType
+	{
+		Left, Right, Top, Bottom,
+	};
+	virtual bool CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const { return false; }
+	virtual void MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection) {}
 #endif
 };
 

@@ -235,6 +235,31 @@ FText UUIPanelLayout_HorizontalBox::GetCategoryDisplayName()const
 {
     return NSLOCTEXT("UIPanelLayout_HorizontalBox", "CategoryDisplayName", "HorizontalBox");
 }
+bool UUIPanelLayout_HorizontalBox::CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const
+{
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Left:
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Right:
+        return true;
+    default:
+        return false;
+    }
+}
+void UUIPanelLayout_HorizontalBox::MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)
+{
+    int MoveValue = 0;
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Left:
+        MoveValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Right:
+        MoveValue = 1;
+        break;
+    }
+    InChild->SetHierarchyIndex(InChild->GetHierarchyIndex() + MoveValue);
+}
 #endif
 void UUIPanelLayout_HorizontalBox::SetWidthFitToChildren(bool Value)
 {

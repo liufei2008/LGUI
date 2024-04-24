@@ -235,6 +235,31 @@ FText UUIPanelLayout_VerticalBox::GetCategoryDisplayName()const
 {
     return NSLOCTEXT("UIPanelLayout_VerticalBox", "CategoryDisplayName", "VerticalBox");
 }
+bool UUIPanelLayout_VerticalBox::CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const
+{
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Top:
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Bottom:
+        return true;
+    default:
+        return false;
+    }
+}
+void UUIPanelLayout_VerticalBox::MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)
+{
+    int MoveValue = 0;
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Top:
+        MoveValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Bottom:
+        MoveValue = 1;
+        break;
+    }
+    InChild->SetHierarchyIndex(InChild->GetHierarchyIndex() + MoveValue);
+}
 #endif
 void UUIPanelLayout_VerticalBox::SetWidthFitToChildren(bool Value)
 {

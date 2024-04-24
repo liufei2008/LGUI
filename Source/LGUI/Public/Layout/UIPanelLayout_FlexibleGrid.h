@@ -60,6 +60,8 @@ public:
 	virtual UClass* GetPanelLayoutSlotClass()const override;
 #if WITH_EDITOR
 	virtual FText GetCategoryDisplayName()const override;
+	virtual bool CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const override;
+	virtual void MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)override;
 #endif
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout")
 		const TArray<FUIPanelLayout_FlexibleGridSize>& GetColumns()const { return Columns; }
@@ -102,6 +104,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Panel Layout Slot", meta = (UIMin = "1"))
 		int RowSpan = 1;
 public:
+	void VerifyColumnAndRow(UUIPanelLayout_FlexibleGrid* Layout);
+
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		const FMargin& GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")

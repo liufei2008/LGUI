@@ -269,12 +269,50 @@ FText UUIPanelLayout_FlexibleGrid::GetCategoryDisplayName()const
 {
     return NSLOCTEXT("UIPanelLayout_FlexibleGrid", "CategoryDisplayName", "FlexibleGrid");
 }
+bool UUIPanelLayout_FlexibleGrid::CanMoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)const
+{
+    return true;
+}
+void UUIPanelLayout_FlexibleGrid::MoveChildToCell(UUIItem* InChild, EMoveChildDirectionType InDirection)
+{
+    int MoveColumnValue = 0, MoveRowValue = 0;
+    switch (InDirection)
+    {
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Left:
+        MoveColumnValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Right:
+        MoveColumnValue = 1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Top:
+        MoveRowValue = -1;
+        break;
+    case UUIPanelLayoutBase::EMoveChildDirectionType::Bottom:
+        MoveRowValue = 1;
+        break;
+    }
+    if (auto Slot = Cast<UUIPanelLayout_FlexibleGrid_Slot>(GetChildSlot(InChild)))
+    {
+        Slot->SetColumn(Slot->GetColumn() + MoveColumnValue);
+        Slot->SetRow(Slot->GetRow() + MoveRowValue);
+    }
+}
 #endif
 void UUIPanelLayout_FlexibleGrid::SetColumns(const TArray<FUIPanelLayout_FlexibleGridSize>& Value)
 {
     if (Columns != Value)
     {
         Columns = Value;
+        //varify slot's column and row range
+        {
+            for (auto& KeyValue : MapChildToSlot)
+            {
+                if (auto Slot = Cast<UUIPanelLayout_FlexibleGrid_Slot>(KeyValue.Value))
+                {
+                    Slot->VerifyColumnAndRow(this);
+                }
+            }
+        }
         MarkNeedRebuildLayout();
     }
 }
@@ -283,6 +321,16 @@ void UUIPanelLayout_FlexibleGrid::SetRows(const TArray<FUIPanelLayout_FlexibleGr
     if (Rows != Value)
     {
         Rows = Value;
+        //varify slot's column and row range
+        {
+            for (auto& KeyValue : MapChildToSlot)
+            {
+                if (auto Slot = Cast<UUIPanelLayout_FlexibleGrid_Slot>(KeyValue.Value))
+                {
+                    Slot->VerifyColumnAndRow(this);
+                }
+            }
+        }
         MarkNeedRebuildLayout();
     }
 }
@@ -293,17 +341,29 @@ void UUIPanelLayout_FlexibleGrid_Slot::PostEditChangeProperty(FPropertyChangedEv
     Super::PostEditChangeProperty(PropertyChangedEvent);
     if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
     {
-        Row = FMath::Clamp(Row, 0, Layout->GetRows().Num() - 1);
-        RowSpan = FMath::Clamp(RowSpan, 1, Layout->GetRows().Num() - Row);
-        Column = FMath::Clamp(Column, 0, Layout->GetColumns().Num() - 1);
-        ColumnSpan = FMath::Clamp(ColumnSpan, 1, Layout->GetColumns().Num() - Column);
+        VerifyColumnAndRow(Layout);
+        Layout->MarkNeedRebuildLayout();
+        Layout->MarkNeedRebuildChildrenList();
     }
 }
 void UUIPanelLayout_FlexibleGrid_Slot::PostEditUndo()
 {
     Super::PostEditUndo();
+    if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
+    {
+        VerifyColumnAndRow(Layout);
+        Layout->MarkNeedRebuildLayout();
+        Layout->MarkNeedRebuildChildrenList();
+    }
 }
 #endif
+void UUIPanelLayout_FlexibleGrid_Slot::VerifyColumnAndRow(UUIPanelLayout_FlexibleGrid* Layout)
+{
+    Row = FMath::Clamp(Row, 0, Layout->GetRows().Num() - 1);
+    RowSpan = FMath::Clamp(RowSpan, 1, Layout->GetRows().Num() - Row);
+    Column = FMath::Clamp(Column, 0, Layout->GetColumns().Num() - 1);
+    ColumnSpan = FMath::Clamp(ColumnSpan, 1, Layout->GetColumns().Num() - Column);
+}
 void UUIPanelLayout_FlexibleGrid_Slot::SetPadding(const FMargin& Value)
 {
     if (Padding != Value)
@@ -322,7 +382,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetColumn(int Value)
         Column = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
         {
-            Column = FMath::Clamp(Column, 0, Layout->GetColumns().Num() - 1);
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
@@ -334,7 +394,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetColumnSpan(int Value)
         ColumnSpan = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
         {
-            ColumnSpan = FMath::Clamp(ColumnSpan, 1, Layout->GetColumns().Num() - Column);
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
@@ -346,7 +406,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetRow(int Value)
         Row = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
         {
-            Row = FMath::Clamp(Row, 0, Layout->GetRows().Num() - 1);
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
@@ -358,7 +418,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetRowSpan(int Value)
         RowSpan = Value;
         if (auto Layout = GetTypedOuter<UUIPanelLayout_FlexibleGrid>())
         {
-            RowSpan = FMath::Clamp(RowSpan, 1, Layout->GetRows().Num() - Row);
+            VerifyColumnAndRow(Layout);
             Layout->MarkNeedRebuildLayout();
         }
     }
