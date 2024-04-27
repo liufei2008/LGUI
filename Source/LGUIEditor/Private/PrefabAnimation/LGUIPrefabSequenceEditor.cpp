@@ -138,7 +138,7 @@ private:
 				const FScopedTransaction Transaction(TransactionName);
 				Animation->Modify();
 
-				Animation->SetDisplayName(NewName);
+				Animation->SetDisplayNameString(NewName);
 
 				if (bNewAnimation)
 				{
