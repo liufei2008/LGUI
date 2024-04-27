@@ -211,7 +211,6 @@ bool UUIBatchMeshRenderable::HaveGeometryModifier(bool includeDisabled)
 		}
 		return enabledCount > 0;
 	}
-	return false;
 }
 
 void UUIBatchMeshRenderable::GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
