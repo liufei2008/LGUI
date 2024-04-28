@@ -207,7 +207,6 @@ ULGUIPrefabSequence* ULGUIPrefabSequenceComponent::DuplicateAnimationByIndex(int
 	}
 	auto SourceSequence = SequenceArray[InIndex];
 	auto NewSequence = DuplicateObject(SourceSequence, this);
-	NewSequence->GetMovieScene()->Rename(*NewSequence->GetName(), nullptr, REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
 	NewSequence->SetDisplayNameString(NewSequence->GetName());
 	{
 		NewSequence->GetMovieScene()->SetTickResolutionDirectly(SourceSequence->GetMovieScene()->GetTickResolution());
