@@ -241,11 +241,21 @@ void UUICanvasGroup::SetIgnoreParentGroup(bool value)
 
 ULTweener* UUICanvasGroup::AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUICanvasGroup::AlphaFrom(float startValue, float duration, float delay, ELTweenEase ease)
 {
 	auto endValue = this->GetAlpha();
 	this->SetAlpha(startValue);
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
