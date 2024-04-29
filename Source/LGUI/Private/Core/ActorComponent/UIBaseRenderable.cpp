@@ -326,24 +326,44 @@ float UUIBaseRenderable::GetFinalAlpha01()const
 #include "LTweenManager.h"
 ULTweener* UUIBaseRenderable::ColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIBaseRenderable::ColorFrom(FColor startValue, float duration, float delay, ELTweenEase ease)
 {
 	auto endValue = this->GetColor();
 	this->SetColor(startValue);
-	return ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 
 ULTweener* UUIBaseRenderable::AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIBaseRenderable::AlphaFrom(float startValue, float duration, float delay, ELTweenEase ease)
 {
 	auto endValue = this->GetAlpha();
 	this->SetAlpha(startValue);
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 #pragma endregion
 

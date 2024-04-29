@@ -2279,44 +2279,94 @@ void UUIItem::UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle)
 #include "LTweenManager.h"
 ULTweener* UUIItem::WidthTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetWidth), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetWidth), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::HeightTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetHeight), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetHeight), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::HorizontalAnchoredPositionTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetHorizontalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetHorizontalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetHorizontalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetHorizontalAnchoredPosition), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::VerticalAnchoredPositionTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetVerticalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetVerticalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetVerticalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetVerticalAnchoredPosition), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::AnchoredPositionTo(FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateUObject(this, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(this, &UUIItem::SetAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateUObject(this, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(this, &UUIItem::SetAnchoredPosition), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::PivotTo(FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateUObject(this, &UUIItem::GetPivot), FLTweenVector2DSetterFunction::CreateUObject(this, &UUIItem::SetPivot), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateUObject(this, &UUIItem::GetPivot), FLTweenVector2DSetterFunction::CreateUObject(this, &UUIItem::SetPivot), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 
 ULTweener* UUIItem::AnchorLeftTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorLeft), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorLeft), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorLeft), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorLeft), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::AnchorRightTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorRight), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorRight), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorRight), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorRight), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::AnchorTopTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorTop), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorTop), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorTop), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorTop), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIItem::AnchorBottomTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorBottom), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorBottom), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIItem::GetAnchorBottom), FLTweenFloatSetterFunction::CreateUObject(this, &UUIItem::SetAnchorBottom), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+	}
+	return Tweener;
 }
 #pragma endregion
 

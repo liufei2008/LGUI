@@ -414,6 +414,10 @@ void UUI2DLineRendererBase::SetLineWidthOffset(float newValue)
 
 ULTweener* UUI2DLineRendererBase::LineWidthTo(float endValue, float duration, float delay, ELTweenEase easeType)
 {
-	return ULTweenManager::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration)
-		->SetDelay(delay)->SetEase(easeType);
+	auto Tweener = ULTweenManager::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(easeType)->SetDelay(delay);
+	}
+	return Tweener;
 }

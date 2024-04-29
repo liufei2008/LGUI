@@ -250,13 +250,21 @@ void UUIPolygon::SetVertexOffsetArray(const TArray<float>& value)
 }
 ULTweener* UUIPolygon::StartAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, ELTweenEase easeType /* = ELTweenEase::OutCubic */)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetStartAngle), endValue, duration)
-		->SetEase(easeType)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetStartAngle), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(easeType)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIPolygon::EndAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, ELTweenEase easeType /* = ELTweenEase::OutCubic */)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetEndAngle), endValue, duration)
-		->SetEase(easeType)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygon::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygon::SetEndAngle), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(easeType)->SetDelay(delay);
+	}
+	return Tweener;
 }
 
 

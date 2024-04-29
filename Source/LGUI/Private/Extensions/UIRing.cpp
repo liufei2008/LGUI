@@ -92,11 +92,19 @@ void UUIRing::SetSegment(int newValue)
 
 ULTweener* UUIRing::StartAngleTo(float endValue, float duration, float delay, ELTweenEase easeType)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration)
-		->SetEase(easeType)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(easeType)->SetDelay(delay);
+	}
+	return Tweener;
 }
 ULTweener* UUIRing::EndAngleTo(float endValue, float duration, float delay, ELTweenEase easeType)
 {
-	return ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration)
-		->SetEase(easeType)->SetDelay(delay);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(easeType)->SetDelay(delay);
+	}
+	return Tweener;
 }
