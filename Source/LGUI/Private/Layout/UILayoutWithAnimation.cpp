@@ -93,7 +93,7 @@ void UUILayoutWithAnimation::EndSetupAnimations()
 		CustomAnimation->EndSetupAnimations();
 	}
 	bIsAnimationPlaying = true;
-	auto tweener = ULTweenManager::VirtualTo(this, AnimationDuration)->OnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
+	auto Tweener = ULTweenManager::VirtualTo(this, AnimationDuration)->OnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
 		bIsAnimationPlaying = false;
 		if (bShouldRebuildLayoutAfterAnimation)
 		{
@@ -101,7 +101,7 @@ void UUILayoutWithAnimation::EndSetupAnimations()
 			MarkNeedRebuildLayout();
 		}
 		}));
-	TweenerArray.Add(tweener);
+	TweenerArray.Add(Tweener);
 }
 
 void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D Value, UUIItem* Target)
@@ -118,12 +118,15 @@ void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimati
 	{
 		if (Target->GetAnchoredPosition() != Value)
 		{
-			auto tweener = ULTweenManager::To(Target
+			auto Tweener = ULTweenManager::To(Target
 				, FLTweenVector2DGetterFunction::CreateUObject(Target, &UUIItem::GetAnchoredPosition)
 				, FLTweenVector2DSetterFunction::CreateUObject(Target, &UUIItem::SetAnchoredPosition)
-				, Value, AnimationDuration)
-				->SetEase(ELTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
+				, Value, AnimationDuration);
+			if (Tweener)
+			{
+				Tweener->SetEase(ELTweenEase::InOutSine);
+				TweenerArray.Add(Tweener);
+			}
 		}
 	}
 	break;
@@ -156,8 +159,11 @@ void UUILayoutWithAnimation::ApplyRotatorWithAnimation(EUILayoutAnimationType te
 	{
 		if (Target->GetRelativeRotation() != Value)
 		{
-			auto tweener = ULTweenBPLibrary::LocalRotatorTo(Target, Value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
+			auto Tweener = ULTweenBPLibrary::LocalRotatorTo(Target, Value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
+			if (Tweener)
+			{
+				TweenerArray.Add(Tweener);
+			}
 		}
 	}
 	break;
@@ -190,12 +196,15 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutAnimationType temp
 	{
 		if (Target->GetWidth() != Value)
 		{
-			auto tweener = ULTweenManager::To(Target
+			auto Tweener = ULTweenManager::To(Target
 				, FLTweenFloatGetterFunction::CreateUObject(Target, &UUIItem::GetWidth)
 				, FLTweenFloatSetterFunction::CreateUObject(Target, &UUIItem::SetWidth)
-				, Value, AnimationDuration)
-				->SetEase(ELTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
+				, Value, AnimationDuration);
+			if (Tweener)
+			{
+				Tweener->SetEase(ELTweenEase::InOutSine);
+				TweenerArray.Add(Tweener);
+			}
 		}
 	}
 	break;
@@ -228,12 +237,15 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutAnimationType tem
 	{
 		if (Target->GetHeight() != Value)
 		{
-			auto tweener = ULTweenManager::To(Target
+			auto Tweener = ULTweenManager::To(Target
 				, FLTweenFloatGetterFunction::CreateUObject(Target, &UUIItem::GetHeight)
 				, FLTweenFloatSetterFunction::CreateUObject(Target, &UUIItem::SetHeight)
-				, Value, AnimationDuration)
-				->SetEase(ELTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
+				, Value, AnimationDuration);
+			if (Tweener)
+			{
+				Tweener->SetEase(ELTweenEase::InOutSine);
+				TweenerArray.Add(Tweener);
+			}
 		}
 	}
 	break;
@@ -266,12 +278,15 @@ void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutAnimationType 
 	{
 		if (Target->GetSizeDelta() != Value)
 		{
-			auto tweener = ULTweenManager::To(Target
+			auto Tweener = ULTweenManager::To(Target
 				, FLTweenVector2DGetterFunction::CreateUObject(Target, &UUIItem::GetSizeDelta)
 				, FLTweenVector2DSetterFunction::CreateUObject(Target, &UUIItem::SetSizeDelta)
-				, Value, AnimationDuration)
-				->SetEase(ELTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
+				, Value, AnimationDuration);
+			if (Tweener)
+			{
+				Tweener->SetEase(ELTweenEase::InOutSine);
+				TweenerArray.Add(Tweener);
+			}
 		}
 	}
 	break;
