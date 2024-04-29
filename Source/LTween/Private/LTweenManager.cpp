@@ -78,8 +78,10 @@ UWorld* ULTweenManager::GetTickableGameObjectWorld() const
 #include "Kismet/GameplayStatics.h"
 ULTweenManager* ULTweenManager::GetLTweenInstance(UObject* WorldContextObject)
 {
-	auto GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
-	return GameInstance != nullptr ? GameInstance->GetSubsystem<ULTweenManager>() : nullptr;
+	if (auto GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject))
+		return GameInstance->GetSubsystem<ULTweenManager>();
+	else
+		return nullptr;
 }
 
 void ULTweenManager::OnTick(float DeltaTime)

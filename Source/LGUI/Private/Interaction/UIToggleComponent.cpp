@@ -121,8 +121,11 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 			}
 			else
 			{
-				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenFloatGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
-					->SetEase(ELTweenEase::InOutSine);
+				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenFloatGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration);
+				if (ToggleTransitionTweener)
+				{
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine);
+				}
 			}
 		}
 	}
@@ -137,8 +140,11 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 			}
 			else
 			{
-				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenColorGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
-					->SetEase(ELTweenEase::InOutSine);
+				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenColorGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetColor), IsOn ? OnColor : OffColor, ToggleDuration);
+				if (ToggleTransitionTweener)
+				{
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine);
+				}
 			}
 		}
 	}
