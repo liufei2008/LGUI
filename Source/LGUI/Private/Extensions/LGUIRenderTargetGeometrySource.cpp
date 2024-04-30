@@ -20,6 +20,9 @@
 #include "SceneInterface.h"
 #include "RayTracingInstance.h"
 #include "RayTracingGeometry.h"
+#if WITH_EDITOR
+#include "PrefabSystem/LGUIPrefabManager.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "LGUIRenderTargetGeometrySource"
 
@@ -471,6 +474,15 @@ bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
 				{
 					if (bOverrideStaticMeshMaterial)
 					{
+#if WITH_EDITOR
+						if (!this->GetWorld()->IsGameWorld())
+						{
+							ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
+								StaticMeshComp->SetMaterial(0, MaterialInstance);
+								}, 1);
+						}
+						else
+#endif
 						//delay call, or the bPostTickComponentUpdate check will break
 						ULTweenBPLibrary::DelayFrameCall(this->GetWorld(), 1, [this] {
 							StaticMeshComp->SetMaterial(0, MaterialInstance);
@@ -1139,6 +1151,15 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 			{
 				if (CheckStaticMesh())
 				{
+#if WITH_EDITOR
+					if (!this->GetWorld()->IsGameWorld())
+					{
+						ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
+							StaticMeshComp->SetMaterial(0, MaterialInstance);
+							}, 1);
+					}
+					else
+#endif
 					//delay call, or the bPostTickComponentUpdate check will break
 					ULTweenBPLibrary::DelayFrameCall(this, 1, [this] {
 						StaticMeshComp->SetMaterial(0, MaterialInstance);
