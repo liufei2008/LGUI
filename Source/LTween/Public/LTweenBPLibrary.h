@@ -168,15 +168,30 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Assign start or update or omplete functions", WorldContext = "WorldContextObject", AutoCreateRefTerm="start,update,complete"), Category = LTween)
 		static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, const FLTweenerSimpleDynamicDelegate& start, const FLTweenerFloatDynamicDelegate& update, const FLTweenerSimpleDynamicDelegate& complete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, duration);
+		if (Tweener)
+		{
+			Tweener->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		}
+		return Tweener;
 	}
 	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, FSimpleDelegate start, FLTweenUpdateDelegate update, FSimpleDelegate complete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, duration);
+		if (Tweener)
+		{
+			Tweener->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		};
+		return Tweener;
 	}
 	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, const TFunction<void()>& start, const TFunction<void(float)>& update, const TFunction<void()>& complete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, duration);
+		if (Tweener)
+		{
+			Tweener->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+		}
+		return Tweener;
 	}
 	static ULTweener* VirtualCall(UObject* WorldContextObject, float duration)
 	{
@@ -186,28 +201,58 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FLTweenerSimpleDynamicDelegate& delayComplete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay frame call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const FLTweenerSimpleDynamicDelegate& delayComplete)
 	{
-		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FSimpleDelegate delayComplete)
 	{
-		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const TFunction<void()>& delayComplete)
 	{
-		return ULTweenManager::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
+		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete);
+		}
+		return Tweener;
 	}
 
 	UFUNCTION(BlueprintPure, Category = LTween, meta = (WorldContext = "WorldContextObject"))
@@ -273,11 +318,16 @@ public:
 	 */
 	static ULTweener* RepeatCall(UObject* WorldContextObject, const TFunction<void()>& callFunction, float delayTime, float interval, int repeatCount = 1)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, interval)
-			->SetDelay(delayTime)
-			->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
-			->OnCycleStart(callFunction)
-			;
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, interval);
+		if (Tweener)
+		{
+			Tweener
+				->SetDelay(delayTime)
+				->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
+				->OnCycleStart(callFunction)
+				;
+		}
+		return Tweener;
 	}
 	/**
 	 * Repeatedly call function.
@@ -288,11 +338,16 @@ public:
 	 */
 	static ULTweener* RepeatCall(UObject* WorldContextObject, const FSimpleDelegate& callFunction, float delayTime, float interval, int repeatCount = 1)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, interval)
-			->SetDelay(delayTime)
-			->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
-			->OnCycleStart(callFunction)
-			;
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, interval);
+		if (Tweener)
+		{
+			Tweener
+				->SetDelay(delayTime)
+				->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
+				->OnCycleStart(callFunction)
+				;
+		}
+		return Tweener;
 	}
 	/**
 	 * Repeatedly call function.
@@ -304,11 +359,16 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* RepeatCall(UObject* WorldContextObject, FLTweenerSimpleDynamicDelegate callFunction, float delayTime, float interval = 1.0f, int repeatCount = 1)
 	{
-		return ULTweenManager::VirtualTo(WorldContextObject, interval)
-			->SetDelay(delayTime)
-			->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
-			->OnCycleStart(callFunction)
-			;
+		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, interval);
+		if (Tweener)
+		{
+			Tweener
+				->SetDelay(delayTime)
+				->SetLoop(repeatCount == 1 || repeatCount == 0 ? ELTweenLoop::Once : ELTweenLoop::Restart, repeatCount)
+				->OnCycleStart(callFunction)
+				;
+		}
+		return Tweener;
 	}
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = LTween)
 		static class ULTweenerSequence* CreateSequence(UObject* WorldContextObject)
