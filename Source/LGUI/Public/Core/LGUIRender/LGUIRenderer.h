@@ -150,6 +150,7 @@ private:
 	TArray<FWorldSpaceRenderParameter> WorldSpaceRenderCanvasParameterArray;
 	TMap<ULGUICanvas*, bool> WorldSpaceCanvasVisibilityMap;
 	bool bNeedSortWorldSpaceRenderCanvas = true;
+	bool bFrustumCulling = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
 	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
