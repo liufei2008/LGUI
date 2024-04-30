@@ -79,6 +79,7 @@ void FLGUIRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView
 	if (auto LGUISettings = GetDefault<ULGUISettings>())
 	{
 		NumSamples_MSAA = LGUISettings->AntiAliasingMothod == ELGUIRendererAntiAliasingMethod::MSAA ? (uint8)LGUISettings->MSAASampleCount : 1;
+		bFrustumCulling = LGUISettings->bFrustumCulling;
 	}
 	else
 	{
@@ -542,7 +543,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				if (bIsPrimitiveVisible)
 				{
 					auto WorldBounds = WorldRenderParameter.Primitive->GetWorldBounds();
-					if (InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+					if (!bFrustumCulling 
+						|| (bFrustumCulling && InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+						)
 					{
 						FWorldSpaceRenderParameterSequence Item;
 						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
@@ -811,7 +814,10 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		RenderView->SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
 		RenderView->SceneViewInitOptions.ProjectionMatrix = ScreenSpaceRenderParameter.ProjectionMatrix;
 		RenderView->ViewMatrices = FViewMatrices(RenderView->SceneViewInitOptions);
-		RenderView->UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);//this is mainly for ViewFrustum
+		if (bFrustumCulling)
+		{
+			RenderView->UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);//this is mainly for ViewFrustum
+		}
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView->SetupCommonViewUniformBufferParameters(
@@ -833,7 +839,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			if (Primitive->CanRender())
 			{
 				auto WorldBounds = Primitive->GetWorldBounds();
-				if (RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+				if (!bFrustumCulling 
+					|| (bFrustumCulling && RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+					)
 				{
 					Primitive->CollectRenderData(RenderSequenceArray, CurrentWorldTime);
 				}
