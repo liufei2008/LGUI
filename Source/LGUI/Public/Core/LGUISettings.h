@@ -89,8 +89,14 @@ public:
 	 *			Relative rotation.X/Y less than threshold.
 	 * This is the threshold for determine if the UI element is 2D.
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
+	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (ClampMin = "0.00001", ClampMax = "100"))
 		float AutoBatchThreshold = 0.01f;
+
+	/**
+	 * Enable frustum culling for LGUI Renderer.
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "Rendering")
+		bool bFrustumCulling = true;
 
 	/**
 	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).
