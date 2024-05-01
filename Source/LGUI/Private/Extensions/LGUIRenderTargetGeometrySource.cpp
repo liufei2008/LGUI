@@ -477,7 +477,7 @@ bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
 #if WITH_EDITOR
 						if (!this->GetWorld()->IsGameWorld())
 						{
-							ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
+							ULGUIPrefabManagerObject::AddOneShotTickFunction([this] {
 								StaticMeshComp->SetMaterial(0, MaterialInstance);
 								}, 1);
 						}
@@ -1154,7 +1154,7 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 #if WITH_EDITOR
 					if (!this->GetWorld()->IsGameWorld())
 					{
-						ULGUIPrefabManagerObject::AddOneShotTickFunction([=] {
+						ULGUIPrefabManagerObject::AddOneShotTickFunction([this] {
 							StaticMeshComp->SetMaterial(0, MaterialInstance);
 							}, 1);
 					}
