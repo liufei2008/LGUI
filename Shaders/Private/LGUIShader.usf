@@ -223,11 +223,11 @@ void MainPS(
 #endif
 
 
-#if STRATA_ENABLED
+#if SUBSTRATE_ENABLED
 
 	// UI element are always rendered with a unlit BSDF behind the scene
-	FStrataBSDF UnlitBSDF = PixelMaterialInputs.FrontMaterial.InlinedBSDF;
-	UnlitBSDF.StrataSanitizeBSDF();
+	FSubstrateBSDF UnlitBSDF = PixelMaterialInputs.FrontMaterial.InlinedBSDF;
+	UnlitBSDF.SubstrateSanitizeBSDF();
 	
 	HALF3_TYPE Color = BSDF_GETEMISSIVE(UnlitBSDF);
 
@@ -240,11 +240,11 @@ void MainPS(
 	
 	OutColor = HALF4_TYPE(Color, Coverage);
 
-#else // STRATA_ENABLED
+#else // SUBSTRATE_ENABLED
 	
     OutColor = HALF4_TYPE(GetMaterialEmissive(PixelMaterialInputs), GetMaterialOpacity(PixelMaterialInputs));
 	
-#endif // STRATA_ENABLED
+#endif // SUBSTRATE_ENABLED
 	
 	// Gamma Correct
     OutColor.rgb = GammaCorrect(OutColor.rgb, _LGUIGammaValues);
