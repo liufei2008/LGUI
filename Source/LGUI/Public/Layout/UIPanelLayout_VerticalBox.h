@@ -85,7 +85,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
 		void SetSizeRule(const FSlateChildSize& Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		void SetHorizontalAlignment(const EHorizontalAlignment& Value);
+		void SetHorizontalAlignment(EHorizontalAlignment Value);
 	UFUNCTION(BlueprintCallable, Category = "Panel Layout Slot")
-		void SetVerticalAlignment(const EVerticalAlignment& Value);
+		void SetVerticalAlignment(EVerticalAlignment Value);
 };
