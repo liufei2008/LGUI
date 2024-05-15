@@ -120,6 +120,7 @@ private:
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
 	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
 
+	static bool bFirstTimeShow_RestructActorBlueprint;
 	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
 	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
 	void OnLevelActorDeleted(AActor* Actor);
