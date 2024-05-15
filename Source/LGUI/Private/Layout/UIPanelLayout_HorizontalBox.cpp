@@ -308,7 +308,7 @@ void UUIPanelLayout_HorizontalBox_Slot::SetSizeRule(const FSlateChildSize& Value
         }
     }
 }
-void UUIPanelLayout_HorizontalBox_Slot::SetHorizontalAlignment(const EHorizontalAlignment& Value)
+void UUIPanelLayout_HorizontalBox_Slot::SetHorizontalAlignment(EHorizontalAlignment Value)
 {
     if (HorizontalAlignment != Value)
     {
@@ -319,7 +319,7 @@ void UUIPanelLayout_HorizontalBox_Slot::SetHorizontalAlignment(const EHorizontal
         }
     }
 }
-void UUIPanelLayout_HorizontalBox_Slot::SetVerticalAlignment(const EVerticalAlignment& Value)
+void UUIPanelLayout_HorizontalBox_Slot::SetVerticalAlignment(EVerticalAlignment Value)
 {
     if (VerticalAlignment != Value)
     {

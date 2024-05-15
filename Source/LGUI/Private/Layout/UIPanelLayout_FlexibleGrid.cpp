@@ -423,7 +423,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetRowSpan(int Value)
         }
     }
 }
-void UUIPanelLayout_FlexibleGrid_Slot::SetHorizontalAlignment(const EHorizontalAlignment& Value)
+void UUIPanelLayout_FlexibleGrid_Slot::SetHorizontalAlignment(EHorizontalAlignment Value)
 {
     if (HorizontalAlignment != Value)
     {
@@ -434,7 +434,7 @@ void UUIPanelLayout_FlexibleGrid_Slot::SetHorizontalAlignment(const EHorizontalA
         }
     }
 }
-void UUIPanelLayout_FlexibleGrid_Slot::SetVerticalAlignment(const EVerticalAlignment& Value)
+void UUIPanelLayout_FlexibleGrid_Slot::SetVerticalAlignment(EVerticalAlignment Value)
 {
     if (VerticalAlignment != Value)
     {
