@@ -814,11 +814,32 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 		}, 1);
 }
 
+bool ULGUIPrefabHelperObject::bFirstTimeShow_RestructActorBlueprint = true;
 void ULGUIPrefabHelperObject::CheckAttachment()
 {
 	if (ULGUIPrefabManagerObject::GetIsBlueprintCompiling())return;
 	if (!bCanNotifyAttachment)return;
 	if (!AttachmentActor.Actor.IsValid())return;
+
+	auto CheckActorBlueprintInLevelActorRestruction = [](TWeakObjectPtr<AActor> Actor){
+		if (!Actor.IsValid())return true;
+		if (Actor->GetClass() && Actor->GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint))
+		{
+			auto InfoText = LOCTEXT("DetectRestructureActorBlueprintInPrefabInstance", "Looks like you are trying to modify actor-blueprint in a child Prefab.\
+You should know that using actor-blueprint inside Prefab is not a good idea, so use it at your own risk.");
+			UE_LOG(LGUI, Warning, TEXT("%s"), *(InfoText.ToString()));
+			if (bFirstTimeShow_RestructActorBlueprint)
+			{
+				bFirstTimeShow_RestructActorBlueprint = false;
+				LGUIUtils::EditorNotification(InfoText, 10);
+			}
+			return false;
+		}
+		return true;
+	};
+	if (!CheckActorBlueprintInLevelActorRestruction(AttachmentActor.Actor))return;
+	if (!CheckActorBlueprintInLevelActorRestruction(AttachmentActor.AttachTo))return;
+	if (!CheckActorBlueprintInLevelActorRestruction(AttachmentActor.DetachFrom))return;
 	enum class EAttachementError
 	{
 		None,
