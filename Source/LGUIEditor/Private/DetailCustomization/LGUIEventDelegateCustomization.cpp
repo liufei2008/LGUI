@@ -29,14 +29,15 @@ UE_DISABLE_OPTIMIZATION
 
 TArray<FString> FLGUIEventDelegateCustomization::CopySourceData;
 
-TSharedPtr<IPropertyHandleArray> FLGUIEventDelegateCustomization::GetEventListHandle(TSharedRef<IPropertyHandle> PropertyHandle)const
+TSharedPtr<IPropertyHandleArray> FLGUIEventDelegateCustomization::GetEventListHandle()const
 {
 	return PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, eventList))->AsArray();
 }
 
-void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
+	PropertyHandle = InPropertyHandle;
 
 	//add parameter type property
 	bool bIsInWorld = false;
@@ -49,7 +50,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		.NameContent()
 		[
 			SNew(STextBlock)
-			.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
+			.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName)
 			.ToolTipText(PropertyHandle->GetToolTipText())
 		]
 		.ValueContent()
@@ -70,7 +71,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 	{
 		if (CanChangeParameterType)
 		{
-			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
+			AddNativeParameterTypeProperty(ChildBuilder);
 		}
 		return;
 	}
@@ -83,7 +84,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 				.NameContent()
 				[
 					SNew(STextBlock)
-					.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
+					.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName)
 					.ToolTipText(PropertyHandle->GetToolTipText())
 				]
 				.ValueContent()
@@ -117,16 +118,14 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		}
 	}
 
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
-	TWeakPtr<IPropertyUtilities> WeakUtilities = PropertyUtilites;
-	OnEventArrayNumChangedDelegate = FSimpleDelegate::CreateLambda([WeakUtilities]() {
-		if (WeakUtilities.IsValid())
-		{
-			WeakUtilities.Pin()->ForceRefresh();
-		}
-	});
-	EventListHandle->SetOnNumElementsChanged(OnEventArrayNumChangedDelegate);
-	UpdateEventsLayout(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
+	auto RefreshDelegate = FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::UpdateEventsLayout);
+	EventListHandle->SetOnNumElementsChanged(RefreshDelegate);
+	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
+	NativeParameterTypeHandle->SetOnPropertyValueChanged(RefreshDelegate);
+
+	auto EventParameterType = GetNativeParameterType();
+	
 	ChildBuilder.AddCustomRow(LOCTEXT("EventDelegate", "EventDelegate"))
 		.WholeRowContent()
 		[
@@ -152,17 +151,81 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 				]
 				+ SOverlay::Slot()
 				[
-					EventsVerticalLayout.ToSharedRef()
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SBox)
+						.Padding(FMargin(8, 0))
+						.HeightOverride(30)
+						[
+							SNew(SHorizontalBox)
+							+SHorizontalBox::Slot()
+							.HAlign(EHorizontalAlignment::HAlign_Left)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							.AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName)
+								.ToolTipText(PropertyHandle->GetToolTipText())
+								//.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
+							+SHorizontalBox::Slot()
+							.HAlign(EHorizontalAlignment::HAlign_Right)
+							[
+								IsParameterTypeValid(EventParameterType) ?
+								(
+									SNew(SHorizontalBox)
+									+ SHorizontalBox::Slot()
+									.AutoWidth()
+									.HAlign(HAlign_Left)
+									.VAlign(VAlign_Center)
+									.Padding(2, 0)
+									[
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										[
+											PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListAdd))
+										]
+										+ SHorizontalBox::Slot()
+										[
+											PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListEmpty))
+										]
+									]
+								)
+								:
+								(
+									SNew(SHorizontalBox)
+									+ SHorizontalBox::Slot()
+									.HAlign(HAlign_Left)
+									.VAlign(VAlign_Center)
+									.Padding(2, 0)
+									[
+										SNew(STextBlock)
+										.AutoWrapText(true)
+										.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+										.Text(LOCTEXT("ParameterTypeWrong", "Parameter type is wrong!"))
+										.Font(IDetailLayoutBuilder::GetDetailFont())
+									]
+								)
+							]
+						]
+					]
+					+SVerticalBox::Slot()
+					[
+						SAssignNew(EventsWidget, SBox)
+					]
 				]
 			]
 		]
 	;
 
+	UpdateEventsLayout();
 }
 
-FText FLGUIEventDelegateCustomization::GetEventTitleName(TSharedRef<IPropertyHandle> PropertyHandle)const
+FText FLGUIEventDelegateCustomization::GetEventTitleName()const
 {
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType();
 	auto NameStr = PropertyHandle->GetPropertyDisplayName().ToString();
 	FString ParamTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName(EventParameterType, nullptr);
 	NameStr = NameStr + "(" + ParamTypeString + ")";
@@ -246,7 +309,7 @@ FText FLGUIEventDelegateCustomization::GetComponentDisplayName(TSharedRef<IPrope
 	return FText::FromString(ComponentDisplayName);
 }
 
-EVisibility FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+EVisibility FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
 {
 	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
 	//function
@@ -256,7 +319,7 @@ EVisibility FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility(
 	//parameterType
 	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
 	UFunction* EventFunction = nullptr;
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType();
 
 	if (TargetObject)
 	{
@@ -277,7 +340,7 @@ EVisibility FLGUIEventDelegateCustomization::GetNativeParameterWidgetVisibility(
 	return EVisibility::Collapsed;
 }
 
-EVisibility FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+EVisibility FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
 {
 	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
 	//function
@@ -287,7 +350,7 @@ EVisibility FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisib
 	//parameterType
 	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
 	UFunction* EventFunction = nullptr;
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType();
 
 	if (TargetObject)
 	{
@@ -312,7 +375,7 @@ EVisibility FLGUIEventDelegateCustomization::GetDrawFunctionParameterWidgetVisib
 	return EVisibility::Collapsed;
 }
 
-EVisibility FLGUIEventDelegateCustomization::GetNotValidParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const
+EVisibility FLGUIEventDelegateCustomization::GetNotValidParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const
 {
 	auto TargetObject = GetEventItemTargetObject(EventItemPropertyHandle);
 	//function
@@ -322,7 +385,7 @@ EVisibility FLGUIEventDelegateCustomization::GetNotValidParameterWidgetVisibilit
 	//parameterType
 	auto FunctionParameterType = GetEventDataParameterType(EventItemPropertyHandle);
 	UFunction* EventFunction = nullptr;
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType();
 
 	if (TargetObject)
 	{
@@ -353,75 +416,12 @@ AActor* FLGUIEventDelegateCustomization::GetEventItemHelperActor(TSharedRef<IPro
 	return HelperActor;
 }
 
-void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::UpdateEventsLayout()
 {
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventParameterType = GetNativeParameterType();
+	auto EventListHandle = GetEventListHandle();
 
-	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
-	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this] { PropertyUtilites->ForceRefresh(); }));
-
-	SAssignNew(EventsVerticalLayout, SVerticalBox)
-	+ SVerticalBox::Slot()
-	.AutoHeight()
-	[
-		SNew(SBox)
-		.Padding(FMargin(8, 0))
-		.HeightOverride(30)
-		[
-			SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.HAlign(EHorizontalAlignment::HAlign_Left)
-			.VAlign(EVerticalAlignment::VAlign_Center)
-			.AutoWidth()
-			[
-				SNew(STextBlock)
-				.Text(this, &FLGUIEventDelegateCustomization::GetEventTitleName, PropertyHandle)
-				.ToolTipText(PropertyHandle->GetToolTipText())
-				//.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			+SHorizontalBox::Slot()
-			.HAlign(EHorizontalAlignment::HAlign_Right)
-			[
-				IsParameterTypeValid(EventParameterType) ?
-				(
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.HAlign(HAlign_Left)
-					.VAlign(VAlign_Center)
-					.Padding(2, 0)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						[
-							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListAdd, PropertyHandle))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListEmpty, PropertyHandle))
-						]
-					]
-				)
-				:
-				(
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Left)
-					.VAlign(VAlign_Center)
-					.Padding(2, 0)
-					[
-						SNew(STextBlock)
-						.AutoWrapText(true)
-						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-						.Text(LOCTEXT("ParameterTypeWrong", "Parameter type is wrong!"))
-						.Font(IDetailLayoutBuilder::GetDetailFont())
-					]
-				)
-			]
-		]
-	];
-
+	auto EventsVerticalLayout = SNew(SVerticalBox);
 	EventParameterWidgetArray.Empty(); 
 	uint32 arrayCount;
 	EventListHandle->GetNumElements(arrayCount);
@@ -592,7 +592,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("C", "C"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, true, EventItemIndex, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, true, EventItemIndex)
 							.ToolTipText(LOCTEXT("Copy", "Copy this function"))
 						]
 					]
@@ -611,7 +611,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("P", "P"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, EventItemIndex)
 							.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
 						]
 					]
@@ -630,7 +630,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("D", "D"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickDuplicate, EventItemIndex, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickDuplicate, EventItemIndex)
 							.ToolTipText(LOCTEXT("Duplicate", "Duplicate this function"))
 						]
 					]
@@ -649,7 +649,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("+", "+"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, EventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Add", "Add new one"))
 						]
 					]
@@ -668,7 +668,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("-", "-"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, EventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
 						]
 					]
@@ -687,7 +687,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("▲", "▲"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, true, EventItemIndex, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, true, EventItemIndex)
 							.ToolTipText(LOCTEXT("MoveUp", "Move up"))
 						]
 					]
@@ -706,7 +706,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("▼", "▼"))
-							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, false, EventItemIndex, PropertyHandle)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickMoveUpDown, false, EventItemIndex)
 							.ToolTipText(LOCTEXT("MoveDown", "Move down"))
 						]
 					]
@@ -780,7 +780,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 											]
 											.MenuContent()
 											[
-												MakeComponentSelectorMenu(EventItemIndex, PropertyHandle)
+												MakeComponentSelectorMenu(EventItemIndex)
 											]
 										]
 									]
@@ -814,7 +814,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 												]
 												.MenuContent()
 												[
-													MakeFunctionSelectorMenu(EventItemIndex, PropertyHandle)
+													MakeFunctionSelectorMenu(EventItemIndex)
 												]
 											]
 										]
@@ -836,6 +836,7 @@ void FLGUIEventDelegateCustomization::UpdateEventsLayout(TSharedRef<IPropertyHan
 			]
 		;
 	}
+	EventsWidget->SetContent(EventsVerticalLayout);
 }
 
 void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropertyHandle> ItemPropertyHandle)
@@ -909,7 +910,7 @@ void FLGUIEventDelegateCustomization::OnActorParameterChange(TSharedRef<IPropert
 		}
 	}
 
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 }
 
 void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, TSharedRef<IPropertyHandle> ItemPropertyHandle)
@@ -923,7 +924,7 @@ void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, T
 	auto HelperComponentNameHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
 	HelperComponentNameHandle->SetValue(Comp->GetFName());
 
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 }
 void FLGUIEventDelegateCustomization::OnSelectActorSelf(TSharedRef<IPropertyHandle> ItemPropertyHandle)
 {
@@ -940,7 +941,7 @@ void FLGUIEventDelegateCustomization::OnSelectActorSelf(TSharedRef<IPropertyHand
 	auto HelperComponentNameHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
 	HelperComponentNameHandle->SetValue(NAME_None);
 
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 }
 void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, ELGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> ItemPropertyHandle)
 {
@@ -949,7 +950,8 @@ void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, ELGUIEven
 	SetEventDataParameterType(ItemPropertyHandle, ParamType);
 	auto UseNativeParameterHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UseNativeParameter));
 	UseNativeParameterHandle->SetValue(UseNativeParameter);
-	PropertyUtilites->ForceRefresh();
+
+	UpdateEventsLayout();
 }
 
 void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, ELGUIEventDelegateParameterType ParameterType)
@@ -957,7 +959,7 @@ void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IProp
 	auto ParamTypeHandle = EventDataItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamType));
 	ParamTypeHandle->SetValue((uint8)ParameterType);
 }
-ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)const
+ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType()const
 {
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	uint8 supportParameterTypeUint8;
@@ -965,7 +967,7 @@ ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParame
 	ELGUIEventDelegateParameterType eventParameterType = (ELGUIEventDelegateParameterType)supportParameterTypeUint8;
 	return eventParameterType;
 }
-void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)
+void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(IDetailChildrenBuilder& ChildBuilder)
 {
 	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	ChildBuilder.AddProperty(NativeParameterTypeHandle.ToSharedRef());
@@ -979,9 +981,9 @@ ELGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataPar
 	return functionParameterType;
 }
 
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(int32 itemIndex)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	auto ItemPropertyHandle = EventListHandle->GetElement(itemIndex);
 	auto HelperActorHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperActor));
 	UObject* HelperActorObject = nullptr;
@@ -1038,10 +1040,10 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeComponentSelectorMenu(i
 	}
 	return MenuBuilder.MakeWidget();
 }
-TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle)
+TSharedRef<SWidget> FLGUIEventDelegateCustomization::MakeFunctionSelectorMenu(int32 itemIndex)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
-	auto EventParameterType = GetNativeParameterType(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
+	auto EventParameterType = GetNativeParameterType();
 	auto ItemPropertyHandle = EventListHandle->GetElement(itemIndex);
 	auto TargetObjectHandle = ItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 	UObject* TargetObject = nullptr;
@@ -1111,21 +1113,21 @@ bool FLGUIEventDelegateCustomization::IsFunctionSelectorMenuEnabled(TSharedRef<I
 
 	return IsValid(HelperActorObject) && IsValid(TargetObject);
 }
-void FLGUIEventDelegateCustomization::OnClickListAdd(TSharedRef<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::OnClickListAdd()
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	EventListHandle->AddItem();
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 }
-void FLGUIEventDelegateCustomization::OnClickListEmpty(TSharedRef<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::OnClickListEmpty()
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	EventListHandle->EmptyArray();
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 }
-FReply FLGUIEventDelegateCustomization::OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count, TSharedRef<IPropertyHandle> PropertyHandle)
+FReply FLGUIEventDelegateCustomization::OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	if (AddOrRemove)
 	{
 		if (Count == 0)
@@ -1145,12 +1147,12 @@ FReply FLGUIEventDelegateCustomization::OnClickAddRemove(bool AddOrRemove, int32
 		if (Count != 0)
 			EventListHandle->DeleteItem(Index);
 	}
-	PropertyUtilites->ForceRefresh();
+	UpdateEventsLayout();
 	return FReply::Handled();
 }
-FReply FLGUIEventDelegateCustomization::OnClickCopyPaste(bool CopyOrPaste, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+FReply FLGUIEventDelegateCustomization::OnClickCopyPaste(bool CopyOrPaste, int32 Index)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	auto EventDataHandle = EventListHandle->GetElement(Index);
 	if (CopyOrPaste)
 	{
@@ -1160,21 +1162,21 @@ FReply FLGUIEventDelegateCustomization::OnClickCopyPaste(bool CopyOrPaste, int32
 	else
 	{
 		EventDataHandle->SetPerObjectValues(CopySourceData);
-		PropertyUtilites->ForceRefresh();
+		UpdateEventsLayout();
 	}
 	return FReply::Handled();
 }
 
-FReply FLGUIEventDelegateCustomization::OnClickDuplicate(int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+FReply FLGUIEventDelegateCustomization::OnClickDuplicate(int32 Index)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	auto EventDataHandle = EventListHandle->GetElement(Index);
 	EventListHandle->DuplicateItem(Index);
 	return FReply::Handled();
 }
-FReply FLGUIEventDelegateCustomization::OnClickMoveUpDown(bool UpOrDown, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle)
+FReply FLGUIEventDelegateCustomization::OnClickMoveUpDown(bool UpOrDown, int32 Index)
 {
-	auto EventListHandle = GetEventListHandle(PropertyHandle);
+	auto EventListHandle = GetEventListHandle();
 	if (UpOrDown)
 	{
 		if (Index <= 0)
@@ -2085,22 +2087,22 @@ void FLGUIEventDelegateCustomization::SetTextValue(const FText& InText, ETextCom
 	ValueHandle->SetValue(InText);
 }
 
-void FLGUIEventDelegateCustomization::ClearValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::ClearValueBuffer(TSharedPtr<IPropertyHandle> InItemPropertyHandle)
 {
-	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamBuffer))->AsArray();
+	auto handle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamBuffer))->AsArray();
 	uint32 NumElements = 0;
 	if (handle->GetNumElements(NumElements) == FPropertyAccess::Result::Success && NumElements > 0)
 	{
 		handle->EmptyArray();
 	}
 }
-void FLGUIEventDelegateCustomization::ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::ClearReferenceValue(TSharedPtr<IPropertyHandle> InItemPropertyHandle)
 {
-	ClearObjectValue(PropertyHandle);
+	ClearObjectValue(InItemPropertyHandle);
 }
-void FLGUIEventDelegateCustomization::ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle)
+void FLGUIEventDelegateCustomization::ClearObjectValue(TSharedPtr<IPropertyHandle> InItemPropertyHandle)
 {
-	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject));
+	auto handle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject));
 	UObject* Obj = nullptr;
 	if (handle->GetValue(Obj) == FPropertyAccess::Result::Success && Obj != nullptr)
 	{
@@ -2108,26 +2110,26 @@ void FLGUIEventDelegateCustomization::ClearObjectValue(TSharedPtr<IPropertyHandl
 	}
 }
 
-void FLGUIEventDelegateCustomization::OnParameterTypeChange(TSharedRef<IPropertyHandle> InDataContainerHandle)
+void FLGUIEventDelegateCustomization::OnParameterTypeChange(TSharedRef<IPropertyHandle> InItemPropertyHandle)
 {
-	auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, BoolValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, FloatValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, DoubleValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int8Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt8Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int16Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt16Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int32Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt32Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int64Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt64Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector2Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector3Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector4Value)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, QuatValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ColorValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, LinearColorValue)); ValueHandle->ResetToDefault();
-	ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, RotatorValue)); ValueHandle->ResetToDefault();
+	auto ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, BoolValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, FloatValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, DoubleValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int8Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt8Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int16Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt16Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int32Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt32Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Int64Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UInt64Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector2Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector3Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, Vector4Value)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, QuatValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ColorValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, LinearColorValue)); ValueHandle->ResetToDefault();
+	ValueHandle = InItemPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, RotatorValue)); ValueHandle->ResetToDefault();
 }
 
 
