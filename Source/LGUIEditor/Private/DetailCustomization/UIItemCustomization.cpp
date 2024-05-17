@@ -331,10 +331,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			+SVerticalBox::Slot()
 			[
 				SNew(SBox)
-				.Padding(2)
 				.Visibility(this, &FUIItemCustomization::GetAnchorPresetButtonVisibility)
 				[
 					SNew(SComboButton)
+					.ContentPadding(8)
 					.HasDownArrow(false)
 					.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
 					.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
