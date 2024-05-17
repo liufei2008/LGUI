@@ -66,12 +66,12 @@ void FLGUIComponentReferenceCustomization::CustomizeHeader(TSharedRef<IPropertyH
 	.CopyAction(FUIAction
 	(
 		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnCopy),
-		FCanExecuteAction::CreateLambda([=] {return bIsInWorld; })
+		FCanExecuteAction::CreateLambda([this] {return bIsInWorld; })
 	))
 	.PasteAction(FUIAction
 	(
 		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnPaste),
-		FCanExecuteAction::CreateLambda([=] {return bIsInWorld; })
+		FCanExecuteAction::CreateLambda([this] {return bIsInWorld; })
 	))
 	.PropertyHandleList({ PropertyHandle })
 	.OverrideResetToDefault(FResetToDefaultOverride::Create(

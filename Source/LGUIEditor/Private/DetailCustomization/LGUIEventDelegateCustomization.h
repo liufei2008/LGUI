@@ -11,11 +11,12 @@
 class FLGUIEventDelegateCustomization : public IPropertyTypeCustomization
 {
 protected:
+	TSharedPtr<IPropertyHandle> PropertyHandle;
 	TSharedPtr<IPropertyUtilities> PropertyUtilites;
 	static TArray<FString> CopySourceData;
 	TSharedPtr<SWidget> ColorPickerParentWidget;
 	TArray<TSharedRef<SWidget>> EventParameterWidgetArray;
-	TSharedPtr<SVerticalBox> EventsVerticalLayout;
+	TSharedPtr<SBox> EventsWidget;
 	TArray<FLGUIEventDelegate*> EventDelegateInstances;
 private:
 	bool CanChangeParameterType = true;
@@ -23,15 +24,14 @@ private:
 	{
 		return InParamType != ELGUIEventDelegateParameterType::None;
 	}
-	FSimpleDelegate OnEventArrayNumChangedDelegate;
-	FText GetEventTitleName(TSharedRef<IPropertyHandle> PropertyHandle)const;
+	FText GetEventTitleName()const;
 	FText GetEventItemFunctionName(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
 	UObject* GetEventItemTargetObject(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
 	AActor* GetEventItemHelperActor(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
 	FText GetComponentDisplayName(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
-	EVisibility GetNativeParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const;
-	EVisibility GetDrawFunctionParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const;
-	EVisibility GetNotValidParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle, TSharedRef<IPropertyHandle> PropertyHandle)const;
+	EVisibility GetNativeParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
+	EVisibility GetDrawFunctionParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
+	EVisibility GetNotValidParameterWidgetVisibility(TSharedRef<IPropertyHandle> EventItemPropertyHandle)const;
 public:
 	FLGUIEventDelegateCustomization(bool InCanChangeParameterType)
 	{
@@ -46,20 +46,20 @@ public:
 		return MakeShareable(new FLGUIEventDelegateCustomization(true));
 	}
 	/** IDetailCustomization interface */
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
 
-	ELGUIEventDelegateParameterType GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)const;
-	void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder);
+	ELGUIEventDelegateParameterType GetNativeParameterType()const;
+	void AddNativeParameterTypeProperty(IDetailChildrenBuilder& ChildBuilder);
 	ELGUIEventDelegateParameterType GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)const;
 
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)override;
 
 	void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, ELGUIEventDelegateParameterType ParameterType);
 private:
 
-	void UpdateEventsLayout(TSharedRef<IPropertyHandle> PropertyHandle);
+	void UpdateEventsLayout();
 
-	TSharedPtr<IPropertyHandleArray> GetEventListHandle(TSharedRef<IPropertyHandle> PropertyHandle)const;
+	TSharedPtr<IPropertyHandleArray> GetEventListHandle()const;
 	FOptionalSize GetEventItemHeight(int itemIndex)const
 	{
 		return EventParameterWidgetArray[itemIndex]->GetCachedGeometry().Size.Y + 60;//60 is other's size
@@ -73,20 +73,20 @@ private:
 		}
 		return result;
 	}
-	TSharedRef<SWidget> MakeComponentSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
-	TSharedRef<SWidget> MakeFunctionSelectorMenu(int32 itemIndex, TSharedRef<IPropertyHandle> PropertyHandle);
+	TSharedRef<SWidget> MakeComponentSelectorMenu(int32 itemIndex);
+	TSharedRef<SWidget> MakeFunctionSelectorMenu(int32 itemIndex);
 	void OnActorParameterChange(TSharedRef<IPropertyHandle> ItemPropertyHandle);
 	void OnSelectComponent(UActorComponent* Comp, TSharedRef<IPropertyHandle> ItemPropertyHandle);
 	void OnSelectActorSelf(TSharedRef<IPropertyHandle> ItemPropertyHandle);
 	void OnSelectFunction(FName FuncName, ELGUIEventDelegateParameterType ParamType, bool UseNativeParameter, TSharedRef<IPropertyHandle> ItemPropertyHandle);
 	bool IsComponentSelectorMenuEnabled(TSharedRef<IPropertyHandle> ItemPropertyHandle)const;
 	bool IsFunctionSelectorMenuEnabled(TSharedRef<IPropertyHandle> ItemPropertyHandle)const;
-	void OnClickListAdd(TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnClickListEmpty(TSharedRef<IPropertyHandle> PropertyHandle);
-	FReply OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count, TSharedRef<IPropertyHandle> PropertyHandle);
-	FReply OnClickCopyPaste(bool CopyOrPaste, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
-	FReply OnClickDuplicate(int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
-	FReply OnClickMoveUpDown(bool UpOrDown, int32 Index, TSharedRef<IPropertyHandle> PropertyHandle);
+	void OnClickListAdd();
+	void OnClickListEmpty();
+	FReply OnClickAddRemove(bool AddOrRemove, int32 Index, int32 Count);
+	FReply OnClickCopyPaste(bool CopyOrPaste, int32 Index);
+	FReply OnClickDuplicate(int32 Index);
+	FReply OnClickMoveUpDown(bool UpOrDown, int32 Index);
 
 	TSharedRef<SWidget> DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, ELGUIEventDelegateParameterType InFunctionParameterType, UFunction* InFunction);
 	//function's parameter editor
@@ -128,10 +128,10 @@ private:
 	int32 GetEnumValue(TSharedPtr<IPropertyHandle> ValueHandle)const;
 	FText GetTextValue(TSharedPtr<IPropertyHandle> ValueHandle)const;
 	void SetTextValue(const FText& InText, ETextCommit::Type InCommitType, TSharedPtr<IPropertyHandle> ValueHandle);
-	void ClearValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle);
-	void ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle);
-	void ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle);
-	void OnParameterTypeChange(TSharedRef<IPropertyHandle> InDataContainerHandle);
+	void ClearValueBuffer(TSharedPtr<IPropertyHandle> InItemPropertyHandle);
+	void ClearReferenceValue(TSharedPtr<IPropertyHandle> InItemPropertyHandle);
+	void ClearObjectValue(TSharedPtr<IPropertyHandle> InItemPropertyHandle);
+	void OnParameterTypeChange(TSharedRef<IPropertyHandle> InItemPropertyHandle);
 	void CreateColorPicker(bool bIsLinearColor, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle);
 };
 
