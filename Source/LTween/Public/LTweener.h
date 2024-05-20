@@ -383,7 +383,13 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void Goto(float timePoint);
-
+	/** Return progress 0-1 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		virtual float GetProgress()const;
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		float GetElapsedTime()const { return elapseTime; }
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		float GetDuration()const { return duration; }
 protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
