@@ -276,6 +276,31 @@ void ULTweener::Goto(float timePoint)
 	this->ToNextWithElapsedTime(timePoint);
 }
 
+float ULTweener::GetProgress()const
+{
+	if (elapseTime > delay)//if elapseTime bigger than delay, do animation
+	{
+		float elapseTimeWithoutDelay = elapseTime - delay;
+		float currentTime = elapseTimeWithoutDelay - duration * loopCycleCount;
+		if (currentTime >= duration)
+		{
+			return 1;
+		}
+		else
+		{
+			if (reverseTween)
+			{
+				currentTime = duration - currentTime;
+			}
+			return currentTime / duration;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 float ULTweener::CurveFloat(float c, float b, float t, float d)
 {
 	if (d < KINDA_SMALL_NUMBER)return c + b;
