@@ -65,9 +65,13 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 		PrefabActor->LoadPrefab(nullptr);
 	}
 	PrefabActor->MoveActorToPrefabFolder();
-	ULGUIPrefabManagerObject::AddOneShotTickFunction([=]() {
-		GEditor->SelectActor(PrefabActor, false, true, false, true);
-		GEditor->SelectActor(PrefabActor->LoadedRootActor, true, true, false, true);
+	PrefabActor->SetFlags(EObjectFlags::RF_Transient);
+	ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakTarget = MakeWeakObjectPtr(PrefabActor)]() {
+		if (WeakTarget.IsValid())
+		{
+			GEditor->SelectActor(WeakTarget.Get(), false, true, false, true);
+			GEditor->SelectActor(WeakTarget->LoadedRootActor, true, true, false, true);
+		}
 		});
 }
 
