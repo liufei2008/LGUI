@@ -613,7 +613,7 @@ void FLGUIPrefabEditor::BindCommands()
 		FIsActionButtonVisible::CreateStatic(&LGUIEditorTools::CanCopyActor)
 	);
 	ToolkitCommands->MapAction(
-		PrefabEditorCommands.PasteActor,
+		PrefabEditorCommands.CutActor,
 		FExecuteAction::CreateStatic(&LGUIEditorTools::CutSelectedActors_Impl),
 		FCanExecuteAction::CreateStatic(&LGUIEditorTools::CanCutActor),
 		FGetActionCheckState(),
