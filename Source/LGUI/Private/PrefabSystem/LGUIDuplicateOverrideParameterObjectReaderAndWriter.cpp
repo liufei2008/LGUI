@@ -15,6 +15,29 @@ namespace LGUIPrefabSystem
 	{
 		
 	}
+	bool FLGUIDuplicateOverrideParameterObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
+	{
+		if (InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
+			|| InProperty->IsA<FMulticastDelegateProperty>()
+			|| InProperty->IsA<FDelegateProperty>()
+			)
+		{
+			return true;
+		}
+		if (CurrentIsMemberProperty(*this))
+		{
+			if (OverridePropertyNames.Contains(InProperty->GetFName()))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 	bool FLGUIDuplicateOverrideParameterObjectWriter::SerializeObject(UObject* Object)
 	{
 		if (auto Function = Cast<UFunction>(Object))
@@ -88,6 +111,29 @@ namespace LGUIPrefabSystem
 		: FLGUIOverrideParameterObjectReader(Bytes, InSerializer, InOverridePropertyNames)
 	{
 
+	}
+	bool FLGUIDuplicateOverrideParameterObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
+	{
+		if (InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
+			|| InProperty->IsA<FMulticastDelegateProperty>()
+			|| InProperty->IsA<FDelegateProperty>()
+			)
+		{
+			return true;
+		}
+		if (CurrentIsMemberProperty(*this))
+		{
+			if (OverridePropertyNames.Contains(InProperty->GetFName()))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 	bool FLGUIDuplicateOverrideParameterObjectReader::SerializeObject(UObject*& Object, bool CanSerializeClass)
 	{

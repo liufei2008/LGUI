@@ -91,6 +91,7 @@ namespace LGUIPrefabSystem
 	public:
 		FLGUIDuplicateObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
 
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject* Object)override;
 	};
@@ -99,6 +100,7 @@ namespace LGUIPrefabSystem
 	public:
 		FLGUIDuplicateObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
 
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass)override;
 	};
@@ -134,6 +136,7 @@ namespace LGUIPrefabSystem
 	public:
 		FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames);
 
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject* Object)override;
 	};
@@ -142,6 +145,7 @@ namespace LGUIPrefabSystem
 	public:
 		FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames);
 
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass)override;
 	};

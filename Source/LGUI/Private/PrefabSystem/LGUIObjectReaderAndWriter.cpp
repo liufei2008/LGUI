@@ -13,7 +13,7 @@ namespace LGUIPrefabSystem
 	bool LGUIPrefab_ShouldSkipProperty(const FProperty* InProperty)
 	{
 		return
-			InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
+			InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
 			|| InProperty->IsA<FMulticastDelegateProperty>()
 			|| InProperty->IsA<FDelegateProperty>()
 			;
