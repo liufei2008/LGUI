@@ -955,6 +955,13 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()//@todo: fix bug: duplicate 
 				}
 			}
 			copiedActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::DuplicateActorForEditor(Actor, Parent, PrefabHelperObject->SubPrefabMap, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
+			if (auto UIItem = Cast<UUIItem>(copiedActor->GetRootComponent()))
+			{
+				if (auto UIParent = Cast<UUIItem>(Parent))
+				{
+					UIItem->SetAsLastHierarchy();
+				}
+			}
 			for (auto& KeyValue : DuplicatedSubPrefabMap)
 			{
 				TMap<FGuid, TObjectPtr<UObject>> SubMapGuidToObject;
