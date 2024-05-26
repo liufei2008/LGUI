@@ -130,6 +130,7 @@
 #include "PrefabSystem/LGUIPrefabSettings.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
+#include "PrefabSystem/LGUIPrefabScriptBlueprint.h"
 
 #include "Utils/LGUIUtils.h"
 
