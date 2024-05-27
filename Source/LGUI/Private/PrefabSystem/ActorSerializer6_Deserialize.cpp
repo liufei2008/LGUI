@@ -661,7 +661,6 @@ namespace LGUIPrefabSystem6
 						}
 						break;
 						case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
-						case ELGUIPrefabVersion::PrefabScriptBlueprint:
 						{
 							auto NewOnSubPrefabFinishDeserializeFunction =
 								[&](AActor*, const TMap<FGuid, TObjectPtr<UObject>>& InSubPrefabMapGuidToObject, const TMap<TObjectPtr<UObject>, FGuid>&, const TArray<AActor*>& InSubActors, const TArray<UActorComponent*>& InSubComponents) {
