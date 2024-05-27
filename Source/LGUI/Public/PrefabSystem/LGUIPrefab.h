@@ -41,7 +41,6 @@ enum class ELGUIPrefabVersion : uint16
 	 *		so the guid can persist.
 	 */
 	NewObjectOnNestedPrefab = 8,
-	PrefabScriptBlueprint = 9,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
@@ -183,8 +182,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FText> ReferenceTextList;
 #pragma endregion Before Prefab-Version 3
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", NonTransactional, Transient)
-		TMap<FGuid, TObjectPtr<class ULGUIPrefabScriptBlueprint>> PrefabScriptBlueprints;
 #endif
 
 #if WITH_EDITORONLY_DATA
@@ -235,8 +232,6 @@ public:
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY()
-		bool bNeedRenderThumbnail = true;
 	UPROPERTY(Instanced, Transient)
 		TObjectPtr<class UThumbnailInfo> ThumbnailInfo;
 	UPROPERTY(Transient)
@@ -335,5 +330,4 @@ public:
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject, bool SetRelativeTransformToIdentity = true);
 #endif
-	virtual void Serialize(FArchive& Ar)override;
 };

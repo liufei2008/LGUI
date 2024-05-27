@@ -27,22 +27,19 @@ void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint3
 	auto prefab = Cast<ULGUIPrefab>(Object);
 	if (IsValid(prefab))
 	{
-		if (prefab->bNeedRenderThumbnail)
-		{
-			TSharedRef<FLGUIPrefabThumbnailScene> ThumbnailScene = ThumbnailScenes.EnsureThumbnailScene(prefab->GetPathName());
-			ThumbnailScene->SetPrefab(prefab);
-			if (!ThumbnailScene->IsValidForVisualization())
-				return;
+		TSharedRef<FLGUIPrefabThumbnailScene> ThumbnailScene = ThumbnailScenes.EnsureThumbnailScene(prefab->GetPathName());
+		ThumbnailScene->SetPrefab(prefab);
+		if (!ThumbnailScene->IsValidForVisualization())
+			return;
 
-			FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(RenderTarget, ThumbnailScene->GetScene(), FEngineShowFlags(ESFIM_Game))
-				.SetTime(UThumbnailRenderer::GetTime()));
+		FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(RenderTarget, ThumbnailScene->GetScene(), FEngineShowFlags(ESFIM_Game))
+			.SetTime(UThumbnailRenderer::GetTime()));
 
-			ViewFamily.EngineShowFlags.DisableAdvancedFeatures();
-			ViewFamily.EngineShowFlags.MotionBlur = 0;
+		ViewFamily.EngineShowFlags.DisableAdvancedFeatures();
+		ViewFamily.EngineShowFlags.MotionBlur = 0;
 
-			auto View = ThumbnailScene->CreateView(&ViewFamily, X, Y, Width, Height);
-			RenderViewFamily(Canvas, &ViewFamily, View);
-		}
+		auto View = ThumbnailScene->CreateView(&ViewFamily, X, Y, Width, Height);
+		RenderViewFamily(Canvas, &ViewFamily, View);
 
 		//draw prefab icon
 		static FString LGUIBasePath = IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir();

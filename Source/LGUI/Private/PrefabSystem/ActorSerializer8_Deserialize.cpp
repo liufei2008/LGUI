@@ -589,7 +589,7 @@ namespace LGUIPrefabSystem8
 						SubPrefabData.PrefabAsset = SubPrefabAsset;
 
 #if WITH_EDITOR
-						if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::PrefabScriptBlueprint)
+						if (SubPrefabAsset->PrefabVersion < (uint16)ELGUIPrefabVersion::NewObjectOnNestedPrefab)
 						{
 							SubPrefabAsset->RecreatePrefab();//if is old version then recreate to make it new version
 						}
