@@ -6,6 +6,7 @@
 #include "Serialization/BufferArchive.h"
 #include "GameFramework/Actor.h"
 #include "Engine/Blueprint.h"
+#include "GameFramework/Actor.h"
 #include "LGUI.h"
 
 namespace LGUIPrefabSystem

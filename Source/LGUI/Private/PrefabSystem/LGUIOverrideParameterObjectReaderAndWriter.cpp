@@ -5,6 +5,7 @@
 #include "Serialization/MemoryReader.h"
 #include "Serialization/BufferArchive.h"
 #include "Engine/Blueprint.h"
+#include "GameFramework/Actor.h"
 #include "LGUI.h"
 
 namespace LGUIPrefabSystem
