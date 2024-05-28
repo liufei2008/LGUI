@@ -2171,8 +2171,8 @@ void UUIItem::CheckChildrenUIActiveRecursive(bool InUpParentUIActive)
 	{
 		if (IsValid(uiChild))
 		{		//state is changed
-			if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
-				(uiChild->bAllUpParentUIActive != InUpParentUIActive)//state change
+			if ((uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
+				(uiChild->bAllUpParentUIActive != InUpParentUIActive))//state change
 #if WITH_EDITOR
 				|| bUIActiveStateDirty
 #endif
