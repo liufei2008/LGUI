@@ -96,7 +96,7 @@ public:
 	 * Enable frustum culling for LGUI Renderer.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
-		bool bFrustumCulling = true;
+		bool bFrustumCulling = false;
 
 	/**
 	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).
