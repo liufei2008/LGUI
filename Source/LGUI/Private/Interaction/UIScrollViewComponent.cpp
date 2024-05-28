@@ -222,7 +222,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     if (bAllowHorizontalScroll)
     {
         auto predict = Position.Y + localMoveDelta.Y;
-        if (predict < HorizontalRange.X || predict > HorizontalRange.Y && RestrictRectArea) //out-of-range, lower the sentitivity
+        if ((predict < HorizontalRange.X || predict > HorizontalRange.Y) && RestrictRectArea) //out-of-range, lower the sentitivity
         {
             Position.Y += localMoveDelta.Y * OutOfRangeDamper;
         }
@@ -237,7 +237,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     if (bAllowVerticalScroll)
     {
         auto predict = Position.Z + localMoveDelta.Z;
-        if (predict < VerticalRange.X || predict > VerticalRange.Y && RestrictRectArea)
+        if ((predict < VerticalRange.X || predict > VerticalRange.Y) && RestrictRectArea)
         {
             Position.Z += localMoveDelta.Z * OutOfRangeDamper;
         }
@@ -305,7 +305,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
             {
                 auto delta = eventData->scrollAxisValue.X * ScrollSensitivity;
                 bCanUpdateAfterDrag = true;
-                if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y && RestrictRectArea)
+                if ((Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y) && RestrictRectArea)
                 {
                     Position.Y += delta * OutOfRangeDamper;
                     Velocity.X = delta * OutOfRangeDamper / GetWorld()->DeltaTimeSeconds;
@@ -321,7 +321,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
             {
                 auto delta = eventData->scrollAxisValue.Y * -ScrollSensitivity;
                 bCanUpdateAfterDrag = true;
-                if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y && RestrictRectArea)
+                if ((Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y) && RestrictRectArea)
                 {
                     Position.Z += delta * OutOfRangeDamper;
                     Velocity.Y = delta * OutOfRangeDamper / GetWorld()->DeltaTimeSeconds;
@@ -387,7 +387,7 @@ void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
 		{
 			bAllowHorizontalScroll = true;
 			bCanUpdateAfterDrag = true;
-			if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y && RestrictRectArea)
+			if ((Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y) && RestrictRectArea)
 			{
 				Position.Y += delta.X * OutOfRangeDamper;
 				Velocity.X = delta.X * OutOfRangeDamper / GetWorld()->DeltaTimeSeconds;
@@ -403,7 +403,7 @@ void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
 		{
 			bAllowVerticalScroll = true;
 			bCanUpdateAfterDrag = true;
-			if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y && RestrictRectArea)
+			if ((Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y) && RestrictRectArea)
 			{
 				Position.Z += delta.Y * OutOfRangeDamper;
 				Velocity.Y = delta.Y * OutOfRangeDamper / GetWorld()->DeltaTimeSeconds;
