@@ -19,6 +19,7 @@
 
 #include "Tweener/LTweenerFrame.h"
 #include "Tweener/LTweenerVirtual.h"
+#include "Tweener/LTweenerUpdate.h"
 
 #include "LTweenerSequence.h"
 
@@ -72,6 +73,10 @@ TStatId ULTweenManager::GetStatId() const
 UWorld* ULTweenManager::GetTickableGameObjectWorld() const
 {
 	return GetGameInstance()->GetWorld();
+}
+bool ULTweenManager::IsTickableWhenPaused() const
+{
+	return true;
 }
 //~End of FTickableObjectBase interface
 
@@ -345,6 +350,16 @@ ULTweener* ULTweenManager::DelayFrameCall(UObject* WorldContextObject, int delay
 
 	auto tweener = NewObject<ULTweenerFrame>(WorldContextObject);
 	tweener->SetInitialValue(delayFrame);
+	Instance->tweenerList.Add(tweener);
+	return tweener;
+}
+
+ULTweener* ULTweenManager::UpdateCall(UObject* WorldContextObject)
+{
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
+	auto tweener = NewObject<ULTweenerUpdate>(WorldContextObject);
 	Instance->tweenerList.Add(tweener);
 	return tweener;
 }

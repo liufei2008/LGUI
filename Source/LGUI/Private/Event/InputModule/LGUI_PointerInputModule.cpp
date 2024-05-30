@@ -30,8 +30,10 @@ bool ULGUI_PointerInputModule::CheckEventSystem()
 bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FLGUIHitResult& hitResult)
 {
 	multiHitResult.Reset();
-	if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
+	auto World = this->GetWorld();
+	if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(World))
 	{
+		auto bIsGamePaused = World->IsPaused();
 		auto& AllRaycasterArray = LGUIManager->GetAllRaycasterArray();
 		InPointerEventData->hoverComponentArray.Reset();
 
@@ -43,6 +45,7 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 			FHitResult hitResultItem;
 			if (RaycasterItem.IsValid()
 				&& (RaycasterItem->GetPointerID() == InPointerEventData->pointerID || RaycasterItem->GetPointerID() == INDEX_NONE)
+				&& (!bIsGamePaused || (bIsGamePaused && !RaycasterItem->GetAffectByGamePause()))
 				)
 			{
 				if (RaycasterItem->GetDepth() < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth

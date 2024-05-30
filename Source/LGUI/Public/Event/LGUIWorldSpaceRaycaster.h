@@ -76,6 +76,7 @@ protected:
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas)override;
 	TArray<ELGUIRenderMode> RenderModeArray;
 public:
+	virtual bool GetAffectByGamePause()const override;
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) override;
 	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) override;

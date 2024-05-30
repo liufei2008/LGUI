@@ -982,6 +982,10 @@ TStatId ULGUIManagerWorldSubsystem::GetStatId() const
 	//return GetStatID();
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIManagerWorldSubsystem, STATGROUP_Tickables);
 }
+bool ULGUIManagerWorldSubsystem::IsTickableWhenPaused() const
+{
+	return true;
+}
 
 void ULGUIManagerWorldSubsystem::OnCultureChanged()
 {
@@ -1095,6 +1099,8 @@ void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 	//LGUILifeCycleBehaviour update
 	{
 		bIsExecutingUpdate = true;
+		auto bIsGamePaused = GetWorld()->IsPaused();
+		auto Settings = GetDefault<ULGUISettings>();
 		SCOPE_CYCLE_COUNTER(STAT_LGUILifeCycleBehaviourUpdate);
 		for (int i = 0; i < LGUILifeCycleBehavioursForUpdate.Num(); i++)
 		{
@@ -1102,7 +1108,30 @@ void ULGUIManagerWorldSubsystem::Tick(float DeltaTime)
 			auto item = LGUILifeCycleBehavioursForUpdate[i];
 			if (item.IsValid())
 			{
-				item->Update(DeltaTime);
+				if (item->GetRootSceneComponent() && item->GetRootSceneComponent()->IsA(UUIItem::StaticClass()))
+				{
+					auto uiItem = (UUIItem*)item->GetRootSceneComponent();
+					bool bAffectByGamePause;
+					if (uiItem->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = Settings->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = Settings->bWorldSpaceUIAffectByGamePause;
+					}
+					if (!bIsGamePaused || (bIsGamePaused && !bAffectByGamePause))
+					{
+						item->Update(DeltaTime);
+					}
+				}
+				else
+				{
+					if (!bIsGamePaused || (bIsGamePaused && item->PrimaryComponentTick.bTickEvenWhenPaused))
+					{
+						item->Update(DeltaTime);
+					}
+				}
 			}
 		}
 		bIsExecutingUpdate = false;

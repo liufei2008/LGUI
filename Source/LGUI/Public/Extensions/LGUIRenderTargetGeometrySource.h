@@ -83,7 +83,7 @@ private:
 
 	void BeginCheckRenderTarget();
 	void EndCheckRenderTarget();
-	FDelegateHandle CheckRenderTargetTickDelegate;
+	TWeakObjectPtr<class ULTweener> CheckRenderTargetTickTweener;
 	void CheckRenderTargetTick();
 
 	void UpdateLocalBounds();

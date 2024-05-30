@@ -10,6 +10,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/LGUISettings.h"
 
 
 void UUIToggleComponent::Awake()
@@ -124,7 +125,19 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenFloatGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration);
 				if (ToggleTransitionTweener)
 				{
-					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine);
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				}
 			}
 		}
@@ -143,7 +156,19 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 				ToggleTransitionTweener = ULTweenManager::To(UIRenderable, FLTweenColorGetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(UIRenderable, &UUIBaseRenderable::SetColor), IsOn ? OnColor : OffColor, ToggleDuration);
 				if (ToggleTransitionTweener)
 				{
-					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine);
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				}
 			}
 		}

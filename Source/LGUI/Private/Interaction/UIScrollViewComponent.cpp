@@ -5,6 +5,7 @@
 #include "LTweenManager.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/LGUISettings.h"
 
 void UUIScrollViewHelper::Awake()
 {
@@ -484,7 +485,7 @@ void UUIScrollViewComponent::ScrollTo(UUIItem* InChild, bool InEaseAnimation, fl
     TargetContentPos.Y = FMath::Clamp(TargetContentPos.Y, VerticalRange.X, VerticalRange.Y);
     if (InEaseAnimation)
     {
-        ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateWeakLambda(this
+        auto tweener = ULTweenManager::To(this, FLTweenVector2DGetterFunction::CreateWeakLambda(this
             , [=] {
                 auto ContentLocation = ContentUIItem->GetRelativeLocation();
                 return FVector2D(ContentLocation.Y, ContentLocation.Z);
@@ -492,6 +493,22 @@ void UUIScrollViewComponent::ScrollTo(UUIItem* InChild, bool InEaseAnimation, fl
             , FLTweenVector2DSetterFunction::CreateWeakLambda(this, [=](FVector2D value) {
                 this->SetScrollValue(value);
                 }), TargetContentPos, InAnimationDuration);
+        if (tweener)
+        {
+            bool bAffectByGamePause = false;
+            if (this->GetRootUIComponent())
+            {
+                if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+                {
+                    bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+                }
+                else
+                {
+                    bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+                }
+            }
+            tweener->SetAffectByGamePause(bAffectByGamePause);
+        }
     }
     else
     {

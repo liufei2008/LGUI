@@ -88,6 +88,8 @@ public:
 		bool GetHoldToDrag()const { return holdToDrag; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetHoldToDragTime()const { return holdToDragTime; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		virtual bool GetAffectByGamePause()const { return true; }
 	float GetClickThresholdSquare()const { return clickThresholdSquare; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector GetRayOrigin()const { return CurrentRayOrigin; }

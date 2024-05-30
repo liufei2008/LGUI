@@ -324,12 +324,22 @@ float UUIBaseRenderable::GetFinalAlpha01()const
 
 #pragma region TweenAnimation
 #include "LTweenManager.h"
+#include "Core/LGUISettings.h"
 ULTweener* UUIBaseRenderable::ColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -340,7 +350,16 @@ ULTweener* UUIBaseRenderable::ColorFrom(FColor startValue, float duration, float
 	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetColor), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -350,7 +369,16 @@ ULTweener* UUIBaseRenderable::AlphaTo(float endValue, float duration, float dela
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -361,7 +389,16 @@ ULTweener* UUIBaseRenderable::AlphaFrom(float startValue, float duration, float 
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUIBaseRenderable::SetAlpha), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
