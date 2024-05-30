@@ -198,36 +198,54 @@ public:
 		return ULTweenManager::VirtualTo(WorldContextObject, duration);
 	}
 
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FLTweenerSimpleDynamicDelegate& delayComplete)
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject", AdvancedDisplay="affectByGamePause"), Category = LTween)
+		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FLTweenerSimpleDynamicDelegate& delayComplete, bool affectByGamePause = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete)
+	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete, bool affectByGamePause = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete)
+	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete, bool affectByGamePause = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
 		}
 		return Tweener;
 	}
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay frame call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const FLTweenerSimpleDynamicDelegate& delayComplete)
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay frame call function, Assign delayComplete to call", WorldContext = "WorldContextObject", AdvancedDisplay = "affectByGamePause"), Category = LTween)
+		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const FLTweenerSimpleDynamicDelegate& delayComplete, bool affectByGamePause = true)
+	{
+		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
+		}
+		return Tweener;
+	}
+	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FSimpleDelegate delayComplete, bool affectByGamePause = true)
+	{
+		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		if (Tweener)
+		{
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
+		}
+		return Tweener;
+	}
+	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const TFunction<void()>& delayComplete, bool affectByGamePause = true)
 	{
 		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
 		if (Tweener)
@@ -236,21 +254,32 @@ public:
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FSimpleDelegate delayComplete)
+
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Assign start or update or omplete functions", WorldContext = "WorldContextObject", AutoCreateRefTerm = "start,update,complete"), Category = LTween)
+		static ULTweener* UpdateCall(UObject* WorldContextObject, const FLTweenerFloatDynamicDelegate& update)
 	{
-		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		auto Tweener = ULTweenManager::UpdateCall(WorldContextObject);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnUpdate(update);
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const TFunction<void()>& delayComplete)
+	static ULTweener* UpdateCall(UObject* WorldContextObject, FLTweenUpdateDelegate update)
 	{
-		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
+		auto Tweener = ULTweenManager::UpdateCall(WorldContextObject);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnUpdate(update);
+		};
+		return Tweener;
+	}
+	static ULTweener* UpdateCall(UObject* WorldContextObject, const TFunction<void(float)>& update)
+	{
+		auto Tweener = ULTweenManager::UpdateCall(WorldContextObject);
+		if (Tweener)
+		{
+			Tweener->OnUpdate(update);
 		}
 		return Tweener;
 	}
@@ -281,32 +310,53 @@ public:
 		}
 	}
 
+	UE_DEPRECATED(5.2, "Use UpdateCall instead.")
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const FLTweenUpdateDelegate& update)
 	{
-		return ULTweenManager::RegisterUpdateEvent(WorldContextObject, update);
+		// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		auto delegateHandle = ULTweenManager::RegisterUpdateEvent(WorldContextObject, update);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
+		return delegateHandle;
 	}
+	UE_DEPRECATED(5.2, "Use UpdateCall instead.")
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const TFunction<void(float)>& update)
 	{
 		FLTweenUpdateDelegate updateDelegate = FLTweenUpdateDelegate::CreateLambda(update);
+		// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		ULTweenManager::RegisterUpdateEvent(WorldContextObject, updateDelegate);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 		return updateDelegate.GetHandle();
 	}
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Registerred update function will be called every frame from mainthread.", WorldContext = "WorldContextObject"), Category = LTween)
+	UE_DEPRECATED(5.2, "Use UpdateCall instead.")
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Registerred update function will be called every frame from mainthread.", WorldContext = "WorldContextObject", DeprecatedFunction, DeprecationMessage = "Use UpdateCall instead."), Category = LTween)
 		static FLTweenDelegateHandleWrapper RegisterUpdateEvent(UObject* WorldContextObject, const FLTweenerFloatDynamicDelegate& update)
 	{
 		FLTweenUpdateDelegate updateDelegate = FLTweenUpdateDelegate::CreateLambda([update](float deltaTime) {update.ExecuteIfBound(deltaTime); });
 		FLTweenDelegateHandleWrapper delegateHandle(updateDelegate.GetHandle());
+		// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		ULTweenManager::RegisterUpdateEvent(WorldContextObject, updateDelegate);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 		return delegateHandle;
 	}
+	UE_DEPRECATED(5.2, "Use UpdateCall instead of RegisterUpdateEvent, and KillIfIsTweening for returned tweener instead of this UnregisterUpdateEvent.")
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& handle)
 	{
+		// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		ULTweenManager::UnregisterUpdateEvent(WorldContextObject, handle);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	}
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent.", WorldContext = "WorldContextObject"), Category = LTween)
+	UE_DEPRECATED(5.2, "Use UpdateCall instead of RegisterUpdateEvent, and KillIfIsTweening for returned tweener instead of this UnregisterUpdateEvent.")
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent.", WorldContext = "WorldContextObject", DeprecatedFunction, DeprecationMessage = "Use UpdateCall instead of RegisterUpdateEvent, and KillIfIsTweening for returned tweener instead of this UnregisterUpdateEvent."), Category = LTween)
 		static void UnregisterUpdateEvent(UObject* WorldContextObject, const FLTweenDelegateHandleWrapper& delegateHandle)
 	{
+		// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		ULTweenManager::UnregisterUpdateEvent(WorldContextObject, delegateHandle.DelegateHandle);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	}
 
 	/**

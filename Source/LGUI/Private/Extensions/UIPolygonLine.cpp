@@ -112,12 +112,22 @@ void UUIPolygonLine::SetVertexOffsetArray(const TArray<float>& value)
 		UE_LOG(LGUI, Error, TEXT("[UUIPolygonLine::SetVertexOffsetArray]Array count not equal! VertexOffsetArray:%d, value:%d"), VertexOffsetArray.Num(), value.Num());
 	}
 }
+#include "Core/LGUISettings.h"
 ULTweener* UUIPolygonLine::StartAngleTo(float endValue, float duration /* = 0.5f */, float delay /* = 0.0f */, ELTweenEase easeType /* = ELTweenEase::OutCubic */)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetStartAngle), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(easeType)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -126,7 +136,16 @@ ULTweener* UUIPolygonLine::EndAngleTo(float endValue, float duration /* = 0.5f *
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIPolygonLine::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIPolygonLine::SetEndAngle), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(easeType)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }

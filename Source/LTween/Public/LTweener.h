@@ -163,6 +163,8 @@ protected:
 	bool isMarkedToKill = false;
 	/** mark this tween as pause, it will keep pause until call Resume() */
 	bool isMarkedPause = false;
+	/** will this tween be affected when GamePause? usually set to false for UI */
+	bool affectByGamePause = true;
 
 	/** tween function */
 	FLTweenFunction tweenFunc;
@@ -371,6 +373,13 @@ public:
 	{
 		isMarkedPause = false;
 	}
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		bool GetAffectByGamePause()const { return affectByGamePause; }
+	/**
+	 * Will this tween be affected when GamePause? Default is true, usually set to false for UI.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ULTweener* SetAffectByGamePause(bool value);
 	/**
 	 * Restart animation.
 	 * Has no effect if the Tween is not started.

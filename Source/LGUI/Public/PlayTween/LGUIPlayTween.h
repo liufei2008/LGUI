@@ -38,6 +38,8 @@ protected:
 	/** if LoopType is not Once, then this will be called every time when the cycle end, with parameter "cycle complete count". */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Int32);
+	UPROPERTY(EditAnywhere, Category = "Property")
+		bool affectByGamePause = false;
 	UPROPERTY(Transient)
 		TObjectPtr<ULTweener> tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;

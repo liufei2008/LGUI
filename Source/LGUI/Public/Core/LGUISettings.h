@@ -98,6 +98,12 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
 		bool bFrustumCulling = false;
 
+	/** If false, ScreenSpaceUI can still do interaction and animation */
+	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName="ScreenSpaceUI Affect by GamePause"))
+		bool bScreenSpaceUIAffectByGamePause = false;
+	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName = "WorldSpaceUI Affect by GamePause"))
+		bool bWorldSpaceUIAffectByGamePause = true;
+
 	/**
 	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).
 	 * Tested on Windows DX11 & DX12, Mac (intel), Android (vulkan), not valid on Android (gles).

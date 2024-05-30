@@ -13,7 +13,9 @@ void ULGUIPlayTween::Start()
 	tweener = ULTweenManager::To(this
 		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
 		, FLTweenFloatSetterFunction::CreateUObject(this, &ULGUIPlayTween::OnUpdate)
-		, 1.0f, duration)
+		, 1.0f, duration);
+	if(tweener)
+		tweener
 		->SetDelay(startDelay)
 		->SetLoop(loopType, loopCount)
 		->SetEase(easeType)
@@ -31,7 +33,8 @@ void ULGUIPlayTween::Start()
 		->OnComplete([&] {
 			onComplete.FireEvent();
 			onComplete_Delegate.Broadcast();
-		});
+		})
+		->SetAffectByGamePause(affectByGamePause);
 }
 FDelegateHandle ULGUIPlayTween::RegisterOnComplete(const FSimpleDelegate& InDelegate)
 {

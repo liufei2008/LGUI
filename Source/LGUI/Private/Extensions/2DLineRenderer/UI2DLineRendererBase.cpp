@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 #include "LTweenManager.h"
+#include "Core/LGUISettings.h"
 
 DECLARE_CYCLE_STAT(TEXT("UI2DLine Update"), STAT_2DLineUpdate, STATGROUP_LGUI);
 
@@ -417,7 +418,16 @@ ULTweener* UUI2DLineRendererBase::LineWidthTo(float endValue, float duration, fl
 	auto Tweener = ULTweenManager::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(easeType)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }

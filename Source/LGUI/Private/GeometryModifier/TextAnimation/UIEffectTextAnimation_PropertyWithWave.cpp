@@ -9,11 +9,11 @@
 void UUIEffectTextAnimation_PropertyWithWave::Init()
 {
 	uiText = GetUIText();
-	delegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, FLTweenUpdateDelegate::CreateUObject(this, &UUIEffectTextAnimation_PropertyWithWave::OnUpdate));
+	updateTweener = ULTweenBPLibrary::UpdateCall(this, FLTweenUpdateDelegate::CreateUObject(this, &UUIEffectTextAnimation_PropertyWithWave::OnUpdate));
 }
 void UUIEffectTextAnimation_PropertyWithWave::Deinit()
 {
-	ULTweenBPLibrary::UnregisterUpdateEvent(this, delegateHandle);
+	ULTweenBPLibrary::KillIfIsTweening(this, updateTweener.Get());
 }
 void UUIEffectTextAnimation_PropertyWithWave::SetFrequency(float value)
 {

@@ -27,6 +27,7 @@ public:
 	virtual bool IsTickable() const override;
 	virtual TStatId GetStatId() const override;
 	virtual UWorld* GetTickableGameObjectWorld() const override;
+	virtual bool IsTickableWhenPaused() const override;
 	//~End of FTickableObjectBase interface
 	
 	UFUNCTION(BlueprintPure, Category = LTween, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LTween Instance"))
@@ -94,11 +95,13 @@ public:
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex);
 
 	static ULTweener* VirtualTo(UObject* WorldContextObject, float duration);
-
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int delayFrame);
+	static ULTweener* UpdateCall(UObject* WorldContextObject);
 
 	static class ULTweenerSequence* CreateSequence(UObject* WorldContextObject);
 
+	UE_DEPRECATED(5.2, "Use LTweenBPLibrary.UpdateCall instead.")
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const FLTweenUpdateDelegate& update);
+	UE_DEPRECATED(5.2, "Use LTweenBPLibrary.UpdateCall instead of RegisterUpdateEvent, and KillIfIsTweening for returned tweener instead of this UnregisterUpdateEvent.")
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle);
 };

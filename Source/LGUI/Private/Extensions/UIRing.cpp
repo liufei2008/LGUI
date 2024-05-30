@@ -90,12 +90,22 @@ void UUIRing::SetSegment(int newValue)
 }
 
 
+#include "Core/LGUISettings.h"
 ULTweener* UUIRing::StartAngleTo(float endValue, float duration, float delay, ELTweenEase easeType)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(easeType)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -104,7 +114,16 @@ ULTweener* UUIRing::EndAngleTo(float endValue, float duration, float delay, ELTw
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(easeType)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
