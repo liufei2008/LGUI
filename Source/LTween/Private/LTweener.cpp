@@ -140,9 +140,18 @@ ULTweener* ULTweener::SetCurveFloat(UCurveFloat* newCurveFloat)
 	curveFloat = newCurveFloat;
 	return this;
 }
+ULTweener* ULTweener::SetAffectByGamePause(bool value)
+{
+	affectByGamePause = value;
+	return this;
+}
 
 bool ULTweener::ToNext(float deltaTime)
 {
+	if (auto world = GetWorld())
+	{
+		if (world->IsPaused() && affectByGamePause)return true;
+	}
 	if (isMarkedToKill)return false;
 	if (isMarkedPause)return true;//no need to tick time if pause
 	return this->ToNextWithElapsedTime(elapseTime + deltaTime);

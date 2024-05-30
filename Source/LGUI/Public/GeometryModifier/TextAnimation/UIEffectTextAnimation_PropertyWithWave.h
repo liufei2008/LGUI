@@ -3,7 +3,6 @@
 #pragma once
 
 #include "../UIEffectTextAnimation.h"
-#include "LTweenDelegateHandleWrapper.h"
 #include "UIEffectTextAnimation_PropertyWithWave.generated.h"
 
 UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType)
@@ -20,7 +19,7 @@ protected:
 	/** Flip move speed direction of the wave. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool flipDirection = false;
-	FLTweenDelegateHandleWrapper delegateHandle;
+	TWeakObjectPtr<class ULTweener> updateTweener;
 	virtual void OnUpdate(float deltaTime);
 	UPROPERTY(Transient)TObjectPtr<class UUIText> uiText;
 public:

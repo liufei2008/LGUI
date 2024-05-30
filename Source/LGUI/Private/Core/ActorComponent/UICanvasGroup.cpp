@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "LTweenManager.h"
+#include "Core/LGUISettings.h"
 
 UUICanvasGroup::UUICanvasGroup()
 {
@@ -244,7 +245,19 @@ ULTweener* UUICanvasGroup::AlphaTo(float endValue, float duration, float delay, 
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause = true;
+		if (CheckUIItem())
+		{
+			if (UIItem->IsScreenSpaceOverlayUI())
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			}
+			else
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			}
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -255,7 +268,19 @@ ULTweener* UUICanvasGroup::AlphaFrom(float startValue, float duration, float del
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUICanvasGroup::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &UUICanvasGroup::SetAlpha), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause = true;
+		if (CheckUIItem())
+		{
+			if (UIItem->IsScreenSpaceOverlayUI())
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			}
+			else
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			}
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }

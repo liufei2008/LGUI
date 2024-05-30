@@ -988,6 +988,7 @@ void UUIProceduralRect::SetRaycastSupportCornerRadius(bool value)
 
 #pragma region TweenAnimation
 #include "LTweenManager.h"
+#include "Core/LGUISettings.h"
 ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateWeakLambda(this, [=] {
@@ -997,7 +998,16 @@ ULTweener* UUIProceduralRect::BodyColorTo(FColor endValue, float duration, float
 			}), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
 	}
 	return Tweener;
 }
@@ -1012,7 +1022,16 @@ ULTweener* UUIProceduralRect::BodyAlphaTo(float endValue, float duration, float 
 			}), endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetEase(ease)->SetDelay(delay);
+		bool bAffectByGamePause;
+		if (this->IsScreenSpaceOverlayUI())
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+		}
+		else
+		{
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+		}
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(false);
 	}
 	return Tweener;
 }
@@ -1027,7 +1046,16 @@ ULTweener* UUIProceduralRect::Property##To(EndValueType endValue, float duration
 			}), endValue, duration);\
 	if (Tweener)\
 	{\
-		Tweener->SetEase(ease)->SetDelay(delay);\
+		bool bAffectByGamePause;\
+		if (this->IsScreenSpaceOverlayUI())\
+		{\
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;\
+		}\
+		else\
+		{\
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;\
+		}\
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);\
 	}\
 	return Tweener;\
 }
@@ -1044,7 +1072,16 @@ ULTweener* UUIProceduralRect::Function##AlphaTo(float endValue, float duration, 
 			}), endValue, duration);\
 	if (Tweener)\
 	{\
-		Tweener->SetEase(ease)->SetDelay(delay);\
+		bool bAffectByGamePause;\
+		if (this->IsScreenSpaceOverlayUI())\
+		{\
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;\
+		}\
+		else\
+		{\
+			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;\
+		}\
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);\
 	}\
 	return Tweener;\
 }

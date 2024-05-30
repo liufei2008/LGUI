@@ -5,6 +5,7 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "LGUIBPLibrary.h"
 #include "LTweenManager.h"
+#include "Core/LGUISettings.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
@@ -293,7 +294,7 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
         TargetContentPos = FMath::Clamp(-TargetContentPos, HorizontalRange.X, HorizontalRange.Y);
         if (InEaseAnimation)
         {
-            ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
+            auto tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
                 , [=] {
                     auto ContentLocation = ContentUIItem->GetRelativeLocation();
                     return ContentLocation.Y;
@@ -301,6 +302,22 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
                 , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
                     this->SetScrollValue(FVector2D(value, 0));
                     }), TargetContentPos, InAnimationDuration);
+            if (tweener)
+            {
+                bool bAffectByGamePause = false;
+                if (this->GetRootUIComponent())
+                {
+                    if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+                    {
+                        bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+                    }
+                    else
+                    {
+                        bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+                    }
+                }
+                tweener->SetAffectByGamePause(bAffectByGamePause);
+            }
         }
         else
         {
@@ -334,7 +351,7 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
         TargetContentPos = FMath::Clamp(-TargetContentPos, VerticalRange.X, VerticalRange.Y);
         if (InEaseAnimation)
         {
-            ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
+            auto tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this
                 , [=] {
                     auto ContentLocation = ContentUIItem->GetRelativeLocation();
                     return ContentLocation.Z;
@@ -342,6 +359,22 @@ void UUIRecyclableScrollViewComponent::ScrollToByDataIndex(int InDataIndex, bool
                 , FLTweenFloatSetterFunction::CreateWeakLambda(this, [=](float value) {
                     this->SetScrollValue(FVector2D(0, value));
                     }), TargetContentPos, InAnimationDuration);
+            if (tweener)
+            {
+                bool bAffectByGamePause = false;
+                if (this->GetRootUIComponent())
+                {
+                    if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+                    {
+                        bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+                    }
+                    else
+                    {
+                        bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+                    }
+                }
+                tweener->SetAffectByGamePause(bAffectByGamePause);
+            }
         }
         else
         {
