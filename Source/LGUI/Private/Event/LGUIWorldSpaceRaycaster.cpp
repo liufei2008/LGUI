@@ -3,6 +3,7 @@
 #include "Event/LGUIWorldSpaceRaycaster.h"
 #include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_Mouse.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISettings.h"
 
 
 ULGUIBaseRaycaster* ULGUIWorldSpaceRaycasterSource::GetRaycasterObject()const
@@ -61,7 +62,10 @@ bool ULGUIWorldSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 {
 	return false;
 }
-
+bool ULGUIWorldSpaceRaycaster::GetAffectByGamePause()const
+{
+	return GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+}
 bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	switch (interactionTarget)

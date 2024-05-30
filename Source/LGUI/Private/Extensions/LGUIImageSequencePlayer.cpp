@@ -61,7 +61,11 @@ void ULGUIImageSequencePlayer::Play()
 		elapsedTime = 0.0f;
 		duration = GetDuration();
 		PrepareForPlay();
-		playDelegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, FLTweenUpdateDelegate::CreateUObject(this, &ULGUIImageSequencePlayer::UpdateAnimation));
+		playTweener = ULTweenBPLibrary::UpdateCall(this, FLTweenUpdateDelegate::CreateUObject(this, &ULGUIImageSequencePlayer::UpdateAnimation));
+		if (playTweener.IsValid())
+		{
+			playTweener->SetAffectByGamePause(affectByGamePause);
+		}
 		UpdateAnimation(0);
 	}
 	if (isPaused)
@@ -75,10 +79,7 @@ void ULGUIImageSequencePlayer::Stop()
 	if (isPlaying)
 	{
 		isPlaying = false;
-		if (playDelegateHandle.IsValid())
-		{
-			ULTweenBPLibrary::UnregisterUpdateEvent(this, playDelegateHandle);
-		}
+		ULTweenBPLibrary::KillIfIsTweening(this, playTweener.Get());
 	}
 }
 

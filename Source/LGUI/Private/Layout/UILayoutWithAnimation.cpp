@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "LTweenManager.h"
 #include "LTweenBPLibrary.h"
+#include "Core/LGUISettings.h"
 
 
 UUILayoutWithAnimation_CustomAnimation::UUILayoutWithAnimation_CustomAnimation()
@@ -101,7 +102,23 @@ void UUILayoutWithAnimation::EndSetupAnimations()
 			MarkNeedRebuildLayout();
 		}
 		}));
-	TweenerArray.Add(Tweener);
+	if (Tweener)
+	{
+		bool bAffectByGamePause = false;
+		if (this->GetRootUIComponent())
+		{
+			if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			}
+			else
+			{
+				bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			}
+		}
+		Tweener->SetAffectByGamePause(bAffectByGamePause);
+		TweenerArray.Add(Tweener);
+	}
 }
 
 void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimationType tempAnimationType, FVector2D Value, UUIItem* Target)
@@ -124,7 +141,19 @@ void UUILayoutWithAnimation::ApplyAnchoredPositionWithAnimation(EUILayoutAnimati
 				, Value, AnimationDuration);
 			if (Tweener)
 			{
-				Tweener->SetEase(ELTweenEase::InOutSine);
+				bool bAffectByGamePause = false;
+				if (this->GetRootUIComponent())
+				{
+					if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+					}
+				}
+				Tweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				TweenerArray.Add(Tweener);
 			}
 		}
@@ -162,6 +191,19 @@ void UUILayoutWithAnimation::ApplyRotatorWithAnimation(EUILayoutAnimationType te
 			auto Tweener = ULTweenBPLibrary::LocalRotatorTo(Target, Value, false, AnimationDuration, 0, ELTweenEase::InOutSine);
 			if (Tweener)
 			{
+				bool bAffectByGamePause = false;
+				if (this->GetRootUIComponent())
+				{
+					if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+					}
+				}
+				Tweener->SetAffectByGamePause(bAffectByGamePause);
 				TweenerArray.Add(Tweener);
 			}
 		}
@@ -202,7 +244,19 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutAnimationType temp
 				, Value, AnimationDuration);
 			if (Tweener)
 			{
-				Tweener->SetEase(ELTweenEase::InOutSine);
+				bool bAffectByGamePause = false;
+				if (this->GetRootUIComponent())
+				{
+					if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+					}
+				}
+				Tweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				TweenerArray.Add(Tweener);
 			}
 		}
@@ -243,7 +297,19 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutAnimationType tem
 				, Value, AnimationDuration);
 			if (Tweener)
 			{
-				Tweener->SetEase(ELTweenEase::InOutSine);
+				bool bAffectByGamePause = false;
+				if (this->GetRootUIComponent())
+				{
+					if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+					}
+				}
+				Tweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				TweenerArray.Add(Tweener);
 			}
 		}
@@ -284,7 +350,19 @@ void UUILayoutWithAnimation::ApplySizeDeltaWithAnimation(EUILayoutAnimationType 
 				, Value, AnimationDuration);
 			if (Tweener)
 			{
-				Tweener->SetEase(ELTweenEase::InOutSine);
+				bool bAffectByGamePause = false;
+				if (this->GetRootUIComponent())
+				{
+					if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+					}
+					else
+					{
+						bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+					}
+				}
+				Tweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
 				TweenerArray.Add(Tweener);
 			}
 		}

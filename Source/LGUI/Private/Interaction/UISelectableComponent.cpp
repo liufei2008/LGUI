@@ -12,6 +12,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/LGUISpriteData_BaseObject.h"
+#include "Core/LGUISettings.h"
 #if WITH_EDITOR
 #include "Utils/LGUIUtils.h"
 #endif
@@ -155,6 +156,22 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (ULTweenManager::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ULTweenManager::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), NormalColor, FadeDuration);
+				if (TransitionTweener)
+				{
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+				}
 			}
 		}
 		break;
@@ -202,6 +219,22 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (ULTweenManager::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ULTweenManager::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), HighlightedColor, FadeDuration);
+				if (TransitionTweener)
+				{
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+				}
 			}
 		}
 		break;
@@ -252,6 +285,22 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (ULTweenManager::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ULTweenManager::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), PressedColor, FadeDuration);
+				if (TransitionTweener)
+				{
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+				}
 			}
 		}
 		break;
@@ -302,6 +351,22 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (ULTweenManager::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ULTweenManager::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), DisabledColor, FadeDuration);
+				if (TransitionTweener)
+				{
+					bool bAffectByGamePause = false;
+					if (this->GetRootUIComponent())
+					{
+						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+						}
+						else
+						{
+							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+						}
+					}
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+				}
 			}
 		}
 		break;

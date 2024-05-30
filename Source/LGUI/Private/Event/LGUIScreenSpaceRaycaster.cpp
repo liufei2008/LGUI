@@ -4,12 +4,13 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/LGUISettings.h"
 
 #define LOCTEXT_NAMESPACE "LGUIScreenSpaceRaycaster"
 
 ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 {
-	depth = 1000;//commonlly ScreenSpaceRaycaster is on top of WorldSpaceRaycaster, so make it higher
+	depth = 1000;//normally ScreenSpaceRaycaster is on top of WorldSpaceRaycaster, so make it higher
 }
 
 void ULGUIScreenSpaceRaycaster::BeginPlay()
@@ -23,6 +24,10 @@ bool ULGUIScreenSpaceRaycaster::ShouldSkipCanvas(class ULGUICanvas* UICanvas)
 	return false;
 }
 
+bool ULGUIScreenSpaceRaycaster::GetAffectByGamePause()const
+{
+	return GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+}
 bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;

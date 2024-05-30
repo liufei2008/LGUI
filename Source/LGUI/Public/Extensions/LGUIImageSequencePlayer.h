@@ -23,6 +23,8 @@ protected:
 	/** Auto play when BeginPlay. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool playOnStart = true;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool affectByGamePause = false;
 	bool isPlaying = false;
 
 	virtual void BeginPlay()override;
@@ -32,7 +34,7 @@ protected:
 #if WITH_EDITOR
 	FDelegateHandle editorPlayDelegateHandle;
 #endif
-	FDelegateHandle playDelegateHandle;
+	TWeakObjectPtr<class ULTweener> playTweener;
 	void UpdateAnimation(float deltaTime);
 	virtual bool CanPlay() { return true; }
 	virtual void PrepareForPlay() {};

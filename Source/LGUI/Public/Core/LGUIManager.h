@@ -98,6 +98,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	virtual bool IsTickableInEditor()const { return false; }//use Ticker in editor, because Ticker can also tick when drag vector2/3 value while normal tick can't
 	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickableWhenPaused() const override;
 
 	static ULGUIManagerWorldSubsystem* GetInstance(UWorld* InWorld);
 #if WITH_EDITOR

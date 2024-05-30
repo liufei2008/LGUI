@@ -433,19 +433,23 @@ void ULGUIRenderTargetGeometrySource::EndPlay(EEndPlayReason::Type Reason)
 
 void ULGUIRenderTargetGeometrySource::BeginCheckRenderTarget()
 {
-	if (CheckRenderTargetTickDelegate.IsValid())return;
-	CheckRenderTargetTickDelegate = ULTweenBPLibrary::RegisterUpdateEvent(this, [=, WeakThis = TWeakObjectPtr<ULGUIRenderTargetGeometrySource>(this)](float deltaTime) {
+	if (CheckRenderTargetTickTweener.IsValid())return;
+	CheckRenderTargetTickTweener = ULTweenBPLibrary::UpdateCall(this, [=, WeakThis = TWeakObjectPtr<ULGUIRenderTargetGeometrySource>(this)](float deltaTime) {
 		if (WeakThis.IsValid())
 		{
 			WeakThis->CheckRenderTargetTick();
 		}
 		});
+	if (CheckRenderTargetTickTweener.IsValid())
+	{
+		CheckRenderTargetTickTweener->SetAffectByGamePause(false);
+	}
 }
 void ULGUIRenderTargetGeometrySource::EndCheckRenderTarget()
 {
-	if (!CheckRenderTargetTickDelegate.IsValid())return;
-	ULTweenBPLibrary::UnregisterUpdateEvent(this, CheckRenderTargetTickDelegate);
-	CheckRenderTargetTickDelegate.Reset();
+	if (!CheckRenderTargetTickTweener.IsValid())return;
+	ULTweenBPLibrary::KillIfIsTweening(this, CheckRenderTargetTickTweener.Get());
+	CheckRenderTargetTickTweener.Reset();
 }
 void ULGUIRenderTargetGeometrySource::CheckRenderTargetTick()
 {
@@ -486,7 +490,7 @@ bool ULGUIRenderTargetGeometrySource::CheckStaticMesh()const
 						//delay call, or the bPostTickComponentUpdate check will break
 						ULTweenBPLibrary::DelayFrameCall(this->GetWorld(), 1, [this] {
 							StaticMeshComp->SetMaterial(0, MaterialInstance);
-							});
+							})->SetAffectByGamePause(false);
 					}
 				}
 				return true;
@@ -1163,7 +1167,7 @@ void ULGUIRenderTargetGeometrySource::UpdateMaterialInstance()
 					//delay call, or the bPostTickComponentUpdate check will break
 					ULTweenBPLibrary::DelayFrameCall(this, 1, [this] {
 						StaticMeshComp->SetMaterial(0, MaterialInstance);
-						});
+						})->SetAffectByGamePause(false);
 				}
 			}
 		}

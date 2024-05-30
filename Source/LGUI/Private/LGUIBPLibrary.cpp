@@ -246,12 +246,7 @@ ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float durati
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::WidthTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->WidthTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -260,12 +255,7 @@ ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float durat
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::HeightTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->HeightTo(endValue, duration, delay, ease);
 }
 
 ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, float duration, float delay, ELTweenEase ease)
@@ -275,12 +265,7 @@ ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, f
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::ColorTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->ColorTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValue, float duration, float delay, ELTweenEase ease)
 {
@@ -291,12 +276,7 @@ ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValu
 	}
 	auto endValue = target->GetColor();
 	target->SetColor(startValue);
-	auto Tweener = ULTweenManager::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->ColorTo(endValue, duration, delay, ease);
 }
 
 ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, float duration, float delay, ELTweenEase ease)
@@ -306,12 +286,7 @@ ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, fl
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AlphaTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AlphaTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue, float duration, float delay, ELTweenEase ease)
 {
@@ -322,12 +297,7 @@ ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue
 	}
 	auto endValue = target->GetAlpha();
 	target->SetAlpha(startValue);
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AlphaTo(endValue, duration, delay, ease);
 }
 
 ULTweener* ULGUIBPLibrary::HorizontalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
@@ -337,12 +307,7 @@ ULTweener* ULGUIBPLibrary::HorizontalAnchoredPositionTo(UUIItem* target, float e
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::HorizontalAnchoredPositionTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHorizontalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHorizontalAnchoredPosition), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->HorizontalAnchoredPositionTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::VerticalAnchoredPositionTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -351,12 +316,7 @@ ULTweener* ULGUIBPLibrary::VerticalAnchoredPositionTo(UUIItem* target, float end
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::VerticalAnchoredPositionTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetVerticalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetVerticalAnchoredPosition), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->VerticalAnchoredPositionTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchoredPositionTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -365,12 +325,7 @@ ULTweener* ULGUIBPLibrary::AnchoredPositionTo(UUIItem* target, FVector2D endValu
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchoredPositionTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AnchoredPositionTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -379,12 +334,7 @@ ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float du
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::PivotTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetPivot), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetPivot), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->PivotTo(endValue, duration, delay, ease);
 }
 
 ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
@@ -394,12 +344,7 @@ ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float d
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorLeftTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorLeft), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorLeft), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AnchorLeftTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -408,12 +353,7 @@ ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float 
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorRightTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorRight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorRight), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AnchorRightTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -422,12 +362,7 @@ ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float du
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorTopTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorTop), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorTop), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AnchorTopTo(endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchorBottomTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
@@ -436,12 +371,7 @@ ULTweener* ULGUIBPLibrary::AnchorBottomTo(UUIItem* target, float endValue, float
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorBottomTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	auto Tweener = ULTweenManager::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorBottom), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorBottom), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-	}
-	return Tweener;
+	return target->AnchorBottomTo(endValue, duration, delay, ease);
 }
 #pragma endregion
 
