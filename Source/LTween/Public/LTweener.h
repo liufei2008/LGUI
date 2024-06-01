@@ -165,6 +165,8 @@ protected:
 	bool isMarkedPause = false;
 	/** will this tween be affected when GamePause? usually set to false for UI */
 	bool affectByGamePause = true;
+	/** will this tween use dilation-time or real-time? */
+	bool affectByTimeDilation = true;
 
 	/** tween function */
 	FLTweenFunction tweenFunc;
@@ -350,11 +352,11 @@ public:
 	/**
 	 * @return false: the tween is complete and need to be killed. true: the tween is still processing.
 	 */
-	virtual bool ToNext(float deltaTime);
+	virtual bool ToNext(float deltaTime, float unscaledDeltaTime);
 	/**
 	 * @return false: the tween is complete and need to be killed. true: the tween is still processing.
 	 */
-	virtual bool ToNextWithElapsedTime(float InElapseTime);
+	bool ToNextWithElapsedTime(float InElapseTime);
 	/** Force stop this animation. if callComplete = true, will call OnComplete after stop*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void Kill(bool callComplete = false);
@@ -373,13 +375,18 @@ public:
 	{
 		isMarkedPause = false;
 	}
+	/** Will this tween be affected when GamePause? Default is true, usually set to false for UI. */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		bool GetAffectByGamePause()const { return affectByGamePause; }
-	/**
-	 * Will this tween be affected when GamePause? Default is true, usually set to false for UI.
-	 */
+	/** Will this tween be affected when GamePause? Default is true, usually set to false for UI. */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetAffectByGamePause(bool value);
+	/** will this tween use dilated-time or real-time? */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		bool GetAffectByTimeDilation()const { return affectByTimeDilation; }
+	/** will this tween use dilated-time or real-time? */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ULTweener* SetAffectByTimeDilation(bool value);
 	/**
 	 * Restart animation.
 	 * Has no effect if the Tween is not started.

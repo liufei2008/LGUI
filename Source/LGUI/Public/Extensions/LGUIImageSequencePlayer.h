@@ -25,6 +25,8 @@ protected:
 		bool playOnStart = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool affectByGamePause = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool affectByTimeDilation = false;
 	bool isPlaying = false;
 
 	virtual void BeginPlay()override;

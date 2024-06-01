@@ -98,11 +98,15 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
 		bool bFrustumCulling = false;
 
-	/** If false, ScreenSpaceUI can still do interaction and animation */
-	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName="ScreenSpaceUI Affect by GamePause"))
+	/** If false, ScreenSpaceUI can still do interaction and animation when GamePause */
+	UPROPERTY(EditAnywhere, config, Category = "Game", meta = (DisplayName="ScreenSpaceUI Affect by GamePause"))
 		bool bScreenSpaceUIAffectByGamePause = false;
-	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName = "WorldSpaceUI Affect by GamePause"))
+	UPROPERTY(EditAnywhere, config, Category = "Game", meta = (DisplayName = "ScreenSpaceUI Affect by TimeDilation"))
+		bool bScreenSpaceUIAffectByTimeDilation = false;
+	UPROPERTY(EditAnywhere, config, Category = "Game", meta = (DisplayName = "WorldSpaceUI Affect by GamePause"))
 		bool bWorldSpaceUIAffectByGamePause = true;
+	UPROPERTY(EditAnywhere, config, Category = "Game", meta = (DisplayName = "WorldSpaceUI Affect by TimeDilation"))
+		bool bWorldSpaceUIAffectByTimeDilation = true;
 
 	/**
 	 * This will affect all LGUI-Renderer (ScreenSpaceOverlay, WorldSpace-LGUIRenderer, RenderTarget).

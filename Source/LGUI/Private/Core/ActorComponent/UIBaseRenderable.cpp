@@ -332,15 +332,18 @@ ULTweener* UUIBaseRenderable::ColorTo(FColor endValue, float duration, float del
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }
@@ -352,15 +355,18 @@ ULTweener* UUIBaseRenderable::ColorFrom(FColor startValue, float duration, float
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }
@@ -371,15 +377,18 @@ ULTweener* UUIBaseRenderable::AlphaTo(float endValue, float duration, float dela
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }
@@ -391,15 +400,18 @@ ULTweener* UUIBaseRenderable::AlphaFrom(float startValue, float duration, float 
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(ease)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }
