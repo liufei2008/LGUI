@@ -13,6 +13,13 @@ ULGUIImageSequencePlayer::ULGUIImageSequencePlayer()
 void ULGUIImageSequencePlayer::BeginPlay()
 {
 	Super::BeginPlay();	
+	if (!ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this->GetOwner()))
+	{
+		Awake_Implementation();
+	}
+}
+void ULGUIImageSequencePlayer::Awake_Implementation()
+{
 	if (playOnStart)
 	{
 		Play();
