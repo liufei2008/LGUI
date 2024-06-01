@@ -255,15 +255,18 @@ ULTweener* UUIPolygon::StartAngleTo(float endValue, float duration /* = 0.5f */,
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }
@@ -273,15 +276,18 @@ ULTweener* UUIPolygon::EndAngleTo(float endValue, float duration /* = 0.5f */, f
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
+		bool bAffectByTimeDilation;
 		if (this->IsScreenSpaceOverlayUI())
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 		}
 		else
 		{
 			bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+			bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 		}
-		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause);
+		Tweener->SetEase(easeType)->SetDelay(delay)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 	}
 	return Tweener;
 }

@@ -34,7 +34,8 @@ void ULGUIPlayTween::Start()
 			onComplete.FireEvent();
 			onComplete_Delegate.Broadcast();
 		})
-		->SetAffectByGamePause(affectByGamePause);
+		->SetAffectByGamePause(affectByGamePause)
+		->SetAffectByTimeDilation(affectByTimeDilation);
 }
 FDelegateHandle ULGUIPlayTween::RegisterOnComplete(const FSimpleDelegate& InDelegate)
 {

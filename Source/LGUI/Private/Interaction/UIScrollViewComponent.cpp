@@ -496,18 +496,21 @@ void UUIScrollViewComponent::ScrollTo(UUIItem* InChild, bool InEaseAnimation, fl
         if (tweener)
         {
             bool bAffectByGamePause = false;
+            bool bAffectByTimeDilation = false;
             if (this->GetRootUIComponent())
             {
                 if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
                 {
                     bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+                    bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
                 }
                 else
                 {
                     bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+                    bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
                 }
             }
-            tweener->SetAffectByGamePause(bAffectByGamePause);
+            tweener->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
         }
     }
     else
