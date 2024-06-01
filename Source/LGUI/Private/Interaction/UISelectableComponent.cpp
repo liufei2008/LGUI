@@ -159,18 +159,21 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 				if (TransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}
@@ -222,18 +225,21 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 				if (TransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}
@@ -288,18 +294,21 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 				if (TransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}
@@ -354,18 +363,21 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 				if (TransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					TransitionTweener->SetAffectByGamePause(bAffectByGamePause);
+					TransitionTweener->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}

@@ -198,31 +198,31 @@ public:
 		return ULTweenManager::VirtualTo(WorldContextObject, duration);
 	}
 
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject", AdvancedDisplay="affectByGamePause"), Category = LTween)
-		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FLTweenerSimpleDynamicDelegate& delayComplete, bool affectByGamePause = true)
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject", AdvancedDisplay="affectByGamePause,affectByTimeDilation"), Category = LTween)
+		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FLTweenerSimpleDynamicDelegate& delayComplete, bool affectByGamePause = true, bool affectByTimeDilation = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause)->SetAffectByTimeDilation(affectByTimeDilation);
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete, bool affectByGamePause = true)
+	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FSimpleDelegate delayComplete, bool affectByGamePause = true, bool affectByTimeDilation = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause)->SetAffectByTimeDilation(affectByTimeDilation);
 		}
 		return Tweener;
 	}
-	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete, bool affectByGamePause = true)
+	static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const TFunction<void()>& delayComplete, bool affectByGamePause = true, bool affectByTimeDilation = true)
 	{
 		auto Tweener = ULTweenManager::VirtualTo(WorldContextObject, delayTime);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause)->SetAffectByTimeDilation(affectByTimeDilation);
 		}
 		return Tweener;
 	}
@@ -250,7 +250,7 @@ public:
 		auto Tweener = ULTweenManager::DelayFrameCall(WorldContextObject, frameCount);
 		if (Tweener)
 		{
-			Tweener->OnComplete(delayComplete);
+			Tweener->OnComplete(delayComplete)->SetAffectByGamePause(affectByGamePause);
 		}
 		return Tweener;
 	}

@@ -19,7 +19,7 @@ protected:
 	{
 		
 	}
-	virtual bool ToNext(float deltaTime) override
+	virtual bool ToNext(float deltaTime, float unscaledDeltaTime) override
 	{
 		if (auto world = GetWorld())
 		{
@@ -27,7 +27,7 @@ protected:
 		}
 		if (isMarkedToKill)return false;
 		if (isMarkedPause)return true;//no need to tick time if pause
-		onUpdateCpp.ExecuteIfBound(deltaTime);
+		onUpdateCpp.ExecuteIfBound(affectByTimeDilation ? deltaTime : unscaledDeltaTime);
 		return true;
 	}
 	virtual void TweenAndApplyValue(float currentTime) override
