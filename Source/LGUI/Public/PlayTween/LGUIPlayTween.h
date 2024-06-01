@@ -40,6 +40,8 @@ protected:
 		FLGUIEventDelegate onCycleComplete = FLGUIEventDelegate(ELGUIEventDelegateParameterType::Int32);
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool affectByGamePause = false;
+	UPROPERTY(EditAnywhere, Category = "Property")
+		bool affectByTimeDilation = false;
 	UPROPERTY(Transient)
 		TObjectPtr<ULTweener> tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;

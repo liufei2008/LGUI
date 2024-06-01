@@ -441,7 +441,7 @@ void ULGUIRenderTargetGeometrySource::BeginCheckRenderTarget()
 		});
 	if (CheckRenderTargetTickTweener.IsValid())
 	{
-		CheckRenderTargetTickTweener->SetAffectByGamePause(false);
+		CheckRenderTargetTickTweener->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 }
 void ULGUIRenderTargetGeometrySource::EndCheckRenderTarget()

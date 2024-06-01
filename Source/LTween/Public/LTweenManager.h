@@ -36,7 +36,7 @@ private:
 	/** current active tweener collection*/
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
 	bool existInInstanceMap = false;
-	void OnTick(float DeltaTime);
+	void OnTick(float DeltaTime, float UnscaledDeltaTime);
 	FLTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
 public:

@@ -51,7 +51,14 @@ void ULTweenManager::Tick(float DeltaTime)
 {
 	if (TickPaused == false)
 	{
-		OnTick(DeltaTime);
+		if (auto World = GetWorld())
+		{
+			OnTick(World->DeltaTimeSeconds, World->DeltaRealTimeSeconds);
+		}
+		else
+		{
+			OnTick(DeltaTime, DeltaTime);
+		}
 	}
 }
 
@@ -89,7 +96,7 @@ ULTweenManager* ULTweenManager::GetLTweenInstance(UObject* WorldContextObject)
 		return nullptr;
 }
 
-void ULTweenManager::OnTick(float DeltaTime)
+void ULTweenManager::OnTick(float DeltaTime, float UnscaledDeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Update);
 	
@@ -105,7 +112,7 @@ void ULTweenManager::OnTick(float DeltaTime)
 		}
 		else
 		{
-			if (tweener->ToNext(DeltaTime) == false)
+			if (tweener->ToNext(DeltaTime, UnscaledDeltaTime) == false)
 			{
 				tweenerList.RemoveAt(i);
 				tweener->ConditionalBeginDestroy();
@@ -120,7 +127,7 @@ void ULTweenManager::OnTick(float DeltaTime)
 
 void ULTweenManager::CustomTick(float DeltaTime)
 {
-	OnTick(DeltaTime);
+	OnTick(DeltaTime, DeltaTime);
 }
 
 void ULTweenManager::DisableTick()

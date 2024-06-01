@@ -126,18 +126,21 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 				if (ToggleTransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}
@@ -157,18 +160,21 @@ void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 				if (ToggleTransitionTweener)
 				{
 					bool bAffectByGamePause = false;
+					bool bAffectByTimeDilation = false;
 					if (this->GetRootUIComponent())
 					{
 						if (this->GetRootUIComponent()->IsScreenSpaceOverlayUI())
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bScreenSpaceUIAffectByTimeDilation;
 						}
 						else
 						{
 							bAffectByGamePause = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByGamePause;
+							bAffectByTimeDilation = GetDefault<ULGUISettings>()->bWorldSpaceUIAffectByTimeDilation;
 						}
 					}
-					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause);
+					ToggleTransitionTweener->SetEase(ELTweenEase::InOutSine)->SetAffectByGamePause(bAffectByGamePause)->SetAffectByTimeDilation(bAffectByTimeDilation);
 				}
 			}
 		}

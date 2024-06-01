@@ -500,31 +500,59 @@ ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, 
 
 ULTweener* ULGUIBPLibrary::AnchorOffsetXTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return HorizontalAnchoredPositionTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener = HorizontalAnchoredPositionTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return VerticalAnchoredPositionTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  VerticalAnchoredPositionTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, ELTweenEase ease)
 {
-	return AnchoredPositionTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  AnchoredPositionTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::StretchLeftTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return AnchorLeftTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  AnchorLeftTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::StretchRightTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return AnchorRightTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  AnchorRightTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::StretchTopTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return AnchorTopTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  AnchorTopTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, float duration, float delay, ELTweenEase ease)
 {
-	return AnchorBottomTo(target, endValue, duration, delay, ease);
+	// Disable deprecation warnings so we can call the deprecated function to support this function (which is also deprecated)
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+	auto tweener =  AnchorBottomTo(target, endValue, duration, delay, ease);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	return tweener;
 }
 TSubclassOf<UActorComponent> ULGUIBPLibrary::LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference)
 {

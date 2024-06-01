@@ -23,7 +23,7 @@ protected:
 	{
 		
 	}
-	virtual bool ToNext(float deltaTime) override
+	virtual bool ToNext(float deltaTime, float unscaledDeltaTime) override
 	{
 		if (auto world = GetWorld())
 		{
