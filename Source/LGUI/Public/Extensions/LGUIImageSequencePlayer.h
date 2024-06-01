@@ -2,10 +2,11 @@
 
 #pragma once
 #include "Components/ActorComponent.h"
+#include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "LGUIImageSequencePlayer.generated.h"
 
 UCLASS(Abstract)
-class LGUI_API ULGUIImageSequencePlayer : public UActorComponent
+class LGUI_API ULGUIImageSequencePlayer : public UActorComponent, public ILGUIPrefabInterface
 {
 	GENERATED_BODY()
 public:
@@ -29,6 +30,7 @@ protected:
 		bool affectByTimeDilation = false;
 	bool isPlaying = false;
 
+	virtual void Awake_Implementation()override;
 	virtual void BeginPlay()override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 	virtual void OnRegister()override;
