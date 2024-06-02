@@ -923,7 +923,7 @@ ULTweener* ULTweenBPLibrary::UMG_CanvasPanelSlot_PositionTo(UObject* WorldContex
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -940,7 +940,7 @@ ULTweener* ULTweenBPLibrary::UMG_CanvasPanelSlot_SizeTo(UObject* WorldContextObj
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -962,7 +962,7 @@ ULTweener* ULTweenBPLibrary::UMG_HorizontalBoxSlot_PaddingTo(UObject* WorldConte
 	}), endValueVector4, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -984,7 +984,7 @@ ULTweener* ULTweenBPLibrary::UMG_VerticalBoxSlot_PaddingTo(UObject* WorldContext
 	}), endValueVector4, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1006,7 +1006,7 @@ ULTweener* ULTweenBPLibrary::UMG_OverlaySlot_PaddingTo(UObject* WorldContextObje
 	}), endValueVector4, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1028,7 +1028,7 @@ ULTweener* ULTweenBPLibrary::UMG_ButtonSlot_PaddingTo(UObject* WorldContextObjec
 	}), endValueVector4, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1050,7 +1050,7 @@ ULTweener* ULTweenBPLibrary::UMG_BorderSlot_PaddingTo(UObject* WorldContextObjec
 	}), endValueVector4, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1070,7 +1070,7 @@ ULTweener* ULTweenBPLibrary::UMG_RenderTransform_TranslationTo(UObject* WorldCon
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1087,7 +1087,7 @@ ULTweener* ULTweenBPLibrary::UMG_RenderTransform_AngleTo(UObject* WorldContextOb
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1105,7 +1105,7 @@ ULTweener* ULTweenBPLibrary::UMG_RenderTransform_ScaleTo(UObject* WorldContextOb
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1123,7 +1123,7 @@ ULTweener* ULTweenBPLibrary::UMG_RenderTransform_ShearTo(UObject* WorldContextOb
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1140,7 +1140,7 @@ ULTweener* ULTweenBPLibrary::UMG_RenderOpacityTo(UObject* WorldContextObject, UW
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1159,7 +1159,7 @@ ULTweener* ULTweenBPLibrary::UMG_UserWidget_ColorAndOpacityTo(UObject* WorldCont
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1178,7 +1178,7 @@ ULTweener* ULTweenBPLibrary::UMG_Image_ColorAndOpacityTo(UObject* WorldContextOb
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1197,7 +1197,7 @@ ULTweener* ULTweenBPLibrary::UMG_Button_ColorAndOpacityTo(UObject* WorldContextO
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
@@ -1215,7 +1215,7 @@ ULTweener* ULTweenBPLibrary::UMG_Border_ContentColorAndOpacityTo(UObject* WorldC
 	, endValue, duration);
 	if (Tweener)
 	{
-		Tweener->SetDelay(delay)->SetEase(ease);
+		Tweener->SetDelay(delay)->SetEase(ease)->SetAffectByGamePause(false)->SetAffectByTimeDilation(false);
 	}
 	return Tweener;
 }
