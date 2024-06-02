@@ -7,6 +7,7 @@
 #include "Core/UIPostProcessRenderProxy.h"
 #include "GameFramework/PlayerController.h"
 #include "RenderTargetPool.h"
+#include "TextureResource.h"
 
 UUIFrameCapture::UUIFrameCapture(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {

@@ -5,6 +5,7 @@
 #include "Engine/SceneCapture2D.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Engine/World.h"
 
 ULGUIBaseRaycaster::ULGUIBaseRaycaster()
 {

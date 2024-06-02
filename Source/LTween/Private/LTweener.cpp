@@ -3,6 +3,7 @@
 #include "LTweener.h"
 #include "Curves/CurveFloat.h"
 #include "LTween.h"
+#include "Engine/World.h"
 
 ULTweener::ULTweener()
 {

@@ -13,6 +13,7 @@
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
+#include "Engine/Texture2D.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION

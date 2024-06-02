@@ -11,6 +11,7 @@
 #include "PrefabSystem/LGUIPrefabManager.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Layout/LGUICanvasScaler.h"
+#include "LTweenManager.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #include "EditorViewportClient.h"

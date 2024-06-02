@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Misc/NetworkVersion.h"
+#include "Engine/EngineBaseTypes.h"
 #include "LGUIPrefab.generated.h"
 
 #define LGUIPREFAB_SERIALIZER_NEWEST_INCLUDE "PrefabSystem/ActorSerializer8.h"

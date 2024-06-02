@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Utils/LGUIUtils.h"
 #include "TextureResource.h"
+#include "Engine/Texture2D.h"
 
 #define LOCTEXT_NAMESPACE "UITextureBase"
 

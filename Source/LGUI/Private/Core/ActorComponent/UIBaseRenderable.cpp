@@ -8,6 +8,7 @@
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/ActorComponent/UIBatchMeshRenderable.h"
 #include "TextureResource.h"
+#include "Engine/Texture2D.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
