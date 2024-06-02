@@ -415,7 +415,7 @@ void UUI2DLineRendererBase::SetLineWidthOffset(float newValue)
 
 ULTweener* UUI2DLineRendererBase::LineWidthTo(float endValue, float duration, float delay, ELTweenEase easeType)
 {
-	auto Tweener = ULTweenManager::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration);
 	if (Tweener)
 	{
 		bool bAffectByGamePause;
