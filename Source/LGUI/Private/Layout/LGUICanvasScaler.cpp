@@ -16,6 +16,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "UnrealClient.h"
 #include "Engine/GameViewportClient.h"
+#include "Engine/World.h"
 
 void ULGUICanvasScalerCustomScale::Init(class ULGUICanvasScaler* InCanvasScaler)
 {

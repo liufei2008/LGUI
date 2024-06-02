@@ -3,6 +3,7 @@
 #pragma once
 #include "LTweener.h"
 #include "LTween.h"
+#include "Engine/World.h"
 #include "LTweenerFrame.generated.h"
 
 UCLASS(NotBlueprintType)
