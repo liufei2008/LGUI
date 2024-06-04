@@ -15,7 +15,7 @@
 class IDetailChildrenBuilder;
 
 
-#define LOCTEXT_NAMESPACE "UMG"
+#define LOCTEXT_NAMESPACE "UIPanelLayout"
 
 void FVerticalAlignmentCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
