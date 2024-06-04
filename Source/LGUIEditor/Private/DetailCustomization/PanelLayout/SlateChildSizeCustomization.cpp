@@ -18,7 +18,7 @@
 
 class IDetailChildrenBuilder;
 
-#define LOCTEXT_NAMESPACE "UMG"
+#define LOCTEXT_NAMESPACE "UIPanelLayout"
 
 void FSlateChildSizeCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {

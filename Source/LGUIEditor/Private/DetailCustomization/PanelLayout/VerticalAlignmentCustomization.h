@@ -9,8 +9,6 @@
 
 class IPropertyHandle;
 
-enum class ECheckBoxState : uint8;
-
 class FVerticalAlignmentCustomization : public IPropertyTypeCustomization
 {
 public:
