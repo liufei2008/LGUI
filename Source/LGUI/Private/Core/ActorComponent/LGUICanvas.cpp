@@ -2462,6 +2462,7 @@ void ULGUICanvas::SetRectClipOffset(FMargin newOffset)
 	if (clipRectOffset != newOffset)
 	{
 		MarkRectClipParameterChanged_Recursive();
+		clipRectOffset = newOffset;
 		MarkCanvasUpdate(true, true, false);
 	}
 }
