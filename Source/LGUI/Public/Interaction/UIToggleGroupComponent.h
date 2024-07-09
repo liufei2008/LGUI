@@ -19,8 +19,10 @@ class LGUI_API UUIToggleGroupComponent : public ULGUILifeCycleUIBehaviour
 public:
 	UUIToggleGroupComponent();
 protected:
-	UPROPERTY(Transient) TWeakObjectPtr<UUIToggleComponent> LastSelect = nullptr;
-	UPROPERTY(Transient) TArray<TWeakObjectPtr<UUIToggleComponent>> ToggleCollection;
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI-ToggleGroup", AdvancedDisplay) TWeakObjectPtr<UUIToggleComponent> LastSelect = nullptr;
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI-ToggleGroup", AdvancedDisplay) TArray<TWeakObjectPtr<UUIToggleComponent>> ToggleCollection;
+	bool bNeedToSortToggleCollection = false;
+	void SortToggleCollection();
 	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup")
 		bool bAllowNoneSelected = true;
 	FLGUIToggleGroupMulticastDelegate OnToggleCPP;
