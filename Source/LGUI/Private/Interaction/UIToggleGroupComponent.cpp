@@ -23,9 +23,7 @@ void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 		return;
 	}
 	ToggleCollection.Add(InComp);
-	ToggleCollection.Sort([](const TWeakObjectPtr<UUIToggleComponent>& A, const TWeakObjectPtr<UUIToggleComponent>& B) {
-		return A->GetRootUIComponent()->GetFlattenHierarchyIndex() < B->GetRootUIComponent()->GetFlattenHierarchyIndex();
-		});
+	bNeedToSortToggleCollection = true;
 }
 void UUIToggleGroupComponent::RemoveToggleComponent(UUIToggleComponent* InComp)
 {
@@ -36,6 +34,16 @@ void UUIToggleGroupComponent::RemoveToggleComponent(UUIToggleComponent* InComp)
 		return;
 	}
 	ToggleCollection.RemoveAt(foundIndex);
+}
+void UUIToggleGroupComponent::SortToggleCollection()
+{
+	if (bNeedToSortToggleCollection)
+	{
+		bNeedToSortToggleCollection = false;
+		ToggleCollection.Sort([](const TWeakObjectPtr<UUIToggleComponent>& A, const TWeakObjectPtr<UUIToggleComponent>& B) {
+			return A->GetRootUIComponent()->GetFlattenHierarchyIndex() < B->GetRootUIComponent()->GetFlattenHierarchyIndex();
+			});
+	}
 }
 void UUIToggleGroupComponent::SetSelection(UUIToggleComponent* Target)
 {
@@ -102,6 +110,7 @@ int32 UUIToggleGroupComponent::GetToggleIndex(const UUIToggleComponent* InComp)c
 {
 	if (IsValid(InComp))
 	{
+		(const_cast<UUIToggleGroupComponent*>(this))->SortToggleCollection();
 		return ToggleCollection.IndexOfByKey(InComp);
 	}
 	return -1;
@@ -113,5 +122,6 @@ UUIToggleComponent* UUIToggleGroupComponent::GetToggleByIndex(int32 InIndex)cons
 		UE_LOG(LGUI, Error, TEXT("[UUIToggleGroupComponent::GetToggleByIndex]Index:%d out of range:%d"), InIndex, ToggleCollection.Num());
 		return nullptr;
 	}
+	(const_cast<UUIToggleGroupComponent*>(this))->SortToggleCollection();
 	return ToggleCollection[InIndex].Get();
 }
