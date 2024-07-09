@@ -2249,7 +2249,7 @@ void UUIItem::ApplyUIActiveState(bool InStateChange)
 #if WITH_EDITOR
 void UUIItem::SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState()
 {
-	ApplyUIActiveState(this->GetIsUIActiveInHierarchy());
+	ApplyUIActiveState(true);
 	//affect children
 	for (auto& uiChild : UIChildren)
 	{
