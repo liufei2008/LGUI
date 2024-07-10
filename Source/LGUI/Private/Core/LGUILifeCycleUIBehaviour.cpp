@@ -3,6 +3,7 @@
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "LGUI.h"
 #include "Core/LGUIManager.h"
+#include "PrefabSystem/LGUIPrefabManager.h"
 
 ULGUILifeCycleUIBehaviour::ULGUILifeCycleUIBehaviour()
 {
@@ -59,6 +60,12 @@ UUIItem* ULGUILifeCycleUIBehaviour::GetRootUIComponent() const
 
 void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive) 
 { 
+	auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
+	if (PrefabManager && PrefabManager->IsPrefabSystemProcessingActor(this->GetOwner()))
+	{
+		return;
+	}
+
 	if (activeOrInactive)
 	{
 		if (!bIsAwakeCalled)
