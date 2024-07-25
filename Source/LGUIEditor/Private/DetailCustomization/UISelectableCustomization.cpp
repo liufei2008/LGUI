@@ -188,22 +188,22 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	NavigationCategory.AddProperty(navigationLeftHandle);
 	if (navigationLeftValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationLeftSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationLeftSpecific)));
 	}
 	NavigationCategory.AddProperty(navigationRightHandle);
 	if (navigationRightValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationRightSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationRightSpecific)));
 	}
 	NavigationCategory.AddProperty(navigationUpHandle);
 	if (navigationUpValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationUpSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationUpSpecific)));
 	}
 	NavigationCategory.AddProperty(navigationDownHandle);
 	if (navigationDownValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationDownSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationDownSpecific)));
 	}
 
 	navigationNextHandle->GetValue(tempEnumValue);
@@ -215,13 +215,14 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	NavigationCategory.AddProperty(navigationPrevHandle);
 	if (navigationPrevValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationPrevSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationPrevSpecific)));
 	}
 	NavigationCategory.AddProperty(navigationNextHandle);
 	if (navigationNextValue == EUISelectableNavigationMode::Explicit)
 	{
-		NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationNextSpecific));
+		LGUIEditorUtils::CreateSubDetail(&NavigationCategory, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationNextSpecific)));
 	}
+	NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, bCanNavigateHere));
 	NavigationCategory.AddCustomRow(LOCTEXT("VisualizeNavigation", "VisualizeNavigation"))
 		.NameContent()
 		[
