@@ -684,6 +684,9 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		if (!sel->IsInteractable())
 			continue;
 
+		if (!sel->GetCanNavigateHere())
+			continue;
+
 		//if is UI node, not allow inactive one
 		auto selRootUIComp = sel->GetRootUIComponent();
 		if (selRootUIComp && !sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
@@ -866,6 +869,10 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnPrev()
 	return nullptr;
 }
 
+void UUISelectableComponent::SetCanNavigateHere(bool value)
+{
+	bCanNavigateHere = value;
+}
 void UUISelectableComponent::SetNavigationLeft(EUISelectableNavigationMode value)
 {
 	NavigationLeft = value;
