@@ -112,6 +112,12 @@ protected:
 	bool IsPointerDown = false;
 	UPROPERTY(Transient) TWeakObjectPtr<class UUISelectableTransitionComponent> TransitionComp = nullptr;
 #pragma endregion
+	/**
+	 * Can we navigate from other selectable object to this one?
+	 * If other selectable use EUISelectableNavigationMode.Explicit and use this selectable as specific one, then this selectable can still be navigate to.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		bool bCanNavigateHere = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode NavigationLeft = EUISelectableNavigationMode::Auto;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
@@ -185,6 +191,8 @@ public:
 
 #pragma region Navigation
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		bool GetCanNavigateHere()const { return bCanNavigateHere; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode GetNavigationLeft()const { return NavigationLeft; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode GetNavigationRight()const { return NavigationRight; }
@@ -210,6 +218,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
 		UUISelectableComponent* GetNavigationNextExplicit()const { return NavigationNextSpecific.GetComponent<UUISelectableComponent>(); }
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetCanNavigateHere(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
 		void SetNavigationLeft(EUISelectableNavigationMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
