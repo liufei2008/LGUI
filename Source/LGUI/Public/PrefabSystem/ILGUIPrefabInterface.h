@@ -32,6 +32,6 @@ public:
 	/**
 	 * Same as Awake but only execute in edit mode.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI, CallInEditor)
 		void EditorAwake();
 };
