@@ -176,10 +176,12 @@ namespace LGUIPrefabSystem
 			int32 FunctionNameId = -1;
 			*this << OuterClasstId;
 			*this << FunctionNameId;
-			auto OuterClass = Serializer.FindClassFromListByIndex(OuterClasstId);
-			auto FunctionName = Serializer.FindNameFromListByIndex(FunctionNameId);
-			Object = OuterClass->FindFunctionByName(FunctionName);
-			return true;
+			if (auto OuterClass = Serializer.FindClassFromListByIndex(OuterClasstId))
+			{
+				auto FunctionName = Serializer.FindNameFromListByIndex(FunctionNameId);
+				Object = OuterClass->FindFunctionByName(FunctionName);
+				return true;
+			}
 		}
 		break;
 		case LGUIPrefabSystem::EObjectType::K2Node:
