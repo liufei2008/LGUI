@@ -29,12 +29,22 @@ protected:
 	int currentTweenPlayIndex = 0;
 	void OnTweenComplete();
 	FDelegateHandle onCompleteDelegateHandle;
+	FSimpleMulticastDelegate onComplete_Delegate;
 
 	virtual void BeginPlay()override;
 	// Begin ILGUIPrefabInterface
 	virtual void Awake_Implementation()override;
 	// End ILGUIPrefabInterface
 public:
+	FDelegateHandle RegisterOnComplete(const FSimpleDelegate& InDelegate);
+	FDelegateHandle RegisterOnComplete(const TFunction<void()>& InFunction);
+	void UnregisterOnComplete(const FDelegateHandle& InDelegateHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FLGUIDelegateHandleWrapper RegisterOnComplete(const FLGUIPlayTweenCompleteDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void UnregisterOnComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void Play();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
