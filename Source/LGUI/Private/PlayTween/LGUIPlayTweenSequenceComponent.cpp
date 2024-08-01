@@ -37,6 +37,7 @@ void ULGUIPlayTweenSequenceComponent::OnTweenComplete()
 	{
 		isPlaying = false;
 		onComplete.FireEvent();
+		onComplete_Delegate.Broadcast();
 	}
 	else
 	{
@@ -54,6 +55,32 @@ void ULGUIPlayTweenSequenceComponent::OnTweenComplete()
 		tweenItem->Start();
 	}
 }
+
+FDelegateHandle ULGUIPlayTweenSequenceComponent::RegisterOnComplete(const FSimpleDelegate& InDelegate)
+{
+	return onComplete_Delegate.Add(InDelegate);
+}
+FDelegateHandle ULGUIPlayTweenSequenceComponent::RegisterOnComplete(const TFunction<void()>& InFunction)
+{
+	return onComplete_Delegate.AddLambda(InFunction);
+}
+void ULGUIPlayTweenSequenceComponent::UnregisterOnComplete(const FDelegateHandle& InDelegateHandle)
+{
+	onComplete_Delegate.Remove(InDelegateHandle);
+}
+
+FLGUIDelegateHandleWrapper ULGUIPlayTweenSequenceComponent::RegisterOnComplete(const FLGUIPlayTweenCompleteDynamicDelegate& InDelegate)
+{
+	return FLGUIDelegateHandleWrapper(onComplete_Delegate.AddLambda([=] {
+		InDelegate.ExecuteIfBound();
+		})
+	);
+}
+void ULGUIPlayTweenSequenceComponent::UnregisterOnComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle)
+{
+	onComplete_Delegate.Remove(InDelegateHandle.DelegateHandle);
+}
+
 void ULGUIPlayTweenSequenceComponent::Play()
 {
 	if (playTweenArray.Num() > 0)
