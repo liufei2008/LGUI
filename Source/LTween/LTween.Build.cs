@@ -13,17 +13,17 @@ public class LTween : ModuleRules
             new string[]
 			{
 				"Core",
+				"Engine",
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
-			);
+            );
 			
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
 				"UMG",
 				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
