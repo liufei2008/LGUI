@@ -65,6 +65,18 @@ DECLARE_DYNAMIC_DELEGATE(FLTweenerSimpleDynamicDelegate);
 /** @param InProgress Progress of this tween, from 0 to 1 */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenerFloatDynamicDelegate, float, InProgress);
 
+/**  */
+UENUM(BlueprintType, Category = LTween)
+enum class ELTweenTickType:uint8
+{
+	PrePhysics = ETickingGroup::TG_PrePhysics UMETA(DisplayName = "Pre Physics"),
+	DuringPhysics = ETickingGroup::TG_DuringPhysics UMETA(DisplayName = "During Physics"),
+	PostPhysics = ETickingGroup::TG_PostPhysics UMETA(DisplayName = "Post Physics"),
+	PostUpdateWork = ETickingGroup::TG_PostUpdateWork UMETA(DisplayName = "Post Update Work"),
+	/** This tween will use manual tick. You need to call LTweenManager::ManualTick to make it work. */
+	Manual,
+};
+
 /**
  * Animation curve type
  */
@@ -154,6 +166,8 @@ protected:
 	int32 maxLoopCount = 0;
 	/** current completed cycle count */
 	int32 loopCycleCount = 0;
+	/** how this tween update */
+	ELTweenTickType tickType = ELTweenTickType::DuringPhysics;
 
 	/** reverse animation */
 	bool reverseTween = false;
@@ -406,6 +420,16 @@ public:
 		float GetElapsedTime()const { return elapseTime; }
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		float GetDuration()const { return duration; }
+
+	/** Return tickType of this tween, default is DuringPhysics. */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ELTweenTickType GetTickType()const { return tickType; }
+	/**
+	 * Set TickType of this tween.
+	 * Has no effect if the Tween has already started.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ULTweener* SetTickType(ELTweenTickType value = ELTweenTickType::DuringPhysics);
 protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );

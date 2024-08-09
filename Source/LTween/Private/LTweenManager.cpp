@@ -26,8 +26,114 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 
+ULTweenTickHelperComponent::ULTweenTickHelperComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
+	PrimaryComponentTick.TickGroup = ETickingGroup::TG_DuringPhysics;
+}
+void ULTweenTickHelperComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+void ULTweenTickHelperComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (Target.IsValid())
+	{
+		Target->Tick((ELTweenTickType)((uint8)PrimaryComponentTick.TickGroup), DeltaTime);
+	}
+}
+void ULTweenTickHelperComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+}
+
+ALTweenTickHelperActor::ALTweenTickHelperActor()
+{
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.TickGroup = ETickingGroup::TG_DuringPhysics;
+	PrimaryActorTick.bTickEvenWhenPaused = false;
+
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+}
+void ALTweenTickHelperActor::BeginPlay()
+{
+	Super::BeginPlay();
+	if (auto LTweenManager = ULTweenManager::GetLTweenInstance(this))
+	{
+		SetupTick(LTweenManager);
+	}
+	else
+	{
+		//If GameInstance subsystem not created yet, then register a event to wait it create
+		OnLTweenManagerCreatedDelegateHandle = ULTweenManager::OnLTweenManagerCreated.AddUObject(this, &ALTweenTickHelperActor::OnLTweenManagerCreated);
+	}
+}
+void ALTweenTickHelperActor::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (Target.IsValid())
+	{
+		Target->Tick(ELTweenTickType::DuringPhysics, DeltaSeconds);
+	}
+}
+void ALTweenTickHelperActor::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	if (OnLTweenManagerCreatedDelegateHandle.IsValid())
+	{
+		ULTweenManager::OnLTweenManagerCreated.Remove(OnLTweenManagerCreatedDelegateHandle);
+	}
+}
+void ALTweenTickHelperActor::OnLTweenManagerCreated(ULTweenManager* LTweenManager)
+{
+	SetupTick(LTweenManager);
+}
+void ALTweenTickHelperActor::SetupTick(ULTweenManager* LTweenManager)
+{
+	auto CreateComp = [LTweenManager, this](ETickingGroup TickingGroup, FName Name) {
+		auto TickComp_DuringPhysics = NewObject<ULTweenTickHelperComponent>(this, Name);
+		TickComp_DuringPhysics->SetTickGroup(TickingGroup);
+		TickComp_DuringPhysics->RegisterComponent();
+		TickComp_DuringPhysics->Target = LTweenManager;
+		this->AddInstanceComponent(TickComp_DuringPhysics);
+		};
+	CreateComp(ETickingGroup::TG_PrePhysics, TEXT("PrePhysics"));
+	CreateComp(ETickingGroup::TG_PostPhysics, TEXT("PostPhysics"));
+	CreateComp(ETickingGroup::TG_PostUpdateWork, TEXT("PostUpdateWork"));
+	this->Target = LTweenManager;
+}
+
+
+
+bool ULTweenTickHelperWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const 
+{
+	if (auto World = Outer->GetWorld())
+	{
+		if (World->IsGameWorld())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+void ULTweenTickHelperWorldSubsystem::PostInitialize()
+{
+	if (auto World = GetWorld())
+	{
+		if (World->IsGameWorld())
+		{
+			World->SpawnActor<ALTweenTickHelperActor>();
+		}
+	}
+}
+
+
 DECLARE_CYCLE_STAT(TEXT("LTween Update"), STAT_Update, STATGROUP_LTween);
 
+FLTweenManagerCreated ULTweenManager::OnLTweenManagerCreated;
 //~USubsystem interface
 void ULTweenManager::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -46,46 +152,25 @@ bool ULTweenManager::ShouldCreateSubsystem(UObject* Outer) const
 }
 //~End of USubsystem interface
 
-//~FTickableObjectBase interface
-void ULTweenManager::Tick(float DeltaTime)
+void ULTweenManager::Tick(ELTweenTickType TickType, float DeltaTime)
 {
-	if (TickPaused == false)
+	if (bTickPaused)return;
+	if (TickType == ELTweenTickType::Manual)
+	{
+		OnTick(TickType, DeltaTime, DeltaTime);
+	}
+	else
 	{
 		if (auto World = GetWorld())
 		{
-			OnTick(World->DeltaTimeSeconds, World->DeltaRealTimeSeconds);
+			OnTick(TickType, World->DeltaTimeSeconds, World->DeltaRealTimeSeconds);
 		}
 		else
 		{
-			OnTick(DeltaTime, DeltaTime);
+			OnTick(TickType, DeltaTime, DeltaTime);
 		}
 	}
 }
-
-ETickableTickType ULTweenManager::GetTickableTickType() const
-{
-	return ETickableTickType::Conditional;
-}
-
-bool ULTweenManager::IsTickable() const
-{
-	return !HasAnyFlags(RF_ClassDefaultObject);
-}
-
-TStatId ULTweenManager::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(ULTweenManager, STATGROUP_Tickables);
-}
-
-UWorld* ULTweenManager::GetTickableGameObjectWorld() const
-{
-	return GetGameInstance()->GetWorld();
-}
-bool ULTweenManager::IsTickableWhenPaused() const
-{
-	return true;
-}
-//~End of FTickableObjectBase interface
 
 #include "Kismet/GameplayStatics.h"
 ULTweenManager* ULTweenManager::GetLTweenInstance(UObject* WorldContextObject)
@@ -96,7 +181,7 @@ ULTweenManager* ULTweenManager::GetLTweenInstance(UObject* WorldContextObject)
 		return nullptr;
 }
 
-void ULTweenManager::OnTick(float DeltaTime, float UnscaledDeltaTime)
+void ULTweenManager::OnTick(ELTweenTickType TickType, float DeltaTime, float UnscaledDeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Update);
 	
@@ -112,6 +197,7 @@ void ULTweenManager::OnTick(float DeltaTime, float UnscaledDeltaTime)
 		}
 		else
 		{
+			if (tweener->GetTickType() != TickType)continue;
 			if (tweener->ToNext(DeltaTime, UnscaledDeltaTime) == false)
 			{
 				tweenerList.RemoveAt(i);
@@ -121,22 +207,29 @@ void ULTweenManager::OnTick(float DeltaTime, float UnscaledDeltaTime)
 			}
 		}
 	}
-	if (updateEvent.IsBound())
-		updateEvent.Broadcast(DeltaTime);
+	if (TickType == ELTweenTickType::DuringPhysics)
+	{
+		if (updateEvent.IsBound())
+			updateEvent.Broadcast(DeltaTime);
+	}
 }
 
 void ULTweenManager::CustomTick(float DeltaTime)
 {
-	OnTick(DeltaTime, DeltaTime);
+	OnTick(ELTweenTickType::DuringPhysics, DeltaTime, DeltaTime);
 }
 
 void ULTweenManager::DisableTick()
 {
-	TickPaused = true;
+	bTickPaused = true;
 }
 void ULTweenManager::EnableTick()
 {
-	TickPaused = false;
+	bTickPaused = false;
+}
+void ULTweenManager::ManualTick(float DeltaTime)
+{
+	Tick(ELTweenTickType::Manual, DeltaTime);
 }
 void ULTweenManager::KillAllTweens(bool callComplete)
 {

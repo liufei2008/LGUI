@@ -315,6 +315,13 @@ float ULTweener::GetProgress()const
 	}
 }
 
+ULTweener* ULTweener::SetTickType(ELTweenTickType value)
+{
+	if (elapseTime > 0 || startToTween)return this;
+	this->tickType = value;
+	return this;
+}
+
 float ULTweener::CurveFloat(float c, float b, float t, float d)
 {
 	if (d < KINDA_SMALL_NUMBER)return c + b;
