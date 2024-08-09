@@ -3,13 +3,59 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "Tickable.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "LTweener.h"
 #include "LTweenManager.generated.h"
 
-UCLASS(NotBlueprintable, NotPlaceable)
-class LTWEEN_API ULTweenManager : public UGameInstanceSubsystem, public FTickableGameObject
+UCLASS(NotBlueprintable, NotBlueprintType, Transient)
+class LTWEEN_API ULTweenTickHelperComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	ULTweenTickHelperComponent();
+	UPROPERTY() TWeakObjectPtr<class ULTweenManager> Target = nullptr;
+protected:
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
+class LTWEEN_API ALTweenTickHelperActor : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ALTweenTickHelperActor();
+	virtual void BeginPlay()override;
+	virtual void Tick(float DeltaSeconds)override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason)override;
+	UPROPERTY() TWeakObjectPtr<class ULTweenManager> Target = nullptr;
+private:
+	void OnLTweenManagerCreated(class ULTweenManager* LTweenManager);
+	FDelegateHandle OnLTweenManagerCreatedDelegateHandle;
+
+	void SetupTick(ULTweenManager* LTweenManager);
+};
+
+// This class is only for spawn ALTweenTickHelperActor for game world
+UCLASS(NotBlueprintable, NotBlueprintType, Transient)
+class LTWEEN_API ULTweenTickHelperWorldSubsystem : public UWorldSubsystem
+{
+	GENERATED_BODY()
+public:
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void PostInitialize()override;
+};
+
+DECLARE_EVENT_OneParam(ULTweenManager, FLTweenManagerCreated, class ULTweenManager*);
+
+UCLASS(NotBlueprintable, NotBlueprintType, Transient)
+class LTWEEN_API ULTweenManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
@@ -22,38 +68,39 @@ public:
 	//~End of USubsystem interface
 
 	//~FTickableObjectBase interface
-	virtual void Tick(float DeltaTime) override;
-	virtual ETickableTickType GetTickableTickType() const override;
-	virtual bool IsTickable() const override;
-	virtual TStatId GetStatId() const override;
-	virtual UWorld* GetTickableGameObjectWorld() const override;
-	virtual bool IsTickableWhenPaused() const override;
-	//~End of FTickableObjectBase interface
+	void Tick(ELTweenTickType TickType, float DeltaTime);
 	
 	UFUNCTION(BlueprintPure, Category = LTween, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LTween Instance"))
 	static ULTweenManager* GetLTweenInstance(UObject* WorldContextObject);
+	static FLTweenManagerCreated OnLTweenManagerCreated;
 private:
 	/** current active tweener collection*/
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
-	bool existInInstanceMap = false;
-	void OnTick(float DeltaTime, float UnscaledDeltaTime);
+	void OnTick(ELTweenTickType TickType, float DeltaTime, float UnscaledDeltaTime);
 	FLTweenUpdateMulticastDelegate updateEvent;
-	bool TickPaused = false;
+	bool bTickPaused = false;
 public:
+	UE_DEPRECATED(5.1, "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick.")
 	/** Use "CustomTick" instead of UE4's default Tick to control your tween animations. Call "DisableTick" function to disable UE4's default Tick function, then call this CustomTick function.*/
-	UFUNCTION(BlueprintCallable, Category = LTween)
+	UFUNCTION(BlueprintCallable, Category = LTween, meta=(DeprecatedFunction, DeprecationMessage = "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick."))
 	void CustomTick(float DeltaTime);
+	UE_DEPRECATED(5.1, "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick.")
 	/**
 	 * Disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
 	 * This will only pause the tick with current LTweenManager instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
 	 */ 
-	UFUNCTION(BlueprintCallable, Category = LTween)
+	UFUNCTION(BlueprintCallable, Category = LTween, meta = (DeprecatedFunction, DeprecationMessage = "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick."))
 	void DisableTick();
+	UE_DEPRECATED(5.1, "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick.")
 	/**
 	 * Enable default Tick if it is disabled.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LTween)
+	UFUNCTION(BlueprintCallable, Category = LTween, meta = (DeprecatedFunction, DeprecationMessage = "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick."))
 	void EnableTick();
+
+
+	UFUNCTION(BlueprintCallable, Category = LTween)
+	void ManualTick(float DeltaTime);
 
 	/**
 	 * Kill all tweens
