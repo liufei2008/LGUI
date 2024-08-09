@@ -947,6 +947,7 @@ ULGUIMeshComponent::ULGUIMeshComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	this->bCanEverAffectNavigation = false;
 }
 #include "Utils/LGUIUtils.h"
 void ULGUIMeshComponent::CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSection> InRenderSection)

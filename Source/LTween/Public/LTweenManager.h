@@ -54,7 +54,7 @@ public:
 
 DECLARE_EVENT_OneParam(ULTweenManager, FLTweenManagerCreated, class ULTweenManager*);
 
-UCLASS(NotBlueprintable, NotBlueprintType, Transient)
+UCLASS(NotBlueprintable, BlueprintType, Transient)
 class LTWEEN_API ULTweenManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
