@@ -7,22 +7,24 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIProceduralRectData.generated.h"
 
-class UTexture2D;
+class UTexture2DDynamic;
 
 UCLASS(ClassGroup = (LGUI), BlueprintType)
-class LGUI_API ULGUIProceduralRectData :public UDataAsset
+class LGUI_API ULGUIProceduralRectData :public UObject
 {
 	GENERATED_BODY()
 public:
+#if WITH_EDITOR
 	void PreEditChange(FProperty* PropertyAboutToChange);
 	void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent);
+#endif
 private:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<UMaterialInterface> DefaultMaterials[(int)ELGUICanvasClipType::Custom];
 	/** Texture to fill buffer data, and decode to buffer in shader. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		TObjectPtr<UTexture2D> Texture = nullptr;
+		TObjectPtr<UTexture> Texture = nullptr;
 
 	//how many bytes in single block
 	int BlockSizeInByte = 4;
@@ -55,9 +57,9 @@ public:
 	void UnregisterBuffer(const FIntVector2& InPosition);
 	void UpdateBlock(const FIntVector2& InPosition, uint8* InData);
 
-	UTexture2D* GetDataTexture()const { return Texture; }
+	UTexture* GetDataTexture()const { return Texture; }
 	UMaterialInterface* GetMaterial(ELGUICanvasClipType clipType);
 
-	DECLARE_EVENT_OneParam(ULGUIProceduralRectData, FOnDataTextureChange, UTexture2D*);
+	DECLARE_EVENT_OneParam(ULGUIProceduralRectData, FOnDataTextureChange, UTexture*);
 	FOnDataTextureChange OnDataTextureChange;
 };
