@@ -2964,7 +2964,7 @@ FMatrix ULGUICanvas::GetProjectionMatrix()const
 
 	FMatrix ProjectionMatrix = FMatrix::Identity;
 	const float FOV = (bOverrideFovAngle ? OverrideFovAngle : FOVAngle) * (float)PI / 360.0f;
-	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, ProjectionMatrix);
+	BuildProjectionMatrix(FIntPoint(UIItem->GetWidth(), UIItem->GetHeight()), ProjectionType, FOV, ProjectionMatrix);
 	return ProjectionMatrix;
 }
 FVector ULGUICanvas::GetViewLocation()const
