@@ -6,7 +6,7 @@
 #include "Rendering/Texture2DResource.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "TextureResource.h"
-#include "Engine/Texture2D.h"
+#include "Engine/Texture2DDynamic.h"
 #include "RenderingThread.h"
 
 #define LOCTEXT_NAMESPACE "LGUIProceduralRectData"
@@ -23,36 +23,13 @@ void ULGUIProceduralRectData::PostEditChangeProperty(struct FPropertyChangedEven
 #endif
 void ULGUIProceduralRectData::CreateTexture()
 {
-	Texture = NewObject<UTexture2D>(
+	auto TextureDynamic = NewObject<UTexture2DDynamic>(
 		this,
 		FName(*FString::Printf(TEXT("LGUIProceduralRectData_%d"), LGUIUtils::LGUITextureNameSuffix++))
 	);
-	auto PlatformData = new FTexturePlatformData();
-	const EPixelFormat PixelFormat = EPixelFormat::PF_R32_FLOAT;
-	PlatformData->SizeX = TextureSize;
-	PlatformData->SizeY = TextureSize;
-	PlatformData->PixelFormat = PixelFormat;
-	// Allocate first mipmap.
-	int32 NumBlocksX = TextureSize / GPixelFormats[PixelFormat].BlockSizeX;
-	int32 NumBlocksY = TextureSize / GPixelFormats[PixelFormat].BlockSizeY;
-	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	PlatformData->Mips.Add(Mip);
-	Mip->SizeX = TextureSize;
-	Mip->SizeY = TextureSize;
-	Mip->BulkData.Lock(LOCK_READ_WRITE);
-	int32 NumDataCount = NumBlocksX * NumBlocksY * GPixelFormats[PixelFormat].BlockBytes;
-	void* dataPtr = Mip->BulkData.Realloc(NumDataCount);
-	auto* pixelPtr = static_cast<FLinearColor*>(dataPtr);
-	FMemory::Memzero(pixelPtr, NumDataCount);
-	Mip->BulkData.Unlock();
-	Texture->SetPlatformData(PlatformData);
+	TextureDynamic->Init(TextureSize, TextureSize, EPixelFormat::PF_R32_FLOAT, false);
 
-	Texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-	Texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-	Texture->SRGB = false;
-	Texture->Filter = TextureFilter::TF_Nearest;
-	Texture->UpdateResource();
-
+	Texture = TextureDynamic;
 	Texture->AddToRoot();
 }
 bool ULGUIProceduralRectData::ExpandTexture()

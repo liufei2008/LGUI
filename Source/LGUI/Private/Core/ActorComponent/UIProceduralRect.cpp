@@ -568,7 +568,7 @@ bool UUIProceduralRect::LineTraceUIRect(FHitResult& OutHit, const FVector& Start
 	return false;
 }
 
-void UUIProceduralRect::OnDataTextureChanged(class UTexture2D* Texture)
+void UUIProceduralRect::OnDataTextureChanged(class UTexture* Texture)
 {
 	geometry->texture = GetTextureToCreateGeometry();
 	if (drawcall.IsValid())
