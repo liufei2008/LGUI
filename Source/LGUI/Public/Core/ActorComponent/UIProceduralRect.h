@@ -263,7 +263,7 @@ protected:
 	virtual void MarkAllDirty()override;
 
 	void CheckAdditionalShaderChannels();
-	void OnDataTextureChanged(class UTexture2D* Texture);
+	void OnDataTextureChanged(class UTexture* Texture);
 	FDelegateHandle OnDataTextureChangedDelegateHandle;
 	uint8 bNeedUpdateBlockData : 1;
 	uint8 bHasAddToSprite : 1;
