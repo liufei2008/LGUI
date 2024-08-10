@@ -31,6 +31,7 @@ void UUISelectableComponent::OnEnable()
 {
 	Super::OnEnable();
 	ULGUIManagerWorldSubsystem::AddSelectable(this);
+	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(true);
 }
 
@@ -77,14 +78,31 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (PropertyChangedEvent.Property)
 	{
-		auto propertyName = PropertyChangedEvent.Property->GetName();
+		auto propertyName = PropertyChangedEvent.Property->GetFName();
 		if (TransitionActor.IsValid())
 		{
 			auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionActor->GetUIRenderable());
-			if (propertyName == TEXT("TransitionActor"))
+			if (propertyName == GET_MEMBER_NAME_CHECKED(UUISelectableComponent, TransitionActor))
 			{
 				if (TargetUISpriteComp) NormalSprite = TargetUISpriteComp->GetSprite();
 				NormalColor = TransitionActor->GetUIRenderable()->GetColor();
+			}
+			else if (propertyName == GET_MEMBER_NAME_CHECKED(UUISelectableComponent, bInteractable))
+			{
+				if (CheckRootUIComponent())
+				{
+					CurrentSelectionState = GetSelectionState();
+#if WITH_EDITOR
+					if (!this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
+					{
+						ApplySelectionState(true);
+					}
+					else
+#endif
+					{
+						ApplySelectionState(false);
+					}
+				}
 			}
 			else
 			{
@@ -115,9 +133,7 @@ void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 	Super::OnUIInteractionStateChanged(interactableOrNot);
 	if (CheckRootUIComponent())
 	{
-		CurrentSelectionState = RootUIComp->IsGroupAllowInteraction()
-			? (IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal)
-			: EUISelectableSelectionState::Disabled;
+		CurrentSelectionState = GetSelectionState();
 #if WITH_EDITOR
 		if (!this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
 		{
@@ -577,9 +593,9 @@ bool UUISelectableComponent::IsInteractable()const
 {
 	if (CheckRootUIComponent())
 	{
-		return RootUIComp->IsGroupAllowInteraction();
+		return RootUIComp->IsGroupAllowInteraction() && bInteractable;
 	}
-	return true;
+	return bInteractable;
 }
 
 #pragma region Navigation

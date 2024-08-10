@@ -78,6 +78,8 @@ protected:
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		bool AllowEventBubbleUp = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+		bool bInteractable = true;
 
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot)override;
 
