@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/EngineTypes.h"
+#include "Engine/EngineBaseTypes.h"
 #include "Engine/HitResult.h"
 #include "LTweener.generated.h"
 
