@@ -197,4 +197,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
+
+	//UFUNCTION(BlueprintCallable, Category = LGUI)
+	//	bool ProjectWorldToScreen(class APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const;
 };

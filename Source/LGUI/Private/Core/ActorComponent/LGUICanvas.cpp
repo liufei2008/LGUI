@@ -2856,7 +2856,7 @@ bool ULGUICanvas::GetRequireUV3()const
 }
 
 
-void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, FMatrix& OutProjectionMatrix)const
+void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float FarClipPlane, float NearClipPlane, FMatrix& OutProjectionMatrix)
 {
 	if (InViewportSize.X == 0 || InViewportSize.Y == 0)//in DebugCamera mode(toggle in editor by press ';'), viewport size is 0
 	{
@@ -2964,7 +2964,7 @@ FMatrix ULGUICanvas::GetProjectionMatrix()const
 
 	FMatrix ProjectionMatrix = FMatrix::Identity;
 	const float FOV = (bOverrideFovAngle ? OverrideFovAngle : FOVAngle) * (float)PI / 360.0f;
-	BuildProjectionMatrix(FIntPoint(UIItem->GetWidth(), UIItem->GetHeight()), ProjectionType, FOV, ProjectionMatrix);
+	BuildProjectionMatrix(FIntPoint(UIItem->GetWidth(), UIItem->GetHeight()), ProjectionType, FOV, FarClipPlane, NearClipPlane, ProjectionMatrix);
 	return ProjectionMatrix;
 }
 FVector ULGUICanvas::GetViewLocation()const
