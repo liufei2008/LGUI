@@ -182,7 +182,7 @@ public:
 	const FVector2D& GetClipRectMin() { ConditionalCalculateRectRange(); return clipRectMin; }
 	const FVector2D& GetClipRectMax() { ConditionalCalculateRectRange(); return clipRectMax; }
 
-	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, FMatrix& OutProjectionMatrix)const;
+	static void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float FarClipPlane, float NearClipPlane, FMatrix& OutProjectionMatrix);
 	FMatrix GetViewProjectionMatrix()const;
 	FMatrix GetProjectionMatrix()const;
 	FVector GetViewLocation()const;
