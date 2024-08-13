@@ -642,3 +642,48 @@ bool ULGUICanvasScaler::Project3DToScreen(const FVector& Position3D, FVector2D& 
 	}
 	return false;
 }
+
+#if 0
+#include "GameFramework/PlayerController.h"
+#include "Engine/LocalPlayer.h"
+//this is test function. Compare to built-in GameplayStatics::ProjectWorldToScreen, this function has no latency, however GameplayStatics::ProjectWorldToScreen use last frame's camera location & rotation
+bool ULGUICanvasScaler::ProjectWorldToScreen(APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const
+{
+	ULocalPlayer* const LP = Player ? Player->GetLocalPlayer() : nullptr;
+	if (LP && LP->ViewportClient)
+	{
+		auto TempFovAngle = Player->PlayerCameraManager->GetFOVAngle() * (float)PI / 360.0f;
+		auto TempViewportSize = LP->ViewportClient->Viewport->GetSizeXY();
+		FMatrix ProjectionMatrix;
+		ULGUICanvas::BuildProjectionMatrix(TempViewportSize, ECameraProjectionMode::Perspective
+			, TempFovAngle, 1000, 0.01f, ProjectionMatrix);
+
+		auto ViewLocation = Player->PlayerCameraManager->GetCameraLocation();
+		auto ViewRotationMatrix = FInverseRotationMatrix(Player->GetRootComponent()->GetComponentRotation()) * FMatrix(
+			FPlane(0, 0, 1, 0),
+			FPlane(1, 0, 0, 0),
+			FPlane(0, 1, 0, 0),
+			FPlane(0, 0, 0, 1));
+		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
+
+		auto ScreenPos = ViewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
+		if (ScreenPos.W > 0.0f)
+		{
+			// the result of this will be x and y coords in -1..1 projection space
+			const float RHW = 1.0f / ScreenPos.W;
+			FPlane PosInScreenSpace = FPlane(ScreenPos.X * RHW, ScreenPos.Y * RHW, ScreenPos.Z * RHW, ScreenPos.W);
+
+			// Move from projection space to normalized 0..1 UI space
+			const float NormalizedX = (PosInScreenSpace.X / 2.f) + 0.5f;
+			const float NormalizedY = 1.f - (PosInScreenSpace.Y / 2.f) - 0.5f;
+
+			OutPosition2D.X = (NormalizedX * (float)ViewportSize.X);
+			OutPosition2D.Y = (NormalizedY * (float)ViewportSize.Y);
+
+			OutPosition2D = ConvertPositionFromViewportToLGUICanvas(OutPosition2D);
+			return true;
+		}
+	}
+	return false;
+}
+#endif
