@@ -32,6 +32,7 @@ ULTweenTickHelperComponent::ULTweenTickHelperComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	PrimaryComponentTick.TickGroup = ETickingGroup::TG_DuringPhysics;
+	PrimaryComponentTick.bTickEvenWhenPaused = true;
 }
 void ULTweenTickHelperComponent::BeginPlay()
 {
@@ -55,7 +56,7 @@ ALTweenTickHelperActor::ALTweenTickHelperActor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.TickGroup = ETickingGroup::TG_DuringPhysics;
-	PrimaryActorTick.bTickEvenWhenPaused = false;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
