@@ -21,6 +21,7 @@ private:
 };
 
 /**
+ * CAUTION!!! This layout could result in loop size reference! Use it carefully!
  * Use other UI element to control the size of this one.
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
