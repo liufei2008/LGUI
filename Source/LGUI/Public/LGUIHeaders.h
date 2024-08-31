@@ -114,6 +114,7 @@
 #include "Layout/UILayoutElement.h"
 #include "Layout/UISizeControlByAspectRatio.h"
 #include "Layout/UISizeControlByOther.h"
+#include "Layout/UISizeControlByChildren.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "Layout/ILGUILayoutInterface.h"
 #include "Layout/UIFlexibleGridLayout.h"
