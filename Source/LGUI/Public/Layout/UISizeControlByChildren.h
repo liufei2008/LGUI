@@ -7,7 +7,7 @@
 #include "UISizeControlByChildren.generated.h"
 
 /**
- * Use aspect ratio to control with and height.
+ * Control this UI's size by biggest size of it's children
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUISizeControlByChildren : public UUILayoutWithChildren
