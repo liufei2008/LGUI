@@ -99,7 +99,10 @@ void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
 void UUILayoutBase::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
     Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
-    MarkNeedRebuildLayout();
+    if (horizontalPositionChanged || verticalPositionChanged || widthChanged || heightChanged)
+    {
+        MarkNeedRebuildLayout();
+    }
 }
 
 void UUILayoutBase::ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth)

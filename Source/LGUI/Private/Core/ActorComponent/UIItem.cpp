@@ -2000,7 +2000,10 @@ void UUIItem::SetOnTransformChange(bool InPositionChanged, bool InScaleChanged)
 		}
 	}
 
-	CallUILifeCycleBehavioursDimensionsChanged(InPositionChanged, InPositionChanged, InScaleChanged, InScaleChanged);
+	if (InPositionChanged || InPositionChanged || InScaleChanged || InScaleChanged)
+	{
+		CallUILifeCycleBehavioursDimensionsChanged(InPositionChanged, InPositionChanged, InScaleChanged, InScaleChanged);
+	}
 
 	for (auto& UIChild : UIChildren)
 	{
@@ -2041,7 +2044,10 @@ void UUIItem::OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeig
 		}
 	}
 
-	CallUILifeCycleBehavioursDimensionsChanged(HorizontalPositionChanged, VerticalPositionChanged, InWidthChange, InHeightChange);
+	if (HorizontalPositionChanged || VerticalPositionChanged || InWidthChange || InHeightChange)
+	{
+		CallUILifeCycleBehavioursDimensionsChanged(HorizontalPositionChanged, VerticalPositionChanged, InWidthChange, InHeightChange);
+	}
 
 	for (auto& UIChild : UIChildren)
 	{
