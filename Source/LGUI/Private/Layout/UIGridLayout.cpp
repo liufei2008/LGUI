@@ -370,6 +370,7 @@ void UUIGridLayout::OnRebuildLayout()
 		}
 	}
 
+	//we need to calculate this's size first, because we need to apply this's size then child's size for less layout calculation
 	FVector2D tempActuralRange = FVector2D(0, 0);
 	if (HorizontalOrVertical)
 	{
@@ -381,9 +382,62 @@ void UUIGridLayout::OnRebuildLayout()
 		tempActuralRange.Y = childHeight * itemCountPerLine + (Spacing.Y * (itemCountPerLine - 1));
 		tempActuralRange.X = childWidth;
 	}
+	int tempItemCountPerLine = 0;
+	for (int i = 0; i < childrenCount; i++)
+	{
+		auto uiItem = uiChildrenList[i].ChildUIItem;
+		if (HorizontalOrVertical)//use horizontal
+		{
+			tempItemCountPerLine++;
+			if (tempItemCountPerLine > itemCountPerLine//if horizontal exceed range, then newline
+				)
+			{
+				tempActuralRange.Y += childHeight + Spacing.Y;
+				tempItemCountPerLine = 1;
+			}
+		}
+		else//use vertical
+		{
+			tempItemCountPerLine++;
+			if (tempItemCountPerLine > itemCountPerLine//if vertical exceed range, then newline
+				)
+			{
+				tempActuralRange.X += childWidth + Spacing.X;
+				tempItemCountPerLine = 1;
+			}
+		}
+	}
+	float RootUIItemWidth = RootUIComp->GetWidth();
+	float RootUIItemHeight = RootUIComp->GetHeight();
+	if (HorizontalOrVertical)
+	{
+		if (HeightFitToChildren)
+		{
+			if (DependOnSizeOrCount || ExpendChildSize == false)
+			{
+				RootUIItemHeight = tempActuralRange.Y + Padding.Top + Padding.Bottom;
+				ActuralRange = tempActuralRange;
+
+				ApplyHeightWithAnimation(tempAnimationType, RootUIItemHeight, RootUIComp.Get());
+			}
+		}
+	}
+	else
+	{
+		if (WidthFitToChildren)
+		{
+			if (DependOnSizeOrCount || ExpendChildSize == false)
+			{
+				RootUIItemWidth = tempActuralRange.X + Padding.Left + Padding.Right;
+				ActuralRange = tempActuralRange;
+
+				ApplyWidthWithAnimation(tempAnimationType, RootUIItemWidth, RootUIComp.Get());
+			}
+		}
+	}
 
 	float posX = startPosition.X + posOffsetX, posY = startPosition.Y - posOffsetY;
-	int tempItemCountPerLine = 0;
+	tempItemCountPerLine = 0;
 	int tempLineIndex = 1;
 	for (int i = 0; i < childrenCount; i++)
 	{
@@ -446,38 +500,11 @@ void UUIGridLayout::OnRebuildLayout()
 			AnchorMax = FVector2D(0, 1);
 			uiItem->SetHorizontalAndVerticalAnchorMinMax(AnchorMin, AnchorMax, true, true);
 		}
-		anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
-		anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
+		anchorOffsetX -= AnchorMin.X * RootUIItemWidth;
+		anchorOffsetY += (1 - AnchorMin.Y) * RootUIItemHeight;
 		ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 		ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
 		ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
-	}
-
-	if (HorizontalOrVertical)
-	{
-		if (HeightFitToChildren)
-		{
-			if (DependOnSizeOrCount || ExpendChildSize == false)
-			{
-				auto thisHeight = tempActuralRange.Y + Padding.Top + Padding.Bottom;
-				ActuralRange = tempActuralRange;
-
-				ApplyHeightWithAnimation(tempAnimationType, thisHeight, RootUIComp.Get());
-			}
-		}
-	}
-	else
-	{
-		if (WidthFitToChildren)
-		{
-			if (DependOnSizeOrCount || ExpendChildSize == false)
-			{
-				auto thisWidth = tempActuralRange.X + Padding.Left + Padding.Right;
-				ActuralRange = tempActuralRange;
-
-				ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
-			}
-		}
 	}
 
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
