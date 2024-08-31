@@ -172,8 +172,12 @@ public:
 	static void UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
 
 	/** Force LGUI to update layout immediately */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(WorldContext = "WorldContextObject"))
+	UE_DEPRECATED(5.1, "Use RebuildLayout instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(WorldContext = "WorldContextObject", DeprecatedFunction, DeprecationMessage = "Use RebuildLayout instead."))
 	static void ForceUpdateLayout(UObject* WorldContextObject);
+	/** Rebuild layout on target UIItem and all it's children */
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
+	static void RebuildLayout(UUIItem* InItem);
 
 	static void AddCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);
 	static void RemoveCanvas(ULGUICanvas* InCanvas, ELGUIRenderMode InCurrentRenderMode);

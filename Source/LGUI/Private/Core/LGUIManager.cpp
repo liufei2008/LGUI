@@ -1447,9 +1447,12 @@ void ULGUIManagerWorldSubsystem::UpdateLayout()
 	if (bNeedUpdateLayout)
 	{
 		bNeedUpdateLayout = false;
-		for (auto& item : AllLayoutArray)
+		for (auto& RootUIItem : AllRootUIItemArray)
 		{
-			ILGUILayoutInterface::Execute_OnUpdateLayout(item.Get());
+			if (RootUIItem.IsValid())
+			{
+				RebuildLayout(RootUIItem.Get());
+			}
 		}
 	}
 }
@@ -1463,11 +1466,23 @@ void ULGUIManagerWorldSubsystem::ForceUpdateLayout(UObject* WorldContextObject)
 		}
 	}
 }
+void ULGUIManagerWorldSubsystem::RebuildLayout(UUIItem* InItem)
+{
+	auto& Children = InItem->GetAttachUIChildren();
+	for (auto& Child : Children)
+	{
+		RebuildLayout(Child);
+	}
+	if (auto LayoutComp = InItem->GetOwner()->FindComponentByInterface(ULGUILayoutInterface::StaticClass()))
+	{
+		ILGUILayoutInterface::Execute_OnUpdateLayout(LayoutComp);
+	}
+}
 
 #if WITH_EDITOR
 void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 {
-	struct Local
+	struct LOCAL
 	{
 		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
 		{
@@ -1478,6 +1493,18 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 			for (auto& Child : Children)
 			{
 				UpdateComponentToWorldRecursive(Child);
+			}
+		}
+		static void MarkRebuildLayoutRecursive(UUIItem* InUIItem)
+		{
+			auto& Children = InUIItem->GetAttachUIChildren();
+			for (auto& Child : Children)
+			{
+				RebuildLayout(Child);
+			}
+			if (auto LayoutComp = InUIItem->GetOwner()->FindComponentByInterface(ULGUILayoutInterface::StaticClass()))
+			{
+				ILGUILayoutInterface::Execute_MarkRebuildLayout(LayoutComp);
 			}
 		}
 	};
@@ -1492,12 +1519,9 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 			}
 		}
 		auto Instance = InstanceItem;
-		for (auto& Layout : Instance->AllLayoutArray)
+		for (auto& RootUIItem : Instance->AllRootUIItemArray)
 		{
-			if (Layout.IsValid())
-			{
-				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.Get());
-			}
+			LOCAL::MarkRebuildLayoutRecursive(RootUIItem.Get());
 		}
 		for (auto& RootUIItem : Instance->AllRootUIItemArray)
 		{
@@ -1506,7 +1530,7 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 				RootUIItem->MarkAllDirtyRecursive();
 				RootUIItem->ForceRefreshRenderCanvasRecursive();
 				RootUIItem->ForceRefreshUIActiveStateRecursive();
-				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
+				LOCAL::UpdateComponentToWorldRecursive(RootUIItem.Get());
 				RootUIItem->EditorForceUpdate();
 			}
 		}
@@ -1785,7 +1809,6 @@ void ULGUIManagerWorldSubsystem::RemoveSelectable(UUISelectableComponent* InSele
 		}
 	}
 }
-
 void ULGUIManagerWorldSubsystem::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))

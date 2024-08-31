@@ -371,6 +371,46 @@ void UUIVerticalLayout::OnRebuildLayout()
     float tempActuralVerticalRange = 0;
     float tempHorizontalMinSize = MAX_flt;
     float tempHorizontalMaxSize = MIN_flt;
+    //we need to calculate this's size first, because we need to apply this's size then child's size for less layout calculation
+    for (int i = 0; i < childrenCount; i++)
+    {
+        auto ChildUIItem = uiChildrenList[i].ChildUIItem;
+        if (!ExpandChildWidthArea)
+        {
+            childWidth = ChildUIItem->GetWidth();
+        }
+        float childHeightArea = childrenHeightList[i].AreaHeight;
+
+        tempActuralVerticalRange += childHeightArea;
+        if (tempHorizontalMinSize > childWidth)
+        {
+            tempHorizontalMinSize = childWidth;
+        }
+        if (tempHorizontalMaxSize < childWidth)
+        {
+            tempHorizontalMaxSize = childWidth;
+        }
+    }
+    if (childrenCount > 1)
+    {
+        tempActuralVerticalRange += Spacing * (childrenCount - 1);
+    }
+    ActuralRange = tempActuralVerticalRange;
+    float RootUIItemWidth = RootUIComp->GetWidth();
+    float RootUIItemHeight = RootUIComp->GetHeight();
+    if (HeightFitToChildren && !ExpandChildHeightArea)
+    {
+        RootUIItemHeight = tempActuralVerticalRange + Padding.Top + Padding.Bottom;
+        ApplyHeightWithAnimation(tempAnimationType, RootUIItemHeight, RootUIComp.Get());
+    }
+    if (WidthFitToChildren && !ExpandChildWidthArea)
+    {
+        tempHorizontalMinSize += Padding.Left + Padding.Right;
+        tempHorizontalMaxSize += Padding.Left + Padding.Right;
+        RootUIItemWidth = FMath::Lerp(tempHorizontalMinSize, tempHorizontalMaxSize, WidthFitToChildrenFromMinToMax);
+        ApplyWidthWithAnimation(tempAnimationType, RootUIItemWidth, RootUIComp.Get());
+    }
+
     for (int i = 0; i < childrenCount; i++)
     {
         auto ChildUIItem = uiChildrenList[i].ChildUIItem;
@@ -464,42 +504,16 @@ void UUIVerticalLayout::OnRebuildLayout()
         }
         if (ControlChildWidth)
         {
-            anchorOffsetX -= AnchorMin.X * RootUIComp->GetWidth();
+            anchorOffsetX -= AnchorMin.X * RootUIItemWidth;
         }
         else
         {
             anchorOffsetX = ChildUIItem->GetAnchoredPosition().X;
         }
-        anchorOffsetY += (1 - AnchorMin.Y) * RootUIComp->GetHeight();
+        anchorOffsetY += (1 - AnchorMin.Y) * RootUIItemHeight;
         ApplyAnchoredPositionWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), ChildUIItem.Get());
 
         posY -= childHeightArea + Spacing;
-        tempActuralVerticalRange += childHeightArea;
-        if (tempHorizontalMinSize > childWidth)
-        {
-            tempHorizontalMinSize = childWidth;
-        }
-        if (tempHorizontalMaxSize < childWidth)
-        {
-            tempHorizontalMaxSize = childWidth;
-        }
-    }
-    if (childrenCount > 1)
-    {
-        tempActuralVerticalRange += Spacing * (childrenCount - 1);
-    }
-    ActuralRange = tempActuralVerticalRange;
-    if (HeightFitToChildren && !ExpandChildHeightArea)
-    {
-        auto thisHeight = tempActuralVerticalRange + Padding.Top + Padding.Bottom;
-        ApplyHeightWithAnimation(tempAnimationType, thisHeight, RootUIComp.Get());
-    }
-    if (WidthFitToChildren && !ExpandChildWidthArea)
-    {
-        tempHorizontalMinSize += Padding.Left + Padding.Right;
-        tempHorizontalMaxSize += Padding.Left + Padding.Right;
-        auto thisWidth = FMath::Lerp(tempHorizontalMinSize, tempHorizontalMaxSize, WidthFitToChildrenFromMinToMax);
-        ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
     }
 
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
