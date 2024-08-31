@@ -1640,10 +1640,10 @@ void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByAspectRatio::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("AttachLayout_SizeControlByOther", "Size Control by Other"),
-			LOCTEXT("AttachLayout_SizeControlByOther_Tooltip", "Use other UI element to control the size of this one"),
+			LOCTEXT("AttachLayout_SizeControlByChildren", "Size Control by Children"),
+			LOCTEXT("AttachLayout_SizeControlByyChildren_Tooltip", "Control this UI's size by biggest size of it's children"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByOther::StaticClass())))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByChildren::StaticClass())))
 		);
 	}
 	MenuBuilder.EndSection();
