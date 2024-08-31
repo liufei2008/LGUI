@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Event/LGUIEventDelegate.h"
+#include "LGUIPlayTween.h"
 #include "PrefabSystem/ILGUIPrefabInterface.h"
 #include "LGUIPlayTweenSequenceComponent.generated.h"
 
