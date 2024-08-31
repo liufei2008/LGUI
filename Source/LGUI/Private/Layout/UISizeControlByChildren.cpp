@@ -61,7 +61,7 @@ void UUISizeControlByChildren::OnRebuildLayout()
 	}
 #endif
 
-	float MaxChildWidth = 0, MaxChildHeight = 0;
+	float MaxChildWidth = -1, MaxChildHeight = -1;//-1 means not valid
 	const auto& uiChildrenList = GetLayoutUIItemChildren();
 	int childrenCount = uiChildrenList.Num();
 	for (int i = 0; i < childrenCount; i++)
@@ -92,7 +92,10 @@ void UUISizeControlByChildren::OnRebuildLayout()
 		{
 			RootUIComp->SetHorizontalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
 		}
-		ApplyWidthWithAnimation(tempAnimationType, MaxChildWidth + AdditionalWidth, RootUIComp.Get());
+		if (MaxChildWidth >= 0)
+		{
+			ApplyWidthWithAnimation(tempAnimationType, MaxChildWidth + AdditionalWidth, RootUIComp.Get());
+		}
 	}
 	if (bHeightFitToChildren)
 	{
@@ -100,7 +103,10 @@ void UUISizeControlByChildren::OnRebuildLayout()
 		{
 			RootUIComp->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
 		}
-		ApplyHeightWithAnimation(tempAnimationType, MaxChildHeight + AdditionalHeight, RootUIComp.Get());
+		if (MaxChildHeight >= 0)
+		{
+			ApplyHeightWithAnimation(tempAnimationType, MaxChildHeight + AdditionalHeight, RootUIComp.Get());
+		}
 	}
 	if (tempAnimationType == EUILayoutAnimationType::EaseAnimation)
 	{
