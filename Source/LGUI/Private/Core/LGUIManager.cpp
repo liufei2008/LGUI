@@ -1484,17 +1484,6 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 {
 	struct LOCAL
 	{
-		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
-		{
-			if (!IsValid(UIItem))return;
-			UIItem->CalculateTransformFromAnchor();
-			UIItem->UpdateComponentToWorld();
-			auto& Children = UIItem->GetAttachUIChildren();
-			for (auto& Child : Children)
-			{
-				UpdateComponentToWorldRecursive(Child);
-			}
-		}
 		static void MarkRebuildLayoutRecursive(UUIItem* InUIItem)
 		{
 			auto& Children = InUIItem->GetAttachUIChildren();
@@ -1527,28 +1516,9 @@ void ULGUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 		{
 			if (RootUIItem.IsValid())
 			{
-				RootUIItem->MarkAllDirtyRecursive();
-				RootUIItem->ForceRefreshRenderCanvasRecursive();
-				RootUIItem->ForceRefreshUIActiveStateRecursive();
-				LOCAL::UpdateComponentToWorldRecursive(RootUIItem.Get());
+				RootUIItem->EnsureDataForRebuild();
 				RootUIItem->EditorForceUpdate();
 			}
-		}
-		for (auto& CanvasItem : Instance->ScreenSpaceCanvasArray)
-		{
-			CanvasItem->EnsureDrawcallObjectReference();
-		}
-		for (auto& CanvasItem : Instance->WorldSpaceUECanvasArray)
-		{
-			CanvasItem->EnsureDrawcallObjectReference();
-		}
-		for (auto& CanvasItem : Instance->WorldSpaceLGUICanvasArray)
-		{
-			CanvasItem->EnsureDrawcallObjectReference();
-		}
-		for (auto& CanvasItem : Instance->RenderTargetSpaceLGUICanvasArray)
-		{
-			CanvasItem->EnsureDrawcallObjectReference();
 		}
 	}
 }

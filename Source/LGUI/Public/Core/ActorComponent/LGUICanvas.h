@@ -146,7 +146,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostLoad()override;
 	virtual void PostEditUndo()override;
-	void OnUIPostEditUndo();
+	void EnsureDataForRebuild();
 #endif
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
@@ -581,11 +581,11 @@ public:
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 	void UpdateRenderTarget(bool CallEvent);
+	/** Check if any invalid in list. Currently use in editor after undo check or rebuild. */
+	void EnsureDrawcallObjectReference();
 public:
 	/** Called from LGUIManagerActor. Update this canvas if it is a RootCanvas */
 	void UpdateRootCanvas();
-	/** Check if any invalid in list. Currently use in editor after undo check. */
-	void EnsureDrawcallObjectReference();
 	/**  */
 	void MarkNeedVerifyMaterials();
 private:

@@ -677,9 +677,8 @@ void ULGUICanvas::PostEditUndo()
 	Super::PostEditUndo();
 
 	ULGUIManagerWorldSubsystem::RefreshAllUI(this->GetWorld());
-	OnUIPostEditUndo();
 }
-void ULGUICanvas::OnUIPostEditUndo()
+void ULGUICanvas::EnsureDataForRebuild()
 {
 	struct LOCAL
 	{
@@ -702,6 +701,7 @@ void ULGUICanvas::OnUIPostEditUndo()
 			}
 		}
 	};
+	EnsureDrawcallObjectReference();
 	ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)]() {
 		if (WeakThis.IsValid())
 		{
