@@ -478,39 +478,6 @@ void UUIItem::MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode
 	}
 }
 
-void UUIItem::ForceRefreshRenderCanvasRecursive()
-{
-	auto NewRenderCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(this->GetOwner(), false);
-	SetRenderCanvas(NewRenderCanvas);
-
-	for (auto& uiChild : UIChildren)
-	{
-		if (IsValid(uiChild))
-		{
-			uiChild->ForceRefreshRenderCanvasRecursive();
-		}
-	}
-}
-
-#if WITH_EDITOR
-void UUIItem::ForceRefreshUIActiveStateRecursive()
-{
-	if (bUIActiveStateDirty)
-	{
-		bUIActiveStateDirty = false;
-
-		ApplyUIActiveState(true);
-		//affect children
-		CheckChildrenUIActiveRecursive(this->GetIsUIActiveInHierarchy());
-		//callback for parent
-		if (ParentUIItem.IsValid())
-		{
-			ParentUIItem->OnChildActiveStateChanged(this);
-		}
-	}
-}
-#endif
-
 void UUIItem::PostLoad()
 {
 	Super::PostLoad();
@@ -558,35 +525,8 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 
 void UUIItem::PostEditUndo()
 {
-	EnsureUIChildrenValid();
-	bNeedSortUIChildren = true;
-	if (ParentUIItem.IsValid())
-	{
-		ParentUIItem->bNeedSortUIChildren = true;
-	}
 	Super::PostEditUndo();
-	ApplyHierarchyIndex();
-	CheckUIActiveState();
-
-	SetOnAnchorChange(true, true, true);
-
-	if (RenderCanvas.IsValid())
-	{
-		RenderCanvas->OnUIPostEditUndo();
-	}
-#if WITH_EDITOR
-	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
-	if (auto ManagerActor = ULGUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
-	{
-		for (auto TempRootUIItem : ManagerActor->GetAllRootUIItemArray())
-		{
-			auto OldRenderCanvas = TempRootUIItem->RenderCanvas;
-			TempRootUIItem->RenderCanvas = nullptr;
-			TempRootUIItem->RenewRenderCanvasRecursive(OldRenderCanvas.Get());
-		}
-	}
 	ULGUIManagerWorldSubsystem::RefreshAllUI(this->GetWorld());
-#endif
 }
 
 //void UUIItem::PostEditUndo(TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)
@@ -610,6 +550,92 @@ void UUIItem::EditorForceUpdate()
 {
 	MarkCanvasUpdate(true, true, true, true);
 }
+void UUIItem::EnsureDataForRebuild()
+{
+	check(this == RootUIItem);
+	struct LOCAL
+	{
+		static void RenewRenderCanvas(UUIItem* UIItem)
+		{
+			auto ThisRenderCanvas = UIItem->GetOwner()->FindComponentByClass<ULGUICanvas>();
+			UIItem->RenewRenderCanvasRecursive(ThisRenderCanvas);
+		}
+		static void EnsureDataForRebuildRecursive(UUIItem* UIItem)
+		{
+			UIItem->EnsureUIChildrenValid();
+			UIItem->bNeedSortUIChildren = true;
+			UIItem->EnsureUIChildrenSorted();
+			if (UIItem->bIsCanvasUIItem && UIItem->RenderCanvas.IsValid())
+			{
+				UIItem->RenderCanvas->EnsureDataForRebuild();
+			}
+
+			for (auto& uiChild : UIItem->UIChildren)
+			{
+				if (IsValid(uiChild))
+				{
+					EnsureDataForRebuildRecursive(uiChild);
+				}
+			}
+		}
+		/** force refresh render canvas, remove from old and add to new */
+		static void ForceRefreshRenderCanvasRecursive(UUIItem* UIItem)
+		{
+			auto NewRenderCanvas = UUIItem::GetComponentInParentUI<ULGUICanvas>(UIItem->GetOwner(), false);
+			UIItem->SetRenderCanvas(NewRenderCanvas);
+
+			for (auto& uiChild : UIItem->UIChildren)
+			{
+				if (IsValid(uiChild))
+				{
+					ForceRefreshRenderCanvasRecursive(uiChild);
+				}
+			}
+		}
+		static void ForceRefreshUIActiveStateRecursive(UUIItem* UIItem)
+		{
+			if (UIItem->bUIActiveStateDirty)
+			{
+				UIItem->bUIActiveStateDirty = false;
+
+				UIItem->ApplyUIActiveState(true);
+				//affect children
+				UIItem->CheckChildrenUIActiveRecursive(UIItem->GetIsUIActiveInHierarchy());
+				//callback for parent
+				if (UIItem->ParentUIItem.IsValid())
+				{
+					UIItem->ParentUIItem->OnChildActiveStateChanged(UIItem);
+				}
+			}
+
+			for (auto& uiChild : UIItem->UIChildren)
+			{
+				if (IsValid(uiChild))
+				{
+					ForceRefreshUIActiveStateRecursive(uiChild);
+				}
+			}
+		}
+		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
+		{
+			if (!IsValid(UIItem))return;
+			UIItem->CalculateTransformFromAnchor();
+			UIItem->UpdateComponentToWorld();
+			auto& Children = UIItem->GetAttachUIChildren();
+			for (auto& Child : Children)
+			{
+				UpdateComponentToWorldRecursive(Child);
+			}
+		}
+	};
+	MarkAllDirtyRecursive();
+	LOCAL::RenewRenderCanvas(this);
+	LOCAL::EnsureDataForRebuildRecursive(this);
+	LOCAL::ForceRefreshRenderCanvasRecursive(this);
+	LOCAL::ForceRefreshUIActiveStateRecursive(this);
+	LOCAL::UpdateComponentToWorldRecursive(this);
+}
+
 #endif
 
 bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
@@ -981,7 +1007,7 @@ void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
 		{
 			ThisRenderCanvas->SetParentCanvas(InParentRenderCanvas);//set parent Canvas for this actor's Canvas
 		}
-		return;//already have a CanvasGroup on this actor, no need to go further
+		return;
 	}
 
 	if (RenderCanvas != InParentRenderCanvas)//if attach to new Canvas, need to remove from old and add to new
