@@ -42,6 +42,7 @@ public:
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdate();//@todo: remove this
+	void EnsureDataForRebuild();
 #endif
 	static const FName GetAnchorDataPropertyName()
 	{
@@ -283,11 +284,6 @@ public:
 	/** mark all dirty for UI element to update, include all children */
 	void MarkAllDirtyRecursive();
 	virtual void MarkAllDirty();
-	/** force refresh render canvas, remove from old and add to new */
-	void ForceRefreshRenderCanvasRecursive();
-#if WITH_EDITOR
-	void ForceRefreshUIActiveStateRecursive();
-#endif
 	virtual void MarkRenderModeChangeRecursive(ULGUICanvas* Canvas, ELGUIRenderMode OldRenderMode, ELGUIRenderMode NewRenderMode);
 private:
 	void SetOnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange);
