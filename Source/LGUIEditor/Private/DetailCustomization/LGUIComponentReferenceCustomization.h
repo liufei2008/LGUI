@@ -35,6 +35,8 @@ private:
 	void RegenerateContentWidget();
 	void OnResetToDefaultClicked();
 
+	bool IsAllowedComponentClass(UActorComponent* InComp);
+
 	TSharedPtr<IPropertyHandle> PropertyHandle;
 	/** Classes that can be used with this property */
 	TArray<const UClass*> AllowedComponentClassFilters;
