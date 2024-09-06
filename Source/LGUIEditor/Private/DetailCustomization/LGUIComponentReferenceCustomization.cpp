@@ -78,6 +78,7 @@ void FLGUIComponentReferenceCustomization::CustomizeHeader(TSharedRef<IPropertyH
 		FSimpleDelegate::CreateSP(this, &FLGUIComponentReferenceCustomization::OnResetToDefaultClicked)
 	))
 	;
+	BuildClassFilters();
 	RegenerateContentWidget();
 }
 void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
@@ -92,7 +93,6 @@ void FLGUIComponentReferenceCustomization::OnResetToDefaultClicked()
 void FLGUIComponentReferenceCustomization::RegenerateContentWidget()
 {
 	if (!PropertyHandle.IsValid())return;
-	BuildClassFilters();
 	auto HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperClass));
 	UClass* HelperClass = nullptr;
 	HelperClassHandle->GetValue(*(UObject**)&HelperClass);
@@ -129,39 +129,6 @@ void FLGUIComponentReferenceCustomization::RegenerateContentWidget()
 			}
 			else
 			{
-				auto IsAllowedComponentClass = [&](UActorComponent* InComp) {
-					auto Class = InComp->GetClass();
-					bool bResult = false;
-					if (AllowedComponentClassFilters.Num() > 0)
-					{
-						for (auto& ClassItem : AllowedComponentClassFilters)
-						{
-							const bool bAllowedClassIsInterface = ClassItem->HasAnyClassFlags(CLASS_Interface);
-							if (Class == ClassItem || Class->IsChildOf(ClassItem) || (bAllowedClassIsInterface && Class->ImplementsInterface(ClassItem)))
-							{
-								bResult = true;
-								break;
-							}
-						}
-					}
-					else
-					{
-						bResult = true;
-					}
-					if (bResult)
-					{
-						for (auto& ClassItem : DisallowedComponentClassFilters)
-						{
-							const bool bAllowedClassIsInterface = ClassItem->HasAnyClassFlags(CLASS_Interface);
-							if (Class == ClassItem || Class->IsChildOf(ClassItem) || (bAllowedClassIsInterface && Class->ImplementsInterface(ClassItem)))
-							{
-								bResult = false;
-								break;
-							}
-						}
-					}
-					return bResult;
-				};
 				for (auto& Comp : AllComponents)
 				{
 					if (IsAllowedComponentClass(Comp))
@@ -213,6 +180,12 @@ void FLGUIComponentReferenceCustomization::RegenerateContentWidget()
 				}
 				else if (Components.Num() == 1)
 				{
+					auto Comp = Components[0];
+					for (auto& Item : ComponentReferenceInstances)
+					{
+						Item->HelperClass = Comp->GetClass();
+						Item->HelperComponentName = Comp != nullptr ? Comp->GetFName() : NAME_None;
+					}
 					ContentWidget = HelperActorHandle->CreatePropertyValueWidget();
 				}
 				else
@@ -253,6 +226,40 @@ void FLGUIComponentReferenceCustomization::RegenerateContentWidget()
 	}
 
 	ContentWidgetBox->SetContent(ContentWidget.ToSharedRef());
+}
+bool FLGUIComponentReferenceCustomization::IsAllowedComponentClass(UActorComponent* InComp)
+{
+	auto Class = InComp->GetClass();
+	bool bResult = false;
+	if (AllowedComponentClassFilters.Num() > 0)
+	{
+		for (auto& ClassItem : AllowedComponentClassFilters)
+		{
+			const bool bAllowedClassIsInterface = ClassItem->HasAnyClassFlags(CLASS_Interface);
+			if (Class == ClassItem || Class->IsChildOf(ClassItem) || (bAllowedClassIsInterface && Class->ImplementsInterface(ClassItem)))
+			{
+				bResult = true;
+				break;
+			}
+		}
+	}
+	else
+	{
+		bResult = true;
+	}
+	if (bResult)
+	{
+		for (auto& ClassItem : DisallowedComponentClassFilters)
+		{
+			const bool bAllowedClassIsInterface = ClassItem->HasAnyClassFlags(CLASS_Interface);
+			if (Class == ClassItem || Class->IsChildOf(ClassItem) || (bAllowedClassIsInterface && Class->ImplementsInterface(ClassItem)))
+			{
+				bResult = false;
+				break;
+			}
+		}
+	}
+	return bResult;
 }
 void FLGUIComponentReferenceCustomization::BuildClassFilters()
 {
