@@ -46,6 +46,7 @@ protected:
 	virtual FVector2D GetEndPointTangentDirection()override;
 	//End UI2DLineRendererBase interface
 public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFullCycle()const { return FullCycle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetStartAngle()const { return StartAngle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetEndAngle()const { return EndAngle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") int GetSides()const { return Sides; }
@@ -53,6 +54,8 @@ public:
 	//Return direct mutable array for edit and change. Call MarkVertexPositionDirty() function after change.
 	TArray<float>& GetVertexOffsetArray_Direct() { return VertexOffsetArray; }
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetFullCycle(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetStartAngle(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

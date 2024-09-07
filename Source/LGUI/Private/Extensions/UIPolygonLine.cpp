@@ -78,6 +78,13 @@ FVector2D UUIPolygonLine::GetEndPointTangentDirection()
 	}
 }
 
+void UUIPolygonLine::SetFullCycle(bool value) {
+	if (FullCycle != value)
+	{
+		FullCycle = value;
+		MarkVerticesDirty(true, true, true, false);
+	}
+}
 void UUIPolygonLine::SetStartAngle(float value) {
 	if (StartAngle != value)
 	{
