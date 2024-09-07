@@ -66,8 +66,11 @@ public:
 
 	virtual UUIItem* GetUIItem()const override { return UIElement; }
 	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIElement; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(5.0, "Use GetUIRing instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetUIRing instead."))
 		UUIRing* Get2DLineRing()const { return UIElement; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIRing* GetUIRing()const { return UIElement; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<class UUIRing> UIElement;
