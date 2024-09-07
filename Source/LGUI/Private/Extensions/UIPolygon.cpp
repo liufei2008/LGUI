@@ -206,6 +206,13 @@ void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, boo
 	}
 }
 
+void UUIPolygon::SetFullCycle(bool value) {
+	if (FullCycle != value)
+	{
+		FullCycle = value;
+		MarkVerticesDirty(true, true, true, false);
+	}
+}
 void UUIPolygon::SetStartAngle(float value) {
 	if (StartAngle != value)
 	{
