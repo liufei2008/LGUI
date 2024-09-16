@@ -642,10 +642,9 @@ bool ULGUICanvasScaler::Project3DToScreen(const FVector& Position3D, FVector2D& 
 	return false;
 }
 
-#if 0
+#if 1
 #include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
-//this is test function. Compare to built-in GameplayStatics::ProjectWorldToScreen, this function has no latency, however GameplayStatics::ProjectWorldToScreen use last frame's camera location & rotation
 bool ULGUICanvasScaler::ProjectWorldToScreen(APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const
 {
 	ULocalPlayer* const LP = Player ? Player->GetLocalPlayer() : nullptr;
