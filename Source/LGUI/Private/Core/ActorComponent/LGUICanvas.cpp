@@ -628,6 +628,14 @@ void ULGUICanvas::MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransfo
 		this->bShouldSortRenderableOrder = true;
 	}
 }
+void ULGUICanvas::MarkCanvasUpdateRecursive(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall)
+{
+	this->MarkCanvasUpdate(bMaterialOrTextureChanged, bTransformOrVertexPositionChanged, bHierarchyOrderChanged, bForceRebuildDrawcall);
+	for (auto& ChildCanvas : this->ChildrenCanvasArray)
+	{
+		ChildCanvas->MarkCanvasUpdateRecursive(bMaterialOrTextureChanged, bTransformOrVertexPositionChanged, bHierarchyOrderChanged, bForceRebuildDrawcall);
+	}
+}
 void ULGUICanvas::MarkItemTransformOrVertexPositionChanged(UUIBaseRenderable* InRenderable)
 {
 	if (CacheUIItemToCanvasTransformMap.Contains(InRenderable))
