@@ -652,6 +652,13 @@ bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, 
 void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
+
+	if (this->IsCanvasUIItem() && this->RenderCanvas.IsValid())
+	{
+		//This is mainly to mark LGUICanvas's bIsViewProjectionMatrixDirty to true.
+		//For the condition LGUI_Tutorials/Tutorials/UIRenderTarget, when move LGUIRenderTarget1 at runtime, the LGUICanvas's RenderTarget's matrix not update, result in wrong interaction.
+		this->RenderCanvas->MarkCanvasLayoutDirty();
+	}
 }
 void UUIItem::CalculateAnchorFromTransform()
 {
