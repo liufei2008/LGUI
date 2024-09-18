@@ -173,6 +173,7 @@ public:
 	 * @param	bForceRebuildDrawcall	Mark it rebuild no matter what parameter change.
 	 */
 	void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
+	void MarkCanvasUpdateRecursive(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 	void MarkItemTransformOrVertexPositionChanged(UUIBaseRenderable* InRenderable);
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
