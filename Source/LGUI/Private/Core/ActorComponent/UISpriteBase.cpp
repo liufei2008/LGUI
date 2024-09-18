@@ -80,6 +80,10 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp_Implementation()
 
 void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSize)
 {
+	if (!IsValid(newSprite))
+	{
+		newSprite = ULGUISpriteData::GetDefaultWhiteSolid();
+	}
 	if (sprite != newSprite)
 	{
 		if((!IsValid(sprite) || !IsValid(newSprite))
