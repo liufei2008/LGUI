@@ -2033,7 +2033,7 @@ void UUIItem::SetOnTransformChange(bool InPositionChanged, bool InScaleChanged)
 		}
 	}
 
-	if (InPositionChanged || InPositionChanged || InScaleChanged || InScaleChanged)
+	if (InPositionChanged || InScaleChanged)
 	{
 		CallUILifeCycleBehavioursDimensionsChanged(InPositionChanged, InPositionChanged, InScaleChanged, InScaleChanged);
 	}
