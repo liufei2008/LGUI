@@ -63,8 +63,8 @@ bool ULGUIProceduralRectData::ExpandTexture()
 				CopyInfo.Size = FIntVector(OldTextureSize, OldTextureSize, 0);
 				CopyInfo.DestPosition = FIntVector(0, 0, 0);
 				RHICmdList.CopyTexture(
-					((FTexture2DResource*)OldTexture->GetResource())->GetTexture2DRHI(),
-					((FTexture2DResource*)NewTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DDynamicResource*)OldTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DDynamicResource*)NewTexture->GetResource())->GetTexture2DRHI(),
 					CopyInfo
 				);
 				RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
@@ -145,7 +145,7 @@ void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, uint8* 
 {
 	if (Texture->GetResource())
 	{
-		auto TextureRes = (FTexture2DResource*)Texture->GetResource();
+		auto TextureRes = (FTexture2DDynamicResource*)Texture->GetResource();
 		ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectData_UpdateBlock)(
 			[TextureRes, InPosition, InData, BlockSizeInByte = this->BlockSizeInByte, BlockPixelCount = this->BlockPixelCount](FRHICommandListImmediate& RHICmdList)
 			{
