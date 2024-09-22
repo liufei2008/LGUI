@@ -36,7 +36,7 @@ void FLGUIDynamicSpriteAtlasData::CreateAtlasTexture(const FName& packingTag, in
 	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
 #endif
 	auto texture = LGUIUtils::CreateTexture(newTextureSize, FColor::Transparent
-		, ULGUIDynamicSpriteAtlasManager::Instance
+		, GetTransientPackage()
 		, FName(*FString::Printf(TEXT("LGUIDynamicSpriteAtlasData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++))
 	);
 

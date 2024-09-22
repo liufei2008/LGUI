@@ -635,9 +635,10 @@ bool ULGUIStaticSpriteAtlasData::InitCheck()
 
 		//create texture
 		auto texture = NewObject<UTexture2D>(
-			this, 
-			FName(*FString::Printf(TEXT("LGUIStaticSpriteAtlasData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++))
-			);
+			GetTransientPackage(),
+			FName(*FString::Printf(TEXT("LGUIStaticSpriteAtlasData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++)),
+			EObjectFlags::RF_Transient
+		);
 		auto PlatformData = new FTexturePlatformData();
 		PlatformData->SizeX = textureSize;
 		PlatformData->SizeY = textureSize;
