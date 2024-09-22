@@ -106,6 +106,14 @@ const TArray<UUILayoutWithChildren::FLayoutChild>& UUILayoutWithChildren::GetLay
     return LayoutUIItemChildrenArray;
 }
 
+void UUILayoutWithChildren::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
+{
+    Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
+    if (horizontalPositionChanged || verticalPositionChanged || widthChanged || heightChanged)
+    {
+        MarkNeedRebuildLayout();
+    }
+}
 void UUILayoutWithChildren::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)
 {
     Super::OnUIChildAcitveInHierarchy(InChild, InUIActive);
