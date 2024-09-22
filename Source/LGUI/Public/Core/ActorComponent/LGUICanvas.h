@@ -597,6 +597,7 @@ private:
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
 	uint32 bShouldRebuildDrawcall : 1;
+	uint32 bShouldClearCachedDrawcall : 1;//mark this to true will delete all cached drawcall and rebuild all drawcall
 	uint32 bShouldSortRenderableOrder : 1;//if any renderable UIItem's hierarchy change, then we need to sort renderable list
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
