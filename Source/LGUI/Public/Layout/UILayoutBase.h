@@ -63,7 +63,6 @@ protected:
 	virtual void OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	virtual void OnUIAttachmentChanged()override;
 	virtual void OnUIActiveInHierachy(bool activeOrInactive)override;
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged);
 
 	uint8 bNeedRebuildLayout : 1;
 
