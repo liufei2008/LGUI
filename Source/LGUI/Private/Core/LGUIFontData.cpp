@@ -439,9 +439,10 @@ void ULGUIFontData::ClearCharDataCache()
 UTexture2D* ULGUIFontData::CreateFontTexture(int InTextureSize)
 {
 	auto ResultTexture = NewObject<UTexture2D>(
-		this,
-		FName(*FString::Printf(TEXT("LGUIFontData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++))
-		);
+		GetTransientPackage(),
+		FName(*FString::Printf(TEXT("LGUIFontData_Texture_%d"), LGUIUtils::LGUITextureNameSuffix++)),
+		EObjectFlags::RF_Transient
+	);
 	auto PlatformData = new FTexturePlatformData();
 	PlatformData->SizeX = InTextureSize;
 	PlatformData->SizeY = InTextureSize;
