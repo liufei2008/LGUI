@@ -81,7 +81,7 @@ void UUILayoutBase::MarkNeedRebuildLayout()
 void UUILayoutBase::OnUIDimensionsChanged(bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
 {
     Super::OnUIDimensionsChanged(horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
-    if (horizontalPositionChanged || verticalPositionChanged)
+    if (horizontalPositionChanged || verticalPositionChanged || widthChanged || heightChanged)
     {
         MarkNeedRebuildLayout();
     }
@@ -95,14 +95,6 @@ void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
 {
     Super::OnUIActiveInHierachy(activeOrInactive);
     MarkNeedRebuildLayout();
-}
-void UUILayoutBase::OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)
-{
-    Super::OnUIChildDimensionsChanged(child, horizontalPositionChanged, verticalPositionChanged, widthChanged, heightChanged);
-    if (horizontalPositionChanged || verticalPositionChanged || widthChanged || heightChanged)
-    {
-        MarkNeedRebuildLayout();
-    }
 }
 
 void UUILayoutBase::ApplyUIItemWidth(UUIItem* InUIItem, const float& InWidth)

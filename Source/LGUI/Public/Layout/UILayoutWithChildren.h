@@ -37,6 +37,7 @@ protected:
 	virtual void SortChildrenList()const;
 	virtual void GetLayoutElement(UUIItem* InChild, UObject*& OutLayoutElement, bool& OutIgnoreLayout)const;
 
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool horizontalPositionChanged, bool verticalPositionChanged, bool widthChanged, bool heightChanged)override;
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;

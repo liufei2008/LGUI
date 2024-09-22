@@ -999,6 +999,7 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		}
 		static TArray<int> CanFitinDrawcallIndexArray;
 		CanFitinDrawcallIndexArray.Reset();
+		//get all drawcall that can fit in this UI item, then use the first one (because we iterate from tail to head)
 		for (int i = LastDrawcallIndex; i >= FitInDrawcallMinIndex; i--)//from tail to head
 		{
 			const auto DrawcallItem = InUIDrawcallList[i];
@@ -1518,6 +1519,7 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 
 			//rect size minimal at 100, so UIQuadTree can work properly (prevent too small rect)
+			//@todo: use a better size, maybe screen size (only for screen space UI)
 			const auto Width = FMath::Max(UIItem->GetWidth(), 100.0f);
 			const auto Height = FMath::Max(UIItem->GetHeight(), 100.0f);
 			FVector2D LeftBottomPoint;

@@ -1231,13 +1231,11 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 
 void UUIItem::CheckRootUIItem(UUIItem* RootUIItemInParent)
 {
-#if WITH_EDITOR
 	auto oldRootUIItem = RootUIItem;
 	if (oldRootUIItem == this && oldRootUIItem != nullptr)
 	{
 		ULGUIManagerWorldSubsystem::RemoveRootUIItem(this);
 	}
-#endif
 
 	if (RootUIItemInParent == nullptr)
 	{
@@ -1252,12 +1250,10 @@ void UUIItem::CheckRootUIItem(UUIItem* RootUIItemInParent)
 	}
 	RootUIItem = RootUIItemInParent;
 
-#if WITH_EDITOR
 	if (RootUIItem == this && RootUIItem != nullptr)
 	{
 		ULGUIManagerWorldSubsystem::AddRootUIItem(this);
 	}
-#endif
 }
 
 FDelegateHandle UUIItem::RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback)
