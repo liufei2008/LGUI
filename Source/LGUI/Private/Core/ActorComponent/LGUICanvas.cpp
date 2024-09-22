@@ -696,6 +696,7 @@ void ULGUICanvas::EnsureDataForRebuild()
 			Target->CheckRootCanvas(true);
 			Target->MarkCanvasUpdate(true, true, true, true);
 			Target->CheckRenderMode(false);
+			Target->bShouldClearCachedDrawcall = true;
 			for (int i = Target->ChildrenCanvasArray.Num() - 1; i >= 0; i--)
 			{
 				auto ChildCanvas = Target->ChildrenCanvasArray[i];
@@ -985,20 +986,20 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		{
 			return false;
 		}
-		//first step, check last drawcall, because 3d UI can only batch into last drawcall
+
+		if (!InIs2DUI)
 		{
+			//3d UI can only batch into last drawcall
 			const auto LastDrawcall = InUIDrawcallList[LastDrawcallIndex];
 			if (LastDrawcall->CanConsumeUIBatchMeshRenderable(InUIItem->GetGeometry(), InUIItemVerticesCount))
 			{
 				OutDrawcallIndexToFitin = LastDrawcallIndex;
 				return true;
 			}
-		}
-		//3d UI is already processed in prev step, so any 3d UI is not able to batch
-		if (!InIs2DUI)
-		{
 			return false;
 		}
+		static TArray<int> CanFitinDrawcallIndexArray;
+		CanFitinDrawcallIndexArray.Reset();
 		for (int i = LastDrawcallIndex; i >= FitInDrawcallMinIndex; i--)//from tail to head
 		{
 			const auto DrawcallItem = InUIDrawcallList[i];
@@ -1011,12 +1012,21 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 			{
 				if (OverlapWithOtherDrawcall(InUIItemToCanvasTf, DrawcallItem))//overlap with other drawcall, can't batch
 				{
+					if (CanFitinDrawcallIndexArray.Num() > 0)
+					{
+						OutDrawcallIndexToFitin = CanFitinDrawcallIndexArray[CanFitinDrawcallIndexArray.Num() - 1];
+						return true;
+					}
 					return false;
 				}
 				continue;//not overlap with other drawcall, keep searching
 			}
-			OutDrawcallIndexToFitin = i;
-			return true;//can fit in drawcall
+			CanFitinDrawcallIndexArray.Add(i);
+		}
+		if (CanFitinDrawcallIndexArray.Num() > 0)
+		{
+			OutDrawcallIndexToFitin = CanFitinDrawcallIndexArray[CanFitinDrawcallIndexArray.Num() - 1];
+			return true;
 		}
 		return false;
 	};
@@ -1466,9 +1476,47 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 		if (bShouldRebuildDrawcall)
 		{
 			CheckUIMesh();
-			//store prev created drawcall to cache list, so when we create drawcall, we can search in the cache list and use existing one
-			CacheUIDrawcallList.Append(UIDrawcallList);
-			UIDrawcallList.Reset();
+			auto ClearDrawcallData = [this](TArray<TSharedPtr<UUIDrawcall>>& DrawcallArray) {
+				for (int i = 0; i < DrawcallArray.Num(); i++)
+				{
+					auto DrawcallInCache = DrawcallArray[i];
+					//check(DrawcallInCache->RenderObjectList.Num() == 0);//why comment this?: need to wait until UUIBaseRenderable::OnRenderCanvasChanged.todo finish
+					if (DrawcallInCache->DrawcallRenderSection.IsValid())
+					{
+						DrawcallInCache->DrawcallMesh->DeleteRenderSection(DrawcallInCache->DrawcallRenderSection.Pin());
+						DrawcallInCache->DrawcallRenderSection = nullptr;
+					}
+					if (DrawcallInCache->RenderMaterial.IsValid())
+					{
+						if (DrawcallInCache->bMaterialContainsLGUIParameter)
+						{
+							this->AddUIMaterialToPool((UMaterialInstanceDynamic*)DrawcallInCache->RenderMaterial.Get());
+						}
+						DrawcallInCache->RenderMaterial = nullptr;
+						DrawcallInCache->bMaterialContainsLGUIParameter = false;
+					}
+					if (DrawcallInCache->DirectMeshRenderableObject.IsValid())
+					{
+						DrawcallInCache->DirectMeshRenderableObject->ClearMeshData();
+					}
+					if (DrawcallInCache->ChildCanvas.IsValid())
+					{
+						DrawcallInCache->ChildCanvas->DrawcallAsChildCanvas = nullptr;
+					}
+				}
+				DrawcallArray.Reset();
+			};
+			if (bShouldClearCachedDrawcall)
+			{
+				bShouldClearCachedDrawcall = false;
+				ClearDrawcallData(UIDrawcallList);
+			}
+			else
+			{
+				//store prev created drawcall to cache list, so when we create drawcall, we can search in the cache list and use existing one
+				CacheUIDrawcallList.Append(UIDrawcallList);
+				UIDrawcallList.Reset();
+			}
 
 			//rect size minimal at 100, so UIQuadTree can work properly (prevent too small rect)
 			const auto Width = FMath::Max(UIItem->GetWidth(), 100.0f);
@@ -1486,34 +1534,7 @@ bool ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			bNeedToSortRenderPriority = bOutNeedToSortRenderPriority;
 
 			//for not used drawcalls, clear data
-			for (int i = 0; i < CacheUIDrawcallList.Num(); i++)
-			{
-				auto DrawcallInCache = CacheUIDrawcallList[i];
-				//check(DrawcallInCache->RenderObjectList.Num() == 0);//why comment this?: need to wait until UUIBaseRenderable::OnRenderCanvasChanged.todo finish
-				if (DrawcallInCache->DrawcallRenderSection.IsValid())
-				{
-					DrawcallInCache->DrawcallMesh->DeleteRenderSection(DrawcallInCache->DrawcallRenderSection.Pin());
-					DrawcallInCache->DrawcallRenderSection = nullptr;
-				}
-				if (DrawcallInCache->RenderMaterial.IsValid())
-				{
-					if (DrawcallInCache->bMaterialContainsLGUIParameter)
-					{
-						this->AddUIMaterialToPool((UMaterialInstanceDynamic*)DrawcallInCache->RenderMaterial.Get());
-					}
-					DrawcallInCache->RenderMaterial = nullptr;
-					DrawcallInCache->bMaterialContainsLGUIParameter = false;
-				}
-				if (DrawcallInCache->DirectMeshRenderableObject.IsValid())
-				{
-					DrawcallInCache->DirectMeshRenderableObject->ClearMeshData();
-				}
-				if (DrawcallInCache->ChildCanvas.IsValid())
-				{
-					DrawcallInCache->ChildCanvas->DrawcallAsChildCanvas = nullptr;
-				}
-			}
-			CacheUIDrawcallList.Reset();
+			ClearDrawcallData(CacheUIDrawcallList);
 		}
 
 		//update drawcall mesh
