@@ -1473,9 +1473,14 @@ void ULGUIManagerWorldSubsystem::RebuildLayout(UUIItem* InItem)
 	{
 		RebuildLayout(Child);
 	}
-	if (auto LayoutComp = InItem->GetOwner()->FindComponentByInterface(ULGUILayoutInterface::StaticClass()))
+
+	auto& Components = InItem->GetOwner()->GetComponents();
+	for (auto Component : Components)
 	{
-		ILGUILayoutInterface::Execute_OnUpdateLayout(LayoutComp);
+		if (Component && Component->GetClass()->ImplementsInterface(ULGUILayoutInterface::StaticClass()))
+		{
+			ILGUILayoutInterface::Execute_OnUpdateLayout(Component);
+		}
 	}
 }
 
