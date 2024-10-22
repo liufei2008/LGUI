@@ -70,6 +70,41 @@ public:
 		FLGUIDelegateHandleWrapper RegisterOnCycleComplete(const FLGUIPlayTweenCycleCompleteDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void UnregisterOnCycleComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		ELTweenLoop GetLoopType()const { return loopType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		int GetLoopCount()const { return loopCount; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		ELTweenEase GetEaseType()const { return easeType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UCurveFloat* GetEaseCurve()const { return easeCurve; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetDuration()const { return duration; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetStartDelay()const { return startDelay; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetAffectByGamePause()const { return affectByGamePause; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetAffectByTimeDilation()const { return affectByTimeDilation; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetLoopType(ELTweenLoop Value){ loopType = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetLoopCount(int Value) { loopCount = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEaseType(ELTweenEase Value) { easeType = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEaseCurve(UCurveFloat* Value) { easeCurve = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetDuration(float Value) { duration = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetStartDelay(float Value) { startDelay = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAffectByGamePause(bool Value) { affectByGamePause = Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAffectByTimeDilation(bool Value) { affectByTimeDilation = Value; }
 protected:
 	virtual void OnUpdate(float progress)PURE_VIRTUAL(ULGUIPlayTween::OnUpdate, );
 };
