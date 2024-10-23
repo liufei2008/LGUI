@@ -23,41 +23,48 @@ AUIBaseActor::AUIBaseActor()
 AActor* AUIBaseActor::FirstTemporarilyHiddenActor = nullptr;
 void AUIBaseActor::SetIsTemporarilyHiddenInEditor(bool bIsHidden)
 {
-	if (FirstTemporarilyHiddenActor == nullptr)
+	if (ULGUIPrefabWorldSubsystem::IsLGUIPrefabSystemProcessingActor(this))//when deserialize from prefab, no need to set it because everything is done when serialize it
 	{
-		//only set UI item's property to first (root) UI Actor
-		FirstTemporarilyHiddenActor = this;
-		if (IsTemporarilyHiddenInEditor() != bIsHidden)
+
+	}
+	else
+	{
+		if (FirstTemporarilyHiddenActor == nullptr)
 		{
-			bool bShouldNotify = false;
-			if (bIsHidden)
+			//when click on editor outliner's eye button, only need to set first UI Actor (the editing one)
+			FirstTemporarilyHiddenActor = this;
+			if (IsTemporarilyHiddenInEditor() != bIsHidden)
 			{
-				if (GetUIItem()->GetIsUIActiveSelf() != false)
+				bool bShouldNotify = false;
+				if (bIsHidden)
 				{
-					bShouldNotify = true;
+					if (GetUIItem()->GetIsUIActiveSelf() != false)
+					{
+						bShouldNotify = true;
+					}
+					GetUIItem()->SetIsUIActive(false);
 				}
-				GetUIItem()->SetIsUIActive(false);
-			}
-			else
-			{
-				if (GetUIItem()->GetIsUIActiveSelf() != true)
+				else
 				{
-					bShouldNotify = true;
+					if (GetUIItem()->GetIsUIActiveSelf() != true)
+					{
+						bShouldNotify = true;
+					}
+					GetUIItem()->SetIsUIActive(true);
 				}
-				GetUIItem()->SetIsUIActive(true);
+				if (bShouldNotify)
+				{
+					LGUIUtils::NotifyPropertyChanged(GetUIItem(), FName(TEXT("bIsUIActive")));
+				}
 			}
-			if (bShouldNotify)
-			{
-				LGUIUtils::NotifyPropertyChanged(GetUIItem(), FName(TEXT("bIsUIActive")));
-			}
+			ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
+				FirstTemporarilyHiddenActor = nullptr;
+				if (WeakThis.IsValid())
+				{
+					WeakThis->GetUIItem()->SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState();//restore Temporary hidden state by UI item's IsUIActive state.
+				}
+				});
 		}
-		ULGUIPrefabManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)] {
-			FirstTemporarilyHiddenActor = nullptr;
-			if (WeakThis.IsValid())
-			{
-				WeakThis->GetUIItem()->SetIsTemporarilyHiddenInEditor_Recursive_By_IsUIActiveState();//restore Temporary hidden state by UI item's IsUIActive state.
-			}
-			});
 	}
 
 	Super::SetIsTemporarilyHiddenInEditor(bIsHidden);
