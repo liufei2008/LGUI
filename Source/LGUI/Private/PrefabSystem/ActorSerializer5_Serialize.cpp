@@ -98,9 +98,7 @@ namespace LGUIPrefabSystem5
 				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
 			}
 			TArray<UObject*> DefaultSubObjects;
-			ForEachObjectWithOuter(Actor, [&DefaultSubObjects](UObject* SubObj) {
-				DefaultSubObjects.Add(SubObj);
-				});
+			Actor->GetDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
 				if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
@@ -297,9 +295,7 @@ namespace LGUIPrefabSystem5
 					WriterOrReaderFunction(Object, ComponentSaveDataItem.PropertyData, false);
 				}
 				TArray<UObject*> DefaultSubObjects;
-				ForEachObjectWithOuter(Object, [&DefaultSubObjects](UObject* SubObj) {
-					DefaultSubObjects.Add(SubObj);
-					});
+				Object->GetDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
@@ -322,9 +318,7 @@ namespace LGUIPrefabSystem5
 				ObjectSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
 				WriterOrReaderFunction(Object, ObjectSaveDataItem.PropertyData, false);
 				TArray<UObject*> DefaultSubObjects;
-				ForEachObjectWithOuter(Object, [&DefaultSubObjects](UObject* SubObj) {
-					DefaultSubObjects.Add(SubObj);
-					});
+				Object->GetDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;

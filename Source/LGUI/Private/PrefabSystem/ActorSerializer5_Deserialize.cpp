@@ -412,9 +412,7 @@ namespace LGUIPrefabSystem5
 			if (CreatedNewComponent)
 			{
 				TArray<UObject*> DefaultSubObjects;
-				ForEachObjectWithOuter(CreatedNewComponent, [&DefaultSubObjects](UObject* SubObj) {
-					DefaultSubObjects.Add(SubObj);
-					});
+				CreatedNewComponent->GetDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
@@ -465,9 +463,7 @@ namespace LGUIPrefabSystem5
 			if (CreatedNewObject)
 			{
 				TArray<UObject*> DefaultSubObjects;
-				ForEachObjectWithOuter(CreatedNewObject, [&DefaultSubObjects](UObject* SubObj) {
-					DefaultSubObjects.Add(SubObj);
-					});
+				CreatedNewObject->GetDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
@@ -793,9 +789,7 @@ namespace LGUIPrefabSystem5
 
 				//Collect default sub objects
 				TArray<UObject*> DefaultSubObjects;
-				ForEachObjectWithOuter(NewActor, [&DefaultSubObjects](UObject* SubObj) {
-					DefaultSubObjects.Add(SubObj);
-					});
+				NewActor->GetDefaultSubobjects(DefaultSubObjects);
 				for (auto DefaultSubObject : DefaultSubObjects)
 				{
 					if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;

@@ -498,9 +498,7 @@ namespace LGUIPrefabSystem7
 		auto CollectDefaultSubobjects = [&](UObject* Target, const FGuid& TargetGuid, FLGUICommonObjectSaveData& ObjectData) {
 			//collect default sub object
 			TArray<UObject*> DefaultSubObjects;
-			ForEachObjectWithOuter(Target, [&DefaultSubObjects](UObject* SubObj) {
-				DefaultSubObjects.Add(SubObj);
-				});
+			Target->GetDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
 				if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
@@ -765,9 +763,7 @@ namespace LGUIPrefabSystem7
 					auto CollectDefaultSubobjects = [&](AActor* TargetActor) {
 						//Collect default sub objects
 						TArray<UObject*> DefaultSubObjects;
-						ForEachObjectWithOuter(TargetActor, [&DefaultSubObjects](UObject* SubObj) {
-							DefaultSubObjects.Add(SubObj);
-							});
+						TargetActor->GetDefaultSubobjects(DefaultSubObjects);
 						for (auto DefaultSubObject : DefaultSubObjects)
 						{
 							if (DefaultSubObject->HasAnyFlags(EObjectFlags::RF_Transient))continue;
