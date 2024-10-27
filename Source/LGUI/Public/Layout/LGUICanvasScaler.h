@@ -114,6 +114,12 @@ protected:
 		float MatchFromWidthToHeight = 1;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUICanvasScreenMatchMode ScreenMatchMode = ELGUICanvasScreenMatchMode::MatchWidthOrHeight;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bFixedSizeInEditMode = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "bFixedSizeInEditMode"))
+		FIntPoint SizeInEditMode = FIntPoint(1920, 1080);
+#endif
 
 	/**
 	 * Use this to do custom scale. Only valid if UIScaleMode = Custom.
