@@ -100,7 +100,6 @@ bool UUIRenderTarget::PerformLineTrace_Implementation(const int32& InHitFaceInde
 {
 	if (IsValid(CustomMesh))
 	{
-		FVector2D HitUV;
 		bool Result = CustomMesh->GetHitUV(this, InHitFaceIndex, InHitPoint, InLineStart, InLineEnd, OutHitUV);
 		OutHitUV.Y = 1.0f - OutHitUV.Y;
 		return Result;

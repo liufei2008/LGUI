@@ -1310,7 +1310,6 @@ bool LGUIEditorTools::CanDeleteActor()
 }
 bool LGUIEditorTools::CanToggleActorSpatiallyLoaded()
 {
-	return GEditor->GetSelectedActorCount() > 0;
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	if (selectedActors.Num() <= 0)return false;
 	auto ActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);

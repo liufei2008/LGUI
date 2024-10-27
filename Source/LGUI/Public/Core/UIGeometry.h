@@ -115,11 +115,11 @@ public:
 		if (NewNum > InArray.Max())
 		{
 			InArray.AddUninitialized(InArray.Max() - InArray.Num());//Set Num to Max and can keep existing memory.
-			InArray.SetNumZeroed(NewNum, bAllowShrinking);//New memory will be Zeroed.
+			InArray.SetNumZeroed(NewNum, bAllowShrinking ? EAllowShrinking::Yes : EAllowShrinking::No);//New memory will be Zeroed.
 		}
 		else
 		{
-			InArray.SetNumUninitialized(NewNum, bAllowShrinking);
+			InArray.SetNumUninitialized(NewNum, bAllowShrinking ? EAllowShrinking::Yes : EAllowShrinking::No);
 		}
 		//SetNum could change array max, so memzero the additional memory
 		if (InArray.Max() > PrevMax)

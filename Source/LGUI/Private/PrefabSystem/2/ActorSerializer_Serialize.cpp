@@ -288,8 +288,8 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 			if (isSimpleData)
 			{
 				auto data = Property->ContainerPtrToValuePtr<uint8>((void*)Dest, cppArrayIndex);
-				ItemPropertyData.Data.Reserve(Property->ElementSize);
-				for (int i = 0; i < Property->ElementSize; i++)
+				ItemPropertyData.Data.Reserve(Property->GetElementSize());
+				for (int i = 0; i < Property->GetElementSize(); i++)
 				{
 					ItemPropertyData.Data.Add(data[i]);
 				}
@@ -393,8 +393,8 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint8;
 				}
 				auto data = Property->ContainerPtrToValuePtr<uint8>((void*)Dest, cppArrayIndex);
-				ItemPropertyData.Data.Reserve(Property->ElementSize);
-				for (int i = 0; i < Property->ElementSize; i++)
+				ItemPropertyData.Data.Reserve(Property->GetElementSize());
+				for (int i = 0; i < Property->GetElementSize(); i++)
 				{
 					ItemPropertyData.Data.Add(data[i]);
 				}

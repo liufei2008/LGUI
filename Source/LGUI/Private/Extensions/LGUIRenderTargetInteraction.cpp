@@ -38,7 +38,7 @@ void ULGUIRenderTargetInteraction::TickComponent(float DeltaTime, ELevelTick Tic
 
 	if (!IsValid(LineTraceSource))
 	{
-		LineTraceSource = GetOwner()->FindComponentByInterface<ULGUIRenderTargetInteractionSourceInterface>();
+		LineTraceSource = GetOwner()->FindComponentByInterface(ULGUIRenderTargetInteractionSourceInterface::StaticClass());
 		if (!IsValid(LineTraceSource))
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d InteractionSource is not valid! LGUIRenderTargetInteraction need a valid component which inherit %s on the same actor!")

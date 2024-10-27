@@ -182,7 +182,7 @@ UObject* ULGUIPrefabSequence::CreateDirectorInstance(TSharedRef<const FSharedPla
 
 #if WITH_EDITOR
 
-ETrackSupport ULGUIPrefabSequence::IsTrackSupported(TSubclassOf<class UMovieSceneTrack> InTrackClass) const
+ETrackSupport ULGUIPrefabSequence::IsTrackSupportedImpl(TSubclassOf<class UMovieSceneTrack> InTrackClass) const
 {
 	if (InTrackClass == UMovieSceneAudioTrack::StaticClass() ||
 		InTrackClass == UMovieSceneEventTrack::StaticClass() ||

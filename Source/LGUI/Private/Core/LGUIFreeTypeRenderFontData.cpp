@@ -380,7 +380,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 			if (freeRects.Num() > 0)
 			{
 				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
-				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, EAllowShrinking::No);
 			}
 			else
 			{
@@ -389,7 +389,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 				//expend by multiply 2
 				calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects, rectPackCellSize);
 				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
-				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, EAllowShrinking::No);
 
 				RenewFontTexture(textureSize, newTextureSize);
 				textureSize = newTextureSize;

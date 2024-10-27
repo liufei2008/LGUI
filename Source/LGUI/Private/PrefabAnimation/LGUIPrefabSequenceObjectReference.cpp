@@ -260,8 +260,8 @@ void FLGUIPrefabSequenceObjectReferenceMap::RemoveBinding(const FGuid& ObjectId)
 	int32 Index = BindingIds.IndexOfByKey(ObjectId);
 	if (Index != INDEX_NONE)
 	{
-		BindingIds.RemoveAtSwap(Index, 1, false);
-		References.RemoveAtSwap(Index, 1, false);
+		BindingIds.RemoveAtSwap(Index, 1, EAllowShrinking::No);
+		References.RemoveAtSwap(Index, 1, EAllowShrinking::No);
 	}
 }
 

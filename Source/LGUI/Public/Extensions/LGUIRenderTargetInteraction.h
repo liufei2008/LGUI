@@ -61,7 +61,7 @@ protected:
 		bool bAllowEventBubbleUp = false;
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TWeakObjectPtr<ULGUICanvas> TargetCanvas = nullptr;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<UObject> LineTraceSource = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<UActorComponent> LineTraceSource = nullptr;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<ULGUIPointerEventData> PointerEventData = nullptr;
 	TWeakObjectPtr<ULGUIPointerEventData> InputPointerEventData = nullptr;
 
