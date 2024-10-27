@@ -551,9 +551,9 @@ void FComponentTransformDetails::OnScaleResetClicked()
 
 void FComponentTransformDetails::CacheTransform()
 {
-	FVector CurLoc;
-	FRotator CurRot;
-	FVector CurScale;
+	FVector CurLoc = FVector(EForceInit::ForceInitToZero);
+	FRotator CurRot = FRotator(EForceInit::ForceInitToZero);
+	FVector CurScale = FVector(EForceInit::ForceInitToZero);
 
 	for( int32 ObjectIndex = 0; ObjectIndex < SelectedObjects.Num(); ++ObjectIndex )
 	{

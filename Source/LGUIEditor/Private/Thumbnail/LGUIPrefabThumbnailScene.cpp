@@ -98,7 +98,7 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 	if (!IsValid(RootComp))return;
 	if (RootComp->IsA<UUIItemEditorHelperComp>())return;
 	if (RootComp->IsVisualizationComponent())return;
-	FBoxSphereBounds Bounds;
+	FBoxSphereBounds Bounds = FBoxSphereBounds(EForceInit::ForceInitToZero);
 	bool bIsValidBounds = false;
 	if (RootComp->IsRegistered())
 	{

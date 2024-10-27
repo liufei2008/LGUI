@@ -345,13 +345,13 @@ public:
 
 	virtual bool HasRayTracingRepresentation() const override { return true; }
 
-	virtual void GetDynamicRayTracingInstances(FRayTracingMaterialGatheringContext& Context, TArray<FRayTracingInstance>& OutRayTracingInstances) override final
+	virtual void GetDynamicRayTracingInstances(FRayTracingInstanceCollector& Collector) override final
 	{
 		if (Section != nullptr)
 		{
 			FMaterialRenderProxy* MaterialProxy = MaterialInstance->GetRenderProxy();
 
-			if (Section->RayTracingGeometry.RayTracingGeometryRHI.IsValid())
+			if (Section->RayTracingGeometry.IsValid())
 			{
 				check(Section->RayTracingGeometry.Initializer.IndexBuffer.IsValid());
 
@@ -369,7 +369,7 @@ public:
 				MeshBatch.Type = PT_TriangleList;
 				MeshBatch.DepthPriorityGroup = SDPG_World;
 				MeshBatch.bCanApplyViewModeOverrides = false;
-				MeshBatch.CastRayTracedShadow = IsShadowCast(Context.ReferenceView);
+				MeshBatch.CastRayTracedShadow = IsShadowCast(Collector.GetReferenceView());
 
 				FMeshBatchElement& BatchElement = MeshBatch.Elements[0];
 				BatchElement.IndexBuffer = &Section->IndexBuffer;
@@ -381,8 +381,8 @@ public:
 				GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
 				bOutputVelocity |= AlwaysHasVelocity();
 
-				FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Context.RayTracingMeshResourceCollector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-				DynamicPrimitiveUniformBuffer.Set(Context.RHICmdList, GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity, GetCustomPrimitiveData());
+				FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+				DynamicPrimitiveUniformBuffer.Set(Collector.GetRHICommandList(), GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, bOutputVelocity, GetCustomPrimitiveData());
 				BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
 
 				BatchElement.FirstIndex = 0;
@@ -391,7 +391,7 @@ public:
 				BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
 
 				RayTracingInstance.Materials.Add(MeshBatch);
-				OutRayTracingInstances.Add(RayTracingInstance);
+				Collector.AddRayTracingInstance(MoveTemp(RayTracingInstance));
 			}
 		}
 	}

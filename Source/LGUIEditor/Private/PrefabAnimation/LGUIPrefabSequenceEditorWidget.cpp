@@ -300,7 +300,8 @@ public:
 		TSet<AUIBaseActor*> SequencerSelectedWidgets;
 		for (FGuid Guid : ObjectGuids)
 		{
-			TArray<UObject*, TInlineAllocator<1>> BoundObjects = AnimationSequence->LocateBoundObjects(Guid, BindingContext);
+			TArray<UObject*, TInlineAllocator<1>> BoundObjects;
+			AnimationSequence->LocateBoundObjects(Guid, BindingContext, MovieSceneHelpers::CreateTransientSharedPlaybackState(BindingContext->GetWorld(), Cast<UMovieSceneSequence>(BindingContext)), BoundObjects);
 			if (BoundObjects.Num() == 0)
 			{
 				continue;
