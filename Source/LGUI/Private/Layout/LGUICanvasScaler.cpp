@@ -140,6 +140,21 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 	{
 		if (Canvas->IsRootCanvas())
 		{
+#if WITH_EDITOR
+			if (auto World = GetWorld())
+			{
+				if (bFixedSizeInEditMode && !World->IsGameWorld())//Edit mode
+				{
+					if (auto canvasUIItem = Canvas->GetUIItem())
+					{
+						canvasUIItem->SetWidth(SizeInEditMode.X);
+						canvasUIItem->SetHeight(SizeInEditMode.Y);
+						ViewportSize.X = SizeInEditMode.X;
+						ViewportSize.Y = SizeInEditMode.Y;
+					}
+				}
+			}
+#endif
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
 				|| Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
 				)
