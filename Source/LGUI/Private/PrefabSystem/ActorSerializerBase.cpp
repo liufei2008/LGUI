@@ -28,6 +28,7 @@ namespace LGUIPrefabSystem
 	}
 
 
+	//only allow object that belongs to some actor of this prefab
 	bool ActorSerializerBase::ObjectBelongsToThisPrefab(UObject* InObject)
 	{
 		if (WillSerializeActorArray.Contains(InObject))
@@ -59,74 +60,79 @@ namespace LGUIPrefabSystem
 
 	bool ActorSerializerBase::CollectObjectToSerailize(UObject* Object, FGuid& OutGuid)
 	{
+		if (!IsValid(Object))return false;
+		if (!Object->IsValidLowLevel())return false;
+		if (Object->IsUnreachable())return false;
 #if WITH_EDITOR
 		if (Object->GetClass()->IsChildOf(UEdMode::StaticClass()))return false;
 		if (ObjectIsTrash(Object))return false;
 		if (Object->GetClass()->IsChildOf(UActorComponent::StaticClass()) && ((UActorComponent*)Object)->IsVisualizationComponent())return false;//skip visualization component
 #endif
 		if (Object->IsEditorOnly() && !bIsEditorOrRuntime)return false;
-		if (!Object->IsAsset()//skip asset, because asset is referenced directly
-			&& Object->GetWorld() == TargetWorld
-			&& IsValid(Object)
-			&& !Object->HasAnyFlags(EObjectFlags::RF_Transient)
-			&& !WillSerializeActorArray.Contains(Object)
-			&& !Object->GetClass()->IsChildOf(AActor::StaticClass())//skip actor
-			&& ObjectBelongsToThisPrefab(Object)
-			)
+		if (Object->IsAsset())return false;//skip asset, because asset is referenced directly
+		if (Object->GetWorld() != TargetWorld)return false;
+		if (Object->HasAnyFlags(EObjectFlags::RF_Transient))return false;//skip transient object
+		if (Object->GetClass()->IsChildOf(AActor::StaticClass()))return false;//skip actor, because actor is collected in WillSerializeActorArray
+		if (WillSerializeActorArray.Contains(Object))return false;//already contains it (double check)
+		if (!ObjectBelongsToThisPrefab(Object))return false;
+		/** 
+		 * I have no idea why use these two flags, just tested for UModel and get that these two flags can filter out most classes like:
+		 * XXXProperty, XXXDelegatepropertyWrapper, XXXWrapperObject, BlueprintMacros, BlueprintFunctionLibrary, XXX__PythonCallable
+		 * we don't need to serialize these classes of objects, like UModel will crash LGUI's serialization process
+		 */
+		if (!Object->GetClass()->HasAnyClassFlags(EClassFlags::CLASS_Constructed | EClassFlags::CLASS_HasInstancedReference))return false;
+
+		if (WillSerializeObjectArray.Contains(Object))
 		{
-			if (WillSerializeObjectArray.Contains(Object))
-			{
-				auto GuidPtr = MapObjectToGuid.Find(Object);
-				check(GuidPtr != nullptr);
-				OutGuid = *GuidPtr;
-				return true;//already contains object
-			}
-
-			auto Outer = Object->GetOuter();
-			check(Outer != nullptr);
-
-			if (WillSerializeActorArray.Contains(Outer))//outer is actor
-			{
-				WillSerializeObjectArray.Add(Object);
-				if (auto GuidPtr = MapObjectToGuid.Find(Object))
-				{
-					OutGuid = *GuidPtr;
-				}
-				else
-				{
-					OutGuid = FGuid::NewGuid();
-					MapObjectToGuid.Add(Object, OutGuid);
-				}
-				return true;
-			}
-			else//could have nested object outer
-			{
-				if (auto GuidPtr = MapObjectToGuid.Find(Object))
-				{
-					OutGuid = *GuidPtr;
-				}
-				else
-				{
-					OutGuid = FGuid::NewGuid();
-					MapObjectToGuid.Add(Object, OutGuid);
-				}
-				auto Index = WillSerializeObjectArray.Add(Object);
-				while (Outer != nullptr
-					&& !WillSerializeActorArray.Contains(Outer)//Make sure Outer is not actor, because actor is created before any other objects, they will be stored in actor's data
-					&& !WillSerializeObjectArray.Contains(Outer)//Make sure Outer is not inside array
-					)
-				{
-					WillSerializeObjectArray.Insert(Outer, Index);//insert before object
-					if (!MapObjectToGuid.Contains(Outer))
-					{
-						MapObjectToGuid.Add(Outer, FGuid::NewGuid());
-					}
-					Outer = Outer->GetOuter();
-				}
-				return true;
-			}
+			auto GuidPtr = MapObjectToGuid.Find(Object);
+			check(GuidPtr != nullptr);
+			OutGuid = *GuidPtr;
+			return true;//already contains object
 		}
-		return false;
+
+		auto Outer = Object->GetOuter();
+		check(Outer != nullptr);
+
+		if (WillSerializeActorArray.Contains(Outer))//outer is actor
+		{
+			WillSerializeObjectArray.Add(Object);
+			if (auto GuidPtr = MapObjectToGuid.Find(Object))
+			{
+				OutGuid = *GuidPtr;
+			}
+			else
+			{
+				OutGuid = FGuid::NewGuid();
+				MapObjectToGuid.Add(Object, OutGuid);
+			}
+			return true;
+		}
+		else//could have nested object outer
+		{
+			if (auto GuidPtr = MapObjectToGuid.Find(Object))
+			{
+				OutGuid = *GuidPtr;
+			}
+			else
+			{
+				OutGuid = FGuid::NewGuid();
+				MapObjectToGuid.Add(Object, OutGuid);
+			}
+			auto Index = WillSerializeObjectArray.Add(Object);
+			while (Outer != nullptr
+				&& !WillSerializeActorArray.Contains(Outer)//Make sure Outer is not actor, because actor is created before any other objects, they will be stored in actor's data
+				&& !WillSerializeObjectArray.Contains(Outer)//Make sure Outer is not inside array
+				)
+			{
+				WillSerializeObjectArray.Insert(Outer, Index);//insert before object
+				if (!MapObjectToGuid.Contains(Outer))
+				{
+					MapObjectToGuid.Add(Outer, FGuid::NewGuid());
+				}
+				Outer = Outer->GetOuter();
+			}
+			return true;
+		}
 	}
 
 	TMap<UObject*, TArray<uint8>> ActorSerializerBase::SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData)
