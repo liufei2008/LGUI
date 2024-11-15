@@ -242,12 +242,12 @@ namespace LGUIPrefabSystem
 
 	void ActorSerializerBase::SetupArchive(FArchive& InArchive)
 	{
-		if (!bIsEditorOrRuntime && CanUseUnversionedPropertySerialization())
+		if (!bIsEditorOrRuntime)
 		{
 			InArchive.SetUseUnversionedPropertySerialization(true);
 		}
 		InArchive.SetFilterEditorOnly(!bIsEditorOrRuntime);
-		InArchive.SetWantBinaryPropertySerialization(!bIsEditorOrRuntime);
+		InArchive.SetWantBinaryPropertySerialization(false);
 
 		InArchive.ArNoDelta = true;
 		InArchive.ArNoIntraPropertyDelta = true;
