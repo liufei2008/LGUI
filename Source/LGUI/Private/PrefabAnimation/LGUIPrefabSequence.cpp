@@ -191,7 +191,7 @@ ETrackSupport ULGUIPrefabSequence::IsTrackSupportedImpl(TSubclassOf<class UMovie
 		return ETrackSupport::Supported;
 	}
 
-	return Super::IsTrackSupported(InTrackClass);
+	return Super::IsTrackSupportedImpl(InTrackClass);
 }
 
 bool ULGUIPrefabSequence::IsObjectReferencesGood(AActor* InContextActor)const
