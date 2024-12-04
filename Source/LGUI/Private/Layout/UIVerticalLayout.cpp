@@ -16,8 +16,8 @@ void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizont
     if (child->GetIsUIActiveInHierarchy())
     {
         if (horizontalPositionChanged || verticalPositionChanged
-            || (ExpandChildWidthArea && widthChanged)
-            || (ExpandChildHeightArea && heightChanged)
+            || (widthChanged && (ExpandChildWidthArea || WidthFitToChildren))
+            || (heightChanged && (ExpandChildHeightArea || HeightFitToChildren))
             )
         {
             MarkNeedRebuildLayout();

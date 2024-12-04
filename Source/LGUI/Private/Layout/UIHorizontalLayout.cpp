@@ -16,8 +16,8 @@ void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool horizo
     if (child->GetIsUIActiveInHierarchy())
     {
         if (horizontalPositionChanged || verticalPositionChanged
-            || (ExpandChildWidthArea && widthChanged)
-            || (ExpandChildHeightArea && heightChanged)
+            || (widthChanged && (ExpandChildWidthArea || WidthFitToChildren))
+            || (heightChanged && (ExpandChildHeightArea || HeightFitToChildren))
             )
         {
 			MarkNeedRebuildLayout();
