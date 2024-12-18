@@ -1,7 +1,5 @@
 // Copyright 2019-present LexLiu. All Rights Reserved.
 
-#pragma once
-
 #include "Core/LGUISDFFontData.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/LGUIManager.h"
