@@ -63,6 +63,15 @@ protected:
 		bool useExternalFileOrEmbedInToUAsset = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<class UFontFace> unrealFont;
+
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	bool bCultureFont = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="bCultureFont"))
+	TMap<FString, TSoftObjectPtr<class UFontFace>> CultureFontMap;
+	void UpdateFontOnCultureChanged();
+	FDelegateHandle OnCultureChangedDelegateHandle;
+
+protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int fontFace = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -102,6 +111,11 @@ protected:
 	/** space between glyph in texture */
 	virtual int32 Get_SPACE_BETWEEN_GLYPH()const { return 1; };
 public:
+	//Begin UObject
+	virtual void PostLoad()override;
+	virtual void BeginDestroy()override;
+	//End UObject
+
 	//Begin ULGUIFontData_BaseObject interface
 	virtual void InitFont()override;
 	virtual UMaterialInterface* GetFontMaterial(ELGUICanvasClipType clipType)override { return nullptr; }
