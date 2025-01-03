@@ -17,4 +17,5 @@ public:
 	FLGUIRichTextImageDataRefreshEvent OnDataChange;
 	/** Create or update image object. */
 	virtual void CreateOrUpdateObject(class UUIItem* parent, const TArray<FUIText_RichTextImageTag>& imageTagArray, TArray<TObjectPtr<class UUIItem>>& inOutCreatedImageObjectArray, bool listImageObjectInEditorOutliner) {};
+	virtual bool GetImageSize(const FName& imageTag, FIntVector2& outSize) { return false; }
 };

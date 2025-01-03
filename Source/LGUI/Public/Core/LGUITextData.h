@@ -120,7 +120,7 @@ struct FUIText_RichTextImageTag
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
 	/** image object position */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Position = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) float Size = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Size = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FColor TintColor = FColor::White;
 };
 
