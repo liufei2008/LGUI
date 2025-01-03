@@ -105,24 +105,13 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 			}
 			imageObj->SetColor(imageTagData[i].TintColor);
 			imageObj->SetAnchoredPosition(imageTagData[i].Position);
-			auto referenceWidth = imageTagData[i].Size;
-			float referenceHeight;
-			if (sprite != nullptr)
-			{
-				imageObj->SetSprite(sprite, false);
-				referenceHeight = (float)sprite->GetSpriteInfo().height / (float)sprite->GetSpriteInfo().width * referenceWidth;
-			}
-			else
-			{
-				referenceHeight = referenceWidth;
-			}
-			imageObj->SetSizeDelta(FVector2D(referenceWidth, referenceHeight));
+			imageObj->SetSizeDelta(imageTagData[i].Size);
 		}
 		else
 		{
 			imageObj->SetColor(imageTagData[i].TintColor);
 			imageObj->SetAnchoredPosition(imageTagData[i].Position);
-			imageObj->SetSizeDelta(FVector2D(imageTagData[i].Size, imageTagData[i].Size));
+			imageObj->SetSizeDelta(FVector2D(imageTagData[i].Size));
 		}
 	}
 #if WITH_EDITOR
@@ -131,4 +120,19 @@ void ULGUIRichTextImageData::CreateOrUpdateObject(UUIItem* parent, const TArray<
 		ULGUIPrefabManagerObject::MarkBroadcastLevelActorListChanged();
 	}
 #endif
+}
+bool ULGUIRichTextImageData::GetImageSize(const FName& imageTag, FIntVector2& outSize)
+{
+	auto ImageItemData = imageMap.Find(imageTag);
+	if (!ImageItemData)return false;
+	if (ImageItemData->frames.Num() == 0)
+		return false;
+	ULGUISpriteData_BaseObject* sprite = ImageItemData->frames[0].Get();
+	if (!IsValid(sprite))
+		return false;
+
+	auto spriteWidth = sprite->GetSpriteInfo().width;
+	auto spriteHeight = sprite->GetSpriteInfo().height;
+	outSize = FIntVector2(spriteWidth, spriteHeight);
+	return true;
 }
