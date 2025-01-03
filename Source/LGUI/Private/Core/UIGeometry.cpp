@@ -9,6 +9,7 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUIFontData_BaseObject.h"
+#include "Core/LGUIRichTextImageData_BaseObject.h"
 #include "Core/RichTextParser.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -2413,6 +2414,22 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 	bool shouldScaleFontSizeWithRootCanvas = false;
+
+	auto richTextImageData = uiComp->GetRichTextImageData();
+	auto GetRichTextImageCharData = [&](FLGUICharData_HighPrecision& overrideCharData, float inFontSize, FName imageTag)
+	{
+		//image use font size as width & height & xadvance
+		overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize * oneDivideRootCanvasScale;
+
+		FIntVector2 imageSize;
+		if (IsValid(richTextImageData) && richTextImageData->GetImageSize(imageTag, imageSize))
+		{
+			float ratio = (float)imageSize.X / imageSize.Y;
+			overrideCharData.width = overrideCharData.width * ratio;
+			overrideCharData.xadvance = overrideCharData.xadvance * ratio;
+		}
+	};
+
 	if (renderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
 	{
 		pixelPerfect = false;
@@ -2584,7 +2601,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
 				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
+					GetRichTextImageCharData(overrideCharData, inFontSize, richTextParseResult.imageTag);
 				}
 				else
 				{
@@ -2603,7 +2620,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
 				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
+					GetRichTextImageCharData(overrideCharData, inFontSize, richTextParseResult.imageTag);
 				}
 				else
 				{
@@ -2622,7 +2639,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
 				if (IsRichTextImageSpace(charCode, richTextParseResult))
 				{
-					overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
+					GetRichTextImageCharData(overrideCharData, inFontSize, richTextParseResult.imageTag);
 				}
 				else
 				{
@@ -2640,7 +2657,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		{
 			if (IsRichTextImageSpace(charCode, richTextParseResult))
 			{
-				overrideCharData.width = overrideCharData.height = overrideCharData.xadvance = inFontSize;//image use font size as width & height & xadvance
+				GetRichTextImageCharData(overrideCharData, inFontSize, richTextParseResult.imageTag);
 			}
 			overrideCharData.yoffset += calculatedCharFixedOffset;
 		}
@@ -2837,7 +2854,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			FUIText_RichTextImageTag imageTagData;
 			imageTagData.TagName = richTextParseResult.imageTag;
 			imageTagData.Position = FVector2D(currentLineOffset.X + charGeo.xadvance * 0.5f, currentLineOffset.Y);
-			imageTagData.Size = charGeo.xadvance;
+			imageTagData.Size = FVector2D(charGeo.width, charGeo.height);
 			imageTagData.TintColor = richTextParseResult.hasColor ? richTextParseResult.color : FColor::White;
 			cacheRichTextImageTagArray.Add(imageTagData);
 			currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
@@ -2922,18 +2939,40 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
-				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
+
+				if (charIndex + 2 < contentLength && FChar::IsPunct(content[charIndex + 2]))//newline with punctuation
 				{
-					auto nextChar = content[charIndex + 1];
-					if (nextChar == '\r' || nextChar == '\n')
+					nextCharXAdv += GetCharGeoXAdv(content[charIndex+1], content[charIndex+2], richText ? richTextPropertyArray[charIndex+2] : richTextParseResult);
+					if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 					{
-						//next char is new line, no need to add new line
+						auto nextChar = content[charIndex + 1];
+						if (nextChar == '\r' || nextChar == '\n')
+						{
+							//next char is new line, no need to add new line
+						}
+						else
+						{
+							NewLine(caretCharIndex + 2, false);
+							newLineMode = NewLineMode::Overflow;
+							continue;
+						}
 					}
-					else
+				}
+				else
+				{
+					if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 					{
-						NewLine(caretCharIndex + 1, false);
-						newLineMode = NewLineMode::Overflow;
-						continue;
+						auto nextChar = content[charIndex + 1];
+						if (nextChar == '\r' || nextChar == '\n')
+						{
+							//next char is new line, no need to add new line
+						}
+						else
+						{
+							NewLine(caretCharIndex + 1, false);
+							newLineMode = NewLineMode::Overflow;
+							continue;
+						}
 					}
 				}
 			}
@@ -2942,18 +2981,40 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
-				if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit max line, then add new line
+
+				if (charIndex + 2 < contentLength && FChar::IsPunct(content[charIndex + 2]))//newline with punctuation
 				{
-					auto nextChar = content[charIndex + 1];
-					if (nextChar == '\r' || nextChar == '\n')
+					nextCharXAdv += GetCharGeoXAdv(content[charIndex+1], content[charIndex+2], richText ? richTextPropertyArray[charIndex+2] : richTextParseResult);
+					if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit this line, then add new line
 					{
-						//next char is new line, no need to add new line
+						auto nextChar = content[charIndex + 1];
+						if (nextChar == '\r' || nextChar == '\n')
+						{
+							//next char is new line, no need to add new line
+						}
+						else
+						{
+							NewLine(caretCharIndex + 2, false);
+							newLineMode = NewLineMode::Overflow;
+							continue;
+						}
 					}
-					else
+				}
+				else
+				{
+					if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit this line, then add new line
 					{
-						NewLine(caretCharIndex + 1, false);
-						newLineMode = NewLineMode::Overflow;
-						continue;
+						auto nextChar = content[charIndex + 1];
+						if (nextChar == '\r' || nextChar == '\n')
+						{
+							//next char is new line, no need to add new line
+						}
+						else
+						{
+							NewLine(caretCharIndex + 1, false);
+							newLineMode = NewLineMode::Overflow;
+							continue;
+						}
 					}
 				}
 			}
