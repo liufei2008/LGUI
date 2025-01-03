@@ -10,11 +10,53 @@
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
 #include "Engine/FontFace.h"
+#include "Internationalization/Culture.h"
 #include "Rendering/Texture2DResource.h"
 #if WITH_FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #endif
+
+void ULGUIFreeTypeRenderFontData::UpdateFontOnCultureChanged()
+{
+	FString CurrentCulture = FInternationalization::Get().GetCurrentCulture()->GetName();
+	if (CultureFontMap.Contains(CurrentCulture))
+		unrealFont = CultureFontMap[CurrentCulture].LoadSynchronous();
+
+	if (fontType == ELGUIDynamicFontDataType::UnrealFont)
+	{
+		fontBinaryArray.Empty();//clear cache font data when swich to UnrealFont
+	}
+
+#if WITH_FREETYPE
+	DeinitFreeType();
+	InitFreeType();
+#endif
+	for (auto textItem : renderTextArray)
+	{
+		if (textItem.IsValid())
+		{
+			textItem->ApplyFontTextureChange();
+		}
+	}
+
+	{
+		int powerValue = 0;
+		while (rectPackCellSize > 0)
+		{
+			rectPackCellSize = rectPackCellSize >> 1;
+			powerValue++;
+		}
+		rectPackCellSize = 1;
+		while (powerValue > 0)
+		{
+			rectPackCellSize = rectPackCellSize << 1;
+			powerValue--;
+		}
+		
+		rectPackCellSize = FMath::Clamp(rectPackCellSize, 64, ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize));
+	}
+}
 
 void ULGUIFreeTypeRenderFontData::FinishDestroy()
 {
@@ -248,11 +290,13 @@ FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& cha
 	}
 	FT_GlyphSlot slot = face->glyph;
 	error = FT_Load_Glyph(face, FT_Get_Char_Index(face, charCode), FT_LOAD_DEFAULT);
-	if (slot->glyph_index == 0 && slot->metrics.width == 0 && slot->metrics.height == 0)//missing char in this font
+	if (slot->glyph_index == 0//missing char in this font
+		&& slot->metrics.width == 0 && slot->metrics.height == 0//some chars (/r, /n, space) only have width and height, no pixels
+		)
 	{
 		if (fallbackFontArray.Num() > 0)
 		{
-			UE_LOG(LGUI, Log, TEXT("[%s].%d Font '%s' Can't find glyph, will search in fallbacks"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName());
+			UE_LOG(LGUI, Log, TEXT("[%s].%d Font '%s' Can't find glyph (char:%s, code:%d), will search in fallbacks"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), *FString(1, &charCode), (int)charCode);
 			for (int i = 0; i < fallbackFontArray.Num(); i++)
 			{
 				if (fallbackFontArray[i] == nullptr)continue;
@@ -262,7 +306,7 @@ FT_GlyphSlot ULGUIFreeTypeRenderFontData::RenderGlyphOnFreeType(const TCHAR& cha
 				}
 			}
 		}
-		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		UE_LOG(LGUI, Error, TEXT("[%s].%d Font '%s' Can't find glyph (char:%s, code:%d) in fallbacks too"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *this->GetPathName(), *FString(1, &charCode), (int)charCode);
 		return nullptr;
 	}
 	if (error)
@@ -284,6 +328,33 @@ UTexture2D* ULGUIFreeTypeRenderFontData::GetFontTexture()
 {
 	return texture;
 }
+
+void ULGUIFreeTypeRenderFontData::PostLoad()
+{
+	Super::PostLoad();
+	if (!bCultureFont)
+		return;
+
+	//localization
+	OnCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ULGUIFreeTypeRenderFontData::UpdateFontOnCultureChanged);
+
+	FString CurrentCulture = FInternationalization::Get().GetCurrentCulture()->GetName();
+	if (CultureFontMap.Contains(CurrentCulture))
+		unrealFont = CultureFontMap[CurrentCulture].LoadSynchronous();
+}
+
+void ULGUIFreeTypeRenderFontData::BeginDestroy()
+{
+	Super::BeginDestroy();
+	if (!bCultureFont)
+		return;
+
+	if (OnCultureChangedDelegateHandle.IsValid())
+	{
+		FInternationalization::Get().OnCultureChanged().Remove(OnCultureChangedDelegateHandle);
+	}
+}
+
 void ULGUIFreeTypeRenderFontData::InitFont()
 {
 #if WITH_FREETYPE
