@@ -57,7 +57,7 @@ public:
 	static ULGUIPrefabManagerObject* GetInstance(bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
 	static bool AnySelectedIsChildOf(AActor* InObject);
-	static UWorld* GetPreviewWorldForPrefabPackage();
+	static UWorld* GetPreviewWorldForPrefabPackage(bool bCreate = true);
 	static bool GetIsBlueprintCompiling();
 	static bool GetIsProcessingDelete();
 private:
@@ -111,8 +111,6 @@ class LGUI_API ULGUIPrefabWorldSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override { return true; }
-	virtual void Initialize(FSubsystemCollectionBase& Collection)override {};
-	virtual void Deinitialize()override {};
 
 	static ULGUIPrefabWorldSubsystem* GetInstance(UWorld* World);
 	DECLARE_EVENT_OneParam(ULGUIPrefabWorldSubsystem, FDeserializeSession, const FGuid&);

@@ -76,7 +76,7 @@ void ULGUILifeCycleBehaviour::OnRegister()
 #if WITH_EDITOR
 	if (GetWorld() && !GetWorld()->IsGameWorld())
 	{
-		if (GetWorld() != ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage())//skip preview world
+		if (GetWorld() != ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage(false))//skip preview world
 		{
 			//Only allow Editor world, skip EditorPreview (Thumbnail) world
 			if (GetWorld()->WorldType == EWorldType::Editor)
