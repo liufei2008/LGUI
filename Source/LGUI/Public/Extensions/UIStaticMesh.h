@@ -6,7 +6,7 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "UIStaticMesh.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FLGUIStaticMeshVertex
 {
 	GENERATED_BODY()
@@ -64,7 +64,7 @@ struct FLGUIStaticMeshVertex
 };
 
 /** Cache StaticMesh for use in LGUI's UIStaticMesh. Since we cannot read StaticMesh data in runtime, we must create this object and assign 'MeshAsset' property in editor. */
-UCLASS()
+UCLASS(BlueprintType)
 class LGUI_API ULGUIStaticMeshCacheData : public UObject
 {
 	GENERATED_BODY()
