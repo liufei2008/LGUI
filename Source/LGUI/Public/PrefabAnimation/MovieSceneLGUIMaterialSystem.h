@@ -41,7 +41,7 @@ struct FLGUIMaterialAccessor
 	FLGUIMaterialHandle LGUIMaterialHandle;
 
 	FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey);
-	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialPath);
+	FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialHandle);
 
 	explicit operator bool() const;
 
