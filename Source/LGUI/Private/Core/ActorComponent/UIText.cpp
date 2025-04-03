@@ -664,6 +664,16 @@ void UUIText::SetOverflowType(EUITextOverflowType newOverflowType) {
 		overflowType = newOverflowType;
 	}
 }
+
+void UUIText::SetWrappingPolicy(ETextWrappingPolicy newWrappingPolicy)
+{
+	if (WrappingPolicy != newWrappingPolicy)
+	{
+		WrappingPolicy = newWrappingPolicy;
+		MarkVertexPositionDirty();
+	}
+}
+
 void UUIText::SetAdjustWidth(bool newAdjustWidth) {
 	if (adjustWidth != newAdjustWidth)
 	{
@@ -927,6 +937,7 @@ bool UUIText::UpdateCacheTextGeometry()const
 		, this->GetParagraphHorizontalAlignment()
 		, this->GetParagraphVerticalAlignment()
 		, this->GetOverflowType()
+		, this->GetWrappingPolicy()
 		, this->GetMaxHorizontalWidth()
 		, this->GetUseKerning()
 		, this->GetFontStyle()
