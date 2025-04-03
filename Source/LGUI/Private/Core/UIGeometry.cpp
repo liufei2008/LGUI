@@ -2397,7 +2397,7 @@ void UIGeometry_AlignUITextLineVertexForRichText(EUITextParagraphHorizontalAlign
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float width, float height, const FVector2f& pivot
 	, const FColor& color, uint8 canvasGroupAlpha, const FVector2f& fontSpace, UIGeometry* uiGeo, float fontSize
 	, EUITextParagraphHorizontalAlign paragraphHAlign, EUITextParagraphVerticalAlign paragraphVAlign, EUITextOverflowType overflowType
-	, float maxHorizontalWidth, bool kerning
+	, ETextWrappingPolicy wrappingPolicy, float maxHorizontalWidth, bool kerning
 	, EUITextFontStyle fontStyle, FVector2f& textRealSize
 	, ULGUICanvas* renderCanvas, UUIText* uiComp
 	, TArray<FUITextLineProperty>& cacheLinePropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
@@ -2940,7 +2940,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
 
-				if (charIndex + 2 < contentLength && FChar::IsPunct(content[charIndex + 2]))//newline with punctuation
+				if (charIndex + 2 < contentLength//check size
+					&& FChar::IsPunct(content[charIndex + 2])//newline with punctuation
+					&& charIndex + 2 != contentLength - 1//not last char
+					)
 				{
 					nextCharXAdv += GetCharGeoXAdv(content[charIndex+1], content[charIndex+2], richText ? richTextPropertyArray[charIndex+2] : richTextParseResult);
 					if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
@@ -2960,7 +2963,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 				else
 				{
-					if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
+					if (currentLineOffset.X + nextCharXAdv > width && wrappingPolicy == ETextWrappingPolicy::AllowPerCharacterWrapping)//if next char cannot fit this line, then add new line
 					{
 						auto nextChar = content[charIndex + 1];
 						if (nextChar == '\r' || nextChar == '\n')
@@ -2982,7 +2985,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = GetCharGeoXAdv(content[charIndex], content[charIndex + 1], richText ? richTextPropertyArray[charIndex + 1] : richTextParseResult);
 
-				if (charIndex + 2 < contentLength && FChar::IsPunct(content[charIndex + 2]))//newline with punctuation
+				if (charIndex + 2 < contentLength
+					&& FChar::IsPunct(content[charIndex + 2])//newline with punctuation
+					&& charIndex + 2 != contentLength - 1//not last char
+					)
 				{
 					nextCharXAdv += GetCharGeoXAdv(content[charIndex+1], content[charIndex+2], richText ? richTextPropertyArray[charIndex+2] : richTextParseResult);
 					if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit this line, then add new line
@@ -3002,7 +3008,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 				else
 				{
-					if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth)//if next char cannot fit this line, then add new line
+					if (currentLineOffset.X + nextCharXAdv > maxHorizontalWidth && wrappingPolicy == ETextWrappingPolicy::AllowPerCharacterWrapping)//if next char cannot fit this line, then add new line
 					{
 						auto nextChar = content[charIndex + 1];
 						if (nextChar == '\r' || nextChar == '\n')
