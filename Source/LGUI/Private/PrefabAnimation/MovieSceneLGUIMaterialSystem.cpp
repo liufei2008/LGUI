@@ -20,13 +20,17 @@ namespace UE::MovieScene
 {
 
 FLGUIMaterialAccessor::FLGUIMaterialAccessor(const FLGUIMaterialKey& InKey)
-	: Renderable(Cast<UUIBatchMeshRenderable>(InKey.Object.ResolveObjectPtr()))
-	, LGUIMaterialHandle(InKey.LGUIMaterialHandle)
-{}
+	: Renderable(CastChecked<UUIBatchMeshRenderable>(InKey.Object.ResolveObjectPtr(), ECastCheckedType::NullAllowed))
+{
+	if (Renderable)
+	{
+		LGUIMaterialHandle = InKey.LGUIMaterialHandle;
+	}
+}
 
-FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialPath)
+FLGUIMaterialAccessor::FLGUIMaterialAccessor(UObject* InObject, FLGUIMaterialHandle InLGUIMaterialHandle)
 	: Renderable(Cast<UUIBatchMeshRenderable>(InObject))
-	, LGUIMaterialHandle(MoveTemp(InLGUIMaterialPath))
+	, LGUIMaterialHandle(MoveTemp(InLGUIMaterialHandle))
 {
 	check(!InObject || Renderable);
 }
@@ -85,8 +89,8 @@ UMovieSceneLGUIMaterialSystem::UMovieSceneLGUIMaterialSystem(const FObjectInitia
 	FMovieSceneLGUIComponentTypes*    LGUIComponents  = FMovieSceneLGUIComponentTypes::Get();
 	FMovieSceneTracksComponentTypes* TracksComponents  = FMovieSceneTracksComponentTypes::Get();
 
-	RelevantComponent = LGUIComponents->LGUIMaterialPath;
-	Phase = ESystemPhase::Instantiation | ESystemPhase::Evaluation;
+	RelevantComponent = LGUIComponents->LGUIMaterialHandle;
+	Phase = ESystemPhase::Instantiation;
 
 	if (HasAnyFlags(RF_ClassDefaultObject))
 	{
