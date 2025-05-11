@@ -26,11 +26,14 @@ class UMovieSceneLGUIMaterialTrack
 	GENERATED_BODY()
 
 public:
+	UMovieSceneLGUIMaterialTrack(const FObjectInitializer& ObjectInitializer);
 
 	// UMovieSceneTrack interface
-	virtual void AddSection(UMovieSceneSection& Section) override;
 	virtual FName GetTrackName() const override;
 
+	virtual bool SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const override;
+	virtual UMovieSceneSection* CreateNewSection() override;
+	
 	/*~ IMovieSceneEntityProvider */
 	virtual void ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity) override;
 	virtual bool PopulateEvaluationFieldImpl(const TRange<FFrameNumber>& EffectiveRange, const FMovieSceneEvaluationFieldEntityMetaData& InMetaData, FMovieSceneEntityComponentFieldBuilder* OutFieldBuilder) override;

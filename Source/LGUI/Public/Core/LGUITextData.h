@@ -152,6 +152,7 @@ public:
 		EUITextParagraphHorizontalAlign InParagraphHAlign,
 		EUITextParagraphVerticalAlign InParagraphVAlign,
 		EUITextOverflowType InOverflowType,
+		ETextWrappingPolicy InWrappingPolicy,
 		float InMaxHorizontalWidth,
 		bool InUseKerning,
 		EUITextFontStyle InFontStyle,
@@ -173,6 +174,7 @@ private:
 	EUITextParagraphHorizontalAlign paragraphHAlign = EUITextParagraphHorizontalAlign::Left;
 	EUITextParagraphVerticalAlign paragraphVAlign = EUITextParagraphVerticalAlign::Bottom;
 	EUITextOverflowType overflowType = EUITextOverflowType::HorizontalOverflow;
+	ETextWrappingPolicy WrappingPolicy = ETextWrappingPolicy::AllowPerCharacterWrapping;
 	float maxHorizontalWidth = 100;
 	bool useKerning = false;
 	EUITextFontStyle fontStyle = EUITextFontStyle::None;

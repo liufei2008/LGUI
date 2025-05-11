@@ -76,6 +76,8 @@ protected:
 		EUITextParagraphVerticalAlign vAlign = EUITextParagraphVerticalAlign::Middle;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		EUITextOverflowType overflowType = EUITextOverflowType::VerticalOverflow;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	ETextWrappingPolicy WrappingPolicy = ETextWrappingPolicy::AllowPerCharacterWrapping;
 	/** adjust AnchorData width to true text content width */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==EUITextOverflowType::HorizontalOverflow||overflowType==EUITextOverflowType::HorizontalAndVerticalOverflow"))
 		bool adjustWidth = false;
@@ -129,7 +131,7 @@ protected:
 #endif
 private:
 	bool bHasAddToFont = false;
-	/** visible/renderable char count of current text. -1 means not set yet */
+	/** visible/readable char count of current text. -1 means not set yet */
 	mutable int visibleCharCount = -1;
 	bool bTextLayoutDirty = false;
 	void MarkTextLayoutDirty();
@@ -189,6 +191,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetUseKerning()const { return useKerning; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") EUITextOverflowType GetOverflowType()const { return overflowType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ETextWrappingPolicy GetWrappingPolicy()const{return WrappingPolicy;}
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetAdjustWidthRange()const { return adjustWidthRange; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
@@ -223,6 +226,8 @@ public:
 		void SetParagraphVerticalAlignment(EUITextParagraphVerticalAlign newVAlign);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetOverflowType(EUITextOverflowType newOverflowType);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetWrappingPolicy(ETextWrappingPolicy newWrappingPolicy);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAdjustWidth(bool newAdjustWidth);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

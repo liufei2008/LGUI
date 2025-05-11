@@ -23,6 +23,7 @@ bool FTextGeometryCache::SetInputParameters(
 	EUITextParagraphHorizontalAlign InParagraphHAlign,
 	EUITextParagraphVerticalAlign InParagraphVAlign,
 	EUITextOverflowType InOverflowType,
+	ETextWrappingPolicy InWrappingPolicy,
 	float InMaxHorizontalWidth,
 	bool InUseKerning,
 	EUITextFontStyle InFontStyle,
@@ -104,6 +105,11 @@ bool FTextGeometryCache::SetInputParameters(
 		this->overflowType = InOverflowType;
 		bIsDirty = true;
 	}
+	if (this->WrappingPolicy != InWrappingPolicy)
+	{
+		this->WrappingPolicy = InWrappingPolicy;
+		bIsDirty = true;
+	}
 	if (this->maxHorizontalWidth != InMaxHorizontalWidth)
 	{
 		this->maxHorizontalWidth = InMaxHorizontalWidth;
@@ -158,6 +164,7 @@ void FTextGeometryCache::ConditaionalCalculateGeometry()
 			, this->paragraphHAlign
 			, this->paragraphVAlign
 			, this->overflowType
+			, this->WrappingPolicy
 			, this->maxHorizontalWidth
 			, this->useKerning
 			, this->fontStyle

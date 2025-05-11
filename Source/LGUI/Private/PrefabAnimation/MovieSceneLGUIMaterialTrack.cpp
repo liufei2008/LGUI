@@ -4,11 +4,25 @@
 #include "PrefabAnimation/MovieSceneLGUIComponentTypes.h"
 #include "EntitySystem/BuiltInComponentTypes.h"
 
-void UMovieSceneLGUIMaterialTrack::AddSection(UMovieSceneSection& Section)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MovieSceneLGUIMaterialTrack)
+
+UMovieSceneLGUIMaterialTrack::UMovieSceneLGUIMaterialTrack(const FObjectInitializer& ObjectInitializer)
+: Super(ObjectInitializer)
 {
-	// Materials are always blendable now
-	Section.SetBlendType(EMovieSceneBlendType::Absolute);
-	Super::AddSection(Section);
+
+}
+
+bool UMovieSceneLGUIMaterialTrack::SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const
+{
+	return SectionClass == UMovieSceneParameterSection::StaticClass();
+}
+
+UMovieSceneSection* UMovieSceneLGUIMaterialTrack::CreateNewSection()
+{
+	UMovieSceneSection* NewSection = NewObject<UMovieSceneParameterSection>(this, NAME_None, RF_Transactional);
+	NewSection->SetBlendType(EMovieSceneBlendType::Absolute);
+	NewSection->SetRange(TRange<FFrameNumber>::All());
+	return NewSection;
 }
 
 void UMovieSceneLGUIMaterialTrack::ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity)
@@ -28,7 +42,7 @@ void UMovieSceneLGUIMaterialTrack::ExtendEntityImpl(UMovieSceneParameterSection*
 	OutImportedEntity->AddBuilder(
 		FEntityBuilder()
 		.Add(LGUIComponents->LGUIMaterialPath, FLGUIMaterialPath(PropertyName))
-		.AddTag(BuiltInComponents->Tags.AbsoluteBlend)
+		.AddTagConditional(BuiltInComponents->Tags.AbsoluteBlend, !Section->GetBlendType().IsValid())
 	);
 }
 
@@ -50,6 +64,7 @@ bool UMovieSceneLGUIMaterialTrack::PopulateEvaluationFieldImpl(const TRange<FFra
 		{
 			FMovieSceneEvaluationFieldEntityMetaData SectionMetaData = InMetaData;
 			SectionMetaData.Flags = Entry.Flags;
+			SectionMetaData.Condition = MovieSceneHelpers::GetSequenceCondition(this, ParameterSection, true);
 
 			ParameterSection->ExternalPopulateEvaluationField(SectionEffectiveRange, SectionMetaData, OutFieldBuilder);
 		}
