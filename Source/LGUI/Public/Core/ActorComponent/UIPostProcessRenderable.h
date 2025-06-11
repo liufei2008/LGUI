@@ -9,6 +9,7 @@
 
 class FUIPostProcessRenderProxy;
 struct FLGUIPostProcessVertex;
+class UTexture2D;
 enum class ELGUICanvasClipType :uint8;
 
 UENUM(BlueprintType)

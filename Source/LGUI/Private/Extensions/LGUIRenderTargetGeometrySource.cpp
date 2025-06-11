@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Extensions/LGUIRenderTargetGeometrySource.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -20,6 +19,7 @@
 #include "SceneInterface.h"
 #include "RayTracingInstance.h"
 #include "RayTracingGeometry.h"
+#include "SceneView.h"
 #if WITH_EDITOR
 #include "PrefabSystem/LGUIPrefabManager.h"
 #endif

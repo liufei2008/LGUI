@@ -1,13 +1,13 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Core/LGUIRender/LGUIShaders.h"
-#include "LGUI.h"
 #include "PipelineStateCache.h"
 #include "Materials/Material.h"
 #include "ShaderParameterUtils.h"
 #include "PrimitiveUniformShaderParameters.h"
 #include "MeshBatch.h"
 #include "MaterialDomain.h"
+#include "SceneView.h"
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderVS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);

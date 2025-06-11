@@ -10,6 +10,7 @@
 
 class ULGUICanvas;
 class UUIPostProcessRenderable;
+class FTexture2DResource;
 enum class ELGUICanvasClipType :uint8;
 enum class EUIPostProcessMaskTextureType :uint8;
 
