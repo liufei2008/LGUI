@@ -17,43 +17,23 @@
 #include "PrimitiveSceneProxy.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
-#include "PrimitiveSceneInfo.h"
+#include "RHIResourceUtils.h"
 
 
 #define LOCTEXT_NAMESPACE "LGUIMeshComponent"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 UE_DISABLE_OPTIMIZATION
 #endif
-class FLGUIMeshVertexResourceArray : public FResourceArrayInterface
-{
-public:
-	FLGUIMeshVertexResourceArray(void* InData, uint32 InSize)
-		:Data(InData)
-		,Size(InSize)
-	{
 
-	}
-	virtual const void* GetResourceData() const override { return Data; }
-	virtual uint32 GetResourceDataSize() const override { return Size; }
-	virtual void Discard() override { }
-	virtual bool IsStatic() const override { return false; }
-	virtual bool GetAllowCPUAccess() const override { return false; }
-	virtual void SetAllowCPUAccess(bool bInNeedsCPUAccess) override { }
-private: 
-	void* Data;
-	uint32 Size;
-};
 class FLGUIVertexBuffer : public FVertexBuffer
 {
 public:
 	TArray<FLGUIMeshVertex> Vertices;
 	virtual void InitRHI(FRHICommandListBase& RHICmdList)override
 	{
-		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIMeshVertex);
-
-		FLGUIMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
-		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIVertexBuffer"), &ResourceArray);
-		VertexBufferRHI = RHICmdList.CreateVertexBuffer(SizeInBytes, BUF_Dynamic, CreateInfo);
+		VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
+			RHICmdList, TEXT("LGUIVertexBuffer"), EBufferUsageFlags::Dynamic, MakeConstArrayView(Vertices)
+			);
 	}
 };
 

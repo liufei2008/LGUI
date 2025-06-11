@@ -2,12 +2,10 @@
 
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "LGUI.h"
+#include "RHIResourceUtils.h"
 #include "Core/LGUIRender/LGUIPostProcessShaders.h"
 #include "Core/LGUIRender/LGUIVertex.h"
-#include "Core/ActorComponent/LGUICanvas.h"
 #include "Rendering/Texture2DResource.h"
-#include "PostProcess/SceneRenderTargets.h"
 #include "Core/LGUIRender/LGUIRenderer.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 
@@ -353,12 +351,9 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 				IndexBuffer = GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI;
 			}
 
-			uint32 VertexBufferSize = renderMeshRegionToScreenVertexArray.Num() * sizeof(FLGUIPostProcessVertex);
-			FRHIResourceCreateInfo CreateInfo(TEXT("RenderMeshOnScreen"));
-			FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
-			RHICmdList.UnlockBuffer(VertexBufferRHI);
+			FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
+				RHICmdList, TEXT("RenderMeshOnScreen"), EBufferUsageFlags::Volatile, MakeConstArrayView(renderMeshRegionToScreenVertexArray)
+			);
 			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 			RHICmdList.DrawIndexedPrimitive(IndexBuffer, 0, 0, renderMeshRegionToScreenVertexArray.Num(), 0, TriangleCount, 1);
 			VertexBufferRHI.SafeRelease();

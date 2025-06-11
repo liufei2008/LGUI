@@ -363,7 +363,7 @@ public:
 	{
 		if (!WeakSequence.IsValid())return;
 
-		Sequencer->State.ClearObjectCaches(*Sequencer);
+		Sequencer->GetEvaluationState()->ClearObjectCaches(*Sequencer);
 		TSet<UObject*> AllBoundObjects;
 		UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
 		for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)

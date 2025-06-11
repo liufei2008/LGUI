@@ -434,7 +434,7 @@ FOptionalSize FLGUISpriteDataCustomization::GetImageHeight()const
 }
 FOptionalSize FLGUISpriteDataCustomization::GetMinDesiredHeight(IDetailLayoutBuilder* DetailBuilder)const
 {
-	return DetailBuilder->GetDetailsView()->GetCachedGeometry().GetLocalSize().Y - 400;
+	return DetailBuilder->GetDetailsViewSharedPtr()->GetCachedGeometry().GetLocalSize().Y - 400;
 }
 FOptionalSize FLGUISpriteDataCustomization::GetBorderLeftSize()const
 {

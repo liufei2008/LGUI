@@ -7,7 +7,6 @@
 #include "MeshBatch.h"
 #include "RHIResources.h"
 #include "GlobalShader.h"
-#include "SceneTextures.h"
 
 class FLGUIRenderer;
 class FSceneViewFamily;

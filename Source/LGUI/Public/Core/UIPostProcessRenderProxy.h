@@ -3,10 +3,10 @@
 #pragma once
 
 #include "UIGeometry.h"
-#include "Core/LGUISpriteData_BaseObject.h"
 #include "Core/LGUIRender/ILGUIRendererPrimitive.h"
 #include "Core/LGUIRender/LGUIVertex.h"
 #include "RHIStaticStates.h"
+#include "SceneTextures.h"
 
 class ULGUICanvas;
 class UUIPostProcessRenderable;

@@ -19,15 +19,14 @@
 #include "TextureResource.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "SceneTextures.h"
 #if WITH_EDITOR
 #include "Engine/Engine.h"
 #include "Editor/EditorEngine.h"
 #endif
-#include "Slate/SceneViewport.h"
-#include "Core/LGUIManager.h"
 #include "Core/LGUISettings.h"
-#include "Engine/TextureRenderTarget2D.h"
 #include "ClearQuad.h"
+#include "RHIResourceUtils.h"
 #if WITH_EDITOR
 #include "Core/LGUIRender/LGUIHelperLineShaders.h"
 #endif
@@ -100,10 +99,6 @@ void FLGUIRenderer::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 {
 
 }
-void FLGUIRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
-{
-
-}
 void FLGUIRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
 {
 	RenderLGUI_RenderThread(GraphBuilder, InView);
@@ -135,14 +130,6 @@ bool FLGUIRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext&
 
 	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
-}
-void FLGUIRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
-{
-	
-}
-void FLGUIRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
-{
-
 }
 
 void FLGUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst
@@ -240,12 +227,9 @@ void FLGUIRenderer::CopyRenderTargetOnMeshRegion(
 				PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
 			}
 
-			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
-			FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
-			FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-			FMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
-			RHICmdList.UnlockBuffer(VertexBufferRHI);
+			FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
+			RHICmdList, TEXT("CopyRenderTargetOnMeshRegion"), EBufferUsageFlags::Volatile, MakeConstArrayView(RegionVertexData)
+			);
 
 			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -546,7 +530,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				{
 					auto WorldBounds = WorldRenderParameter.Primitive->GetWorldBounds();
 					if (!bFrustumCulling 
-						|| (bFrustumCulling && InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+						|| (bFrustumCulling && InView.GetCullingFrustum().IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 						)
 					{
 						FWorldSpaceRenderParameterSequence Item;
@@ -842,7 +826,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			{
 				auto WorldBounds = Primitive->GetWorldBounds();
 				if (!bFrustumCulling 
-					|| (bFrustumCulling && RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
+					|| (bFrustumCulling && RenderView->GetCullingFrustum().IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 					)
 				{
 					Primitive->CollectRenderData(RenderSequenceArray, CurrentWorldTime);
@@ -991,11 +975,9 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					
 					for (auto& LineRenderParameter : HelperLineRenderParameterArray)
 					{
-						FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHelperLineRenderVertexBuffer"));
-						FBufferRHIRef VertexBufferRHI = RHICmdList.CreateVertexBuffer(sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), BUF_Volatile, CreateInfo);
-						auto* VoidPtr = RHICmdList.LockBuffer(VertexBufferRHI, 0, sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num(), RLM_WriteOnly);
-						FMemory::Memcpy(VoidPtr, LineRenderParameter.LinePoints.GetData(), sizeof(FLGUIHelperLineVertex) * LineRenderParameter.LinePoints.Num());
-						RHICmdList.UnlockBuffer(VertexBufferRHI);
+						FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
+							RHICmdList, TEXT("LGUIHelperLineRenderVertexBuffer"), EBufferUsageFlags::Volatile, MakeConstArrayView(LineRenderParameter.LinePoints)
+						);
 
 						RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 
@@ -1062,11 +1044,12 @@ public:
 	{
 		const int32 NumDummyVerts = 3;
 		const uint32 Size = sizeof(FVector4f) * NumDummyVerts;
-		FRHIResourceCreateInfo CreateInfo(TEXT("FLGUIDummySceneColorResolveBuffer"));
-		VertexBufferRHI = RHICmdList.CreateBuffer(Size, BUF_Static | BUF_VertexBuffer, 0, ERHIAccess::VertexOrIndexBuffer, CreateInfo);
-		void* BufferData = RHICmdList.LockBuffer(VertexBufferRHI, 0, Size, RLM_WriteOnly);
-		FMemory::Memset(BufferData, 0, Size);
-		RHICmdList.UnlockBuffer(VertexBufferRHI);
+		const FRHIBufferCreateDesc CreateDesc =
+			FRHIBufferCreateDesc::CreateVertex(TEXT("FLGUIDummySceneColorResolveBuffer"), Size)
+			.AddUsage(EBufferUsageFlags::Static)
+			.DetermineInitialState();
+
+		VertexBufferRHI = RHICmdList.CreateBuffer(CreateDesc);
 	}
 };
 
@@ -1304,7 +1287,7 @@ void FLGUIRenderer::AddLineRender(const FLGUIHelperLineRenderParameter& InLinePa
 
 void FLGUIFullScreenQuadVertexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
-	TResourceArray<FLGUIPostProcessVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
+	TArray<FLGUIPostProcessVertex> Vertices;
 	Vertices.SetNumUninitialized(4);
 
 	Vertices[0] = FLGUIPostProcessVertex(FVector3f(-1, -1, 0), FVector2f(0.0f, 1.0f));
@@ -1312,8 +1295,9 @@ void FLGUIFullScreenQuadVertexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 	Vertices[2] = FLGUIPostProcessVertex(FVector3f(-1, 1, 0), FVector2f(0.0f, 0.0f));
 	Vertices[3] = FLGUIPostProcessVertex(FVector3f(1, 1, 0), FVector2f(1.0f, 0.0f));
 
-	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadVertexBuffer"), &Vertices);
-	VertexBufferRHI = RHICmdList.CreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
+	VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
+		RHICmdList, TEXT("LGUIFullScreenQuadVertexBuffer"), EBufferUsageFlags::Static, MakeConstArrayView(Vertices)
+	);
 }
 void FLGUIFullScreenQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
@@ -1322,14 +1306,10 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 		0, 2, 3,
 		0, 3, 1
 	};
-
-	TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
-	uint32 NumIndices = UE_ARRAY_COUNT(Indices);
-	IndexBuffer.AddUninitialized(NumIndices);
-	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
-
-	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer"), &IndexBuffer);
-	IndexBufferRHI = RHICmdList.CreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+	
+	IndexBufferRHI = UE::RHIResourceUtils::CreateIndexBufferFromArray(
+		RHICmdList, TEXT("LGUIFullScreenQuadIndexBuffer"), EBufferUsageFlags::Static, MakeConstArrayView(Indices)
+	);
 }
 void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdList)
 {
@@ -1353,13 +1333,9 @@ void FLGUIFullScreenSlicedQuadIndexBuffer::InitRHI(FRHICommandListBase& RHICmdLi
 		vStartIndex += wSeg + 1;
 	}
 
-	TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
-	uint32 NumIndices = UE_ARRAY_COUNT(Indices);
-	IndexBuffer.AddUninitialized(NumIndices);
-	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
-
-	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenSlicedQuadIndexBuffer"), &IndexBuffer);
-	IndexBufferRHI = RHICmdList.CreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+	IndexBufferRHI = UE::RHIResourceUtils::CreateIndexBufferFromArray(
+		RHICmdList, TEXT("LGUIFullScreenSlicedQuadIndexBuffer"), EBufferUsageFlags::Static, MakeConstArrayView(Indices)
+	);
 }
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
