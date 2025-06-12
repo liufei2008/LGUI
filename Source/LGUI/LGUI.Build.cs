@@ -13,8 +13,7 @@ public class LGUI : ModuleRules
         string EnginSourceFolder = EngineDirectory + "/Source/";
         PrivateIncludePaths.AddRange(
                 new string[] {
-                    EnginSourceFolder + "/Runtime/Renderer/Private",
-                    EnginSourceFolder + "/Runtime/RHI/Private",
+                    EnginSourceFolder + "/Runtime/Renderer/Private",//#include "SceneRendering.h", #include "ScenePrivate.h"
                 });
 
         PublicDependencyModuleNames.AddRange(
