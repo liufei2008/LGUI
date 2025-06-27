@@ -929,7 +929,7 @@ void ULGUICanvas::UpdateGeometry_Implement()
 	}
 }
 
-#define LGUI_Test_ResetRenderObjectList 0
+#define LGUI_Test_ResetRenderObjectList 1
 
 DECLARE_CYCLE_STAT(TEXT("Canvas BatchDrawcall"), STAT_BatchDrawcall, STATGROUP_LGUI);
 void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, const FVector2D& InCanvasRightTop, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority)
@@ -1021,6 +1021,12 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 					return false;
 				}
 				continue;//not overlap with other drawcall, keep searching
+			}
+			//can fit-in this drawcall but also overlap with it, then no need to go deeper because it must not batch in other deeper drawcall
+			if (DrawcallItem->RenderObjectListTreeRootNode->Overlap(UIQuadTree::Rectangle(InUIItemToCanvasTf.BoundsMin2D, InUIItemToCanvasTf.BoundsMax2D)))
+			{
+				OutDrawcallIndexToFitin = i;
+				return true;
 			}
 			CanFitinDrawcallIndexArray.Add(i);
 		}
@@ -1165,7 +1171,10 @@ void ULGUICanvas::BatchDrawcall_Implement(const FVector2D& InCanvasLeftBottom, c
 		InDrawcallItem->bNeedToUpdateVertex = true;
 		InDrawcallItem->bMaterialNeedToReassign = true;
 		int index = InDrawcallItem->RenderObjectList.IndexOfByKey(InUIBatchMeshRenderable);
-		InDrawcallItem->RenderObjectList.RemoveAt(index);
+		if (index != INDEX_NONE)
+		{
+			InDrawcallItem->RenderObjectList.RemoveAt(index);
+		}
 		InUIBatchMeshRenderable->drawcall = nullptr;
 	};
 	auto ClearChildCanvasFromDrawcall = [&](TSharedPtr<UUIDrawcall> InDrawcallItem, ULGUICanvas* InChildCanvas) {
