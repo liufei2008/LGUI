@@ -115,6 +115,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUICanvasScreenMatchMode ScreenMatchMode = ELGUICanvasScreenMatchMode::MatchWidthOrHeight;
 #if WITH_EDITORONLY_DATA
+	/** When Canvas use ScreenSpaceOverlay, in edit mode it will try to match editor viewport's size. So make this true to use a fixed size. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bFixedSizeInEditMode = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "bFixedSizeInEditMode"))
