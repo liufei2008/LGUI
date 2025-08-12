@@ -140,21 +140,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 	{
 		if (Canvas->IsRootCanvas())
 		{
-#if WITH_EDITOR
-			if (auto World = GetWorld())
-			{
-				if (bFixedSizeInEditMode && !World->IsGameWorld())//Edit mode
-				{
-					if (auto canvasUIItem = Canvas->GetUIItem())
-					{
-						canvasUIItem->SetWidth(SizeInEditMode.X);
-						canvasUIItem->SetHeight(SizeInEditMode.Y);
-						ViewportSize.X = SizeInEditMode.X;
-						ViewportSize.Y = SizeInEditMode.Y;
-					}
-				}
-			}
-#endif
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
 				|| Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
 				)
@@ -340,28 +325,42 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 				{
 					if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 					{
-						FViewport* viewport = nullptr;
-
-						int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-						auto& LevelViewportClients = GEditor->GetLevelViewportClients();
-						for (auto& ViewportClient : LevelViewportClients)
+						TOptional<FIntPoint> NewViewportSize;
+#if WITH_EDITOR
+						if (bFixedSizeInEditMode)//Edit mode
 						{
-							if (ViewportClient->ViewIndex == editorViewIndex)
+							NewViewportSize = SizeInEditMode;
+						}
+						else
+#endif
+						{
+							FViewport* viewport = nullptr;
+
+							int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
+							auto& LevelViewportClients = GEditor->GetLevelViewportClients();
+							for (auto& ViewportClient : LevelViewportClients)
 							{
-								viewport = ViewportClient->Viewport;
-								break;
+								if (ViewportClient->ViewIndex == editorViewIndex)
+								{
+									viewport = ViewportClient->Viewport;
+									break;
+								}
+							}
+							if (viewport == nullptr)
+							{
+								viewport = GEditor->GetActiveViewport();
+							}
+							if (viewport != nullptr)
+							{
+								NewViewportSize = viewport->GetSizeXY();
 							}
 						}
-						if (viewport == nullptr)
+
+						if (NewViewportSize.IsSet())
 						{
-							viewport = GEditor->GetActiveViewport();
-						}
-						if (viewport != nullptr)
-						{
-							auto prevSize = ViewportSize;
-							ViewportSize = viewport->GetSizeXY();
-							if (prevSize != ViewportSize)
+							if (NewViewportSize.GetValue() != ViewportSize)
 							{
+								ViewportSize = NewViewportSize.GetValue();
 								OnViewportParameterChanged();
 							}
 						}
