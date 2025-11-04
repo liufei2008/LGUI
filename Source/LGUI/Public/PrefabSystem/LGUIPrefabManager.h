@@ -34,9 +34,8 @@ public:
 private:
 	int32 PrevEditorViewportCount = 0;
 	FLGUIEditorTickMulticastDelegate EditorTick;
-	UPROPERTY()UWorld* PreviewWorldForPrefabPackage = nullptr;
+	TUniquePtr<FPreviewScene> PreviewSceneForPrefabPackage;
 	bool bIsBlueprintCompiling = false;
-	class FLGUIObjectCreateDeleteListener* ObjectCreateDeleteListener = nullptr;
 private:
 	friend class LGUIEditorTools;
 	bool bShouldBroadcastLevelActorListChanged = false;

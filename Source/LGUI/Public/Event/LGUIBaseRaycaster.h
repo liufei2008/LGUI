@@ -98,6 +98,14 @@ public:
 		FVector GetRayDirection()const { return CurrentRayDirection; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetPointerID(int32 value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDepth(int32 value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRayLength(float value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetTraceChannel(TEnumAsByte<ETraceTypeQuery> value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClickThreshold(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHoldToDrag(bool value);
@@ -107,7 +115,6 @@ protected:
 	bool ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPointerEventData);
 	virtual bool ShouldSkipCanvas(class ULGUICanvas* UICanvas) { return false; }
 	TArray<FHitResult> multiUIHitResult;
-	bool IsHitVisibleUI(class UUIItem* HitUI, const FVector& HitPoint);
 
 	bool RaycastUI(ULGUIPointerEventData* InPointerEventData, const TArray<ELGUIRenderMode>& InRenderModeArray, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
 	bool RaycastWorld(bool InRequireFaceIndex, ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray);
