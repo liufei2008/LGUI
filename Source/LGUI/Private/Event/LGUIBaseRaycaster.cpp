@@ -249,6 +249,23 @@ bool ULGUIBaseRaycaster::RaycastWorld(bool InRequireFaceIndex, ULGUIPointerEvent
 }
 
 
+void ULGUIBaseRaycaster::SetPointerID(int32 value)
+{
+	pointerID = value;
+}
+void ULGUIBaseRaycaster::SetDepth(int32 value)
+{
+	depth = value;
+}
+void ULGUIBaseRaycaster::SetRayLength(float value)
+{
+	rayLength = value;
+}
+void ULGUIBaseRaycaster::SetTraceChannel(TEnumAsByte<ETraceTypeQuery> value)
+{
+	traceChannel = value;
+}
+
 void ULGUIBaseRaycaster::SetClickThreshold(float value)
 {
 	clickThreshold = value;
