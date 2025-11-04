@@ -182,7 +182,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 					{
 						if (RootPrefab->ReferenceClassList.Num() > 0)
 						{
-							if (RootPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))
+							if (RootPrefab->ReferenceClassList[0] && RootPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))
 							{
 								//root actor is UI, need to create a UI actor, or root actor may calculated wrong RelativeLocation
 								RootActorClass = AUIContainerActor::StaticClass();
