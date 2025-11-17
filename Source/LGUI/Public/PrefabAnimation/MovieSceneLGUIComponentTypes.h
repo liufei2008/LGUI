@@ -2,13 +2,8 @@
 
 #pragma once
 
-#include "Layout/Margin.h"
 #include "EntitySystem/MovieSceneEntityIDs.h"
 #include "EntitySystem/MovieScenePropertySystemTypes.h"
-#include "EntitySystem/MovieScenePropertyTraits.h"
-#include "EntitySystem/MovieScenePropertyMetaDataTraits.h"
-
-#include "Containers/ArrayView.h"
 
 class LGUI_API FLGUIMaterialHandle
 {

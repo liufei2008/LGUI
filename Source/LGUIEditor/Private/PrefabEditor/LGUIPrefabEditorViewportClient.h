@@ -46,8 +46,6 @@ public:
 	virtual UE::Widget::EWidgetMode GetWidgetMode() const override;
 	virtual FVector GetWidgetLocation() const override;
 	virtual FMatrix GetWidgetCoordSystem() const override;
-	virtual int32 GetCameraSpeedSetting() const override;
-	virtual void SetCameraSpeedSetting(int32 SpeedSetting) override;
 	// End of FEditorViewportClient interface
 
 	/**

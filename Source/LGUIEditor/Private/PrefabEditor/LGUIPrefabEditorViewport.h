@@ -22,7 +22,7 @@ public:
 	// SEditorViewport interface
 	virtual void BindCommands() override;
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
-	virtual TSharedPtr<SWidget> MakeViewportToolbar() override;
+	virtual TSharedPtr<SWidget> BuildViewportToolbar() override;
 	virtual EVisibility GetTransformToolbarVisibility() const override;
 	virtual void OnFocusViewportToSelection() override;
 	// End of SEditorViewport interface

@@ -948,6 +948,7 @@ void ULGUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection
 }
 void ULGUIManagerWorldSubsystem::PostInitialize()
 {
+	Super::PostInitialize();
 	auto PrefabManager = ULGUIPrefabWorldSubsystem::GetInstance(this->GetWorld());
 	check(PrefabManager);
 	PrefabManager->OnBeginDeserializeSession.AddUObject(this, &ULGUIManagerWorldSubsystem::BeginPrefabSystemProcessingActor);

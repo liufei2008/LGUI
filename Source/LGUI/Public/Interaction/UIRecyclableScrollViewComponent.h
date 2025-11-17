@@ -97,7 +97,7 @@ protected:
 #endif
 protected:
 	/** Use a Actor which implement UIRecyclableScrollViewDataSource interface. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "/Script/LGUI.UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
 		TObjectPtr<UObject> DataSource;
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
 		EUIRecyclableScrollViewCellTemplateType CellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;

@@ -253,8 +253,9 @@ public:
 		Sequencer->GetSelectionChangedObjectGuids().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::SyncSelectedWidgetsWithSequencerSelection);
 		Sequencer->OnMovieSceneBindingsChanged().AddLambda([=, this]() {
 			if (!WeakSequence.IsValid())return;
-			if (!IsValid(WeakSequence->GetMovieScene()))return;
-			auto& Bindings = WeakSequence->GetMovieScene()->GetBindings();
+			auto MovieScene = WeakSequence->GetMovieScene();
+			if (!IsValid(MovieScene))return;
+			auto& Bindings = static_cast<const UMovieScene*>(MovieScene)->GetBindings();
 			for (auto& BindingItem : Bindings)
 			{
 				auto ObjectArray = Sequencer->FindObjectsInCurrentSequence(BindingItem.GetObjectGuid());
@@ -262,13 +263,13 @@ public:
 				{
 					if (auto Actor = Cast<AActor>(ObjectArray[0]))
 					{
-						WeakSequence->GetMovieScene()->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(Actor->GetActorLabel()));
+						MovieScene->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(Actor->GetActorLabel()));
 					}
 					else if (auto Comp = Cast<UActorComponent>(ObjectArray[0]))
 					{
 						if (auto CompActor = Comp->GetOwner())
 						{
-							WeakSequence->GetMovieScene()->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(CompActor->GetActorLabel()));
+							MovieScene->SetObjectDisplayName(BindingItem.GetObjectGuid(), FText::FromString(CompActor->GetActorLabel()));
 						}
 					}
 				}

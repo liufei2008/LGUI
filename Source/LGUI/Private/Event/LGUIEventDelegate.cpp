@@ -681,7 +681,7 @@ void FLGUIEventDelegate::FireEvent()const
 }
 void FLGUIEventDelegate::LogParameterError(ELGUIEventDelegateParameterType WrongParamType)const
 {
-	auto enumObject = FindObject<UEnum>(nullptr, TEXT("/Script/LGUI.ELGUIEventDelegateParameterType"), true);
+	auto enumObject = FindObject<UEnum>(nullptr, TEXT("/Script/LGUI.ELGUIEventDelegateParameterType"), EFindObjectFlags::ExactClass);
 	auto errMsg = FText::Format(LOCTEXT("ParameterTypeMismatch", "LGUIEventDelegate parameter type must be the same as your declaration. support parameter type: {0}, execute parameter type: {1}")
 		, enumObject->GetDisplayNameTextByValue((int64)supportParameterType)
 		, enumObject->GetDisplayNameTextByValue((int64)WrongParamType)

@@ -3,28 +3,17 @@
 #include "LGUIPrefabEditorViewportClient.h"
 #include "LGUIPrefabEditorViewport.h"
 #include "Components/ExponentialHeightFogComponent.h"
-#include "Components/SphereReflectionCaptureComponent.h"
-#include "SceneInterface.h"
 #include "Components/DirectionalLightComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Materials/Material.h"
-#include "Engine/StaticMesh.h"
 #include "Animation/AnimationAsset.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/Character.h"
 #include "Math/Vector.h"
-#include "Viewports.h"
-#include "Components/ShapeComponent.h"
-#include "Components/DrawFrustumComponent.h"
 #include "AssetEditorModeManager.h"
 #include "EngineUtils.h"
-#include "EdMode.h"
 #include "Engine/Selection.h"
-#include "Misc/CoreDelegates.h"
 #include "SceneView.h"
-#include "Dialogs/Dialogs.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Editor.h"
@@ -34,17 +23,13 @@
 #include "MouseDeltaTracker.h"
 #include "Misc/ITransaction.h"
 #include "UnrealEdGlobals.h"
-#include "Editor/EditorPerProjectUserSettings.h"
 #include "UnrealWidget.h"
 #include "Elements/Framework/TypedElementRegistry.h"
 #include "Elements/Framework/EngineElementsLibrary.h"
 #include "Elements/Framework/TypedElementCommonActions.h"
-#include "Elements/Framework/TypedElementListObjectUtil.h"
 #include "Elements/Framework/TypedElementViewportInteraction.h"
-#include "Elements/Actor/ActorElementLevelEditorViewportInteractionCustomization.h"
-#include "Elements/Component/ComponentElementLevelEditorViewportInteractionCustomization.h"
 #include "InputState.h"
-#include "LevelViewportClickHandlers.h"
+#include "ViewportSelectionUtilities.h"
 #include "HModel.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "LGUIPrefabViewportClickHandlers.h"
@@ -590,14 +575,6 @@ FMatrix FLGUIPrefabEditorViewportClient::GetWidgetCoordSystem() const
 	}
 
 	return FEditorViewportClient::GetWidgetCoordSystem();
-}
-int32 FLGUIPrefabEditorViewportClient::GetCameraSpeedSetting() const
-{
-	return GetDefault<UEditorPerProjectUserSettings>()->SCSViewportCameraSpeed;
-}
-void FLGUIPrefabEditorViewportClient::SetCameraSpeedSetting(int32 SpeedSetting)
-{
-	GetMutableDefault<UEditorPerProjectUserSettings>()->SCSViewportCameraSpeed = SpeedSetting;
 }
 
 /**

@@ -29,7 +29,7 @@ TSharedRef<FEditorViewportClient> SLGUIPrefabEditorViewport::MakeEditorViewportC
 	return EditorViewportClient.ToSharedRef();
 }
 
-TSharedPtr<SWidget> SLGUIPrefabEditorViewport::MakeViewportToolbar()
+TSharedPtr<SWidget> SLGUIPrefabEditorViewport::BuildViewportToolbar()
 {
 	return SNew(SLGUIPrefabEditorViewportToolbar, SharedThis(this));
 }

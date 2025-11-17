@@ -180,7 +180,7 @@ public:
 	}
 	FLGUIRenderSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, FLGUIRenderSceneProxy* InParentSceneProxy)
 		: FPrimitiveSceneProxy(InComponent)
-		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
+		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetShaderPlatform()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CreateRenderSection);

@@ -102,7 +102,7 @@ public:
 	 * @param IncludeSelf	Include actor self.
 	 * @param InStopNode	If parent is InStopNode then break the search chain. Can be null to ignore it.
 	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent", DeterminesOutputType = "ComponentClass"))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass"))
 		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true, AActor* InStopNode = nullptr);
 	/**
 	 * Find all compoents in children with type.
@@ -111,7 +111,7 @@ public:
 	 * @param IncludeSelf true- also search component at InActor.
 	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
 	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm="InExcludeNode"))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm="InExcludeNode"))
 		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
 	/**
 	 * Find the first component in children with type.
@@ -120,7 +120,7 @@ public:
 	 * @param IncludeSelf true- also search component at InActor.
 	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
 	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm = "InExcludeNode"))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm = "InExcludeNode"))
 		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
 public:
 #pragma region EventDelegate
