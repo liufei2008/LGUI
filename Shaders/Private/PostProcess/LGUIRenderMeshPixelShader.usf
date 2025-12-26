@@ -1,5 +1,15 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 #include "LGUIRenderMeshVertexShader.usf"
+#include "/Engine/Generated/UniformBuffers/LGUIRenderMeshMainTexUB.ush"
+#if LGUI_MASK
+#include "/Engine/Generated/UniformBuffers/LGUIRenderMeshMaskTexUB.ush"
+#endif
+#if LGUI_TEXTURE_CLIP
+#include "/Engine/Generated/UniformBuffers/LGUIRenderMeshClipTexUB.ush"
+#endif
+#if LGUI_BLEND_DEPTH
+#include "/Engine/Generated/UniformBuffers/LGUIRenderMeshDepthTexUB.ush"
+#endif
 
 #if LGUI_RECT_CLIP
 float4 _RectClipOffsetAndSize;
@@ -11,18 +21,14 @@ float RectClip(float3 pos, float2 offset, float2 size, float2 feather)
 #endif
 #if LGUI_TEXTURE_CLIP
 float4 _TextureClipOffsetAndSize;
-Texture2D _ClipTex;
-SamplerState _ClipTexSampler;
 float TextureClip(float3 pos, float2 offset, float2 size)
 {
     float2 uv = (pos.yz - offset) / size;
     uv.y = 1.0 - uv.y;
-    return _ClipTex.Sample(_ClipTexSampler, uv).r;
+    return LGUIRenderMeshClipTexUB._ClipTex.Sample(LGUIRenderMeshClipTexUB._ClipTexSampler, uv).r;
 }
 #endif
 #if LGUI_BLEND_DEPTH
-Texture2D _SceneDepthTex;
-SamplerState _SceneDepthTexSampler;
 float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #if LGUI_DEPTH_FADE
@@ -31,23 +37,15 @@ float2 _ViewSizeInv;
 #endif
 #endif
 
-Texture2D _MainTex;
-SamplerState _MainTexSampler;
-
-#if LGUI_MASK
-Texture2D _MaskTex;
-SamplerState _MaskTexSampler;
-#endif
-
 void RenderMeshPS(
     RenderMeshVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
-    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+    OutColor = LGUIRenderMeshMainTexUB._MainTex.Sample(LGUIRenderMeshMainTexUB._MainTexSampler, input.uv);
     OutColor.a = 1.0;
 #if LGUI_MASK
-    OutColor.a *= _MaskTex.Sample(_MaskTexSampler, input.uvMask).r;
+    OutColor.a *= LGUIRenderMeshMaskTexUB._MaskTex.Sample(LGUIRenderMeshMaskTexUB._MaskTexSampler, input.uvMask).r;
 #endif
 #if LGUI_RECT_CLIP
     OutColor.a *= RectClip(input.localPosition, _RectClipOffsetAndSize.xy, _RectClipOffsetAndSize.zw, _RectClipFeather.xy);
@@ -69,7 +67,7 @@ void RenderMeshPS(
 	{
 		for (int h = -SampleSize; h <= SampleSize; h++)
 		{
-			float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV + float2(w, h) * _ViewSizeInv.xy).x;
+			float ExistDepth = LGUIRenderMeshDepthTexUB._SceneDepthTex.Sample(LGUIRenderMeshDepthTexUB._SceneDepthTexSampler, ScreenUV + float2(w, h) * _ViewSizeInv.xy).x;
 			DepthFadeValue += step(ExistDepth, PixelDepth);
 			SampleCount++;
 		}
@@ -77,7 +75,7 @@ void RenderMeshPS(
 	DepthFadeValue /= SampleCount;
 	DepthFadeValue = smoothstep(0, 1, DepthFadeValue);
 #else
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
+    float ExistDepth = LGUIRenderMeshDepthTexUB._SceneDepthTex.Sample(LGUIRenderMeshDepthTexUB._SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	float DepthFadeValue = step(ExistDepth, PixelDepth);
 #endif
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, DepthFadeValue);

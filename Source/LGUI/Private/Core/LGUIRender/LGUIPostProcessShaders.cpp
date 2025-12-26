@@ -4,6 +4,14 @@
 #include "LGUI.h"
 #include "Materials/Material.h"
 
+// Implement uniform buffer structs for Metal compatibility
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIPostProcessMainTexUB, "LGUIPostProcessMainTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIBlurStrengthTexUB, "LGUIBlurStrengthTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIRenderMeshMainTexUB, "LGUIRenderMeshMainTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIRenderMeshMaskTexUB, "LGUIRenderMeshMaskTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIRenderMeshClipTexUB, "LGUIRenderMeshClipTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIRenderMeshDepthTexUB, "LGUIRenderMeshDepthTexUB");
+
 IMPLEMENT_SHADER_TYPE(, FLGUISimplePostProcessVS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessVertexShader.usf"), TEXT("SimplePostProcessVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessGaussianBlurPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessGaussianBlurWithStrengthTexturePS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
