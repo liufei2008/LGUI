@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "LGUIEditorTools.h"
+#include "Editor.h"
 #include "Core/LGUIManager.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
@@ -28,6 +29,8 @@
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Serialization/ArchiveReplaceObjectRef.h"
 #include "Logging/MessageLog.h"
+#include "SCreateAssetFromObject.h"
+#include "Framework/Application/SlateApplication.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -1706,7 +1709,15 @@ bool LGUIEditorTools::HaveValidCopiedComponent()
 }
 
 FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
-void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter as override parameter(eg: Actor parameter reference other actor that is not belongs to prefab hierarchy)
+
+// Internal implementation that performs the actual prefab saving after path is chosen
+void LGUIEditorTools::CreatePrefabAsset_Internal(AActor* selectedActor)
+{
+	// This function is now called from the dialog callback with the selected path
+	// The actual implementation is in the lambda passed to the dialog
+}
+
+void LGUIEditorTools::CreatePrefabAsset()
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (!IsValid(selectedActor))
@@ -1720,143 +1731,162 @@ void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter
 		return;
 	}
 	auto OldPrefabHelperObject = GetPrefabHelperObject_WhichManageThisActor(selectedActor);
-	if (IsValid(OldPrefabHelperObject) && OldPrefabHelperObject->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
+	if (IsValid(OldPrefabHelperObject) && OldPrefabHelperObject->LoadedRootActor == selectedActor)
 	{
 		auto Message = LOCTEXT("CreatePrefabError_BelongToOtherPrefab", "This actor is a root actor of another prefab, this is not allowed! Instead you can duplicate the prefab asset.");
 		FMessageDialog::Open(EAppMsgType::Ok, Message);
 		return;
 	}
-	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
-	if (DesktopPlatform)
-	{
-		TArray<FString> OutFileNames;
-		DesktopPlatform->SaveFileDialog(
-			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(FSlateApplication::Get().GetGameViewport()),
-			TEXT("Choose a path to save prefab asset, must inside Content folder"),
-			PrevSavePrafabFolder.IsEmpty() ? FPaths::ProjectContentDir() : PrevSavePrafabFolder,
-			selectedActor->GetActorLabel() + TEXT("_Prefab"),
-			TEXT("*.*"),
-			EFileDialogFlags::None,
-			OutFileNames
-		);
-		if (OutFileNames.Num() > 0)
+
+	// Create the Slate window with Content Browser path picker
+	TSharedPtr<SWindow> CreatePrefabWindow =
+		SNew(SWindow)
+		.Title(LOCTEXT("CreatePrefab_Title", "Create Prefab"))
+		.ToolTipText(LOCTEXT("CreatePrefab_Tooltip", "Select a folder in the Content Browser and enter a name for the prefab"))
+		.ClientSize(FVector2D(400, 400));
+
+	// Capture the actor and old helper object for use in the callback
+	TWeakObjectPtr<AActor> WeakActor = selectedActor;
+	TWeakObjectPtr<ULGUIPrefabHelperObject> WeakOldPrefabHelperObject = OldPrefabHelperObject;
+
+	TSharedPtr<SCreateAssetFromObject> CreatePrefabWidget;
+	CreatePrefabWindow->SetContent(
+		SAssignNew(CreatePrefabWidget, SCreateAssetFromObject, CreatePrefabWindow)
+		.AssetFilenameSuffix(TEXT("_Prefab"))
+		.HeadingText(LOCTEXT("CreatePrefab_Heading", "Prefab Name:"))
+		.CreateButtonText(LOCTEXT("CreatePrefab_ButtonLabel", "Create Prefab"))
+		.AssetPath(TEXT("/Game"))
+		.DefaultNameOverride(FText::FromString(selectedActor->GetActorLabel()))
+		.OnCreateAssetAction(FOnPathChosen::CreateLambda([WeakActor, WeakOldPrefabHelperObject](const FString& AssetPath)
 		{
-			FString selectedFilePath = OutFileNames[0];
-			if (selectedFilePath.StartsWith(FPaths::ProjectContentDir()))
+			AActor* ActorToSave = WeakActor.Get();
+			if (!IsValid(ActorToSave))
 			{
-				PrevSavePrafabFolder = FPaths::GetPath(selectedFilePath);
-				if (FPaths::FileExists(selectedFilePath + TEXT(".uasset")))
+				return;
+			}
+
+			// AssetPath is like "/Game/Folder/AssetName" - use it directly as package name
+			FString PackageName = AssetPath;
+
+			// Check if asset already exists
+			FString AssetFilePath = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+			if (FPaths::FileExists(AssetFilePath))
+			{
+				auto ReturnValue = FMessageDialog::Open(EAppMsgType::YesNo,
+					FText::Format(LOCTEXT("Error_AssetAlreadyExist", "Asset already exists at path: \"{0}\"!\nReplace it?"), FText::FromString(PackageName)));
+				if (ReturnValue == EAppReturnType::No)
 				{
-					auto returnValue = FMessageDialog::Open(EAppMsgType::YesNo
-						, FText::Format(LOCTEXT("Error_AssetAlreadyExist", "Asset already exist at path: \"{0}\" !\nReplace it?"), FText::FromString(selectedFilePath)));
-					if (returnValue == EAppReturnType::No)
-					{
-						return;
-					}
-				}
-				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
-				FString packageName = TEXT("/Game/") + selectedFilePath;
-				UPackage* package = CreatePackage(*packageName);
-				if (package == nullptr)
-				{
-					FMessageDialog::Open(EAppMsgType::Ok
-						, LOCTEXT("Error_NotValidPathForSavePrefab", "Selected path not valid, please choose another path to save prefab."));
 					return;
 				}
-				package->FullyLoad();
-				FString fileName = FPaths::GetBaseFilename(selectedFilePath);
-				auto OutPrefab = NewObject<ULGUIPrefab>(package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
-				FAssetRegistryModule::AssetCreated(OutPrefab);
+			}
 
-				auto PrefabHelperObjectWhichManageThisActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
-				if (PrefabHelperObjectWhichManageThisActor == nullptr)//not exist, means in level editor and not create PrefabManagerActor yet, so create it
+			UPackage* Package = CreatePackage(*PackageName);
+			if (Package == nullptr)
+			{
+				FMessageDialog::Open(EAppMsgType::Ok,
+					LOCTEXT("Error_NotValidPathForSavePrefab", "Selected path not valid, please choose another path to save prefab."));
+				return;
+			}
+			Package->FullyLoad();
+
+			FString AssetName = FPackageName::GetShortName(PackageName);
+			auto OutPrefab = NewObject<ULGUIPrefab>(Package, ULGUIPrefab::StaticClass(), *AssetName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
+			FAssetRegistryModule::AssetCreated(OutPrefab);
+
+			auto PrefabHelperObjectWhichManageThisActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(ActorToSave);
+			if (PrefabHelperObjectWhichManageThisActor == nullptr)
+			{
+				auto ManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(ActorToSave->GetLevel());
+				if (ManagerActor != nullptr)
 				{
-					auto ManagerActor = ALGUIPrefabLevelManagerActor::GetInstance(selectedActor->GetLevel());
-					if (ManagerActor != nullptr)
-					{
-						PrefabHelperObjectWhichManageThisActor = ManagerActor->PrefabHelperObject;
-					}
+					PrefabHelperObjectWhichManageThisActor = ManagerActor->PrefabHelperObject;
 				}
-				check(PrefabHelperObjectWhichManageThisActor != nullptr)
+			}
+			check(PrefabHelperObjectWhichManageThisActor != nullptr)
+			{
+				struct LOCAL
 				{
-					struct LOCAL
+					static auto Make_MapGuidFromParentToSub(const TMap<UObject*, FGuid>& InNewParentMapObjectToGuid, ULGUIPrefabHelperObject* InPrefabHelperObject, const FLGUISubPrefabData& InOriginSubPrefabData)
 					{
-						static auto Make_MapGuidFromParentToSub(const TMap<UObject*, FGuid>& InNewParentMapObjectToGuid, ULGUIPrefabHelperObject* InPrefabHelperObject, const FLGUISubPrefabData& InOriginSubPrefabData)
+						TMap<FGuid, FGuid> Result;
+						for (auto& KeyValue : InOriginSubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
 						{
-							TMap<FGuid, FGuid> Result;
-							for (auto& KeyValue : InOriginSubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+							auto Object = InPrefabHelperObject->MapGuidToObject[KeyValue.Key];
+							if (IsValid(Object))
 							{
-								auto Object = InPrefabHelperObject->MapGuidToObject[KeyValue.Key];
-								if (IsValid(Object))
+								auto Guid = InNewParentMapObjectToGuid[Object];
+								if (!Result.Contains(Guid))
 								{
-									auto Guid = InNewParentMapObjectToGuid[Object];
-									if (!Result.Contains(Guid))
-									{
-										Result.Add(Guid, KeyValue.Value);
-									}
+									Result.Add(Guid, KeyValue.Value);
 								}
 							}
-							return Result;
 						}
-						static void CollectSubPrefab(AActor* InActor, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InOutSubPrefabMap, ULGUIPrefabHelperObject* InPrefabHelperObject, const TMap<UObject*, FGuid>& InMapObjectToGuid)
+						return Result;
+					}
+					static void CollectSubPrefab(AActor* InActor, TMap<TObjectPtr<AActor>, FLGUISubPrefabData>& InOutSubPrefabMap, ULGUIPrefabHelperObject* InPrefabHelperObject, const TMap<UObject*, FGuid>& InMapObjectToGuid)
+					{
+						if (InPrefabHelperObject->IsActorBelongsToSubPrefab(InActor))
 						{
-							if (InPrefabHelperObject->IsActorBelongsToSubPrefab(InActor))
-							{
-								auto OriginSubPrefabData = InPrefabHelperObject->GetSubPrefabData(InActor);
-								FLGUISubPrefabData SubPrefabData;
-								SubPrefabData.PrefabAsset = OriginSubPrefabData.PrefabAsset;
-								SubPrefabData.ObjectOverrideParameterArray = OriginSubPrefabData.ObjectOverrideParameterArray;
-								SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab = Make_MapGuidFromParentToSub(InMapObjectToGuid, InPrefabHelperObject, OriginSubPrefabData);
-								InOutSubPrefabMap.Add(InActor, SubPrefabData);
-								return;
-							}
-							TArray<AActor*> ChildrenActors;
-							InActor->GetAttachedActors(ChildrenActors);
-							for (auto ChildActor : ChildrenActors)
-							{
-								CollectSubPrefab(ChildActor, InOutSubPrefabMap, InPrefabHelperObject, InMapObjectToGuid);//collect all actor, include subprefab's actor
-							}
+							auto OriginSubPrefabData = InPrefabHelperObject->GetSubPrefabData(InActor);
+							FLGUISubPrefabData SubPrefabData;
+							SubPrefabData.PrefabAsset = OriginSubPrefabData.PrefabAsset;
+							SubPrefabData.ObjectOverrideParameterArray = OriginSubPrefabData.ObjectOverrideParameterArray;
+							SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab = Make_MapGuidFromParentToSub(InMapObjectToGuid, InPrefabHelperObject, OriginSubPrefabData);
+							InOutSubPrefabMap.Add(InActor, SubPrefabData);
+							return;
 						}
-					};
-					TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-					TMap<UObject*, FGuid> MapObjectToGuid;
-					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab first step, just collect guid and sub prefab
-					LOCAL::CollectSubPrefab(selectedActor, SubPrefabMap, PrefabHelperObjectWhichManageThisActor, MapObjectToGuid);
-					for (auto& KeyValue : SubPrefabMap)
-					{
-						PrefabHelperObjectWhichManageThisActor->RemoveSubPrefabByAnyActorOfSubPrefab(KeyValue.Key);//remove prefab from origin PrefabHelperObject
-					}
-					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab second step, store sub prefab data
-					OutPrefab->RefreshAgentObjectsInPreviewWorld();
-
-					//make it as subprefab
-					TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
-					for (auto KeyValue : MapObjectToGuid)
-					{
-						MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-					}
-					PrefabHelperObjectWhichManageThisActor->MakePrefabAsSubPrefab(OutPrefab, selectedActor, MapGuidToObject, {});
-					if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstanceByPrefabHelperObject(PrefabHelperObjectWhichManageThisActor))
-					{
-						PrefabManagerActor->MarkPackageDirty();
-					}
-
-					if (OldPrefabHelperObject != nullptr && OldPrefabHelperObject->PrefabAsset != nullptr)
-					{
-						if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(OldPrefabHelperObject->PrefabAsset))//if is create prefab inside a prefab editor, then apply the prefab editor
+						TArray<AActor*> ChildrenActors;
+						InActor->GetAttachedActors(ChildrenActors);
+						for (auto ChildActor : ChildrenActors)
 						{
-							PrefabEditor->ApplyPrefab();
+							CollectSubPrefab(ChildActor, InOutSubPrefabMap, InPrefabHelperObject, InMapObjectToGuid);
 						}
+					}
+				};
+				TMap<TObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+				TMap<UObject*, FGuid> MapObjectToGuid;
+				OutPrefab->SavePrefab(ActorToSave, MapObjectToGuid, SubPrefabMap);
+				LOCAL::CollectSubPrefab(ActorToSave, SubPrefabMap, PrefabHelperObjectWhichManageThisActor, MapObjectToGuid);
+				for (auto& KeyValue : SubPrefabMap)
+				{
+					PrefabHelperObjectWhichManageThisActor->RemoveSubPrefabByAnyActorOfSubPrefab(KeyValue.Key);
+				}
+				OutPrefab->SavePrefab(ActorToSave, MapObjectToGuid, SubPrefabMap);
+				OutPrefab->RefreshAgentObjectsInPreviewWorld();
+
+				TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+				for (auto KeyValue : MapObjectToGuid)
+				{
+					MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
+				}
+				PrefabHelperObjectWhichManageThisActor->MakePrefabAsSubPrefab(OutPrefab, ActorToSave, MapGuidToObject, {});
+				if (auto PrefabManagerActor = ALGUIPrefabLevelManagerActor::GetInstanceByPrefabHelperObject(PrefabHelperObjectWhichManageThisActor))
+				{
+					PrefabManagerActor->MarkPackageDirty();
+				}
+
+				ULGUIPrefabHelperObject* OldHelper = WeakOldPrefabHelperObject.Get();
+				if (OldHelper != nullptr && OldHelper->PrefabAsset != nullptr)
+				{
+					if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(OldHelper->PrefabAsset))
+					{
+						PrefabEditor->ApplyPrefab();
 					}
 				}
-				CleanupPrefabsInWorld(selectedActor->GetWorld());
 			}
-			else
-			{
-				FMessageDialog::Open(EAppMsgType::Ok
-					, LOCTEXT("Error_PrefabSaveLocation", "Prefab should only save inside Content folder!"));
-			}
-		}
+			CleanupPrefabsInWorld(ActorToSave->GetWorld());
+		}))
+	);
+
+	// Add the window
+	TSharedPtr<SWindow> RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+	if (RootWindow.IsValid())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(CreatePrefabWindow.ToSharedRef(), RootWindow.ToSharedRef());
+	}
+	else
+	{
+		FSlateApplication::Get().AddWindow(CreatePrefabWindow.ToSharedRef());
 	}
 }
 

@@ -54,6 +54,7 @@ public:
 	static void AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass);
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
+	static void CreatePrefabAsset_Internal(AActor* selectedActor);
 	static void RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab);
 	static void RefreshOpenedPrefabEditor(ULGUIPrefab* InPrefab);
 	static void RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab);
