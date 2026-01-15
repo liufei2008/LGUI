@@ -1,9 +1,7 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 #include "LGUIPostProcessVertexShader.usf"
 #include "/Engine/Private/GammaCorrectionCommon.ush"
-
-Texture2D _MainTex;
-SamplerState _MainTexSampler;
+#include "/Engine/Generated/UniformBuffers/LGUIPostProcessMainTexUB.ush"
 
 // reference from CompositeUIPixelShader.usf
 float3 LinearizeColor(float3 EncodedColor)
@@ -26,7 +24,7 @@ void SimpleCopyTargetPS(
     out float4 OutColor : SV_Target0
 )
 {
-    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+    OutColor = LGUIPostProcessMainTexUB._MainTex.Sample(LGUIPostProcessMainTexUB._MainTexSampler, input.uv);
 #if LGUI_COLORCORRECT
     OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif
@@ -46,7 +44,7 @@ void CopyMeshRegionPS(
     float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
     uv.xy = uv.xy * _MainTextureScaleOffset.xy + _MainTextureScaleOffset.zw;
     uv.y = 1.0f - uv.y;
-    OutColor = _MainTex.Sample(_MainTexSampler, uv);
+    OutColor = LGUIPostProcessMainTexUB._MainTex.Sample(LGUIPostProcessMainTexUB._MainTexSampler, uv);
 #if LGUI_COLORCORRECT
     OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif

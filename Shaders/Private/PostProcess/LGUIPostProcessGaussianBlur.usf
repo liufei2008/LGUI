@@ -1,6 +1,10 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 #include "LGUIPostProcessVertexShader.usf"
 #include "/Engine/Public/Platform.ush"
+#include "/Engine/Generated/UniformBuffers/LGUIPostProcessMainTexUB.ush"
+#if USE_STRENGTH_TEXTURE
+#include "/Engine/Generated/UniformBuffers/LGUIBlurStrengthTexUB.ush"
+#endif
 
 static float _Offset[3] =
 {
@@ -15,28 +19,22 @@ static float _Weight[3] =
 	0.3162162162,
 	0.0702702703
 };
-Texture2D _MainTex;
-SamplerState _MainTexSampler;
 float2 _BlurStrength;
-#if USE_STRENGTH_TEXTURE
-Texture2D _StrengthTex;
-SamplerState _StrengthTexSampler;
-#endif
 
 float4 GaussianBlurPS(SimpleVSToPS input) : SV_Target0
 {
 #if USE_STRENGTH_TEXTURE
-    float strength = _StrengthTex.Sample(_StrengthTexSampler, input.uv).r;
+    float strength = LGUIBlurStrengthTexUB._StrengthTex.Sample(LGUIBlurStrengthTexUB._StrengthTexSampler, input.uv).r;
 #endif
-    float4 color = _MainTex.Sample(_MainTexSampler, input.uv) * _Weight[0];
+    float4 color = LGUIPostProcessMainTexUB._MainTex.Sample(LGUIPostProcessMainTexUB._MainTexSampler, input.uv) * _Weight[0];
     for (int i = 1; i < 3; i++)
     {
         float2 uvOffset = _Offset[i] * _BlurStrength;
 #if USE_STRENGTH_TEXTURE
         uvOffset *= strength;
 #endif
-        color += _MainTex.Sample(_MainTexSampler, input.uv + uvOffset) * _Weight[i];
-        color += _MainTex.Sample(_MainTexSampler, input.uv - uvOffset) * _Weight[i];
+        color += LGUIPostProcessMainTexUB._MainTex.Sample(LGUIPostProcessMainTexUB._MainTexSampler, input.uv + uvOffset) * _Weight[i];
+        color += LGUIPostProcessMainTexUB._MainTex.Sample(LGUIPostProcessMainTexUB._MainTexSampler, input.uv - uvOffset) * _Weight[i];
     }
     return color;
 }

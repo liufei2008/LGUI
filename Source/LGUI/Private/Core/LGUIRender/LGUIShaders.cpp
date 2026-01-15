@@ -9,6 +9,9 @@
 #include "MaterialDomain.h"
 #include "SceneView.h"
 
+// Implement uniform buffer struct for Metal compatibility
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLGUIWorldRenderDepthTexUB, "LGUIWorldRenderDepthTexUB");
+
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderVS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIScreenRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderPS, TEXT("/Plugin/LGUI/Private/LGUIShader.usf"), TEXT("MainPS"), SF_Pixel);
@@ -86,8 +89,6 @@ void FLGUIScreenRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float value
 FLGUIWorldRenderPS::FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FLGUIScreenRenderPS(Initializer)
 {
-	SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
-	SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
 	SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 	SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 }
@@ -98,8 +99,14 @@ void FLGUIWorldRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermu
 }
 void FLGUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler)
 {
+	// Use uniform buffer for texture/sampler (required for Metal shader compilation)
+	FLGUIWorldRenderDepthTexUB UB;
+	UB._SceneDepthTex = DepthTexture;
+	UB._SceneDepthTexSampler = DepthTextureSampler;
+	TUniformBufferRef<FLGUIWorldRenderDepthTexUB> UniformBuffer = TUniformBufferRef<FLGUIWorldRenderDepthTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-	SetTextureParameter(BatchedParameters, SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+	SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLGUIWorldRenderDepthTexUB>(), UniformBuffer);
 	SetShaderValue(BatchedParameters, SceneDepthBlendParameter, DepthBlend);
 	SetShaderValue(BatchedParameters, SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
