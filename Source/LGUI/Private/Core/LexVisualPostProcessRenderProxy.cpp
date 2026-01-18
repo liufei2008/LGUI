@@ -125,7 +125,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 						if (ClipDataTexture != nullptr)
 						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
+							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
 						}
 						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
 					}
@@ -138,7 +138,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 						if (ClipDataTexture != nullptr)
 						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
+							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
 						}
 						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
 						PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld, FVector2f(1.0f / ViewRect.Width(), 1.0f / ViewRect.Height()));
@@ -153,7 +153,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 					PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
 					if (ClipDataTexture != nullptr)
 					{
-						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
+						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
 					}
 				}
 				IndexBuffer = GLexUIFullScreenQuadIndexBuffer.IndexBufferRHI;

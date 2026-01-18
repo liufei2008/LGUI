@@ -9,6 +9,34 @@
 #include "Engine/Texture2D.h"
 #include "RHIStaticStates.h"
 
+// Uniform Buffer Declarations for Metal Shader Compilation
+// Using BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT to properly bind textures/samplers
+// PostProcess shaders uniform buffers
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIPostProcessMainTexUB, )
+	SHADER_PARAMETER_TEXTURE(Texture2D, _MainTex)
+	SHADER_PARAMETER_SAMPLER(SamplerState, _MainTexSampler)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+// RenderMesh shaders uniform buffers
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMainTexUB, )
+	SHADER_PARAMETER_TEXTURE(Texture2D, _MainTex)
+	SHADER_PARAMETER_SAMPLER(SamplerState, _MainTexSampler)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMaskTexUB, )
+	SHADER_PARAMETER_TEXTURE(Texture2D, _MaskTex)
+	SHADER_PARAMETER_SAMPLER(SamplerState, _MaskTexSampler)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshClipDataTexUB, )
+	SHADER_PARAMETER_TEXTURE(Texture2D, _ClipDataTex)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshDepthTexUB, )
+	SHADER_PARAMETER_TEXTURE(Texture2D, _SceneDepthTex)
+	SHADER_PARAMETER_SAMPLER(SamplerState, _SceneDepthTexSampler)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+
 class FLexUIPostProcessShader :public FGlobalShader
 {
 public:
@@ -55,16 +83,20 @@ public:
 	FLexUISimpleCopyTargetPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTextureRHIRef SceneTexture, FRHISamplerState* SceneTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
-		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, SceneTextureSampler, SceneTexture);
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		
+		FLexUIPostProcessMainTexUB UB;
+		UB._MainTex = SceneTexture;
+		UB._MainTexSampler = SceneTextureSampler;
+		TUniformBufferRef<FLexUIPostProcessMainTexUB> UniformBuffer = TUniformBufferRef<FLexUIPostProcessMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIPostProcessMainTexUB>(), UniformBuffer);
+		
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 };
 class FLexUISimpleCopyTargetPS_ColorCorrect : public FLexUISimpleCopyTargetPS
 {
@@ -114,13 +146,19 @@ public:
 	FLexUIPostProcessGaussianBlurPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
 		BlurStrengthParameter.Bind(Initializer.ParameterMap, TEXT("_BlurStrength"));
 	}
 	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
 	{
-		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		
+		FLexUIPostProcessMainTexUB UB;
+		UB._MainTex = MainTexture;
+		UB._MainTexSampler = MainTextureSampler;
+		TUniformBufferRef<FLexUIPostProcessMainTexUB> UniformBuffer = TUniformBufferRef<FLexUIPostProcessMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIPostProcessMainTexUB>(), UniformBuffer);
+		
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
@@ -133,8 +171,6 @@ public:
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
 };
 
@@ -163,8 +199,6 @@ public:
 	FLexUICopyMeshRegionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
 		MainTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_MainTextureScaleOffset"));
 		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
 		IsRenderTargetParameter.Bind(Initializer.ParameterMap, TEXT("_IsRenderTarget"));
@@ -176,15 +210,20 @@ public:
 		)
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
+		
+		FLexUIRenderMeshMainTexUB UB;
+		UB._MainTex = MainTexture;
+		UB._MainTexSampler = MainTextureSampler;
+		TUniformBufferRef<FLexUIRenderMeshMainTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMainTexUB>(), UniformBuffer);
+		
 		SetShaderValue(BatchedParameters, MVPParameter, MVP);
 		SetShaderValue(BatchedParameters, MainTextureScaleOffsetParameter, MainTextureScaleOffset);
 		SetShaderValue(BatchedParameters, IsRenderTargetParameter, bIsRenderTarget ? 1.0f : 0.0f);
+		
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, MainTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, MVPParameter);
 	LAYOUT_FIELD(FShaderParameter, IsRenderTargetParameter);
@@ -263,8 +302,6 @@ public:
 	FLexUIRenderMeshPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
@@ -273,11 +310,17 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
-		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		
+		FLexUIRenderMeshMainTexUB UB;
+		UB._MainTex = MainTexture;
+		UB._MainTexSampler = MainTextureSampler;
+		TUniformBufferRef<FLexUIRenderMeshMainTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMainTexUB>(), UniformBuffer);
+		
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 };
 
 //render mesh pixel shader, use a mask texture
@@ -289,10 +332,6 @@ public:
 	FLexUIRenderMeshWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
-		MaskTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTex"));
-		MaskTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTexSampler"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
@@ -307,15 +346,26 @@ public:
 	)
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
-		SetTextureParameter(BatchedParameters, MaskTextureParameter, MaskTextureSamplerParameter, MaskTextureSampler, MaskTexture);
+
+		{
+			FLexUIRenderMeshMainTexUB UB;
+			UB._MainTex = MainTexture;
+			UB._MainTexSampler = MainTextureSampler;
+			TUniformBufferRef<FLexUIRenderMeshMainTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+			SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMainTexUB>(), UniformBuffer);
+		}
+
+		{
+			FLexUIRenderMeshMaskTexUB UB;
+			UB._MaskTex = MaskTexture;
+			UB._MaskTexSampler = MaskTextureSampler;
+			TUniformBufferRef<FLexUIRenderMeshMaskTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMaskTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+			SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMaskTexUB>(), UniformBuffer);
+		}
+		
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureSamplerParameter);
 };
 
 #pragma region Clip
@@ -328,8 +378,6 @@ public:
 	FLexUIRenderMeshPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIRenderMeshPS(Initializer)
 	{
-		ClipDataTexParameter.Bind(Initializer.ParameterMap, TEXT("_ClipDataTex"));
-		ClipDataTexSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_ClipDataTexSampler"));
 		InvMParameter.Bind(Initializer.ParameterMap, TEXT("_Inv_M"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -339,17 +387,19 @@ public:
 	}
 	void SetClipParameters(FRHICommandListImmediate& RHICmdList
 		, const FMatrix44f& InvM
-		, FTextureRHIRef ClipTexture
-		, FRHISamplerState* ClipTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+		, FTextureRHIRef ClipTexture)
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, ClipDataTexParameter, ClipDataTexSamplerParameter, ClipTextureSampler, ClipTexture);
+
+		FLexUIRenderMeshClipDataTexUB UB;
+		UB._ClipDataTex = ClipTexture;
+		TUniformBufferRef<FLexUIRenderMeshClipDataTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshClipDataTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshClipDataTexUB>(), UniformBuffer);
+		
 		SetShaderValue(BatchedParameters, InvMParameter, InvM);
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, ClipDataTexParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, ClipDataTexSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, InvMParameter);
 };
 class FLexUIRenderMeshWorldPS_Clip : public FLexUIRenderMeshPS_Clip
@@ -361,8 +411,6 @@ public:
 	FLexUIRenderMeshWorldPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIRenderMeshPS_Clip(Initializer)
 	{
-		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
-		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
 		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
@@ -374,14 +422,18 @@ public:
 	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+
+		FLexUIRenderMeshDepthTexUB UB;
+		UB._SceneDepthTex = DepthTexture;
+		UB._SceneDepthTexSampler = DepthTextureSampler;
+		TUniformBufferRef<FLexUIRenderMeshDepthTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshDepthTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshDepthTexUB>(), UniformBuffer);
+		
 		SetShaderValue(BatchedParameters, SceneDepthBlendParameter, DepthBlend);
 		SetShaderValue(BatchedParameters, SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };
@@ -422,8 +474,6 @@ public:
 	FLexUIRenderMeshWithMaskPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIRenderMeshWithMaskPS(Initializer)
 	{
-		ClipDataTexParameter.Bind(Initializer.ParameterMap, TEXT("_ClipDataTex"));
-		ClipDataTexSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_ClipDataTexSampler"));
 		InvMParameter.Bind(Initializer.ParameterMap, TEXT("_Inv_M"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters & Parameters, FShaderCompilerEnvironment & OutEnvironment)
@@ -437,13 +487,16 @@ public:
 		, FRHISamplerState * ClipTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, ClipDataTexParameter, ClipDataTexSamplerParameter, ClipTextureSampler, ClipTexture);
+
+		FLexUIRenderMeshClipDataTexUB UB;
+		UB._ClipDataTex = ClipTexture;
+		TUniformBufferRef<FLexUIRenderMeshClipDataTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshClipDataTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshClipDataTexUB>(), UniformBuffer);
+		
 		SetShaderValue(BatchedParameters, InvMParameter, InvM);
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, ClipDataTexParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, ClipDataTexSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, InvMParameter);
 };
 class FLexUIRenderMeshWithMaskWorldPS_Clip : public FLexUIRenderMeshWithMaskPS_Clip
@@ -455,8 +508,6 @@ public:
 	FLexUIRenderMeshWithMaskWorldPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIRenderMeshWithMaskPS_Clip(Initializer)
 	{
-		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
-		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
 		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
@@ -468,14 +519,18 @@ public:
 	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetTextureParameter(BatchedParameters, SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		
+		FLexUIRenderMeshDepthTexUB UB;
+		UB._SceneDepthTex = DepthTexture;
+		UB._SceneDepthTexSampler = DepthTextureSampler;
+		TUniformBufferRef<FLexUIRenderMeshDepthTexUB> UniformBuffer = TUniformBufferRef<FLexUIRenderMeshDepthTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshDepthTexUB>(), UniformBuffer);
+		
 		SetShaderValue(BatchedParameters, SceneDepthBlendParameter, DepthBlend);
 		SetShaderValue(BatchedParameters, SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureSamplerParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
 };

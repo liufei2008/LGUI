@@ -183,8 +183,7 @@ half3 GammaCorrect(half3 InColor, half4 GammaValues)
 }
 
 #if LEXUI_BLEND_DEPTH
-Texture2D _SceneDepthTex;
-SamplerState _SceneDepthTexSampler;
+#include "/Engine/Generated/UniformBuffers/LexUIWorldRenderDepthTexUB.ush"
 float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #if LEXUI_DEPTH_FADE
@@ -267,7 +266,7 @@ void MainPS(
 	{
 		for (int h = -SampleSize; h <= SampleSize; h++)
 		{
-			float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV + float2(w, h) * ResolvedView.ViewSizeAndInvSize.zw).x;
+			float ExistDepth = LexUIWorldRenderDepthTexUB._SceneDepthTex.Sample(LexUIWorldRenderDepthTexUB._SceneDepthTexSampler, ScreenUV + float2(w, h) * ResolvedView.ViewSizeAndInvSize.zw).x;
 			DepthFadeValue += step(ExistDepth, PixelDepth);
 			SampleCount++;
 		}
@@ -275,7 +274,7 @@ void MainPS(
 	DepthFadeValue /= SampleCount;
 	DepthFadeValue = smoothstep(0, 1, DepthFadeValue);
 #else
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
+    float ExistDepth = LexUIWorldRenderDepthTexUB._SceneDepthTex.Sample(LexUIWorldRenderDepthTexUB._SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	float DepthFadeValue = step(ExistDepth, PixelDepth);
 #endif
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, DepthFadeValue);

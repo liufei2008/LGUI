@@ -1,16 +1,15 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 #include "LexUIRenderMeshVertexShader.usf"
+#include "/Engine/Generated/UniformBuffers/LexUIRenderMeshMainTexUB.ush"
 
 #if LEXUI_CLIP
 #include "../LexUIClip.ush"
-Texture2D _ClipDataTex;
-SamplerState _ClipDataTexSampler;
+#include "/Engine/Generated/UniformBuffers/LexUIRenderMeshClipDataTexUB.ush"
 float4x4 _Inv_M;
 #endif
 
 #if LEXUI_BLEND_DEPTH
-Texture2D _SceneDepthTex;
-SamplerState _SceneDepthTexSampler;
+#include "/Engine/Generated/UniformBuffers/LexUIRenderMeshDepthTexUB.ush"
 float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #if LEXUI_DEPTH_FADE
@@ -19,12 +18,8 @@ float2 _ViewSizeInv;
 #endif
 #endif
 
-Texture2D _MainTex;
-SamplerState _MainTexSampler;
-
 #if LEXUI_MASK
-Texture2D _MaskTex;
-SamplerState _MaskTexSampler;
+#include "/Engine/Generated/UniformBuffers/LexUIRenderMeshMaskTexUB.ush"
 #endif
 
 void RenderMeshPS(
@@ -32,13 +27,13 @@ void RenderMeshPS(
     out float4 OutColor : SV_Target0
 )
 {
-    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+    OutColor = LexUIRenderMeshMainTexUB._MainTex.Sample(LexUIRenderMeshMainTexUB._MainTexSampler, input.uv);
 #if LEXUI_MASK
-    OutColor.a *= _MaskTex.Sample(_MaskTexSampler, input.uv).r;
+    OutColor.a *= LexUIRenderMeshMaskTexUB._MaskTex.Sample(LexUIRenderMeshMaskTexUB._MaskTexSampler, input.uv).r;
 #endif
 #if LEXUI_CLIP
 	float3 localPosition = mul(float4(input.worldPosition, 1.0), _Inv_M).xyz;
-	OutColor.a *= LexUI_CalculateClipData(_ClipDataTex, input.uv1.x, input.localPosition);
+	OutColor.a *= LexUI_CalculateClipData(LexUIRenderMeshClipDataTexUB._ClipDataTex, input.uv1.x, input.localPosition);
 #endif
 #if LEXUI_BLEND_DEPTH
     float PixelDepth = input.screenPosition.z / input.screenPosition.w;
@@ -54,7 +49,7 @@ void RenderMeshPS(
 	{
 		for (int h = -SampleSize; h <= SampleSize; h++)
 		{
-			float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV + float2(w, h) * _ViewSizeInv.xy).x;
+			float ExistDepth = LexUIRenderMeshDepthTexUB._SceneDepthTex.Sample(LexUIRenderMeshDepthTexUB._SceneDepthTexSampler, ScreenUV + float2(w, h) * _ViewSizeInv.xy).x;
 			DepthFadeValue += step(ExistDepth, PixelDepth);
 			SampleCount++;
 		}
@@ -62,7 +57,7 @@ void RenderMeshPS(
 	DepthFadeValue /= SampleCount;
 	DepthFadeValue = smoothstep(0, 1, DepthFadeValue);
 #else
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
+    float ExistDepth = LexUIRenderMeshDepthTexUB._SceneDepthTex.Sample(LexUIRenderMeshDepthTexUB._SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	float DepthFadeValue = step(ExistDepth, PixelDepth);
 #endif
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, DepthFadeValue);

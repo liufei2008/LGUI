@@ -1,9 +1,7 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 #include "LexUIPostProcessVertexShader.usf"
 #include "/Engine/Private/GammaCorrectionCommon.ush"
-
-Texture2D _MainTex;
-SamplerState _MainTexSampler;
+#include "/Engine/Generated/UniformBuffers/LexUIPostProcessMainTexUB.ush"
 
 // reference from CompositeUIPixelShader.usf
 float3 LinearizeColor(float3 EncodedColor)
@@ -30,7 +28,7 @@ void SimpleCopyTargetPS(
     out float4 OutColor : SV_Target0
 )
 {
-    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+    OutColor = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv);
 #if LEXUI_BLENDALPHA
     OutColor.a *= _BlendAlpha;
 #endif
@@ -54,7 +52,7 @@ void CopyMeshRegionPS(
     float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
     uv.xy = uv.xy * _MainTextureScaleOffset.xy + _MainTextureScaleOffset.zw;
     uv.y = 1.0f - uv.y;
-    OutColor = _MainTex.Sample(_MainTexSampler, uv);
+    OutColor = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, uv);
     //if render to screen then we need set alpha to 1, because default is 0 
     OutColor.a = _IsRenderTarget ? OutColor.a : 1;
 #if LEXUI_COLORCORRECT

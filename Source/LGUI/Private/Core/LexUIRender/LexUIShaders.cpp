@@ -14,6 +14,7 @@ IMPLEMENT_MATERIAL_SHADER_TYPE(, FLexUIScreenRenderPS, TEXT("/Plugin/LGUI/Privat
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLexUIWorldRenderPS, TEXT("/Plugin/LGUI/Private/LexUIShader.usf"), TEXT("MainPS"), SF_Pixel);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLexUIWorldRenderDepthFadePS, TEXT("/Plugin/LGUI/Private/LexUIShader.usf"), TEXT("MainPS"), SF_Pixel);
 
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIWorldRenderDepthTexUB, "LexUIWorldRenderDepthTexUB");
 
 FLexUIScreenRenderVS::FLexUIScreenRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	: FMaterialShader(Initializer)
@@ -86,8 +87,6 @@ void FLexUIScreenRenderPS::SetGammaValue(FRHICommandList& RHICmdList, float valu
 FLexUIWorldRenderPS::FLexUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FLexUIScreenRenderPS(Initializer)
 {
-	SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
-	SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
 	SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 	SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 }
@@ -98,8 +97,12 @@ void FLexUIWorldRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPerm
 }
 void FLexUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler)
 {
+	FLexUIWorldRenderDepthTexUB UB;
+	UB._SceneDepthTex = DepthTexture;
+	UB._SceneDepthTexSampler = DepthTextureSampler;
+	TUniformBufferRef<FLexUIWorldRenderDepthTexUB> UniformBuffer = TUniformBufferRef<FLexUIWorldRenderDepthTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
 	FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-	SetTextureParameter(BatchedParameters, SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+	SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIWorldRenderDepthTexUB>(), UniformBuffer);
 	SetShaderValue(BatchedParameters, SceneDepthBlendParameter, DepthBlend);
 	SetShaderValue(BatchedParameters, SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);

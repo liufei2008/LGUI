@@ -3,6 +3,13 @@
 #include "Core/LexUIRender/LexUIPostProcessShaders.h"
 #include "Materials/Material.h"
 
+// Implement uniform buffer structs for Metal compatibility
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIPostProcessMainTexUB, "LexUIPostProcessMainTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMainTexUB, "LexUIRenderMeshMainTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMaskTexUB, "LexUIRenderMeshMaskTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshClipDataTexUB, "LexUIRenderMeshClipDataTexUB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshDepthTexUB, "LexUIRenderMeshDepthTexUB");
+
 IMPLEMENT_SHADER_TYPE(, FLexUISimplePostProcessVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessVertexShader.usf"), TEXT("SimplePostProcessVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLexUIPostProcessGaussianBlurPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
