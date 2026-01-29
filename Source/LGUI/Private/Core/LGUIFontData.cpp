@@ -418,14 +418,16 @@ bool ULGUIFontData::RenderGlyph(const TCHAR& charCode, const float& charSize, FG
 	OutResult.pixelSize = 4;
 	//pixel color
 	int pixelCount = OutResult.width * OutResult.height;
-	FColor* regionColor = new FColor[pixelCount];
+	TArray<unsigned char> regionData;
+	regionData.SetNumUninitialized(pixelCount * OutResult.pixelSize);
+	FColor* regionColor = reinterpret_cast<FColor*>(regionData.GetData());
 	for (int i = 0; i < pixelCount; i++)
 	{
 		auto& pixelColor = regionColor[i];
 		pixelColor.R = pixelColor.G = pixelColor.B = 255;
 		pixelColor.A = slot->bitmap.buffer[i];
 	}
-	OutResult.buffer = (unsigned char*)regionColor;
+	OutResult.buffer = MoveTemp(regionData);
 	return true;
 #else
 	return false;
