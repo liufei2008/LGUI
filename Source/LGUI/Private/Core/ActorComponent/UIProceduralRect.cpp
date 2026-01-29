@@ -627,10 +627,11 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		bNeedUpdateBlockData = false;
 
 		auto BlockSize = ProceduralRectData->GetBlockSizeInByte();
-		uint8* BlockBuffer = new uint8[BlockSize];
-		FMemory::Memzero(BlockBuffer, BlockSize);
-		FillData(BlockBuffer, this->GetWidth(), this->GetHeight());
-		ProceduralRectData->UpdateBlock(DataStartPosition, BlockBuffer);
+		TArray<uint8> BlockBuffer;
+		BlockBuffer.SetNumUninitialized(BlockSize);
+		FMemory::Memzero(BlockBuffer.GetData(), BlockSize);
+		FillData(BlockBuffer.GetData(), this->GetWidth(), this->GetHeight());
+		ProceduralRectData->UpdateBlock(DataStartPosition, MoveTemp(BlockBuffer));
 	}
 }
 
