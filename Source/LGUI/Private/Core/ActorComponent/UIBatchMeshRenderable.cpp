@@ -7,7 +7,6 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
-#include "Core/LGUIManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIBatchMeshRenderable GeometryModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
@@ -286,7 +285,7 @@ void UUIBatchMeshRenderable::UpdateGeometry()
 		//when use pixel-perfect, the pixel-perfect calculation will take consider transform matrix, so we need to recalculate geometry if pixel-perfect & bTransformChanged
 		bool pixelPerfect = this->GetShouldAffectByPixelPerfect() && this->GetRenderCanvas()->GetActualPixelPerfect();
 		bool pixelPerfectAffectTransform = pixelPerfect && bTransformChanged;
-		if (bTriangleChanged || bLocalVertexPositionChanged || pixelPerfectAffectTransform || bColorChanged || bUVChanged)
+		if (GetAnythingDirty() || pixelPerfectAffectTransform)
 		{
 			geometry->Clear();
 			//check if GeometryModifier will affect vertex data, if so we need to update these data in OnUpdateGeometry
@@ -484,6 +483,11 @@ void UUIBatchMeshRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoin
 {
 	OutMinPoint = this->LocalMinPoint;
 	OutMaxPoint = this->LocalMaxPoint;
+}
+
+bool UUIBatchMeshRenderable::GetAnythingDirty()
+{
+	return bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged;
 }
 
 #if WITH_EDITOR
