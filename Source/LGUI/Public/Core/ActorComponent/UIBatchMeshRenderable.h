@@ -168,14 +168,15 @@ protected:
 	/** material to render this UI element. if CustomUIMaterial is not valid, then use this material. */
 	virtual UMaterialInterface* GetMaterialToCreateGeometry();
 
-	/** do anything before acturally create or update geometry */
+	/** do anything before actually create or update geometry */
 	virtual void OnBeforeCreateOrUpdateGeometry();
 	/** fill and update ui geometry */
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	/** return true means any data dirty, then update geometry (go OnUpdateGeometry), otherwise return false. */
+	virtual bool GetAnythingDirty()const;
 
 	virtual void UpdateGeometry()override final;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const override;
-	virtual bool GetAnythingDirty();
 #if WITH_EDITOR
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
 #endif
