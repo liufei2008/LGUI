@@ -175,6 +175,7 @@ protected:
 
 	virtual void UpdateGeometry()override final;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const override;
+	virtual bool GetAnythingDirty();
 #if WITH_EDITOR
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
 #endif
