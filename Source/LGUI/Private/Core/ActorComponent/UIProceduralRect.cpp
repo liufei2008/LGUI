@@ -441,7 +441,7 @@ void UUIProceduralRect::MarkAllDirty()
 	bNeedUpdateBlockData = true;
 }
 
-bool UUIProceduralRect::GetAnythingDirty()
+bool UUIProceduralRect::GetAnythingDirty()const
 {
 	return Super::GetAnythingDirty() || bNeedUpdateBlockData;
 }

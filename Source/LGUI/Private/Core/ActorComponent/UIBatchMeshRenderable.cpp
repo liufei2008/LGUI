@@ -335,6 +335,11 @@ void UUIBatchMeshRenderable::UpdateGeometry()
 	bTransformChanged = false;
 }
 
+bool UUIBatchMeshRenderable::GetAnythingDirty()const
+{
+	return bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged;
+}
+
 bool UUIBatchMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	switch (RaycastType)
@@ -483,11 +488,6 @@ void UUIBatchMeshRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoin
 {
 	OutMinPoint = this->LocalMinPoint;
 	OutMaxPoint = this->LocalMaxPoint;
-}
-
-bool UUIBatchMeshRenderable::GetAnythingDirty()
-{
-	return bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged;
 }
 
 #if WITH_EDITOR
