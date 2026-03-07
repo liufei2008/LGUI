@@ -441,7 +441,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 		auto& calcTexture = this->texture;
 		FLGUICharData uiCharData;
 	PACK_AND_INSERT:
-		if (PackRectAndInsertChar(MoveTemp(glyphBitmap), calcBinpack, calcTexture, uiCharData))
+		if (PackRectAndInsertChar(glyphBitmap, calcBinpack, calcTexture, uiCharData))
 		{
 
 		}
@@ -487,7 +487,7 @@ FLGUICharData_HighPrecision ULGUIFreeTypeRenderFontData::GetCharData(const TCHAR
 	return Result;
 }
 
-bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(FGlyphBitmap InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult)
+bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult)
 {
 	if (InGlyphBitmap.width <= 0 || InGlyphBitmap.height <= 0)//glyph no need to display, could be space
 	{
@@ -522,7 +522,7 @@ bool ULGUIFreeTypeRenderFontData::PackRectAndInsertChar(FGlyphBitmap InGlyphBitm
 		packedRect.height -= SPACE_BETWEEN_GLYPH_RECTx2;
 
 		auto region = FUpdateTextureRegion2D(packedRect.x, packedRect.y, 0, 0, InGlyphBitmap.width, InGlyphBitmap.height);
-		UpdateFontTextureRegion(InTexture, MoveTemp(region), packedRect.width * InGlyphBitmap.pixelSize, InGlyphBitmap.pixelSize, MoveTemp(InGlyphBitmap.buffer));
+		UpdateFontTextureRegion(InTexture, MoveTemp(region), packedRect.width * InGlyphBitmap.pixelSize, InGlyphBitmap.pixelSize, MoveTemp(const_cast<FGlyphBitmap&>(InGlyphBitmap).buffer));
 
 		OutResult.width = InGlyphBitmap.width + SPACE_NEED_EXPENDx2;
 		OutResult.height = InGlyphBitmap.height + SPACE_NEED_EXPENDx2;
