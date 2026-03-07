@@ -180,7 +180,7 @@ protected:
 	 * Insert rect into area, assign pixel if succeed
 	 * return: if can fit in rect area return true, else false
 	 */
-	bool PackRectAndInsertChar(FGlyphBitmap InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult);
+	bool PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, TArray<uint8> SrcData);
 	void RenewFontTexture(int oldTextureSize, int newTextureSize);
 
