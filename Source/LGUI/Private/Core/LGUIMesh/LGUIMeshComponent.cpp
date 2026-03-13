@@ -591,7 +591,11 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		if (!bIsSupportUERenderer) return;
-		if (ParentSceneProxy != nullptr && !bIsRenderFromParent)return;
+		if (ParentSceneProxy != nullptr)return;
+		GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
+	}
+	void GetMeshElements_UERenderer(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const
+	{
 		if (bNeedToSortRenderSections)
 		{
 			auto LGUIMeshSceneProxy = const_cast<FLGUIRenderSceneProxy*>(this);
@@ -669,9 +673,7 @@ public:
 				auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
 				if (ChildSceneProxy != nullptr)
 				{
-					ChildSceneProxy->bIsRenderFromParent = true;
-					ChildSceneProxy->GetDynamicMeshElements(Views, ViewFamily, VisibilityMap, Collector);
-					ChildSceneProxy->bIsRenderFromParent = false;
+					ChildSceneProxy->GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
 				}
 			}
 			break;
@@ -893,7 +895,6 @@ private:
 	FName DebugName;
 	static uint32 DebugNameIndex;
 #endif
-	bool bIsRenderFromParent = false;
 	/** If have parent then render in parent */
 	FLGUIRenderSceneProxy* ParentSceneProxy = nullptr;
 	/**
