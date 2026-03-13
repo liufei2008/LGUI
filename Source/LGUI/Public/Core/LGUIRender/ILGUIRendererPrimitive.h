@@ -52,6 +52,6 @@ public:
 	virtual FBoxSphereBounds GetWorldBounds()const = 0;
 
 	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) = 0;
-	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
+	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	virtual FUIPostProcessRenderProxy* GetPostProcessElement(const void* SectionPtr)const = 0;
 };
