@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Framework/Text/TextLayout.h"
 #include "LGUITextData.generated.h"
 
 class UIGeometry;

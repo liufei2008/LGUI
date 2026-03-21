@@ -441,6 +441,11 @@ void UUIProceduralRect::MarkAllDirty()
 	bNeedUpdateBlockData = true;
 }
 
+bool UUIProceduralRect::GetAnythingDirty()const
+{
+	return Super::GetAnythingDirty() || bNeedUpdateBlockData;
+}
+
 void UUIProceduralRect::CheckAdditionalShaderChannels()
 {
 	if (RenderCanvas.IsValid())
@@ -581,6 +586,15 @@ void UUIProceduralRect::OnDataTextureChanged(class UTexture* Texture)
 	MarkCanvasUpdate(true, true, false);
 }
 
+void UUIProceduralRect::MarkRectBlockDataDirty()
+{
+	bNeedUpdateBlockData = true;
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkCanvasUpdate(false, false, false, false);
+	}
+}
+
 void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	static FLGUISpriteInfo SimpleRectSpriteData;
@@ -627,10 +641,11 @@ void UUIProceduralRect::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChang
 		bNeedUpdateBlockData = false;
 
 		auto BlockSize = ProceduralRectData->GetBlockSizeInByte();
-		uint8* BlockBuffer = new uint8[BlockSize];
-		FMemory::Memzero(BlockBuffer, BlockSize);
-		FillData(BlockBuffer, this->GetWidth(), this->GetHeight());
-		ProceduralRectData->UpdateBlock(DataStartPosition, BlockBuffer);
+		TArray<uint8> BlockBuffer;
+		BlockBuffer.SetNumUninitialized(BlockSize);
+		FMemory::Memzero(BlockBuffer.GetData(), BlockSize);
+		FillData(BlockBuffer.GetData(), this->GetWidth(), this->GetHeight());
+		ProceduralRectData->UpdateBlock(DataStartPosition, MoveTemp(BlockBuffer));
 	}
 }
 
@@ -685,8 +700,7 @@ void UUIProceduralRect::ApplyAtlasTextureScaleUp_Implementation()
 void UUIProceduralRect::SetCornerRadius(const FVector4& value)
 {
 	this->CornerRadius = (FVector4f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetEnableBody(bool value)
 {
@@ -697,8 +711,7 @@ void UUIProceduralRect::SetEnableBody(bool value)
 void UUIProceduralRect::SetBodyColor(const FColor& value)
 {
 	this->BodyColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBodyTexture(UTexture* value)
 {
@@ -777,39 +790,33 @@ void UUIProceduralRect::SetSoftEdge(bool value)
 void UUIProceduralRect::SetBodyTextureScaleMode(EUIProceduralRectTextureScaleMode value)
 {
 	this->BodyTextureScaleMode = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 
 void UUIProceduralRect::SetEnableBodyGradient(bool value)
 {
 	this->bEnableBodyGradient = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBodyGradientColor(const FColor& value)
 {
 	this->BodyGradientColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBodyGradientCenter(const FVector2D& value)
 {
 	this->BodyGradientCenter = (FVector2f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBodyGradientRadius(const FVector2D& value)
 {
 	this->BodyGradientRadius = (FVector2f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBodyGradientRotation(float value)
 {
 	this->BodyGradientRotation = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 
 void UUIProceduralRect::SetEnableBorder(bool value)
@@ -821,44 +828,37 @@ void UUIProceduralRect::SetEnableBorder(bool value)
 void UUIProceduralRect::SetBorderWidth(float value)
 {
 	this->BorderWidth = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBorderColor(const FColor& value)
 {
 	this->BorderColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetEnableBorderGradient(bool value)
 {
 	this->bEnableBorderGradient = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBorderGradientColor(const FColor& value)
 {
 	this->BorderGradientColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBorderGradientCenter(const FVector2D& value)
 {
 	this->BorderGradientCenter = (FVector2f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBorderGradientRadius(const FVector2D& value)
 {
 	this->BorderGradientRadius = (FVector2f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetBorderGradientRotation(float value)
 {
 	this->BorderGradientRotation = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 
 void UUIProceduralRect::SetEnableInnerShadow(bool value)
@@ -870,20 +870,17 @@ void UUIProceduralRect::SetEnableInnerShadow(bool value)
 void UUIProceduralRect::SetInnerShadowColor(const FColor& value)
 {
 	this->InnerShadowColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetInnerShadowSize(float value)
 {
 	this->InnerShadowSize = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetInnerShadowBlur(float value)
 {
 	this->InnerShadowBlur = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetInnerShadowAngle(float value)
 {
@@ -901,14 +898,12 @@ void UUIProceduralRect::SetInnerShadowDistance(float value)
 void UUIProceduralRect::SetEnableRadialFill(bool value)
 {
 	this->bEnableRadialFill = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetRadialFillCenter(const FVector2D& value)
 {
 	this->RadialFillCenter = (FVector2f)value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetRadialFillRotation(float value)
 {
@@ -931,20 +926,17 @@ void UUIProceduralRect::SetEnableOuterShadow(bool value)
 void UUIProceduralRect::SetOuterShadowColor(const FColor& value)
 {
 	this->OuterShadowColor = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetOuterShadowSize(float value)
 {
 	this->OuterShadowSize = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetOuterShadowBlur(float value)
 {
 	this->OuterShadowBlur = value;
-	bNeedUpdateBlockData = true;
-	MarkCanvasUpdate(false, false, false, false);
+	MarkRectBlockDataDirty();
 }
 void UUIProceduralRect::SetOuterShadowAngle(float value)
 {
@@ -963,8 +955,7 @@ void UUIProceduralRect::SetOuterShadowDistance(float value)
 void UUIProceduralRect::Set##Property##UnitMode(EUIProceduralRectUnitMode value)\
 {\
 	this->Property##UnitMode = value;\
-	bNeedUpdateBlockData = true;\
-	MarkCanvasUpdate(false, false, false, false);\
+	MarkRectBlockDataDirty();\
 }
 
 FunctionSetPropertyUnitMode(CornerRadius);

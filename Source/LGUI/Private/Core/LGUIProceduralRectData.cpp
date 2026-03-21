@@ -141,22 +141,21 @@ void ULGUIProceduralRectData::UnregisterBuffer(const FIntVector2& InPosition)
 {
 	NotUsingPositionArray.Add(InPosition);
 }
-void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, uint8* InData)
+void ULGUIProceduralRectData::UpdateBlock(const FIntVector2& InPosition, TArray<uint8> InData)
 {
 	if (Texture->GetResource())
 	{
 		auto TextureRes = (FTexture2DDynamicResource*)Texture->GetResource();
 		ENQUEUE_RENDER_COMMAND(FLGUIProceduralRectData_UpdateBlock)(
-			[TextureRes, InPosition, InData, BlockSizeInByte = this->BlockSizeInByte, BlockPixelCount = this->BlockPixelCount](FRHICommandListImmediate& RHICmdList)
+			[TextureRes, InPosition, InData = MoveTemp(InData), BlockSizeInByte = this->BlockSizeInByte, BlockPixelCount = this->BlockPixelCount](FRHICommandListImmediate& RHICmdList)
 			{
 				RHICmdList.UpdateTexture2D(
 					TextureRes->GetTexture2DRHI(),
 					0,
 					FUpdateTextureRegion2D(InPosition.X, InPosition.Y, 0, 0, BlockPixelCount, 1),
 					BlockSizeInByte,
-					InData
+					InData.GetData()
 				);
-				delete InData;
 			});
 	}
 }

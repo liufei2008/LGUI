@@ -20,48 +20,6 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
-#if WITH_EDITOR
-class FLGUIObjectCreateDeleteListener : public FUObjectArray::FUObjectCreateListener, public FUObjectArray::FUObjectDeleteListener
-{
-public:
-	ULGUIPrefabManagerObject* Manager = nullptr;
-	FLGUIObjectCreateDeleteListener(ULGUIPrefabManagerObject* InManager)
-	{
-		Manager = InManager;
-		GUObjectArray.AddUObjectCreateListener(this);
-		GUObjectArray.AddUObjectDeleteListener(this);
-	}
-	~FLGUIObjectCreateDeleteListener()
-	{
-		GUObjectArray.RemoveUObjectCreateListener(this);
-		GUObjectArray.RemoveUObjectDeleteListener(this);
-	}
-
-	virtual void NotifyUObjectCreated(const class UObjectBase* Object, int32 Index)override
-	{
-		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
-		{
-			if (Comp->IsVisualizationComponent())return;
-			if (auto Actor = Comp->GetOwner())
-			{
-				Manager->OnComponentCreateDelete().Broadcast(true, Comp, Actor);
-			}
-		}
-	}
-	virtual void NotifyUObjectDeleted(const class UObjectBase* Object, int32 Index)override
-	{
-		if (auto Comp = Cast<UActorComponent>((UObject*)Object))
-		{
-			if (Comp->IsVisualizationComponent())return;
-			if (auto Actor = Comp->GetOwner())
-			{
-				Manager->OnComponentCreateDelete().Broadcast(false, Comp, Actor);
-			}
-		}
-	}
-	virtual void OnUObjectArrayShutdown()override {};
-};
-#endif
 
 ULGUIPrefabManagerObject* ULGUIPrefabManagerObject::Instance = nullptr;
 ULGUIPrefabManagerObject::ULGUIPrefabManagerObject()
@@ -103,17 +61,6 @@ void ULGUIPrefabManagerObject::BeginDestroy()
 			GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
 		}
 	}
-
-	//cleanup preview world
-	if (PreviewWorldForPrefabPackage && GEngine)
-	{
-		PreviewWorldForPrefabPackage->CleanupWorld();
-		GEngine->DestroyWorldContext(PreviewWorldForPrefabPackage);
-		PreviewWorldForPrefabPackage->ReleasePhysicsScene();
-	}
-
-	delete ObjectCreateDeleteListener;
-	ObjectCreateDeleteListener = nullptr;
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -121,7 +68,7 @@ void ULGUIPrefabManagerObject::BeginDestroy()
 
 void ULGUIPrefabManagerObject::Tick(float DeltaTime)
 {
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 	if (EditorTick.IsBound())
 	{
 		EditorTick.Broadcast(DeltaTime);
@@ -143,8 +90,6 @@ void ULGUIPrefabManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
-#endif
-#if WITH_EDITOR
 	if (bShouldBroadcastLevelActorListChanged)
 	{
 		bShouldBroadcastLevelActorListChanged = false;
@@ -271,27 +216,12 @@ UWorld* ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage(bool bCreate)
 	}
 
 	InitCheck();
-	auto& PreviewWorldForPrefabPackage = Instance->PreviewWorldForPrefabPackage;
-	if (PreviewWorldForPrefabPackage == nullptr)
+	auto& PreviewScene = Instance->PreviewSceneForPrefabPackage;
+	if (!PreviewScene)
 	{
-		FName UniqueWorldName = MakeUniqueObjectName(Instance, UWorld::StaticClass(), FName("LGUI_PreviewWorldForPrefabPackage"));
-		PreviewWorldForPrefabPackage = NewObject<UWorld>(Instance, UniqueWorldName);
-		PreviewWorldForPrefabPackage->AddToRoot();
-		PreviewWorldForPrefabPackage->WorldType = EWorldType::EditorPreview;
-
-		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(PreviewWorldForPrefabPackage->WorldType);
-		WorldContext.SetCurrentWorld(PreviewWorldForPrefabPackage);
-
-		PreviewWorldForPrefabPackage->InitializeNewWorld(UWorld::InitializationValues()
-			.AllowAudioPlayback(false)
-			.CreatePhysicsScene(false)
-			.RequiresHitProxies(false)
-			.CreateNavigation(false)
-			.CreateAISystem(false)
-			.ShouldSimulatePhysics(false)
-			.SetTransactional(false));
+		PreviewScene = MakeUnique<FPreviewScene>();
 	}
-	return PreviewWorldForPrefabPackage;
+	return PreviewScene->GetWorld();
 }
 bool ULGUIPrefabManagerObject::GetIsBlueprintCompiling()
 {

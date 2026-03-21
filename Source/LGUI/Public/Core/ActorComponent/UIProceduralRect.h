@@ -261,9 +261,11 @@ protected:
 	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InWidthChange, bool InHeightChange, bool InDiscardCache = true)override;
 	virtual void MarkAllDirty()override;
+	virtual bool GetAnythingDirty()const override;
 
 	void CheckAdditionalShaderChannels();
 	void OnDataTextureChanged(class UTexture* Texture);
+	void MarkRectBlockDataDirty();
 	FDelegateHandle OnDataTextureChangedDelegateHandle;
 	uint8 bNeedUpdateBlockData : 1;
 	uint8 bHasAddToSprite : 1;

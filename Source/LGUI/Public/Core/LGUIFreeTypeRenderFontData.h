@@ -172,7 +172,7 @@ protected:
 	{
 		int width, height, hOffset, vOffset, hAdvance;
 		/** memory will passed to render thread and delete there too */
-		unsigned char* buffer;
+		TArray<unsigned char> buffer;
 		/** single pixel data size in byte, eg RGBA8-4 A8-1 */
 		int pixelSize;
 	};
@@ -181,7 +181,7 @@ protected:
 	 * return: if can fit in rect area return true, else false
 	 */
 	bool PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture, FLGUICharData& OutResult);
-	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
+	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, TArray<uint8> SrcData);
 	void RenewFontTexture(int oldTextureSize, int newTextureSize);
 
 	virtual UTexture2D* CreateFontTexture(int InTextureSize)PURE_VIRTUAL(ULGUIFreeTypeRenderFontData::CreateFontTexture, return nullptr;);
