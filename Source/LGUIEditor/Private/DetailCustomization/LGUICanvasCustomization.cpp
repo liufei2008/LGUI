@@ -493,26 +493,31 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
-	auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(TargetScriptArray[0]->GetWorld());
-	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid() && LGUIManager)
+	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
-		auto& allCanvas = LGUIManager->GetCanvasArray(TargetScriptArray[0]->GetRenderMode());
-		int allDrawcallCount = 0;
-		for (auto& canvasItem : allCanvas)
+		if (auto World = TargetScriptArray[0]->GetWorld())
 		{
-			if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::RenderTarget)
+			if (auto LGUIManager = ULGUIManagerWorldSubsystem::GetInstance(World))
 			{
-				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
+				auto& allCanvas = LGUIManager->GetCanvasArray(TargetScriptArray[0]->GetRenderMode());
+				int allDrawcallCount = 0;
+				for (auto& canvasItem : allCanvas)
 				{
-					allDrawcallCount += canvasItem->GetDrawcallCount();
+					if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::RenderTarget)
+					{
+						if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
+						{
+							allDrawcallCount += canvasItem->GetDrawcallCount();
+						}
+					}
+					else
+					{
+						allDrawcallCount += canvasItem->GetDrawcallCount();
+					}
 				}
-			}
-			else
-			{
-				allDrawcallCount += canvasItem->GetDrawcallCount();
+				return FText::FromString(FString::Printf(TEXT("%d/%d"), TargetScriptArray[0]->GetDrawcallCount(), allDrawcallCount));
 			}
 		}
-		return FText::FromString(FString::Printf(TEXT("%d/%d"), TargetScriptArray[0]->GetDrawcallCount(), allDrawcallCount));
 	}
 	return FText::FromString(FString::Printf(TEXT("0/0")));
 }
