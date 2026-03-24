@@ -155,9 +155,6 @@ bool ULGUIPrefabManagerObject::InitCheck()
 			Instance->OnBlueprintPreCompileDelegateHandle = GEditor->OnBlueprintPreCompile().AddUObject(Instance, &ULGUIPrefabManagerObject::OnBlueprintPreCompile);
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIPrefabManagerObject::OnBlueprintCompiled);
 		}
-#if 0 // only used for ULGUIPrefabHelperObject::OnComponentCreateDelete but that function is disabled, so this listener doesn't need to be created
-		Instance->ObjectCreateDeleteListener = new FLGUIObjectCreateDeleteListener(Instance);
-#endif
 	}
 	return true;
 }
@@ -205,9 +202,9 @@ void ULGUIPrefabManagerObject::OnPackageReloaded(EPackageReloadPhase Phase, FPac
 
 UWorld* ULGUIPrefabManagerObject::GetPreviewWorldForPrefabPackage(bool bCreate)
 {
-	if (Instance && Instance->PreviewWorldForPrefabPackage)
+	if (Instance && Instance->PreviewSceneForPrefabPackage)
 	{
-		return Instance->PreviewWorldForPrefabPackage;
+		return Instance->PreviewSceneForPrefabPackage->GetWorld();
 	}
 
 	if (!bCreate)
