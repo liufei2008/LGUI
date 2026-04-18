@@ -657,7 +657,7 @@ bool ULGUICanvasScaler::Project3DToScreen(const FVector& Position3D, FVector2D& 
 	return false;
 }
 
-#if 1
+#if 0
 #include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
 bool ULGUICanvasScaler::ProjectWorldToScreen(APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const
@@ -672,7 +672,7 @@ bool ULGUICanvasScaler::ProjectWorldToScreen(APlayerController* Player, const FV
 			, TempFovAngle, 1000, 0.01f, ProjectionMatrix);
 
 		auto ViewLocation = Player->PlayerCameraManager->GetCameraLocation();
-		auto ViewRotationMatrix = FInverseRotationMatrix(Player->GetRootComponent()->GetComponentRotation()) * FMatrix(
+		auto ViewRotationMatrix = FInverseRotationMatrix(Player->PlayerCameraManager->GetCameraRotation()) * FMatrix(
 			FPlane(0, 0, 1, 0),
 			FPlane(1, 0, 0, 0),
 			FPlane(0, 1, 0, 0),
