@@ -374,9 +374,9 @@ public:
 		}
 	}
 
-	void DeleteSectionData_RenderThread(FLGUIRenderSectionProxy* Section, bool RemoveFromArray)
+	void DeleteSectionData_RenderThread(FLGUIRenderSectionProxy* Section, bool bRemoveFromArray)
 	{
-		if (RemoveFromArray)
+		if (bRemoveFromArray)
 		{
 			Sections.Remove(Section);
 		}
@@ -662,16 +662,16 @@ public:
 	}
 
 	//begin ILGUIRendererPrimitive interface
-	virtual FVector3f GetWorldPositionForSortTranslucent()const override 
+	virtual FVector3f LGUI_GetWorldPositionForSortTranslucent()const override 
 	{
 		return (FVector3f)(GetLocalToWorld().GetOrigin()); 
 	}
-	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) override
+	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) override
 	{
 		if (ParentSceneProxy != nullptr)return;
 		CollectRenderData_Implement(OutRenderData, CurrentWorldTime);
 	}
-	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) override
+	virtual void LGUI_GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
 		if (!bIsSupportLGUIRenderer)return;
 		// Set up wireframe material (if needed)
@@ -721,25 +721,25 @@ public:
 		}
 	}
 
-	virtual FUIPostProcessRenderProxy* GetPostProcessElement(const void* SectionPtr)const override
+	virtual FUIPostProcessRenderProxy* LGUI_GetPostProcessElement(const void* SectionPtr)const override
 	{
 		auto RenderSection = (FLGUIRenderSectionProxy*)SectionPtr;
 		check(RenderSection->Type == ELGUIRenderSectionType::PostProcess);
 		return ((FLGUIPostProcessSectionProxy*)RenderSection)->PostProcessRenderProxy.Pin().Get();
 	}
-	virtual int GetRenderPriority()const override
+	virtual int LGUI_GetRenderPriority()const override
 	{
 		return RenderPriority;
 	}
-	virtual bool CanRender()const override
+	virtual bool LGUI_CanRender()const override
 	{
 		return ParentSceneProxy == nullptr && Sections.Num() > 0;
 	}
-	virtual FPrimitiveComponentId GetPrimitiveComponentId() const override 
+	virtual FPrimitiveComponentId LGUI_GetPrimitiveComponentId() const override 
 	{
 		return FPrimitiveSceneProxy::GetPrimitiveComponentId();
 	}
-	virtual FBoxSphereBounds GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
+	virtual FBoxSphereBounds LGUI_GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
 	//end ILGUIRendererPrimitive interface
 	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray, float CurrentWorldTime)
 	{

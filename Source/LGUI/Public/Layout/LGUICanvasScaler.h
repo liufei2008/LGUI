@@ -209,6 +209,6 @@ public:
 	 * CAUTION!!! This is just a test or reference function.
 	 * Compare to built-in GameplayStatics::ProjectWorldToScreen, this function has no latency, however GameplayStatics::ProjectWorldToScreen use last frame's camera location & rotation
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-	bool ProjectWorldToScreen(class APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const;
+	// UFUNCTION(BlueprintCallable, Category = LGUI)
+	// bool ProjectWorldToScreen(class APlayerController* Player, const FVector& Position3D, FVector2D& OutPosition2D)const;
 };
