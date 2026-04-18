@@ -45,14 +45,14 @@ class ILGUIRendererPrimitive
 public:
 	virtual ~ILGUIRendererPrimitive() {}
 
-	virtual bool CanRender() const = 0;
-	virtual int GetRenderPriority() const = 0;
+	virtual bool LGUI_CanRender() const = 0;
+	virtual int LGUI_GetRenderPriority() const = 0;
 	/** For world space renderer to tell visibility, eg SceneCapture2D */
-	virtual FPrimitiveComponentId GetPrimitiveComponentId() const = 0;
-	virtual FVector3f GetWorldPositionForSortTranslucent()const = 0;
-	virtual FBoxSphereBounds GetWorldBounds()const = 0;
+	virtual FPrimitiveComponentId LGUI_GetPrimitiveComponentId() const = 0;
+	virtual FVector3f LGUI_GetWorldPositionForSortTranslucent()const = 0;
+	virtual FBoxSphereBounds LGUI_GetWorldBounds()const = 0;
 
-	virtual void CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) = 0;
-	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
-	virtual FUIPostProcessRenderProxy* GetPostProcessElement(const void* SectionPtr)const = 0;
+	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) = 0;
+	virtual void LGUI_GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
+	virtual FUIPostProcessRenderProxy* LGUI_GetPostProcessElement(const void* SectionPtr)const = 0;
 };

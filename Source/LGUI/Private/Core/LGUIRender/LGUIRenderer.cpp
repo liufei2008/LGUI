@@ -531,32 +531,32 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		TArray<FWorldSpaceRenderParameterSequence> RenderSequenceArray;
 		for (auto& WorldRenderParameter : WorldSpaceRenderCanvasParameterArray)
 		{
-			if (WorldRenderParameter.Primitive->CanRender())
+			if (WorldRenderParameter.Primitive->LGUI_CanRender())
 			{
 				bool bIsPrimitiveVisible = false;//default is not visible
 				if (InView.ShowOnlyPrimitives.IsSet())
 				{
-					bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(WorldRenderParameter.Primitive->GetPrimitiveComponentId());
+					bIsPrimitiveVisible = InView.ShowOnlyPrimitives.GetValue().Contains(WorldRenderParameter.Primitive->LGUI_GetPrimitiveComponentId());
 				}
 				else
 				{
-					bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(WorldRenderParameter.Primitive->GetPrimitiveComponentId());
+					bIsPrimitiveVisible = !InView.HiddenPrimitives.Contains(WorldRenderParameter.Primitive->LGUI_GetPrimitiveComponentId());
 				}
 				if (bIsPrimitiveVisible)
 				{
-					auto WorldBounds = WorldRenderParameter.Primitive->GetWorldBounds();
+					auto WorldBounds = WorldRenderParameter.Primitive->LGUI_GetWorldBounds();
 					if (!bFrustumCulling 
 						|| (bFrustumCulling && InView.CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 						)
 					{
 						FWorldSpaceRenderParameterSequence Item;
-						WorldRenderParameter.Primitive->CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
+						WorldRenderParameter.Primitive->LGUI_CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
 						if (Item.RenderDataArray.Num() > 0)
 						{
 							Item.BlendDepth = WorldRenderParameter.BlendDepth;
 							Item.DepthFade = WorldRenderParameter.DepthFade;
-							Item.WorldPosition = WorldRenderParameter.Primitive->GetWorldPositionForSortTranslucent();
-							Item.RenderPriority = WorldRenderParameter.Primitive->GetRenderPriority();
+							Item.WorldPosition = WorldRenderParameter.Primitive->LGUI_GetWorldPositionForSortTranslucent();
+							Item.RenderPriority = WorldRenderParameter.Primitive->LGUI_GetRenderPriority();
 							RenderSequenceArray.Add(Item);
 						}
 					}
@@ -623,7 +623,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 				{
 					for (int i = 0; i < RenderPrimitiveItem.Sections.Num(); i++)
 					{
-						if (auto Primitive = RenderPrimitiveItem.Primitive->GetPostProcessElement(RenderPrimitiveItem.Sections[i].SectionPointer))
+						if (auto Primitive = RenderPrimitiveItem.Primitive->LGUI_GetPostProcessElement(RenderPrimitiveItem.Sections[i].SectionPointer))
 						{
 							Primitive->OnRenderPostProcess_RenderThread(
 								GraphBuilder,
@@ -662,7 +662,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 							MeshBatchArray.Reset();
 							FSceneRenderingBulkObjectAllocator Allocator;
 							FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
-							RenderPrimitiveItem.Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderPrimitiveItem, MeshBatchArray);
+							RenderPrimitiveItem.Primitive->LGUI_GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderPrimitiveItem, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
 								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
@@ -838,14 +838,14 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 		TArray<FLGUIPrimitiveDataContainer> RenderSequenceArray;
 		for (auto Primitive : ScreenSpaceRenderParameter.PrimitiveArray)
 		{
-			if (Primitive->CanRender())
+			if (Primitive->LGUI_CanRender())
 			{
-				auto WorldBounds = Primitive->GetWorldBounds();
+				auto WorldBounds = Primitive->LGUI_GetWorldBounds();
 				if (!bFrustumCulling 
 					|| (bFrustumCulling && RenderView->CullingFrustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 					)
 				{
-					Primitive->CollectRenderData(RenderSequenceArray, CurrentWorldTime);
+					Primitive->LGUI_CollectRenderData(RenderSequenceArray, CurrentWorldTime);
 				}
 			}
 		}
@@ -860,7 +860,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 			{
 				for (int i = 0; i < RenderSequenceItem.Sections.Num(); i++)
 				{
-					if (auto Primitive = RenderSequenceItem.Primitive->GetPostProcessElement(RenderSequenceItem.Sections[i].SectionPointer))
+					if (auto Primitive = RenderSequenceItem.Primitive->LGUI_GetPostProcessElement(RenderSequenceItem.Sections[i].SectionPointer))
 					{
 						Primitive->OnRenderPostProcess_RenderThread(
 							GraphBuilder,
@@ -905,7 +905,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 						MeshBatchArray.Reset();
 						FSceneRenderingBulkObjectAllocator Allocator;
 						FLGUIMeshElementCollector meshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
-						RenderSequenceItem.Primitive->GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderSequenceItem, MeshBatchArray);
+						RenderSequenceItem.Primitive->LGUI_GetMeshElements(*RenderView->Family, (FMeshElementCollector*)&meshCollector, RenderSequenceItem, MeshBatchArray);
 
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
@@ -1215,7 +1215,7 @@ void FLGUIRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 {
 	ScreenSpaceRenderParameter.PrimitiveArray.Sort([](ILGUIRendererPrimitive& A, ILGUIRendererPrimitive& B)
 		{
-			return A.GetRenderPriority() < B.GetRenderPriority();
+			return A.LGUI_GetRenderPriority() < B.LGUI_GetRenderPriority();
 		});
 }
 
