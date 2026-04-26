@@ -1132,14 +1132,14 @@ void FLGUIRenderer::AddResolvePass(
 	);
 }
 
-void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)
+void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(void* InCanvasPtr, float InBlendDepth, int InDepthFade, ILGUIRendererPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
 		FWorldSpaceRenderParameter RenderParameter;
-		RenderParameter.BlendDepth = InCanvas->GetActualBlendDepth();
-		RenderParameter.DepthFade = InCanvas->GetActualDepthFade();
-		RenderParameter.RenderCanvas = InCanvas;
+		RenderParameter.BlendDepth = InBlendDepth;
+		RenderParameter.DepthFade = InDepthFade;
+		RenderParameter.RenderCanvas = InCanvasPtr;
 		RenderParameter.Primitive = InPrimitive;
 
 		WorldSpaceRenderCanvasParameterArray.Add(RenderParameter);
@@ -1150,7 +1150,7 @@ void FLGUIRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, I
 		UE_LOG(LGUI, Warning, TEXT("[%s].%d Add nullptr as ILGUIRendererPrimitive!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 }
-void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIRendererPrimitive* InPrimitive)
+void FLGUIRenderer::RemoveWorldSpacePrimitive_RenderThread(ILGUIRendererPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{

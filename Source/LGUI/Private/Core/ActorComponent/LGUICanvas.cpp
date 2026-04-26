@@ -684,7 +684,7 @@ void ULGUICanvas::PostLoad()
 void ULGUICanvas::PostEditUndo()
 {
 	Super::PostEditUndo();
-
+	ClearDrawcall();
 	ULGUIManagerWorldSubsystem::RefreshAllUI(this->GetWorld());
 }
 void ULGUICanvas::EnsureDataForRebuild()
@@ -1602,14 +1602,6 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 		}
 	};
 	bool bNeedToUpdateBounds = false;
-	if (UIDrawcallList.Num() == 0)
-	{
-		/** 
-		 * no drawcall, need to mark it dirty so the previous created SceneProxy will be deleted.
-		 * Solve the case: Set child-canvas inactive, but UIMesh of child-canvas did not clear scene-proxy, and the scene-proxy still contains reference of parent-scene-proxy.
-		 */
-		UIMesh->MarkRenderStateDirty();
-	}
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -1647,7 +1639,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			{
 				auto RenderSectionPtr = RenderSection.Pin();
 				check(RenderSectionPtr->Type == ELGUIRenderSectionType::Mesh);
-				auto MeshSectionPtr = (FLGUIMeshSection*)RenderSectionPtr.Get();
+				auto MeshSectionPtr = static_cast<FLGUIMeshSection*>(RenderSectionPtr.Get());
 				MeshSectionPtr->vertices.Reset();
 				MeshSectionPtr->triangles.Reset();
 				DrawcallItem->GetCombined(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
@@ -1679,7 +1671,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			if (!DrawcallItem->DrawcallRenderSection.IsValid())
 			{
 				auto RenderSection = UIMesh->CreateRenderSection(ELGUIRenderSectionType::PostProcess);
-				auto ChildCanvasSection = (FLGUIPostProcessSection*)RenderSection.Get();
+				auto ChildCanvasSection = static_cast<FLGUIPostProcessSection*>(RenderSection.Get());
 				ChildCanvasSection->PostProcessRenderableObject = DrawcallItem->PostProcessRenderableObject;
 				UIMesh->CreateRenderSectionRenderData(RenderSection);
 				DrawcallItem->DrawcallRenderSection = RenderSection;
@@ -1695,9 +1687,9 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			if (!DrawcallItem->DrawcallRenderSection.IsValid())
 			{
 				auto RenderSection = UIMesh->CreateRenderSection(ELGUIRenderSectionType::ChildCanvas);
-				auto ChildCanvasSection = (FLGUIChildCanvasSection*)RenderSection.Get();
+				auto ChildCanvasSection = static_cast<FLGUIChildCanvasSection*>(RenderSection.Get());
 				ChildCanvasSection->ChildCanvasMeshComponent = DrawcallItem->ChildCanvas->GetUIMesh();
-				ChildCanvasSection->ChildCanvasMeshComponent->SetParentCavansMeshComp(this->UIMesh.Get());
+				ChildCanvasSection->ChildCanvasMeshComponent->SetParentCanvasMeshComp(this->UIMesh.Get());
 				UIMesh->CreateRenderSectionRenderData(RenderSection);
 				DrawcallItem->DrawcallRenderSection = RenderSection;
 				//create new section, need to sort it
@@ -2159,7 +2151,9 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		}
 	}
 
-	if (bNeedToVerifyMaterials)
+	if (bNeedToVerifyMaterials
+		|| UIDrawcallList.Num() == 0
+		)
 	{
 		MarkNeedVerifyMaterials();//tell parent canvas to verify material
 	}
