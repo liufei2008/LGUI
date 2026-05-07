@@ -79,7 +79,7 @@ public:
 	virtual bool GetNeedObjectScale() override{ return true; }//sdf font need scale value in material
 	//End ULGUIFontDataBaseObject interface
 protected:
-	float italicSlop = 0.0f; float oneDivideFontSize = 1.0f;
+	float italicSlop = 0.0f; float oneDivideFontSize = 1.0f; float objectScale = 1.0f;
 	TMap<TCHAR, FLGUICharData> charDataMap;
 	TMap<FLGUISDFFontKerningPair, int16> KerningPairsMap;
 	virtual UTexture2D* CreateFontTexture(int InTextureSize)override;
