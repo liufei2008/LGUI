@@ -493,7 +493,6 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 	float GammaValue =
 		(RendererType == ELGUIRendererType::RenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
 
-	auto CurrentWorldTime = InView.Family->Time.GetWorldTimeSeconds();
 	//Render world space
 	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
@@ -534,7 +533,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 						)
 					{
 						FWorldSpaceRenderParameterSequence Item;
-						WorldRenderParameter.Primitive->LGUI_CollectRenderData(Item.RenderDataArray, CurrentWorldTime);
+						WorldRenderParameter.Primitive->LGUI_CollectRenderData(Item.RenderDataArray);
 						if (Item.RenderDataArray.Num() > 0)
 						{
 							Item.BlendDepth = WorldRenderParameter.BlendDepth;
@@ -829,7 +828,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 					|| (bFrustumCulling && RenderView->GetCullingFrustum().IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))//simple View Frustum Culling
 					)
 				{
-					Primitive->LGUI_CollectRenderData(RenderSequenceArray, CurrentWorldTime);
+					Primitive->LGUI_CollectRenderData(RenderSequenceArray);
 				}
 			}
 		}

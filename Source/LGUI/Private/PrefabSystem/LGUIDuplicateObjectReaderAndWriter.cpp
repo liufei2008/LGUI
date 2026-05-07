@@ -80,29 +80,25 @@ namespace LGUIPrefabSystem
 		else
 		{
 			bool canSerializeObject = false;
+			FGuid guid;
 			auto guidPtr = Serializer.MapObjectToGuid.Find(Object);
 			if (guidPtr != nullptr)
 			{
 				canSerializeObject = true;
-				//MapObjectToGuid could be passed-in, if that the CollectObjectToSerailize will not execute which will miss some objects. so we still need to collect objects to serialize
-				FGuid guid;
+				guid = *guidPtr;
+				//MapObjectToGuid could be passed-in, if that the CollectObjectToSerialize will not execute which will miss some objects. so we still need to collect objects to serialize
 				Serializer.CollectObjectToSerailize(Object, guid);
 			}
 			else
 			{
-				FGuid guid;
 				canSerializeObject = Serializer.CollectObjectToSerailize(Object, guid);
-				if (canSerializeObject)
-				{
-					guidPtr = &guid;
-				}
 			}
 
 			if (canSerializeObject)//object belongs to this actor hierarchy
 			{
 				auto type = (uint8)EObjectType::ObjectReference;
 				*this << type;
-				*this << *guidPtr;
+				*this << guid;
 				return true;
 			}
 			else//object not belongs to this actor hierarchy, just copy pointer

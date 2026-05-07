@@ -3,7 +3,6 @@
 #include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "DynamicMeshBuilder.h"
 #include "PhysicsEngine/BodySetup.h"
-#include "Containers/ResourceArray.h"
 #include "StaticMeshResources.h"
 #include "Materials/Material.h"
 #include "Core/LGUIRender/ILGUIRendererPrimitive.h"
@@ -42,7 +41,6 @@ struct FLGUIRenderSectionProxy
 {
 	virtual ~FLGUIRenderSectionProxy()
 	{
-
 	}
 
 	ELGUIRenderSectionType Type;
@@ -167,6 +165,8 @@ struct FLGUIChildCanvasSectionProxy : public FLGUIRenderSectionProxy
 	FLGUIRenderSceneProxy* ChildCanvasSceneProxy = nullptr;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIRenderSceneProxyReleaseDelegate, class FLGUIRenderSceneProxy*);
+
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateRenderSection"), STAT_CreateRenderSection, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_RT"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
 /** LGUI render scene proxy */
@@ -178,33 +178,34 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIRenderSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, int32 InCanvasSortOrder, FLGUIRenderSceneProxy* InParentSceneProxy)
+	FLGUIRenderSceneProxy(ULGUIMeshComponent* InComponent, ULGUICanvas* InCanvasPtr, bool InIsRenderCanvas)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetShaderPlatform()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CreateRenderSection);
 #if !UE_BUILD_SHIPPING
-		DebugName = FName(FString::Printf(TEXT("%s_SceneProxy_%d"), *InComponent->GetName(), DebugNameIndex++));
+		DebugName = FString::Printf(TEXT("%s_SceneProxy_%d"), *InComponent->GetName(), DebugNameIndex++);
 #endif
 		LGUIRenderer = InComponent->LGUIRenderer;
 		RenderCanvasPtr = InCanvasPtr;
-		CanvasLastRenderTime = &RenderCanvasPtr->LastRenderTime;
 		bIsLGUIRenderToWorld = InComponent->bIsLGUIRenderToWorld;
-		ParentSceneProxy = InParentSceneProxy;
+		bIsRenderCanvas = InIsRenderCanvas;
 		if (LGUIRenderer.IsValid())
 		{
 			auto TempRenderer = LGUIRenderer;
 			auto SceneProxy = this;
 			auto IsRenderToWorld = bIsLGUIRenderToWorld;
+			auto BlendDepth = InCanvasPtr->GetActualBlendDepth();
+			auto DepthFade = InCanvasPtr->GetActualDepthFade();
 			ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_AddPrimitive)(
-				[TempRenderer, SceneProxy, InCanvasPtr, InCanvasSortOrder, IsRenderToWorld](FRHICommandListImmediate& RHICmdList)
+				[TempRenderer, SceneProxy, InCanvasPtr, BlendDepth, DepthFade, IsRenderToWorld](FRHICommandListImmediate& RHICmdList)
 				{
 					if (TempRenderer.IsValid())
 					{
 						if (IsRenderToWorld)
 						{
-							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread(InCanvasPtr, InCanvasPtr->GetActualBlendDepth(), InCanvasPtr->GetActualDepthFade(), SceneProxy);
+							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread(InCanvasPtr, BlendDepth, DepthFade, SceneProxy);
 						}
 						else
 						{
@@ -323,8 +324,9 @@ public:
 			NewSectionProxy->PrimitiveComponentID = ChildCanvasMeshItem->GetPrimitiveSceneId();
 			if (ChildCanvasMeshItem->SceneProxy != nullptr)
 			{
-				NewSectionProxy->ChildCanvasSceneProxy = static_cast<FLGUIRenderSceneProxy*>(ChildCanvasMeshItem->SceneProxy);
-				NewSectionProxy->ChildCanvasSceneProxy->ParentSceneProxy = this;
+				auto ChildSceneProxy = static_cast<FLGUIRenderSceneProxy*>(ChildCanvasMeshItem->SceneProxy);
+				NewSectionProxy->ChildCanvasSceneProxy = ChildSceneProxy;
+				ChildSceneProxy->OnRelease.AddRaw(this, &FLGUIRenderSceneProxy::ClearChildCanvasSectionData_RenderThread);
 			}
 
 			// Copy info
@@ -338,7 +340,7 @@ public:
 		check(0);
 		return nullptr;
 	}
-	void SetChildCanvasSectionData_RenderThread(FPrimitiveComponentId CompID, FLGUIRenderSceneProxy* SceneProxy)
+	void SetChildCanvasSectionData_RenderThread(FPrimitiveComponentId CompID, FLGUIRenderSceneProxy* ChildSceneProxy)
 	{
 		for (int i = 0; i < Sections.Num(); i++)
 		{
@@ -348,15 +350,16 @@ public:
 			{
 				auto ChildCanvasSection = static_cast<FLGUIChildCanvasSectionProxy*>(Section);
 				if (ChildCanvasSection->PrimitiveComponentID == CompID
-					&& (ChildCanvasSection->ChildCanvasSceneProxy == nullptr || ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy == this)//check this because ParentSceneProxy could be a new one
 					)
 				{
-					ChildCanvasSection->ChildCanvasSceneProxy = SceneProxy;
+					ChildCanvasSection->ChildCanvasSceneProxy = ChildSceneProxy;
+					ChildCanvasSection->ChildCanvasSceneProxy->OnRelease.AddRaw(this, &FLGUIRenderSceneProxy::ClearChildCanvasSectionData_RenderThread);
+					break;
 				}
 			}
 		}
 	}
-	void ClearChildCanvasSectionData_RenderThread(FLGUIRenderSceneProxy* SceneProxy)
+	void ClearChildCanvasSectionData_RenderThread(FLGUIRenderSceneProxy* ChildSceneProxy)
 	{
 		for (int i = 0; i < Sections.Num(); i++)
 		{
@@ -365,8 +368,9 @@ public:
 			if (Section->Type == ELGUIRenderSectionType::ChildCanvas)
 			{
 				auto ChildCanvasSection = static_cast<FLGUIChildCanvasSectionProxy*>(Section);
-				if (ChildCanvasSection->ChildCanvasSceneProxy == SceneProxy)//child could already get new proxy, so need to check it
+				if (ChildCanvasSection->ChildCanvasSceneProxy == ChildSceneProxy)//child could already get new proxy, so need to check it
 				{
+					ChildCanvasSection->ChildCanvasSceneProxy->OnRelease.RemoveAll(this);
 					ChildCanvasSection->ChildCanvasSceneProxy = nullptr;
 					return;
 				}
@@ -374,9 +378,23 @@ public:
 		}
 	}
 
+	void DetachChildCanvasSection_RenderThread(FLGUIRenderSectionProxy* Section)
+	{
+		if (Section == nullptr || Section->Type != ELGUIRenderSectionType::ChildCanvas)
+		{
+			return;
+		}
+		auto ChildCanvasSection = static_cast<FLGUIChildCanvasSectionProxy*>(Section);
+		if (ChildCanvasSection->ChildCanvasSceneProxy != nullptr)
+		{
+			ChildCanvasSection->ChildCanvasSceneProxy->OnRelease.RemoveAll(this);
+		}
+		ChildCanvasSection->ChildCanvasSceneProxy = nullptr;
+	}
 	void DeleteSectionData_RenderThread(FLGUIRenderSectionProxy* Section)
 	{
 		Sections.Remove(Section);
+		DetachChildCanvasSection_RenderThread(Section);
 		delete Section;
 	}
 
@@ -394,6 +412,7 @@ public:
 	{
 		auto SectionIndex = Sections.IndexOfByKey(OldSection);
 		check(SectionIndex >= 0);
+		DetachChildCanvasSection_RenderThread(OldSection);
 		delete OldSection;
 		Sections[SectionIndex] = NewSection;
 	}
@@ -430,31 +449,19 @@ public:
 
 	virtual ~FLGUIRenderSceneProxy()override
 	{
+		OnRelease.Broadcast(this);
+#if !UE_BUILD_SHIPPING
+		DebugName = FString::Printf(TEXT("%s_Deleted"), *DebugName);
+#endif
 		for(auto Section : Sections)
 		{
 			if (Section != nullptr)
 			{
-				switch (Section->Type)
-				{
-				case ELGUIRenderSectionType::ChildCanvas:
-					auto ChildCanvasSection = static_cast<FLGUIChildCanvasSectionProxy*>(Section);
-					if (ChildCanvasSection->ChildCanvasSceneProxy)
-					{
-						if (ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy == this)//child canvas's ParentSceneProxy could already be new one, so check it
-						{
-							ChildCanvasSection->ChildCanvasSceneProxy->ParentSceneProxy = nullptr;
-						}
-					}
-					break;
-				}
+				DetachChildCanvasSection_RenderThread(Section);
 				delete Section;
 			}
 		}
 		Sections.Empty();
-		if (ParentSceneProxy)
-		{
-			ParentSceneProxy->ClearChildCanvasSectionData_RenderThread(this);
-		}
 		if (LGUIRenderer.IsValid())
 		{
 			if (bIsLGUIRenderToWorld)
@@ -568,7 +575,7 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		if (!bIsSupportUERenderer) return;
-		if (ParentSceneProxy != nullptr)return;
+		if (!LGUI_CanRender())return;
 		GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
 	}
 	void GetMeshElements_UERenderer(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const
@@ -662,10 +669,9 @@ public:
 	{
 		return FVector3f(GetLocalToWorld().GetOrigin()); 
 	}
-	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) override
+	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData) override
 	{
-		if (ParentSceneProxy != nullptr)return;
-		CollectRenderData_Implement(OutRenderData, CurrentWorldTime);
+		CollectRenderData_Implement(OutRenderData);
 	}
 	virtual void LGUI_GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
@@ -729,7 +735,7 @@ public:
 	}
 	virtual bool LGUI_CanRender()const override
 	{
-		return ParentSceneProxy == nullptr && Sections.Num() > 0;
+		return bIsRenderCanvas && Sections.Num() > 0;
 	}
 	virtual FPrimitiveComponentId LGUI_GetPrimitiveComponentId() const override 
 	{
@@ -737,7 +743,7 @@ public:
 	}
 	virtual FBoxSphereBounds LGUI_GetWorldBounds()const override { return FPrimitiveSceneProxy::GetBounds(); }
 	//end ILGUIRendererPrimitive interface
-	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray, float CurrentWorldTime)
+	void CollectRenderData_Implement(TArray<FLGUIPrimitiveDataContainer>& OutRenderDataArray)
 	{
 		if (Sections.Num() <= 0)return;
 		if (bNeedToSortRenderSections)
@@ -745,7 +751,6 @@ public:
 			bNeedToSortRenderSections = false;
 			this->SortMeshSectionRenderPriority_RenderThread();
 		}
-		*CanvasLastRenderTime = CurrentWorldTime;
 
 		if (Sections[0] == nullptr)return;
 		auto PrevRenderSectionType = Sections[0]->Type;
@@ -798,7 +803,7 @@ public:
 					auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
 					if (ChildSceneProxy != nullptr)
 					{
-						ChildSceneProxy->CollectRenderData_Implement(OutRenderDataArray, CurrentWorldTime);
+						ChildSceneProxy->CollectRenderData_Implement(OutRenderDataArray);
 					}
 				}
 				break;
@@ -846,11 +851,6 @@ public:
 	{
 		return(sizeof(*this) + GetAllocatedSize());
 	}
-
-	void SetParentSceneProxy_RenderThread(FLGUIRenderSceneProxy* InParentSceneProxy)
-	{
-		ParentSceneProxy = InParentSceneProxy;
-	}
 private:
 	TArray<FLGUIRenderSectionProxy*> Sections;
 
@@ -861,18 +861,13 @@ private:
 	bool bIsSupportUERenderer = true;
 	bool bIsLGUIRenderToWorld = false;
 	bool bNeedToSortRenderSections = true;
-	ULGUICanvas* RenderCanvasPtr = nullptr;
+	bool bIsRenderCanvas = false;
+	TWeakObjectPtr<ULGUICanvas> RenderCanvasPtr = nullptr;
+	FLGUIRenderSceneProxyReleaseDelegate OnRelease;
 #if !UE_BUILD_SHIPPING
-	FName DebugName;
+	FString DebugName;
 	static uint32 DebugNameIndex;
 #endif
-	/** If have parent then render in parent */
-	FLGUIRenderSceneProxy* ParentSceneProxy = nullptr;
-	/**
-	 * This is a pointer to LGUICanvas's LastRenderTime.
-	 * Why it is safe to use? Check PrimitiveSceneInfo.h OwnerLastRenderTime
-	 */
-	float* CanvasLastRenderTime = nullptr;
 };
 #if !UE_BUILD_SHIPPING
 uint32 FLGUIRenderSceneProxy::DebugNameIndex = 0;
@@ -921,7 +916,9 @@ ULGUIMeshComponent::ULGUIMeshComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	this->bCanEverAffectNavigation = false;
 }
+#if WITH_EDITOR
 #include "Utils/LGUIUtils.h"
+#endif
 void ULGUIMeshComponent::CreateRenderSectionRenderData(TSharedPtr<FLGUIRenderSection> InRenderSection)
 {
 #if WITH_EDITOR
@@ -972,7 +969,7 @@ void ULGUIMeshComponent::UpdateMeshSectionRenderData(TSharedPtr<FLGUIRenderSecti
 	if (SceneProxy)
 	{
 		check(InRenderSection->Type == ELGUIRenderSectionType::Mesh);
-		auto MeshSection = (FLGUIMeshSection*)InRenderSection.Get();
+		auto MeshSection = static_cast<FLGUIMeshSection*>(InRenderSection.Get());
 
 		struct UpdateMeshSectionDataStruct
 		{
@@ -1030,6 +1027,7 @@ void ULGUIMeshComponent::DeleteRenderSection(TSharedPtr<FLGUIRenderSection> InRe
 					LGUIMeshSceneProxy->DeleteSectionData_RenderThread(SectionProxy);
 				}
 			);
+			InRenderSection->RenderProxy = nullptr;
 		}
 	}
 
@@ -1111,13 +1109,13 @@ void ULGUIMeshComponent::SetParentCanvasMeshComp(ULGUIMeshComponent* InParentCan
 		
 		ParentCanvasMeshComp = InParentCanvasMeshComp;
 		
-		ChildCanvasMeshCom->OnSceneProxyCreated.AddWeakLambda(InParentCanvasMeshComp, [InParentCanvasMeshComp](ULGUIMeshComponent* InChildMeshComp, FLGUIRenderSceneProxy* InSceneProxy) {
+		ChildCanvasMeshCom->OnSceneProxyCreated.AddWeakLambda(InParentCanvasMeshComp, [InParentCanvasMeshComp](ULGUIMeshComponent* InChildMeshComp, FLGUIRenderSceneProxy* InChildSceneProxy) {
 			if (InParentCanvasMeshComp->SceneProxy != nullptr)
 			{
 				auto ParentSceneProxy = static_cast<FLGUIRenderSceneProxy*>(InParentCanvasMeshComp->SceneProxy);//SceneProxy could change before the RENDER_COMMAND execute, so do necessary check in SetChildCanvasSectionData_RenderThread
 				ENQUEUE_RENDER_COMMAND(FLGUIRenderSceneProxy_ReassignChildCanvasSectionData)(
-					[ParentSceneProxy, CompID = InChildMeshComp->GetPrimitiveSceneId(), InSceneProxy](FRHICommandListImmediate& RHICmdList) {
-						ParentSceneProxy->SetChildCanvasSectionData_RenderThread(CompID, InSceneProxy);
+					[ParentSceneProxy, CompID = InChildMeshComp->GetPrimitiveSceneId(), InChildSceneProxy](FRHICommandListImmediate& RHICmdList) {
+						ParentSceneProxy->SetChildCanvasSectionData_RenderThread(CompID, InChildSceneProxy);
 					});
 			}
 			});
@@ -1204,13 +1202,9 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	FLGUIRenderSceneProxy* Proxy = nullptr;
 	if (RenderSections.Num() > 0)
 	{
-		//change component id to RootCanvasUIMesh's component id, so when check visibility it will use RootCanvas's id
-		{
-			//turns out not work as I want, so comment the codes
-			//auto RootCanvasUIMesh = RenderCanvas->GetRootCanvas()->GetUIMesh();
-			//FLGUIPrimitiveComponentIdTemporaryModifier TempModifier(this, RootCanvasUIMesh->ComponentId);
-			Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get(), RenderCanvas->GetActualSortOrder(), ParentCanvasMeshComp.IsValid() ? (FLGUIRenderSceneProxy*)ParentCanvasMeshComp->SceneProxy : nullptr);
-		}
+		Proxy = new FLGUIRenderSceneProxy(this, RenderCanvas.Get()
+			, !ParentCanvasMeshComp.IsValid()//child canvas is render by it's parent
+			);
 		OnSceneProxyCreated.Broadcast(this, Proxy);
 	}
 	return Proxy;
@@ -1242,6 +1236,7 @@ void ULGUIMeshComponent::ClearRenderData()
 	MarkRenderStateDirty();//mark dirty to recreate SceneProxy
 	RenderSections.Reset();
 	OnSceneProxyCreated.Clear();
+	ParentCanvasMeshComp = nullptr;
 	LGUIRenderer = nullptr;
 }
 

@@ -154,7 +154,7 @@ public:
 private:
 	/** clear drawcalls */
 	void ClearDrawcall();
-	void RemoveFromViewExtension(bool PropogateToChildrenCanvas);
+	void RemoveFromViewExtension(bool PropagateToChildrenCanvas);
 	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
 	TSharedPtr<class FLGUIRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();
 public:
@@ -535,7 +535,7 @@ public:
 
 	/** Override LGUI's screen space UI render's camera location. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetOverrideViewLoation(bool InOverride, FVector InValue);
+		void SetOverrideViewLocation(bool InOverride, FVector InValue);
 	/** Override LGUI's screen space UI render's camera rotation. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOverrideViewRotation(bool InOverride, FRotator InValue);
@@ -569,7 +569,6 @@ public:
 	void SetActualRequireAdditionalShaderChannels(uint8 InFlags);
 	void SetRequireAdditionalShaderChannels(uint8 InFlags);
 
-	float GetLastRenderTime()const;
 	ULGUIMeshComponent* GetUIMesh()const { CheckUIMesh(); return UIMesh.Get(); }
 public:
 	static FName LGUI_MainTextureMaterialParameterName;
@@ -616,7 +615,6 @@ private:
 	mutable uint32 bUIMeshNeedToSetInitialParameters : 1;//after clear UIMesh, it will need to set initial parameters to use again
 	mutable uint32 bIsViewProjectionMatrixDirty : 1;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
-	mutable float LastRenderTime = 0;
 	friend class FLGUIRenderSceneProxy;
 	/**
 	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share same render data.

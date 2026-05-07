@@ -51,7 +51,7 @@ public:
 	virtual FVector3f LGUI_GetWorldPositionForSortTranslucent()const = 0;
 	virtual FBoxSphereBounds LGUI_GetWorldBounds()const = 0;
 
-	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData, float CurrentWorldTime) = 0;
+	virtual void LGUI_CollectRenderData(TArray<FLGUIPrimitiveDataContainer>& OutRenderData) = 0;
 	virtual void LGUI_GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, const FLGUIPrimitiveDataContainer& PrimitiveData, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	virtual FUIPostProcessRenderProxy* LGUI_GetPostProcessElement(const void* SectionPtr)const = 0;
 };

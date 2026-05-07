@@ -373,9 +373,8 @@ bool UUIWidget::ShouldDrawWidget() const
 	const float RenderTimeThreshold = .5f;
 	if (GetIsUIActiveInHierarchy() && RenderCanvas.IsValid())
 	{
-		auto LastRenderTime = RenderCanvas->GetLastRenderTime();
 		// If we don't tick when off-screen, don't bother ticking if it hasn't been rendered recently
-		if (TickWhenOffscreen || GetWorld()->TimeSince(LastRenderTime) <= RenderTimeThreshold)
+		if (TickWhenOffscreen || GetWorld()->TimeSince(GetWorld()->LastRenderTime) <= RenderTimeThreshold)
 		{
 			if ((GetCurrentTime() - LastWidgetRenderTime) >= RedrawTime)
 			{
