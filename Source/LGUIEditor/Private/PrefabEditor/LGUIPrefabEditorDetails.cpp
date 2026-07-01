@@ -21,7 +21,7 @@
 
 class LGUISCSEditorUICustomization : public ISCSEditorUICustomization
 {
-	virtual bool HideBlueprintButtons() const override { return true; }
+	virtual bool HideBlueprintButtons(TArrayView<UObject*> Context) const override { return true; }
 };
 
 void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor)

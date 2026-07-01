@@ -561,7 +561,7 @@ void FLGUIRenderer::RenderLGUI_RenderThread(
 
 		RenderView->ViewMatrices = InView.ViewMatrices;
 		RenderView->ViewMatrices.HackRemoveTemporalAAProjectionJitter();
-		auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetViewProjectionMatrix());
+		auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetWorldToClip());
 
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView->SetupCommonViewUniformBufferParameters(

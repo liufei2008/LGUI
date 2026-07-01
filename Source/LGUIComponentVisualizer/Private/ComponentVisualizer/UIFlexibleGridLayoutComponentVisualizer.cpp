@@ -123,7 +123,7 @@ void FUIFlexibleGridLayoutComponentVisualizer::DrawVisualization(const UActorCom
 			PDI->DrawLine(
 				LineStart,
 				LineEnd,
-				FLinearColor(0, 1, 1, 0.1),
+				FLinearColor(0, 1, 1, 0.1f),
 				SDPG_Foreground
 			);
 			//draw click point

@@ -388,7 +388,7 @@ public:
 			// Don't go through AActor::Rename here because we aren't changing outers (the actor's level) and we also don't want to reset loaders
 			// if the actor is using an external package. We really just want to rename that actor out of the way so we can spawn the new one in
 			// the exact same package, keeping the package name intact.
-			OldActor->UObject::Rename(*OldActorReplacedNamed.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+			OldActor->UObject::Rename(*OldActorReplacedNamed.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors);
 
 			const FTransform OldTransform = OldActor->ActorToWorld();
 
@@ -511,7 +511,7 @@ public:
 			else
 			{
 				// If creating the new Actor failed, put the old Actor's name back
-				OldActor->UObject::Rename(*OldActorName.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+				OldActor->UObject::Rename(*OldActorName.ToString(), OldActor->GetOuter(), REN_DoNotDirty | REN_DontCreateRedirectors);
 				OldActor->RegisterAllComponents();
 			}
 		}

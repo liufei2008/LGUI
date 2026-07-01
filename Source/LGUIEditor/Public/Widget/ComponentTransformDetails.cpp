@@ -450,7 +450,7 @@ TSharedPtr<IPropertyHandle> FComponentTransformDetails::GeneratePropertyHandle(F
 
 bool FComponentTransformDetails::GetIsEnabled() const
 {
-	return !GEditor->HasLockedActors() || SelectedActorInfo.NumSelected == 0;
+	return !GEditor->HasSelectedMovementLockedItems() || SelectedActorInfo.NumSelected == 0;
 }
 
 const FSlateBrush* FComponentTransformDetails::GetPreserveScaleRatioImage() const

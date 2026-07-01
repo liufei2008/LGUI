@@ -1851,7 +1851,7 @@ void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCusto
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[%s].d CustomInputType function not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			UE_LOG(LGUI, Error, TEXT("[%s].%d CustomInputType function not valid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 			return false;
 		}
 	});

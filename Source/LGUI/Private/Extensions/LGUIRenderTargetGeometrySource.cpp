@@ -87,22 +87,21 @@ public:
 					FRayTracingGeometryInitializer Initializer;
 					Initializer.DebugName = DebugName;
 					Initializer.IndexBuffer = nullptr;
-					Initializer.TotalPrimitiveCount = 0;
 					Initializer.GeometryType = RTGT_Triangles;
 					Initializer.bFastBuild = true;
 					Initializer.bAllowUpdate = false;
 
-					Section->RayTracingGeometry.SetInitializer(Initializer);
-					Section->RayTracingGeometry.InitResource(RHICmdList);
-
-					Section->RayTracingGeometry.Initializer.IndexBuffer = Section->IndexBuffer.IndexBufferRHI;
-					Section->RayTracingGeometry.Initializer.TotalPrimitiveCount = Section->IndexBuffer.Indices.Num() / 3;
+					Initializer.IndexBuffer = Section->IndexBuffer.IndexBufferRHI;
+					Initializer.TotalPrimitiveCount = Section->IndexBuffer.Indices.Num() / 3;
 
 					FRayTracingGeometrySegment Segment;
 					Segment.VertexBuffer = Section->VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
-					Segment.NumPrimitives = Section->RayTracingGeometry.Initializer.TotalPrimitiveCount;
+					Segment.NumPrimitives = Initializer.TotalPrimitiveCount;
 					Segment.MaxVertices = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
-					Section->RayTracingGeometry.Initializer.Segments.Add(Segment);
+					Initializer.Segments.Add(Segment);
+
+					Section->RayTracingGeometry.SetInitializer(Initializer);
+					Section->RayTracingGeometry.InitResource(RHICmdList);
 
 					//#dxr_todo: add support for segments?
 
@@ -197,14 +196,13 @@ public:
 			Initializer.bFastBuild = true;
 			Initializer.bAllowUpdate = false;
 
-			Section->RayTracingGeometry.SetInitializer(Initializer);
-			Section->RayTracingGeometry.InitResource(RHICmdList);
-
 			FRayTracingGeometrySegment Segment;
 			Segment.VertexBuffer = Section->VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
-			Segment.NumPrimitives = Section->RayTracingGeometry.Initializer.TotalPrimitiveCount;
+			Segment.NumPrimitives = Initializer.TotalPrimitiveCount;
 			Segment.MaxVertices = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
-			Section->RayTracingGeometry.Initializer.Segments.Add(Segment);
+			Initializer.Segments.Add(Segment);
+			Section->RayTracingGeometry.SetInitializer(Initializer);
+			Section->RayTracingGeometry.InitResource(RHICmdList);
 
 			Section->RayTracingGeometry.UpdateRHI(RHICmdList);
 		}
@@ -363,7 +361,7 @@ public:
 
 			if (Section->RayTracingGeometry.IsValid())
 			{
-				check(Section->RayTracingGeometry.Initializer.IndexBuffer.IsValid());
+				check(Section->RayTracingGeometry.GetInitializer().IndexBuffer.IsValid());
 
 				FRayTracingInstance RayTracingInstance;
 				RayTracingInstance.Geometry = &Section->RayTracingGeometry;

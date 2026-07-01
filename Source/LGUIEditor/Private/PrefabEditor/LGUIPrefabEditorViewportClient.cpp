@@ -36,8 +36,6 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
-IMPLEMENT_HIT_PROXY(HLevelSocketProxy, HHitProxy);
-
 FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabEditorScene& InPreviewScene
 	, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr
 	, const TSharedRef<SLGUIPrefabEditorViewport>& InEditorViewportPtr)
@@ -331,7 +329,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 
 	FVector RayOrigin, RayDirection;
-	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
+	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetClipToWorld(), RayOrigin, RayDirection);
 	AActor* ClickHitActor = nullptr;
 	ULGUIPrefabManagerObject::OnPrefabEditorViewport_MouseClick.ExecuteIfBound(this->GetWorld(), RayOrigin, RayDirection, ClickHitActor);
 	if (ClickHitActor != nullptr)
@@ -508,7 +506,7 @@ bool FLGUIPrefabEditorViewportClient::InputWidgetDelta(FViewport* InViewport, EA
 		{
 			// Skip actors transformation routine in case if any of the selected actors locked
 			// but still pretend that we have handled the input
-			if (!GEditor->HasLockedActors())
+			if (!GEditor->HasSelectedMovementLockedItems())
 			{
 				const bool LeftMouseButtonDown = InViewport->KeyState(EKeys::LeftMouseButton);
 				const bool RightMouseButtonDown = InViewport->KeyState(EKeys::RightMouseButton);

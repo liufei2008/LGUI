@@ -47,7 +47,7 @@ void FUIItemComponentVisualizer::DrawVisualization(const UActorComponent* Compon
 	auto Area = TargetComp->GetWidth() * TargetComp->GetHeight();
 	Area = FMath::Sqrt(Area);
 	auto DrawHitProxy = [=, this](FVector Position, EUIItemVisualizerSelectorType Type, UTexture2D* IconTexture, float AreaMultiply = 1.0f) {
-		float DistScale = View->WorldToScreen(Position).W * (4.0f / View->UnscaledViewRect.Width() / View->ViewMatrices.GetProjectionMatrix().M[0][0]);
+		float DistScale = View->WorldToScreen(Position).W * (4.0f / View->UnscaledViewRect.Width() / View->ViewMatrices.GetViewToClip().M[0][0]);
 		float Scale = DistScale * 0.25f;
 		float AreaScale = 100 - DistScale / (Area * 0.001f) * AreaMultiply;
 		AreaScale = FMath::Clamp(AreaScale, 0.0f, 1.0f);
