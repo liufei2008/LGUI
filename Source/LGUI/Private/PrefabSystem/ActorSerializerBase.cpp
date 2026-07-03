@@ -210,19 +210,43 @@ namespace LGUIPrefabSystem
 			return ReferenceNameList.Num() - 1;
 		}
 	}
+
+	int32 ActorSerializerBase::FindOrAddTextFromList(const FText& Text)
+	{
+		if (Text.IsEmpty())return -1;
+		auto resultIndex = ReferenceTextList.IndexOfByPredicate([&Text](const FText& Item)
+			{
+				return Item.EqualTo(Text);
+			});
+		if (resultIndex != INDEX_NONE)
+		{
+			return resultIndex;
+		}
+		else
+		{
+			ReferenceTextList.Add(Text);
+			return ReferenceTextList.Num() - 1;
+		}
+	}
+
 	FName ActorSerializerBase::FindNameFromListByIndex(int32 Id)
 	{
-		return ReferenceNameList.IsValidIndex(Id) ? ReferenceNameList.GetData()[Id] : NAME_None;
+		return ReferenceNameList.IsValidIndex(Id) ? ReferenceNameList[Id] : NAME_None;
+	}
+
+	FText ActorSerializerBase::FindTextFromListByIndex(int32 Id)
+	{
+		return ReferenceTextList.IsValidIndex(Id) ? ReferenceTextList[Id] : FText::GetEmpty();
 	}
 
 	UObject* ActorSerializerBase::FindAssetFromListByIndex(int32 Id)
 	{
-		return ReferenceAssetList.IsValidIndex(Id) ? ReferenceAssetList.GetData()[Id] : nullptr;
+		return ReferenceAssetList.IsValidIndex(Id) ? ReferenceAssetList[Id] : nullptr;
 	}
 
 	UClass* ActorSerializerBase::FindClassFromListByIndex(int32 Id)
 	{
-		return ReferenceClassList.IsValidIndex(Id) ? ReferenceClassList.GetData()[Id] : nullptr;
+		return ReferenceClassList.IsValidIndex(Id) ? ReferenceClassList[Id] : nullptr;
 	}
 
 	const TSet<FName>& ActorSerializerBase::GetSceneComponentExcludeProperties()

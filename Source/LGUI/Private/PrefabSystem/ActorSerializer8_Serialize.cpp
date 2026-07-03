@@ -164,8 +164,9 @@ namespace LGUIPrefabSystem8
 	}
 	void ActorSerializer::SerializeActor(AActor* OriginRootActor, ULGUIPrefab* InPrefab)
 	{
-
 		auto StartTime = FDateTime::Now();
+
+		this->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
 
 		FLGUIPrefabSaveData SaveData;
 		SerializeActorToData(OriginRootActor, SaveData);
@@ -204,6 +205,7 @@ namespace LGUIPrefabSystem8
 			InPrefab->ReferenceAssetList = this->ReferenceAssetList;
 			InPrefab->ReferenceClassList = this->ReferenceClassList;
 			InPrefab->ReferenceNameList = this->ReferenceNameList;
+			InPrefab->ReferenceTextList = this->ReferenceTextList;
 
 			InPrefab->ArchiveVersion = GPackageFileUEVersion.FileVersionUE4;
 			InPrefab->ArchiveVersionUE5 = GPackageFileUEVersion.FileVersionUE5;
@@ -222,6 +224,7 @@ namespace LGUIPrefabSystem8
 			InPrefab->ReferenceAssetListForBuild = this->ReferenceAssetList;
 			InPrefab->ReferenceClassListForBuild = this->ReferenceClassList;
 			InPrefab->ReferenceNameListForBuild = this->ReferenceNameList;
+			InPrefab->ReferenceTextListForBuild = this->ReferenceTextList;
 
 			InPrefab->ArchiveVersion_ForBuild = GPackageFileUEVersion.FileVersionUE4;
 			InPrefab->ArchiveVersionUE5_ForBuild = GPackageFileUEVersion.FileVersionUE5;

@@ -42,6 +42,12 @@ enum class ELGUIPrefabVersion : uint16
 	 *		so the guid can persist.
 	 */
 	NewObjectOnNestedPrefab = 8,
+	/**
+	 * Serialize FText as reference, to solve problem about FText serialization from 5.7 to 5.8
+	 * This version also use ActorSerializer8, just change LGUIObjectReaderAndWriter's FArchive<<FText to serialize FText as reference, so it is not compatible with previous version.
+	 * Note: This version is not compatible with previous version, so if you want to use this version, you need to re-create all prefab assets.
+	 */
+	FTextAsReference = 9,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
@@ -166,22 +172,22 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		bool bIsPrefabVariant = false;
 public:
-	/** put actural UObject in this array, and store index in prefab */
+	/** put actual UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<TObjectPtr<UObject>> ReferenceAssetList;
-	/** put actural UClass in this array, and store index in prefab */
+	/** put actual UClass in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<TObjectPtr<UClass>> ReferenceClassList;
-	/** put actural FName in this array, and store index in prefab */
+	/** put actual FName in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FName> ReferenceNameList;
+	/** put actual FText in this array, and store index in prefab */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	TArray<FText> ReferenceTextList;
 #pragma region Before Prefab-Version 3
-	/** put actural FString in this array, and store index in prefab */
+	/** put actual FString in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FString> ReferenceStringList;
-	/** put actural FText in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		TArray<FText> ReferenceTextList;
 #pragma endregion Before Prefab-Version 3
 #endif
 
@@ -227,6 +233,9 @@ public:
 	/** build version for ReferenceNameList */
 	UPROPERTY()
 		TArray<FName> ReferenceNameListForBuild;
+	/** build version for ReferenceTextList */
+	UPROPERTY()
+	TArray<FText> ReferenceTextListForBuild;
 	/**
 	 * serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
 	 */

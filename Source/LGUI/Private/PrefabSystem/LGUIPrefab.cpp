@@ -9,6 +9,7 @@
 #include "PrefabSystem/ActorSerializer5.h"
 #include "PrefabSystem/ActorSerializer6.h"
 #include "PrefabSystem/ActorSerializer7.h"
+#include "PrefabSystem/ActorSerializer8.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
 #endif
@@ -402,9 +403,10 @@ AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
+		case ELGUIPrefabVersion::FTextAsReference:
 		case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
-			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity, InCallbackBeforeAwake);
+			LoadedRootActor = LGUIPrefabSystem8::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity, InCallbackBeforeAwake);
 		}
 		break;
 		case ELGUIPrefabVersion::ActorAttachToSubPrefab:
@@ -468,6 +470,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
+		case ELGUIPrefabVersion::FTextAsReference:
 		case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale, CallbackBeforeAwake);
@@ -558,6 +561,7 @@ AActor* ULGUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, USce
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
+		case ELGUIPrefabVersion::FTextAsReference:
 		case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, false, CallbackBeforeAwake);
@@ -635,6 +639,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 		switch ((ELGUIPrefabVersion)PrefabVersion)
 		{
+		case ELGUIPrefabVersion::FTextAsReference:
 		case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
 			LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale, InCallbackBeforeAwake);
@@ -686,6 +691,7 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::FTextAsReference:
 	case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 	{
 		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this, InParent
@@ -852,6 +858,7 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::FTextAsReference:
 	case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 	{
 		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
@@ -921,6 +928,7 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	AActor* LoadedRootActor = nullptr;
 	switch ((ELGUIPrefabVersion)PrefabVersion)
 	{
+	case ELGUIPrefabVersion::FTextAsReference:
 	case ELGUIPrefabVersion::NewObjectOnNestedPrefab:
 	{
 		LoadedRootActor = LGUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::ActorSerializer::LoadPrefabWithExistingObjects(InWorld, this

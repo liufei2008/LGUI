@@ -49,13 +49,30 @@ namespace LGUIPrefabSystem
 
 		return false;
 	}
-	FArchive& FLGUIObjectWriter::operator<<(class FName& N)
+	FArchive& FLGUIObjectWriter::operator<<(FName& N)
 	{
 		auto id = Serializer.FindOrAddNameFromList(N);
 		*this << id;
 
 		return *this;
 	}
+
+	FArchive& FLGUIObjectWriter::operator<<(FText& Value)
+	{
+#if WITH_EDITOR
+		if (Serializer.PrefabVersion < (uint16)ELGUIPrefabVersion::FTextAsReference)
+		{
+			return FArchive::operator<<(Value);
+		}
+		else
+#endif
+		{
+			auto id = Serializer.FindOrAddTextFromList(Value);
+			*this << id;
+			return *this;
+		}
+	}
+
 	bool FLGUIObjectWriter::SerializeObject(UObject* Object)
 	{
 		if (auto Function = Cast<UFunction>(Object))
@@ -246,7 +263,7 @@ namespace LGUIPrefabSystem
 
 		return false;
 	}
-	FArchive& FLGUIObjectReader::operator<<(class FName& N)
+	FArchive& FLGUIObjectReader::operator<<(FName& N)
 	{
 		int32 id = -1;
 		*this << id;
@@ -254,6 +271,25 @@ namespace LGUIPrefabSystem
 
 		return *this;
 	}
+
+	FArchive& FLGUIObjectReader::operator<<(FText& Value)
+	{
+#if WITH_EDITOR
+		if (Serializer.PrefabVersion < (uint16)ELGUIPrefabVersion::FTextAsReference)
+		{
+			return FArchive::operator<<(Value);
+		}
+		else
+#endif
+		{
+			int32 id = -1;
+			*this << id;
+			Value = Serializer.FindTextFromListByIndex(id);
+			
+			return *this;
+		}
+	}
+
 	bool FLGUIObjectReader::SerializeObject(UObject*& Object, bool CanSerializeClass)
 	{
 		uint8 typeUint8 = 0;
