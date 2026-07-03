@@ -429,6 +429,7 @@ namespace LGUIPrefabSystem8
 			this->ReferenceAssetList = InPrefab->ReferenceAssetList;
 			this->ReferenceClassList = InPrefab->ReferenceClassList;
 			this->ReferenceNameList = InPrefab->ReferenceNameList;
+			this->ReferenceTextList = InPrefab->ReferenceTextList;
 
 			this->ArchiveVersion = FPackageFileVersion(InPrefab->ArchiveVersion, (EUnrealEngineObjectUE5Version)InPrefab->ArchiveVersionUE5);
 			this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer;
@@ -442,6 +443,7 @@ namespace LGUIPrefabSystem8
 			this->ReferenceAssetList = InPrefab->ReferenceAssetListForBuild;
 			this->ReferenceClassList = InPrefab->ReferenceClassListForBuild;
 			this->ReferenceNameList = InPrefab->ReferenceNameListForBuild;
+			this->ReferenceTextList = InPrefab->ReferenceTextListForBuild;
 
 			this->ArchiveVersion = FPackageFileVersion(InPrefab->ArchiveVersion_ForBuild, (EUnrealEngineObjectUE5Version)InPrefab->ArchiveVersionUE5_ForBuild);
 			this->ArchiveLicenseeVer = InPrefab->ArchiveLicenseeVer_ForBuild;
