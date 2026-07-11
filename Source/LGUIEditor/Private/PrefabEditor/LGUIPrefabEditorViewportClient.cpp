@@ -33,13 +33,28 @@
 #include "HModel.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "LGUIPrefabViewportClickHandlers.h"
+#include "ComponentVisualizer.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
 FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabEditorScene& InPreviewScene
 	, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr
 	, const TSharedRef<SLGUIPrefabEditorViewport>& InEditorViewportPtr)
-	: FEditorViewportClient(&GLevelEditorModeTools(), nullptr, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
+	// Pass nullptr so the base class creates a PRIVATE FAssetEditorModeManager (the standard for
+	// asset editors) instead of sharing GLevelEditorModeTools().
+	//
+	// Sharing the level editor's mode manager breaks ALL click/drag input in this viewport on
+	// UE 5.8: the level editor registers ITF viewport-interactions on that shared tools context
+	// (new TRS gizmos default-on => ViewportInteractions.EnableITFInteractions=1), which makes
+	// FEditorViewportClient::Internal_InputKey skip both StartTrackingDueToInput (CameraDrag
+	// interaction enabled, EditorViewportClient.cpp:3727-3739) and the ProcessClickInViewport
+	// branch (ViewportClick group enabled, :3742-3748). The replacement ITF click path
+	// (ULevelViewportClickSelection::ProcessClick_Internal) then refuses non-level-editor
+	// clients outright (LevelViewportClickSelection.cpp:28-31). Net effect: ProcessClick and
+	// mouse tracking (so also component-visualizer dragging, e.g. the Anchor Tool) never ran
+	// here at all. A private mode manager has no viewport-interactions behavior source, so the
+	// legacy press->track->release->click pipeline works, as in every stock asset editor.
+	: FEditorViewportClient(nullptr, nullptr, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
 	, PrefabScene(&InPreviewScene)
 	, TrackingTransaction()
 	, CachedElementsToManipulate(UTypedElementRegistry::GetInstance()->CreateElementList())
@@ -48,7 +63,6 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabEdit
 
 	GEditor->SelectNone(true, true);
 
-	// The level editor fully supports mode tools and isn't doing any incompatible stuff with the Widget
 	ModeTools->SetWidgetMode(UE::Widget::WM_Translate);
 	Widget->SetUsesEditorModeTools(ModeTools.Get());
 
@@ -319,6 +333,12 @@ bool FLGUIPrefabEditorViewportClient::InputKey(const FInputKeyEventArgs& EventAr
 				bHandled = FocusViewportToTargets();
 			}
 		}
+
+		// BUGFIX: merge the base-class result instead of discarding it. Previously this returned
+		// only ComponentVisManager's result (false for every ordinary mouse event), so
+		// FSceneViewport::OnMouseButtonDown/Up saw FReply::Unhandled() for all mouse input in this
+		// viewport -- unlike FLevelEditorViewportClient, which returns the base-class result.
+		bHandled |= Res;
 	}
 
 	return bHandled;
@@ -327,6 +347,20 @@ bool FLGUIPrefabEditorViewportClient::InputKey(const FInputKeyEventArgs& EventAr
 void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
+
+	// Component-visualizer handles (the Anchor Tool edge/corner/pivot handles and the panel-layout
+	// reorder buttons) must win the click. Route it straight to the component visualizer manager and
+	// return, bypassing BOTH LGUI's UI raycast (which would pick the UI element under the handle) AND
+	// the editor-mode click handling further down -- either of which would otherwise swallow the click,
+	// so the handle could never be selected or dragged in the Prefab Editor. The level editor needs no
+	// such special-case because it has no UI-raycast intercept in its ProcessClick.
+	if (HitProxy != nullptr && HitProxy->IsA(HComponentVisProxy::StaticGetType()))
+	{
+		if (GUnrealEd->ComponentVisManager.HandleClick(this, HitProxy, Click))
+		{
+			return;
+		}
+	}
 
 	FVector RayOrigin, RayDirection;
 	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetClipToWorld(), RayOrigin, RayDirection);
@@ -562,6 +596,23 @@ FVector FLGUIPrefabEditorViewportClient::GetWidgetLocation() const
 		return ComponentVisWidgetLocation;
 	}
 
+	// With our private FAssetEditorModeManager nothing feeds ModeTools' pivot on selection change
+	// (the engine only updates GLevelEditorModeTools' pivot), so derive the gizmo location from
+	// the current selection directly.
+	{
+		TArray<AActor*> ActorsToMove;
+		TArray<USceneComponent*> ComponentsToMove;
+		GetSelectedActorsAndComponentsForMove(ActorsToMove, ComponentsToMove);
+		if (ComponentsToMove.Num() > 0 && ComponentsToMove[0] != nullptr)
+		{
+			return ComponentsToMove[0]->GetComponentLocation();
+		}
+		if (ActorsToMove.Num() > 0 && ActorsToMove[0] != nullptr)
+		{
+			return ActorsToMove[0]->GetActorLocation();
+		}
+	}
+
 	return FEditorViewportClient::GetWidgetLocation();
 }
 FMatrix FLGUIPrefabEditorViewportClient::GetWidgetCoordSystem() const
@@ -570,6 +621,23 @@ FMatrix FLGUIPrefabEditorViewportClient::GetWidgetCoordSystem() const
 	if (GUnrealEd->ComponentVisManager.GetCustomInputCoordinateSystem(this, ComponentVisWidgetCoordSystem))
 	{
 		return ComponentVisWidgetCoordSystem;
+	}
+
+	// Same reason as GetWidgetLocation: the private mode manager's selection set is never fed,
+	// so for local space derive the coordinate system from the current selection.
+	if (GetWidgetCoordSystemSpace() == COORD_Local)
+	{
+		TArray<AActor*> ActorsToMove;
+		TArray<USceneComponent*> ComponentsToMove;
+		GetSelectedActorsAndComponentsForMove(ActorsToMove, ComponentsToMove);
+		if (ComponentsToMove.Num() > 0 && ComponentsToMove[0] != nullptr)
+		{
+			return FQuatRotationMatrix(ComponentsToMove[0]->GetComponentQuat());
+		}
+		if (ActorsToMove.Num() > 0 && ActorsToMove[0] != nullptr)
+		{
+			return FQuatRotationMatrix(ActorsToMove[0]->GetActorQuat());
+		}
 	}
 
 	return FEditorViewportClient::GetWidgetCoordSystem();
