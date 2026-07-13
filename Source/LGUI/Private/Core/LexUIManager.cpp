@@ -15,6 +15,7 @@
 #include "Core/LexUIRender/LexUIRenderer.h"
 #include "Core/ILexUICultureChangedInterface.h"
 #include "Core/LexUIBehaviour.h"
+#include "Core/Components/LexLayout.h"
 #include "Core/LexUIMesh/LexUIGizmoMesh.h"
 #include "Event/LexEventSystem.h"
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
@@ -1047,36 +1048,21 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 	{
 #if WITH_EDITOR
 		int LayoutCalcCount = 0;
+		auto Time = FDateTime::Now();
 		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
 #endif
 		while (LayoutDirtyWidgetArray.Num() > 0)
 		{
 			SCOPE_CYCLE_COUNTER(STAT_UpdateLayout);
 			LayoutCalcCount++;
-			struct LOCAL
-			{
-				static void UpdateLayoutRecursively(ULexWidget* Widget)
-				{
-					if (!IsValid(Widget))return;
-					if (!Widget->GetWidgetActiveInHierarchy())return;
-					if (!Widget->HasRegistered())return;//if not registered, means it could about to remove
-					Widget->UpdateLayout();
-					if (Widget->GetLayoutContainer())
-					{
-						for (auto& Child : Widget->GetChildren())
-						{
-							UpdateLayoutRecursively(Child);
-						}
-					}
-				}
-			};
-			auto CopiedLayoutDirtyWidgetArray = LayoutDirtyWidgetArray;
-			LayoutDirtyWidgetArray.Reset();
 
+			TArray<TWeakObjectPtr<ULexWidget>> CopiedLayoutDirtyWidgetArray;
+			Swap(CopiedLayoutDirtyWidgetArray, LayoutDirtyWidgetArray);
+			
 			for (int i = CopiedLayoutDirtyWidgetArray.Num() - 1; i >= 0; i--)
 			{
 				auto& Widget = CopiedLayoutDirtyWidgetArray[i];
-				LOCAL::UpdateLayoutRecursively(Widget.Get());
+				CalculateLayoutTree(Widget.Get());
 			}
 		}
 #if WITH_EDITOR
@@ -1084,11 +1070,12 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 		{
 			if (CalcCountKeyValue.Value >= 2)
 			{
-				//UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *CalcCountKeyValue.Key, CalcCountKeyValue.Value);
+				UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *CalcCountKeyValue.Key, CalcCountKeyValue.Value);
 			}
 		}
 		LayoutCalculationCounterMap.Reset();
-		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d"), GFrameNumber, LayoutCalcCount);
+		auto TimeSpan = (FDateTime::Now() - Time).GetTotalMilliseconds();
+		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, TimeSpan);
 #endif
 	}
 
@@ -1477,6 +1464,83 @@ void ULexUIManagerWorldSubsystem::AddLayoutDirtyWidget(ULexWidget* InWidget)
 	LayoutDirtyWidgetArray.AddUnique(InWidget);
 }
 
+void ULexUIManagerWorldSubsystem::MarkRebuildLayoutTree(ULexWidget* InWidget)
+{
+	MapWidgetToLayoutTree.Remove(InWidget);
+}
+
+void ULexUIManagerWorldSubsystem::MarkRebuildAllLayoutTree()
+{
+	MapWidgetToLayoutTree.Empty();
+}
+
+void ULexUIManagerWorldSubsystem::CalculateLayoutTree(ULexWidget* RootLayoutWidget)
+{
+	struct LOCAL
+	{
+		static void CollectLayoutTree(ULexWidget* Widget, TArray<TObjectPtr<ULexWidget>>& LayoutTreeArray)
+		{
+			if (!IsValid(Widget))return;
+			if (!Widget->GetWidgetActiveInHierarchy())return;
+			if (!Widget->HasRegistered())return;//if not registered, means it could about to remove
+			LayoutTreeArray.Add(Widget);
+			if (Widget->GetLayoutContainer())
+			{
+				for (auto& Child : Widget->GetChildren())
+				{
+					CollectLayoutTree(Child, LayoutTreeArray);
+				}
+			}
+		}
+	};
+	
+	auto LayoutTree = MapWidgetToLayoutTree.FindOrAdd(RootLayoutWidget);
+	auto& LayoutTreeArray = LayoutTree.WidgetArray;
+	if (LayoutTreeArray.IsEmpty())
+	{
+		LOCAL::CollectLayoutTree(RootLayoutWidget, LayoutTreeArray);
+	}
+	for (int i = 0; i < LayoutTreeArray.Num(); i++)
+	{
+		LayoutTreeArray[i]->UpdateLayout();
+	}
+}
+
+void ULexUIManagerWorldSubsystem::RebuildLayoutImmediately(ULexWidget* InWidget)
+{
+	auto RootLayoutWidget = InWidget;
+	//move up, find if parent widget affect by layout then mark dirty
+	while (RootLayoutWidget)
+	{
+		if (auto ParentWidget = RootLayoutWidget->GetParent())
+		{
+			if (ParentWidget->GetLayoutContainer())//parent contains LayoutContainer, need calculate layout
+			{
+				RootLayoutWidget = ParentWidget;
+				continue;
+			}
+		}
+		break;
+	}
+	
+	bool bCanCalculateLayoutTree = true;
+	if (RootLayoutWidget == InWidget)//no valid layout parent
+	{
+		if (InWidget->GetLayoutContainer())//self contains layout container
+		{
+			bCanCalculateLayoutTree = true;
+		}
+		else
+		{
+			bCanCalculateLayoutTree = false;
+		}
+	}
+	if (bCanCalculateLayoutTree)
+	{
+		CalculateLayoutTree(RootLayoutWidget);
+	}
+}
+
 #if WITH_EDITOR
 int ULexUIManagerWorldSubsystem::IncreateLayoutCalculationCounter(const FString& InPathName)
 {
@@ -1485,7 +1549,7 @@ int ULexUIManagerWorldSubsystem::IncreateLayoutCalculationCounter(const FString&
 		(*CounterPtr)++;
 		if (*CounterPtr >= 2)
 		{
-			UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *InPathName, *CounterPtr);
+			// UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *InPathName, *CounterPtr);
 		}
 		return *CounterPtr;
 	}

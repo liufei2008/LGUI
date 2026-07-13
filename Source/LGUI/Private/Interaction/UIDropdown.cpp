@@ -344,7 +344,7 @@ void UUIDropdown::CreateListItems()
 	}
 	ItemTemplateWidget->SetWidgetActive(false);
 
-	ULexWidget::ForceRebuildLayoutImmediately(ScrollViewContentWidget);
+	ULexWidget::RebuildLayoutImmediately(ScrollViewContentWidget);
 	float HeightOffset = 0;
 	if (auto ViewportWidget = ScrollViewContentWidget->GetParent())
 	{

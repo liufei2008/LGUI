@@ -97,6 +97,12 @@ private:
 class ILexUICultureChangedInterface;
 enum class ELexRenderMode : uint8;
 
+class FLexUILayoutTree
+{
+public:
+	TArray<TObjectPtr<ULexWidget>> WidgetArray;
+};
+
 UCLASS(NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API ULexUIManagerWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -169,6 +175,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<TWeakObjectPtr<ULexWidget>> LayoutDirtyWidgetArray;
 	
+	TMap<TObjectPtr<ULexWidget>, FLexUILayoutTree> MapWidgetToLayoutTree;
+
 	bool bIsExecutingStart = false;
 	bool bIsExecutingTick = false;
 	int32 CurrentExecutingTickIndex = -1;
@@ -198,6 +206,10 @@ public:
 	void RemoveWidget(ULexWidget* InWidget);
 
 	void AddLayoutDirtyWidget(ULexWidget* InWidget);
+	void MarkRebuildLayoutTree(ULexWidget* InWidget);
+	void MarkRebuildAllLayoutTree();
+	void RebuildLayoutImmediately(ULexWidget* InWidget);
+	void CalculateLayoutTree(ULexWidget* RootLayoutWidget);
 #if WITH_EDITOR
 	int IncreateLayoutCalculationCounter(const FString& InPathName);
 #endif

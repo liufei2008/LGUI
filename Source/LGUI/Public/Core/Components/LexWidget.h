@@ -773,7 +773,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void MarkLayoutForRebuild(ULexWidget* InWidget);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	static void ForceRebuildLayoutImmediately(ULexWidget* InWidget);
+	static void RebuildLayoutImmediately(ULexWidget* InWidget);
 
 private:
 	friend class FLexWidgetCustomization;

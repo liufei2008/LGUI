@@ -179,9 +179,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LayoutSelf", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin=0))
 	float Shrink = 0;
 
-	bool bIsCalculatingSize = false;
-	bool bIsSizeDirty = false;
-	
 	float CalculatedMinWidth = 0;
 	float CalculatedMinHeight = 0;
 	float CalculatedMaxWidth = 0;
@@ -198,8 +195,6 @@ public:
 	static FName GetPropertyName_MaxWidth();
 	static FName GetPropertyName_MaxHeight();
 	
-	virtual void OnTransformChanged() override;
-	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
@@ -210,7 +205,6 @@ public:
 	virtual FVector2f GetLayoutFinalSize() override;
 	void GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax);
 	virtual void CalculateSize() override;
-	virtual void MarkLayoutDirty() override;
 	
 	float GetGrowForLayoutContainer(int Axis)const;
 	float GetShrinkForLayoutContainer(int Axis)const;

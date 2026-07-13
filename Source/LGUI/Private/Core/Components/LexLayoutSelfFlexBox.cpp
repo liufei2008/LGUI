@@ -144,19 +144,6 @@ FName ULexLayoutSelfFlexBox::GetPropertyName_MaxHeight()
     return GET_MEMBER_NAME_CHECKED(ULexLayoutSelfFlexBox, MaxHeight);
 }
 
-void ULexLayoutSelfFlexBox::OnTransformChanged()
-{
-}
-
-void ULexLayoutSelfFlexBox::OnDimensionChanged(bool InPivotChange, bool InWidthChange,
-    bool InHeightChange)
-{
-    if (InWidthChange || InHeightChange)
-    {
-        bIsSizeDirty = true;
-    }
-}
-
 #if WITH_EDITOR
 void ULexLayoutSelfFlexBox::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -247,24 +234,7 @@ void ULexLayoutSelfFlexBox::CalculateSize()
 
     auto Widget = GetWidget();
     if (!Widget)return;
-    
-#if WITH_EDITOR
-    if (Widget->GetDisplayName() == "ClickMode" && Widget->GetParent() && Widget->GetParent()->GetDisplayName() == "Button_Page_Prefab")
-    {
-        if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
-        {
-            LexUIManager->IncreateLayoutCalculationCounter(FString::Printf(TEXT("%s_%d"), *this->GetPathDisplayName(GetWorld()), this));
-        }
-    }
-#endif
 
-    auto PrevSize = FVector2f(CalculatedPreferredWidth, CalculatedPreferredHeight);
-    if (Widget->GetDisplayName() == "ClickMode" && Widget->GetParent() && Widget->GetParent()->GetDisplayName() == "Button_Page_Prefab")
-    {
-        UE_LOG(LGUI, Warning, TEXT(""))
-    }
-    
-    bIsCalculatingSize = true;
     {
         CalculatedPreferredWidth = PreferredWidth.Calculate(Widget, false);
         if (PreferredWidth.bEnable)
@@ -303,7 +273,7 @@ void ULexLayoutSelfFlexBox::CalculateSize()
     if (auto ParentWidget = Widget->GetParent())
     {
         //if parent widget have FlexBoxContainer, then widget size should be set by it, because Grow/Shrink/Stretch is calculated by FlexBoxContainer
-        if (auto ParentFlexBoxContainer = Cast<ULexLayoutContainerFlexBox>(ParentWidget->GetLayoutContainer()))
+        if (Cast<ULexLayoutContainerFlexBox>(ParentWidget->GetLayoutContainer()))
         {
             bShouldSetPreferredSize = false;
         }
@@ -321,30 +291,6 @@ void ULexLayoutSelfFlexBox::CalculateSize()
             Widget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
         }
         Widget->SetSizeDelta(FVector2D(CalculatedPreferredWidth, CalculatedPreferredHeight));
-    }
-    
-    bIsCalculatingSize = false;
-
-    if (CalculatedPreferredWidth != PrevSize.X || CalculatedPreferredHeight != PrevSize.Y)
-    {
-        auto ParentWidget = Widget->GetParent();
-        if (Widget->GetDisplayName() == "ClickMode" && ParentWidget && ParentWidget->GetDisplayName() == "Button_Page_Prefab")
-        {
-            UE_LOG(LGUI, Warning, TEXT(""))
-        }
-    }
-}
-
-void ULexLayoutSelfFlexBox::MarkLayoutDirty()
-{
-    Super::MarkLayoutDirty();
-    if (auto Widget = GetWidget())
-    {
-        auto ParentWidget = Widget->GetParent();
-        if (Widget->GetDisplayName() == "ClickMode" && ParentWidget && ParentWidget->GetDisplayName() == "Button_Page_Prefab")
-        {
-            UE_LOG(LGUI, Warning, TEXT("LayoutSelf MarkLayoutDirty"))
-        }
     }
 }
 

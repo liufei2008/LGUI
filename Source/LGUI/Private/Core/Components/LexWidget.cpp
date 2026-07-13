@@ -865,7 +865,10 @@ void ULexWidget::SetRelativeLocation(const FVector& Value)
 		if (bCanSetAnchorFromTransform)
 		{
 			CalculateAnchorFromTransform();
-			MarkLayoutForRebuild(this);
+			if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+			{
+				MarkLayoutForRebuild(this);
+			}
 		}
 	}
 }
@@ -896,7 +899,10 @@ void ULexWidget::SetRelativeLocationAndRotation(const FVector& InLocation, const
 		if (bCanSetAnchorFromTransform)
 		{
 			CalculateAnchorFromTransform();
-			MarkLayoutForRebuild(this);
+			if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+			{
+				MarkLayoutForRebuild(this);
+			}
 		}
 	}
 }
@@ -1306,12 +1312,13 @@ void ULexWidget::OnAttachedToParent()
 	
 	// MarkLayoutForRebuild(this);//why comment this? because it already called in OnHierarchyAttachmentChanged
 	MarkClipDirty(true);
-#if WITH_EDITOR
 	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
+#if WITH_EDITOR
 		LexUIManager->MarkLexUIWidgetOutlinerChanged();
-	}
 #endif
+		LexUIManager->MarkRebuildAllLayoutTree();
+	}
 }
 
 void ULexWidget::OnChildDetached()
@@ -1345,12 +1352,13 @@ void ULexWidget::OnDetachedFromParent()
 
 	// MarkLayoutForRebuild(this);//why comment this? because it already called in OnHierarchyAttachmentChanged
 	MarkClipDirty(true);
-#if WITH_EDITOR
 	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
+#if WITH_EDITOR
 		LexUIManager->MarkLexUIWidgetOutlinerChanged();
-	}
 #endif
+		LexUIManager->MarkRebuildAllLayoutTree();
+	}
 }
 
 void ULexWidget::OnRegister()
@@ -2847,46 +2855,53 @@ bool ULexWidget::IsWorldSpaceUI()const
 
 void ULexWidget::MarkLayoutForRebuild(ULexWidget* InWidget)
 {
-	auto TargetWidget = InWidget;
+	auto RootWidgetOfLayoutTree = InWidget;
 	//move up, find if parent widget affect by layout then mark dirty
-	while (TargetWidget)
+	while (RootWidgetOfLayoutTree)
 	{
-		if (auto LayoutContainer = TargetWidget->GetLayoutContainer())
+		if (auto LayoutContainer = RootWidgetOfLayoutTree->GetLayoutContainer())
 		{
 			LayoutContainer->MarkLayoutDirty();
 		}
-		if (auto LayoutSelf = TargetWidget->GetLayoutSelf())
+		if (auto LayoutSelf = RootWidgetOfLayoutTree->GetLayoutSelf())
 		{
 			LayoutSelf->MarkLayoutDirty();
 		}
-		
-		if (auto ParentWidget = TargetWidget->GetParent())
+		if (auto ParentWidget = RootWidgetOfLayoutTree->GetParent())
 		{
-			if (auto LayoutContainer = ParentWidget->GetLayoutContainer())//parent contains LayoutContainer, need calculate layout
+			if (ParentWidget->GetLayoutContainer())//parent contains LayoutContainer, need calculate layout
 			{
-				TargetWidget = ParentWidget;
+				RootWidgetOfLayoutTree = ParentWidget;
 				continue;
 			}
 		}
 		break;
 	}
-	TargetWidget->MarkWidgetLayoutDirty();
+
+	bool bMarkLayoutDirty = true;
+	if (RootWidgetOfLayoutTree == InWidget)//no valid layout parent
+	{
+		if (InWidget->GetLayoutContainer())//self contains layout container
+		{
+			bMarkLayoutDirty = true;
+		}
+		else
+		{
+			bMarkLayoutDirty = false;
+		}
+	}
+	if (bMarkLayoutDirty)
+	{
+		RootWidgetOfLayoutTree->MarkWidgetLayoutDirty();
+	}
 }
 
-void ULexWidget::ForceRebuildLayoutImmediately(ULexWidget* InWidget)
+void ULexWidget::RebuildLayoutImmediately(ULexWidget* InWidget)
 {
-	struct LOCAL
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(InWidget->GetWorld()))
 	{
-		static void RebuildLayout(ULexWidget* InWidget)
-		{
-			InWidget->UpdateLayout();
-			for (auto Child : InWidget->GetChildren())
-			{
-				RebuildLayout(Child);
-			}
-		}
-	};
-	LOCAL::RebuildLayout(InWidget);
+		LexUIManager->RebuildLayoutImmediately(InWidget);
+	}
 }
 
 void ULexWidget::MarkWidgetLayoutDirty()
@@ -3160,6 +3175,10 @@ ULexLayoutContainer* ULexWidget::CreateNewLayoutContainer(TSubclassOf<ULexLayout
 	LayoutContainer = NewLayout;
 	MarkLayoutForRebuild(this);
 	MarkDimensionChanged(false, true, true);//change LayoutContainer could cause LayoutSelf size change
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->MarkRebuildAllLayoutTree();
+	}
 	return NewLayout;
 }
 
@@ -3175,6 +3194,10 @@ void ULexWidget::RemoveLayoutContainer()
 			OldLayout->EndPlay();
 		}
 		OldLayout->Call_OnUnregister();
+	}
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->MarkRebuildAllLayoutTree();
 	}
 }
 
@@ -3198,6 +3221,10 @@ ULexLayoutSelf* ULexWidget::CreateNewLayoutSelf(TSubclassOf<ULexLayoutSelf> Layo
 	}
 	LayoutSelf = NewLayout;
 	MarkLayoutForRebuild(this);
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->MarkRebuildAllLayoutTree();
+	}
 	return NewLayout;
 }
 
@@ -3213,6 +3240,10 @@ void ULexWidget::RemoveLayoutSelf()
 			OldLayout->EndPlay();
 		}
 		OldLayout->Call_OnUnregister();
+	}
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->MarkRebuildAllLayoutTree();
 	}
 }
 

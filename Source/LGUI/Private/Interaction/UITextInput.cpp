@@ -715,7 +715,7 @@ void UUITextInput::InsertCharAtCaretPosition(TCHAR c)
 	auto CharIndex = TextVisual->GetCharIndexByCaretIndex(CaretPositionIndex);
 	Text.InsertAt(CharIndex, c);
 	TextVisual->SetText(FText::FromString(GetReplaceText()));
-	ULexWidget::ForceRebuildLayoutImmediately(TextVisual->GetWidget());
+	ULexWidget::RebuildLayoutImmediately(TextVisual->GetWidget());
 	CaretPositionIndex = TextVisual->GetCaretIndexByCharIndex(CharIndex) + 1;
 	PressCaretPositionIndex = CaretPositionIndex;
 }

@@ -8,20 +8,6 @@
 
 DECLARE_CYCLE_STAT(TEXT("LexLayoutContainer FlexBox"), STAT_LexLayoutContainerFlexBox, STATGROUP_LGUI);
 
-void ULexLayoutContainerFlexBox::MarkLayoutDirty()
-{
-    Super::MarkLayoutDirty();
-
-    if (auto Widget = GetWidget())
-    {
-        auto ParentWidget = Widget->GetParent();
-        if (Widget->GetDisplayName() == "ClickMode" && ParentWidget && ParentWidget->GetDisplayName() == "Button_Page_Prefab")
-        {
-            UE_LOG(LGUI, Warning, TEXT("LayoutContainer MarkLayoutDirty"))
-        }
-    }
-}
-
 void ULexLayoutContainerFlexBox::CalculateLayout()
 {
     SCOPE_CYCLE_COUNTER(STAT_LexLayoutContainerFlexBox);
