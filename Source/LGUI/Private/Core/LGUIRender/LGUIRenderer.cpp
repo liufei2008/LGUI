@@ -26,6 +26,7 @@
 #endif
 #include "Core/LGUISettings.h"
 #include "ClearQuad.h"
+#include "RenderTargetPool.h"
 #include "RHIResourceUtils.h"
 #if WITH_EDITOR
 #include "Core/LGUIRender/LGUIHelperLineShaders.h"
