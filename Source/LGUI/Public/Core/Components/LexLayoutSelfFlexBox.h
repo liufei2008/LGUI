@@ -203,8 +203,10 @@ public:
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* Widget)const override;
 	virtual FVector2f GetLayoutPreferredSize() override;
 	virtual FVector2f GetLayoutFinalSize() override;
-	void GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax);
 	virtual void CalculateSize() override;
+	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange) override;
+	void GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax);
+	void RebuildSelfLayout();
 	
 	float GetGrowForLayoutContainer(int Axis)const;
 	float GetShrinkForLayoutContainer(int Axis)const;

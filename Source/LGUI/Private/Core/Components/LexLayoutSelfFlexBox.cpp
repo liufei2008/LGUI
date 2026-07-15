@@ -2,7 +2,6 @@
 
 #include "Core/Components/LexLayoutSelfFlexBox.h"
 #include "LGUI.h"
-#include "Core/LexUIManager.h"
 #include "Core/Components/LexLayoutContainerFlexBox.h"
 #include "Core/Components/LexVisual.h"
 
@@ -150,7 +149,7 @@ void ULexLayoutSelfFlexBox::PostEditChangeProperty(struct FPropertyChangedEvent&
 	Super::PostEditChangeProperty(PropertyChangedEvent);
     Grow = FMath::Max(Grow, 0);
     Shrink = FMath::Max(Shrink, 0);
-    // CalculateSize();
+    RebuildSelfLayout();
 }
 
 bool ULexLayoutSelfFlexBox::CanEditChange(const FProperty* InProperty) const
@@ -227,6 +226,23 @@ void ULexLayoutSelfFlexBox::GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax
     OutMax.Y = CalculatedMaxHeight;
 }
 
+void ULexLayoutSelfFlexBox::RebuildSelfLayout()
+{
+    if (auto Widget = GetWidget())
+    {
+        if (auto ParentWidget = Widget->GetParent())
+        {
+            if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then mark it for late rebuild layout
+            {
+                ULexWidget::MarkLayoutForRebuild(GetWidget());
+                return;
+            }
+        }
+        MarkLayoutDirty();
+        CalculateSize();//build layout and apply immediately
+    }
+}
+
 void ULexLayoutSelfFlexBox::CalculateSize()
 {
     if (!bIsLayoutDirty)return;
@@ -291,6 +307,23 @@ void ULexLayoutSelfFlexBox::CalculateSize()
             Widget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
         }
         Widget->SetSizeDelta(FVector2D(CalculatedPreferredWidth, CalculatedPreferredHeight));
+    }
+}
+
+void ULexLayoutSelfFlexBox::OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)
+{
+    Super::OnDimensionChanged(InPivotChange, InWidthChange, InHeightChange);
+    if (auto Widget = GetWidget())
+    {
+        if (auto ParentWidget = Widget->GetParent())
+        {
+            if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then LexWidget will do MarkLayoutForRebuild for it, so skip it here
+            {
+                return;
+            }
+        }
+        MarkLayoutDirty();
+        CalculateSize();//build layout and apply immediately
     }
 }
 
@@ -371,7 +404,7 @@ void ULexLayoutSelfFlexBox::SetMinWidth(const FLexLayoutMinMaxSize& Value)
     if (MinWidth != Value)
     {
         MinWidth = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -380,7 +413,7 @@ void ULexLayoutSelfFlexBox::SetMinHeight(const FLexLayoutMinMaxSize& Value)
     if (MinHeight != Value)
     {
         MinHeight = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -389,7 +422,7 @@ void ULexLayoutSelfFlexBox::SetMaxWidth(const FLexLayoutMinMaxSize& Value)
     if (MaxWidth != Value)
     {
         MaxWidth = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -398,7 +431,7 @@ void ULexLayoutSelfFlexBox::SetMaxHeight(const FLexLayoutMinMaxSize& Value)
     if (MaxHeight != Value)
     {
         MaxHeight = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -407,7 +440,7 @@ void ULexLayoutSelfFlexBox::SetMargin(const FMargin& Value)
     if (Margin != Value)
     {
         Margin = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -416,7 +449,7 @@ void ULexLayoutSelfFlexBox::SetPreferredWidth(const FLexLayoutSize& Value)
     if (PreferredWidth != Value)
     {
         PreferredWidth = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -425,7 +458,7 @@ void ULexLayoutSelfFlexBox::SetPreferredHeight(const FLexLayoutSize& Value)
     if (PreferredHeight != Value)
     {
         PreferredHeight = Value;
-        ULexWidget::MarkLayoutForRebuild(GetWidget());
+        RebuildSelfLayout();
     }
 }
 
@@ -434,10 +467,7 @@ void ULexLayoutSelfFlexBox::SetGrow(float Value)
     if (Grow != Value)
     {
         Grow = FMath::Max(0, Value);
-        if (auto Parent = GetWidget()->GetParent())
-        {
-            ULexWidget::MarkLayoutForRebuild(Parent);
-        }
+        RebuildSelfLayout();
     }
 }
 
@@ -446,10 +476,7 @@ void ULexLayoutSelfFlexBox::SetShrink(float Value)
     if (Shrink != Value)
     {
         Shrink = FMath::Max(0, Value);
-        if (auto Parent = GetWidget()->GetParent())
-        {
-            ULexWidget::MarkLayoutForRebuild(Parent);
-        }
+        RebuildSelfLayout();
     }
 }
 
