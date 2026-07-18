@@ -244,18 +244,17 @@ namespace LexUIPrefabSystem
 		);
 
 	private:
-		struct FComponentDataStruct
+		struct FWidgetAttachment
 		{
 			ULexWidget* Widget = nullptr;
-			FGuid WidgetParentGuid;
+			FGuid ParentGuid;
 		};
-		TArray<FComponentDataStruct> ComponentsInThisPrefab;
+		TArray<FWidgetAttachment> WidgetAttachmentArray;
 		//collection for all widgets, include sub-prefab
-		TArray<ULexWidget*> AllWidgets;
+		TArray<ULexWidget*> AllWidgetArray;
 
 		TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData> SubPrefabMap;
 		TArray<ULexWidget*> SubPrefabWidgetArray;
-		TArray<FComponentDataStruct> SubPrefabWidgetAttachmentArray;
 		//this collection will collect all widgets of this prefab, and root widget of sub prefab
 		TArray<ULexWidget*> TrySerializeWidgetArray;
 		//origin guid mean the object guid in it's origin prefab, not sub prefab

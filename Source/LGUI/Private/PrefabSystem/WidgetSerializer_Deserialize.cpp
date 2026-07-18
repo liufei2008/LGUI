@@ -196,38 +196,13 @@ namespace LexUIPrefabSystem
 #endif
 
 		//component attachment
-		for (auto& CompData : ComponentsInThisPrefab)
+		for (auto& CompData : WidgetAttachmentArray)
 		{
 			auto Widget = CompData.Widget;
 			ULexWidget* ParentWidget = nullptr;
-			if (CompData.WidgetParentGuid.IsValid())
+			if (CompData.ParentGuid.IsValid())
 			{
-				if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.WidgetParentGuid))
-				{
-					ParentWidget = Cast<ULexWidget>(*ParentObjectPtr);
-				}
-			}
-			if (!ParentWidget)
-			{
-				UE_LOG(LGUI, Error, TEXT("[%s].%d Missing parent for widget:%s at prefab:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *Widget->GetPathDisplayName(), *PrefabAssetPath);
-				ParentWidget = CreatedRootWidget;
-			}
-			if (Widget->HasRegistered())
-			{
-				Widget->SetParent(ParentWidget, false);
-			}
-			else
-			{
-				Widget->SetParentBeforeRegister(ParentWidget);
-			}
-		}
-		for (auto& CompData : SubPrefabWidgetAttachmentArray)
-		{
-			auto Widget = CompData.Widget;
-			ULexWidget* ParentWidget = nullptr;
-			if (CompData.WidgetParentGuid.IsValid())
-			{
-				if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.WidgetParentGuid))
+				if (auto ParentObjectPtr = MapGuidToObject.Find(CompData.ParentGuid))
 				{
 					ParentWidget = Cast<ULexWidget>(*ParentObjectPtr);
 				}
@@ -257,9 +232,9 @@ namespace LexUIPrefabSystem
 #endif
 		if (!bIsSubPrefab)
 		{
-			for (int i = 0; i < AllWidgets.Num(); i++)
+			for (int i = 0; i < AllWidgetArray.Num(); i++)
 			{
-				auto& Widget = AllWidgets[i];
+				auto& Widget = AllWidgetArray[i];
 				Widget->OnRegister();
 			}
 		}
@@ -272,7 +247,7 @@ namespace LexUIPrefabSystem
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
-			OnSubPrefabFinishDeserializeFunction(CreatedRootWidget, MapGuidToObject, MapObjectToOriginGuid, AllWidgets);
+			OnSubPrefabFinishDeserializeFunction(CreatedRootWidget, MapGuidToObject, MapObjectToOriginGuid, AllWidgetArray);
 		}
 		if (CallbackBeforeAwake != nullptr)
 		{
@@ -286,9 +261,9 @@ namespace LexUIPrefabSystem
 				//originally I use World->HasBegunPlay to tell if the world has begun play but it not work well, the World->HasBegunPlay return false even i do LoadPrefab in BeginPlay
 				if (LexUIManager->HasBegunPlay())
 				{
-					for (int i = 0; i < AllWidgets.Num(); i++)
+					for (int i = 0; i < AllWidgetArray.Num(); i++)
 					{
-						auto& Widget = AllWidgets[i];
+						auto& Widget = AllWidgetArray[i];
 						Widget->BeginPlay();
 					}
 				}
@@ -567,7 +542,7 @@ namespace LexUIPrefabSystem
 									}
 								}
 								//collect sub-prefab's actor to parent prefab
-								AllWidgets.Append(InSubWidgets);
+								AllWidgetArray.Append(InSubWidgets);
 								MapObjectToOriginGuid.Append(InMapObjectToOriginGuid);
 								};
 
@@ -578,7 +553,7 @@ namespace LexUIPrefabSystem
 						
 						if (SubPrefabRootWidget != nullptr)
 						{
-							FComponentDataStruct CompData;
+							FWidgetAttachment CompData;
 							CompData.Widget = SubPrefabRootWidget;
 							FGuid SubPrefabRootCompGuid;
 							for (auto& KeyValue : MapGuidToObject)
@@ -591,22 +566,8 @@ namespace LexUIPrefabSystem
 							}
 							if (auto ParentGuidPtr = MapWidgetToParent.Find(SubPrefabRootCompGuid))
 							{
-								if (auto ParentWidgetPtr = MapGuidToObject.Find(*ParentGuidPtr))
-								{
-									if (SubPrefabRootWidget->HasRegistered())
-									{
-										SubPrefabRootWidget->SetParent(Cast<ULexWidget>(*ParentWidgetPtr), false);
-									}
-									else
-									{
-										SubPrefabRootWidget->SetParentBeforeRegister(Cast<ULexWidget>(*ParentWidgetPtr));
-									}
-								}
-								else//not found, maybe not created yet? collect data for later set
-								{
-									CompData.WidgetParentGuid = *ParentGuidPtr;
-									SubPrefabWidgetAttachmentArray.Add(CompData);
-								}
+								CompData.ParentGuid = *ParentGuidPtr;
+								WidgetAttachmentArray.Add(CompData);
 							}
 
 							SubPrefabMap.Add(SubPrefabRootWidget, SubPrefabData);
@@ -660,15 +621,15 @@ namespace LexUIPrefabSystem
 						CollectDefaultSubobjects(NewWidget);
 					}
 
-					FComponentDataStruct CompData;
+					FWidgetAttachment CompData;
 					CompData.Widget = NewWidget;
 					if (auto ParentGuidPtr = MapWidgetToParent.Find(InWidgetData.WidgetGuid))
 					{
-						CompData.WidgetParentGuid = *ParentGuidPtr;
-						ComponentsInThisPrefab.Add(CompData);
+						CompData.ParentGuid = *ParentGuidPtr;
+						WidgetAttachmentArray.Add(CompData);
 					}
 
-					AllWidgets.Add(NewWidget);
+					AllWidgetArray.Add(NewWidget);
 
 					if (i == 0)
 					{

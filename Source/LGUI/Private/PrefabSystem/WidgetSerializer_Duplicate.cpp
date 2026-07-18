@@ -102,8 +102,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.MapGuidToObject.Reset();
 		serializer.MapObjectToGuid.Reset();
 		serializer.SubPrefabMap.Reset();
-		serializer.SubPrefabWidgetAttachmentArray.Reset();
-		serializer.AllWidgets.Reset();
+		serializer.AllWidgetArray.Reset();
 		serializer.SubPrefabOverrideParameters.Reset();
 		serializer.bIsSubPrefab = false;
 		serializer.SubPrefabObjectOverrideData.Reset();
