@@ -106,7 +106,7 @@ enum class ELTweenEase :uint8
 	OutBounce,
 	InOutBounce,
 	/**
-	 * Use CurveFloat to animate, only range 0-1 is valid.
+	 * Use CurveFloat or RuntimeFloatCurve to animate, only range 0-1 is valid.
 	 * Call SetCurveFloat or SetRuntimeCurveFloat to set the curve.
 	 * Fallback to Linear if curve is not set or invalid.
 	 */

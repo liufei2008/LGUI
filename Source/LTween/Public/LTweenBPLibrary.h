@@ -314,6 +314,16 @@ public:
 			Instance->KillIfIsTweening(WorldContextObject, tweener, callComplete);
 		}
 	}
+	static void ArrayKillIfIsTweening(UObject* WorldContextObject, const TArray<TWeakObjectPtr<ULTweener>>& inTweenerArray, bool callComplete = false)
+	{
+		auto Instance = ULTweenManager::GetLTweenInstance(WorldContextObject);
+		if (!IsValid(Instance))return;
+
+		for (auto tweener : inTweenerArray)
+		{
+			Instance->KillIfIsTweening(tweener.Get(), callComplete);
+		}
+	}
 
 	/**
 	 * Repeatedly call function.

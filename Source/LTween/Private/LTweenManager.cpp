@@ -261,13 +261,17 @@ void ULTweenManager::KillAllTweensOnTarget(UObject* WorldContextObject, UObject*
 
 bool ULTweenManager::IsTweening(UObject* WorldContextObject, ULTweener* item)
 {
-	if (!IsValid(item))return false;
-
 	auto Instance = GetLTweenInstance(WorldContextObject);
 	if (!IsValid(Instance))return false;
-
-	return Instance->tweenerList.Contains(item);
+	return Instance->IsTweening(item);
 }
+
+bool ULTweenManager::IsTweening(ULTweener* item)
+{
+	if (!IsValid(item))return false;
+	return tweenerList.Contains(item);
+}
+
 void ULTweenManager::KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete)
 {
 	if (IsTweening(WorldContextObject, item))
@@ -275,14 +279,28 @@ void ULTweenManager::KillIfIsTweening(UObject* WorldContextObject, ULTweener* it
 		item->Kill(callComplete);
 	}
 }
+
+void ULTweenManager::KillIfIsTweening(ULTweener* item, bool callComplete)
+{
+	if (IsTweening(item))
+	{
+		item->Kill(callComplete);
+	}
+}
+
 void ULTweenManager::RemoveTweener(UObject* WorldContextObject, ULTweener* item)
 {
-	if (!IsValid(item))return;
-
 	auto Instance = GetLTweenInstance(WorldContextObject);
 	if (!IsValid(Instance))return;
-	Instance->tweenerList.Remove(item);
+	Instance->RemoveTweener(item);
 }
+
+void ULTweenManager::RemoveTweener(ULTweener* item)
+{
+	if (!IsValid(item))return;
+	tweenerList.Remove(item);
+}
+
 //float
 ULTweener* ULTweenManager::To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration)
 {

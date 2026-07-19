@@ -116,17 +116,20 @@ public:
 	 * @param item tweener item
 	 */
 	static bool IsTweening(UObject* WorldContextObject, ULTweener* item);
+	bool IsTweening(ULTweener* item);
 	/**
 	 * Kill the tweener if it is tweening.
 	 * @param item tweener item
 	 * @param callComplete true-execute onComplete event.
 	 */
 	static void KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete);
+	void KillIfIsTweening(ULTweener* item, bool callComplete);
 	/**
 	 * Remove tweener from list, so the tweener will not be managed by this LTweenManager.
 	 * @param item tweener item
 	 */
 	static void RemoveTweener(UObject* WorldContextObject, ULTweener* item);
+	void RemoveTweener(ULTweener* item);
 
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenDoubleGetterFunction& getter, const FLTweenDoubleSetterFunction& setter, double endValue, float duration);
