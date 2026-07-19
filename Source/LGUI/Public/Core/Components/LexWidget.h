@@ -488,9 +488,16 @@ public:
 	
 	void MarkTransformChanged();
 	void MarkDimensionChanged(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged);
-	void MarkAnchorDataChanged(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
+	void MarkAnchorDataChanged_Recursive(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
 	virtual void MarkCanvasUpdate(bool bRebuildDrawCall)const;
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetPositionAndSizeForLayoutAnimation(FVector2D Position, FVector2D Size);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetPositionForLayoutAnimation(FVector2D Position);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetSizeForLayoutAnimation(FVector2D Position);
+	void MarkAnchorDataChangedByLayoutContainer_Recursive(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
 private:
 	float GetLayoutProperty(TFunctionRef<float(ULexLayoutSelf*)> GetLayoutSelfProperty
 		, TFunctionRef<float(ULexLayoutContainer*)> GetLayoutContainerProperty
@@ -544,6 +551,11 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetRestrictNavigationArea", Setter = "SetRestrictNavigationArea", meta = (AllowPrivateAccess = true))
 	uint8 bRestrictNavigationArea : 1 = false;
+	/**
+	 * Ignore parent layout container
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetIgnoreLayout", Setter = "SetIgnoreLayout", meta = (AllowPrivateAccess = true))
+	bool bIgnoreLayout = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Visual", Getter, meta = (AllowPrivateAccess = true))
 	TObjectPtr<ULexVisual> Visual = nullptr;
@@ -627,6 +639,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	bool GetRestrictNavigationArea()const{return bRestrictNavigationArea;}
+	
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	bool GetIgnoreLayout()const{return bIgnoreLayout;}
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetIgnoreLayout(bool Value);
 
 	/**
 	 * Search up parent LexWidget which bRestrictNavigationArea is true and return it, include this LexWidget self
@@ -656,7 +673,7 @@ public:
 	template<class T>
 	T* CreateNewLayoutContainer()
 	{
-		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutContainer>::Value, "'T' template parameter to CreateNewLayoutContainer must be derived from ULexLayout");
+		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutContainer>::Value, "'T' template parameter to CreateNewLayoutContainer must be derived from ULexLayoutContainer");
 		return (T*)CreateNewLayoutContainer(T::StaticClass());
 	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -669,7 +686,7 @@ public:
 	template<class T>
 	T* CreateNewLayoutSelf()
 	{
-		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutSelf>::Value, "'T' template parameter to CreateNewLayoutSelf must be derived from ULexLayout");
+		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutSelf>::Value, "'T' template parameter to CreateNewLayoutSelf must be derived from ULexLayoutSelf");
 		return (T*)CreateNewLayoutSelf(T::StaticClass());
 	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

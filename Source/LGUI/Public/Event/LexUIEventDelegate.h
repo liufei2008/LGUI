@@ -143,7 +143,7 @@ private:
 };
 
 /**
- * event or callback that can edit inside ue4 editor
+ * event or callback that can edit inside editor
  */
 USTRUCT(BlueprintType)
 struct LGUI_API FLexUIEventDelegate

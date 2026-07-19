@@ -136,11 +136,7 @@ void ULexLayoutContainerGrid::CalculateLayout()
 	for (auto& ChildWidget : Widget->GetChildren())
 	{
 		if (!ChildWidget->GetWidgetActiveInHierarchy())continue;
-		auto ChildLayoutSelf = Cast<ULexLayoutSelfGrid>(ChildWidget->GetLayoutSelf());
-		if (ChildLayoutSelf && ChildLayoutSelf->GetIgnoreLayoutContainer())
-		{
-			continue;
-		}
+		if (ChildWidget->GetIgnoreLayout())continue;
 
 		auto AnchorMin = ChildWidget->GetAnchorMin();
 		auto AnchorMax = ChildWidget->GetAnchorMax();
@@ -153,6 +149,7 @@ void ULexLayoutContainerGrid::CalculateLayout()
 			ChildWidget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
 		}
 
+		auto ChildLayoutSelf = Cast<ULexLayoutSelfGrid>(ChildWidget->GetLayoutSelf());
 		if (!ChildLayoutSelf)
 		{
 			NotLocatedWidgetList.AddTail(ChildWidget);
@@ -269,11 +266,7 @@ FLexLayoutControlAnchorData ULexLayoutContainerGrid::GetLayoutControlAnchor(cons
 	}
 	else if (ThisWidget->GetChildren().Contains(TargetWidget))//child
 	{
-		bool bIgnoreLayout = false;
-		if (auto LayoutSelf = TargetWidget->GetLayoutSelf())
-		{
-			bIgnoreLayout = LayoutSelf->GetIgnoreLayoutContainer();
-		}
+		auto bIgnoreLayout = TargetWidget->GetIgnoreLayout();
 		if (!bIgnoreLayout)
 		{
 			Result.bCanControlHorizontalPosition = true;

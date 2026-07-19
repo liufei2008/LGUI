@@ -109,9 +109,8 @@ private:
 
 	virtual void CalculateLayout() override;
 	void RefreshChildren();
-	void CalculateLayout(bool bApplyLayoutToChildren);
 	void CalculatePreferredSize();
-
+	
 	struct FLineData
 	{
 		FLineData()
@@ -132,15 +131,6 @@ private:
 	TArray<FLineData> LineDataArray;
 	UPROPERTY(Transient)TArray<ULexWidget*> Children;
 	FVector2f TotalPreferredSize;
-	struct FCalculatedLayoutResult
-	{
-		ULexWidget* Widget = nullptr;
-		ULexLayoutSelfFlexBox* LayoutSelf = nullptr;
-		FVector2D AnchoredPos;
-		FVector2f Size;
-		int PrimaryAxis;
-	};
-	TArray<FCalculatedLayoutResult> CalculatedLayoutResultArray;
 
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* TargetWidget)const override;
 public:

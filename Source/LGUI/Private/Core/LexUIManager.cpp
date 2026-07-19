@@ -850,6 +850,7 @@ void ULexUIManagerWorldSubsystem::Deinitialize()
 
 void ULexUIManagerWorldSubsystem::BeginDestroy()
 {
+	check(!IsInitialized());
 #if WITH_EDITOR
 	auto CopiedWidgetArray = AllWidgetArray;//use a copied array, because when Widget.OnUnregister the AllWidgetArray will change
 	for (int i = 0; i < CopiedWidgetArray.Num(); i++)
@@ -1046,11 +1047,13 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 	//update layout
 	if (LayoutDirtyWidgetArray.Num() > 0)
 	{
-#if WITH_EDITOR
+		bIsExecutingLayout = true;
 		int LayoutCalcCount = 0;
+#if WITH_EDITOR
 		auto Time = FDateTime::Now();
 		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
 #endif
+		LayoutContainerArrayWhichHasSnapshot.Reset();
 		while (LayoutDirtyWidgetArray.Num() > 0)
 		{
 			SCOPE_CYCLE_COUNTER(STAT_UpdateLayout);
@@ -1065,6 +1068,10 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 				CalculateLayoutTree(Widget.Get());
 			}
 		}
+		for (auto& SnapshotLayout : LayoutContainerArrayWhichHasSnapshot)
+		{
+			SnapshotLayout->ApplyLayoutResult();
+		}
 #if WITH_EDITOR
 		for (auto& CalcCountKeyValue : LayoutCalculationCounterMap)
 		{
@@ -1077,6 +1084,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 		auto TimeSpan = (FDateTime::Now() - Time).GetTotalMilliseconds();
 		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, TimeSpan);
 #endif
+		bIsExecutingLayout = false;
 	}
 
 #if WITH_EDITOR
@@ -1466,12 +1474,18 @@ void ULexUIManagerWorldSubsystem::AddLayoutDirtyWidget(ULexWidget* InWidget)
 
 void ULexUIManagerWorldSubsystem::MarkRebuildLayoutTree(ULexWidget* InWidget)
 {
-	MapWidgetToLayoutTree.Remove(InWidget);
+	if (!bIsExecutingLayout)
+	{
+		MapWidgetToLayoutTree.Remove(InWidget);
+	}
 }
 
 void ULexUIManagerWorldSubsystem::MarkRebuildAllLayoutTree()
 {
-	MapWidgetToLayoutTree.Empty();
+	if (!bIsExecutingLayout)
+	{
+		MapWidgetToLayoutTree.Empty();
+	}
 }
 
 void ULexUIManagerWorldSubsystem::CalculateLayoutTree(ULexWidget* RootLayoutWidget)
@@ -1494,15 +1508,24 @@ void ULexUIManagerWorldSubsystem::CalculateLayoutTree(ULexWidget* RootLayoutWidg
 		}
 	};
 	
-	auto LayoutTree = MapWidgetToLayoutTree.FindOrAdd(RootLayoutWidget);
-	auto& LayoutTreeArray = LayoutTree.WidgetArray;
-	if (LayoutTreeArray.IsEmpty())
+	auto& LayoutTree = MapWidgetToLayoutTree.FindOrAdd(RootLayoutWidget);
+	if (LayoutTree.WidgetArray.IsEmpty())
 	{
-		LOCAL::CollectLayoutTree(RootLayoutWidget, LayoutTreeArray);
+		LOCAL::CollectLayoutTree(RootLayoutWidget, LayoutTree.WidgetArray);
 	}
+	auto& LayoutTreeArray = LayoutTree.WidgetArray;
 	for (int i = 0; i < LayoutTreeArray.Num(); i++)
 	{
-		LayoutTreeArray[i]->UpdateLayout();
+		auto Widget = LayoutTreeArray[i];
+		if (auto LayoutContainer = Widget->GetLayoutContainer())
+		{
+			if (!LayoutContainerArrayWhichHasSnapshot.Contains(LayoutContainer))
+			{
+				LayoutContainer->SnapshotLayout();
+				LayoutContainerArrayWhichHasSnapshot.Add(LayoutContainer);
+			}
+		}
+		Widget->UpdateLayout();
 	}
 }
 

@@ -256,8 +256,7 @@ static bool TryApplyLayoutAttribute(const FString& AttrName, const FString& Attr
 	{
 		if (AttrValue == TEXT("IgnoreLayoutContainer"))
 		{
-			auto* Layout = Widget->CreateNewLayoutSelf(ULexLayoutSelf::StaticClass());
-			if (Layout) Layout->SetIgnoreLayoutContainer(true);
+			Widget->SetIgnoreLayout(true);
 		}
 		else if (UClass* LayoutClass = ResolveLayoutSelfClass(AttrValue))
 			Widget->CreateNewLayoutSelf(LayoutClass);

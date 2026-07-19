@@ -7,7 +7,7 @@
 
 namespace LexUIPrefabSystem
 {
-	bool LGUIPrefab_ShouldSkipProperty(const FProperty* InProperty)
+	bool LexUIPrefab_ShouldSkipProperty(const FProperty* InProperty)
 	{
 		return
 			InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
@@ -32,7 +32,7 @@ namespace LexUIPrefabSystem
 	}
 	bool FLexUIObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (LGUIPrefab_ShouldSkipProperty(InProperty))
+		if (LexUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -197,7 +197,7 @@ namespace LexUIPrefabSystem
 	}
 	FString FLexUIObjectWriter::GetArchiveName() const
 	{
-		return TEXT("FLGUIObjectWriter");
+		return TEXT("FLexUIObjectWriter");
 	}
 
 
@@ -217,7 +217,7 @@ namespace LexUIPrefabSystem
 	}
 	bool FLexUIObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
-		if (LGUIPrefab_ShouldSkipProperty(InProperty))
+		if (LexUIPrefab_ShouldSkipProperty(InProperty))
 		{
 			return true;
 		}
@@ -341,6 +341,6 @@ namespace LexUIPrefabSystem
 	}
 	FString FLexUIObjectReader::GetArchiveName() const
 	{
-		return TEXT("FLGUIObjectReader");
+		return TEXT("FLexUIObjectReader");
 	}
 }

@@ -285,18 +285,28 @@ void SLexWidgetEditorHierarchyView::OnEditorSelectionChanged()
 			TArray<TWeakObjectPtr<ULexWidget>> SelectedItems;
 			for (auto& Item: SelectedWidgets)
 			{
-				SelectedItems.Add(Item.Get());
-			}
-			SetSelectionsByNodeObjects(SelectedItems);
-
-			//expand
-			if (SelectedItems.Num() == 1)
-			{
-				auto Widget = SelectedItems[0]->GetParent();
-				while (Widget != nullptr)
+				if (Item.IsValid())
 				{
-					WidgetTreeView->SetItemExpansion(Widget, true);
-					Widget = Widget->GetParent();
+					SelectedItems.Add(Item.Get());
+				}
+			}
+			if (SelectedItems.Num() == 0)
+			{
+				ClearSelection();
+			}
+			else
+			{
+				SetSelectionsByNodeObjects(SelectedItems);
+
+				//expand
+				if (SelectedItems.Num() == 1)
+				{
+					auto Widget = SelectedItems[0]->GetParent();
+					while (Widget != nullptr)
+					{
+						WidgetTreeView->SetItemExpansion(Widget, true);
+						Widget = Widget->GetParent();
+					}
 				}
 			}
 		}

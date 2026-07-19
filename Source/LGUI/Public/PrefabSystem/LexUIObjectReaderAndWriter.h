@@ -38,7 +38,7 @@ namespace LexUIPrefabSystem
 		}
 		return false;
 	}
-	bool LGUIPrefab_ShouldSkipProperty(const FProperty* InProperty);
+	bool LexUIPrefab_ShouldSkipProperty(const FProperty* InProperty);
 
 	class LGUI_API FLexUIObjectWriter : public FObjectWriter
 	{

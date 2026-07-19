@@ -359,7 +359,7 @@ namespace LexUIPrefabSystem
 				auto Index = ObjectData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 				if (Index == INDEX_NONE)
 				{
-					UE_LOG(LGUI, Warning, TEXT("[%s].%d Missing guid for default sub object: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(DefaultSubObject->GetFName().ToString()));
+					UE_LOG(LGUI, Warning, TEXT("[%s].%d Missing guid for default sub object: %s. Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(DefaultSubObject->GetFName().ToString()), *PrefabAssetPath);
 					continue;
 				}
 				auto DefaultSubObjectGuid = ObjectData.DefaultSubObjectGuidArray[Index];
@@ -409,6 +409,11 @@ namespace LexUIPrefabSystem
 							UE_LOG(LGUI, Warning, TEXT("[%s].%d Object '%s' already exist on outer '%s', will destroy and rename exiting one. Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(ObjectData.ObjectName.ToString()), *(OuterObjectPtr->GetPathName()), *PrefabAssetPath);
 						}
 #endif
+						if (ObjectClass->HasAnyClassFlags(CLASS_Abstract))
+						{
+							UE_LOG(LGUI, Warning, TEXT("[%s].%d Bad class %s when creating object: '%s'. Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(ObjectClass->GetPathName()), *(ObjectData.ObjectName.ToString()), *PrefabAssetPath);
+							continue;
+						}
 						CreatedNewObject = NewObject<UObject>(*OuterObjectPtr, ObjectClass, ObjectData.ObjectName, (EObjectFlags)ObjectData.ObjectFlags);
 						MapGuidToObject.Add(ObjectGuid, CreatedNewObject);
 						MapObjectToOriginGuid.Add(CreatedNewObject, ObjectGuid);
@@ -594,7 +599,7 @@ namespace LexUIPrefabSystem
 							auto Index = InWidgetData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 							if (Index == INDEX_NONE)
 							{
-								UE_LOG(LGUI, Warning, TEXT("[%s].%d Missing guid for default sub object: %s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(DefaultSubObject->GetFName().ToString()));
+								UE_LOG(LGUI, Warning, TEXT("[%s].%d Missing guid for default sub object: %s. Prefab: '%s'"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, *(DefaultSubObject->GetFName().ToString()), *PrefabAssetPath);
 								continue;
 							}
 							auto DefaultSubObjectGuid = InWidgetData.DefaultSubObjectGuidArray[Index];

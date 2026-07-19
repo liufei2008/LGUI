@@ -204,7 +204,7 @@ public:
 	virtual FVector2f GetLayoutPreferredSize() override;
 	virtual FVector2f GetLayoutFinalSize() override;
 	virtual void CalculateSize() override;
-	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange) override;
+	virtual void MarkLayoutDirty() override;
 	void GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax);
 	void RebuildSelfLayout();
 	
@@ -212,7 +212,7 @@ public:
 	float GetShrinkForLayoutContainer(int Axis)const;
 
 	bool GetSecondaryAxisSizeCanStretchByLayoutContainer(int SecondaryAxis)const;
-	void SetSizeByLayoutContainer(FVector2f Value, int PrimaryAxis);
+	void SetFinalSizeByLayoutContainer(FVector2f Value);
 	
 	UFUNCTION(BlueprintCallable, Category = "LayoutSelf")
 	const FLexLayoutSize& GetPreferredWidth()const{return PreferredWidth;}

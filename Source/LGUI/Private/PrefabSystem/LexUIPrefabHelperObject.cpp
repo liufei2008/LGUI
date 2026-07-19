@@ -522,8 +522,8 @@ void ULexUIPrefabHelperObject::OnObjectPropertyChanged(UObject* InObject, struct
 {
 	if (!IsValid(InObject))return;
 	if (InPropertyChangedEvent.MemberProperty == nullptr || InPropertyChangedEvent.Property == nullptr)return;
-	if (LexUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.MemberProperty))return;
-	if (LexUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.Property))return;
+	if (LexUIPrefabSystem::LexUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.MemberProperty))return;
+	if (LexUIPrefabSystem::LexUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.Property))return;
 
 	TryCollectPropertyToOverride(InObject, InPropertyChangedEvent.MemberProperty);
 }
@@ -534,7 +534,7 @@ void ULexUIPrefabHelperObject::OnPreObjectPropertyChanged(UObject* InObject, con
 	if (ActiveMemberNode == nullptr)return;
 	auto MemberProperty = ActiveMemberNode->GetValue();
 	if (MemberProperty == nullptr)return;
-	if (LexUIPrefabSystem::LGUIPrefab_ShouldSkipProperty(MemberProperty))return;
+	if (LexUIPrefabSystem::LexUIPrefab_ShouldSkipProperty(MemberProperty))return;
 	auto ActiveNode = InEditPropertyChain.GetActiveNode();
 	if (ActiveNode != ActiveMemberNode)
 	{

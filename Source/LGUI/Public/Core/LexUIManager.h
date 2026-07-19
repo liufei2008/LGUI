@@ -176,9 +176,11 @@ private:
 	TArray<TWeakObjectPtr<ULexWidget>> LayoutDirtyWidgetArray;
 	
 	TMap<TObjectPtr<ULexWidget>, FLexUILayoutTree> MapWidgetToLayoutTree;
+	TSet<TObjectPtr<class ULexLayoutContainer>> LayoutContainerArrayWhichHasSnapshot;
 
 	bool bIsExecutingStart = false;
 	bool bIsExecutingTick = false;
+	bool bIsExecutingLayout = false;
 	int32 CurrentExecutingTickIndex = -1;
 	UPROPERTY(Transient) TArray<ULexUIBehaviour*> LexUIBehavioursNeedToRemoveFromTick;
 #if WITH_EDITORONLY_DATA

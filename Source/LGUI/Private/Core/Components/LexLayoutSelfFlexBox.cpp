@@ -230,15 +230,23 @@ void ULexLayoutSelfFlexBox::RebuildSelfLayout()
 {
     if (auto Widget = GetWidget())
     {
-        if (auto ParentWidget = Widget->GetParent())
+        if (!Widget->GetIgnoreLayout())
         {
-            if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then mark it for late rebuild layout
+            if (auto ParentWidget = Widget->GetParent())
             {
-                ULexWidget::MarkLayoutForRebuild(GetWidget());
-                return;
+                if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then mark it for late rebuild layout
+                {
+                    ULexWidget::MarkLayoutForRebuild(Widget);
+                    return;
+                }
+            }
+            if (auto LayoutContainer = Widget->GetLayoutContainer())
+            {
+                if (LayoutContainer->GetUseAnimation())//if use animation, then this size will be set by animation
+                    return;
             }
         }
-        MarkLayoutDirty();
+        bIsLayoutDirty = true;
         CalculateSize();//build layout and apply immediately
     }
 }
@@ -310,19 +318,26 @@ void ULexLayoutSelfFlexBox::CalculateSize()
     }
 }
 
-void ULexLayoutSelfFlexBox::OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)
+void ULexLayoutSelfFlexBox::MarkLayoutDirty()
 {
-    Super::OnDimensionChanged(InPivotChange, InWidthChange, InHeightChange);
+    Super::MarkLayoutDirty();
     if (auto Widget = GetWidget())
     {
-        if (auto ParentWidget = Widget->GetParent())
+        if (!Widget->GetIgnoreLayout())
         {
-            if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then LexWidget will do MarkLayoutForRebuild for it, so skip it here
+            if (auto ParentWidget = Widget->GetParent())
             {
-                return;
+                if (ParentWidget->GetLayoutContainer())//if parent has layoutContainer, then LexWidget will do MarkLayoutForRebuild for it, so skip it here
+                {
+                    return;
+                }
+            }
+            if (auto LayoutContainer = Widget->GetLayoutContainer())
+            {
+                if (LayoutContainer->GetUseAnimation())//if use animation, then this size will be set by animation
+                    return;
             }
         }
-        MarkLayoutDirty();
         CalculateSize();//build layout and apply immediately
     }
 }
@@ -378,14 +393,10 @@ bool ULexLayoutSelfFlexBox::GetSecondaryAxisSizeCanStretchByLayoutContainer(int 
     return false;
 }
 
-void ULexLayoutSelfFlexBox::SetSizeByLayoutContainer(FVector2f Value, int PrimaryAxis)
+void ULexLayoutSelfFlexBox::SetFinalSizeByLayoutContainer(FVector2f Value)
 {
-    auto Widget = GetWidget();
-    if (!Widget)return;
-
     this->CalculatedFinalWidth = Value.X;
     this->CalculatedFinalHeight = Value.Y;
-    Widget->SetSizeDelta(FVector2D(Value));
 
 #if WITH_EDITOR
     if (PreferredWidth.Type == ELexLayoutSizeType::Auto)
