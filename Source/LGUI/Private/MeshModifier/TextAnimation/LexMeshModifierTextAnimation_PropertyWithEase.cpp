@@ -134,9 +134,9 @@ void ULexMeshModifierTextAnimation_PropertyWithEase::SetEaseType(ELTweenEase Val
 	{
 		EaseType = Value;
 		EaseFunc.Unbind();
-		if (auto uiText = GetUIText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -147,9 +147,9 @@ void ULexMeshModifierTextAnimation_PropertyWithEase::SetEaseCurve(UCurveFloat* V
 		EaseCurve = Value;
 		if (EaseType == ELTweenEase::CurveFloat)
 		{
-			if (auto uiText = GetUIText())
+			if (auto LexText = GetLexText())
 			{
-				uiText->MarkVertexPositionDirty();
+				LexText->MarkVertexPositionDirty();
 			}
 		}
 	}
@@ -377,9 +377,9 @@ void ULexMeshModifierTextAnimation_ColorProperty::SetUseHSV(bool Value)
 	if (bUseHSV != Value)
 	{
 		bUseHSV = Value;
-		if (auto uiText = GetUIText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkColorDirty();
+			LexText->MarkColorDirty();
 		}
 	}
 }
@@ -430,9 +430,9 @@ void ULexMeshModifierTextAnimation_ColorRandomProperty::SetUseHSV(bool Value)
 	if (bUseHSV != Value)
 	{
 		bUseHSV = Value;
-		if (auto uiText = GetUIText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkColorDirty();
+			LexText->MarkColorDirty();
 		}
 	}
 }

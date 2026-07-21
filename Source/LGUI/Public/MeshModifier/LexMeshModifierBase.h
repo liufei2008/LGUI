@@ -4,7 +4,7 @@
 
 #include "Core/LexUIGeometry.h"
 #include "Core/Components/LexVisualBatchMesh.h"
-#include "Components/ActorComponent.h"
+#include "Core/LexUIBehaviour.h"
 #include "LexMeshModifierBase.generated.h"
 
 class ULexVisualBatchMesh;
@@ -64,8 +64,8 @@ public:
 /** 
  * For modify ui mesh, like a filter.
  */
-UCLASS(Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
-class LGUI_API ULexMeshModifierBase : public UObject
+UCLASS(Abstract, Blueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API ULexMeshModifierBase : public ULexUIBehaviour
 {
 	GENERATED_BODY()
 
@@ -74,21 +74,22 @@ public:
 
 protected:
 	friend class ULexVisualBatchMesh;
-	virtual void BeginPlay(){}
-	virtual void EndPlay(){}
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
+	FDelegateHandle ComponentsChangedDelegateHandle;
 
 	/** Enable this mesh modifier */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bEnable = true;
 
 private:
-	mutable TWeakObjectPtr<ULexVisualBatchMesh> CacheLexVisual;
+	mutable TWeakObjectPtr<ULexVisualBatchMesh> CacheVisualBatchMesh;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		ULexVisualBatchMesh* GetLexVisual()const;
+		ULexVisualBatchMesh* GetVisualBatchMesh()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetEnable()const { return bEnable; }
 	

@@ -141,7 +141,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	FColor GetColor() const { return Color; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	float GetAlpha() const { return FLexUIUtils::Color255To1_Table[Color.A]; }
+	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	bool GetRaycastTarget()const{return bRaycastTarget;}
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

@@ -12,7 +12,7 @@ void ULexMeshModifierGradientColor::ApplyColorAndAlpha(FColor& InOutColor, FColo
 {
 	if (bMultiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(FLexUIUtils::Color255To1_Table[InOutColor.A] * InTintColor.A);
+		InOutColor.A = (uint8)(FLexUIUtils::ByteToFloat01(InOutColor.A) * InTintColor.A);
 		InOutColor.R = InTintColor.R;
 		InOutColor.G = InTintColor.G;
 		InOutColor.B = InTintColor.B;
@@ -98,7 +98,7 @@ void ULexMeshModifierGradientColor::SetDirectionType(ELexMeshModifierGradientCol
 	if (DirectionType != Value)
 	{
 		DirectionType = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }
 void ULexMeshModifierGradientColor::SetMultiplySourceAlpha(bool Value)
@@ -106,7 +106,7 @@ void ULexMeshModifierGradientColor::SetMultiplySourceAlpha(bool Value)
 	if (bMultiplySourceAlpha != Value)
 	{
 		bMultiplySourceAlpha = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }
 void ULexMeshModifierGradientColor::SetColor1(FColor Value)
@@ -114,7 +114,7 @@ void ULexMeshModifierGradientColor::SetColor1(FColor Value)
 	if (Color1 != Value)
 	{
 		Color1 = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }
 void ULexMeshModifierGradientColor::SetColor2(FColor Value)
@@ -122,7 +122,7 @@ void ULexMeshModifierGradientColor::SetColor2(FColor Value)
 	if (Color2 != Value)
 	{
 		Color2 = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }
 void ULexMeshModifierGradientColor::SetColor3(FColor Value)
@@ -130,7 +130,7 @@ void ULexMeshModifierGradientColor::SetColor3(FColor Value)
 	if (Color3 != Value)
 	{
 		Color3 = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }
 void ULexMeshModifierGradientColor::SetColor4(FColor Value)
@@ -138,6 +138,6 @@ void ULexMeshModifierGradientColor::SetColor4(FColor Value)
 	if (Color4 != Value)
 	{
 		Color4 = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (GetVisualBatchMesh())GetVisualBatchMesh()->MarkColorDirty();
 	}
 }

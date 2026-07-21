@@ -14,7 +14,7 @@ void ULexMeshModifierPositionAsUV::ModifyUIGeometry(
 	FLexUIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 )
 {
-	auto LexVisual = GetLexVisual();
+	auto LexVisual = GetVisualBatchMesh();
 	if (!LexVisual)return;
 	auto RenderCanvas = LexVisual->GetWidget()->GetRenderCanvas();
 	auto& originVertices = InGeometry.OriginVertices;

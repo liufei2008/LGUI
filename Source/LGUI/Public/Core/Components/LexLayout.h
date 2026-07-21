@@ -161,6 +161,9 @@ protected:
 	//position and size snapshot before layout calculation
 	TArray<FLayoutAnimationSnapshotData> LayoutAnimSnapshotDataArray;
 	TArray<TWeakObjectPtr<ULTweener>> LayoutAnimTweenerArray;
+
+	void RefreshChildren();
+	UPROPERTY(Transient)TArray<ULexWidget*> Children;
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

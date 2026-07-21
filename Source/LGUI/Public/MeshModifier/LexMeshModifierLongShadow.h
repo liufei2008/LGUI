@@ -6,7 +6,7 @@
 #include "LexMeshModifierLongShadow.generated.h"
 
 
-UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="LongShadow")
+UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="LongShadow", meta = (BlueprintSpawnableComponent))
 class LGUI_API ULexMeshModifierLongShadow : public ULexMeshModifierBase
 {
 	GENERATED_BODY()

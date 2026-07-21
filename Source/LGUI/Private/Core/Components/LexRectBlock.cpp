@@ -915,7 +915,7 @@ ULTweener* ULexRectBlock::BodyColorTo(FColor endValue, float duration, float del
 ULTweener* ULexRectBlock::BodyAlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [this] {
-		return FLexUIUtils::Color255To1_Table[this->BodyColor.A];
+		return FLexUIUtils::ByteToFloat01(this->BodyColor.A);
 		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {
 			auto PropertyValue = this->BodyColor;
 			PropertyValue.A = static_cast<uint8>(value * 255.0f);
@@ -949,7 +949,7 @@ ULTweener* ULexRectBlock::Property##To(EndValueType endValue, float duration, fl
 ULTweener* ULexRectBlock::Function##AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)\
 {\
 	auto Tweener =  ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateWeakLambda(this, [this] {\
-		return FLexUIUtils::Color255To1_Table[this->BodyColor.A];\
+		return FLexUIUtils::ByteToFloat01(this->BodyColor.A);\
 		}), FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) {\
 			auto PropertyValue = this->Property;\
 			PropertyValue.A = (uint8)(value * 255.0f);\

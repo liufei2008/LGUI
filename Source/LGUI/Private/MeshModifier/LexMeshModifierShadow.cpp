@@ -45,7 +45,7 @@ void ULexMeshModifierShadow::ModifyUIGeometry(
 		if (bMultiplySourceAlpha)
 		{
 			auto& vertColor = vertices[channelIndex1].Color;
-			vertColor.A = (uint8)(FLexUIUtils::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * ShadowColor.A);
+			vertColor.A = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.A) * ShadowColor.A);
 			vertColor.R = ShadowColor.R;
 			vertColor.G = ShadowColor.G;
 			vertColor.B = ShadowColor.B;
@@ -67,7 +67,7 @@ void ULexMeshModifierShadow::SetShadowColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
 	}
 }
 void ULexMeshModifierShadow::SetShadowOffset(FVector3f Value)
@@ -75,6 +75,6 @@ void ULexMeshModifierShadow::SetShadowOffset(FVector3f Value)
 	if (ShadowOffset != Value)
 	{
 		ShadowOffset = Value;
-		if (GetLexVisual())GetLexVisual()->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
 	}
 }

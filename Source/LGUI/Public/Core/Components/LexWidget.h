@@ -56,6 +56,16 @@ enum class ELexWidgetInteractableType : uint8
 	Disabled,
 };
 
+enum class ELexWidgetComponentsChangedType : uint8
+{
+	//New component added to this widget
+	Added,
+	//A component was removed from this widget
+	Removed,
+	//Component reordered
+	Reorder,
+};
+
 /**
  * Base class for almost all UI related things.
  */
@@ -73,6 +83,7 @@ public:
 	DECLARE_EVENT(ULexWidget, FSiblingIndexChangedEvent);
 	DECLARE_EVENT_OneParam(ULexWidget, FInteractableChangedEvent, bool/*Interactable*/);
 	DECLARE_EVENT_OneParam(ULexWidget, FRaycastableChangedEvent, bool/*Raycastable*/)
+	DECLARE_EVENT_OneParam(ULexWidget, FComponentsChangedEvent, ELexWidgetComponentsChangedType/*ChangedType*/)
 	
 	ULexWidget();
 
@@ -326,6 +337,7 @@ private:
 	FSiblingIndexChangedEvent OnSiblingIndexChangedEvent;
 	FInteractableChangedEvent OnInteractableChangedEvent;
 	FRaycastableChangedEvent OnRaycastableChangedEvent;
+	FComponentsChangedEvent OnComponentsChangedEvent;
 public:
 	FWidgetActiveChangedEvent& GetWidgetActiveChangedEvent(){return OnWidgetActiveChangedEvent;}
 	FTransformChangedEvent& GetTransformChangedEvent(){return OnTransformChangedEvent;}
@@ -335,6 +347,7 @@ public:
 	FSiblingIndexChangedEvent& GetSiblingIndexChangedEvent(){return OnSiblingIndexChangedEvent;}
 	FInteractableChangedEvent& GetInteractableChangedEvent(){return OnInteractableChangedEvent;}
 	FRaycastableChangedEvent& GetRaycastableChangedEvent(){return OnRaycastableChangedEvent;}
+	FComponentsChangedEvent& GetComponentsChangedEvent(){return OnComponentsChangedEvent;}
 protected:
 	/** parent in hierarchy */
 	UPROPERTY(Transient) mutable TWeakObjectPtr<ULexWidget> Parent = nullptr;
@@ -434,6 +447,8 @@ public:
 		void SetVerticalAnchoredPosition(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		void SetSizeDelta(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	void SetAnchoredPositionAndSizeDelta(FVector2D Position, FVector2D Size);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		void SetWidth(float Value);

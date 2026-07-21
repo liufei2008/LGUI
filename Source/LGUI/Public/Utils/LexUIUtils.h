@@ -48,7 +48,12 @@ public:
 	static void LogObjectFlags(UObject* obj);
 	static void LogClassFlags(UClass* cls);
 
-	static float Color255To1_Table[256];
+	//convert a 0-255 byte color component to a 0-1 float.
+	//replaces the old Color255To1_Table[256] lookup: identical IEEE result to V/255.f, no static data, no cache footprint.
+	static FORCEINLINE float ByteToFloat01(uint8 V)
+	{
+		return (float)V * (1.0f / 255.0f);
+	}
 
 	static UTexture2D* GetDefaultWhiteTexture();
 	static int CeilPowerOfTwo(int v)

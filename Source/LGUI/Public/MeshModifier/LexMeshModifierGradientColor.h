@@ -15,7 +15,7 @@ enum class ELexMeshModifierGradientColorDirection :uint8
 	RightToLeft,
 	FourCorner,
 };
-UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="GradientColor")
+UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="GradientColor", meta = (BlueprintSpawnableComponent))
 class LGUI_API ULexMeshModifierGradientColor : public ULexMeshModifierBase
 {
 	GENERATED_BODY()

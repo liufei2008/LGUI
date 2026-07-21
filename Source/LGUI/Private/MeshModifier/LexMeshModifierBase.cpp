@@ -10,33 +10,79 @@ ULexMeshModifierBase::ULexMeshModifierBase()
 	
 }
 
-ULexVisualBatchMesh* ULexMeshModifierBase::GetLexVisual()const
+ULexVisualBatchMesh* ULexMeshModifierBase::GetVisualBatchMesh()const
 {
-	if(!CacheLexVisual.IsValid())
+	if (!CacheVisualBatchMesh.IsValid())
 	{
-		CacheLexVisual = Cast<ULexVisualBatchMesh>(GetOuter());
+		if (auto Widget = GetWidget())
+		{
+			CacheVisualBatchMesh = Cast<ULexVisualBatchMesh>(Widget->GetVisual());
+		}
 	}
-	return CacheLexVisual.Get();
+	return CacheVisualBatchMesh.Get();
 }
 #if WITH_EDITOR
 void ULexMeshModifierBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (GetLexVisual())
+	if (GetVisualBatchMesh())
 	{
-		CacheLexVisual->GetWidget()->MarkCanvasUpdate(true);
+		CacheVisualBatchMesh->MarkVerticesDirty(true, true, true, true);
 	}
 }
 #endif
+
+void ULexMeshModifierBase::OnRegister()
+{
+	Super::OnRegister();
+	if (auto Widget = GetWidget())
+	{
+		if (!ComponentsChangedDelegateHandle.IsValid())
+		{
+			ComponentsChangedDelegateHandle = Widget->GetComponentsChangedEvent().AddWeakLambda(this,
+				[this](ELexWidgetComponentsChangedType ChangedType)
+			{
+				if (ChangedType == ELexWidgetComponentsChangedType::Reorder)
+				{
+					if (GetVisualBatchMesh() != nullptr)
+					{
+						CacheVisualBatchMesh->MarkMeshModifierOrderChanged();
+					}
+				}
+			});
+		}
+	}
+	if (GetVisualBatchMesh() != nullptr)
+	{
+		CacheVisualBatchMesh->AddMeshModifier(this);
+	}
+}
+
+void ULexMeshModifierBase::OnUnregister()
+{
+	Super::OnUnregister();
+	if (auto Widget = GetWidget())
+	{
+		if (ComponentsChangedDelegateHandle.IsValid())
+		{
+			Widget->GetComponentsChangedEvent().Remove(ComponentsChangedDelegateHandle);
+			ComponentsChangedDelegateHandle.Reset();
+		}
+	}
+	if (CacheVisualBatchMesh.IsValid())
+	{
+		CacheVisualBatchMesh->RemoveMeshModifier(this);
+	}
+}
 
 void ULexMeshModifierBase::SetEnable(bool Value)
 { 
 	if (bEnable != Value)
 	{
 		bEnable = Value;
-		if (GetLexVisual() != nullptr)
+		if (GetVisualBatchMesh() != nullptr)
 		{
-			CacheLexVisual->MarkVerticesDirty(true, true, true, true);
+			CacheVisualBatchMesh->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }

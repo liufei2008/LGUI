@@ -401,7 +401,7 @@ uint8 ULexVisual::GetFinalAlpha()const
 
 float ULexVisual::GetFinalAlpha01()const
 {
-	return FLexUIUtils::Color255To1_Table[GetFinalAlpha()];
+	return FLexUIUtils::ByteToFloat01(GetFinalAlpha());
 }
 
 bool ULexVisual::LineTraceUI(FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const
@@ -465,7 +465,6 @@ void ULexVisual::FillWidgetPropertyDataForMaterial_ClipDataCoordinate(ULexUIData
 	auto StartPosition = this->WidgetPropertyDataStartPosition;
 	if (StartPosition == INDEX_NONE)
 	{
-		//sometimes this happen when I drag blueprint component to widget
 		UE_LOG(LGUI, Error, TEXT("[%s].%d WidgetPropertyDataStartPosition is invalid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
@@ -482,7 +481,6 @@ void ULexVisual::FillWidgetPropertyDataForMaterial_InitialMark(ULexUIDataAsTextu
 	auto StartPosition = this->WidgetPropertyDataStartPosition;
 	if (StartPosition == INDEX_NONE)
 	{
-		//sometimes this happen when I drag blueprint component to widget
 		UE_LOG(LGUI, Error, TEXT("[%s].%d WidgetPropertyDataStartPosition is invalid!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}

@@ -669,8 +669,6 @@ private:
 
 		NewComponent->SetFlags(RF_Transactional);
 		NewComponent->Modify();
-		Widget->OnUnregister();
-		Widget->OnRegister();
 		FLexUIUtils::NotifyPropertyChanged(Widget, ULexWidget::GetPropertyName_Components());
 
 		RefreshComponents();

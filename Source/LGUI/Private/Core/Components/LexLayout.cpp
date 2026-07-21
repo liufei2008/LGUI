@@ -137,6 +137,7 @@ void ULexLayoutContainer::OnRegister()
 
 void ULexLayoutContainer::SnapshotLayout()
 {
+	RefreshChildren();
 	if (!bUseAnimation || !AnimationHandler)return;//snapshot just for animation
 	if (LayoutAnimTweenerArray.Num() > 0)
 	{
@@ -198,6 +199,29 @@ void ULexLayout::MarkLayoutDirty()
 
 ULexLayoutContainer::ULexLayoutContainer()
 {
+}
+
+void ULexLayoutContainer::RefreshChildren()
+{
+	auto Widget = GetWidget();
+	Children.Empty();
+	for (auto& ChildWidget : Widget->GetChildren())
+	{
+		if (!ChildWidget->GetWidgetActiveInHierarchy())continue;
+		if (ChildWidget->GetIgnoreLayout())continue;
+		Children.Add(ChildWidget);
+
+		auto AnchorMin = ChildWidget->GetAnchorMin();
+		auto AnchorMax = ChildWidget->GetAnchorMax();
+		if (AnchorMin.X != AnchorMax.X)//custom anchor not support
+		{
+			ChildWidget->SetHorizontalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
+		}
+		if (AnchorMin.Y != AnchorMax.Y)
+		{
+			ChildWidget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
+		}
+	}
 }
 
 #if WITH_EDITOR

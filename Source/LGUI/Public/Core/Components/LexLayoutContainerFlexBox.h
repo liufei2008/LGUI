@@ -108,7 +108,7 @@ private:
 	FMargin Padding;
 
 	virtual void CalculateLayout() override;
-	void RefreshChildren();
+	void DoCalculate(bool bApplyResult);
 	void CalculatePreferredSize();
 	
 	struct FLineData
@@ -129,7 +129,6 @@ private:
 		FVector2f TotalShrink;
 	};
 	TArray<FLineData> LineDataArray;
-	UPROPERTY(Transient)TArray<ULexWidget*> Children;
 	FVector2f TotalPreferredSize;
 
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* TargetWidget)const override;

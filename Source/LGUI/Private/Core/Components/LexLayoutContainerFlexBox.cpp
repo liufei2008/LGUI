@@ -4,7 +4,6 @@
 #include "Core/Components/LexLayoutSelfFlexBox.h"
 #include "Core/Components/LexWidget.h"
 #include "LGUI.h"
-#include "LTweenBPLibrary.h"
 #include "Core/LexUIManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("LexLayoutContainer FlexBox"), STAT_LexLayoutContainerFlexBox, STATGROUP_LGUI);
@@ -23,8 +22,11 @@ void ULexLayoutContainerFlexBox::CalculateLayout()
     }
 #endif
     
-    RefreshChildren();
-    
+    DoCalculate(true);
+}
+
+void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
+{
     bool bIsVertical = Direction == ELexLayoutFlexBoxDirectionType::Vertical || Direction == ELexLayoutFlexBoxDirectionType::VerticalReverse;
     int PrimaryAxis = bIsVertical ? 1 : 0;
     int SecondaryAxis = bIsVertical ? 0 : 1;
@@ -123,12 +125,15 @@ void ULexLayoutContainerFlexBox::CalculateLayout()
             AnchoredPositionY += FMath::Lerp(Margin.Bottom, -Margin.Top, ChildWidget->GetPivot()[1]);
         }
         //now the AreaSize is the final size, apply to widget
-        ChildWidget->SetAnchoredPosition(FVector2D(AnchoredPositionX, AnchoredPositionY));
         if (ChildLayoutSelf)
         {
             ChildLayoutSelf->SetFinalSizeByLayoutContainer(AreaSize);
+            ChildWidget->SetAnchoredPositionAndSizeDelta(FVector2D(AnchoredPositionX, AnchoredPositionY), FVector2D(AreaSize));
         }
-        ChildWidget->SetSizeDelta(FVector2D(AreaSize));
+        else
+        {
+            ChildWidget->SetAnchoredPosition(FVector2D(AnchoredPositionX, AnchoredPositionY));
+        }
     };
 
     bool bAllowWrap = Wrap == ELexLayoutFlexBoxWrapType::Wrap || Wrap == ELexLayoutFlexBoxWrapType::WrapReverse;
@@ -226,6 +231,9 @@ void ULexLayoutContainerFlexBox::CalculateLayout()
     }
     //secondary axis size: accumulate secondary sizes
     TotalPreferredSize[SecondaryAxis] += SecondaryTotalPreferred;
+    TotalPreferredSize[PrimaryAxis] += (PrimaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
+    TotalPreferredSize[SecondaryAxis] += (SecondaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
+    if (!bApplyResult)return;
 
     bool bReverseHorizontal = Direction == ELexLayoutFlexBoxDirectionType::HorizontalReverse;
     bool bReverseVertical = Direction == ELexLayoutFlexBoxDirectionType::VerticalReverse;
@@ -449,33 +457,11 @@ void ULexLayoutContainerFlexBox::CalculateLayout()
     }
 }
 
-void ULexLayoutContainerFlexBox::RefreshChildren()
-{
-    auto Widget = GetWidget();
-    Children.Empty();
-    for (auto& ChildWidget : Widget->GetChildren())
-    {
-        if (!ChildWidget->GetWidgetActiveInHierarchy())continue;
-        if (ChildWidget->GetIgnoreLayout())continue;
-        Children.Add(ChildWidget);
-
-        auto AnchorMin = ChildWidget->GetAnchorMin();
-        auto AnchorMax = ChildWidget->GetAnchorMax();
-        if (AnchorMin.X != AnchorMax.X)//custom anchor not support
-        {
-            ChildWidget->SetHorizontalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
-        }
-        if (AnchorMin.Y != AnchorMax.Y)
-        {
-            ChildWidget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
-        }
-    }
-}
-
 void ULexLayoutContainerFlexBox::CalculatePreferredSize()
 {
-    RefreshChildren();
-    
+    DoCalculate(false);
+
+#if 0
     auto GetChildPreferredSize = [&](ULexWidget* ChildWidget)
     {
         if (auto ChildLayoutSelf = Cast<ULexLayoutSelfFlexBox>(ChildWidget->GetLayoutSelf()))
@@ -508,6 +494,7 @@ void ULexLayoutContainerFlexBox::CalculatePreferredSize()
     }
     TotalPreferredSize[PrimaryAxis] += (PrimaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
     TotalPreferredSize[SecondaryAxis] += (SecondaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
+#endif
 }
 
 FLexLayoutControlAnchorData ULexLayoutContainerFlexBox::GetLayoutControlAnchor(const ULexWidget* TargetWidget)const

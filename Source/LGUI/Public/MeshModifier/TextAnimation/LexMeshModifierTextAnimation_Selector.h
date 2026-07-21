@@ -26,7 +26,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float End = 1.0f;
 public:
-	virtual bool Select(class ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
+	virtual bool Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetRange()const { return Range; }
@@ -63,7 +63,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float End = 1.0f;
 public:
-	virtual bool Select(class ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
+	virtual bool Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetSeed()const { return Seed; }
@@ -96,7 +96,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool bFlipDirection = false;
 public:
-	virtual bool Select(class ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
+	virtual bool Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetRange()const { return Range; }

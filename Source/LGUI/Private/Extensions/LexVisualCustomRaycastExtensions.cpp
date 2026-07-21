@@ -48,7 +48,7 @@ bool ULexVisualCustomRaycast_VisiblePixel::Raycast(const ULexVisual* InVisual, c
 			case 2:ChannelValue = HitPixel.B; break;
 			case 3:ChannelValue = HitPixel.A; break;
 			}
-			if (FLexUIUtils::Color255To1_Table[ChannelValue] > VisibilityThreshold)
+			if (FLexUIUtils::ByteToFloat01(ChannelValue) > VisibilityThreshold)
 			{
 				return true;
 			}

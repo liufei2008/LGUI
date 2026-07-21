@@ -6,7 +6,7 @@
 #include "LexMeshModifierOutline.generated.h"
 
 
-UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="Outline")
+UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="Outline", meta = (BlueprintSpawnableComponent))
 class LGUI_API ULexMeshModifierOutline : public ULexMeshModifierBase
 {
 	GENERATED_BODY()

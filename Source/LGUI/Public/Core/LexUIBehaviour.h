@@ -20,6 +20,8 @@ public:
 	ULexUIBehaviour();
 	friend class ULexWidget;
 	virtual UWorld* GetWorld() const override final;
+
+	int32 GetComponentIndexInWidget()const;
 private:
 	void BeginPlay();
 	void EndPlay();

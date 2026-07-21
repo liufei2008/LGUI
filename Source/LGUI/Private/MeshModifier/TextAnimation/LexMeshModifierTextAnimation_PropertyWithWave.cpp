@@ -8,7 +8,7 @@
 
 void ULexMeshModifierTextAnimation_PropertyWithWave::Init()
 {
-	TextObject = GetUIText();
+	TextObject = GetLexText();
 	UpdateTweener = ULTweenBPLibrary::UpdateCall(this, FLTweenUpdateDelegate::CreateUObject(this, &ULexMeshModifierTextAnimation_PropertyWithWave::OnUpdate));
 }
 void ULexMeshModifierTextAnimation_PropertyWithWave::Deinit()

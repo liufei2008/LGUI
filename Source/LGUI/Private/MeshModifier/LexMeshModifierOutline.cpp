@@ -13,7 +13,7 @@ void ULexMeshModifierOutline::ApplyColorAndAlpha(FColor& InOutColor, uint8 InSou
 {
 	if (bMultiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(FLexUIUtils::Color255To1_Table[InSourceAlpha] * OutlineColor.A);
+		InOutColor.A = (uint8)(FLexUIUtils::ByteToFloat01(InSourceAlpha) * OutlineColor.A);
 		InOutColor.R = OutlineColor.R;
 		InOutColor.G = OutlineColor.G;
 		InOutColor.B = OutlineColor.B;
@@ -184,7 +184,7 @@ void ULexMeshModifierOutline::SetOutlineColor(FColor Value)
 	if (OutlineColor != Value)
 	{
 		OutlineColor = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
 	}
 }
 void ULexMeshModifierOutline::SetOutlineSize(FVector2f Value)
@@ -192,7 +192,7 @@ void ULexMeshModifierOutline::SetOutlineSize(FVector2f Value)
 	if (OutlineSize != Value)
 	{
 		OutlineSize = Value;
-		if (GetLexVisual())GetLexVisual()->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
 	}
 }
 void ULexMeshModifierOutline::SetUse8Direction(bool Value)
@@ -200,6 +200,6 @@ void ULexMeshModifierOutline::SetUse8Direction(bool Value)
 	if (bUse8Direction != Value)
 	{
 		bUse8Direction = Value;
-		if (GetLexVisual())GetLexVisual()->MarkVerticesDirty(true, true, true, true);
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkVerticesDirty(true, true, true, true);
 	}
 }

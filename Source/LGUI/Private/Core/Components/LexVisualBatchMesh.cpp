@@ -25,6 +25,7 @@ ULexVisualBatchMesh::ULexVisualBatchMesh(const FObjectInitializer& ObjectInitial
 	bTriangleChanged = true;
 	bTextureChanged = true;
 	bMaterialChanged = true;
+	bMeshModifierOrderChanged = false;
 }
 
 void ULexVisualBatchMesh::BeginPlay()
@@ -34,20 +35,10 @@ void ULexVisualBatchMesh::BeginPlay()
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
-
-	for (auto Item : MeshModifierArray)
-	{
-		Item->BeginPlay();
-	}
 }
 void ULexVisualBatchMesh::EndPlay()
 {
 	Super::EndPlay();
-
-	for (auto Item : MeshModifierArray)
-	{
-		Item->EndPlay();
-	}
 }
 
 #if WITH_EDITOR
@@ -126,43 +117,34 @@ void ULexVisualBatchMesh::MarkAllDirty()
 
 void ULexVisualBatchMesh::GeometryModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
 {
-	int count = MeshModifierArray.Num();
-	if (count > 0)
+	for (auto& ModifierComp : MeshModifierArray)
 	{
-		for (int i = 0; i < count; i++)
+		if (ModifierComp.IsValid() && ModifierComp->GetEnable())
 		{
-			if (auto modifierComp = MeshModifierArray[i])
-			{
-				if (modifierComp->GetEnable())
-				{
-					bool TempTriangleIndices = false, TempVertexPosition = false, TempUV = false, TempColor = false;
-					modifierComp->ModifierWillChangeVertexData(TempTriangleIndices, TempVertexPosition, TempUV, TempColor);
-					if (TempTriangleIndices)OutTriangleIndices = true;
-					if (TempVertexPosition)OutVertexPosition = true;
-					if (TempUV)OutUV = true;
-					if (TempColor)OutColor = true;
-				}
-			}
+			bool TempTriangleIndices = false, TempVertexPosition = false, TempUV = false, TempColor = false;
+			ModifierComp->ModifierWillChangeVertexData(TempTriangleIndices, TempVertexPosition, TempUV, TempColor);
+			if (TempTriangleIndices)OutTriangleIndices = true;
+			if (TempVertexPosition)OutVertexPosition = true;
+			if (TempUV)OutUV = true;
+			if (TempColor)OutColor = true;
 		}
 	}
 }
 
 void ULexVisualBatchMesh::ApplyGeometryModifier(bool triangleChanged, bool uvChanged, bool colorChanged, bool vertexPositionChanged)
 {
-	// SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
-
-	int count = MeshModifierArray.Num();
-	if (count > 0)
+	if (bMeshModifierOrderChanged)
 	{
-		for (int i = 0; i < count; i++)
+		bMeshModifierOrderChanged = false;
+		MeshModifierArray.Sort([](const TWeakObjectPtr<ULexMeshModifierBase> A, const TWeakObjectPtr<ULexMeshModifierBase> B) {
+		return A->GetComponentIndexInWidget() < B->GetComponentIndexInWidget();
+		});
+	}
+	for (auto& ModifierComp : MeshModifierArray)
+	{
+		if (ModifierComp.IsValid() && ModifierComp->GetEnable())
 		{
-			if (auto modifierComp = MeshModifierArray[i])
-			{
-				if (modifierComp->GetEnable())
-				{
-					modifierComp->ModifyUIGeometry(*(UIGeometry.Get()), triangleChanged, uvChanged, colorChanged, vertexPositionChanged);
-				}
-			}
+			ModifierComp->ModifyUIGeometry(*(UIGeometry.Get()), triangleChanged, uvChanged, colorChanged, vertexPositionChanged);
 		}
 	}
 }
@@ -305,6 +287,23 @@ bool ULexVisualBatchMesh::GetAnythingDirty()const
 	return bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged;
 }
 
+void ULexVisualBatchMesh::AddMeshModifier(ULexMeshModifierBase* InModifier)
+{
+	MeshModifierArray.AddUnique(InModifier);
+	MarkVerticesDirty(true, true, true, true);
+}
+void ULexVisualBatchMesh::RemoveMeshModifier(ULexMeshModifierBase* InModifier)
+{
+	MeshModifierArray.Remove(InModifier);
+	MarkVerticesDirty(true, true, true, true);
+}
+
+void ULexVisualBatchMesh::MarkMeshModifierOrderChanged()
+{
+	bMeshModifierOrderChanged = true;
+	MarkVerticesDirty(true, true, true, true);
+}
+
 bool ULexVisualBatchMesh::LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const
 {
 	auto Widget = this->GetWidget();
@@ -354,7 +353,7 @@ bool ULexVisualBatchMesh::LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHi
 				if (ReadPixelFromMainTexture(uv, Pixel))
 				{
 					auto AlphaValue = Pixel.A;
-					auto AlphaValue01 = FLexUIUtils::Color255To1_Table[AlphaValue];
+					auto AlphaValue01 = FLexUIUtils::ByteToFloat01(AlphaValue);
 					if (AlphaValue01 > InAlphaThreshold)
 					{
 						return true;

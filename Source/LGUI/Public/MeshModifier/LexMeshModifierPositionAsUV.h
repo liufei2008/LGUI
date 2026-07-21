@@ -6,7 +6,7 @@
 #include "LexMeshModifierPositionAsUV.generated.h"
 
 
-UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="PositionAsUV")
+UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="PositionAsUV", meta = (BlueprintSpawnableComponent))
 class LGUI_API ULexMeshModifierPositionAsUV : public ULexMeshModifierBase
 {
 	GENERATED_BODY()

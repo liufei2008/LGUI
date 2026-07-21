@@ -136,6 +136,10 @@ public:
 
 	FORCEINLINE bool GetRequirePropertiesForMaterial_Size()const{ return PropertiesForMaterial & (1 << (int)ELexVisualPropertiesForMaterial::Size); }
 	FORCEINLINE bool GetRequirePropertiesForMaterial_CenterPosition()const{ return PropertiesForMaterial & (1 << (int)ELexVisualPropertiesForMaterial::CenterPosition); }
+
+	void AddMeshModifier(ULexMeshModifierBase* InModifier);
+	void RemoveMeshModifier(ULexMeshModifierBase* InModifier);
+	void MarkMeshModifierOrderChanged();
 protected:
 	virtual bool LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const;
 	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const { return false; }
@@ -145,8 +149,7 @@ protected:
 	/** enable properties for material */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
-	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI", AdvancedDisplay)
-	TArray<TObjectPtr<ULexMeshModifierBase>> MeshModifierArray;
+	TArray<TWeakObjectPtr<ULexMeshModifierBase>> MeshModifierArray;
 
 	/** texture for render this UI element */
 	virtual UTexture* GetTextureToCreateGeometry();
@@ -188,6 +191,7 @@ private:
 	uint8 bTriangleChanged:1;
 	uint8 bTextureChanged:1;
 	uint8 bMaterialChanged:1;
+	uint8 bMeshModifierOrderChanged:1;
 	FVector LocalMinPoint3D = FVector::ZeroVector, LocalMaxPoint3D = FVector::ZeroVector;
 	void CalculateLocalBounds();
 	UPROPERTY(Transient)TObjectPtr<ULexUIGeometryHelper> GeometryHelper = nullptr;

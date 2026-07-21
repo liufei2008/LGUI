@@ -1041,6 +1041,7 @@ ULexUIBehaviour* ULexWidget::AddComponent(TSubclassOf<ULexUIBehaviour> Component
 	{
 		NewComponent->BeginPlay();
 	}
+	OnComponentsChangedEvent.Broadcast(ELexWidgetComponentsChangedType::Added);
 	return NewComponent;
 }
 
@@ -1064,6 +1065,7 @@ void ULexWidget::RemoveComponent(ULexUIBehaviour* Component)
 		Component->EndPlay();
 	}
 	Component->OnUnregister();
+	OnComponentsChangedEvent.Broadcast(ELexWidgetComponentsChangedType::Removed);
 }
 
 void ULexWidget::MoveComponentToIndex(ULexUIBehaviour* Component, int32 NewIndex)
@@ -1083,6 +1085,7 @@ void ULexWidget::MoveComponentToIndex(ULexUIBehaviour* Component, int32 NewIndex
 	ULexUIBehaviour* MovingComponent = Components[SourceIndex];
 	Components.RemoveAt(SourceIndex);
 	Components.Insert(MovingComponent, FMath::Clamp(TargetIndex, 0, Components.Num()));
+	OnComponentsChangedEvent.Broadcast(ELexWidgetComponentsChangedType::Reorder);
 }
 
 void ULexWidget::UpdateObjectToWorldTransform()
@@ -1395,6 +1398,10 @@ void ULexWidget::OnRegister()
 	if (IsValid(Visual))
 	{
 		Visual->Call_OnRegister();
+		if (RenderCanvas.IsValid())
+		{
+			RenderCanvas->RegisterVisual(Visual);
+		}
 	}
 
 	Components.Remove(nullptr);//clear null component
@@ -1936,6 +1943,32 @@ void ULexWidget::SetSizeDelta(FVector2D Value)
 		bCacheAnchorOffsetLeftDirty = true;
 		bCacheAnchorOffsetRightDirty = true;
 		MarkAnchorDataChanged_Recursive(false, true, true, false);
+		MarkLayoutForRebuild(this);
+	}
+}
+
+void ULexWidget::SetAnchoredPositionAndSizeDelta(FVector2D Position, FVector2D Size)
+{
+	bool bPosChange = false, bSizeChange = false;
+	if (!AnchorData.AnchoredPosition.Equals(Position, 0.0f))
+	{
+		bPosChange = true;
+		AnchorData.AnchoredPosition = Position;
+	}
+	if (!AnchorData.SizeDelta.Equals(Size, 0.0f))
+	{
+		bSizeChange = true;
+		AnchorData.SizeDelta = Size;
+		CacheWidth = Size.X;
+		CacheHeight = Size.Y;
+	}
+	if (bPosChange || bSizeChange)
+	{
+		bCacheAnchorOffsetBottomDirty = true;
+		bCacheAnchorOffsetTopDirty = true;
+		bCacheAnchorOffsetLeftDirty = true;
+		bCacheAnchorOffsetRightDirty = true;
+		MarkAnchorDataChanged_Recursive(false, bSizeChange, bSizeChange, false);
 		MarkLayoutForRebuild(this);
 	}
 }
@@ -2968,6 +3001,10 @@ void ULexWidget::MarkLayoutForRebuild(ULexWidget* InWidget)
 		if (auto LayoutSelf = RootWidgetOfLayoutTree->GetLayoutSelf())
 		{
 			LayoutSelf->MarkLayoutDirty();
+		}
+		if (RootWidgetOfLayoutTree->bIgnoreLayout)//IgnoreLayout no need to go up parent
+		{
+			break;
 		}
 		if (auto ParentWidget = RootWidgetOfLayoutTree->GetParent())
 		{

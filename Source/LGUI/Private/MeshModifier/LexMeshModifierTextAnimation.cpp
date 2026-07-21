@@ -8,10 +8,10 @@
 ULexMeshModifierTextAnimation::ULexMeshModifierTextAnimation()
 {
 }
-bool ULexMeshModifierTextAnimation::CheckUIText()
+bool ULexMeshModifierTextAnimation::CheckLexText()
 {
 	if (IsValid(TextObject))return true;
-	if (auto uiRenderable = GetLexVisual())
+	if (auto uiRenderable = GetVisualBatchMesh())
 	{
 		TextObject = Cast<ULexText>(uiRenderable);
 		if (IsValid(TextObject))
@@ -21,9 +21,9 @@ bool ULexMeshModifierTextAnimation::CheckUIText()
 	}
 	return false;
 }
-void ULexMeshModifierTextAnimation::BeginPlay()
+void ULexMeshModifierTextAnimation::OnRegister()
 {
-	Super::BeginPlay();
+	Super::OnRegister();
 	for (auto propertyItem : Properties)
 	{
 		if (IsValid(propertyItem))
@@ -32,9 +32,9 @@ void ULexMeshModifierTextAnimation::BeginPlay()
 		}
 	}
 }
-void ULexMeshModifierTextAnimation::EndPlay()
+void ULexMeshModifierTextAnimation::OnUnregister()
 {
-	Super::EndPlay();
+	Super::OnUnregister();
 	for (auto propertyItem : Properties)
 	{
 		if (IsValid(propertyItem))
@@ -66,7 +66,7 @@ void ULexMeshModifierTextAnimation::ModifyUIGeometry(
 	FLexUIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 )
 {
-	if (!CheckUIText())return;
+	if (!CheckLexText())return;
 	if (InGeometry.Vertices.Num() <= 0)return;
 	if (InTriangleChanged || InUVChanged || InColorChanged || InVertexPositionChanged)
 	{
@@ -86,9 +86,9 @@ void ULexMeshModifierTextAnimation::ModifyUIGeometry(
 		}
 	}
 }
-ULexText* ULexMeshModifierTextAnimation::GetUIText()
+ULexText* ULexMeshModifierTextAnimation::GetLexText()
 {
-	CheckUIText();
+	CheckLexText();
 	return TextObject;
 }
 ULexMeshModifierTextAnimation_Property* ULexMeshModifierTextAnimation::GetProperty(int Index)const
@@ -105,7 +105,7 @@ void ULexMeshModifierTextAnimation::SetSelector(ULexMeshModifierTextAnimation_Se
 	if (Selector != Value)
 	{
 		Selector = Value;
-		if (CheckUIText())
+		if (CheckLexText())
 		{
 			TextObject->MarkVerticesDirty(true, true, true, true);
 		}
@@ -114,7 +114,7 @@ void ULexMeshModifierTextAnimation::SetSelector(ULexMeshModifierTextAnimation_Se
 void ULexMeshModifierTextAnimation::SetProperties(const TArray<ULexMeshModifierTextAnimation_Property*>& Value)
 {
 	Properties = Value;
-	if (CheckUIText())
+	if (CheckLexText())
 	{
 		TextObject->MarkVerticesDirty(true, true, true, true);
 	}
@@ -129,17 +129,17 @@ void ULexMeshModifierTextAnimation::SetProperty(int Index, ULexMeshModifierTextA
 	if (Properties[Index] != Value)
 	{
 		Properties[Index] = Value;
-		if (CheckUIText())
+		if (CheckLexText())
 		{
 			TextObject->MarkVerticesDirty(true, true, true, true);
 		}
 	}
 }
 
-ULexText* ULexMeshModifierTextAnimation_Selector::GetUIText()const
+ULexText* ULexMeshModifierTextAnimation_Selector::GetLexText()const
 {
 	GetUIEffectTextAnimation();
-	return UIEffectTextAnimation.IsValid() ? UIEffectTextAnimation->GetUIText() : nullptr;
+	return UIEffectTextAnimation.IsValid() ? UIEffectTextAnimation->GetLexText() : nullptr;
 }
 
 ULexMeshModifierTextAnimation* ULexMeshModifierTextAnimation_Selector::GetUIEffectTextAnimation()const
@@ -154,14 +154,21 @@ ULexMeshModifierTextAnimation* ULexMeshModifierTextAnimation_Selector::GetUIEffe
 	return UIEffectTextAnimation.Get();
 }
 
+#if WITH_EDITOR
+void ULexMeshModifierTextAnimation_Selector::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
 void ULexMeshModifierTextAnimation_Selector::SetOffset(float Value)
 {
 	if (Offset != Value)
 	{
 		Offset = Value;
-		if (auto uiText = GetUIText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -192,21 +199,21 @@ void ULexMeshModifierTextAnimation::SetSelectorOffset(float Value)
 	}
 }
 
-ULexText* ULexMeshModifierTextAnimation_Property::GetUIText()
+ULexText* ULexMeshModifierTextAnimation_Property::GetLexText()
 {
 	if (auto outter = this->GetOuter())
 	{
 		if (auto uiTextAnimation = Cast<ULexMeshModifierTextAnimation>(outter))
 		{
-			return uiTextAnimation->GetUIText();
+			return uiTextAnimation->GetLexText();
 		}
 	}
 	return nullptr;
 }
 void ULexMeshModifierTextAnimation_Property::MarkUITextPositionDirty()
 {
-	if (auto uiText = GetUIText())
+	if (auto LexText = GetLexText())
 	{
-		uiText->MarkVertexPositionDirty();
+		LexText->MarkVertexPositionDirty();
 	}
 }

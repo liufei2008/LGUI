@@ -6,7 +6,7 @@
 #include "LexMeshModifierShadow.generated.h"
 
 
-UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="Shadow")
+UCLASS(ClassGroup = (LGUI), Blueprintable, DisplayName="Shadow", meta = (BlueprintSpawnableComponent))
 class LGUI_API ULexMeshModifierShadow : public ULexMeshModifierBase
 {
 	GENERATED_BODY()

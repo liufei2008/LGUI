@@ -83,6 +83,15 @@ UWorld* ULexUIBehaviour::GetWorld() const
 	return Widget->GetWorld();
 }
 
+int32 ULexUIBehaviour::GetComponentIndexInWidget() const
+{
+	if (auto Widget = GetWidget())
+	{
+		return Widget->GetAllComponents().IndexOfByKey(this);
+	}
+	return INDEX_NONE;
+}
+
 void ULexUIBehaviour::SetCanExecuteTick(bool Value)
 {
 	if (bCanExecuteTick != Value)

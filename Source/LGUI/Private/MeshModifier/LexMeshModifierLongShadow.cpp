@@ -13,7 +13,7 @@ void ULexMeshModifierLongShadow::ApplyColorAndAlpha(FColor& InOutColor, FColor I
 {
 	if (bMultiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(FLexUIUtils::Color255To1_Table[InOriginAlpha] * InTintColor.A);
+		InOutColor.A = (uint8)(FLexUIUtils::ByteToFloat01(InOriginAlpha) * InTintColor.A);
 		InOutColor.R = InTintColor.R;
 		InOutColor.G = InTintColor.G;
 		InOutColor.B = InTintColor.B;
@@ -115,7 +115,7 @@ void ULexMeshModifierLongShadow::SetShadowColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
 	}
 }
 void ULexMeshModifierLongShadow::SetShadowSize(FVector3f Value)
@@ -123,7 +123,7 @@ void ULexMeshModifierLongShadow::SetShadowSize(FVector3f Value)
 	if (ShadowSize != Value)
 	{
 		ShadowSize = Value;
-		if (GetLexVisual())GetLexVisual()->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
 	}
 }
 void ULexMeshModifierLongShadow::SetShadowSegment(uint8 Value)
@@ -131,7 +131,7 @@ void ULexMeshModifierLongShadow::SetShadowSegment(uint8 Value)
 	if (ShadowSegment != Value)
 	{
 		ShadowSegment = Value;
-		if (GetLexVisual())GetLexVisual()->MarkVerticesDirty(true, true, true, true);
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkVerticesDirty(true, true, true, true);
 	}
 }
 void ULexMeshModifierLongShadow::SetUseGradientColor(bool Value)
@@ -139,7 +139,7 @@ void ULexMeshModifierLongShadow::SetUseGradientColor(bool Value)
 	if (bUseGradientColor != Value)
 	{
 		bUseGradientColor = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
 	}
 }
 void ULexMeshModifierLongShadow::SetGradientColor(FColor Value)
@@ -147,6 +147,6 @@ void ULexMeshModifierLongShadow::SetGradientColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (GetLexVisual())GetLexVisual()->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
 	}
 }

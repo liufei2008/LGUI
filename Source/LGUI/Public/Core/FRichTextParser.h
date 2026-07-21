@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "Containers/StringView.h"
 #include "Utils/LexUIUtils.h"
 #include "LexUITextData.h"
 
@@ -109,57 +110,57 @@ namespace LexUIRichTextParser
 			CustomTagArray.Reset();
 			ImageTag = NAME_None;
 		}
-		bool Parse(const FString& text, const int& textLength, int& startIndex, FRichTextParseResult& parseResult)
+		bool Parse(const FString& Text, int TextLength, int& InOutStartIndex, FRichTextParseResult& ParseResult)
 		{
-			bool haveSymbol = false;
-			int charIndex = startIndex;
-			if (text[charIndex] == '<')
+			bool bHaveSymbol = false;
+			int CharIndex = InOutStartIndex;
+			if (Text[CharIndex] == '<')
 			{
-				if (charIndex + 2 < textLength && text[charIndex + 2] == '>')
+				if (CharIndex + 2 < TextLength && Text[CharIndex + 2] == '>')
 				{
-					if (text[charIndex + 1] == 'b')//begin bold
+					if (Text[CharIndex + 1] == 'b')//begin bold
 					{
 						if (bEnableBold)
 						{
-							startIndex += 3;
+							InOutStartIndex += 3;
 							BoldCount++;
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
-					else if (text[charIndex + 1] == 'i')//begin italic
+					else if (Text[CharIndex + 1] == 'i')//begin italic
 					{
 						if (bEnableItalic)
 						{
-							startIndex += 3;
+							InOutStartIndex += 3;
 							ItalicCount++;
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
-					else if (text[charIndex + 1] == 'u')//begin underline
+					else if (Text[CharIndex + 1] == 'u')//begin underline
 					{
 						if (bEnableUnderline)
 						{
-							startIndex += 3;
+							InOutStartIndex += 3;
 							UnderlineCount++;
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
-					else if (text[charIndex + 1] == 's')//begin strikethough
+					else if (Text[CharIndex + 1] == 's')//begin strikethough
 					{
 						if (bEnableStrikethrough)
 						{
-							startIndex += 3;
+							InOutStartIndex += 3;
 							StrikethroughCount++;
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
 				}
-				else if (charIndex + 5 < textLength
-					&& text[charIndex + 1] == 's'
-					&& text[charIndex + 2] == 'i'
-					&& text[charIndex + 3] == 'z'
-					&& text[charIndex + 4] == 'e'
-					&& text[charIndex + 5] == '='
+				else if (CharIndex + 5 < TextLength
+					&& Text[CharIndex + 1] == 's'
+					&& Text[CharIndex + 2] == 'i'
+					&& Text[CharIndex + 3] == 'z'
+					&& Text[CharIndex + 4] == 'e'
+					&& Text[CharIndex + 5] == '='
 					)//being size=
 				{
 					if (bEnableSize)
@@ -167,9 +168,9 @@ namespace LexUIRichTextParser
 						int charEndIndex;
 						float parsedSize;
 						bool absoluteOrAdditional;
-						if (GetSize(text, textLength, charIndex + 6, charEndIndex, parsedSize, absoluteOrAdditional))
+						if (GetSize(Text, TextLength, CharIndex + 6, charEndIndex, parsedSize, absoluteOrAdditional))
 						{
-							startIndex += charEndIndex - charIndex + 1;
+							InOutStartIndex += charEndIndex - CharIndex + 1;
 							if (absoluteOrAdditional)
 							{
 								SizeArray.Add(parsedSize);
@@ -178,178 +179,178 @@ namespace LexUIRichTextParser
 							{
 								SizeArray.Add(OriginSize + parsedSize);
 							}
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
 				}
-				else if (charIndex + 6 < textLength
-					&& text[charIndex + 1] == 'c'
-					&& text[charIndex + 2] == 'o'
-					&& text[charIndex + 3] == 'l'
-					&& text[charIndex + 4] == 'o'
-					&& text[charIndex + 5] == 'r'
-					&& text[charIndex + 6] == '='
+				else if (CharIndex + 6 < TextLength
+					&& Text[CharIndex + 1] == 'c'
+					&& Text[CharIndex + 2] == 'o'
+					&& Text[CharIndex + 3] == 'l'
+					&& Text[CharIndex + 4] == 'o'
+					&& Text[CharIndex + 5] == 'r'
+					&& Text[CharIndex + 6] == '='
 					)//begin color=
 				{
 					if (bEnableColor)
 					{
 						int charEndIndex;
 						FColor parsedColor;
-						if (GetColor(text, textLength, charIndex + 7, charEndIndex, parsedColor))
+						if (GetColor(Text, TextLength, CharIndex + 7, charEndIndex, parsedColor))
 						{
-							startIndex += charEndIndex - charIndex + 1;
+							InOutStartIndex += charEndIndex - CharIndex + 1;
 							ColorArray.Add(parsedColor);
-							haveSymbol = true;
+							bHaveSymbol = true;
 						}
 					}
 				}
-				else if (charIndex + 4 < textLength
-					&& text[charIndex + 1] == 's'
-					&& text[charIndex + 2] == 'u'
-					&& text[charIndex + 3] == 'p'
-					&& text[charIndex + 4] == '>'
+				else if (CharIndex + 4 < TextLength
+					&& Text[CharIndex + 1] == 's'
+					&& Text[CharIndex + 2] == 'u'
+					&& Text[CharIndex + 3] == 'p'
+					&& Text[CharIndex + 4] == '>'
 					)//begin sup
 				{
 					if (bEnableSuperscript)
 					{
-						startIndex += 5;
+						InOutStartIndex += 5;
 						SupOrSubArray.Add(ESupOrSubMode::Sup);
-						haveSymbol = true;
+						bHaveSymbol = true;
 					}
 				}
-				else if (charIndex + 4 < textLength
-					&& text[charIndex + 1] == 's'
-					&& text[charIndex + 2] == 'u'
-					&& text[charIndex + 3] == 'b'
-					&& text[charIndex + 4] == '>'
+				else if (CharIndex + 4 < TextLength
+					&& Text[CharIndex + 1] == 's'
+					&& Text[CharIndex + 2] == 'u'
+					&& Text[CharIndex + 3] == 'b'
+					&& Text[CharIndex + 4] == '>'
 					)//begin sub
 				{
 					if (bEnableSubscript)
 					{
-						startIndex += 5;
+						InOutStartIndex += 5;
 						SupOrSubArray.Add(ESupOrSubMode::Sub);
-						haveSymbol = true;
+						bHaveSymbol = true;
 					}
 				}
-				else if (charIndex + 6 < textLength
-					&& text[charIndex + 1] == 'i'
-					&& text[charIndex + 2] == 'm'
-					&& text[charIndex + 3] == 'g'
-					&& text[charIndex + 4] == '='
+				else if (CharIndex + 6 < TextLength
+					&& Text[CharIndex + 1] == 'i'
+					&& Text[CharIndex + 2] == 'm'
+					&& Text[CharIndex + 3] == 'g'
+					&& Text[CharIndex + 4] == '='
 					)//begin image=
 				{
 					if (bEnableImage)
 					{
 						int charEndIndex;
-						if (GetImageTag(text, textLength, charIndex + 5, charEndIndex, ImageTag))
+						if (GetImageTag(Text, TextLength, CharIndex + 5, charEndIndex, ImageTag))
 						{
-							startIndex += charEndIndex - charIndex + 1;
-							haveSymbol = true;
+							InOutStartIndex += charEndIndex - CharIndex + 1;
+							bHaveSymbol = true;
 						}
 					}
 				}
-				else if (charIndex + 1 < textLength && text[charIndex + 1] == '/')//end
+				else if (CharIndex + 1 < TextLength && Text[CharIndex + 1] == '/')//end
 				{
-					if (charIndex + 3 < textLength && text[charIndex + 3] == '>')
+					if (CharIndex + 3 < TextLength && Text[CharIndex + 3] == '>')
 					{
-						if (text[charIndex + 2] == 'b' && BoldCount > 0)//end bold
+						if (Text[CharIndex + 2] == 'b' && BoldCount > 0)//end bold
 						{
 							if (bEnableBold)
 							{
-								startIndex += 4;
+								InOutStartIndex += 4;
 								BoldCount--;
-								haveSymbol = true;
+								bHaveSymbol = true;
 							}
 						}
-						else if (text[charIndex + 2] == 'i' && ItalicCount > 0)//end italic
+						else if (Text[CharIndex + 2] == 'i' && ItalicCount > 0)//end italic
 						{
 							if (bEnableItalic)
 							{
-								startIndex += 4;
+								InOutStartIndex += 4;
 								ItalicCount--;
-								haveSymbol = true;
+								bHaveSymbol = true;
 							}
 						}
-						else if (text[charIndex + 2] == 'u' && UnderlineCount > 0)//end underline
+						else if (Text[CharIndex + 2] == 'u' && UnderlineCount > 0)//end underline
 						{
 							if (bEnableUnderline)
 							{
-								startIndex += 4;
+								InOutStartIndex += 4;
 								UnderlineCount--;
-								haveSymbol = true;
+								bHaveSymbol = true;
 							}
 						}
-						else if (text[charIndex + 2] == 's' && StrikethroughCount > 0)//end strikethough
+						else if (Text[CharIndex + 2] == 's' && StrikethroughCount > 0)//end strikethough
 						{
 							if (bEnableStrikethrough)
 							{
-								startIndex += 4;
+								InOutStartIndex += 4;
 								StrikethroughCount--;
-								haveSymbol = true;
+								bHaveSymbol = true;
 							}
 						}
 					}
-					else if (charIndex + 6 < textLength
-						&& text[charIndex + 2] == 's'
-						&& text[charIndex + 3] == 'i'
-						&& text[charIndex + 4] == 'z'
-						&& text[charIndex + 5] == 'e'
-						&& text[charIndex + 6] == '>'
+					else if (CharIndex + 6 < TextLength
+						&& Text[CharIndex + 2] == 's'
+						&& Text[CharIndex + 3] == 'i'
+						&& Text[CharIndex + 4] == 'z'
+						&& Text[CharIndex + 5] == 'e'
+						&& Text[CharIndex + 6] == '>'
 						&& SizeArray.Num() > 0
 						)//end size
 					{
 						if (bEnableSize)
 						{
-							startIndex += 7;
-							SizeArray.RemoveAt(SizeArray.Num() - 1);
-							haveSymbol = true;
+							InOutStartIndex += 7;
+							SizeArray.Pop();
+							bHaveSymbol = true;
 						}
 					}
-					else if (charIndex + 7 < textLength
-						&& text[charIndex + 2] == 'c'
-						&& text[charIndex + 3] == 'o'
-						&& text[charIndex + 4] == 'l'
-						&& text[charIndex + 5] == 'o'
-						&& text[charIndex + 6] == 'r'
-						&& text[charIndex + 7] == '>'
+					else if (CharIndex + 7 < TextLength
+						&& Text[CharIndex + 2] == 'c'
+						&& Text[CharIndex + 3] == 'o'
+						&& Text[CharIndex + 4] == 'l'
+						&& Text[CharIndex + 5] == 'o'
+						&& Text[CharIndex + 6] == 'r'
+						&& Text[CharIndex + 7] == '>'
 						&& ColorArray.Num() > 0
 						)//end color
 					{
 						if (bEnableColor)
 						{
-							startIndex += 8;
-							ColorArray.RemoveAt(ColorArray.Num() - 1);
-							haveSymbol = true;
+							InOutStartIndex += 8;
+							ColorArray.Pop();
+							bHaveSymbol = true;
 						}
 					}
-					else if (charIndex + 5 < textLength
-						&& text[charIndex + 2] == 's'
-						&& text[charIndex + 3] == 'u'
-						&& text[charIndex + 4] == 'p'
-						&& text[charIndex + 5] == '>'
+					else if (CharIndex + 5 < TextLength
+						&& Text[CharIndex + 2] == 's'
+						&& Text[CharIndex + 3] == 'u'
+						&& Text[CharIndex + 4] == 'p'
+						&& Text[CharIndex + 5] == '>'
 						&& SupOrSubArray.Num() > 0
 						)//end sup
 					{
 						if (bEnableSuperscript)
 						{
-							startIndex += 6;
-							SupOrSubArray.RemoveAt(SupOrSubArray.Num() - 1);
-							haveSymbol = true;
+							InOutStartIndex += 6;
+							SupOrSubArray.Pop();
+							bHaveSymbol = true;
 						}
 					}
-					else if (charIndex + 5 < textLength
-						&& text[charIndex + 2] == 's'
-						&& text[charIndex + 3] == 'u'
-						&& text[charIndex + 4] == 'b'
-						&& text[charIndex + 5] == '>'
+					else if (CharIndex + 5 < TextLength
+						&& Text[CharIndex + 2] == 's'
+						&& Text[CharIndex + 3] == 'u'
+						&& Text[CharIndex + 4] == 'b'
+						&& Text[CharIndex + 5] == '>'
 						&& SupOrSubArray.Num() > 0
 						)//end sub
 					{
 						if (bEnableSubscript)
 						{
-							startIndex += 6;
-							SupOrSubArray.RemoveAt(SupOrSubArray.Num() - 1);
-							haveSymbol = true;
+							InOutStartIndex += 6;
+							SupOrSubArray.Pop();
+							bHaveSymbol = true;
 						}
 					}
 					else if (CustomTagArray.Num() > 0
@@ -359,277 +360,291 @@ namespace LexUIRichTextParser
 						{
 							int charEndIndex;
 							FName tag;
-							if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag))
+							if (GetCustomTag(Text, TextLength, CharIndex + 2, charEndIndex, tag))
 							{
 								auto foundIndex = CustomTagArray.IndexOfByKey(tag);
 								if (foundIndex != -1)
 								{
 									CustomTagArray.RemoveAt(foundIndex);
-									startIndex += charEndIndex - charIndex + 1;
-									parseResult.CustomTag = tag;
-									parseResult.CustomTagMode = ECustomTagMode::End;
-									haveSymbol = true;
+									InOutStartIndex += charEndIndex - CharIndex + 1;
+									ParseResult.CustomTag = tag;
+									ParseResult.CustomTagMode = ECustomTagMode::End;
+									bHaveSymbol = true;
 								}
 							}
 						}
 					}
 				}
-				else if(charIndex + 1 < textLength
+				else if(CharIndex + 1 < TextLength
 					)//check custom tag
 				{
 					if (bEnableCustomTag)
 					{
 						int charEndIndex;
 						FName tag;
-						if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag))
+						if (GetCustomTag(Text, TextLength, CharIndex + 1, charEndIndex, tag))
 						{
 							auto foundIndex = CustomTagArray.IndexOfByKey(tag);
 							if (foundIndex == -1)
 							{
-								startIndex += charEndIndex - charIndex + 1;
+								InOutStartIndex += charEndIndex - CharIndex + 1;
 								CustomTagArray.Add(tag);
-								parseResult.CustomTag = tag;
-								parseResult.CustomTagMode = ECustomTagMode::Start;
-								haveSymbol = true;
+								ParseResult.CustomTag = tag;
+								ParseResult.CustomTagMode = ECustomTagMode::Start;
+								bHaveSymbol = true;
 							}
 						}
 					}
 				}
 			}
-			if (haveSymbol)
+			if (bHaveSymbol)
 			{
-				parseResult.Bold = BoldCount > 0 || OriginBold;
-				parseResult.Italic = ItalicCount > 0 || OriginItalic;
-				parseResult.Underline = UnderlineCount > 0;
-				parseResult.Strikethrough = StrikethroughCount > 0;
-				parseResult.Size = SizeArray.Num() > 0 ? SizeArray[SizeArray.Num() - 1] : OriginSize;
-				parseResult.Size = FMath::Max(parseResult.Size, 0.0f);
-				parseResult.HasColor = ColorArray.Num() > 0;
-				parseResult.Color = parseResult.HasColor ? ColorArray[ColorArray.Num() - 1] : OriginColor;
-				parseResult.SupOrSubMode = SupOrSubArray.Num() > 0 ? SupOrSubArray[SupOrSubArray.Num() - 1] : ESupOrSubMode::None;
-				if (parseResult.SupOrSubMode != ESupOrSubMode::None)
+				ParseResult.Bold = BoldCount > 0 || OriginBold;
+				ParseResult.Italic = ItalicCount > 0 || OriginItalic;
+				ParseResult.Underline = UnderlineCount > 0;
+				ParseResult.Strikethrough = StrikethroughCount > 0;
+				ParseResult.Size = SizeArray.Num() > 0 ? SizeArray[SizeArray.Num() - 1] : OriginSize;
+				ParseResult.Size = FMath::Max(ParseResult.Size, 0.0f);
+				ParseResult.HasColor = ColorArray.Num() > 0;
+				ParseResult.Color = ParseResult.HasColor ? ColorArray[ColorArray.Num() - 1] : OriginColor;
+				ParseResult.SupOrSubMode = SupOrSubArray.Num() > 0 ? SupOrSubArray[SupOrSubArray.Num() - 1] : ESupOrSubMode::None;
+				if (ParseResult.SupOrSubMode != ESupOrSubMode::None)
 				{
-					parseResult.Size *= 0.8f;//sup or sub size
+					ParseResult.Size *= 0.8f;//sup or sub size
 				}
-				parseResult.ImageTag = ImageTag;
+				ParseResult.ImageTag = ImageTag;
 			}
-			return haveSymbol;
+			return bHaveSymbol;
 		}
 	private:
-		//get size from 'size=' or 'size=+' or 'size=-', end with '>'
-		//return true if is valid
-		static bool GetSize(const FString& text, int textLength, int startIndex, int& outEndIndex, float& outSize, bool& outAbsoluteOrAdditional)
+		//scan from StartIndex for the first tag-value terminator ('>', '<', space, '\n' or '\t').
+		//returns its index, or -1 if none found before TextLength.
+		static int FindTokenEnd(const FString& Text, int TextLength, int StartIndex)
 		{
-			int endIndex = -1;
-			for (int i = startIndex; i < textLength; i++)
+			for (int i = StartIndex; i < TextLength; i++)
 			{
-				if (text[i] == '>')
+				const TCHAR c = Text[i];
+				if (c == '>' || c == '<' || c == ' ' || c == '\n' || c == '\t')
 				{
-					endIndex = i;
-					break;
-				}
-				else if (text[i] == '<'//reach another tag
-					|| text[i] == ' '//reach space
-					|| text[i] == '\n'//reach new line
-					|| text[i] == '\t'//reach new line
-					)
-				{
-					break;
+					return i;
 				}
 			}
-			if (endIndex != -1 && endIndex > startIndex)//found end
+			return -1;
+		}
+		//parse a float (optional leading +/-, digits, at most one '.') straight from a TCHAR range.
+		//matches FString::IsNumeric semantics so behaviour stays identical to the old Mid+IsNumeric+Atof path.
+		static bool ParseFloat(const TCHAR* Str, int Len, float& OutValue)
+		{
+			if (Len <= 0)
 			{
-				FString sizeStr = text.Mid(startIndex, endIndex - startIndex);
-				outAbsoluteOrAdditional = sizeStr[0] != '+' && sizeStr[0] != '-';
-				if (sizeStr.IsNumeric())
+				return false;
+			}
+			int i = 0;
+			bool bNegative = false;
+			if (Str[0] == '+')
+			{
+				i = 1;
+			}
+			else if (Str[0] == '-')
+			{
+				i = 1;
+				bNegative = true;
+			}
+			//note: a lone sign (e.g. "+"/"-") is treated as 0, matching FString::IsNumeric + FCString::Atof
+			bool bHasDot = false;
+			double IntegerPart = 0.0;
+			double FractionPart = 0.0;
+			double FractionScale = 0.1;
+			for (; i < Len; i++)
+			{
+				const TCHAR c = Str[i];
+				if (c == '.')
 				{
-					outSize = FCString::Atof(*sizeStr);
-					outEndIndex = endIndex;
+					if (bHasDot)
+					{
+						return false;
+					}
+					bHasDot = true;
+				}
+				else if (c >= '0' && c <= '9')
+				{
+					const int32 Digit = c - '0';
+					if (bHasDot)
+					{
+						FractionPart += Digit * FractionScale;
+						FractionScale *= 0.1;
+					}
+					else
+					{
+						IntegerPart = IntegerPart * 10.0 + Digit;
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+			const double Result = IntegerPart + FractionPart;
+			OutValue = bNegative ? -(float)Result : (float)Result;
+			return true;
+		}
+		//get size from 'size=' or 'size=+' or 'size=-', end with '>'
+		//return true if is valid
+		static bool GetSize(const FString& Text, int TextLength, int StartIndex, int& OutEndIndex, float& OutSize, bool& OutAbsoluteOrAdditional)
+		{
+			int EndIndex = FindTokenEnd(Text, TextLength, StartIndex);
+			if (EndIndex != -1 && EndIndex > StartIndex && Text[EndIndex] == '>')//found end
+			{
+				const TCHAR* TokenPtr = Text.GetCharArray().GetData() + StartIndex;
+				const int TokenLen = EndIndex - StartIndex;
+				OutAbsoluteOrAdditional = TokenPtr[0] != '+' && TokenPtr[0] != '-';
+				if (ParseFloat(TokenPtr, TokenLen, OutSize))
+				{
+					OutEndIndex = EndIndex;
 					return true;
 				}
 			}
 			return false;
 		}
-		static bool GetCustomTag(const FString& text, int textLength, int startIndex, int& outEndIndex, FName& outTag)
+		static bool GetCustomTag(const FString& Text, int TextLength, int StartIndex, int& OutEndIndex, FName& OutTag)
 		{
-			int endIndex = -1;
-			for (int i = startIndex; i < textLength; i++)
+			int EndIndex = FindTokenEnd(Text, TextLength, StartIndex);
+			if (EndIndex != -1 && EndIndex > StartIndex && Text[EndIndex] == '>')//found end
 			{
-				if (text[i] == '>')
-				{
-					endIndex = i;
-					break;
-				}
-				else if (text[i] == '<'//reach another tag
-					|| text[i] == ' '//reach space
-					|| text[i] == '\n'//reach new line
-					|| text[i] == '\t'//reach new line
-					)
-				{
-					break;
-				}
-			}
-			if (endIndex != -1 && endIndex > startIndex)//found end
-			{
-				outTag = FName(*text.Mid(startIndex, endIndex - startIndex));
-				outEndIndex = endIndex;
+				OutTag = FName(FStringView(Text.GetCharArray().GetData() + StartIndex, EndIndex - StartIndex));
+				OutEndIndex = EndIndex;
 				return true;
 			}
 			return false;
 		}
-		static bool GetImageTag(const FString& text, int textLength, int startIndex, int& outEndIndex, FName& outTag)
+		static bool GetImageTag(const FString& Text, int TextLength, int StartIndex, int& OutEndIndex, FName& OutTag)
 		{
-			int endIndex = -1;
-			for (int i = startIndex + 1; i < textLength; i++)
+			//image is a self-closing tag, must end with '/>'; scan from the char after the first tag char
+			int EndIndex = FindTokenEnd(Text, TextLength, StartIndex + 1);
+			if (EndIndex != -1 && EndIndex > StartIndex && Text[EndIndex] == '>' && Text[EndIndex - 1] == '/')//found end
 			{
-				if (text[i] == '>')
-				{
-					if (text[i - 1] == '/')//image is self-close tag, must end with '/>'
-					{
-						endIndex = i;
-						break;
-					}
-					else
-					{
-						break;
-					}
-				}
-				else if (text[i] == '<'//reach another tag
-					|| text[i] == ' '//reach space
-					|| text[i] == '\n'//reach new line
-					|| text[i] == '\t'//reach new line
-					)
-				{
-					break;
-				}
-			}
-			if (endIndex != -1 && endIndex > startIndex)//found end
-			{
-				outTag = FName(*text.Mid(startIndex, endIndex - startIndex - 1));
-				outEndIndex = endIndex;
+				OutTag = FName(FStringView(Text.GetCharArray().GetData() + StartIndex, EndIndex - StartIndex - 1));
+				OutEndIndex = EndIndex;
 				return true;
 			}
 			return false;
 		}
 		//get color from 'color=red' or 'color=#ffffff', end with '>'
 		//return true if is valid
-		bool GetColor(const FString& text, int textLength, int startIndex, int& outEndIndex, FColor& outColor)
+		bool GetColor(const FString& Text, int TextLength, int StartIndex, int& OutEndIndex, FColor& OutColor)
 		{
-			int endIndex = -1;
-			for (int i = startIndex; i < textLength; i++)
+			int EndIndex = FindTokenEnd(Text, TextLength, StartIndex);
+			if (EndIndex == -1 || EndIndex <= StartIndex || Text[EndIndex] != '>')//no valid end
 			{
-				if (text[i] == '>')
-				{
-					endIndex = i;
-					break;
-				}
-				else if (text[i] == '<'//reach another tag
-					|| text[i] == ' '//reach space
-					|| text[i] == '\n'//reach new line
-					|| text[i] == '\t'//reach new line
-					)
-				{
-					break;
-				}
+				return false;
 			}
-			if (endIndex != -1 && endIndex > startIndex)//found end
+			OutEndIndex = EndIndex;
+			const TCHAR* TokenPtr = Text.GetCharArray().GetData() + StartIndex;
+			const int TokenLen = EndIndex - StartIndex;
+
+			auto EqualsIC = [&TokenPtr, &TokenLen](const TCHAR* Lit) -> bool
 			{
-				outEndIndex = endIndex;
-				FString colorString = text.Mid(startIndex, endIndex - startIndex);
-				colorString.ToLowerInline();
-				if (colorString == TEXT("black"))
+				const int LitLen = (int)FCString::Strlen(Lit);
+				return TokenLen == LitLen && FCString::Strnicmp(TokenPtr, Lit, LitLen) == 0;
+			};
+
+			if (EqualsIC(TEXT("black")))
+			{
+				OutColor = FColor::Black;
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("white")))
+			{
+				OutColor = FColor::White;
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("gray")))
+			{
+				OutColor = FColor(128, 128, 128);
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("silver")))
+			{
+				OutColor = FColor(192, 192, 192);
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("red")))
+			{
+				OutColor = FColor::Red;
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("green")))
+			{
+				OutColor = FColor::Green;
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("blue")))
+			{
+				OutColor = FColor::Blue;
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("orange")))
+			{
+				OutColor = FColor(255, 165, 0);
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("purple")))
+			{
+				OutColor = FColor(128, 0, 128);
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (EqualsIC(TEXT("yellow")))
+			{
+				OutColor = FColor(255, 255, 0);
+				OutColor.A = OriginRenderOpacity;
+				return true;
+			}
+			else if (TokenPtr[0] == '#')
+			{
+				auto HexValue = [](TCHAR c) -> int
 				{
-					outColor = FColor::Black;
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("white"))
+					if (c >= '0' && c <= '9')return c - '0';
+					if (c >= 'a' && c <= 'f')return c - 'a' + 10;
+					if (c >= 'A' && c <= 'F')return c - 'A' + 10;
+					return -1;
+				};
+				if (TokenLen == 7 || TokenLen == 9)//#ffffff/#ffffff00
 				{
-					outColor = FColor::White;
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("gray"))
-				{
-					outColor = FColor(128, 128, 128);
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("silver"))
-				{
-					outColor = FColor(192, 192, 192);
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("red"))
-				{
-					outColor = FColor::Red;
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("green"))
-				{
-					outColor = FColor::Green;
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("blue"))
-				{
-					outColor = FColor::Blue;
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("orange"))
-				{
-					outColor = FColor(255, 165, 0);
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("purple"))
-				{
-					outColor = FColor(128, 0, 128);
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString == TEXT("yellow"))
-				{
-					outColor = FColor(255, 255, 0);
-					outColor.A = OriginRenderOpacity;
-					return true;
-				}
-				else if (colorString[0] == '#')
-				{
-					const static TArray<TCHAR> hexTable = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
-					if (colorString.Len() == 7 || colorString.Len() == 9)//#ffffff/#ffffff00
+					OutColor.A = OriginRenderOpacity;
+					for (int i = 1; i < TokenLen; i += 2)
 					{
-						outColor.A = OriginRenderOpacity;
-						int colorStringLength = colorString.Len();
-						for (int i = 1; i < colorStringLength; i += 2)
+						int FirstIndex = HexValue(TokenPtr[i]);
+						int SecondIndex = HexValue(TokenPtr[i + 1]);
+						if (FirstIndex != -1 && SecondIndex != -1)//valid
 						{
-							int firstIndex = hexTable.IndexOfByKey(colorString[i]);
-							int secondIndex = hexTable.IndexOfByKey(colorString[i + 1]);
-							if (firstIndex != -1 && secondIndex != -1)//valid
+							uint8 value = (uint8)(FirstIndex * 16 + SecondIndex);
+							switch (i)
 							{
-								uint8 value = (uint8)(firstIndex * 16 + secondIndex);
-								switch (i)
-								{
-								case 1:outColor.R = value; break;
-								case 3:outColor.G = value; break;
-								case 5:outColor.B = value; break;
-								case 7:
-								{
-									outColor.A = (uint8)(FLexUIUtils::Color255To1_Table[OriginRenderOpacity] * value);
-								}
-								break;
-								}
+							case 1:OutColor.R = value; break;
+							case 3:OutColor.G = value; break;
+							case 5:OutColor.B = value; break;
+							case 7:
+							{
+								OutColor.A = (uint8)(FLexUIUtils::ByteToFloat01(OriginRenderOpacity) * value);
 							}
-							else
-							{
-								return false;
+							break;
 							}
 						}
-						return true;
+						else
+						{
+							return false;
+						}
 					}
+					return true;
 				}
 			}
 			return false;
