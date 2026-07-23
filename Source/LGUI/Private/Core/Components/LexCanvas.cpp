@@ -751,17 +751,23 @@ void ULexCanvas::MarkVisualWillChange(ULexVisual* InOldVisual)
 
 void ULexCanvas::RegisterVisual(ULexVisual* InVisual)
 {
-	VisualList.AddUnique(InVisual);
-	CheckWidgetPropertyData();
-	InVisual->SetWidgetPropertyDataStartPosition(WidgetPropertyDataAsTexture->RegisterBuffer());
+	auto WidgetPropertyDataStartPosition = InVisual->GetWidgetPropertyDataStartPosition();
+	if(WidgetPropertyDataStartPosition == INDEX_NONE)
+	{
+		check(!VisualList.Contains(InVisual));
+		VisualList.Add(InVisual);
+		CheckWidgetPropertyData();
+		InVisual->SetWidgetPropertyDataStartPosition(WidgetPropertyDataAsTexture->RegisterBuffer());
+	}
 }
 
 void ULexCanvas::UnregisterVisual(ULexVisual* InVisual)
 {
-	VisualList.Remove(InVisual);
 	auto WidgetPropertyDataStartPosition = InVisual->GetWidgetPropertyDataStartPosition();
 	if (WidgetPropertyDataStartPosition > INDEX_NONE)
 	{
+		auto Count = VisualList.Remove(InVisual);
+		check(Count == 1);
 		if (IsValid(WidgetPropertyDataAsTexture))
 		{
 			WidgetPropertyDataAsTexture->UnregisterBuffer(WidgetPropertyDataStartPosition);
@@ -1641,7 +1647,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 						{
 							bShouldSetMaterialParameter = true;
 							auto& MaterialArray = DynamicMaterialContainerPtr->MaterialArray;
-							if (!MaterialArray.IsValidIndex(DynamicMaterialContainerPtr->CurrentIndex))//material use up, need more
+							if (!MaterialArray.IsValidIndex(DynamicMaterialContainerPtr->CurrentIndex))//materials used up, need more
 							{
 								auto RenderMatDynamic = UMaterialInstanceDynamic::Create(DrawCallItem.Material.Get(), this);
 								MaterialArray.Add(RenderMatDynamic);
@@ -2374,7 +2380,7 @@ void ULexCanvas::CheckWidgetPropertyData()
 	if (!IsValid(WidgetPropertyDataAsTexture))
 	{
 		WidgetPropertyDataAsTexture = NewObject<ULexUIDataAsTexture>(this, ULexUIDataAsTexture::StaticClass(), NAME_None, RF_Transient);
-		WidgetPropertyDataAsTexture->Init(ULexVisual::WidgetPropertyDataLength, ELexUIDataAsTexturePixelFormat::R32, 128);
+		WidgetPropertyDataAsTexture->Init(ULexVisual::WidgetPropertyDataLength, ELexUIDataAsTexturePixelFormat::R32, 128, 2048);
 		WidgetPropertyDataAsTexture->OnDataTextureChange.AddUObject(this, &ULexCanvas::OnWidgetPropertyDataTextureChanged);
 	}
 }

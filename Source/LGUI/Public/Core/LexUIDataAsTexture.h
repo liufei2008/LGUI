@@ -41,9 +41,10 @@ private:
 	int TextureWidth = 1;
 	int TextureHeight = 1;
 	//Pixel position
-	int CurrentPosition = 0;
+	FIntVector2 CurrentPosition = FIntVector2(0, 0);
 	bool bIsInitialized = false;
-	TArray<int> NotUsingPositionArray;
+	int32 TextureMaxSize = 4096;
+	TArray<FIntVector2> NotUsingPositionArray;
 	struct FPendingUpdateData
 	{
 		int PosX = 0, PosY = 0;
@@ -54,7 +55,8 @@ private:
 	bool bBatchUpdateMode = false;
 
 	void CreateTexture();
-	bool ExpandTexture();
+	bool ExpandTextureWidth();
+	bool ExpandTextureHeight();
 protected:
 	virtual void PostInitProperties()override;
 public:
@@ -63,7 +65,7 @@ public:
 	 * @param InBlockSizeInByte byte count
 	 * @param InInitialTextureHeight texture size when first create it
 	 */
-	void Init(int InBlockSizeInByte, ELexUIDataAsTexturePixelFormat InPixelFormat, int InInitialTextureHeight = 32);
+	void Init(int InBlockSizeInByte, ELexUIDataAsTexturePixelFormat InPixelFormat, int InInitialTextureHeight = 32, int InMaxTextureSize = 4096);
 	int GetBlockSizeInByte()const { return BlockSizeInByte; }
 	/**
 	 * Request a new block area with initialize block size.
@@ -71,8 +73,8 @@ public:
 	 */
 	int RegisterBuffer();
 	void UnregisterBuffer(int InPosition);
-	void UpdateBlock(int InPositionY, TArray<uint8> InData);
-	void UpdateBlock(int InPositionX, int InPositionY, TArray<uint8> InData, int InDataPixelCount);
+	void UpdateBlock(int InBufferPosition, TArray<uint8> InData);
+	void UpdateBlock(int InBufferPositionXOffset, int InBufferPosition, TArray<uint8> InData, int InDataPixelCount);
 
 	bool GetIsBatchUpdateMode()const { return bBatchUpdateMode; }
 	void PrepareForBatchUpdate();

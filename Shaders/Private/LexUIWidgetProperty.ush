@@ -7,8 +7,10 @@ void LexUI_ReadWidgetProperty(float CoordinateInDataTex, Texture2D DataTex
     )
 {
     //read data from texture
+    float2 TexDim; DataTex.GetDimensions(TexDim.x, TexDim.y);
+    int Height = round(TexDim.y);
     int Coordinate = round(CoordinateInDataTex);
-    int3 Position = int3(0, Coordinate, 0);
+    int3 Position = int3(Coordinate / Height, Coordinate % Height, 0);
 
     float PixelData = DataTex.Load(Position).x;Position.x += 1;
     uint MarksUint = asuint(PixelData);

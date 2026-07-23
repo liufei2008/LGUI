@@ -84,12 +84,60 @@ void ULexUIDataAsTexture::CreateTexture()
 
 	Texture = TextureDynamic;
 }
-bool ULexUIDataAsTexture::ExpandTexture()
+bool ULexUIDataAsTexture::ExpandTextureWidth()
+{
+	uint32 NewTextureWidth = TextureWidth + TextureWidth;
+	UE_LOG(LGUI, Log, TEXT("[%s].%d Will Expand Texture Width to %d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, NewTextureWidth)
+	if (NewTextureWidth > GetMax2DTextureDimension())
+	{
+		auto WarningMsg = FText::Format(LOCTEXT("BufferTexture_Size_Error", "{0} Trying to expand buffer texture, result too large size that not supported! Maximum texture size is:{1}. This may happen when there are too many LexVisual!")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+			, GetMax2DTextureDimension());
+		UE_LOG(LGUI, Error, TEXT("%s"), *WarningMsg.ToString());
+#if WITH_EDITOR
+		FLexUIUtils::EditorNotification(WarningMsg, false);
+#endif
+		return false;
+	}
+	auto OldTexture = Texture;
+	auto OldTextureWidth = TextureWidth;
+	TextureWidth = NewTextureWidth;
+	CreateTexture();
+
+	//copy existing data
+	auto NewTexture = Texture;
+	if (OldTexture->GetResource() != nullptr && NewTexture->GetResource() != nullptr)
+	{
+		ENQUEUE_RENDER_COMMAND(FLFLexUIDataAsTexture_UpdateAndCopyDataTexture)(
+			[OldTexture, NewTexture, Width = OldTextureWidth, Height = TextureHeight](FRHICommandListImmediate& RHICmdList)
+			{
+				FRHICopyTextureInfo CopyInfo;
+				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+				CopyInfo.Size = FIntVector(Width, Height, 0);
+				CopyInfo.DestPosition = FIntVector(0, 0, 0);
+				RHICmdList.CopyTexture(
+					((FTexture2DDynamicResource*)OldTexture->GetResource())->GetTexture2DRHI(),
+					((FTexture2DDynamicResource*)NewTexture->GetResource())->GetTexture2DRHI(),
+					CopyInfo
+				);
+				RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
+			});
+	}
+	// set start position to bottom
+	CurrentPosition.X += BlockPixelCount;
+	CurrentPosition.Y = 0;
+
+	OnDataTextureChange.Broadcast(Texture);
+
+	return true;
+}
+bool ULexUIDataAsTexture::ExpandTextureHeight()
 {
 	uint32 NewTextureHeight = TextureHeight + TextureHeight;
+	UE_LOG(LGUI, Log, TEXT("[%s].%d Will Expand Texture Height to %d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, NewTextureHeight)
 	if (NewTextureHeight > GetMax2DTextureDimension())
 	{
-		auto WarningMsg = FText::Format(LOCTEXT("BufferTexture_Size_Error", "{0} Trying to expand buffer texture, result too large size that not supported! Maximum texture size is:{1}.")
+		auto WarningMsg = FText::Format(LOCTEXT("BufferTexture_Size_Error", "{0} Trying to expand buffer texture, result too large size that not supported! Maximum texture size is:{1}. This may happen when there are too many LexVisual!")
 			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
 			, GetMax2DTextureDimension());
 		UE_LOG(LGUI, Error, TEXT("%s"), *WarningMsg.ToString());
@@ -108,11 +156,11 @@ bool ULexUIDataAsTexture::ExpandTexture()
 	if (OldTexture->GetResource() != nullptr && NewTexture->GetResource() != nullptr)
 	{
 		ENQUEUE_RENDER_COMMAND(FLFLexUIDataAsTexture_UpdateAndCopyDataTexture)(
-			[OldTexture, NewTexture, Width = TextureWidth, OldTextureHeight](FRHICommandListImmediate& RHICmdList)
+			[OldTexture, NewTexture, Width = TextureWidth, Height = OldTextureHeight](FRHICommandListImmediate& RHICmdList)
 			{
 				FRHICopyTextureInfo CopyInfo;
 				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
-				CopyInfo.Size = FIntVector(Width, OldTextureHeight, 0);
+				CopyInfo.Size = FIntVector(Width, Height, 0);
 				CopyInfo.DestPosition = FIntVector(0, 0, 0);
 				RHICmdList.CopyTexture(
 					((FTexture2DDynamicResource*)OldTexture->GetResource())->GetTexture2DRHI(),
@@ -123,20 +171,22 @@ bool ULexUIDataAsTexture::ExpandTexture()
 			});
 	}
 	// set start position to bottom
-	CurrentPosition = OldTextureHeight;
+	CurrentPosition.Y = OldTextureHeight;
 
 	OnDataTextureChange.Broadcast(Texture);
 
 	return true;
 }
 
-void ULexUIDataAsTexture::Init(int InBlockSizeInByte, ELexUIDataAsTexturePixelFormat InPixelFormat, int InInitialTextureHeight)
+void ULexUIDataAsTexture::Init(int InBlockSizeInByte, ELexUIDataAsTexturePixelFormat InPixelFormat, int InInitialTextureHeight, int InMaxTextureSize)
 {
 	if (bIsInitialized)
 	{
 		return;
 	}
 	bIsInitialized = true;
+	TextureMaxSize = FMath::RoundUpToPowerOfTwo(InMaxTextureSize);
+	TextureMaxSize = FMath::Min(TextureMaxSize, (int32)GetMax2DTextureDimension());
 	BlockSizeInByte = InBlockSizeInByte;
 	PixelFormat = InPixelFormat;
 	switch (PixelFormat)
@@ -162,10 +212,6 @@ void ULexUIDataAsTexture::Init(int InBlockSizeInByte, ELexUIDataAsTexturePixelFo
 	}
 	BlockPixelCount = BlockSizeInByte / BytesPerPixel + ((BlockSizeInByte % BytesPerPixel) > 0 ? 1 : 0);
 	TextureWidth = FLexUIUtils::CeilPowerOfTwo(BlockPixelCount);
-	while (BlockPixelCount > TextureWidth)
-	{
-		TextureWidth *= 2;
-	}
 	TextureHeight = InInitialTextureHeight;
 	CreateTexture();
 }
@@ -176,30 +222,51 @@ int ULexUIDataAsTexture::RegisterBuffer()
 	{
 		auto Pos = NotUsingPositionArray[0];
 		NotUsingPositionArray.RemoveSwap(Pos);
-		return Pos;
+		return Pos.X * TextureHeight + Pos.Y;
+	}
+	if (CurrentPosition.X + BlockPixelCount >= TextureMaxSize)//position x exceed
+	{
+		auto WarningMsg = FText::Format(LOCTEXT("RegisterBuffer_Error", "{0} Trying to register buffer but exceed capacity! Buffer position:{1}, capacity:{2}! This may happen when there are too many LexVisual!")
+			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__))
+			, FText::FromString(CurrentPosition.ToString())
+			, TextureMaxSize);
+		UE_LOG(LGUI, Error, TEXT("%s"), *WarningMsg.ToString());
+#if WITH_EDITOR
+		FLexUIUtils::EditorNotification(WarningMsg, false);
+#endif
+		return 0;
 	}
 	auto PrevPos = CurrentPosition;
-	CurrentPosition += 1;
-	if (CurrentPosition >= TextureHeight)//need to expand texture size
+	if (CurrentPosition.Y + 1 >= TextureMaxSize)//position y exceed, and x not exceed, then expand texture width
 	{
-		if (ExpandTexture())
+		if (ExpandTextureWidth())
 		{
-			return RegisterBuffer();
+			return PrevPos.X * TextureHeight + PrevPos.Y;
 		}
+		return 0;
 	}
-	return PrevPos;
+	CurrentPosition.Y += 1;
+	if (CurrentPosition.Y >= TextureHeight)//need to expand texture height
+	{
+		if (ExpandTextureHeight())
+		{
+			return PrevPos.X * TextureHeight + PrevPos.Y;
+		}
+		return 0;
+	}
+	return PrevPos.X * TextureHeight + PrevPos.Y;
 }
 void ULexUIDataAsTexture::UnregisterBuffer(int InPosition)
 {
-	NotUsingPositionArray.Add(InPosition);
+	NotUsingPositionArray.Add(FIntVector2(InPosition / TextureHeight, InPosition % TextureHeight));
 }
-void ULexUIDataAsTexture::UpdateBlock(int InPositionY, TArray<uint8> InData)
+void ULexUIDataAsTexture::UpdateBlock(int InBufferPosition, TArray<uint8> InData)
 {
 	if (bBatchUpdateMode)
 	{
 		FPendingUpdateData Data;
-		Data.PosX = 0;
-		Data.PosY = InPositionY;
+		Data.PosX = InBufferPosition / TextureMaxSize;
+		Data.PosY = InBufferPosition % TextureMaxSize;
 		Data.Data = MoveTemp(InData);
 		Data.DataPixelCount = this->BlockPixelCount;
 		PendingUpdateDataArray.Add(MoveTemp(Data));
@@ -208,14 +275,16 @@ void ULexUIDataAsTexture::UpdateBlock(int InPositionY, TArray<uint8> InData)
 	{
 		if (IsValid(Texture) && Texture->GetResource())
 		{
+			auto PosX = InBufferPosition / TextureMaxSize;
+			auto PosY = InBufferPosition % TextureMaxSize;
 			auto TextureRes = (FTexture2DDynamicResource*)Texture->GetResource();
 			ENQUEUE_RENDER_COMMAND(FLexUIDataAsTexture_UpdateBlock)(
-				[TextureRes, InPositionY, InData = MoveTemp(InData), BlockSizeInByte = this->BlockSizeInByte, BlockPixelCount = this->BlockPixelCount](FRHICommandListImmediate& RHICmdList)
+				[TextureRes, PosX, PosY, InData = MoveTemp(InData), BlockSizeInByte = this->BlockSizeInByte, BlockPixelCount = this->BlockPixelCount](FRHICommandListImmediate& RHICmdList)
 				{
 					RHICmdList.UpdateTexture2D(
 						TextureRes->GetTexture2DRHI(),
 						0,
-						FUpdateTextureRegion2D(0, InPositionY, 0, 0, BlockPixelCount, 1),
+						FUpdateTextureRegion2D(PosX, PosY, 0, 0, BlockPixelCount, 1),
 						BlockSizeInByte,
 						InData.GetData()
 					);
@@ -224,13 +293,13 @@ void ULexUIDataAsTexture::UpdateBlock(int InPositionY, TArray<uint8> InData)
 	}
 }
 
-void ULexUIDataAsTexture::UpdateBlock(int InPositionX, int InPositionY, TArray<uint8> InData, int InDataPixelCount)
+void ULexUIDataAsTexture::UpdateBlock(int InBufferPositionXOffset, int InBufferPosition, TArray<uint8> InData, int InDataPixelCount)
 {
 	if (bBatchUpdateMode)
 	{
 		FPendingUpdateData Data;
-		Data.PosX = InPositionX;
-		Data.PosY = InPositionY;
+		Data.PosX = InBufferPositionXOffset + InBufferPosition / TextureMaxSize;
+		Data.PosY = InBufferPosition % TextureMaxSize;
 		Data.Data = MoveTemp(InData);
 		Data.DataPixelCount = InDataPixelCount;
 		PendingUpdateDataArray.Add(MoveTemp(Data));
@@ -239,14 +308,16 @@ void ULexUIDataAsTexture::UpdateBlock(int InPositionX, int InPositionY, TArray<u
 	{
 		if (IsValid(Texture) && Texture->GetResource())
 		{
+			auto PosX = InBufferPositionXOffset + InBufferPosition / TextureMaxSize;
+			auto PosY = InBufferPosition % TextureMaxSize;
 			auto TextureRes = (FTexture2DDynamicResource*)Texture->GetResource();
 			ENQUEUE_RENDER_COMMAND(FLexUIDataAsTexture_UpdateBlock)(
-				[TextureRes, InPositionX, InPositionY, InData = MoveTemp(InData), BlockSizeInByte = this->BlockSizeInByte, InDataPixelCount](FRHICommandListImmediate& RHICmdList)
+				[TextureRes, PosX, PosY, InData = MoveTemp(InData), BlockSizeInByte = this->BlockSizeInByte, InDataPixelCount](FRHICommandListImmediate& RHICmdList)
 				{
 					RHICmdList.UpdateTexture2D(
 						TextureRes->GetTexture2DRHI(),
 						0,
-						FUpdateTextureRegion2D(InPositionX, InPositionY, 0, 0, InDataPixelCount, 1),
+						FUpdateTextureRegion2D(PosX, PosY, 0, 0, InDataPixelCount, 1),
 						BlockSizeInByte,
 						InData.GetData()
 					);
