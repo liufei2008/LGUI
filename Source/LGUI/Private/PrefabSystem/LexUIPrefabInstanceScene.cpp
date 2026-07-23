@@ -6,7 +6,6 @@
 #include "Core/Components/LexWidget.h"
 #include "Engine/TextureCube.h"
 #include "Event/LexScreenSpaceRaycaster.h"
-#include "GameFramework/Actor.h"
 #include "Materials/MaterialInstanceConstant.h"
 
 #if WITH_EDITOR

@@ -148,7 +148,7 @@ namespace LexUIPrefabSystem
 	{
 		auto StartTime = FDateTime::Now();
 
-		this->PrefabVersion = InPrefab->PrefabVersion;
+		this->PrefabVersion = LEXUI_CURRENT_PREFAB_VERSION;
 
 		FLexUIPrefabSaveData SaveData;
 		SerializeWidgetToData(OriginRootWidget, SaveData);
