@@ -374,6 +374,18 @@ float ULexLayoutSelfFlexBox::GetShrinkForLayoutContainer(int Axis) const
     return 0;
 }
 
+ELexLayoutFlexBoxSecondaryAxisLineAlignment ULexLayoutSelfFlexBox::GetAlignmentForLayoutContainer(ELexLayoutFlexBoxSecondaryAxisLineAlignment DefaultAlignment) const
+{
+    if (SelfAlignment == ELexLayoutFlexBoxSecondaryAxisSelfAlignment::Auto)
+    {
+        return DefaultAlignment;
+    }
+    else
+    {
+        return static_cast<ELexLayoutFlexBoxSecondaryAxisLineAlignment>(static_cast<int>(SelfAlignment) - 1);
+    }
+}
+
 bool ULexLayoutSelfFlexBox::GetSecondaryAxisSizeCanStretchByLayoutContainer(int SecondaryAxis) const
 {
     if (SecondaryAxis == 0)
@@ -487,6 +499,15 @@ void ULexLayoutSelfFlexBox::SetShrink(float Value)
     if (Shrink != Value)
     {
         Shrink = FMath::Max(0, Value);
+        RebuildSelfLayout();
+    }
+}
+
+void ULexLayoutSelfFlexBox::SetSelfAlignment(ELexLayoutFlexBoxSecondaryAxisSelfAlignment Value)
+{
+    if (SelfAlignment != Value)
+    {
+        SelfAlignment = Value;
         RebuildSelfLayout();
     }
 }

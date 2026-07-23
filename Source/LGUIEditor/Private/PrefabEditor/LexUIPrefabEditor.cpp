@@ -124,11 +124,6 @@ void FLexUIPrefabEditor::IterateAllPrefabEditor(const TFunction<void(FLexUIPrefa
 	}
 }
 
-bool FLexUIPrefabEditor::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab)
-{
-	return GetPrefabHelperObject()->RefreshOnSubPrefabDirty(InSubPrefab);
-}
-
 bool FLexUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
 {
 	FBoxSphereBounds Bounds = FBoxSphereBounds(EForceInit::ForceInitToZero);

@@ -5,7 +5,7 @@
 #include "LexUIPlayTween_Params.generated.h"
 
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Float (Single)"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Float (Single)")
 class LGUI_API ULexUIPlayTween_Float : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -25,7 +25,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Float (Double)"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Float (Double)")
 class LGUI_API ULexUIPlayTween_Double : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -45,7 +45,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Color"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Color")
 class LGUI_API ULexUIPlayTween_Color : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -70,7 +70,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Int"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Int")
 class LGUI_API ULexUIPlayTween_Int : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -90,7 +90,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween LinearColor"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween LinearColor")
 class LGUI_API ULexUIPlayTween_LinearColor : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -110,7 +110,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Quaternion"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Quaternion")
 class LGUI_API ULexUIPlayTween_Quaternion : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -130,7 +130,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Rotator"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Rotator")
 class LGUI_API ULexUIPlayTween_Rotator : public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -150,7 +150,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Vector2"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Vector2")
 class LGUI_API ULexUIPlayTween_Vector2: public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -170,7 +170,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Vector3"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Vector3")
 class LGUI_API ULexUIPlayTween_Vector3: public ULexUIPlayTween
 {
 	GENERATED_BODY()
@@ -190,7 +190,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LexUIPlayTween Vector4"))
+UCLASS(BlueprintType, DisplayName = "LexUIPlayTween Vector4")
 class LGUI_API ULexUIPlayTween_Vector4: public ULexUIPlayTween
 {
 	GENERATED_BODY()

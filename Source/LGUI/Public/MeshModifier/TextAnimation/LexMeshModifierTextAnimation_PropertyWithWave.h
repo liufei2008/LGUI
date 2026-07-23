@@ -19,8 +19,8 @@ protected:
 	/** Flip move speed direction of the wave. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool FlipDirection = false;
-	TWeakObjectPtr<class ULTweener> UpdateTweener;
-	virtual void OnUpdate(float deltaTime);
+	FTSTicker::FDelegateHandle UpdateDelegateHandle;
+	virtual bool OnUpdate(float deltaTime);
 	UPROPERTY(Transient)TObjectPtr<class ULexText> TextObject;
 public:
 	virtual void Init()override;

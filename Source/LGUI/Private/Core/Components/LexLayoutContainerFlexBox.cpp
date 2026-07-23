@@ -67,11 +67,12 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
         }
         return ChildSizePtr;
     };
-    auto SetChildPositionAndSize = [&](ULexWidget* ChildWidget, FVector2f Pos, FVector2f AreaSize, int PrimaryAxis, int SecondaryAxis, float SecondaryPreferred, bool ReverseX, bool ReverseY)
+    auto SetChildPositionAndSize = [&](ULexWidget* ChildWidget, FVector2f Pos, FVector2f AreaSize, float SecondaryPreferred, bool ReverseX, bool ReverseY)
     {
         auto ChildLayoutSelf = Cast<ULexLayoutSelfFlexBox>(ChildWidget->GetLayoutSelf());
-    
-        if (SecondaryLineAlignment == ELexLayoutFlexBoxSecondaryAxisLineAlignment::Stretch)//stretch use full area size as widget size
+
+        auto ChildAlignment = ChildLayoutSelf ? ChildLayoutSelf->GetAlignmentForLayoutContainer(SecondaryLineAlignment) : SecondaryLineAlignment;
+        if (ChildAlignment == ELexLayoutFlexBoxSecondaryAxisLineAlignment::Stretch)//stretch use full area size as widget size
         {
             if (ChildLayoutSelf && ChildLayoutSelf->GetSecondaryAxisSizeCanStretchByLayoutContainer(SecondaryAxis))
             {
@@ -79,7 +80,7 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
             }
         }
         float AlignmentOnAxis = 0;
-        switch (SecondaryLineAlignment)
+        switch (ChildAlignment)
         {
         case ELexLayoutFlexBoxSecondaryAxisLineAlignment::Stretch://stretch
         case ELexLayoutFlexBoxSecondaryAxisLineAlignment::Start:
@@ -113,7 +114,8 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
         
         if (ChildLayoutSelf)
         {
-            if (SecondaryLineAlignment != ELexLayoutFlexBoxSecondaryAxisLineAlignment::Stretch)
+            if (ChildAlignment != ELexLayoutFlexBoxSecondaryAxisLineAlignment::Stretch
+                || !ChildLayoutSelf->GetSecondaryAxisSizeCanStretchByLayoutContainer(SecondaryAxis))
             {
                 AreaSize[SecondaryAxis] = SecondaryPreferred;//not stretch mean we will not change it's secondary-axis size, so restore it
             }
@@ -442,7 +444,7 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
                 SecondaryPreferredSize = ChildSizes->Preferred[SecondaryAxis];
             }
             
-            SetChildPositionAndSize(Child, CurrentLinePosOffset, AreaSize, PrimaryAxis, SecondaryAxis, SecondaryPreferredSize, bReverseHorizontal, bReverseVertical);
+            SetChildPositionAndSize(Child, CurrentLinePosOffset, AreaSize, SecondaryPreferredSize, bReverseHorizontal, bReverseVertical);
             if (bReverse)
             {
                 CurrentLinePosOffset[PrimaryAxis] -= AreaSize[PrimaryAxis] + Gap[PrimaryAxis] + PrimarySpaceGap;
@@ -460,41 +462,6 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
 void ULexLayoutContainerFlexBox::CalculatePreferredSize()
 {
     DoCalculate(false);
-
-#if 0
-    auto GetChildPreferredSize = [&](ULexWidget* ChildWidget)
-    {
-        if (auto ChildLayoutSelf = Cast<ULexLayoutSelfFlexBox>(ChildWidget->GetLayoutSelf()))
-        {
-            return ChildLayoutSelf->GetLayoutPreferredSize();
-        }
-        else
-        {
-            return FVector2f(ChildWidget->GetSizeDelta());
-        }
-    };
-
-    TotalPreferredSize = FVector2f(0,0);
-    bool bIsVertical = Direction == ELexLayoutFlexBoxDirectionType::Vertical || Direction == ELexLayoutFlexBoxDirectionType::VerticalReverse;
-    int PrimaryAxis = bIsVertical ? 1 : 0;
-    int SecondaryAxis = bIsVertical ? 0 : 1;
-    auto Gap = FVector2f(WidthGap, HeightGap);
-    auto ChildrenCount = Children.Num();
-    for (int i = 0; i < ChildrenCount; i++)
-    {
-        auto Child = Children[i];
-        auto ChildSize = GetChildPreferredSize(Child);
-        TotalPreferredSize[PrimaryAxis] += ChildSize[PrimaryAxis];
-        TotalPreferredSize[PrimaryAxis] += Gap[PrimaryAxis];
-        TotalPreferredSize[SecondaryAxis] = FMath::Max(ChildSize[SecondaryAxis], TotalPreferredSize[SecondaryAxis]);
-    }
-    if (ChildrenCount > 0)
-    {
-        TotalPreferredSize[PrimaryAxis] -= Gap[PrimaryAxis];
-    }
-    TotalPreferredSize[PrimaryAxis] += (PrimaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
-    TotalPreferredSize[SecondaryAxis] += (SecondaryAxis == 0 ? Padding.Left + Padding.Right : Padding.Top + Padding.Bottom);
-#endif
 }
 
 FLexLayoutControlAnchorData ULexLayoutContainerFlexBox::GetLayoutControlAnchor(const ULexWidget* TargetWidget)const

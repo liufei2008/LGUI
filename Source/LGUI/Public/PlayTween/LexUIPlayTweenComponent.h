@@ -7,7 +7,9 @@
 #include "LexUIPlayTweenComponent.generated.h"
 
 
-UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
+class ULexUIPlayTween;
+
+UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable, DisplayName = "LexUIPlayTween Component")
 class LGUI_API ULexUIPlayTweenComponent : public ULexUIBehaviour
 {
 	GENERATED_BODY()
@@ -15,12 +17,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bPlayOnStart = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
-		TObjectPtr<class ULexUIPlayTween> PlayTween;
+		TObjectPtr<ULexUIPlayTween> PlayTween;
 
 	virtual void Awake() override;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		class ULexUIPlayTween* GetPlayTween()const { return PlayTween; }
+		ULexUIPlayTween* GetPlayTween()const { return PlayTween; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void Play();
 	UFUNCTION(BlueprintCallable, Category = LGUI)

@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "LGUI/Public/MeshModifier/TextAnimation/LexMeshModifierTextAnimation_Selector.h"
-#include "LGUI.h"
 #include "Core/Components/LexText.h"
 
 bool ULexMeshModifierTextAnimation_RangeSelector::Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)
@@ -34,9 +33,9 @@ void ULexMeshModifierTextAnimation_RangeSelector::SetRange(float Value)
 	if (Range != Value)
 	{
 		Range = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -45,9 +44,9 @@ void ULexMeshModifierTextAnimation_RangeSelector::SetFlipDirection(bool Value)
 	if (bFlipDirection != Value)
 	{
 		bFlipDirection = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -56,9 +55,9 @@ void ULexMeshModifierTextAnimation_RangeSelector::SetStart(float Value)
 	if (Start != Value)
 	{
 		Start = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -67,9 +66,9 @@ void ULexMeshModifierTextAnimation_RangeSelector::SetEnd(float Value)
 	if (End != Value)
 	{
 		End = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -100,9 +99,9 @@ void ULexMeshModifierTextAnimation_RandomSelector::SetSeed(int Value)
 	if (Seed != Value)
 	{
 		Seed = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -111,9 +110,9 @@ void ULexMeshModifierTextAnimation_RandomSelector::SetStart(float Value)
 	if (Start != Value)
 	{
 		Start = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -122,9 +121,9 @@ void ULexMeshModifierTextAnimation_RandomSelector::SetEnd(float Value)
 	if (End != Value)
 	{
 		End = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -132,7 +131,6 @@ void ULexMeshModifierTextAnimation_RandomSelector::SetEnd(float Value)
 bool ULexMeshModifierTextAnimation_RichTextTagSelector::Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection)
 {
 	if (FMath::Abs(Range) < KINDA_SMALL_NUMBER)return false;
-	auto& charProperties = InUIText->GetCharPropertyArray();
 	auto& richTextCustomTagArray = InUIText->GetRichTextCustomTagArray();
 	int foundIndex = richTextCustomTagArray.IndexOfByPredicate([this](const FLexUIText_RichTextCustomTag& A) {
 		return A.TagName == TagName;
@@ -165,9 +163,9 @@ void ULexMeshModifierTextAnimation_RichTextTagSelector::SetTagName(const FName& 
 	if (TagName != Value)
 	{
 		TagName = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -176,9 +174,9 @@ void ULexMeshModifierTextAnimation_RichTextTagSelector::SetRange(float Value)
 	if (Range != Value)
 	{
 		Range = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }
@@ -187,9 +185,9 @@ void ULexMeshModifierTextAnimation_RichTextTagSelector::SetFlipDirection(bool Va
 	if (bFlipDirection != Value)
 	{
 		bFlipDirection = Value;
-		if (auto uiText = GetLexText())
+		if (auto LexText = GetLexText())
 		{
-			uiText->MarkVertexPositionDirty();
+			LexText->MarkVertexPositionDirty();
 		}
 	}
 }

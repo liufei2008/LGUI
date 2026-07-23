@@ -78,7 +78,6 @@ public:
 	static TWeakPtr<FLexUIPrefabEditor> GetEditorByWorld(UWorld* InWorld);
 	static bool WidgetIsRootAgent(ULexWidget* InWidget);
 	static void IterateAllPrefabEditor(const TFunction<void(FLexUIPrefabEditor*)>& InFunction);
-	bool RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
 	FBoxSphereBounds GetAllObjectsBounds();

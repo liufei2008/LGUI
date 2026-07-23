@@ -788,6 +788,16 @@ bool ULexUIManagerWorldSubsystem::RaycastHitUI(UWorld* InWorld, const TArray<ULe
 }
 #endif
 
+bool ULexUIManagerWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	return Super::ShouldCreateSubsystem(Outer);
+}
+
+bool ULexUIManagerWorldSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
+{
+	return WorldType == EWorldType::Game || WorldType == EWorldType::Editor || WorldType == EWorldType::PIE || WorldType == EWorldType::EditorPreview;
+}
+
 void ULexUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

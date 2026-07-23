@@ -6,6 +6,7 @@
 #include "LexLayout.h"
 #include "LexLayoutSelfFlexBox.generated.h"
 
+enum class ELexLayoutFlexBoxSecondaryAxisLineAlignment : uint8;
 class ULexWidget;
 
 UENUM(BlueprintType)
@@ -25,6 +26,19 @@ enum class ELexLayoutSizeType : uint8
 	 * If no parent then fallback to 0.
 	 */
 	Percent,
+};
+
+UENUM(BlueprintType, Category = LGUI)
+enum class ELexLayoutFlexBoxSecondaryAxisSelfAlignment :uint8
+{
+	Auto,
+	Start,
+	Center,
+	End,
+	/**
+	 * Expand size to fill all area.
+	 */
+	Stretch,
 };
 
 USTRUCT(BlueprintType)
@@ -179,6 +193,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LayoutSelf", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin=0))
 	float Shrink = 0;
 
+	/**
+	 * Know as align-self. Aligns flex items along the secondary-axis of the current line of the flex container.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LayoutSelf", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin=0))
+	ELexLayoutFlexBoxSecondaryAxisSelfAlignment SelfAlignment = ELexLayoutFlexBoxSecondaryAxisSelfAlignment::Auto;
+
 	float CalculatedMinWidth = 0;
 	float CalculatedMinHeight = 0;
 	float CalculatedMaxWidth = 0;
@@ -210,7 +230,7 @@ public:
 	
 	float GetGrowForLayoutContainer(int Axis)const;
 	float GetShrinkForLayoutContainer(int Axis)const;
-
+	ELexLayoutFlexBoxSecondaryAxisLineAlignment GetAlignmentForLayoutContainer(ELexLayoutFlexBoxSecondaryAxisLineAlignment DefaultAlignment)const;
 	bool GetSecondaryAxisSizeCanStretchByLayoutContainer(int SecondaryAxis)const;
 	void SetFinalSizeByLayoutContainer(FVector2f Value);
 	
@@ -259,4 +279,9 @@ public:
 	void SetGrow(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LayoutSelf")
 	void SetShrink(float Value);
+	
+	UFUNCTION(BlueprintCallable, Category = "LayoutSelf")
+	ELexLayoutFlexBoxSecondaryAxisSelfAlignment GetSelfAlignment()const{return SelfAlignment;}
+	UFUNCTION(BlueprintCallable, Category = "LayoutSelf")
+	void SetSelfAlignment(ELexLayoutFlexBoxSecondaryAxisSelfAlignment Value);
 };

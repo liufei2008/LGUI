@@ -3,17 +3,16 @@
 #include "LGUI/Public/MeshModifier/TextAnimation/LexMeshModifierTextAnimation_PropertyWithWave.h"
 #include "LGUI.h"
 #include "Core/Components/LexText.h"
-#include "LTweenBPLibrary.h"
 #include "Engine/World.h"
 
 void ULexMeshModifierTextAnimation_PropertyWithWave::Init()
 {
 	TextObject = GetLexText();
-	UpdateTweener = ULTweenBPLibrary::UpdateCall(this, FLTweenUpdateDelegate::CreateUObject(this, &ULexMeshModifierTextAnimation_PropertyWithWave::OnUpdate));
+	UpdateDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ULexMeshModifierTextAnimation_PropertyWithWave::OnUpdate));
 }
 void ULexMeshModifierTextAnimation_PropertyWithWave::Deinit()
 {
-	ULTweenBPLibrary::KillIfIsTweening(this, UpdateTweener.Get());
+	FTSTicker::GetCoreTicker().RemoveTicker(UpdateDelegateHandle);
 }
 void ULexMeshModifierTextAnimation_PropertyWithWave::SetFrequency(float Value)
 {
@@ -23,12 +22,13 @@ void ULexMeshModifierTextAnimation_PropertyWithWave::SetFrequency(float Value)
 		MarkUITextPositionDirty();
 	}
 }
-void ULexMeshModifierTextAnimation_PropertyWithWave::OnUpdate(float deltaTime)
+bool ULexMeshModifierTextAnimation_PropertyWithWave::OnUpdate(float deltaTime)
 {
 	if (IsValid(TextObject))
 	{
 		TextObject->MarkVertexPositionDirty();
 	}
+	return true;
 }
 
 void ULexMeshModifierTextAnimation_PositionWaveProperty::ApplyProperty(ULexText* InUIText, const FLexMeshModifierTextAnimation_SelectResult& InSelection, FLexUIGeometry* InGeometry)

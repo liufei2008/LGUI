@@ -35,6 +35,9 @@ protected:
 	virtual void OnUnregister()override;
 #if WITH_EDITOR
 	FDelegateHandle EditorPlayDelegateHandle;
+	void RegisterEditorTick();
+	void UnregisterEditorTick();
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	TWeakObjectPtr<class ULTweener> PlayTweener;
 	void UpdateAnimation(float deltaTime);

@@ -109,6 +109,7 @@ public:
 	/**
 	 * This will affect all LexUI-Renderer (ScreenSpaceOverlay, WorldSpace-LexUIRenderer, RenderTarget).
 	 * Tested on Windows DX11 & DX12, Mac (intel), Android (vulkan), not valid on Android (gles).
+	 * NOTE!!! Before you enable this option, check this article: https://liufei2008.github.io/LGUIDoc/FAQ/Antialiasing/
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "Rendering", meta = (DisplayName="Anti-Aliasing Method"))
 		ELexUIRendererAntiAliasingMethod AntiAliasingMethod = ELexUIRendererAntiAliasingMethod::None;

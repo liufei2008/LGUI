@@ -27,34 +27,65 @@ void ULexImageSequencePlayer::OnRegister()
 {
 	Super::OnRegister();
 #if WITH_EDITOR
-	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
-	{
-		if (auto LexUIManagerObject = ULexUIManagerObject::GetInstance(true))
-		{
-			EditorPlayDelegateHandle = LexUIManagerObject->GetEditorTickDelegate().AddWeakLambda(this, [this](float deltaTime) {
-				if (!bPreviewInEditor)return;
-				if (!CanPlay())return;
-				Duration = GetDuration();
-				PrepareForPlay();
-				UpdateAnimation(deltaTime);
-				});
-		}
-	}
+	RegisterEditorTick();
 #endif
 }
 void ULexImageSequencePlayer::OnUnregister()
 {
 	Super::OnUnregister();
 #if WITH_EDITOR
+	UnregisterEditorTick();
+#endif
+}
+
+#if WITH_EDITOR
+void ULexImageSequencePlayer::RegisterEditorTick()
+{
+	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
+	{
+		if (auto LexUIManagerObject = ULexUIManagerObject::GetInstance(true))
+		{
+			if (!EditorPlayDelegateHandle.IsValid())
+			{
+				EditorPlayDelegateHandle = LexUIManagerObject->GetEditorTickDelegate().AddWeakLambda(this, [this](float deltaTime) {
+					if (!bPreviewInEditor)return;
+					if (!CanPlay())return;
+					Duration = GetDuration();
+					PrepareForPlay();
+					UpdateAnimation(deltaTime);
+					});
+			}
+		}
+	}
+}
+void ULexImageSequencePlayer::UnregisterEditorTick()
+{
 	if (EditorPlayDelegateHandle.IsValid())
 	{
 		if (auto LexUIManagerObject = ULexUIManagerObject::GetInstance(false))
 		{
 			LexUIManagerObject->GetEditorTickDelegate().Remove(EditorPlayDelegateHandle);
 		}
+		EditorPlayDelegateHandle.Reset();
 	}
-#endif
 }
+void ULexImageSequencePlayer::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	auto PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexImageSequencePlayer, bPreviewInEditor))
+	{
+		if (bPreviewInEditor)
+		{
+			RegisterEditorTick();
+		}
+		else
+		{
+			UnregisterEditorTick();
+		}
+	}
+}
+#endif
 
 void ULexImageSequencePlayer::Play()
 {

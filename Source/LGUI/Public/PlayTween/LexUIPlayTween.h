@@ -10,7 +10,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLexUIPlayTweenCycleCompleteDynami
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLexUIPlayTweenStartDynamicDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLexUIPlayTweenUpdateProgressDynamicDelegate, float, InProgress);
 
-UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
+UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew, DisplayName="LexUIPlayTween")
 class LGUI_API ULexUIPlayTween : public UObject
 {
 	GENERATED_BODY()

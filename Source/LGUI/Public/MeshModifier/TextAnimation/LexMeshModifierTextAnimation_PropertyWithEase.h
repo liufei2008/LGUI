@@ -16,7 +16,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		ELTweenEase EaseType = ELTweenEase::InOutSine;
 	/** Only valid if easeType = CurveFloat. Use CurveFloat to control the animation. */
-	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == ELTweenEase::CurveFloat"))
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "EaseType == ELTweenEase::CurveFloat"))
 		TObjectPtr<UCurveFloat> EaseCurve;
 	FLTweenFunction EaseFunc;
 	float EaseCurveFunction(float c, float b, float t, float d);
