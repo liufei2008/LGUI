@@ -444,6 +444,12 @@ void ULexWidget::BeginDestroy()
 	if (bHasBegunPlay || bIsRegistered)
 	{
 		auto World = this->GetWorld();
+		if (World->WorldType == EWorldType::Inactive)
+		{
+			DestroyWidget();
+			Super::BeginDestroy();
+			return;
+		}
 		auto WorldName = World ? World->GetName() : TEXT("null");
 		auto Manager = ULexUIManagerWorldSubsystem::GetInstance(World);
 		auto ManagerName = Manager ? Manager->GetName() : TEXT("null");
@@ -3001,10 +3007,6 @@ void ULexWidget::MarkLayoutForRebuild(ULexWidget* InWidget)
 		if (auto LayoutSelf = RootWidgetOfLayoutTree->GetLayoutSelf())
 		{
 			LayoutSelf->MarkLayoutDirty();
-		}
-		if (RootWidgetOfLayoutTree->bIgnoreLayout)//IgnoreLayout no need to go up parent
-		{
-			break;
 		}
 		if (auto ParentWidget = RootWidgetOfLayoutTree->GetParent())
 		{

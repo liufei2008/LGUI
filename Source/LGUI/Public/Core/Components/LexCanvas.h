@@ -696,7 +696,6 @@ private:
 	uint32 bPrevAnythingChangedForRenderTarget : 1 = true;//same as upper one, but the prev frame
 	uint32 bHasSetInitialStateForLexWorldSpaceRenderer : 1 = false;//is LGUI world space renderer's initial state set
 	uint32 bNeedToVerifyMaterials : 1 = true;
-	mutable uint32 bNeedToSetClipDataTextureMaterialParameter : 1 = true;
 	uint32 bNeedToGenerateWidgetList : 1 = true;
 	uint32 bWidgetPropertyDataAsTextureChanged : 1 = true;
 	uint32 bClipDataAsTextureChanged : 1 = true;
@@ -739,7 +738,7 @@ private:
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TMap<TObjectPtr<UMaterialInterface>, FLexCanvasDynamicMaterialArrayContainer> MapSrcMatToDynamicMat;//@todo: delete not using material
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TMap<TObjectPtr<UMaterialInterface>, FLexCanvasMaterialParameterCache> MapMatToParamCache;
+	TMap<TObjectPtr<UMaterialInterface>, FLexCanvasMaterialParameterCache> MapMatToParamCache;//@todo: delete not using material
 	uint64 NewestDrawCallFrameNumber = 0;
 	FLexCanvasPendingDrawCallData CurrentDrawCallData;//current drawing draw-call
 	TUniquePtr<FLexCanvasDrawCallProcessingRunnable> DrawCallProcessingRunnable;

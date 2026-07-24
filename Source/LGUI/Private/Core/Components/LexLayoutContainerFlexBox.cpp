@@ -461,6 +461,7 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
 
 void ULexLayoutContainerFlexBox::CalculatePreferredSize()
 {
+    RefreshChildren();
     DoCalculate(false);
 }
 

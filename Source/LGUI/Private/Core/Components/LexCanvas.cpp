@@ -363,7 +363,6 @@ void ULexCanvas::ClearDrawCall()
 	PooledDefaultMaterialList.Empty();
 	MapSrcMatToDynamicMat.Empty();
 	CurrentDrawCallData.DrawCallArray.Empty();
-	bNeedToSetClipDataTextureMaterialParameter = true;
 }
 
 void ULexCanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
@@ -433,7 +432,7 @@ bool ULexCanvas::CheckRootCanvas(bool forceRecheck)const
 	if (NewRootCanvas != RootCanvas)
 	{
 		RootCanvas = NewRootCanvas;
-		bNeedToSetClipDataTextureMaterialParameter = true;
+		RootCanvas->bClipDataAsTextureChanged = true;
 	}
 	if (RootCanvas.IsValid())
 	{
@@ -1590,12 +1589,28 @@ void ULexCanvas::UpdateDrawCallMaterial()
 		}
 	}
 
-	auto SetParameterForNewlyCreatedMaterial = [&](UMaterialInstanceDynamic* InMaterialInstanceDynamic)
+	auto SetCommonParameterForMaterial = [&](UMaterialInstanceDynamic* InMaterialInstanceDynamic)
 	{
 		InMaterialInstanceDynamic->SetScalarParameterValue(LexUI_IsRenderByLexUIRenderer_MaterialParameterName, this->IsRenderByLexUIRendererOrUERenderer());
 		InMaterialInstanceDynamic->SetTextureParameterValue(LexUI_WidgetPropertyDataTexture_MaterialParameterName, this->WidgetPropertyDataAsTexture->GetDataTexture());
 		InMaterialInstanceDynamic->SetTextureParameterValue(LexUI_ClipDataTexture_MaterialParameterName, RootCanvas->ClipDataAsTexture->GetDataTexture());
 	};
+
+	//set common parameter for all materials
+	if (bWidgetPropertyDataAsTextureChanged || RootCanvas->bClipDataAsTextureChanged)
+	{
+		for (auto& Material : PooledDefaultMaterialList)
+		{
+			SetCommonParameterForMaterial(Material);
+		}
+		for (auto& KeyValue : MapSrcMatToDynamicMat)
+		{
+			for (auto& DynamicMaterial : KeyValue.Value.MaterialArray)
+			{
+				SetCommonParameterForMaterial(DynamicMaterial);
+			}
+		}
+	}
 
 	for (int i = 0; i < CurrentDrawCallData.DrawCallArray.Num(); i++)
 	{
@@ -1613,7 +1628,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 						auto RenderMatDynamic = static_cast<UMaterialInstanceDynamic*>(RenderMat);
 						RenderMat = RenderMatDynamic;
 						bShouldSetMaterialParameter = true;
-						SetParameterForNewlyCreatedMaterial(RenderMatDynamic);
+						SetCommonParameterForMaterial(RenderMatDynamic);
 					}
 					else
 					{
@@ -1624,7 +1639,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 							{
 								bShouldSetMaterialParameter = true;
 								auto RenderMatDynamic = UMaterialInstanceDynamic::Create(DrawCallItem.Material.Get(), this);
-								SetParameterForNewlyCreatedMaterial(RenderMatDynamic);
+								SetCommonParameterForMaterial(RenderMatDynamic);
 								auto MaterialContainer = FLexCanvasDynamicMaterialArrayContainer();
 								MaterialContainer.MaterialArray.Add(RenderMatDynamic);
 								MaterialContainer.CurrentIndex = 1;
@@ -1651,7 +1666,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 							{
 								auto RenderMatDynamic = UMaterialInstanceDynamic::Create(DrawCallItem.Material.Get(), this);
 								MaterialArray.Add(RenderMatDynamic);
-								SetParameterForNewlyCreatedMaterial(RenderMatDynamic);
+								SetCommonParameterForMaterial(RenderMatDynamic);
 								RenderMat = RenderMatDynamic;
 								DynamicMaterialContainerPtr->CurrentIndex++;
 								bNeedToVerifyMaterials = true;//verify material when new material will be used
@@ -1665,10 +1680,6 @@ void ULexCanvas::UpdateDrawCallMaterial()
 							{
 								auto RenderMatDynamic = MaterialArray[DynamicMaterialContainerPtr->CurrentIndex];
 								RenderMat = RenderMatDynamic;
-								if (bWidgetPropertyDataAsTextureChanged || RootCanvas->bClipDataAsTextureChanged)
-								{
-									SetParameterForNewlyCreatedMaterial(RenderMatDynamic);//update texture to material
-								}
 								DynamicMaterialContainerPtr->CurrentIndex++;
 								for (auto& BatchMeshVisual : DrawCallItem.BatchMeshVisualArray)
 								{
@@ -1689,15 +1700,11 @@ void ULexCanvas::UpdateDrawCallMaterial()
 							auto RenderMatDynamic = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							RenderMatDynamic->SetFlags(RF_Transient);
 							PooledDefaultMaterialList.Add(RenderMatDynamic);
-							SetParameterForNewlyCreatedMaterial(RenderMatDynamic);
+							SetCommonParameterForMaterial(RenderMatDynamic);
 							bNeedToVerifyMaterials = true;//verify material when new material will be used
 							return RenderMatDynamic;
 						}
 						auto RenderMatDynamic = PooledDefaultMaterialList[UsingMaterialStartIndex];
-						if (bWidgetPropertyDataAsTextureChanged || RootCanvas->bClipDataAsTextureChanged)
-						{
-							SetParameterForNewlyCreatedMaterial(RenderMatDynamic);//update texture to material
-						}
 						UsingMaterialStartIndex--;
 						return RenderMatDynamic.Get();
 					};
@@ -1715,10 +1722,6 @@ void ULexCanvas::UpdateDrawCallMaterial()
 						RenderMat_MID->SetTextureParameterValue(LexUI_FontTextureMaterialParameterName, DrawCallItem.FontTexture.Get());
 						ParamCache.Texture = DrawCallItem.Texture;
 						ParamCache.FontTexture = DrawCallItem.FontTexture;
-					}
-					if (bNeedToSetClipDataTextureMaterialParameter)
-					{
-						RenderMat_MID->SetTextureParameterValue(LexUI_ClipDataTexture_MaterialParameterName, RootCanvas->ClipDataAsTexture->GetDataTexture());
 					}
 				}
 				UIMesh->SetMeshSectionMaterial(i, RenderMat);
@@ -1741,7 +1744,6 @@ void ULexCanvas::UpdateDrawCallMaterial()
 		MarkNeedVerifyMaterials();//tell parent canvas to verify material
 	}
 
-	bNeedToSetClipDataTextureMaterialParameter = false;
 	bWidgetPropertyDataAsTextureChanged = false;
 	if (RootCanvas == this)
 	{
@@ -2380,7 +2382,7 @@ void ULexCanvas::CheckWidgetPropertyData()
 	if (!IsValid(WidgetPropertyDataAsTexture))
 	{
 		WidgetPropertyDataAsTexture = NewObject<ULexUIDataAsTexture>(this, ULexUIDataAsTexture::StaticClass(), NAME_None, RF_Transient);
-		WidgetPropertyDataAsTexture->Init(ULexVisual::WidgetPropertyDataLength, ELexUIDataAsTexturePixelFormat::R32, 128, 2048);
+		WidgetPropertyDataAsTexture->Init(ULexVisual::WidgetPropertyDataLength, ELexUIDataAsTexturePixelFormat::R32, 1024, 2048);
 		WidgetPropertyDataAsTexture->OnDataTextureChange.AddUObject(this, &ULexCanvas::OnWidgetPropertyDataTextureChanged);
 	}
 }

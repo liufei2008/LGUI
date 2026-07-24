@@ -672,10 +672,10 @@ void FLexUIEditorTools::CreatePrefabAsset(TFunction<ULexWidget*()> GetSelectedWi
 
 void FLexUIEditorTools::RefreshLoadedPrefab()
 {
-	for (TObjectIterator<ULexUIPrefabHelperObject> Itr; Itr; ++Itr)
-	{
-		Itr->CheckPrefabVersion();
-	}
+	// for (TObjectIterator<ULexUIPrefabHelperObject> Itr; Itr; ++Itr)
+	// {
+	// 	Itr->CheckPrefabVersion();
+	// }
 	for (TObjectIterator<ULexUIPrefabPresenterComponent> Itr; Itr; ++Itr)
 	{
 		if (Itr->GetWorld())
@@ -722,13 +722,9 @@ void FLexUIEditorTools::RefreshOnSubPrefabChange(ULexUIPrefab* InSubPrefab)
 		{
 			for (auto& Prefab : InPrefabs)
 			{
-				if (Prefab->IsPrefabBelongsToThisSubPrefab(InSubPrefab, false))
+				if (Prefab->IsPrefabBelongsToThisSubPrefab(InSubPrefab, true))
 				{
-					//check if is opened by prefab editor
-					if (auto PrefabEditor = FLexUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))//refresh opened prefab
-					{
-						PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab);
-					}
+					Prefab->GetPrefabHelperObject()->RefreshOnSubPrefabDirty(InSubPrefab);
 					RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
 				}
 			}
@@ -740,38 +736,7 @@ void FLexUIEditorTools::RefreshOnSubPrefabChange(ULexUIPrefab* InSubPrefab)
 
 TArray<ULexUIPrefab*> FLexUIEditorTools::GetAllPrefabArray()
 {
-#if 0//Why disable? Because we don't need to refresh not-loaded prefab, because prefab will reload all sub prefab when load
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-	TArray<FString> PathsToScan;
-	PathsToScan.Add(TEXT("/Game/"));
-	AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-	// Get asset in path
-	TArray<FAssetData> ScriptAssetList;
-	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
 	TArray<ULexUIPrefab*> AllPrefabs;
-	auto PrefabClassName = ULexUIPrefab::StaticClass()->GetClassPathName();
-	// Ensure all assets are loaded
-	for (const FAssetData& Asset : ScriptAssetList)
-	{
-		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClassPath == PrefabClassName)
-		{
-			auto AssetObject = Asset.GetAsset();
-			if (auto Prefab = Cast<ULexUIPrefab>(AssetObject))
-			{
-				Prefab->MakeAgentObjectsInPreviewWorld();
-				AllPrefabs.Add(Prefab);
-			}
-		}
-	}
-#else
-	TArray<ULexUIPrefab*> AllPrefabs;
-#endif
 	//collect prefabs that are not saved to disc yet
 	for (TObjectIterator<ULexUIPrefab> Itr; Itr; ++Itr)
 	{
