@@ -85,6 +85,7 @@ public:
 	void RefreshSubPrefabVersion(ULexWidget* InSubPrefabRootWidget);
 
 	void MakePrefabAsSubPrefab(ULexUIPrefab* InPrefab, ULexWidget* InWidget, const TMap<FGuid, TObjectPtr<UObject>>& InSubMapGuidToObject, const TArray<FLexUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
+	void BreakPrefabVariant();
 	void RemoveSubPrefabByRootWidget(ULexWidget* InPrefabRootWidget);
 	void RemoveSubPrefabByAnyWidgetOfSubPrefab(ULexWidget* InPrefabWidget);
 	ULexUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);

@@ -219,6 +219,7 @@ void ULexUIFontData_FreeTypeRender::InitFreeType()
 		auto TextureSize = ULexUISettings::ConvertAtlasTextureSizeTypeToSize(TextureSizeType);
 		BinPack.PrepareRectCellsForText(TextureSize, TextureSize, FreeRectCells, RectPackCellSize, false);
 		RenewFontTexture();
+		//@todo: use small size for intermediate texture, and share same intermediate texture for different fonts
 		IntermediateTexture = CreateIntermediateTexture(RectPackCellSize);
 		IntermediateTexture->AddToRoot();
 		OneDivideTextureSize = 1.0f / TextureSize;
@@ -399,7 +400,7 @@ float ULexUIFontData_FreeTypeRender::GetLineHeight(float FontSize)
 		UE_LOG(LGUI, Error, TEXT("[%s].%d FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__, ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return FontSize;
 	}
-	return LineHeightType == ELexUIDynamicFontLineHeightType::FromFontFace ? (Face->size->metrics.height * ONE_DIVIDE_64) : FontSize;
+	return Face->size->metrics.height * ONE_DIVIDE_64;
 #else
 	return fontSize;
 #endif
@@ -671,7 +672,6 @@ void ULexUIFontData_FreeTypeRender::PostEditChangeProperty(FPropertyChangedEvent
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIFontData_FreeTypeRender, bUseExternalFileOrEmbedInToUAsset)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIFontData_FreeTypeRender, FontFace)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIFontData_FreeTypeRender, FontType)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIFontData_FreeTypeRender, LineHeightType)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIFontData_FreeTypeRender, EngineFont)
 			)
 		{

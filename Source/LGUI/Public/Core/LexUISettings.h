@@ -91,7 +91,7 @@ public:
 		float AutoBatchThreshold = 0.01f;
 
 	/**
-	 * Enable frustum culling for LGUI Renderer.
+	 * Enable frustum culling for LexUI Renderer.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
 		bool bFrustumCulling = false;

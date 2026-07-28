@@ -253,22 +253,19 @@ public:
 	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeterminesOutputType = "InterfaceClass"))
 	ULexUIBehaviour* GetComponentByInterface(UClass* InterfaceClass)const;
+	/**
+	 * Find the first component in parent and up parent hierarchy with type.
+	 * @param ComponentClass component class.
+	 * @param bIncludeSelf	Include target widget self.
+	 * @param InStopWidget	If parent is InStopWidget then break the search chain. Can be null to ignore it.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
+	ULexUIBehaviour* GetComponentInParent(TSubclassOf<ULexUIBehaviour> ComponentClass, bool bIncludeSelf = false, ULexWidget* InStopWidget = nullptr)const;
 	template<class T>
-	T* GetComponentInParent(bool bIncludeSelf = false)const
+	T* GetComponentInParent(bool bIncludeSelf = false, ULexWidget* InStopWidget = nullptr)const
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexUIBehaviour>::Value, "'T' template parameter to GetComponentInParent must be derived from ULexUIBehaviour");
-		T* ResultComp = nullptr;
-		auto ParentWidget = bIncludeSelf ? this : this->GetParent();
-		while (IsValid(ParentWidget))
-		{
-			ResultComp = ParentWidget->GetComponent<T>();
-			if (IsValid(ResultComp))
-			{
-				return ResultComp;
-			}
-			ParentWidget = ParentWidget->GetParent();
-		}
-		return nullptr;
+		return Cast<T>(GetComponentInParent(T::StaticClass(), bIncludeSelf, InStopWidget));
 	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
 	ULexUIBehaviour* AddComponent(TSubclassOf<ULexUIBehaviour> ComponentClass);

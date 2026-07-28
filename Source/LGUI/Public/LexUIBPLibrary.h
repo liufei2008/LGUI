@@ -55,33 +55,7 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const AActor>::Value, "'T' template parameter to DuplicateActor must be derived from AActor");
 		return (T*)ULexUIBPLibrary::DuplicateWidget(Target, Parent);
 	}
-
-	/**
-	 * Find the first component in parent and up parent hierarchy with type.
-	 * @param IncludeSelf	Include actor self.
-	 * @param InStopNode	If parent is InStopNode then break the search chain. Can be null to ignore it.
-	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass"))
-		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true, AActor* InStopNode = nullptr);
-	/**
-	 * Find all compoents in children with type.
-	 * @param InActor Root actor to start from.
-	 * @param ComponentClass The component type that need to search.
-	 * @param IncludeSelf true- also search component at InActor.
-	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
-	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm="InExcludeNode"))
-		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
-	/**
-	 * Find the first component in children with type.
-	 * @param InActor Root actor to start from.
-	 * @param ComponentClass The component type that need to search.
-	 * @param IncludeSelf true- also search component at InActor.
-	 * @param InExcludeNode If any child actor is included in this InExcludeNode, will skip that child actor and all it's children.
-	 */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (ComponentClass = "/Script/Engine.ActorComponent", DeterminesOutputType = "ComponentClass", AutoCreateRefTerm = "InExcludeNode"))
-		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf, const TSet<AActor*>& InExcludeNode);
-
+	
 public:
 #pragma region EventDelegate
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LexUIEventDelegateExecuteEmpty(const FLexUIEventDelegate& InEvent) { InEvent.FireEvent(); }

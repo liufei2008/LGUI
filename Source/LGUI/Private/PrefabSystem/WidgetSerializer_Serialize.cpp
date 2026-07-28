@@ -6,6 +6,7 @@
 #include "Core/Components/LexWidget.h"
 #include "Misc/NetworkVersion.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "HAL/PlatformTime.h"
 
 
 namespace LexUIPrefabSystem
@@ -146,7 +147,7 @@ namespace LexUIPrefabSystem
 	}
 	bool WidgetSerializer::SerializeWidget(ULexWidget* OriginRootWidget, ULexUIPrefab* InPrefab)
 	{
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 
 		this->PrefabVersion = LEXUI_CURRENT_PREFAB_VERSION;
 
@@ -216,8 +217,8 @@ namespace LexUIPrefabSystem
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 		InPrefab->PrefabVersion = LEXUI_CURRENT_PREFAB_VERSION;
 
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
+		const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), ElapsedSeconds, *InPrefab->GetName());
 		
 		return true;
 	}

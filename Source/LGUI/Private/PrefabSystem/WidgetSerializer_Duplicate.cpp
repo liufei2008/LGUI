@@ -8,6 +8,7 @@
 #include "Core/LexUIManager.h"
 #include "Core/LexUISettings.h"
 #include "Core/Components/LexWidget.h"
+#include "HAL/PlatformTime.h"
 
 namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 {
@@ -27,7 +28,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.bOverrideVersions = false;
 
 		auto Name = OriginRootWidget->GetDisplayName();
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 
 		//serialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
@@ -46,8 +47,8 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
-			auto TimeSpan = FDateTime::Now() - StartTime;
-			UE_LOG(LGUI, Log, TEXT("Duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+			const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("Duplicate actor: '%s', total time: %fms"), *Name, ElapsedSeconds * 1000.0);
 		}
 
 		return CreatedRootWidget;
@@ -61,7 +62,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		}
 
 		auto Name = OriginRootWidget->GetDisplayName();
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 
 		auto& serializer = OutData.Serializer;
 		serializer.OwnerObject = OriginRootWidget->GetOuter();
@@ -85,14 +86,14 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
-			auto TimeSpan = FDateTime::Now() - StartTime;
-			UE_LOG(LGUI, Log, TEXT("PrepareData_ForDuplicate, actor: '%s' total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+			const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("PrepareData_ForDuplicate, actor: '%s' total time: %fms"), *Name, ElapsedSeconds * 1000.0);
 		}
 		return true;
 	}
 	ULexWidget* WidgetSerializer::DuplicateWidgetWithPreparedData(UWorld* InWorld, UObject* InOwnerObject, FDuplicateWidgetDataContainer& InData, ULexWidget* InParent)
 	{
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 		auto& serializer = InData.Serializer;//use copied, incase undesired data
 		serializer.World = InWorld;
 		serializer.OwnerObject = InOwnerObject;
@@ -110,8 +111,8 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(InData.WidgetData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
-			auto TimeSpan = FDateTime::Now() - StartTime;
-			UE_LOG(LGUI, Log, TEXT("DuplicateWidgetWithPreparedData total time: %fms"), TimeSpan.GetTotalMilliseconds());
+			const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("DuplicateWidgetWithPreparedData total time: %fms"), ElapsedSeconds * 1000.0);
 		}
 		return CreatedRootWidget;
 	}
@@ -131,7 +132,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		auto Name = OriginRootWidget->GetDisplayName();
 		UE_LOG(LGUI, Log, TEXT("Begin duplicate actor: '%s'"), *Name);
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 
 		WidgetSerializer serializer;
 		serializer.World = InWorld;
@@ -168,8 +169,8 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		OutDuplicatedSubPrefabMap = serializer.SubPrefabMap;
 		OutMapGuidToObject = serializer.MapGuidToObject;
-		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, TimeSpan.GetTotalMilliseconds());
+		const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+		UE_LOG(LGUI, Log, TEXT("End duplicate actor: '%s', total time: %fms"), *Name, ElapsedSeconds * 1000.0);
 
 		return CreatedRootWidget;
 	}

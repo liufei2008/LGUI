@@ -290,7 +290,7 @@ void ULexCanvas::OnRegister()
 	{
 		LexWidget->RegisterRenderCanvas(this);
 		LexWidget->GetAttachmentChangedEvent().AddUObject(this, &ULexCanvas::OnUIHierarchyAttachmentChanged);
-		LexWidget->GetWidgetActiveChangedEvent().AddUObject(this, &ULexCanvas::OnWidgetActiveChanged);
+		LexWidget->GetWidgetActiveChangedEvent().AddUObject(this, &ULexCanvas::OnCanvasWidgetActiveChanged);
 
 		OnUIHierarchyAttachmentChanged();
 	}
@@ -520,7 +520,7 @@ void ULexCanvas::OnUIHierarchyAttachmentChanged()
 	SetParentCanvas(NewParentCanvas);
 }
 
-void ULexCanvas::OnWidgetActiveChanged(bool WidgetActive)
+void ULexCanvas::OnCanvasWidgetActiveChanged(bool WidgetActive)
 {
 	if (GetWidget()->GetWidgetActiveInHierarchy())
 	{
@@ -528,7 +528,6 @@ void ULexCanvas::OnWidgetActiveChanged(bool WidgetActive)
 		{
 			ParentCanvas->bNeedToGenerateWidgetList = true;
 			ParentCanvas->MarkCanvasUpdate(true);
-
 		}
 	}
 	else
@@ -781,6 +780,12 @@ void ULexCanvas::AddLexWidget(ULexWidget* InWidget)
 	MarkCanvasUpdate(true);
 }
 void ULexCanvas::RemoveLexWidget(ULexWidget* InWidget)
+{
+	bNeedToGenerateWidgetList = true;
+	MarkCanvasUpdate(true);
+}
+
+void ULexCanvas::MarkLexWidgetHierarchyChanged()
 {
 	bNeedToGenerateWidgetList = true;
 	MarkCanvasUpdate(true);

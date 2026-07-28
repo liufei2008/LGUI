@@ -1,16 +1,14 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Thumbnail/LexUIPrefabThumbnailRenderer.h"
-#include "RendererInterface.h"
 #include "SceneView.h"
-#include "Engine/EngineTypes.h"
 #include "LexUIEditorUtils.h"
 #include "Interfaces/IPluginManager.h"
 #include "PrefabSystem/LexUIPrefab.h"
 
 ULexUIPrefabThumbnailRenderer::ULexUIPrefabThumbnailRenderer()
 {
-
+	ThumbnailScene = nullptr;
 }
 
 bool ULexUIPrefabThumbnailRenderer::CanVisualizeAsset(UObject* Object)
@@ -23,7 +21,10 @@ void ULexUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint
 {
 	if (auto Prefab = Cast<ULexUIPrefab>(Object))
 	{
-		TSharedRef<FLexUIPrefabThumbnailScene> ThumbnailScene = ThumbnailScenes.EnsureThumbnailScene(Prefab->GetPathName());
+		if (ThumbnailScene == nullptr)
+		{
+			ThumbnailScene = MakeUnique<FLexUIPrefabThumbnailScene>();
+		}
 		ThumbnailScene->SetPrefab(Prefab);
 		if (!ThumbnailScene->IsValidForVisualization())
 			return;
@@ -47,6 +48,6 @@ void ULexUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint
 }
 void ULexUIPrefabThumbnailRenderer::BeginDestroy()
 {
-	ThumbnailScenes.Clear();
+	ThumbnailScene.Reset();
 	Super::BeginDestroy();
 }

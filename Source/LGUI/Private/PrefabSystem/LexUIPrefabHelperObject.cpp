@@ -35,7 +35,7 @@ void ULexUIPrefabHelperObject::Init(ULexUIPrefab* InPrefab, FLexUIPrefabInstance
 	{
 		auto Parent = InPrefabInstanceScene->GetParentForLoadPrefab(PrefabAsset);
 		LoadedRootWidget = PrefabAsset->LoadPrefabWithExistingObjects(PrefabInstanceWorld.Get()
-			, Parent->GetOuter()
+			, Parent != nullptr ? Parent->GetOuter() : PrefabInstanceWorld.Get()
 			, Parent
 			, MapGuidToObject, SubPrefabMap
 		);
@@ -409,7 +409,7 @@ bool ULexUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab
 			TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData> TempSubSubPrefabMap;
 			auto ParentWidget = SubPrefabRootWidget->GetParent();
 			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
-				, ParentWidget->GetOuter()
+				, ParentWidget != nullptr ? ParentWidget->GetOuter() : GetPrefabWorld()
 				, ParentWidget
 				, SubPrefabMapGuidToObject, TempSubSubPrefabMap
 			);
@@ -1405,15 +1405,17 @@ void ULexUIPrefabHelperObject::MakePrefabAsSubPrefab(ULexUIPrefab* InPrefab, ULe
 	SetAnythingDirty();
 }
 
+void ULexUIPrefabHelperObject::BreakPrefabVariant()
+{
+	SubPrefabMap.Remove(LoadedRootWidget);
+	PrefabAsset->bIsPrefabVariant = false;
+	ClearInvalidObjectAndGuid();
+}
+
 void ULexUIPrefabHelperObject::RemoveSubPrefabByRootWidget(ULexWidget* InPrefabRootWidget)
 {
 	if (SubPrefabMap.Contains(InPrefabRootWidget))
 	{
-		auto SubPrefabData = SubPrefabMap[InPrefabRootWidget];
-		for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
-		{
-			MapGuidToObject.Remove(KeyValue.Key);
-		}
 		SubPrefabMap.Remove(InPrefabRootWidget);
 	}
 #if WITH_EDITOR

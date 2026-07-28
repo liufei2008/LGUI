@@ -30,15 +30,6 @@ enum class ELexUIDynamicFontDataType :uint8
 	EngineFont,
 };
 
-UENUM(BlueprintType)
-enum class ELexUIDynamicFontLineHeightType :uint8
-{
-	/** Get line height from font face data */
-	FromFontFace,
-	/** Use font size as line height */
-	FontSizeAsLineHeight,
-};
-
 #define ONE_DIVIDE_64 0.015625f //(1.0f / 64.0f)
 
 /**
@@ -74,8 +65,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int FontFace = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		ELexUIDynamicFontLineHeightType LineHeightType = ELexUIDynamicFontLineHeightType::FromFontFace;
 	/** Current using font face has kerning? */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
 		bool bHasKerning = false;

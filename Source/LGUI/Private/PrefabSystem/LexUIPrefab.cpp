@@ -166,12 +166,11 @@ FLexUIPrefabInstanceScene* ULexUIPrefab::GetPrefabInstanceScene()
 	{
 		auto CSV = FLexUIPrefabInstanceScene::ConstructionValues();
 		CSV.Name = MakeUniqueObjectName(GetTransientPackage(), UWorld::StaticClass(), FName(*FString::Printf(TEXT("PrefabInstanceScene_%s"), *GetName())));
-		PrefabInstanceScene = MakeUnique<FLexUIPrefabInstanceScene>(
-				   FLexUIPrefabInstanceScene::ConstructionValues()
-				   .AllowAudioPlayback(true)
-				   .ShouldSimulatePhysics(false)
-				   .SetEditor(true)
-				   );
+		CSV
+		.AllowAudioPlayback(true)
+	    .ShouldSimulatePhysics(false)
+	    .SetEditor(true);
+		PrefabInstanceScene = MakeUnique<FLexUIPrefabInstanceScene>(CSV);
 	}
 	return PrefabInstanceScene.Get();
 }
@@ -186,13 +185,10 @@ void ULexUIPrefab::ClearPrefabInstanceScene()
 
 void ULexUIPrefab::EnsureInstanceObjects()
 {
-	if (PrefabVersion >= (uint16)ELexUIPrefabVersion::BuiltinFArchive)
+	if (!IsValid(PrefabHelperObject))
 	{
-		if (!IsValid(PrefabHelperObject))
-		{
-			PrefabHelperObject = NewObject<ULexUIPrefabHelperObject>(this, "PrefabHelper");
-			PrefabHelperObject->Init(this, GetPrefabInstanceScene());
-		}
+		PrefabHelperObject = NewObject<ULexUIPrefabHelperObject>(this, "PrefabHelper");
+		PrefabHelperObject->Init(this, GetPrefabInstanceScene());
 	}
 }
 

@@ -2223,7 +2223,7 @@ void UIGeometry_AlignUITextLineVertex(ELexUITextParagraphHorizontalAlign pivotHA
 		item.Position.X += xOffset;
 	}
 }
-void UIGeometry_AlignUITextLineVertexForRichText(ELexUITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart
+void UIGeometry_AlignUITextLineVertexForRichText(ELexUITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineMaxFontSize, float fontSize, int lineUIGeoVertStart
 	, TArray<FLexUIOriginVertexData>& vertices
 	, int lineImageStartIndex, TArray<FLexUIText_RichTextImageTag>& imageArray
 	, int lineEmojiStartIndex, TArray<FLexUIText_Emoji>& emojiArray
@@ -2239,7 +2239,7 @@ void UIGeometry_AlignUITextLineVertexForRichText(ELexUITextParagraphHorizontalAl
 		xOffset = -lineWidth;
 		break;
 	}
-	float yOffset = -(lineHeight - fontSize) * 0.5f;
+	float yOffset = -(lineMaxFontSize - fontSize) * 0.5f;
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
 	{
@@ -2381,6 +2381,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 	float originLineHeight = font->GetLineHeight(fontSize);
 	float currentLineWidth = 0, currentLineHeight = originLineHeight, paragraphHeight = 0;//single line width, height, all line height
 	float firstLineHeight = currentLineHeight;//first line height
+	float currentLineMaxFontSize = fontSize;//for rich text, max font size of current line
 	float maxLineWidth = 0;//if have multiple line
 	float currentPreferredWidth = 0;//preferredWidth is the width that not wrapped width
 	float maxPreferredWidth = 0;//preferredWidth of all (line-break) lines
@@ -2392,7 +2393,6 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 	FVector2f caretPosition(0, 0);
 	float halfFontSpaceX = fontSpace.X * 0.5f;
 	int linesCount = 0;//how many lines, default is 1
-	float boldRatio = font->GetBoldRatio();
 
 	int verticesCount = 0;
 	auto& originVertices = uiGeo->OriginVertices;
@@ -2440,7 +2440,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 		lineProperty.CaretPropertyList.Add(caretProperty);
 		if (bRichText)
 		{
-			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidthWithClamp, currentLineHeight, fontSize
+			UIGeometry_AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidthWithClamp, currentLineMaxFontSize, fontSize
 				, lineUIGeoVertStart, originVertices
 				, imageStartIndexInCurrentLine, cacheRichTextImageTagArray
 				, emojiStartIndexInCurrentLine, cacheEmojiArray);
@@ -2478,6 +2478,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 		}
 		//set line height to origin
 		currentLineHeight = originLineHeight;
+		currentLineMaxFontSize = fontSize;
 
 		newLineMode = inNewLineMode;
 	};
@@ -2772,6 +2773,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 		lineProperty.CaretPropertyList.Add(caretProperty);
 
 		caretPosition.X += fontSpace.X + charGeo.XAdvance;//for line's last char's caret position
+		currentLineMaxFontSize = FMath::Max(currentLineMaxFontSize, richTextParseResult.Size);
 
 		if (IsSpace(charCode, richTextParseResult))//char is space
 		{

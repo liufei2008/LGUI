@@ -19,5 +19,5 @@ public:
 	virtual void BeginDestroy()override;
 
 private:
-	FLexUIPrefabInstanceThumbnailScene ThumbnailScenes;
+	TUniquePtr<FLexUIPrefabThumbnailScene> ThumbnailScene;
 };

@@ -38,8 +38,14 @@ void ULexWidget::BeginPlay()
 	check(!bHasBegunPlay);
 	bHasBegunPlay = true;
 
-	for (auto Component : Components)
+	/**
+	 * Use Count here instead of using Components.Num(), in case:
+	 * When add new component in Awake, the new component will automatically do BeginPlay because Widget's bHasBegunPlay is already set to true,
+	 * so use Count will skip those components which are added in Awake.
+	 */
+	for (int i = 0, Count = Components.Num(); i < Count; i++)
 	{
+		auto& Component = Components[i];
 		Component->BeginPlay();
 	}
 	
@@ -1253,6 +1259,24 @@ ULexUIBehaviour* ULexWidget::GetComponentByInterface(UClass* InterfaceClass)cons
 	return nullptr;
 }
 
+ULexUIBehaviour* ULexWidget::GetComponentInParent(TSubclassOf<ULexUIBehaviour> ComponentClass, bool bIncludeSelf, ULexWidget* InStopWidget)const
+{
+	auto ParentWidget = bIncludeSelf ? this : this->GetParent();
+	while (IsValid(ParentWidget))
+	{
+		if (InStopWidget)
+		{
+			if (ParentWidget == InStopWidget)return nullptr;
+		}
+		if (auto ResultComp = ParentWidget->GetComponent(ComponentClass))
+		{
+			return ResultComp;
+		}
+		ParentWidget = ParentWidget->GetParent();
+	}
+	return nullptr;
+}
+
 DECLARE_CYCLE_STAT(TEXT("LexWidget OnUpdateTransform"), STAT_OnUpdateTransform, STATGROUP_LGUI);
 void ULexWidget::OnUpdateTransform()
 {
@@ -1304,8 +1328,11 @@ void ULexWidget::OnChildAttached(ULexWidget* ChildWidget)
 			}
 		}
 	}
-
-	MarkCanvasUpdate(false);
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkLexWidgetHierarchyChanged();
+	}
+	MarkLayoutForRebuild(this);//child added, need to rebuild layout
 }
 
 void ULexWidget::OnAttachedToParent()
@@ -1345,7 +1372,11 @@ void ULexWidget::OnChildDetached()
 			UIChild->Call_SiblingIndexChanged();
 		}
 	}
-	MarkLayoutForRebuild(this);//child removed, so need to rebuild layout
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkLexWidgetHierarchyChanged();
+	}
+	MarkLayoutForRebuild(this);//child removed, need to rebuild layout
 }
 
 void ULexWidget::OnDetachedFromParent()

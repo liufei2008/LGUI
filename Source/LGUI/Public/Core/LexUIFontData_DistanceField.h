@@ -68,7 +68,7 @@ private:
 	 * bold size radio for bold style, large number create more bold effect.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
-		float BoldRatio = 0.08f;
+		float BoldRatio = 0.06f;
 	/** -1 means not set yet. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", Transient)
 		int LineHeight = -1;

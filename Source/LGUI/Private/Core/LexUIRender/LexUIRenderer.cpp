@@ -1370,7 +1370,7 @@ void FLexUIRenderer::RenderGizmoMesh_RenderThread(TArray<TSharedPtr<FLexUIGizmoM
 				auto WorldBounds = LocalBounds.TransformBy(LocalToWorldMatrix);
 				if (bFrustumCulling)
 				{
-					if (!RenderView->GetCullingFrustum().IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))continue;//commit this because not working correctly
+					if (!RenderView->GetCullingFrustum().IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))continue;
 				}
 				
 				auto MaterialRenderProxy = RenderParameter->Material->GetRenderProxy();

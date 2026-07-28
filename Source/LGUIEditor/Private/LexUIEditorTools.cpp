@@ -755,6 +755,12 @@ bool FLexUIEditorTools::CanUnpackWidgetForPrefab(TFunction<ULexWidget*()> GetSel
 	if (!IsWidgetCompatibleWithLexUIToolsMenu(SelectedWidget))return false;
 	if (auto PrefabHelperObject = ULexUIPrefabHelperObject::GetPrefabHelperObject_WhichManageThisWidget(SelectedWidget))
 	{
+		// if (SelectedWidget == PrefabHelperObject->LoadedRootWidget//selected widget is root widget 
+		// 	&& PrefabHelperObject->PrefabAsset->GetIsPrefabVariant()//and is PrefabVariant
+		// 	)
+		// {
+		// 	return false;
+		// }
 		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedWidget))
 		{
 			return true;
@@ -781,7 +787,16 @@ void FLexUIEditorTools::UnpackPrefab(TFunction<ULexWidget*()> GetSelectedWidgetF
 		SelectedWidget->GetWorld()->Modify();
 		check(PrefabHelperObject->SubPrefabMap.Contains(SelectedWidget) || PrefabHelperObject->MissingPrefab.Contains(SelectedWidget));//should already filtered by menu
 		PrefabHelperObject->Modify();
-		PrefabHelperObject->RemoveSubPrefabByRootWidget(SelectedWidget);//the SelectedWidget must be root Widget, should already filtered by menu
+		if (SelectedWidget == PrefabHelperObject->LoadedRootWidget//selected widget is root widget 
+			&& PrefabHelperObject->PrefabAsset->GetIsPrefabVariant()//and is PrefabVariant
+			)
+		{
+			PrefabHelperObject->BreakPrefabVariant();
+		}
+		else
+		{
+			PrefabHelperObject->RemoveSubPrefabByRootWidget(SelectedWidget);//the SelectedWidget must be root Widget, should already filtered by menu
+		}
 	}
 	CleanupPrefabs();
 }

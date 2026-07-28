@@ -133,6 +133,7 @@ public:
 	static ULexUIManagerWorldSubsystem* GetInstance(UWorld* InWorld);
 #if WITH_EDITOR
 	bool bShouldTickInEditor = false;
+	FTimerHandle EditorPreviewTickTimerHandle;
 	ULexUISelection* GetSelection()const;
 	FSimpleMulticastDelegate OnDeinitialize;
 	FSimpleMulticastDelegate OnEndPlay;

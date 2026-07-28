@@ -1,42 +1,11 @@
 // Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Thumbnail/LexUIPrefabThumbnailScene.h"
-#include "Components/PrimitiveComponent.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
 #include "Core/Components/LexCanvas.h"
 #include "LGUIEditorModule.h"
 #include "Core/Components/LexWidget.h"
 #include "PrefabSystem/LexUIPrefab.h"
-
-
-FLexUIPrefabInstanceThumbnailScene::FLexUIPrefabInstanceThumbnailScene()
-{
-	InstancedThumbnailScenes.Reserve(MAX_NUM_SCENES);
-}
-TSharedPtr<FLexUIPrefabThumbnailScene> FLexUIPrefabInstanceThumbnailScene::FindThumbnailScene(const FString& InPrefabPath)const
-{
-	return InstancedThumbnailScenes.FindRef(InPrefabPath);
-}
-TSharedRef<FLexUIPrefabThumbnailScene> FLexUIPrefabInstanceThumbnailScene::EnsureThumbnailScene(const FString& InPrefabPath)
-{
-	TSharedPtr<FLexUIPrefabThumbnailScene> ExistingThumbnailScene = InstancedThumbnailScenes.FindRef(InPrefabPath);
-	if (!ExistingThumbnailScene.IsValid())
-	{
-		if (InstancedThumbnailScenes.Num() >= MAX_NUM_SCENES)
-		{
-			InstancedThumbnailScenes.Reset();
-		}
-		ExistingThumbnailScene = MakeShareable(new FLexUIPrefabThumbnailScene());
-		InstancedThumbnailScenes.Add(InPrefabPath, ExistingThumbnailScene);
-	}
-	return ExistingThumbnailScene.ToSharedRef();
-}
-void FLexUIPrefabInstanceThumbnailScene::Clear()
-{
-	InstancedThumbnailScenes.Reset();
-}
-
-
 
 FLexUIPrefabThumbnailScene::FLexUIPrefabThumbnailScene()
 	:FThumbnailPreviewScene()
@@ -45,7 +14,7 @@ FLexUIPrefabThumbnailScene::FLexUIPrefabThumbnailScene()
 {
 	NumStartingActors = GetWorld()->GetCurrentLevel()->Actors.Num();
 }
-void FLexUIPrefabThumbnailScene::SpawnPreviewActor()
+void FLexUIPrefabThumbnailScene::SpawnPreviewWidget()
 {
 	if (!CurrentPrefab.IsValid())return;
 	if (RootAgentWidget.IsValid())return;
@@ -119,7 +88,7 @@ void FLexUIPrefabThumbnailScene::ClearOldWidgets()
 		RootAgentWidget.Reset();
 	}
 }
-bool FLexUIPrefabThumbnailScene::IsValidForVisualization()
+bool FLexUIPrefabThumbnailScene::IsValidForVisualization()const
 {
 	if (CurrentPrefab.Get())
 	{
@@ -168,7 +137,7 @@ void FLexUIPrefabThumbnailScene::SetPrefab(class ULexUIPrefab* Prefab)
 	CurrentPrefab->bThumbnailDirty = false;
 	if (IsValid(Prefab))
 	{
-		SpawnPreviewActor();
+		SpawnPreviewWidget();
 	}
 }
 USceneThumbnailInfo* FLexUIPrefabThumbnailScene::GetSceneThumbnailInfo(const float TargetDistance)const

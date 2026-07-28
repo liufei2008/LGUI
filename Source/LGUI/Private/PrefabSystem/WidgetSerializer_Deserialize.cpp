@@ -9,6 +9,7 @@
 #include "Core/LexUISettings.h"
 #include "Core/Components/LexWidget.h"
 #include "Serialization/MemoryReader.h"
+#include "HAL/PlatformTime.h"
 
 
 
@@ -162,7 +163,7 @@ namespace LexUIPrefabSystem
 	ULexWidget* WidgetSerializer::DeserializeWidgetFromData(FLexUIPrefabSaveData& SaveData, ULexWidget* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
 #if LGUIPREFAB_LOG_DETAIL_TIME
-		auto Time = FDateTime::Now();
+		double Time = FPlatformTime::Seconds();
 #endif
 		auto CreatedRootWidget = GenerateWidgetArray(SaveData.SavedWidgets, SaveData.SavedObjects, SaveData.MapWidgetToParent, FGuid());
 		if (CreatedRootWidget == nullptr)
@@ -172,8 +173,8 @@ namespace LexUIPrefabSystem
 		}
 		GenerateObjectArray(SaveData.SavedObjects, SaveData.MapWidgetToParent);
 #if LGUIPREFAB_LOG_DETAIL_TIME
-		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
-		Time = FDateTime::Now();
+		UE_LOG(LGUI, Log, TEXT("--GenerateObject take time: %fms"), (FPlatformTime::Seconds() - Time) * 1000.0);
+		Time = FPlatformTime::Seconds();
 #endif
 		//properties
 		for (auto& KeyValue : SaveData.SavedObjectData)
@@ -191,8 +192,8 @@ namespace LexUIPrefabSystem
 		}
 
 #if LGUIPREFAB_LOG_DETAIL_TIME
-		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
-		Time = FDateTime::Now();
+		UE_LOG(LGUI, Log, TEXT("--DeserializeObject take time: %fms"), (FPlatformTime::Seconds() - Time) * 1000.0);
+		Time = FPlatformTime::Seconds();
 #endif
 
 		//component attachment
@@ -228,7 +229,7 @@ namespace LexUIPrefabSystem
 		}
 
 #if LGUIPREFAB_LOG_DETAIL_TIME
-		Time = FDateTime::Now();
+		Time = FPlatformTime::Seconds();
 #endif
 		if (!bIsSubPrefab)
 		{
@@ -271,14 +272,14 @@ namespace LexUIPrefabSystem
 		}
 
 #if LGUIPREFAB_LOG_DETAIL_TIME
-		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FDateTime::Now() - Time).GetTotalMilliseconds());
+		UE_LOG(LGUI, Log, TEXT("--Call Awake (and OnEnable) take time: %fms"), (FPlatformTime::Seconds() - Time) * 1000.0);
 #endif
 
 		return CreatedRootWidget;
 	}
 	ULexWidget* WidgetSerializer::DeserializeWidget(ULexWidget* Parent, ULexUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-		auto StartTime = FDateTime::Now();
+		const double StartTime = FPlatformTime::Seconds();
 		PrefabAssetPath = InPrefab->GetPathName();
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
@@ -337,8 +338,8 @@ namespace LexUIPrefabSystem
 
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
-			auto TimeSpan = FDateTime::Now() - StartTime;
-			UE_LOG(LGUI, Log, TEXT("Load prefab: '%s', total time: %fms"), *InPrefab->GetName(), TimeSpan.GetTotalMilliseconds());
+			const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
+			UE_LOG(LGUI, Log, TEXT("Load prefab: '%s', total time: %fms"), *InPrefab->GetName(), ElapsedSeconds * 1000.0);
 		}
 
 		return CreatedRootWidget;

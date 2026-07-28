@@ -241,7 +241,7 @@ private:
 
 	/** hierarchy changed */
 	void OnUIHierarchyAttachmentChanged();
-	void OnWidgetActiveChanged(bool WidgetActive);
+	void OnCanvasWidgetActiveChanged(bool WidgetActive);
 public:
 	/** get root canvas on hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -663,6 +663,7 @@ public:
 
 	void AddLexWidget(ULexWidget* InWidget);
 	void RemoveLexWidget(ULexWidget* InWidget);
+	void MarkLexWidgetHierarchyChanged();
 	/** return all LexWidget that belongs to this canvas. */
 	const TArray<ULexVisual*>& GetVisualArray()const { return VisualList; }
 	const TArray<ULexWidget*>& GetWidgetArray()const { return WidgetList; }

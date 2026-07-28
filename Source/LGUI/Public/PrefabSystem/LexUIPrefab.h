@@ -166,6 +166,7 @@ class LGUI_API ULexUIPrefab : public UObject
 
 public:
 	ULexUIPrefab();
+	friend class ULexUIPrefabHelperObject;
 	friend class FLexUIPrefabCustomization;
 	friend class ULexUIPrefabFactory;
 

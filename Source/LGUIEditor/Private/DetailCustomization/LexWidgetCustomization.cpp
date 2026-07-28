@@ -365,8 +365,12 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 					//GetAnchorPropertyHandle(DetailBuilderPtr, AnchorMinHandle, AnchorMaxHandle, AnchorValueIndex)->CreatePropertyValueWidget()
 					SNew(SNumericEntryBox<float>)
 					.AllowSpin(true)
-					.MinSliderValue(this, &FLexWidgetCustomization::GetMinMaxSliderValue, AnchorHandle, AnchorValueIndex, true)
-					.MaxSliderValue(this, &FLexWidgetCustomization::GetMinMaxSliderValue, AnchorHandle, AnchorValueIndex, false)
+					.Delta(1.0f)
+					.LinearDeltaSensitivity(1)
+					.MinValue(TOptional<float>())
+					.MaxValue(TOptional<float>())
+					.MinSliderValue(TOptional<float>())
+					.MaxSliderValue(TOptional<float>())
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.UndeterminedString( NSLOCTEXT( "PropertyEditor", "MultipleValues", "Multiple Values") )
 					.Value(this, &FLexWidgetCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
@@ -1635,32 +1639,6 @@ bool FLexWidgetCustomization::GetLayoutControlHorizontalSizeDelta()const
 bool FLexWidgetCustomization::GetLayoutControlVerticalSizeDelta()const
 {
 	return GetLayoutControlAnchorValue().bCanControlVerticalSize;
-}
-
-TArray<float> FLexWidgetCustomization::ValueRangeArray = {
-		1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f
-};
-TOptional<float> FLexWidgetCustomization::GetMinMaxSliderValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool MinOrMax)const
-{
-	auto Value = GetAnchorValue(AnchorHandle, AnchorValueIndex).Get(0.0f);
-	Value = FMath::Abs(Value);
-	float MaxRangeValue = ValueRangeArray[ValueRangeArray.Num() - 1];
-	float RangeValue = MaxRangeValue;
-	for (int i = ValueRangeArray.Num() - 1; i >= 0; i--)
-	{
-		auto RangeValueItem = ValueRangeArray[i];
-		if (Value > RangeValueItem)
-		{
-			break;
-		}
-		else
-		{
-			RangeValue = RangeValueItem;
-		}
-	}
-	return RangeValue * 
-		(RangeValue >= MaxRangeValue ? 1.0f : (FMath::Abs(Value - RangeValue) < KINDA_SMALL_NUMBER ? 2.0f : 1.0f))
-		* (MinOrMax ? -1.0f : 1.0f);
 }
 
 TOptional<float> FLexWidgetCustomization::GetAnchorValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const

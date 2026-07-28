@@ -315,6 +315,17 @@ void ULexLayoutSelfFlexBox::CalculateSize()
             Widget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
         }
         Widget->SetSizeDelta(FVector2D(CalculatedPreferredWidth, CalculatedPreferredHeight));
+
+#if WITH_EDITOR
+        if (PreferredWidth.Type == ELexLayoutSizeType::Auto)
+        {
+            PreferredWidth.AutoValue = CalculatedPreferredWidth;
+        }
+        if (PreferredHeight.Type == ELexLayoutSizeType::Auto)
+        {
+            PreferredHeight.AutoValue = CalculatedPreferredHeight;
+        }
+#endif
     }
 }
 

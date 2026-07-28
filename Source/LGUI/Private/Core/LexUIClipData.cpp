@@ -65,7 +65,7 @@ void FLexUIClipData::UpdateData()
 		auto RenderSize = FVector2f(TargetClip->Widget->GetWidth(), TargetClip->Widget->GetHeight()) + ClippingMargin.GetDesiredSize2f();
 		M[0][3] = RenderSize.X * 0.5f;//half width
 		M[1][3] = RenderSize.Y * 0.5f;//half height
-		M[2][3] = 0;//softness
+		M[2][3] = 0;//@todo: softness
 		M[3][3] = 1;//isValid
 		CanvasToWidgetMatrix = CanvasToWidgetMatrix.GetTransposed();//matrix in memory is aligned as row-primary, so transpose it then in hlsl we can read as column-primary
 		FMemory::Memcpy(BlockBuffer.GetData() + BlockDataOffset, &CanvasToWidgetMatrix, sizeof(FMatrix44f));

@@ -8,7 +8,7 @@ public:
 		bIsRunning = true;
 		check(FunctionQueueEvent == nullptr);
 		FunctionQueueEvent = FPlatformProcess::GetSynchEventFromPool();
-		Thread.Reset(FRunnableThread::Create(this, TEXT("FLexCanvasDrawCallProcessingRunnable"), 0, TPri_Normal));
+		Thread.Reset(FRunnableThread::Create(this, TEXT("FLexCanvasAsyncFunctionRunnable"), 0, TPri_Normal));
 	}
 	void PushFunction(TFunction<void()> InFunction)
 	{

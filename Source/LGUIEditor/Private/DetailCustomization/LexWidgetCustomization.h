@@ -20,7 +20,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TArray<TWeakObjectPtr<class ULexWidget>> TargetScriptArray;
-	static TArray<float> ValueRangeArray;
 
 	FText GetAnchorsTooltipText()const;
 	
@@ -40,7 +39,6 @@ private:
 	void OnPivotChanged(TSharedPtr<IPropertyHandle> PivotPH);
 
 	TOptional<float> GetAnchorValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
-	TOptional<float> GetMinMaxSliderValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool MinOrMax)const;
 	void ApplyValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool Commited);
 	void OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
 	void OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);

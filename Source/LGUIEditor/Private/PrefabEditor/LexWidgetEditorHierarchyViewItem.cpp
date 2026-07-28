@@ -530,6 +530,14 @@ TOptional<EItemDropZone> SLexWidgetEditorHierarchyViewItem::HandleCanAcceptDrop(
 						AssetDragDropOp->CurrentHoverText = LOCTEXT("CantDropPrefabToItself", "Can't drop prefab to itself.");
 						return TOptional<EItemDropZone>();
 					}
+					if (Widget == Widget->GetRootWidgetInHierarchy())
+					{
+						AssetDragDropOp->CurrentIconBrush = FAppStyle::GetBrush(TEXT("Graph.ConnectorFeedback.Error"));
+						AssetDragDropOp->CurrentHoverText = LOCTEXT("CantDropPrefabToRootAgent", "Can't drop prefab to root agent.");
+						return TOptional<EItemDropZone>();
+					}
+					AssetDragDropOp->CurrentIconBrush = FAppStyle::GetBrush(TEXT("Graph.ConnectorFeedback.OK"));
+					AssetDragDropOp->CurrentHoverText = FText::GetEmpty();
 					ValidDropZone = EItemDropZone::OntoItem;
 				}
 			}
@@ -543,24 +551,20 @@ TOptional<EItemDropZone> SLexWidgetEditorHierarchyViewItem::HandleCanAcceptDrop(
 		auto HierarchyDragDropOp = StaticCastSharedPtr<FHierarchyLexWidgetDragDropOp>(DragDropOp);
 		if (HierarchyDragDropOp->DraggedWidgets.Num() > 0)
 		{
-			TOptional<EItemDropZone> ValidDropZone;
 			for (auto DraggedWidget : HierarchyDragDropOp->DraggedWidgets)
 			{
 				if (SupportDrop(DraggedWidget.Widget, Widget.Get(), DropZone))
 				{
-					auto Zone = ProcessHierarchyDragDrop(DragDropEvent, DropZone, bIsDrop, Manager.Pin(), Widget.Get());
-					if (ValidDropZone.IsSet())
-					{
-						if (Zone.GetValue() != ValidDropZone.GetValue())
-						{
-							return TOptional<EItemDropZone>();
-						}
-					}
-					else
-						ValidDropZone = Zone;
+					return ProcessHierarchyDragDrop(DragDropEvent, DropZone, bIsDrop, Manager.Pin(), Widget.Get());
+				}
+				else
+				{
+					HierarchyDragDropOp->CurrentIconBrush = FAppStyle::GetBrush(TEXT("Graph.ConnectorFeedback.Error"));
+					HierarchyDragDropOp->CurrentHoverText = LOCTEXT("CantDropWidgetHere", "Can't drop widget here.");
+					return TOptional<EItemDropZone>();
 				}
 			}
-			return ValidDropZone;
+			return TOptional<EItemDropZone>();
 		}
 	}
 	return TOptional<EItemDropZone>();
@@ -740,6 +744,10 @@ bool SLexWidgetEditorHierarchyViewItem::SupportDrop(ULexWidget* Dragging, ULexWi
 {
 	if (Current == Current->GetRootWidgetInHierarchy())
 	{
+		if (ULexUIPrefabHelperObject::GetPrefabHelperObject_WhichManageThisWidget(Current))//contains prefab-helper-object, means it is a prefab editor mode
+		{
+			return false;//editor world's root widget can't be dropped
+		}
 		if (DropZone == EItemDropZone::OntoItem)
 		{
 			return true;

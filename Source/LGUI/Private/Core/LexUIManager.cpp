@@ -20,6 +20,7 @@
 #include "Event/LexEventSystem.h"
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
 #include "PrefabSystem/LexUIPrefabPresenterComponent.h"
+#include "HAL/PlatformTime.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorViewportClient.h"
@@ -821,7 +822,13 @@ void ULexUIManagerWorldSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 	}
 	else
 	{
-		bShouldTickInEditor = false;
+		bShouldTickInEditor = true;
+		//wait for editor preview world to be ready
+		GetWorld()->GetTimerManager().SetTimer(EditorPreviewTickTimerHandle, [this]()
+		{
+			GetWorld()->GetTimerManager().ClearTimer(EditorPreviewTickTimerHandle);
+			bShouldTickInEditor = false;
+		}, 0, false, 1);
 	}
 	FCoreDelegates::OnEndFrame.AddUObject(this, &ULexUIManagerWorldSubsystem::OnEndOfFrame);
 	FCoreDelegates::OnEnginePreExit.AddUObject(this, &ULexUIManagerWorldSubsystem::OnEnginePreExit);
@@ -1060,7 +1067,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 		bIsExecutingLayout = true;
 		int LayoutCalcCount = 0;
 #if WITH_EDITOR
-		auto Time = FDateTime::Now();
+		const double Time = FPlatformTime::Seconds();
 		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
 #endif
 		LayoutContainerArrayWhichHasSnapshot.Reset();
@@ -1091,8 +1098,8 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 			}
 		}
 		LayoutCalculationCounterMap.Reset();
-		auto TimeSpan = (FDateTime::Now() - Time).GetTotalMilliseconds();
-		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, TimeSpan);
+		const double ElapsedMs = (FPlatformTime::Seconds() - Time) * 1000.0;
+		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, ElapsedMs);
 #endif
 		bIsExecutingLayout = false;
 	}

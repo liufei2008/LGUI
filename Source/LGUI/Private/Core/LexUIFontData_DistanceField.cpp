@@ -5,6 +5,7 @@
 #include "Materials/MaterialInterface.h"
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
+#include "HAL/PlatformTime.h"
 #define SDF_IMPLEMENTATION
 #include "Core/Components/LexWidget.h"
 #include "Engine/Texture2DArray.h"
@@ -74,7 +75,7 @@ bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, 
 	{
 		return false;
 	}
-	//auto time = FDateTime::Now();
+	//const double Time = FPlatformTime::Seconds();
 	int glyphWidth = slot->bitmap.width + SDFRadius + SDFRadius;
 	int glyphHeight = slot->bitmap.rows + SDFRadius + SDFRadius;
 	static TArray<unsigned char> sourceBuffer;
@@ -94,7 +95,7 @@ bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, 
 		freetypeBufferOffset += maxW;
 	}
 	sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
-	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f(ms)"), (FDateTime::Now() - time).GetTotalMilliseconds());
+	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f(ms)"), (FPlatformTime::Seconds() - Time) * 1000.0);
 	OutResult.width = glyphWidth;
 	OutResult.height = glyphHeight;
 	OutResult.hOffset = slot->bitmap_left - SDFRadius;
