@@ -35,6 +35,18 @@ ULexWidget* ULexUIBPLibrary::DuplicateWidgetWithPreparedData(UObject* WorldConte
 	return nullptr;
 }
 
+ULexVisual* ULexUIBPLibrary::CreateWidgetWithVisual(UObject* WorldContextObject, ULexWidget* Parent, TSubclassOf<ULexVisual> VisualClass)
+{
+	if (auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		auto Widget = NewObject<ULexWidget>(World);
+		Widget->SetFlags(EObjectFlags::RF_Transient);
+		Widget->SetParent(Parent, false);
+		return Widget->CreateNewVisual(VisualClass);
+	}
+	return nullptr;
+}
+
 UActorComponent* ULexUIBPLibrary::LexUICompRef_GetComponent(const FLexUIComponentReference& InLexUIComponentReference, TSubclassOf<UActorComponent> InComponentType)
 {
 	auto comp = InLexUIComponentReference.GetComponent();
@@ -74,7 +86,7 @@ void ULexUIBPLibrary::LexUIExecuteControllerInputAxis(FKey inputKey, float value
 		FSlateApplication::Get().OnControllerAnalog(keyName, UserId, DeviceId, value);
 	}
 }
-void ULexUIBPLibrary::LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease)
+void ULexUIBPLibrary::LexUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease)
 {
 	if (inputKey.IsValid())
 	{

@@ -27,10 +27,10 @@ protected:
 	
 	FLexUIMulticastDelegateInt32 OnValueChangedCPP;
 	/* Called when selection change of this toggle group. Parameter is selected toggle's index, or -1 if none selected. */
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle", DisplayName="OnValueChanged")
-	FUIToggleGroupValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup")
-		FLexUIEventDelegate OnValueChanged;
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
+	FUIToggleGroupValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup", DisplayName="OnValueChanged")
+		FLexUIEventDelegate OnValueChangedED;
 public:
 	FLexUIMulticastDelegateInt32& GetOnValueChangedEvent(){return OnValueChangedCPP;}
 	

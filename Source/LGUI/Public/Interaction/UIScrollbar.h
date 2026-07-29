@@ -55,10 +55,10 @@ protected:
 	UPROPERTY(Transient)TWeakObjectPtr<ULexWidget> HandleArea;
 
 	FLexUIMulticastDelegateFloat OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Scrollbar", DisplayName="OnValueChanged")
-	FUIScrollbarValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Scrollbar")
+	FUIScrollbarValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
 
 	float PressValue = 0;
 public:

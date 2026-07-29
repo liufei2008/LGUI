@@ -17,7 +17,7 @@ ULexUMGWidgetInteraction::ULexUMGWidgetInteraction()
 	
 }
 
-bool ULexUMGWidgetInteraction::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
+void ULexUMGWidgetInteraction::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
 {
 	if (CurrentPointerEventData == nullptr)
 	{
@@ -30,9 +30,8 @@ bool ULexUMGWidgetInteraction::OnPointerEnter_Implementation(ULexPointerEventDat
 			this->SetCanExecuteTick(true);//hover in, enable update
 		}
 	}
-	return bAllowEventBubbleUp;
 }
-bool ULexUMGWidgetInteraction::OnPointerExit_Implementation(ULexPointerEventData* EventData)
+void ULexUMGWidgetInteraction::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 {
 	if (CurrentPointerEventData == EventData)
 	{
@@ -46,7 +45,6 @@ bool ULexUMGWidgetInteraction::OnPointerExit_Implementation(ULexPointerEventData
 			this->SetCanExecuteTick(false);//hover out, disable update
 		}
 	}
-	return bAllowEventBubbleUp;
 }
 bool ULexUMGWidgetInteraction::OnPointerDown_Implementation(ULexPointerEventData* EventData)
 {

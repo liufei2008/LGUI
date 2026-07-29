@@ -15,11 +15,11 @@ class LGUI_API UUIButton : public UUISelectable, public ILexPointerClickInterfac
 	GENERATED_BODY()
 protected:
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-Button")
-	FLexUIEventDelegate OnClick = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Empty);
+	UPROPERTY(EditAnywhere, Category = "LGUI-Button", DisplayName="OnClick")
+	FLexUIEventDelegate OnClickED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Empty);
 	FSimpleMulticastDelegate OnClickCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle", DisplayName="OnClick")
-	FUIButtonClickedEvent OnClickBP;
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
+	FUIButtonClickedEvent OnClick;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;
 public:
 	FSimpleMulticastDelegate& GetOnClickEvent(){return OnClickCPP;}

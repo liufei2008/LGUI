@@ -61,10 +61,10 @@ protected:
 	UPROPERTY(Transient)TWeakObjectPtr<ULexWidget> HandleArea;
 
 	FLexUIMulticastDelegateFloat OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Slider", DisplayName="OnValueChanged")
-	FUISliderValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Slider")
+	FUISliderValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Slider", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
 	
 public:
 	FLexUIMulticastDelegateFloat& GetOnValueChangedEvent(){return OnValueChangedCPP;}

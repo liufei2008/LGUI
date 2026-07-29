@@ -689,8 +689,8 @@ void UUIScrollView::UpdateProgress(bool InFireEvent)
     if (InFireEvent)
     {
         OnValueChangedCPP.Broadcast(Progress);
-        OnValueChangedBP.Broadcast(Progress);
-        OnValueChanged.FireEvent(Progress);
+        OnValueChanged.Broadcast(Progress);
+        OnValueChangedED.FireEvent(Progress);
     }
 }
 

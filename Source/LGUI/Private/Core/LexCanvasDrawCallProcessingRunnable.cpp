@@ -4,6 +4,11 @@
 
 #include "Core/Components/LexCanvas.h"
 
+FLexCanvasDrawCallProcessingRunnable::FLexCanvasDrawCallProcessingRunnable(const FString& InDebugName)
+{
+	DebugName = InDebugName;
+}
+
 void FLexCanvasDrawCallProcessingRunnable::Start()
 {
 	check (!bIsRunning);

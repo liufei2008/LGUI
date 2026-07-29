@@ -119,8 +119,8 @@ void UUIToggle::SetValue(bool Value, bool SendCallback)
 		if (SendCallback)
 		{
 			OnValueChangedCPP.Broadcast(bIsOn);
-			OnValueChangedBP.Broadcast(bIsOn);
-			OnValueChanged.FireEvent(bIsOn);
+			OnValueChanged.Broadcast(bIsOn);
+			OnValueChangedED.FireEvent(bIsOn);
 		}
 
 		ApplyValueToVisual(false);

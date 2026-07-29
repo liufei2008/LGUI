@@ -278,7 +278,7 @@ void ULexCanvas::OnRegister()
 	}
 	if (DrawCallProcessingRunnable == nullptr)
 	{
-		DrawCallProcessingRunnable = MakeUnique<FLexCanvasDrawCallProcessingRunnable>();
+		DrawCallProcessingRunnable = MakeUnique<FLexCanvasDrawCallProcessingRunnable>(FString::Printf(TEXT("Name'%s'_ptr'%d'"), *GetWidget()->GetPathDisplayName(), this));
 		DrawCallProcessingRunnable->Start();
 	}
 	if (TransformVerticesAsyncFunctionRunnable == nullptr)

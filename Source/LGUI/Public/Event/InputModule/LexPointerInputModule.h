@@ -21,7 +21,7 @@ protected:
 	
 	bool LineTrace(ULexPointerEventData* InPointerEventData, FLexUIHitResultContainer& OutLexHitResult);
 	TArray<FLexUIHitResultContainer> MultiHitResult;//temp array for hit result
-	static void ProcessPointerEnterExit(ULexEventSystem* eventSystem, ULexPointerEventData* pointerEventData, ULexWidget* oldObj, ULexWidget* newObj);
+	static void ProcessPointerEnterExit(ULexEventSystem* EventSystem, ULexPointerEventData* pointerEventData, ULexWidget* OldObj, ULexWidget* NewObj);
 	/** find a common root actor of two actors. return nullptr if no common root */
 	static ULexWidget* FindCommonRoot(ULexWidget* A, ULexWidget* B);
 

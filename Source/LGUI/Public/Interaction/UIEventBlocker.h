@@ -26,8 +26,8 @@ class LGUI_API UUIEventBlocker : public ULexUIBehaviour
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, Category = "UIEventBlocker") bool AllowEventBubbleUp = false;
-	virtual bool OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerDown_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerUp_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;

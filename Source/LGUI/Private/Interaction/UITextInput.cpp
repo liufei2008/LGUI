@@ -256,8 +256,8 @@ void UUITextInput::AnyKeyPressed(FKey Key)
 					if (isSubmit)//enter submit
 					{
 						OnSubmitCPP.Broadcast(Text);
-						OnSubmitBP.Broadcast(Text);
-						OnSubmit.FireEvent(Text);
+						OnSubmit.Broadcast(Text);
+						OnSubmitED.FireEvent(Text);
 						DeactivateInput();
 						return;
 					}
@@ -267,8 +267,8 @@ void UUITextInput::AnyKeyPressed(FKey Key)
 		else//single line mode, enter means submit
 		{
 			OnSubmitCPP.Broadcast(Text);
-			OnSubmitBP.Broadcast(Text);
-			OnSubmit.FireEvent(Text);
+			OnSubmit.Broadcast(Text);
+			OnSubmitED.FireEvent(Text);
 			DeactivateInput();
 			return;
 		}
@@ -969,8 +969,8 @@ void UUITextInput::MoveCaret(int32 moveType, bool withSelection)
 void UUITextInput::FireOnValueChangedEvent()
 {
 	OnValueChangedCPP.Broadcast(Text);
-	OnValueChangedBP.Broadcast(Text);
-	OnValueChanged.FireEvent(Text);
+	OnValueChanged.Broadcast(Text);
+	OnValueChangedED.FireEvent(Text);
 }
 void UUITextInput::UpdateUITextComponent()
 {
@@ -1209,7 +1209,7 @@ void UUITextInput::OnDimensionsChanged(bool PivotChanged, bool WidthChanged, boo
 	this->UpdateAfterTextChange(false);//if size change, need to recalculate text input area
 }
 
-bool UUITextInput::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
+void UUITextInput::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
 {
 	Super::OnPointerEnter_Implementation(EventData);
 	if (bAutoActivateInputWhenNavigateIn)
@@ -1223,16 +1223,14 @@ bool UUITextInput::OnPointerEnter_Implementation(ULexPointerEventData* EventData
 	{
 		pc->CurrentMouseCursor = EMouseCursor::TextEditBeam;
 	}
-	return AllowEventBubbleUp;
 }
-bool UUITextInput::OnPointerExit_Implementation(ULexPointerEventData* EventData)
+void UUITextInput::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 {
 	Super::OnPointerExit_Implementation(EventData);
 	if (APlayerController* pc = this->GetWorld()->GetFirstPlayerController())
 	{
 		pc->CurrentMouseCursor = EMouseCursor::Default;
 	}
-	return AllowEventBubbleUp;
 }
 bool UUITextInput::OnPointerSelect_Implementation(ULexBaseEventData* EventData)
 {
@@ -1431,8 +1429,8 @@ void UUITextInput::ActivateInput(ULexPointerEventData* EventData)
 	}
 	//fire event
 	OnInputActivateCPP.Broadcast(bInputActive);
-	OnInputActivateBP.Broadcast(bInputActive);
-	OnInputActivate.FireEvent(bInputActive);
+	OnInputActivate.Broadcast(bInputActive);
+	OnInputActivateED.FireEvent(bInputActive);
 }
 
 void UUITextInput::BindKeys()
@@ -1610,8 +1608,8 @@ void UUITextInput::DeactivateInput(bool InFireEvent)
 	if (InFireEvent)
 	{
 		OnInputActivateCPP.Broadcast(bInputActive);
-		OnInputActivateBP.Broadcast(bInputActive);
-		OnInputActivate.FireEvent(bInputActive);
+		OnInputActivate.Broadcast(bInputActive);
+		OnInputActivateED.FireEvent(bInputActive);
 	}
 }
 ULexText* UUITextInput::GetTextComponent()const

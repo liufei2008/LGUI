@@ -1,6 +1,8 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "Event/InputModule/LexPointerInputModule.h"
+
+#include "LGUI.h"
 #include "Event/LexPointerEventData.h"
 #include "Core/LexUIManager.h"
 #include "Core/Components/LexWidget.h"
@@ -94,35 +96,35 @@ bool ULexPointerInputModule::LineTrace(ULexPointerEventData* InPointerEventData,
 
 //@todo: these logs is just for editor testing, remove them when ready
 #define LOG_ENTER_EXIT 0
-void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* eventSystem, ULexPointerEventData* EventData, ULexWidget* oldObj, ULexWidget* newObj)
+void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* EventSystem, ULexPointerEventData* EventData, ULexWidget* OldObj, ULexWidget* NewObj)
 {
-	if (oldObj == newObj)return;
-	if (IsValid(oldObj) && IsValid(newObj))
+	if (OldObj == NewObj)return;
+	if (IsValid(OldObj) && IsValid(NewObj))
 	{
-		auto commonRoot = FindCommonRoot(oldObj, newObj);
+		auto CommonRoot = FindCommonRoot(OldObj, NewObj);
 #if LOG_ENTER_EXIT
-		UE_LOG(LGUI, Error, TEXT("-----begin exit 000, commonRoot:%s"), commonRoot != nullptr ? *(commonRoot->GetActorLabel()) : TEXT("null"));
+		UE_LOG(LGUI, Error, TEXT("-----begin exit 000, commonRoot:%s"), CommonRoot != nullptr ? *(CommonRoot->GetDisplayName()) : TEXT("null"));
 #endif
 		//exit old
 		for (int i = EventData->EnterWidgetStack.Num() - 1; i >= 0; i--)
 		{
-			if (commonRoot == EventData->EnterWidgetStack[i])
+			if (CommonRoot == EventData->EnterWidgetStack[i])
 			{
 				break;
 			}
 			if (!EventData->bIsExitFiredAtCurrentFrame)
 			{
-				if (eventSystem == nullptr)
+				if (EventSystem == nullptr)
 				{
-					ULexEventSystem::ExecuteEvent_OnPointerExit(EventData->EnterWidgetStack[i], EventData, false);
+					ULexEventSystem::ExecuteEvent_OnPointerExit(EventData->EnterWidgetStack[i], EventData);
 				}
 				else
 				{
-					eventSystem->CallOnPointerExit(EventData->EnterWidgetStack[i], EventData);
+					EventSystem->CallOnPointerExit(EventData->EnterWidgetStack[i], EventData);
 				}
 			}
 #if LOG_ENTER_EXIT
-			UE_LOG(LGUI, Error, TEXT("	%s"), *(EventData->EnterWidgetStack[i]->GetOwner()->GetActorLabel()));
+			UE_LOG(LGUI, Error, TEXT("	%s"), *(EventData->EnterWidgetStack[i]->GetDisplayName()));
 #endif
 			EventData->EnterWidgetStack.RemoveAt(i);
 		}
@@ -132,47 +134,47 @@ void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* eventSyste
 		UE_LOG(LGUI, Error, TEXT("*****end exit, stack count:%d\n"), EventData->EnterWidgetStack.Num());
 #endif
 		//enter new
-		EventData->EnterWidget = newObj;
-		auto enterObjectActor = newObj;
-		if (commonRoot != enterObjectActor)
+		EventData->EnterWidget = NewObj;
+		auto EnterObj = NewObj;
+		if (CommonRoot != EnterObj)
 		{
 #if LOG_ENTER_EXIT
 			UE_LOG(LGUI, Error, TEXT("-----begin enter 111"));
 #endif
-			int insertIndex = EventData->EnterWidgetStack.Num();
-			if (eventSystem == nullptr)
+			int InsertIndex = EventData->EnterWidgetStack.Num();
+			if (EventSystem == nullptr)
 			{
-				ULexEventSystem::ExecuteEvent_OnPointerEnter(newObj, EventData, false);
+				ULexEventSystem::ExecuteEvent_OnPointerEnter(NewObj, EventData);
 			}
 			else
 			{
-				eventSystem->CallOnPointerEnter(newObj, EventData);
+				EventSystem->CallOnPointerEnter(NewObj, EventData);
 			}
-			EventData->HighlightWidgetForNavigation = newObj;
-			EventData->EnterWidgetStack.Add(newObj);
+			EventData->HighlightWidgetForNavigation = NewObj;
+			EventData->EnterWidgetStack.Add(NewObj);
 #if LOG_ENTER_EXIT
-			UE_LOG(LGUI, Error, TEXT("	:%s"), *(enterObjectActor->GetActorLabel()));
+			UE_LOG(LGUI, Error, TEXT("	:%s"), *(EnterObj->GetDisplayName()));
 #endif
-			enterObjectActor = enterObjectActor->GetParent();
-			while (enterObjectActor != nullptr)
+			EnterObj = EnterObj->GetParent();
+			while (EnterObj != nullptr)
 			{
-				if (commonRoot == enterObjectActor)
+				if (CommonRoot == EnterObj)
 				{
 					break;
 				}
-				if (eventSystem == nullptr)
+				if (EventSystem == nullptr)
 				{
-					ULexEventSystem::ExecuteEvent_OnPointerEnter(enterObjectActor, EventData, false);
+					ULexEventSystem::ExecuteEvent_OnPointerEnter(EnterObj, EventData);
 				}
 				else
 				{
-					eventSystem->CallOnPointerEnter(enterObjectActor, EventData);
+					EventSystem->CallOnPointerEnter(EnterObj, EventData);
 				}
-				EventData->EnterWidgetStack.Insert(enterObjectActor, insertIndex);
+				EventData->EnterWidgetStack.Insert(EnterObj, InsertIndex);
 #if LOG_ENTER_EXIT
-				UE_LOG(LGUI, Error, TEXT("	:%s"), *(enterObjectActor->GetActorLabel()));
+				UE_LOG(LGUI, Error, TEXT("	:%s"), *(EnterObj->GetDisplayName()));
 #endif
-				enterObjectActor = enterObjectActor->GetParent();
+				EnterObj = EnterObj->GetParent();
 			}
 #if LOG_ENTER_EXIT
 			UE_LOG(LGUI, Error, TEXT("*****end enter, stack count:%d\n"), EventData->EnterWidgetStack.Num());
@@ -181,7 +183,7 @@ void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* eventSyste
 	}
 	else
 	{
-		if (IsValid(oldObj) || EventData->EnterWidgetStack.Num() > 0)
+		if (IsValid(OldObj) || EventData->EnterWidgetStack.Num() > 0)
 		{
 #if LOG_ENTER_EXIT
 			UE_LOG(LGUI, Error, TEXT("-----begin exit 222"));
@@ -193,17 +195,17 @@ void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* eventSyste
 				{
 					if (!EventData->bIsExitFiredAtCurrentFrame)
 					{
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
-							ULexEventSystem::ExecuteEvent_OnPointerExit(EventData->EnterWidgetStack[i], EventData, false);
+							ULexEventSystem::ExecuteEvent_OnPointerExit(EventData->EnterWidgetStack[i], EventData);
 						}
 						else
 						{
-							eventSystem->CallOnPointerExit(EventData->EnterWidgetStack[i], EventData);
+							EventSystem->CallOnPointerExit(EventData->EnterWidgetStack[i], EventData);
 						}
 					}
 #if LOG_ENTER_EXIT
-					UE_LOG(LGUI, Error, TEXT("	%s, fireType:%d"), *(EventData->EnterWidgetStack[i]->GetOwner()->GetActorLabel()), (int)(EventData->enterComponentEventFireType));
+					UE_LOG(LGUI, Error, TEXT("	%s"), *(EventData->EnterWidgetStack[i]->GetDisplayName()));
 #endif
 				}
 				EventData->EnterWidgetStack.RemoveAt(i);
@@ -215,44 +217,44 @@ void ULexPointerInputModule::ProcessPointerEnterExit(ULexEventSystem* eventSyste
 #endif
 			EventData->EnterWidgetStack.Reset();
 		}
-		if (IsValid(newObj))
+		if (IsValid(NewObj))
 		{
 			//enter new
-			if (!EventData->EnterWidgetStack.Contains(newObj))
+			if (!EventData->EnterWidgetStack.Contains(NewObj))
 			{
-				auto enterObjectActor = newObj;
-				int insertIndex = EventData->EnterWidgetStack.Num();
-				EventData->EnterWidget = newObj;
+				auto EnterObj = NewObj;
+				int InsertIndex = EventData->EnterWidgetStack.Num();
+				EventData->EnterWidget = NewObj;
 #if LOG_ENTER_EXIT
 				UE_LOG(LGUI, Error, TEXT("-----begin enter 333"));
-				UE_LOG(LGUI, Error, TEXT("	%s"), *(enterObjectActor->GetActorLabel()));
+				UE_LOG(LGUI, Error, TEXT("	%s"), *(EnterObj->GetDisplayName()));
 #endif
-				if (eventSystem == nullptr)
+				if (EventSystem == nullptr)
 				{
-					ULexEventSystem::ExecuteEvent_OnPointerEnter(newObj, EventData, false);
+					ULexEventSystem::ExecuteEvent_OnPointerEnter(NewObj, EventData);
 				}
 				else
 				{
-					eventSystem->CallOnPointerEnter(newObj, EventData);
+					EventSystem->CallOnPointerEnter(NewObj, EventData);
 				}
-				EventData->HighlightWidgetForNavigation = newObj;
-				EventData->EnterWidgetStack.Add(newObj);
-				enterObjectActor = enterObjectActor->GetParent();
-				while (enterObjectActor != nullptr)
+				EventData->HighlightWidgetForNavigation = NewObj;
+				EventData->EnterWidgetStack.Add(NewObj);
+				EnterObj = EnterObj->GetParent();
+				while (EnterObj != nullptr)
 				{
 #if LOG_ENTER_EXIT
-					UE_LOG(LGUI, Error, TEXT("	:%s"), *(enterObjectActor->GetActorLabel()));
+					UE_LOG(LGUI, Error, TEXT("	:%s"), *(EnterObj->GetDisplayName()));
 #endif
-					if (eventSystem == nullptr)
+					if (EventSystem == nullptr)
 					{
-						ULexEventSystem::ExecuteEvent_OnPointerEnter(enterObjectActor, EventData, false);
+						ULexEventSystem::ExecuteEvent_OnPointerEnter(EnterObj, EventData);
 					}
 					else
 					{
-						eventSystem->CallOnPointerEnter(enterObjectActor, EventData);
+						EventSystem->CallOnPointerEnter(EnterObj, EventData);
 					}
-					EventData->EnterWidgetStack.Insert(enterObjectActor, insertIndex);
-					enterObjectActor = enterObjectActor->GetParent();
+					EventData->EnterWidgetStack.Insert(EnterObj, InsertIndex);
+					EnterObj = EnterObj->GetParent();
 				}
 #if LOG_ENTER_EXIT
 				UE_LOG(LGUI, Error, TEXT("*****end enter, stack count:%d\n"), EventData->EnterWidgetStack.Num());

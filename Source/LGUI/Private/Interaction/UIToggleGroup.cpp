@@ -8,7 +8,7 @@
 
 UUIToggleGroup::UUIToggleGroup()
 {
-	OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
+	OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
 }
 void UUIToggleGroup::AddToggleComponent(UUIToggle* InComp)
 {
@@ -63,8 +63,8 @@ void UUIToggleGroup::SetSelection(UUIToggle* Target)
 		}
 		int index = GetToggleIndex(Target);
 		OnValueChangedCPP.Broadcast(index);
-		OnValueChangedBP.Broadcast(index);
-		OnValueChanged.FireEvent(index);
+		OnValueChanged.Broadcast(index);
+		OnValueChangedED.FireEvent(index);
 	}
 }
 void UUIToggleGroup::ClearSelection()
@@ -75,7 +75,7 @@ void UUIToggleGroup::ClearSelection()
 		LastSelect.Reset();
 
 		OnValueChangedCPP.Broadcast(-1);
-		OnValueChanged.FireEvent(-1);
+		OnValueChangedED.FireEvent(-1);
 	}
 }
 UUIToggle* UUIToggleGroup::GetSelectedItem()const

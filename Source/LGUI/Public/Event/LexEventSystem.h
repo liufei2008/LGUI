@@ -233,9 +233,9 @@ public:
 	}
 	
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = false);
+		static void ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void ExecuteEvent_OnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = false);
+		static void ExecuteEvent_OnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void ExecuteEvent_OnPointerDown(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
 	UFUNCTION(BlueprintCallable, Category = LGUI)

@@ -6,7 +6,7 @@
 bool UUIButton::OnPointerClick_Implementation(ULexPointerEventData* EventData)
 {
 	OnClickCPP.Broadcast();
-	OnClickBP.Broadcast();
-	OnClick.FireEvent();
+	OnClick.Broadcast();
+	OnClickED.FireEvent();
 	return AllowEventBubbleUp;
 }

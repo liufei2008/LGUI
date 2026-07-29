@@ -66,7 +66,7 @@ private:
 	void Call_Start();
 	void Call_OnDisable();
 	void Call_OnDestroy();
-	UPROPERTY(Transient, Getter=GetWidget, DisplayName=Widget, BlueprintReadOnly, Category=LexUIBehaviour, meta=(AllowPrivateAccess=true))
+	UPROPERTY(Transient, Getter=GetWidget, DisplayName=LexWidget, BlueprintReadOnly, Category=LexUIBehaviour, meta=(AllowPrivateAccess=true))
 	mutable TObjectPtr<ULexWidget> CacheWidget = nullptr;
 protected:
 

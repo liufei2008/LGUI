@@ -6,6 +6,7 @@
 class FLexCanvasDrawCallProcessingRunnable : public FRunnable
 {
 public:
+	FLexCanvasDrawCallProcessingRunnable(const FString& InDebugName);
 	void Start();
 
 	//~ Begin FRunnable Interface
@@ -26,4 +27,5 @@ private:
 	std::atomic<bool> bIsRunning = false;
 	std::atomic<bool> bIsBatching = false;
 	TUniquePtr<FRunnableThread> Thread;
+	FString DebugName;
 };

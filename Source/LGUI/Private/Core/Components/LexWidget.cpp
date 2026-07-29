@@ -2942,68 +2942,6 @@ void ULexWidget::MarkAnchorDataChangedByLayoutContainer_Recursive(bool InPivotCh
 	}
 }
 
-float ULexWidget::GetLayoutProperty(TFunctionRef<float(ULexLayoutSelf*)> GetLayoutSelfProperty,
-                                    TFunctionRef<float(ULexLayoutContainer*)> GetLayoutContainerProperty,
-                                    TFunctionRef<float(ULexVisual*)> GetVisualProperty,
-                                    float DefaultValue)const
-{
-	if (IsValid(LayoutSelf))
-	{
-		auto Value = GetLayoutSelfProperty(LayoutSelf);
-		if (Value >= 0)//enable override
-		{
-			return Value;
-		}
-	}
-	if (IsValid(LayoutContainer))
-	{
-		auto Value = GetLayoutContainerProperty(LayoutContainer);
-		if (Value >= 0)//enable override
-		{
-			return Value;
-		}
-	}
-	if (IsValid(Visual))
-	{
-		auto Value = GetVisualProperty(Visual);
-		if (Value >= 0)
-		{
-			return Value;
-		}
-	}
-	return DefaultValue;
-}
-UObject* ULexWidget::GetLayoutSource(TFunctionRef<float(ULexLayoutSelf*)> GetLayoutSelfProperty,
-	TFunctionRef<float(ULexLayoutContainer*)> GetLayoutContainerProperty,
-	TFunctionRef<float(ULexVisual*)> GetVisualProperty) const
-{
-	if (IsValid(LayoutSelf))
-	{
-		auto Value = GetLayoutSelfProperty(LayoutSelf);
-		if (Value >= 0)//enable override
-		{
-			return LayoutSelf;
-		}
-	}
-	if (IsValid(LayoutContainer))
-	{
-		auto Value = GetLayoutContainerProperty(LayoutContainer);
-		if (Value >= 0)//enable override
-		{
-			return LayoutContainer;
-		}
-	}
-	if (IsValid(Visual))
-	{
-		auto Value = GetVisualProperty(Visual);
-		if (Value >= 0)
-		{
-			return Visual;
-		}
-	}
-	return nullptr;
-}
-
 ULexCanvas* ULexWidget::GetRenderCanvas()const
 {
 	return RenderCanvas.Get();
@@ -3283,6 +3221,13 @@ const ULexWidget* ULexWidget::GetRestrictNavigationAreaWidget() const
 void ULexWidget::SetRestrictNavigationArea(bool Value)
 {
 	bRestrictNavigationArea = Value;
+}
+
+ULexVisual* ULexWidget::GetVisualAs(TSubclassOf<ULexVisual> VisualClass) const
+{
+	if (Visual && Visual->IsA(VisualClass))
+		return Visual;
+	return nullptr;
 }
 
 ULexVisual* ULexWidget::CreateNewVisual(TSubclassOf<ULexVisual> VisualClass)

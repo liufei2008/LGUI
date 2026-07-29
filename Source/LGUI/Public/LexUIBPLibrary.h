@@ -55,6 +55,9 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const AActor>::Value, "'T' template parameter to DuplicateActor must be derived from AActor");
 		return (T*)ULexUIBPLibrary::DuplicateWidget(Target, Parent);
 	}
+
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (WorldContext = "WorldContextObject", DeterminesOutputType = "VisualClass"))
+	static ULexVisual* CreateWidgetWithVisual(UObject* WorldContextObject, ULexWidget* Parent, TSubclassOf<ULexVisual> VisualClass);
 	
 public:
 #pragma region EventDelegate
@@ -283,7 +286,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void LexUIExecuteControllerInputAxis(FKey inputKey, float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease);
+		static void LexUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease);
 
 #pragma endregion
 	UFUNCTION(BlueprintPure, Category = LGUI)

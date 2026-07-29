@@ -22,13 +22,13 @@ class LGUI_API ILexPointerDownUpInterface
 public:
 	/**
 	 * Called when a pointer press event occurs.
-	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 * @return Allow event bubble up? If all interface of same widget's components return true, then the event can bubble up.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerDown(ULexPointerEventData* EventData);
 	/**
 	 * Called when a pointer release event occurs.
-	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 * @return Allow event bubble up? If all interface of same widget's components return true, then the event can bubble up.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerUp(ULexPointerEventData* EventData);

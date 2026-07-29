@@ -511,15 +511,6 @@ public:
 	void SetSizeForLayoutAnimation(FVector2D Position);
 	void MarkAnchorDataChangedByLayoutContainer_Recursive(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
 private:
-	float GetLayoutProperty(TFunctionRef<float(ULexLayoutSelf*)> GetLayoutSelfProperty
-		, TFunctionRef<float(ULexLayoutContainer*)> GetLayoutContainerProperty
-		, TFunctionRef<float(ULexVisual*)> GetVisualProperty
-		, float DefaultValue)const;
-	UObject* GetLayoutSource(TFunctionRef<float(ULexLayoutSelf*)> GetLayoutSelfProperty
-		, TFunctionRef<float(ULexLayoutContainer*)> GetLayoutContainerProperty
-		, TFunctionRef<float(ULexVisual*)> GetVisualProperty
-		)const;
-	
 	FVector2D PrevLocation2D = FVector2D::Zero();
 	FVector2D PrevScale2D = FVector2D::One();
 	mutable uint8 bNeedSortUIChildren : 1;
@@ -667,6 +658,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	ULexVisual* GetVisual()const { return Visual; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType = "VisualClass"))
+	ULexVisual* GetVisualAs(TSubclassOf<ULexVisual> VisualClass)const;
+	template<class T>
+	T* GetVisualAs()
+	{
+		static_assert(TPointerIsConvertibleFromTo<T, const ULexVisual>::Value, "'T' template parameter to GetVisualAs must be derived from ULexVisual");
+		return (T*)GetVisualAs(T::StaticClass());
+	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType="VisualClass"))
 	ULexVisual* CreateNewVisual(TSubclassOf<ULexVisual> VisualClass);
 	template<class T>

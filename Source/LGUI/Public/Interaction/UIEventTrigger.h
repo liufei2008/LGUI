@@ -33,30 +33,30 @@ protected:
 	//inherited events of this component can bubble up?
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
 		bool AllowEventBubbleUp = false;
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerEnter = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerExit = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerDown = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerUp = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerClick = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerBeginDrag = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerDrag = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerEndDrag = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerDragDrop = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerScroll = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerSelect = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLexUIEventDelegate OnPointerDeselect = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerEnter") 
+		FLexUIEventDelegate OnPointerEnterED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerExit") 
+		FLexUIEventDelegate OnPointerExitED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerDown") 
+		FLexUIEventDelegate OnPointerDownED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerUp") 
+		FLexUIEventDelegate OnPointerUpED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerClick") 
+		FLexUIEventDelegate OnPointerClickED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerBeginDrag") 
+		FLexUIEventDelegate OnPointerBeginDragED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerDrag") 
+		FLexUIEventDelegate OnPointerDragED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerEndDrag") 
+		FLexUIEventDelegate OnPointerEndDragED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerDragDrop") 
+		FLexUIEventDelegate OnPointerDragDropED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerScroll") 
+		FLexUIEventDelegate OnPointerScrollED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerSelect") 
+		FLexUIEventDelegate OnPointerSelectED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger", DisplayName="OnPointerDeselect") 
+		FLexUIEventDelegate OnPointerDeselectED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::PointerEvent);
 
 	FLexUIMulticastDelegatePointerEventData OnPointerEnterCPP;
 	FLexUIMulticastDelegatePointerEventData OnPointerExitCPP;
@@ -71,30 +71,30 @@ protected:
 	FLexUIMulticastDelegateBaseEventData OnPointerSelectCPP;
 	FLexUIMulticastDelegateBaseEventData OnPointerDeselectCPP;
 
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerEnter")
-	FUIEventTriggerPointerEvent OnPointerEnterBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerExit")
-	FUIEventTriggerPointerEvent OnPointerExitBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerDown")
-	FUIEventTriggerPointerEvent OnPointerDownBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerUp")
-	FUIEventTriggerPointerEvent OnPointerUpBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerClick")
-	FUIEventTriggerPointerEvent OnPointerClickBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerBeginDrag")
-	FUIEventTriggerPointerEvent OnPointerBeginDragBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerDrag")
-	FUIEventTriggerPointerEvent OnPointerDragBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerEndDrag")
-	FUIEventTriggerPointerEvent OnPointerEndDragBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerDragDrop")
-	FUIEventTriggerPointerEvent OnPointerDragDropBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerScroll")
-	FUIEventTriggerPointerEvent OnPointerScrollBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerSelect")
-	FUIEventTriggerBaseEvent OnPointerSelectBP;
-	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger", DisplayName="OnPointerDeselect")
-	FUIEventTriggerBaseEvent OnPointerDeselectBP;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerEnter;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerExit;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerDown;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerUp;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerClick;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerBeginDrag;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerDrag;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerEndDrag;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerDragDrop;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerPointerEvent OnPointerScroll;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerBaseEvent OnPointerSelect;
+	UPROPERTY(BlueprintAssignable, Category = "UIEventTrigger")
+	FUIEventTriggerBaseEvent OnPointerDeselect;
 public:
 	FLexUIMulticastDelegatePointerEventData& GetOnPointerEnterEvent(){return OnPointerEnterCPP;}
 	FLexUIMulticastDelegatePointerEventData& GetOnPointerExitEvent(){return OnPointerExitCPP;}
@@ -109,8 +109,8 @@ public:
 	FLexUIMulticastDelegateBaseEventData& GetOnPointerSelectEvent(){return OnPointerSelectCPP;}
 	FLexUIMulticastDelegateBaseEventData& GetOnPointerDeselectEvent(){return OnPointerDeselectCPP;}
 	
-	virtual bool OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerDown_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerUp_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;

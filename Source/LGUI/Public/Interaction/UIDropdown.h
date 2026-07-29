@@ -124,10 +124,10 @@ protected:
 	virtual void CreateListItems();
 
 	FLexUIMulticastDelegateInt32 OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Dropdown", DisplayName="OnValueChanged")
-	FUIDropdownValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Dropdown")
+	FUIDropdownValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
 
 	/** Bind this delegate and set custom data for option list item. */
 	FUIDropdownComponentDelegate_SetItemCustomData OnSetItemCustomDataFunction;

@@ -105,10 +105,10 @@ protected:
 	virtual void ApplyContentPositionWithProgress();
 
 	FLexUIMulticastDelegateVector2 OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-ScrollView", DisplayName="OnValueChanged")
-	FUIScrollViewValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Vector2);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-ScrollView")
+	FUIScrollViewValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Vector2);
 public:
 	FLexUIMulticastDelegateVector2& GetOnValueChangedEvent(){return OnValueChangedCPP;}
 	

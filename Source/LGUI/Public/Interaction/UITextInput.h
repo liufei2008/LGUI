@@ -153,24 +153,24 @@ protected:
 		bool bReadOnly = false;
 
 	FLexUIMulticastDelegateString OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input", DisplayName="OnValueChanged")
-	FUITextInputValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	FUITextInputValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
 	
 	FLexUIMulticastDelegateString OnSubmitCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input", DisplayName="OnSubmit")
-	FUITextInputValueChangedEvent OnSubmitBP;
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	FUITextInputValueChangedEvent OnSubmit;
 	/** Input submit by "Enter" key. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-	FLexUIEventDelegate OnSubmit = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnSubmit")
+	FLexUIEventDelegate OnSubmitED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
 	
 	FLexUIMulticastDelegateBool OnInputActivateCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input", DisplayName="OnSubmit")
-	FUITextInputActivateEvent OnInputActivateBP;
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	FUITextInputActivateEvent OnInputActivate;
 	/** Input activate or deactivate, means begin input or end input. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-	FLexUIEventDelegate OnInputActivate = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnInputActivate")
+	FLexUIEventDelegate OnInputActivateED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
 
 	void SetText(const FString& InText, bool InFireEvent);
 public:
@@ -331,8 +331,8 @@ protected:
 	virtual void OnInteractableChanged(bool Interactable) override;
 	virtual void OnDimensionsChanged(bool PivotChanged, bool WidthChanged, bool HeightChanged)override;
 
-	virtual bool OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerSelect_Implementation(ULexBaseEventData* EventData) override;
 	virtual bool OnPointerDeselect_Implementation(ULexBaseEventData* EventData) override;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData) override;

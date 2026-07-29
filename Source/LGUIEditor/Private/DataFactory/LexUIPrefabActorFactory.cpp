@@ -101,13 +101,13 @@ UClass* ULexUIPrefabActorFactory::GetDefaultActorClass(const FAssetData& AssetDa
 		switch (RenderMode)
 		{
 		case ELexRenderMode::WorldSpace:
-			ClassName = TEXT("WorldSpaceRoot_UERenderer");
+			ClassName = TEXT("LexWorldSpaceRoot_UERenderer");
 			break;
 		case ELexRenderMode::WorldSpace_LexUI:
-			ClassName = TEXT("WorldSpaceRoot_LexRenderer");
+			ClassName = TEXT("LexWorldSpaceRoot_LexRenderer");
 			break;
 		case ELexRenderMode::ScreenSpaceOverlay:
-			ClassName = TEXT("ScreenSpaceRoot");
+			ClassName = TEXT("LexScreenSpaceRoot");
 		}
 		
 		NewActorClass = LoadClass<AActor>(NULL, *FString::Printf(TEXT("/LGUI/Blueprints/%s.%s_C"), *ClassName, *ClassName));

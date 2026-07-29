@@ -365,8 +365,8 @@ public:
 	virtual UUISelectable* FindSelectableOnPrev();
 #pragma endregion
 protected:
-	virtual bool OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
+	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerDown_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerUp_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerSelect_Implementation(ULexBaseEventData* EventData)override;

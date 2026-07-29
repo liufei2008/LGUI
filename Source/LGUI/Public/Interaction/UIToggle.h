@@ -103,10 +103,10 @@ protected:
 	bool bAutoFindToggleGroupInParent = false;
 
 	FLexUIMulticastDelegateBool OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle", DisplayName="OnValueChanged")
-	FUIToggleValueChangedEvent OnValueChangedBP;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-	FLexUIEventDelegate OnValueChanged = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
+	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
+	FUIToggleValueChangedEvent OnValueChanged;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle", DisplayName="OnValueChangedED")
+	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
 
 	void SetValue(bool Value, bool SendCallback);
 	void ApplyValueToVisual(bool ImmediateSet);

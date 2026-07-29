@@ -68,8 +68,8 @@ void UUISlider::SetValue(float InValue, bool FireEvent)
         if (FireEvent)
         {
             OnValueChangedCPP.Broadcast(Value);
-            OnValueChangedBP.Broadcast(Value);
-            OnValueChanged.FireEvent((double)Value);
+            OnValueChanged.Broadcast(Value);
+            OnValueChangedED.FireEvent((double)Value);
         }
     }
 }
@@ -102,7 +102,7 @@ void UUISlider::SetMinValue(float InMinValue, bool KeepRelativeValue, bool FireE
 		if (FireEvent)
 		{
 			OnValueChangedCPP.Broadcast(Value);
-			OnValueChanged.FireEvent((double)Value);
+			OnValueChangedED.FireEvent((double)Value);
 		}
     }
 }
@@ -124,7 +124,7 @@ void UUISlider::SetMaxValue(float InMaxValue, bool KeepRelativeValue, bool FireE
 		if (FireEvent)
 		{
 			OnValueChangedCPP.Broadcast(Value);
-			OnValueChanged.FireEvent((double)Value);
+			OnValueChangedED.FireEvent((double)Value);
 		}
 	}
 }

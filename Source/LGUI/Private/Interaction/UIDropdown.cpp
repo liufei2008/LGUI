@@ -387,8 +387,8 @@ void UUIDropdown::SetValue(int InValue, bool FireEvent)
 		if (FireEvent)
 		{
 			OnValueChangedCPP.Broadcast(Value);
-			OnValueChangedBP.Broadcast(Value);
-			OnValueChanged.FireEvent(Value);
+			OnValueChanged.Broadcast(Value);
+			OnValueChangedED.FireEvent(Value);
 		}
 		ApplyValueToVisual();
 	}

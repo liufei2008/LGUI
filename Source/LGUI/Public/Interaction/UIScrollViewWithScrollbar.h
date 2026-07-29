@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Components/ActorComponent.h"
 #include "UIScrollView.h"
 #include "UIScrollViewWithScrollbar.generated.h"
 

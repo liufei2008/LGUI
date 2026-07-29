@@ -312,7 +312,7 @@ bool UUISelectable::CheckNavigationSelectionState()
 	return NavigationSelection.IsValid();
 }
 
-bool UUISelectable::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
+void UUISelectable::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
 {
 	bIsPointerInsideThis = true;
 	CurrentSelectionState = GetSelectionState();
@@ -331,23 +331,21 @@ bool UUISelectable::OnPointerEnter_Implementation(ULexPointerEventData* EventDat
 			NavigationSelection->SelectNone();
 		}
 	}
-	return AllowEventBubbleUp;
 }
-bool UUISelectable::OnPointerExit_Implementation(ULexPointerEventData* EventData)
+void UUISelectable::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 {
 	bIsPointerInsideThis = false;
 	CurrentSelectionState = GetSelectionState();
 	ApplyPointerSelectionState(false);
-	return AllowEventBubbleUp;
 }
 bool UUISelectable::OnPointerDown_Implementation(ULexPointerEventData* EventData)
 {
 	bIsPointerDown = true;
 	CurrentSelectionState = GetSelectionState();
 	ApplyPointerSelectionState(false);
-	if (auto eventSystemInstance = ULexEventSystem::GetLexEventSystemInstance(this, IsValid(EventData) ? EventData->UserIndex : 0))
+	if (auto EventSystem = ULexEventSystem::GetLexEventSystemInstance(this, IsValid(EventData) ? EventData->UserIndex : 0))
 	{
-		eventSystemInstance->SetSelectWidget(GetWidget(), EventData);
+		EventSystem->SetSelectWidget(GetWidget(), EventData);
 	}
 	return AllowEventBubbleUp;
 }

@@ -27,10 +27,10 @@ public:
 	bool CanNavigateHere()const;
 	/**
 	 * Called when a navigation event occurs.
-	 * @param direction navigation direction
-	 * @param result navigate next object
+	 * @param Direction navigation direction
+	 * @param Result navigate next object
 	 * @return true if this action can navigation to next, false if no need to navigate to next
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-	bool OnNavigate(ELexUINavigationDirection direction, TScriptInterface<ILexNavigationInterface>& result);
+	bool OnNavigate(ELexUINavigationDirection Direction, TScriptInterface<ILexNavigationInterface>& Result);
 };

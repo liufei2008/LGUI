@@ -133,14 +133,12 @@ void ULexUIRenderTargetInteraction::Raycast(ULexPointerEventData* InPointerEvent
 }
 
 
-bool ULexUIRenderTargetInteraction::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
+void ULexUIRenderTargetInteraction::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
 {
 	InputPointerEventData = EventData;
-	return bAllowEventBubbleUp;
 }
-bool ULexUIRenderTargetInteraction::OnPointerExit_Implementation(ULexPointerEventData* EventData)
+void ULexUIRenderTargetInteraction::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 {
-	return bAllowEventBubbleUp;
 }
 bool ULexUIRenderTargetInteraction::OnPointerDown_Implementation(ULexPointerEventData* EventData)
 {

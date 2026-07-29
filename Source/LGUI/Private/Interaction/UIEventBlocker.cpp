@@ -3,13 +3,11 @@
 #include "Interaction/UIEventBlocker.h"
 #include "LGUI.h"
 
-bool UUIEventBlocker::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
+void UUIEventBlocker::OnPointerEnter_Implementation(ULexPointerEventData* EventData)
 {
-	return AllowEventBubbleUp;
 }
-bool UUIEventBlocker::OnPointerExit_Implementation(ULexPointerEventData* EventData)
+void UUIEventBlocker::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 {
-	return AllowEventBubbleUp;
 }
 bool UUIEventBlocker::OnPointerDown_Implementation(ULexPointerEventData* EventData)
 {

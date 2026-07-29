@@ -62,8 +62,8 @@ void UUIScrollbar::SetValue(float InValue, bool FireEvent)
         if (FireEvent)
         {
             OnValueChangedCPP.Broadcast(Value);
-            OnValueChangedBP.Broadcast(Value);
-            OnValueChanged.FireEvent((double)Value);
+            OnValueChanged.Broadcast(Value);
+            OnValueChangedED.FireEvent((double)Value);
         }
     }
 }
@@ -108,7 +108,7 @@ void UUIScrollbar::SetValueAndSize(float InValue, float InSize, bool FireEvent)
         if (FireEvent)
         {
             OnValueChangedCPP.Broadcast(Value);
-            OnValueChanged.FireEvent((double)Value);
+            OnValueChangedED.FireEvent((double)Value);
         }
     }
 }

@@ -249,21 +249,27 @@ void ULexEventSystem::LogEventData(ULexBaseEventData* inEventData)
 }
 
 #pragma region CallEvent
-void ULexEventSystem::ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp)
+void ULexEventSystem::ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData)
 {
 	PointerEventData->EventType = ELexUIPointerEventType::Enter;
-	ExecuteLexUIInterface(TargetWidget,
-		PointerEventData,
-		ULexPointerEnterExitInterface::StaticClass(),
-		ILexPointerEnterExitInterface::Execute_OnPointerEnter, AllowEventBubbleUp);
+	for (auto& Comp : TargetWidget->GetAllComponents())
+	{
+		if (Comp->GetClass()->ImplementsInterface(ULexPointerEnterExitInterface::StaticClass()))
+		{
+			ILexPointerEnterExitInterface::Execute_OnPointerEnter(Comp, PointerEventData);
+		}
+	}
 }
-void ULexEventSystem::ExecuteEvent_OnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp)
+void ULexEventSystem::ExecuteEvent_OnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData)
 {
-	PointerEventData->EventType = ELexUIPointerEventType::Exit; 
-	ExecuteLexUIInterface(TargetWidget,
-		PointerEventData,
-		ULexPointerEnterExitInterface::StaticClass(),
-		ILexPointerEnterExitInterface::Execute_OnPointerExit, AllowEventBubbleUp);
+	PointerEventData->EventType = ELexUIPointerEventType::Exit;
+	for (auto& Comp : TargetWidget->GetAllComponents())
+	{
+		if (Comp->GetClass()->ImplementsInterface(ULexPointerEnterExitInterface::StaticClass()))
+		{
+			ILexPointerEnterExitInterface::Execute_OnPointerExit(Comp, PointerEventData);
+		}
+	}
 }
 void ULexEventSystem::ExecuteEvent_OnPointerDown(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp)
 {
@@ -350,14 +356,14 @@ void ULexEventSystem::ExecuteEvent_OnPointerDeselect(ULexWidget* TargetWidget, U
 void ULexEventSystem::CallOnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* EventData)
 {
 	LogEventData(EventData);
-	ExecuteEvent_OnPointerEnter(TargetWidget, EventData, false);
+	ExecuteEvent_OnPointerEnter(TargetWidget, EventData);
 	InputEvent.Broadcast(EventData);
 	InputEventBP.Broadcast(EventData);
 }
 void ULexEventSystem::CallOnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* EventData)
 {
 	LogEventData(EventData);
-	ExecuteEvent_OnPointerExit(TargetWidget, EventData, false);
+	ExecuteEvent_OnPointerExit(TargetWidget, EventData);
 	InputEvent.Broadcast(EventData);
 	InputEventBP.Broadcast(EventData);
 }
