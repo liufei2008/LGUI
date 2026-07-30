@@ -16,7 +16,7 @@ class LGUI_API ULexPointerInputModule : public ULexBaseInputModule
 	GENERATED_BODY()
 
 public:
-	static void ProcessPointerEvent(ULexEventSystem* eventSystem, ULexPointerEventData* pointerEventData, bool pointerHitAnything, const FLexUIHitResultContainer& hitResult, bool& OutIsHitSomething, FLexUIHitResult& OutHitResult);
+	static void ProcessPointerEvent(ULexEventSystem* EventSystem, ULexPointerEventData* pointerEventData, bool pointerHitAnything, const FLexUIHitResultContainer& hitResult, bool& OutIsHitSomething, FLexUIHitResult& OutHitResult);
 protected:
 	
 	bool LineTrace(ULexPointerEventData* InPointerEventData, FLexUIHitResultContainer& OutLexHitResult);

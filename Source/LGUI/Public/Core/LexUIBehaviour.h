@@ -139,7 +139,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LexUIBehaviour")
 	void SetCanExecuteTick(bool Value);
 	
-	UFUNCTION(BlueprintCallable, Category = "LexUIBehaviour")
+	UFUNCTION()
 	ULexWidget* GetWidget() const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	FString GetPathDisplayName()const;

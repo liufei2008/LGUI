@@ -620,13 +620,23 @@ public:
 	bool ConvertPositionFromCanvasToViewport(const FVector2D& InPosition, FVector2D& Result)const;
 	/**
 	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
-	 * NOTE!!! This is only for screen-space-UI, DON'T use this for convert world space position!!!
+	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for convert world space!!!
 	 * @param	Position3D	GetWorldLocation from the UI element (world location).
 	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
-	 * @return 	convert will fail if this LexCanvas is not root canvas.
+	 * @return 	convert will fail if this LexCanvas is not root canvas, or not screen space.
 	 */
 	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
 	bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
+	/**
+	 * Transforms 2D screen coordinates into a 3D world-space origin and direction.
+	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for convert world space!!!
+	 * @param ScreenPos Screen coordinates in pixels, left bottom is zero point.
+	 * @param OutWorldOrigin World space origin vector
+	 * @param OutWorldDirection World space direction vector
+	 * @return convert will fail if this LexCanvas is not root canvas, or not screen space.
+	 */
+	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	bool DeprojectScreenTo3D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDirection);
 	/**
 	 * Project 3D world position to 2D screen-space-UI position with specific player's camera.
 	 * This function need player pawn contains a camera component, and use this camera to do projection, so it can be used for world space UI.

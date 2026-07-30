@@ -748,15 +748,15 @@ private:
 	 * If Actor's ActorLabel start with "//", then the "//" will be ignored.
 	 * ActorLabel is only valid in editor, but this is also valid on runtime.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = LGUI, Getter, Setter, AdvancedDisplay)
 		FString DisplayName;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	FString GetPathDisplayName(const UObject* StopOuter = nullptr)const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		const FString& GetDisplayName()const { return DisplayName; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetDisplayName(const FString& InName) { DisplayName = InName; }
+	UFUNCTION()
+	const FString& GetDisplayName()const { return DisplayName; }
+	UFUNCTION()
+	void SetDisplayName(const FString& Value) { DisplayName = Value; }
 	/** 
 	 * Search in children and return the first UIItem that the displayName match input name.
 	 * Support hierarchy nested search, eg: InName = "Content/ListItem/NameLabel".

@@ -19,7 +19,7 @@ public:
 
 	virtual void PostInitProperties() override;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION()
 	ULexWidget* GetWidget()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	FString GetPathDisplayName(const UObject* StopOuter = nullptr) const;

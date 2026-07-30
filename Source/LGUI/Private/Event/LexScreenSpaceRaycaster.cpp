@@ -86,7 +86,7 @@ void ULexScreenSpaceRaycaster::Raycast(ULexPointerEventData* InPointerEventData,
 
 void ULexScreenSpaceRaycaster::DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
-	FMatrix InvViewProjMatrix = InViewProjectionMatrix.InverseFast();
+	FMatrix InvViewProjMatrix = InViewProjectionMatrix.Inverse();
 
 	const float ScreenSpaceX = (InViewPoint01.X - 0.5f) * 2.0f;
 	const float ScreenSpaceY = (InViewPoint01.Y - 0.5f) * 2.0f;

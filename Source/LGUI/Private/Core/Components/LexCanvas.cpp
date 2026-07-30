@@ -3004,13 +3004,14 @@ bool ULexCanvas::ConvertPositionFromCanvasToViewport(const FVector2D& InPosition
 bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
 {
 	if (RootCanvas != this)return false;
-	auto viewProjectionMatrix = this->GetViewProjectionMatrix();
-	auto result = viewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
-	if (result.W > 0.0f)
+	if (RootCanvas->RenderMode != ELexRenderMode::ScreenSpaceOverlay && RootCanvas->RenderMode != ELexRenderMode::RenderTarget)return false;
+	auto ViewProjectionMatrix = this->GetViewProjectionMatrix();
+	auto Result = ViewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
+	if (Result.W > 0.0f)
 	{
 		// the result of this will be x and y coords in -1..1 projection space
-		const float RHW = 1.0f / result.W;
-		FPlane PosInScreenSpace = FPlane(result.X * RHW, result.Y * RHW, result.Z * RHW, result.W);
+		const float RHW = 1.0f / Result.W;
+		FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, Result.W);
 
 		// Move from projection space to normalized 0..1 UI space
 		OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
@@ -3022,6 +3023,16 @@ bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosi
 		return true;
 	}
 	return false;
+}
+
+bool ULexCanvas::DeprojectScreenTo3D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDirection)
+{
+	if (RootCanvas != this)return false;
+	if (RootCanvas->RenderMode != ELexRenderMode::ScreenSpaceOverlay && RootCanvas->RenderMode != ELexRenderMode::RenderTarget)return false;
+	auto ViewRect = FIntRect(0, 0, ViewportSize.X, ViewportSize.Y);
+	auto ViewProjectionMatrix = this->GetViewProjectionMatrix();
+	FSceneView::DeprojectScreenToWorld(ScreenPos, ViewRect, ViewProjectionMatrix.Inverse(), OutWorldOrigin, OutWorldDirection);
+	return true;
 }
 
 bool ULexCanvas::ProjectWorldToScreenWithPlayerCamera(APlayerController* Player, UCameraComponent* PlayerCamera, const FVector& InPosition, FVector2D& OutPosition2D)

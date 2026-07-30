@@ -280,7 +280,7 @@ ULexWidget* ULexPointerInputModule::FindCommonRoot(ULexWidget* A, ULexWidget* B)
 	}
 	return nullptr;
 }
-void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, ULexPointerEventData* EventData, bool bLineTraceHitSomething, const FLexUIHitResultContainer& LexHitResult, bool& OutIsHitSomething, FLexUIHitResult& OutHitResult)
+void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* EventSystem, ULexPointerEventData* EventData, bool bLineTraceHitSomething, const FLexUIHitResultContainer& LexHitResult, bool& OutIsHitSomething, FLexUIHitResult& OutHitResult)
 {
 	EventData->bIsUpFiredAtCurrentFrame = false;
 	EventData->bIsExitFiredAtCurrentFrame = false;
@@ -299,14 +299,14 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 		EventData->WorldNormal = OutHitResult.Normal;
 		if (EventData->EnterWidget != nowHitComponent)//hit different object
 		{
-			ProcessPointerEnterExit(eventSystem, EventData, EventData->EnterWidget, nowHitComponent);
+			ProcessPointerEnterExit(EventSystem, EventData, EventData->EnterWidget, nowHitComponent);
 		}
 	}
 	else
 	{
 		if (IsValid(EventData->EnterWidget) || EventData->EnterWidgetStack.Num() > 0)//prev object
 		{
-			ProcessPointerEnterExit(eventSystem, EventData, EventData->EnterWidget, nullptr);
+			ProcessPointerEnterExit(EventSystem, EventData, EventData->EnterWidget, nullptr);
 		}
 	}
 
@@ -317,13 +317,13 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 			//trigger drag event
 			if (IsValid(EventData->DragWidget))
 			{
-				if (eventSystem == nullptr)
+				if (EventSystem == nullptr)
 				{
 					ULexEventSystem::ExecuteEvent_OnPointerDrag(EventData->DragWidget, EventData, true);
 				}
 				else
 				{
-					eventSystem->CallOnPointerDrag(EventData->DragWidget, EventData);
+					EventSystem->CallOnPointerDrag(EventData->DragWidget, EventData);
 				}
 
 				OutHitResult.Distance = EventData->PressDistance;
@@ -344,13 +344,13 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					{
 						EventData->bIsDragging = true;
 						EventData->DragWidget = EventData->PressWidget;
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
 							ULexEventSystem::ExecuteEvent_OnPointerBeginDrag(EventData->DragWidget, EventData, true);
 						}
 						else
 						{
-							eventSystem->CallOnPointerBeginDrag(EventData->DragWidget, EventData);
+							EventSystem->CallOnPointerBeginDrag(EventData->DragWidget, EventData);
 						}
 					}
 				}
@@ -381,14 +381,14 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					EventData->PressRaycaster = LexHitResult.Raycaster;
 					EventData->PressWorldToLocalTransform = EventData->EnterWidget->GetWorldTransform().Inverse();
 					EventData->PressWidget = EventData->EnterWidget;
-					DeselectIfSelectionChanged(eventSystem, EventData->PressWidget, EventData);
-					if (eventSystem == nullptr)
+					DeselectIfSelectionChanged(EventSystem, EventData->PressWidget, EventData);
+					if (EventSystem == nullptr)
 					{
 						ULexEventSystem::ExecuteEvent_OnPointerDown(EventData->PressWidget, EventData, true);
 					}
 					else
 					{
-						eventSystem->CallOnPointerDown(EventData->PressWidget, EventData);
+						EventSystem->CallOnPointerDown(EventData->PressWidget, EventData);
 					}
 				}
 			}
@@ -403,13 +403,13 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					if (!EventData->bIsUpFiredAtCurrentFrame)
 					{
 						EventData->bIsUpFiredAtCurrentFrame = true;
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
 							ULexEventSystem::ExecuteEvent_OnPointerUp(EventData->PressWidget, EventData, true);
 						}
 						else
 						{
-							eventSystem->CallOnPointerUp(EventData->PressWidget, EventData);
+							EventSystem->CallOnPointerUp(EventData->PressWidget, EventData);
 						}
 					}
 					EventData->PressWidget = nullptr;
@@ -419,13 +419,13 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					//if enter an object when drag, and after one frame trigger release and hit new object, then old object need to call DragExit
 					if (IsValid(EventData->EnterWidget) && EventData->EnterWidget != EventData->DragWidget)
 					{
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
 							ULexEventSystem::ExecuteEvent_OnPointerDragDrop(EventData->EnterWidget, EventData, true);
 						}
 						else
 						{
-							eventSystem->CallOnPointerDragDrop(EventData->EnterWidget, EventData);
+							EventSystem->CallOnPointerDragDrop(EventData->EnterWidget, EventData);
 						}
 					}
 				}
@@ -435,13 +435,13 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					if (!EventData->bIsEndDragFiredAtCurrentFrame)
 					{
 						EventData->bIsEndDragFiredAtCurrentFrame = true;
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
 							ULexEventSystem::ExecuteEvent_OnPointerEndDrag(EventData->DragWidget, EventData, true);
 						}
 						else
 						{
-							eventSystem->CallOnPointerEndDrag(EventData->DragWidget, EventData);
+							EventSystem->CallOnPointerEndDrag(EventData->DragWidget, EventData);
 						}
 					}
 					EventData->DragWidget = nullptr;
@@ -454,23 +454,23 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* eventSystem, U
 					if (!EventData->bIsUpFiredAtCurrentFrame)
 					{
 						EventData->bIsUpFiredAtCurrentFrame = true;
-						if (eventSystem == nullptr)
+						if (EventSystem == nullptr)
 						{
 							ULexEventSystem::ExecuteEvent_OnPointerUp(EventData->PressWidget, EventData, true);
 						}
 						else
 						{
-							eventSystem->CallOnPointerUp(EventData->PressWidget, EventData);
+							EventSystem->CallOnPointerUp(EventData->PressWidget, EventData);
 						}
 					}
 					EventData->ClickTime = EventData->GetWorld()->GetTimeSeconds();
-					if (eventSystem == nullptr)
+					if (EventSystem == nullptr)
 					{
 						ULexEventSystem::ExecuteEvent_OnPointerClick(EventData->PressWidget, EventData, true);
 					}
 					else
 					{
-						eventSystem->CallOnPointerClick(EventData->PressWidget, EventData);
+						EventSystem->CallOnPointerClick(EventData->PressWidget, EventData);
 					}
 					EventData->PressWidget = nullptr;
 				}
