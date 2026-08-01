@@ -6,6 +6,7 @@
 #include "Core/Components/LexVisual.h"
 #include "Core/LexUIManager.h"
 #include "LTweenManager.h"
+#include "Core/LexWidgetPresenterComponentBase.h"
 #include "Core/Components/LexCanvas.h"
 #include "Event/LexEventSystem.h"
 #include "Core/Components/LexImage.h"
@@ -303,9 +304,12 @@ bool UUISelectable::CheckNavigationSelectionState()
 	{
 		if (auto Widget = GetWidget())
 		{
-			if (auto WidgetRootActor = Widget->GetAttachedRootSceneComponent())
+			if (auto Canvas = Widget->GetRootCanvas())
 			{
-				// NavigationSelection = WidgetRootActor->GetNavigationSelection();
+				if (auto WidgetPresenter = Canvas->GetWidgetPresenterComponent())
+				{
+					NavigationSelection = WidgetPresenter->GetNavigationSelection();
+				}
 			}
 		}
 	}
@@ -356,11 +360,11 @@ bool UUISelectable::OnPointerUp_Implementation(ULexPointerEventData* EventData)
 	ApplyPointerSelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectable::OnPointerSelect_Implementation(ULexBaseEventData* EventData)
+bool UUISelectable::OnSelect_Implementation(ULexBaseEventData* EventData)
 {
 	return AllowEventBubbleUp;
 }
-bool UUISelectable::OnPointerDeselect_Implementation(ULexBaseEventData* EventData)
+bool UUISelectable::OnDeselect_Implementation(ULexBaseEventData* EventData)
 {
 	return AllowEventBubbleUp;
 }

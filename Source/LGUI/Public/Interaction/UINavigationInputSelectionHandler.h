@@ -31,6 +31,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<TWeakObjectPtr<ULTweener>> TweenerCollection;
+
+	/** True after SelectNone() is called and before the widget is actually destroyed. Prevents re-entry. */
+	bool bIsDestroyPending = false;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	virtual void SelectWidget(ULexWidget* InSelected);

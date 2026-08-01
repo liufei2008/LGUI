@@ -33,7 +33,7 @@ bool UUIEventBlocker::OnPointerEndDrag_Implementation(ULexPointerEventData* Even
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlocker::OnPointerDragDrop_Implementation(ULexPointerEventData* EventData)
+bool UUIEventBlocker::OnPointerDrop_Implementation(ULexPointerEventData* EventData)
 {
 	return AllowEventBubbleUp;
 }
@@ -41,11 +41,11 @@ bool UUIEventBlocker::OnPointerScroll_Implementation(ULexPointerEventData* Event
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlocker::OnPointerSelect_Implementation(ULexBaseEventData* EventData)
+bool UUIEventBlocker::OnSelect_Implementation(ULexBaseEventData* EventData)
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlocker::OnPointerDeselect_Implementation(ULexBaseEventData* EventData)
+bool UUIEventBlocker::OnDeselect_Implementation(ULexBaseEventData* EventData)
 {
 	return AllowEventBubbleUp;
 }

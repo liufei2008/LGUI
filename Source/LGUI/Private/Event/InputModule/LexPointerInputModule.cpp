@@ -10,6 +10,7 @@
 #include "Event/LexBaseRaycaster.h"
 #include "Event/LexScreenSpaceRaycaster.h"
 #include "Event/Interface/LexNavigationInterface.h"
+#include "Event/Interface/LexPointerDragInterface.h"
 #include "Interaction/UISelectable.h"
 
 bool ULexPointerInputModule::LineTrace(ULexPointerEventData* InPointerEventData, FLexUIHitResultContainer& OutLexHitResult)
@@ -20,7 +21,7 @@ bool ULexPointerInputModule::LineTrace(ULexPointerEventData* InPointerEventData,
 	{
 		auto bIsGamePaused = World->IsPaused();
 		auto& AllRaycasterArray = LexUIManager->GetAllRaycasterArray();
-		InPointerEventData->HoverComponentArray.Reset();
+		InPointerEventData->HoverWidgetArray.Reset();
 
 		FVector RayOrigin(0, 0, 0), RayDir(1, 0, 0), RayEnd(1, 0, 0);
 		for (int i = 0; i < AllRaycasterArray.Num(); i++)
@@ -77,7 +78,7 @@ bool ULexPointerInputModule::LineTrace(ULexPointerEventData* InPointerEventData,
 			{
 				for (auto& hoverItem : hitResultItem.HoverArray)
 				{
-					InPointerEventData->HoverComponentArray.Add(hoverItem);
+					InPointerEventData->HoverWidgetArray.Add(hoverItem);
 				}
 			}
 		}
@@ -85,7 +86,7 @@ bool ULexPointerInputModule::LineTrace(ULexPointerEventData* InPointerEventData,
 		{
 			for (auto hoverItem : MultiHitResult[0].HoverArray)
 			{
-				InPointerEventData->HoverComponentArray.Add(hoverItem);
+				InPointerEventData->HoverWidgetArray.Add(hoverItem);
 			}
 		}
 		OutLexHitResult = MultiHitResult[0];
@@ -336,21 +337,24 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* EventSystem, U
 		}
 		else//trigger press but not dragging, only concern if trigger drag event
 		{
-			if (IsValid(EventData->PressWidget))//if hit something when press
+			if (IsValid(EventData->EnterWidget))//if hit something when press
 			{
 				if (IsValid(EventData->PressRaycaster))
 				{
 					if (EventData->PressRaycaster->ShouldStartDrag(EventData))
 					{
-						EventData->bIsDragging = true;
-						EventData->DragWidget = EventData->PressWidget;
-						if (EventSystem == nullptr)
+						if (auto CurrentDragWidget = ULexEventSystem::GetEventHandler(EventData->EnterWidget, ULexPointerDragInterface::StaticClass()))
 						{
-							ULexEventSystem::ExecuteEvent_OnPointerBeginDrag(EventData->DragWidget, EventData, true);
-						}
-						else
-						{
-							EventSystem->CallOnPointerBeginDrag(EventData->DragWidget, EventData);
+							EventData->bIsDragging = true;
+							EventData->DragWidget = CurrentDragWidget;
+							if (EventSystem == nullptr)
+							{
+								ULexEventSystem::ExecuteEvent_OnPointerBeginDrag(EventData->DragWidget, EventData, true);
+							}
+							else
+							{
+								EventSystem->CallOnPointerBeginDrag(EventData->DragWidget, EventData);
+							}
 						}
 					}
 				}
@@ -421,11 +425,11 @@ void ULexPointerInputModule::ProcessPointerEvent(ULexEventSystem* EventSystem, U
 					{
 						if (EventSystem == nullptr)
 						{
-							ULexEventSystem::ExecuteEvent_OnPointerDragDrop(EventData->EnterWidget, EventData, true);
+							ULexEventSystem::ExecuteEvent_OnPointerDrop(EventData->EnterWidget, EventData, true);
 						}
 						else
 						{
-							EventSystem->CallOnPointerDragDrop(EventData->EnterWidget, EventData);
+							EventSystem->CallOnPointerDrop(EventData->EnterWidget, EventData);
 						}
 					}
 				}
@@ -605,9 +609,9 @@ void ULexPointerInputModule::ClearEventByID(int pointerID)
 			EventData->bIsUpFiredAtCurrentFrame = true;
 			if (IsValid(EventData->PressWidget))
 			{
-				auto oldPressComponent = EventData->PressWidget;
+				auto OldPressComponent = EventData->PressWidget;
 				EventData->PressWidget = nullptr;
-				EventSystem->CallOnPointerUp(oldPressComponent, EventData);
+				EventSystem->CallOnPointerUp(OldPressComponent, EventData);
 			}
 		}
 		if (!EventData->bIsExitFiredAtCurrentFrame)
@@ -669,8 +673,8 @@ ULexWidget* ULexPointerInputModule::GetEventHandle(ULexWidget* targetComp, UClas
 }
 void ULexPointerInputModule::DeselectIfSelectionChanged(ULexEventSystem* eventSystem, ULexWidget* currentPressed, ULexBaseEventData* EventData)
 {
-	auto selectHandleComp = GetEventHandle(currentPressed, ULexPointerSelectDeselectInterface::StaticClass());
-	if (selectHandleComp != EventData->SelectedComponent)
+	auto SelectHandleComp = GetEventHandle(currentPressed, ULexSelectDeselectInterface::StaticClass());
+	if (SelectHandleComp != EventData->SelectedComponent)
 	{
 		ULexEventSystem::SetSelectWidget(eventSystem, nullptr, EventData);
 	}

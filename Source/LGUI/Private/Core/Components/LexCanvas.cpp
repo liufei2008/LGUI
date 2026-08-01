@@ -24,6 +24,7 @@
 #include "Core/LexCanvasDrawCallProcessingRunnable.h"
 #include "Core/LexUIClipData.h"
 #include "Core/LexUIDataAsTexture.h"
+#include "Core/LexWidgetPresenterComponentBase.h"
 #include "Core/Components/LexLayout.h"
 
 
@@ -732,14 +733,14 @@ bool ULexCanvas::IsRootCanvas()const
 	return GetRootCanvas() == this;
 }
 
-USceneComponent* ULexCanvas::GetAttachedRootSceneComponent() const
+ULexWidgetPresenterComponentBase* ULexCanvas::GetWidgetPresenterComponent() const
 {
-	return AttachedRootSceneComponent.Get();
+	return WidgetPresenterComponent.Get();
 }
 
-void ULexCanvas::AttachToSceneComponent(USceneComponent* InSceneComp) const
+void ULexCanvas::AttachToWidgetPresenterComponent(ULexWidgetPresenterComponentBase* InSceneComp) const
 {
-	AttachedRootSceneComponent = InSceneComp;
+	WidgetPresenterComponent = InSceneComp;
 }
 
 void ULexCanvas::MarkVisualWillChange(ULexVisual* InOldVisual)
@@ -1448,7 +1449,7 @@ void ULexCanvas::CheckUIMesh()const
 		auto ObjectName = MakeUniqueObjectName(LexWidget, MeshType, FName(*this->GetWidget()->GetDisplayName()));
 		UIMesh = NewObject<ULexUIMeshComponent>(LexWidget, MeshType, ObjectName, RF_Transient);
 		UIMesh->RegisterComponentWithWorld(this->GetWorld());
-		UIMesh->AttachToComponent(this->GetAttachedRootSceneComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		UIMesh->AttachToComponent(this->GetWidgetPresenterComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		UIMesh->SetRelativeTransform(FTransform::Identity);
 		UIMesh->Init(const_cast<ULexCanvas*>(this));
 		bUIMeshNeedToSetInitialParameters = true;
@@ -2693,7 +2694,7 @@ void ULexCanvas::OnEditorTick(float DeltaTime)
 		return;
 	if (this->IsUnreachable())
 		return;
-	if (auto WidgetPresenter = this->GetAttachedRootSceneComponent())
+	if (auto WidgetPresenter = this->GetWidgetPresenterComponent())
 	{
 		if (WidgetPresenter->GetName().Contains(TEXT("SKEL_")) || WidgetPresenter->GetName().Contains(TEXT("TRASH_")))
 			return;

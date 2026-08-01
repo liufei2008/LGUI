@@ -748,8 +748,8 @@ private:
 	 * If Actor's ActorLabel start with "//", then the "//" will be ignored.
 	 * ActorLabel is only valid in editor, but this is also valid on runtime.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = LGUI, Getter, Setter, AdvancedDisplay)
-		FString DisplayName;
+	UPROPERTY(VisibleAnywhere, Category = LGUI, Getter, Setter, BlueprintReadWrite, AdvancedDisplay, meta=(AllowPrivateAccess=true))
+	FString DisplayName;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	FString GetPathDisplayName(const UObject* StopOuter = nullptr)const;

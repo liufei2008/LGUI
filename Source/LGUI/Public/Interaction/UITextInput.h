@@ -333,8 +333,8 @@ protected:
 
 	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
 	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerSelect_Implementation(ULexBaseEventData* EventData) override;
-	virtual bool OnPointerDeselect_Implementation(ULexBaseEventData* EventData) override;
+	virtual bool OnSelect_Implementation(ULexBaseEventData* EventData) override;
+	virtual bool OnDeselect_Implementation(ULexBaseEventData* EventData) override;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData) override;
 	virtual bool OnPointerBeginDrag_Implementation(ULexPointerEventData* EventData) override;
 	virtual bool OnPointerDrag_Implementation(ULexPointerEventData* EventData) override;

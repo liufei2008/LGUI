@@ -231,6 +231,7 @@ public:
 			}
 		}
 	}
+	static ULexWidget* GetEventHandler(ULexWidget* Widget, UClass* InterfaceClass);
 	
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData);
@@ -251,11 +252,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void ExecuteEvent_OnPointerScroll(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void ExecuteEvent_OnPointerDragDrop(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
+		static void ExecuteEvent_OnPointerDrop(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void ExecuteEvent_OnPointerSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
+		static void ExecuteEvent_OnSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void ExecuteEvent_OnPointerDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
+		static void ExecuteEvent_OnDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
 
 	void CallOnPointerEnter(ULexWidget* RootComponent, ULexPointerEventData* EventData);
 	void CallOnPointerExit(ULexWidget* RootComponent, ULexPointerEventData* EventData);
@@ -266,9 +267,9 @@ public:
 	void CallOnPointerDrag(ULexWidget* RootComponent, ULexPointerEventData* EventData);
 	void CallOnPointerEndDrag(ULexWidget* RootComponent, ULexPointerEventData* EventData);
 	void CallOnPointerScroll(ULexWidget* RootComponent, ULexPointerEventData* EventData);
-	void CallOnPointerDragDrop(ULexWidget* RootComponent, ULexPointerEventData* EventData);
-	void CallOnPointerSelect(ULexWidget* RootComponent, ULexBaseEventData* EventData);
-	void CallOnPointerDeselect(ULexWidget* RootComponent, ULexBaseEventData* EventData);
+	void CallOnPointerDrop(ULexWidget* RootComponent, ULexPointerEventData* EventData);
+	void CallOnSelect(ULexWidget* RootComponent, ULexBaseEventData* EventData);
+	void CallOnDeselect(ULexWidget* RootComponent, ULexBaseEventData* EventData);
 	
 	void LogEventData(ULexBaseEventData* EventData);
 };

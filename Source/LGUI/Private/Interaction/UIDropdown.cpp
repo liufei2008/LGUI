@@ -490,7 +490,7 @@ bool UUIDropdown::OnPointerClick_Implementation(ULexPointerEventData* EventData)
 	Show();
 	return AllowEventBubbleUp;
 }
-bool UUIDropdown::OnPointerDeselect_Implementation(ULexBaseEventData* EventData)
+bool UUIDropdown::OnDeselect_Implementation(ULexBaseEventData* EventData)
 {
 	if (IsValid(EventData->SelectedComponent))
 	{

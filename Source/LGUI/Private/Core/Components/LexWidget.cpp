@@ -11,6 +11,7 @@
 #include "Core/Components/LexVisual.h"
 #include "Components/SceneComponent.h"
 #include "Core/LexUIBehaviour.h"
+#include "Core/LexWidgetPresenterComponentBase.h"
 #if WITH_EDITOR
 #include "UObject/UnrealType.h"
 #endif
@@ -501,6 +502,17 @@ void ULexWidget::DestroyWidget()
 			{
 				EndPlayRecursive(Child);
 			}
+			// Mark all sub-objects (Components, Layout, Visual, etc.) as garbage so TWeakObjectPtr/IsValid returns false immediately.
+			TArray<UObject*> SubObjects;
+			GetObjectsWithOuter(Widget, SubObjects, true);
+			for (UObject* SubObj : SubObjects)
+			{
+				if (IsValid(SubObj))
+				{
+					SubObj->MarkAsGarbage();
+				}
+			}
+			Widget->MarkAsGarbage();
 		}
 	};
 	LOCAL::UnregisterRecursive(this);
@@ -944,17 +956,7 @@ void ULexWidget::SetWorldLocationAndRotation(const FVector& InLocation, const FQ
 	}
 	else
 	{
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
-		{
-			auto WorldToParentTransform = WidgetPresenterComponent->GetComponentTransform().Inverse();
-			auto NewPosition = WorldToParentTransform.TransformPosition(InLocation);
-			auto NewRotation = WorldToParentTransform.TransformRotation(InRotation);
-			this->SetRelativeLocationAndRotation(NewPosition, NewRotation);
-		}
-		else
-		{
-			this->SetRelativeLocationAndRotation(InLocation, InRotation);
-		}
+		this->SetRelativeLocationAndRotation(InLocation, InRotation);
 	}
 }
 
@@ -986,14 +988,7 @@ void ULexWidget::SetWorldTransform(const FTransform& InWorldTransform)
 		this->RelativeRotation = LocalTransform.GetRotation();
 		this->RelativeScale = LocalTransform.GetScale3D();
 		
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
-		{
-			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
-		}
-		else
-		{
-			ObjectToWorldTransform = InWorldTransform;
-		}
+		ObjectToWorldTransform = InWorldTransform;
 	}
 	this->MarkTransformChanged();
 }
@@ -1109,14 +1104,7 @@ void ULexWidget::UpdateObjectToWorldTransform()
 	}
 	else
 	{
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
-		{
-			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
-		}
-		else
-		{
-			ObjectToWorldTransform = LocalTransform;
-		}
+		ObjectToWorldTransform = LocalTransform;
 	}
 	this->MarkTransformChanged();
 }
@@ -2701,7 +2689,7 @@ USceneComponent* ULexWidget::GetAttachedRootSceneComponent() const
 {
 	if (auto RootCanvas = GetRootCanvas())
 	{
-		return RootCanvas->GetAttachedRootSceneComponent();
+		return RootCanvas->GetWidgetPresenterComponent();
 	}
 	return nullptr;
 }

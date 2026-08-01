@@ -4,7 +4,7 @@
 
 #include "Event/Interface/LexPointerEnterExitInterface.h"
 #include "Event/Interface/LexPointerDownUpInterface.h"
-#include "Event/Interface/LexPointerSelectDeselectInterface.h"
+#include "Event/Interface/LexSelectDeselectInterface.h"
 #include "Event/Interface/LexNavigationInterface.h"
 #include "Core/LexUIBehaviour.h"
 #include "Core/LexUIImageBrush.h"
@@ -140,7 +140,7 @@ UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUISelectable : public ULexUIBehaviour
 	, public ILexPointerEnterExitInterface
 	, public ILexPointerDownUpInterface
-	, public ILexPointerSelectDeselectInterface
+	, public ILexSelectDeselectInterface
 	, public ILexNavigationInterface
 {
 	GENERATED_BODY()
@@ -369,8 +369,8 @@ protected:
 	virtual void OnPointerExit_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerDown_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerUp_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerSelect_Implementation(ULexBaseEventData* EventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULexBaseEventData* EventData)override;
+	virtual bool OnSelect_Implementation(ULexBaseEventData* EventData)override;
+	virtual bool OnDeselect_Implementation(ULexBaseEventData* EventData)override;
 	virtual bool CanNavigateHere_Implementation() const override;
 	virtual bool OnNavigate_Implementation(ELexUINavigationDirection direction, TScriptInterface<ILexNavigationInterface>& result)override;
 };

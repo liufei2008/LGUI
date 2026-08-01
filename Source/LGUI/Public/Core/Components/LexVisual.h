@@ -138,7 +138,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ELexVisualType GetVisualType()const { return VisualType; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION()
 	FColor GetColor() const { return Color; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
@@ -149,7 +149,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ULexVisualCustomRaycast* GetCustomRaycastObject()const { return CustomRaycastObject; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION()
 	void SetColor(FColor Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetAlpha(float Value);
@@ -162,10 +162,10 @@ public:
 	void SetCustomRaycastObject(ULexVisualCustomRaycast* Value);
 
 	uint8 GetFinalAlpha()const;
-	/** get final alpha, calculated with CanvasGroup's alpha */
+	/** get final alpha, calculated with inherited RenderOpacity */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetFinalAlpha01()const;
-	/** get final color, calculated with CanvasGroup's alpha */
+	/** get final color, calculated with inherited RenderOpacity */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetFinalColor()const;
 

@@ -169,7 +169,7 @@ FString ULexPointerEventData::ToString()const
 	case ELexUIPointerEventType::Scroll:
 		result += TEXT("\n		eventType:Scroll");
 		break;
-	case ELexUIPointerEventType::DragDrop:
+	case ELexUIPointerEventType::Drop:
 		result += TEXT("\n		eventType:DragDrop");
 		break;
 	case ELexUIPointerEventType::Select:

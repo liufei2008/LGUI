@@ -45,10 +45,10 @@ public:
 	virtual ULexUISpriteData_BaseObject* SpriteRenderGetSprite_Implementation()const override;
 	virtual void ApplyAtlasTextureChange_Implementation()override;
 #pragma endregion
-	UFUNCTION(BlueprintCallable, Category = "Image")
+	UFUNCTION()
 	const FLexUIImageBrush& GetBrush()const { return Brush; }
 
-	UFUNCTION(BlueprintCallable, Category = "Image")
+	UFUNCTION()
 	void SetBrush(const FLexUIImageBrush& Value);
 	//If you keep using LexUISpriteData brush in this LexImage, then this function is better performance than SetBrush
 	UFUNCTION(BlueprintCallable, Category = "Image")

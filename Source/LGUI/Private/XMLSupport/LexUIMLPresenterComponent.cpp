@@ -75,7 +75,7 @@ void ULexUIMLPresenterComponent::LoadWidget()
 		LoadedWidget->RemoveComponent(Canvas);
 	}
 	RootCanvas = LoadedWidget->AddComponentByTemplate<ULexCanvas>(CanvasTemplate);
-	RootCanvas->AttachToSceneComponent(this);
+	RootCanvas->AttachToWidgetPresenterComponent(this);
 
 	LoadedWidget->CalculateObjectToWorldTransform(true);
 

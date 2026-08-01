@@ -265,7 +265,10 @@ namespace LexUIPrefabSystem
 					for (int i = 0; i < AllWidgetArray.Num(); i++)
 					{
 						auto& Widget = AllWidgetArray[i];
-						Widget->BeginPlay();
+						if (IsValid(Widget))//widget could be destroyed during Awake, so check it
+						{
+							Widget->BeginPlay();
+						}
 					}
 				}
 			}

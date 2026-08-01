@@ -59,7 +59,7 @@ public:
 		TArray<TObjectPtr<ULexWidget>> EnterWidgetStack;
 	/** a collection that current pointer hovering objects. the top most one stay at index 0 in array. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		TArray<TObjectPtr<ULexWidget>> HoverComponentArray;
+		TArray<TObjectPtr<ULexWidget>> HoverWidgetArray;
 	/** current world space hit point */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector WorldPoint = FVector(0, 0, 0);

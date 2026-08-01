@@ -5,31 +5,31 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Event/LexPointerEventData.h"
-#include "LexPointerDownUpInterface.generated.h"
+#include "LexSelectDeselectInterface.generated.h"
 
 
 UINTERFACE(Blueprintable, MinimalAPI)
-class ULexPointerDownUpInterface : public UInterface
+class ULexSelectDeselectInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 /**
- * Interface for handling LexUI trigger press or release event
+ * Interface for handling LexUI select/deselect event
  */
-class LGUI_API ILexPointerDownUpInterface
+class LGUI_API ILexSelectDeselectInterface
 {
 	GENERATED_BODY()
 public:
 	/**
-	 * Called when a pointer press event occurs.
+	 * Called when LexUI EventSystem select or focus on this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDown(ULexPointerEventData* EventData);
+		bool OnSelect(ULexBaseEventData* EventData);
 	/**
-	 * Called when a pointer release event occurs.
+	 * Called when LexUI EventSystem deselect this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerUp(ULexPointerEventData* EventData);
+		bool OnDeselect(ULexBaseEventData* EventData);
 };

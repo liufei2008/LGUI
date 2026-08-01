@@ -1232,15 +1232,15 @@ void UUITextInput::OnPointerExit_Implementation(ULexPointerEventData* EventData)
 		pc->CurrentMouseCursor = EMouseCursor::Default;
 	}
 }
-bool UUITextInput::OnPointerSelect_Implementation(ULexBaseEventData* EventData)
+bool UUITextInput::OnSelect_Implementation(ULexBaseEventData* EventData)
 {
-	Super::OnPointerSelect_Implementation(EventData);
+	Super::OnSelect_Implementation(EventData);
 	//ActivateInput(EventData);//handled at PointerClick
 	return AllowEventBubbleUp;
 }
-bool UUITextInput::OnPointerDeselect_Implementation(ULexBaseEventData* EventData)
+bool UUITextInput::OnDeselect_Implementation(ULexBaseEventData* EventData)
 {
-	Super::OnPointerDeselect_Implementation(EventData);
+	Super::OnDeselect_Implementation(EventData);
 	DeactivateInput();
 	return AllowEventBubbleUp;
 }

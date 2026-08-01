@@ -19,7 +19,7 @@ enum class ELexUIPointerEventType :uint8
 	Drag = 6,
 	EndDrag = 7,
 	Scroll = 8,
-	DragDrop = 11,
+	Drop = 11,
 	Select = 12,
 	Deselect = 13,
 	Navigate = 14,

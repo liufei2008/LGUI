@@ -11,6 +11,10 @@ UUINavigationInputSelectionHandler::UUINavigationInputSelectionHandler()
 
 void UUINavigationInputSelectionHandler::SelectWidget(ULexWidget* InSelected)
 {
+	if (bIsDestroyPending)
+	{
+		return;
+	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		ReceiveSelectWidget(InSelected);
@@ -32,12 +36,12 @@ void UUINavigationInputSelectionHandler::SelectWidget(ULexWidget* InSelected)
 		Widget->SetParent(InSelected, true);
 		auto Pos2D = InSelected->GetLocalSpaceCenter();
 		auto Pos3D = FVector(0, Pos2D.X, Pos2D.Y);
-		// auto Tweener = ULTweenBPLibrary::LocalPositionTo(Widget, Pos3D, AnimDuration, 0, ELTweenEase::InOutSine);
-		// TweenerCollection.Add(Tweener);
-		// Tweener = Widget->SizeDeltaTo(InSelected->GetSize(), AnimDuration, 0, ELTweenEase::InOutSine);
-		// TweenerCollection.Add(Tweener);
-		// Tweener = ULTweenBPLibrary::LocalRotationQuaternionTo(Widget, FQuat::Identity, AnimDuration, 0, ELTweenEase::InOutSine);
-		// TweenerCollection.Add(Tweener);
+		auto Tweener = Widget->LocalPositionTo(Pos3D, AnimDuration, 0, ELTweenEase::InOutSine);
+		TweenerCollection.Add(Tweener);
+		Tweener = Widget->SizeDeltaTo(InSelected->GetSize(), AnimDuration, 0, ELTweenEase::InOutSine);
+		TweenerCollection.Add(Tweener);
+		Tweener = Widget->LocalRotationQuaternionTo(FQuat::Identity, AnimDuration, 0, ELTweenEase::InOutSine);
+		TweenerCollection.Add(Tweener);
 
 		if (ThisCanvas.IsValid())
 		{
@@ -78,6 +82,9 @@ void UUINavigationInputSelectionHandler::SelectNone()
 	if (!Widget)return;
 	if (!CurrentSelected.IsValid())return;
 
+	// Mark as pending destroy to prevent any further SelectWidget() calls
+	bIsDestroyPending = true;
+
 	for (auto& Tweener : TweenerCollection)
 	{
 		ULTweenBPLibrary::KillIfIsTweening(this, Tweener.Get());
@@ -87,7 +94,10 @@ void UUINavigationInputSelectionHandler::SelectNone()
 	auto Tweener = Widget->RenderOpacityTo(0.0f, AnimDuration, 0, ELTweenEase::Linear)
 	->OnComplete([=, this]()
 	{
-		this->GetWidget()->DestroyWidget();
+		if (auto W = this->GetWidget())
+		{
+			W->DestroyWidget();
+		}
 	});
 	TweenerCollection.Add(Tweener);
 	CurrentSelected = nullptr;

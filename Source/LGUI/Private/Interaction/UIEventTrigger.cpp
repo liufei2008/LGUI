@@ -56,7 +56,7 @@ bool UUIEventTrigger::OnPointerEndDrag_Implementation(ULexPointerEventData* Even
 	OnPointerEndDragED.FireEvent(EventData);
 	return AllowEventBubbleUp;
 }
-bool UUIEventTrigger::OnPointerDragDrop_Implementation(ULexPointerEventData* EventData)
+bool UUIEventTrigger::OnPointerDrop_Implementation(ULexPointerEventData* EventData)
 {
 	OnPointerDragDropCPP.Broadcast(EventData);
 	OnPointerDragDrop.Broadcast(EventData);
@@ -70,17 +70,17 @@ bool UUIEventTrigger::OnPointerScroll_Implementation(ULexPointerEventData* Event
 	OnPointerScrollED.FireEvent(EventData);
 	return AllowEventBubbleUp;
 }
-bool UUIEventTrigger::OnPointerSelect_Implementation(ULexBaseEventData* EventData)
+bool UUIEventTrigger::OnSelect_Implementation(ULexBaseEventData* EventData)
 {
-	OnPointerSelectCPP.Broadcast(EventData);
-	OnPointerSelect.Broadcast(EventData);
-	OnPointerSelectED.FireEvent(EventData);
+	OnSelectCPP.Broadcast(EventData);
+	OnSelect.Broadcast(EventData);
+	OnSelectED.FireEvent(EventData);
 	return AllowEventBubbleUp;
 }
-bool UUIEventTrigger::OnPointerDeselect_Implementation(ULexBaseEventData* EventData)
+bool UUIEventTrigger::OnDeselect_Implementation(ULexBaseEventData* EventData)
 {
-	OnPointerDeselectCPP.Broadcast(EventData);
-	OnPointerDeselect.Broadcast(EventData);
-	OnPointerDeselectED.FireEvent(EventData);
+	OnDeselectCPP.Broadcast(EventData);
+	OnDeselect.Broadcast(EventData);
+	OnDeselectED.FireEvent(EventData);
 	return AllowEventBubbleUp;
 }

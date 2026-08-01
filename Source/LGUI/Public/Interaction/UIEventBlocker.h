@@ -6,9 +6,9 @@
 #include "Event/Interface/LexPointerDownUpInterface.h"
 #include "Event/Interface/LexPointerClickInterface.h"
 #include "Event/Interface/LexPointerDragInterface.h"
-#include "Event/Interface/LexPointerDragDropInterface.h"
+#include "Event/Interface/LexPointerDropInterface.h"
 #include "Event/Interface/LexPointerScrollInterface.h"
-#include "Event/Interface/LexPointerSelectDeselectInterface.h"
+#include "Event/Interface/LexSelectDeselectInterface.h"
 #include "Core/LexUIBehaviour.h"
 #include "UIEventBlocker.generated.h"
 
@@ -19,9 +19,9 @@ class LGUI_API UUIEventBlocker : public ULexUIBehaviour
 	, public ILexPointerDownUpInterface
 	, public ILexPointerClickInterface
 	, public ILexPointerDragInterface
-	, public ILexPointerDragDropInterface
+	, public ILexPointerDropInterface
 	, public ILexPointerScrollInterface
-	, public ILexPointerSelectDeselectInterface
+	, public ILexSelectDeselectInterface
 {
 	GENERATED_BODY()
 protected:
@@ -34,8 +34,8 @@ protected:
 	virtual bool OnPointerBeginDrag_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerDrag_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerDragDrop_Implementation(ULexPointerEventData* EventData)override;
+	virtual bool OnPointerDrop_Implementation(ULexPointerEventData* EventData)override;
 	virtual bool OnPointerScroll_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerSelect_Implementation(ULexBaseEventData* EventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULexBaseEventData* EventData)override;
+	virtual bool OnSelect_Implementation(ULexBaseEventData* EventData)override;
+	virtual bool OnDeselect_Implementation(ULexBaseEventData* EventData)override;
 };

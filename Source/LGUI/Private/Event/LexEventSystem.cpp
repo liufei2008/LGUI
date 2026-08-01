@@ -6,8 +6,8 @@
 #include "Event/Interface/LexPointerDownUpInterface.h"
 #include "Event/Interface/LexPointerDragInterface.h"
 #include "Event/Interface/LexPointerScrollInterface.h"
-#include "Event/Interface/LexPointerDragDropInterface.h"
-#include "Event/Interface/LexPointerSelectDeselectInterface.h"
+#include "Event/Interface/LexPointerDropInterface.h"
+#include "Event/Interface/LexSelectDeselectInterface.h"
 #include "Core/LexUIManager.h"
 #include "Event/LexPointerEventData.h"
 #include "Event/InputModule/LexBaseInputModule.h"
@@ -192,11 +192,11 @@ void ULexEventSystem::SetSelectWidget(ULexWidget* InSelectWidget, ULexBaseEventD
 		EventData->SelectedComponent = InSelectWidget;
 		if (IsValid(oldSelectedComp))
 		{
-			CallOnPointerDeselect(oldSelectedComp, EventData);
+			CallOnDeselect(oldSelectedComp, EventData);
 		}
 		if (IsValid(EventData->SelectedComponent))
 		{
-			CallOnPointerSelect(EventData->SelectedComponent, EventData);
+			CallOnSelect(EventData->SelectedComponent, EventData);
 		}
 	}
 }
@@ -215,11 +215,11 @@ void ULexEventSystem::SetSelectWidget(ULexEventSystem* InEventSystem, ULexWidget
 			EventData->SelectedComponent = InSelectWidget;
 			if (IsValid(oldSelectedComp))
 			{
-				ExecuteEvent_OnPointerDeselect(oldSelectedComp, EventData, false);
+				ExecuteEvent_OnDeselect(oldSelectedComp, EventData, false);
 			}
 			if (IsValid(EventData->SelectedComponent))
 			{
-				ExecuteEvent_OnPointerSelect(EventData->SelectedComponent, EventData, false);
+				ExecuteEvent_OnSelect(EventData->SelectedComponent, EventData, false);
 			}
 		}
 	}
@@ -246,6 +246,20 @@ void ULexEventSystem::LogEventData(ULexBaseEventData* inEventData)
 	if (bOutputLog == false)return;
 	UE_LOG(LGUI, Log, TEXT("%s"), *inEventData->ToString());
 #endif
+}
+
+ULexWidget* ULexEventSystem::GetEventHandler(ULexWidget* Widget, UClass* InterfaceClass)
+{
+	auto ParentWidget = Widget;
+	while (ParentWidget != nullptr)
+	{
+		if (ParentWidget->GetComponentByInterface(InterfaceClass))
+		{
+			return ParentWidget;
+		}
+		ParentWidget = ParentWidget->GetParent();
+	}
+	return nullptr;
 }
 
 #pragma region CallEvent
@@ -327,29 +341,29 @@ void ULexEventSystem::ExecuteEvent_OnPointerScroll(ULexWidget* TargetWidget, ULe
 		ULexPointerScrollInterface::StaticClass(),
 		ILexPointerScrollInterface::Execute_OnPointerScroll, AllowEventBubbleUp);
 }
-void ULexEventSystem::ExecuteEvent_OnPointerDragDrop(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp)
+void ULexEventSystem::ExecuteEvent_OnPointerDrop(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp)
 {
-	PointerEventData->EventType = ELexUIPointerEventType::DragDrop; 
+	PointerEventData->EventType = ELexUIPointerEventType::Drop; 
 	ExecuteLexUIInterface(TargetWidget,
 		PointerEventData,
-		ULexPointerDragDropInterface::StaticClass(),
-		ILexPointerDragDropInterface::Execute_OnPointerDragDrop, AllowEventBubbleUp);
+		ULexPointerDropInterface::StaticClass(),
+		ILexPointerDropInterface::Execute_OnPointerDrop, AllowEventBubbleUp);
 }
-void ULexEventSystem::ExecuteEvent_OnPointerSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp)
+void ULexEventSystem::ExecuteEvent_OnSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp)
 {
 	EventData->EventType = ELexUIPointerEventType::Select; 
 	ExecuteLexUIInterface(TargetWidget,
 		EventData,
-		ULexPointerSelectDeselectInterface::StaticClass(),
-		ILexPointerSelectDeselectInterface::Execute_OnPointerSelect, AllowEventBubbleUp);
+		ULexSelectDeselectInterface::StaticClass(),
+		ILexSelectDeselectInterface::Execute_OnSelect, AllowEventBubbleUp);
 }
-void ULexEventSystem::ExecuteEvent_OnPointerDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp)
+void ULexEventSystem::ExecuteEvent_OnDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp)
 {
 	EventData->EventType = ELexUIPointerEventType::Deselect; 
 	ExecuteLexUIInterface(TargetWidget,
 		EventData,
-		ULexPointerSelectDeselectInterface::StaticClass(),
-		ILexPointerSelectDeselectInterface::Execute_OnPointerDeselect, AllowEventBubbleUp);
+		ULexSelectDeselectInterface::StaticClass(),
+		ILexSelectDeselectInterface::Execute_OnDeselect, AllowEventBubbleUp);
 }
 
 
@@ -417,25 +431,25 @@ void ULexEventSystem::CallOnPointerScroll(ULexWidget* TargetWidget, ULexPointerE
 	InputEventBP.Broadcast(EventData);
 }
 
-void ULexEventSystem::CallOnPointerDragDrop(ULexWidget* TargetWidget, ULexPointerEventData* EventData)
+void ULexEventSystem::CallOnPointerDrop(ULexWidget* TargetWidget, ULexPointerEventData* EventData)
 {
 	LogEventData(EventData);
-	ExecuteEvent_OnPointerDragDrop(TargetWidget, EventData, true);
+	ExecuteEvent_OnPointerDrop(TargetWidget, EventData, true);
 	InputEvent.Broadcast(EventData);
 	InputEventBP.Broadcast(EventData);
 }
 
-void ULexEventSystem::CallOnPointerSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData)
+void ULexEventSystem::CallOnSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData)
 {
 	LogEventData(EventData);
-	ExecuteEvent_OnPointerSelect(TargetWidget, EventData, false);
+	ExecuteEvent_OnSelect(TargetWidget, EventData, false);
 	InputEvent.Broadcast(EventData);
 	InputEventBP.Broadcast(EventData);
 }
-void ULexEventSystem::CallOnPointerDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData)
+void ULexEventSystem::CallOnDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData)
 {
 	LogEventData(EventData);
-	ExecuteEvent_OnPointerDeselect(TargetWidget, EventData, false);
+	ExecuteEvent_OnDeselect(TargetWidget, EventData, false);
 	InputEvent.Broadcast(EventData);
 	InputEventBP.Broadcast(EventData);
 }

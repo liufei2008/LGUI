@@ -29,6 +29,7 @@
 #include "DragAndDrop/AssetDragDropOp.h"
 #include "DragAndDrop/DecoratedDragDropOp.h"
 #include "Engine/Blueprint.h"
+#include "Engine/Engine.h"
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SComboButton.h"
@@ -108,6 +109,16 @@ public:
 			FGenericCommands::Get().Delete,
 			FExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::HandleRemoveSelectedComponents),
 			FCanExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::CanRemoveSelectedComponents)
+		);
+		CommandList->MapAction(
+			FGenericCommands::Get().Copy,
+			FExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::HandleCopySelectedComponent),
+			FCanExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::CanCopySelectedComponent)
+		);
+		CommandList->MapAction(
+			FGenericCommands::Get().Paste,
+			FExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::HandlePasteComponent),
+			FCanExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::CanPasteComponent)
 		);
 		
 		GetWidgetContext = InArgs._GetWidgetContext;
@@ -556,13 +567,20 @@ private:
 		MenuBuilder.BeginSection(NAME_None, LOCTEXT("EditComponent", "EDIT"));
 		MenuBuilder.PushCommandList(CommandList.ToSharedRef());
 		{
-			// MenuBuilder.AddMenuEntry(FGenericCommands::Get().Copy);
-			// MenuBuilder.AddMenuEntry(FGenericCommands::Get().Paste);
-			// MenuBuilder.AddMenuEntry(FGenericCommands::Get().Cut);
-			// MenuBuilder.AddMenuEntry(FGenericCommands::Get().Duplicate);
+			MenuBuilder.AddMenuEntry(FGenericCommands::Get().Copy);
+			MenuBuilder.AddMenuEntry(FGenericCommands::Get().Paste);
 			MenuBuilder.AddMenuEntry(FGenericCommands::Get().Delete);
 		}
 		MenuBuilder.PopCommandList();
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("PasteProperties", "Paste Properties"),
+			LOCTEXT("PasteProperties_Tooltip", "Paste copied component properties onto the selected component"),
+			FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::HandlePasteProperties),
+				FCanExecuteAction::CreateSP(this, &SLexWidgetComponentEditor::CanPasteProperties)
+			)
+		);
 		MenuBuilder.EndSection();
 
 		MenuBuilder.BeginSection(NAME_None, LOCTEXT("ComponentAsset", "ASSET"));
@@ -770,6 +788,149 @@ private:
 		ClearSelection();
 	}
 
+	void HandleCopySelectedComponent()
+	{
+		TArray<FLexWidgetComponentItem> SelectedItems;
+		if (ComponentListView.IsValid())
+		{
+			ComponentListView->GetSelectedItems(SelectedItems);
+		}
+		if (SelectedItems.Num() > 0 && SelectedItems[0].IsValid())
+		{
+			ULexUIBehaviour* SelectedComponent = SelectedItems[0].Get();
+			CopiedComponentClass = SelectedComponent->GetClass();
+
+			// Clean up old template
+			if (CopiedComponentTemplate)
+			{
+				CopiedComponentTemplate->MarkAsGarbage();
+				CopiedComponentTemplate = nullptr;
+			}
+
+			// Create a transient template to hold the copied properties
+			CopiedComponentTemplate = NewObject<ULexUIBehaviour>(
+				GetTransientPackage(),
+				CopiedComponentClass,
+				NAME_None,
+				RF_Transient | RF_ArchetypeObject | RF_Transactional
+			);
+			if (CopiedComponentTemplate)
+			{
+				UEngine::CopyPropertiesForUnrelatedObjects(SelectedComponent, CopiedComponentTemplate);
+			}
+		}
+	}
+
+	bool CanCopySelectedComponent() const
+	{
+		if (!ComponentListView.IsValid())
+		{
+			return false;
+		}
+		TArray<FLexWidgetComponentItem> SelectedItems;
+		ComponentListView->GetSelectedItems(SelectedItems);
+		return SelectedItems.Num() > 0 && SelectedItems[0].IsValid();
+	}
+
+	void HandlePasteComponent()
+	{
+		ULexWidget* Widget = GetCurrentWidget();
+		if (!CanAddOrRemoveComponent() || !IsValid(Widget) || CopiedComponentClass == nullptr || CopiedComponentTemplate == nullptr)
+		{
+			return;
+		}
+
+		const FScopedTransaction Transaction(LOCTEXT("PasteLexWidgetComponent_Transaction", "Paste LexUI Component"));
+		if (UObject* WidgetOuter = Widget->GetOuter())
+		{
+			WidgetOuter->SetFlags(RF_Transactional);
+			WidgetOuter->Modify();
+		}
+		Widget->SetFlags(RF_Transactional);
+		Widget->Modify();
+		auto PrefabEditor = FLexUIPrefabEditor::GetEditorByWorld(Widget->GetWorld());
+		if (PrefabEditor.IsValid())
+		{
+			PrefabEditor.Pin()->GetPrefabHelperObject()->SetAnythingDirty();
+		}
+
+		ULexUIBehaviour* NewComponent = Widget->AddComponent(CopiedComponentClass);
+		if (!IsValid(NewComponent))
+		{
+			return;
+		}
+
+		NewComponent->SetFlags(RF_Transactional);
+		NewComponent->Modify();
+
+		// Copy properties from the template
+		UEngine::CopyPropertiesForUnrelatedObjects(CopiedComponentTemplate, NewComponent);
+
+		Widget->OnUnregister();
+		Widget->OnRegister();
+		FLexUIUtils::NotifyPropertyChanged(Widget, ULexWidget::GetPropertyName_Components());
+
+		RefreshComponents();
+		SelectComponent(NewComponent);
+	}
+
+	bool CanPasteComponent() const
+	{
+		return CanAddOrRemoveComponent() && CopiedComponentClass != nullptr && CopiedComponentTemplate != nullptr;
+	}
+
+	void HandlePasteProperties()
+	{
+		TArray<FLexWidgetComponentItem> SelectedItems;
+		if (ComponentListView.IsValid())
+		{
+			ComponentListView->GetSelectedItems(SelectedItems);
+		}
+		if (SelectedItems.Num() == 0 || !SelectedItems[0].IsValid() || CopiedComponentTemplate == nullptr)
+		{
+			return;
+		}
+
+		ULexUIBehaviour* TargetComponent = SelectedItems[0].Get();
+		if (!CanAddOrRemoveComponent())
+		{
+			return;
+		}
+
+		const FScopedTransaction Transaction(LOCTEXT("PasteProperties_Transaction", "Paste Component Properties"));
+		TargetComponent->SetFlags(RF_Transactional);
+		TargetComponent->Modify();
+
+		UEngine::CopyPropertiesForUnrelatedObjects(CopiedComponentTemplate, TargetComponent);
+
+		if (ULexWidget* Widget = GetCurrentWidget())
+		{
+			FLexUIUtils::NotifyPropertyChanged(Widget, ULexWidget::GetPropertyName_Components());
+		}
+	}
+
+	bool CanPasteProperties() const
+	{
+		if (CopiedComponentTemplate == nullptr || CopiedComponentClass == nullptr)
+		{
+			return false;
+		}
+
+		TArray<FLexWidgetComponentItem> SelectedItems;
+		if (ComponentListView.IsValid())
+		{
+			ComponentListView->GetSelectedItems(SelectedItems);
+		}
+		if (SelectedItems.Num() == 0 || !SelectedItems[0].IsValid())
+		{
+			return false;
+		}
+
+		// Both must be ULexUIBehaviour subclasses - CopyPropertiesForUnrelatedObjects handles property matching
+		UClass* TargetClass = SelectedItems[0]->GetClass();
+		return TargetClass && TargetClass->IsChildOf(ULexUIBehaviour::StaticClass());
+	}
+
 	static FText GetComponentText(const ULexUIBehaviour* InComponent)
 	{
 		if (!IsValid(InComponent))
@@ -795,7 +956,12 @@ private:
 	TSharedPtr<SWidget> ToolbarWidget;
 	TSharedPtr<SListView<FLexWidgetComponentItem>> ComponentListView;
 	TSharedPtr<FUICommandList> CommandList;
+	static UClass* CopiedComponentClass;
+	static ULexUIBehaviour* CopiedComponentTemplate;
 };
+
+UClass* SLexWidgetComponentEditor::CopiedComponentClass = nullptr;
+ULexUIBehaviour* SLexWidgetComponentEditor::CopiedComponentTemplate = nullptr;
 
 void SLexUIPrefabEditorDetails::Construct(const FArguments& Args, UWorld* InWorld)
 {

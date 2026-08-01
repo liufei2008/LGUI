@@ -117,7 +117,7 @@ protected:
 	TWeakObjectPtr<ULexWidget> BlockerWidget;
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<class UUIDropdownItemComponent>> CreatedItemArray;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULexBaseEventData* EventData)override;
+	virtual bool OnDeselect_Implementation(ULexBaseEventData* EventData)override;
 	void OnSelectItem(int Index);
 	void ApplyValueToVisual();
 	virtual void CreateBlocker();
