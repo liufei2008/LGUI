@@ -74,26 +74,10 @@ public:
 	static FLTweenManagerCreated OnLTweenManagerCreated;
 private:
 	/** current active tweener collection*/
-	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> tweenerList;
+	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TObjectPtr<ULTweener>> TweenerList;
 	void OnTick(ELTweenTickType TickType, float DeltaTime, float UnscaledDeltaTime);
-	FLTweenUpdateMulticastDelegate updateEvent;
-	bool bTickPaused = false;
+	FLTweenUpdateMulticastDelegate UpdateEvent;
 public:
-	UE_DEPRECATED(5.1, "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick.")
-	/**
-	 * Disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
-	 * This will only pause the tick with current LTweenManager instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
-	 */ 
-	UFUNCTION(BlueprintCallable, Category = LTween, meta = (DeprecatedFunction, DeprecationMessage = "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick."))
-	void DisableTick();
-	UE_DEPRECATED(5.1, "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick.")
-	/**
-	 * Enable default Tick if it is disabled.
-	 */
-	UFUNCTION(BlueprintCallable, Category = LTween, meta = (DeprecatedFunction, DeprecationMessage = "Use Tweener->SetTickType(ELTweenTickType::Manual) then call this->ManualTick."))
-	void EnableTick();
-
-
 	UFUNCTION(BlueprintCallable, Category = LTween)
 	void ManualTick(float DeltaTime);
 
@@ -101,15 +85,23 @@ public:
 	 * Kill all tweens
 	 */
 	UFUNCTION(BlueprintCallable, Category = LTween)
-	void KillAllTweens(bool callComplete = false);
-
+	void KillAllTweens(bool bCallComplete = false);
 	/**
 	 * Kill all tween animations created on TargetObject
 	 * @param TargetObject The object which contains the tweener
-	 * @param callComplete true- execute onComplete event.
+	 * @param bCallComplete true: execute onComplete event.
+	 * @return The number of tweens killed.
 	 */
 	UFUNCTION(BlueprintCallable, Category = LTween)
-	static void KillAllTweensOnTarget(UObject* WorldContextObject, UObject* TargetObject, bool callComplete = false);
+	static int KillAllTweensOnTarget(UObject* WorldContextObject, UObject* TargetObject, bool bCallComplete = false);
+	/**
+	 * Kill all tween animations with specific Id
+	 * @param Id The Id of the tweener
+	 * @param bCallComplete true: execute onComplete event.
+	 * @return The number of tweens killed.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LTween)
+	static int KillAllTweensById(UObject* WorldContextObject, int32 Id, bool bCallComplete = false);
 
 	/**
 	 * Is the tweener is currently tweening? 

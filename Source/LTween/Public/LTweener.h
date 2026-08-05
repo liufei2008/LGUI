@@ -156,6 +156,8 @@ protected:
 	int32 loopCycleCount = 0;
 	/** how this tween update */
 	ELTweenTickType tickType = ELTweenTickType::DuringPhysics;
+	/** id for this tween */
+	int32 id = -1;
 
 	/** reverse animation */
 	bool reverseTween = false;
@@ -346,6 +348,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 	ULTweener* SetRuntimeFloatCurve(const FRuntimeFloatCurve& Value);
 	/**
+	 * Called by LTweenManager.
 	 * @return false: the tween is complete and need to be killed. true: the tween is still processing.
 	 */
 	virtual bool ToNext(float deltaTime, float unscaledDeltaTime);
@@ -412,6 +415,13 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetTickType(ELTweenTickType value = ELTweenTickType::DuringPhysics);
+	/**
+	 * Set Id of this tween, which can then be used as a filter.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+	ULTweener* SetId(int32 value) { id = value; return this; }
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+	int32 GetId()const { return id; }
 protected:
 	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
