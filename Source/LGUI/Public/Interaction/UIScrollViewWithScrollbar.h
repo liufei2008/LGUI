@@ -10,6 +10,8 @@ class UUIScrollbar;
 UENUM(BlueprintType, Category = LGUI)
 enum class ELexUIScrollViewScrollbarVisibility :uint8
 {
+	//Not control scrollbar's visibility
+	None,
 	//Always visible.
 	Permanent,
 	//Auto hide scrollbar when content's size less than viewport's size.

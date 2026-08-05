@@ -73,27 +73,21 @@ protected:
 	bool bIsLayoutDirty = false;
 };
 
-USTRUCT(BlueprintType)
 struct FLayoutAnimationSnapshotData
 {
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
 	TObjectPtr<ULexWidget> Widget = nullptr;
-	UPROPERTY(EditAnywhere)
 	FVector2D Position;
-	UPROPERTY(EditAnywhere)
 	FVector2D Size;
 };
 
-UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
+UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULexLayoutAnimation : public UObject
 {
 	GENERATED_BODY()
 public:
 	ULexLayoutAnimation();
 
-	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray);
+	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, int32 TweenId);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ULexLayoutContainer* GetLayoutContainer()const;
@@ -102,8 +96,21 @@ private:
 	mutable TObjectPtr<ULexLayoutContainer> OwnerLayoutContainer;
 	bool bCanExecuteBlueprintEvent;
 protected:
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnApplyLayoutResults"), Category = "LayoutContainer")
-	void ReceiveOnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, TArray<ULTweener*>& ResultTweenerArray);
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
+	static ULTweener* AnimPosition2D(ULexWidget* Widget, FVector2D StartPosition, FVector2D EndPosition, float Duration = 0.3f, float Delay = 0.0f, ELTweenEase Ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
+	static ULTweener* AnimSize(ULexWidget* Widget, FVector2D StartSize, FVector2D EndSize, float Duration = 0.3f, float Delay = 0.0f, ELTweenEase Ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
+	static ULTweener* AnimScale(ULexWidget* Widget, FVector StartScale, FVector EndScale, float Duration = 0.3f, float Delay = 0.0f, ELTweenEase Ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
+	static ULTweener* AnimRotation(ULexWidget* Widget, FRotator StartRotation, FRotator EndRotation, float Duration = 0.3f, float Delay = 0.0f, ELTweenEase Ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
+	static ULTweener* AnimRenderOpacity(ULexWidget* Widget, float StartOpacity, float EndOpacity, float Duration = 0.3f, float Delay = 0.0f, ELTweenEase Ease = ELTweenEase::OutCubic);
+	
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnApplyLayoutResultForChildWidget"), Category = "LayoutContainer")
+	void ReceiveOnApplyLayoutResultForChildWidget(int ChildIndex, ULexWidget* ChildWidget, FVector2D StartPosition, FVector2D StartSize, int32 TweenId);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnApplyLayoutResultForSelfWidget"), Category = "LayoutContainer")
+	void ReceiveOnApplyLayoutResultForSelfWidget(ULexWidget* SelfWidget, FVector2D StartPosition, FVector2D StartSize, int32 TweenId);
 };
 
 UCLASS(BlueprintType)
@@ -118,29 +125,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "LayoutContainer", meta = (EditCondition = "Ease==ELTweenEase::CurveFloat"))
 	FRuntimeFloatCurve EaseCurve;
 public:
-	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray) override;
-};
-
-UCLASS(BlueprintType)
-class LGUI_API ULexLayoutAnimation_SlideIn : public ULexLayoutAnimation
-{
-	GENERATED_BODY()
-private:
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
-	float Duration = 0.3f;
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
-	ELTweenEase Ease = ELTweenEase::OutCubic;
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer", meta = (EditCondition = "Ease==ELTweenEase::CurveFloat"))
-	FRuntimeFloatCurve EaseCurve;
-	
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
-	float OpacityOffset = 0;
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
-	FVector2D PositionOffset = FVector2D(100, 0);
-	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
-	FVector2D SizeOffset = FVector2D(0, 0);
-public:
-	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray) override;
+	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, int32 TweenId) override;
 };
 
 /**
@@ -153,17 +138,26 @@ class LGUI_API ULexLayoutContainer : public ULexLayout
 public:
 	ULexLayoutContainer();
 protected:
+	/**
+	 * If true, the layout will be animated when children position or size changed,
+	 * and also the layout container self will be animated if parent don't use layout animation.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LayoutContainer")
 	bool bUseAnimation = false;
+	/**
+	 * If true, the layout will skip the initial layout animation when the widget is first created.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LayoutContainer", meta = (EditCondition = "bUseAnimation"))
+	bool bSkipAnimationForInitialLayout = true;
 	UPROPERTY(EditAnywhere, Instanced, Category = "LayoutContainer", meta = (EditCondition = "bUseAnimation"))
 	TObjectPtr<ULexLayoutAnimation> AnimationHandler;
 
 	//position and size snapshot before layout calculation
 	TArray<FLayoutAnimationSnapshotData> LayoutAnimSnapshotDataArray;
-	TArray<TWeakObjectPtr<ULTweener>> LayoutAnimTweenerArray;
 
 	void RefreshChildren();
 	UPROPERTY(Transient)TArray<ULexWidget*> Children;
+	bool bIsInitialLayout = true;
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -1066,7 +1066,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 	{
 		bIsExecutingLayout = true;
 		int LayoutCalcCount = 0;
-#if WITH_EDITOR
+#if LEXUI_LAYOUT_DEBUG
 		const double Time = FPlatformTime::Seconds();
 		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
 #endif
@@ -1089,7 +1089,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 		{
 			SnapshotLayout->ApplyLayoutResult();
 		}
-#if WITH_EDITOR
+#if LEXUI_LAYOUT_DEBUG
 		for (auto& CalcCountKeyValue : LayoutCalculationCounterMap)
 		{
 			if (CalcCountKeyValue.Value >= 2)
@@ -1581,7 +1581,7 @@ void ULexUIManagerWorldSubsystem::RebuildLayoutImmediately(ULexWidget* InWidget)
 	}
 }
 
-#if WITH_EDITOR
+#if LEXUI_LAYOUT_DEBUG
 int ULexUIManagerWorldSubsystem::IncreateLayoutCalculationCounter(const FString& InPathName)
 {
 	if (auto CounterPtr = LayoutCalculationCounterMap.Find(InPathName))

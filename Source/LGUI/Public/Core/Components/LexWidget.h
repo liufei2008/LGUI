@@ -503,11 +503,8 @@ public:
 	void MarkAnchorDataChanged_Recursive(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
 	virtual void MarkCanvasUpdate(bool bRebuildDrawCall)const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetPositionAndSizeForLayoutAnimation(FVector2D Position, FVector2D Size);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetPositionForLayoutAnimation(FVector2D Position);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetSizeForLayoutAnimation(FVector2D Position);
 	void MarkAnchorDataChangedByLayoutContainer_Recursive(bool InPivotChanged, bool InWidthChanged, bool InHeightChanged, bool InDiscardCache = true, bool InPropagateToChildren = true);
 private:

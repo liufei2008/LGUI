@@ -211,6 +211,7 @@ TOptional<EItemDropZone> ProcessHierarchyDragDrop(const FDragDropEvent& DragDrop
 					{
 						TemplateWidget->SetParent(NewParent, true);
 					}
+					FLexUIUtils::NotifyPropertyChanged(TemplateWidget, ULexWidget::GetPropertyName_SiblingIndex());
 				}
 			}
 

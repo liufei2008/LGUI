@@ -4,6 +4,11 @@
 #include "LTweenManager.h"
 #include "Core/Components/LexWidget.h"
 
+UUIScrollViewHelper::UUIScrollViewHelper()
+{
+    bStartWithTickEnabled = false;
+}
+
 void UUIScrollViewHelper::Awake()
 {
     Super::Awake();

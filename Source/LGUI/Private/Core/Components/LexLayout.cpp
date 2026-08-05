@@ -18,16 +18,22 @@ ULexLayoutAnimation::ULexLayoutAnimation()
 	bCanExecuteBlueprintEvent = GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native);
 }
 
-void ULexLayoutAnimation::OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray,
-	TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray)
+void ULexLayoutAnimation::OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, int32 TweenId)
 {
 	if (bCanExecuteBlueprintEvent)
 	{
-		TArray<ULTweener*> TempResultTweenerArray;
-		ReceiveOnApplyLayoutResults(SnapshotDataArray, TempResultTweenerArray);
-		for (auto& Tweener : TempResultTweenerArray)
+		auto LayoutContainer = GetLayoutContainer();
+		for (int i = 0; i < SnapshotDataArray.Num(); i++)
 		{
-			ResultTweenerArray.Add(Tweener);
+			auto& SnapshotData = SnapshotDataArray[i];
+			if (SnapshotData.Widget == LayoutContainer->GetWidget())
+			{
+				ReceiveOnApplyLayoutResultForSelfWidget(SnapshotData.Widget, SnapshotData.Position, SnapshotData.Size, TweenId);
+			}
+			else
+			{
+				ReceiveOnApplyLayoutResultForChildWidget(i, SnapshotData.Widget, SnapshotData.Position, SnapshotData.Size, TweenId);
+			}
 		}
 	}
 }
@@ -41,7 +47,86 @@ ULexLayoutContainer* ULexLayoutAnimation::GetLayoutContainer()const
 	return OwnerLayoutContainer;
 }
 
-void ULexLayoutAnimation_CommonTween::OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray)
+ULTweener* ULexLayoutAnimation::AnimPosition2D(ULexWidget* Widget, FVector2D StartPosition, FVector2D EndPosition, float Duration, float Delay, ELTweenEase Ease)
+{
+	Widget->SetPositionForLayoutAnimation(StartPosition);
+	auto Tweener = ULTweenManager::To(Widget
+		, FLTweenFloatGetterFunction::CreateLambda([=]()
+		{
+			return 0;
+		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
+		{
+			auto Pos = FMath::Lerp(StartPosition, EndPosition, Value);
+			Widget->SetPositionForLayoutAnimation(Pos);
+		}), 1.0f, Duration)
+	->SetDelay(Delay)->SetEase(Ease);
+	return Tweener;
+}
+
+ULTweener* ULexLayoutAnimation::AnimSize(ULexWidget* Widget, FVector2D StartSize, FVector2D EndSize, float Duration, float Delay, ELTweenEase Ease)
+{
+	Widget->SetSizeForLayoutAnimation(StartSize);
+	auto Tweener = ULTweenManager::To(Widget
+		, FLTweenFloatGetterFunction::CreateLambda([=]()
+		{
+			return 0;
+		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
+		{
+			auto Size = FMath::Lerp(StartSize, EndSize, Value);
+			Widget->SetSizeForLayoutAnimation(Size);
+		}), 1.0f, Duration)
+	->SetDelay(Delay)->SetEase(Ease);
+	return Tweener;
+}
+
+ULTweener* ULexLayoutAnimation::AnimScale(ULexWidget* Widget, FVector StartScale, FVector EndScale, float Duration, float Delay, ELTweenEase Ease)
+{
+	Widget->SetRelativeScale(StartScale);
+	auto Tweener = ULTweenManager::To(Widget
+		, FLTweenFloatGetterFunction::CreateLambda([=]()
+		{
+			return 0;
+		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
+		{
+			auto Scale = FMath::Lerp(StartScale, EndScale, Value);
+			Widget->SetRelativeScale(Scale);
+		}), 1.0f, Duration)
+	->SetDelay(Delay)->SetEase(Ease);
+	return Tweener;
+}
+
+ULTweener* ULexLayoutAnimation::AnimRotation(ULexWidget* Widget, FRotator StartRotation, FRotator EndRotation, float Duration, float Delay, ELTweenEase Ease)
+{
+	Widget->SetRelativeRotation(StartRotation.Quaternion());
+	auto Tweener = ULTweenManager::To(Widget
+		, FLTweenFloatGetterFunction::CreateLambda([=]()
+		{
+			return 0;
+		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
+		{
+			auto Rotator = FMath::Lerp(StartRotation, EndRotation, Value);
+			Widget->SetRelativeRotation(Rotator.Quaternion());
+		}), 1.0f, Duration)
+	->SetDelay(Delay)->SetEase(Ease);
+	return Tweener;
+}
+
+ULTweener* ULexLayoutAnimation::AnimRenderOpacity(ULexWidget* Widget, float StartOpacity, float EndOpacity, float Duration, float Delay, ELTweenEase Ease)
+{
+	Widget->SetRenderOpacity(StartOpacity);
+	auto Tweener = ULTweenManager::To(Widget
+		, FLTweenFloatGetterFunction::CreateLambda([=]()
+		{
+			return StartOpacity;
+		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
+		{
+			Widget->SetRenderOpacity(Value);
+		}), EndOpacity, Duration)
+	->SetDelay(Delay)->SetEase(Ease);
+	return Tweener;
+}
+
+void ULexLayoutAnimation_CommonTween::OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, int32 TweenId)
 {
 	for (auto& SnapshotData : SnapshotDataArray)
 	{
@@ -61,48 +146,11 @@ void ULexLayoutAnimation_CommonTween::OnApplyLayoutResults(const TArray<FLayoutA
 			auto Size = FMath::Lerp(OldSize, NewSize, Value);
 			SnapshotData.Widget->SetPositionAndSizeForLayoutAnimation(Pos, Size);
 		}), 1.0f, Duration)
-		->SetEase(Ease);
+		->SetEase(Ease)->SetId(TweenId);
 		if (Ease == ELTweenEase::CurveFloat)
 		{
 			Tweener->SetRuntimeFloatCurve(EaseCurve);
 		}
-		ResultTweenerArray.Add(Tweener);
-	}
-}
-
-void ULexLayoutAnimation_SlideIn::OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray,
-	TArray<TWeakObjectPtr<ULTweener>>& ResultTweenerArray)
-{
-	auto LayoutWidget = GetLayoutContainer()->GetWidget();
-	for (auto& SnapshotData : SnapshotDataArray)
-	{
-		if (SnapshotData.Widget == LayoutWidget)continue;
-		auto NewPos = SnapshotData.Widget->GetAnchoredPosition();
-		auto NewSize = SnapshotData.Widget->GetSizeDelta();
-		auto NewOpacity = SnapshotData.Widget->GetRenderOpacity();
-		auto OldPos = NewPos + PositionOffset;
-		auto OldSize = NewSize + SizeOffset;
-		auto OldOpacity = NewOpacity + OpacityOffset;
-		SnapshotData.Widget->SetPositionAndSizeForLayoutAnimation(OldPos, OldSize);
-		SnapshotData.Widget->SetRenderOpacity(OldOpacity);
-
-		auto Tweener = ULTweenManager::To(this
-		, FLTweenFloatGetterFunction::CreateLambda([=]()
-		{
-			return 0;
-		}), FLTweenFloatSetterFunction::CreateLambda([=](float Value)
-		{
-			auto Pos = FMath::Lerp(OldPos, NewPos, Value);
-			auto Size = FMath::Lerp(OldSize, NewSize, Value);
-			SnapshotData.Widget->SetPositionAndSizeForLayoutAnimation(Pos, Size);
-			SnapshotData.Widget->SetRenderOpacity(FMath::Lerp(OldOpacity, NewOpacity, Value));
-		}), 1.0f, Duration)
-		->SetEase(Ease);
-		if (Ease == ELTweenEase::CurveFloat)
-		{
-			Tweener->SetRuntimeFloatCurve(EaseCurve);
-		}
-		ResultTweenerArray.Add(Tweener);
 	}
 }
 
@@ -139,14 +187,16 @@ void ULexLayoutContainer::SnapshotLayout()
 {
 	RefreshChildren();
 	if (!bUseAnimation || !AnimationHandler)return;//snapshot just for animation
-	if (LayoutAnimTweenerArray.Num() > 0)
+	if (bIsInitialLayout)
 	{
-		ULTweenBPLibrary::ArrayKillIfIsTweening(this, LayoutAnimTweenerArray);
-		LayoutAnimTweenerArray.Reset();
+		bIsInitialLayout = false;
+		if (bSkipAnimationForInitialLayout)
+			return;//initial layout no need snapshot
 	}
+	ULTweenManager::KillAllTweensById(this, (int32)GetTypeHash(this));
 	auto Widget = GetWidget();
 	LayoutAnimSnapshotDataArray.Reset();
-	for (auto& Child : Widget->GetChildren())
+	for (auto& Child : Children)
 	{
 		FLayoutAnimationSnapshotData SnapshotData;
 		SnapshotData.Position = Child->GetAnchoredPosition();
@@ -176,7 +226,7 @@ void ULexLayoutContainer::ApplyLayoutResult()
 		return;
 	}
 #endif
-	AnimationHandler->OnApplyLayoutResults(LayoutAnimSnapshotDataArray, LayoutAnimTweenerArray);
+	AnimationHandler->OnApplyLayoutResults(LayoutAnimSnapshotDataArray, (int32)GetTypeHash(this));
 	LayoutAnimSnapshotDataArray.Reset();
 }
 

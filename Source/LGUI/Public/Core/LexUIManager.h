@@ -103,6 +103,8 @@ public:
 	TArray<TObjectPtr<ULexWidget>> WidgetArray;
 };
 
+#define LEXUI_LAYOUT_DEBUG 1
+
 UCLASS(NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API ULexUIManagerWorldSubsystem : public UTickableWorldSubsystem
 {
@@ -187,6 +189,8 @@ private:
 	UPROPERTY(Transient) TArray<ULexUIBehaviour*> LexUIBehavioursNeedToRemoveFromTick;
 #if WITH_EDITORONLY_DATA
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
+#endif
+#if LEXUI_LAYOUT_DEBUG
 	TMap<FString, int> LayoutCalculationCounterMap;
 #endif
 	void OnCultureChanged();
@@ -214,7 +218,7 @@ public:
 	void MarkRebuildAllLayoutTree();
 	void RebuildLayoutImmediately(ULexWidget* InWidget);
 	void CalculateLayoutTree(ULexWidget* RootLayoutWidget);
-#if WITH_EDITOR
+#if LEXUI_LAYOUT_DEBUG
 	int IncreateLayoutCalculationCounter(const FString& InPathName);
 #endif
 

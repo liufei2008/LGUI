@@ -27,7 +27,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnSelect(ULexBaseEventData* EventData);
 	/**
-	 * Called when LexUI EventSystem deselect this object.
+	 * Called when LexUI EventSystem deselect or defocus this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)

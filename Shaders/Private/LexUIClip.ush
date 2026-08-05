@@ -25,7 +25,7 @@ float LexUIClip_sdRoundRect(float2 p, float2 b, float4 r)
 	float d = min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
 	return d;
 }
-#define LexUI_Clip_Depth 16
+#define LexUI_Clip_Depth 8
 #define LexUI_Clip_Enable_Rounded 1
 float LexUI_CalculateClipData(Texture2D DataTex, float CoordinateInDataTex, float3 PixelLocalPosition)
 {

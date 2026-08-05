@@ -15,7 +15,7 @@ void ULexLayoutContainerFlexBox::CalculateLayout()
     if (!bIsLayoutDirty)return;
     bIsLayoutDirty = false;
     
-    #if WITH_EDITOR
+#if LEXUI_LAYOUT_DEBUG
     if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
     {
         LexUIManager->IncreateLayoutCalculationCounter(FString::Printf(TEXT("%s_%d"), *this->GetPathDisplayName(GetWorld()), this));

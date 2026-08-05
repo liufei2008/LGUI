@@ -15,6 +15,7 @@ UCLASS(ClassGroup=(LGUI), Transient)
 class LGUI_API UUIScrollViewHelper :public ULexUIBehaviour
 {
 	GENERATED_BODY()
+	UUIScrollViewHelper();
 private:
 	virtual void Awake()override;
 	virtual void OnDimensionsChanged(bool PivotChanged, bool WidthChanged, bool HeightChanged)override;

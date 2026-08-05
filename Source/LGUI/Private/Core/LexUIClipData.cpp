@@ -8,7 +8,7 @@
 
 
 
-int FLexUIClipData::InheritClipDepth = 16;
+int FLexUIClipData::InheritClipDepth = 8;
 int FLexUIClipData::SingleBlockSizeInBytes =
 	sizeof(FMatrix44f)//canvas to clip object's space, last column of matrix: (half-width, half-height, isValid, softness)
 	+ sizeof(FVector4f)//CornerRadius
