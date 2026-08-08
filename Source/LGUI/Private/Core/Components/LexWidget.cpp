@@ -2313,10 +2313,6 @@ void ULexWidget::RenewRenderCanvasRecursive(ULexCanvas* InParentRenderCanvas)
 	auto ThisRenderCanvas = this->GetComponent<ULexCanvas>();
 	if (ThisRenderCanvas != nullptr)
 	{
-		ThisRenderCanvas = nullptr;
-	}
-	if (ThisRenderCanvas != nullptr)
-	{
 		if (InParentRenderCanvas != ThisRenderCanvas)
 		{
 			ThisRenderCanvas->SetParentCanvas(InParentRenderCanvas);//set parent Canvas for this actor's Canvas
