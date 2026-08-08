@@ -494,7 +494,11 @@ public:
 	virtual void MarkAllDirty();
 	virtual void MarkRenderModeChangeRecursive(ULexCanvas* Canvas, ELexRenderMode OldRenderMode, ELexRenderMode NewRenderMode);
 
-	void CalculateAnchorFromTransform();
+	/**
+	 * Calculate anchor data from transform.
+	 * @return true - anchor data changed, false - anchor data not changed
+	 */
+	bool CalculateAnchorFromTransform();
 	void CalculateTransformFromAnchor();
 	void CalculateTransformFromAnchor(bool& OutHorizontalPositionChanged, bool& OutVerticalPositionChanged);
 	

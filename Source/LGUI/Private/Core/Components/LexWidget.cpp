@@ -892,10 +892,12 @@ void ULexWidget::SetRelativeLocation(const FVector& Value)
 		
 		if (bCanSetAnchorFromTransform)
 		{
-			CalculateAnchorFromTransform();
-			if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+			if (CalculateAnchorFromTransform())
 			{
-				MarkLayoutForRebuild(this);
+				if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+				{
+					MarkLayoutForRebuild(this);
+				}
 			}
 		}
 	}
@@ -926,10 +928,12 @@ void ULexWidget::SetRelativeLocationAndRotation(const FVector& InLocation, const
 
 		if (bCanSetAnchorFromTransform)
 		{
-			CalculateAnchorFromTransform();
-			if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+			if (CalculateAnchorFromTransform())
 			{
-				MarkLayoutForRebuild(this);
+				if (Parent.IsValid() && Parent->GetLayoutContainer())//only position change, if parent contains LayoutContainer then we should rebuild layout, otherwise not
+				{
+					MarkLayoutForRebuild(this);
+				}
 			}
 		}
 	}
@@ -1499,7 +1503,7 @@ void ULexWidget::EnsureUIChildrenSorted()const
 }
 
 
-void ULexWidget::CalculateAnchorFromTransform()
+bool ULexWidget::CalculateAnchorFromTransform()
 {
 	auto TempRelativeLocation = this->GetRelativeLocation();
 	FVector2D CalculatedAnchoredPosition;
@@ -1535,7 +1539,9 @@ void ULexWidget::CalculateAnchorFromTransform()
 	if (AnchorData.AnchoredPosition != CalculatedAnchoredPosition)
 	{
 		AnchorData.AnchoredPosition = CalculatedAnchoredPosition;
+		return true;
 	}
+	return false;
 }
 void ULexWidget::CalculateTransformFromAnchor()
 {
