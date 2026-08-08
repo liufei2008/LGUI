@@ -313,9 +313,3 @@ void ULexLayoutSelf::PostReinitProperties()
 	}
 #endif
 }
-
-FVector2f ULexLayoutSelf::GetLayoutFinalSize()
-{
-	auto Widget = GetWidget();
-	return FVector2f(Widget->GetWidth(), Widget->GetHeight());
-}

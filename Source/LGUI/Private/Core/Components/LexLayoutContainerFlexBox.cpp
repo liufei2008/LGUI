@@ -45,8 +45,12 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
             FChildSizes Value;
             if (auto ChildLayoutSelf = Cast<ULexLayoutSelfFlexBox>(ChildWidget->GetLayoutSelf()))
             {
+                auto MarginSize = ChildLayoutSelf->GetMargin().GetDesiredSize2f();
                 Value.Preferred = ChildLayoutSelf->GetLayoutPreferredSize();
                 ChildLayoutSelf->GetLayoutMinMax(Value.Min, Value.Max);
+                Value.Preferred += MarginSize;
+                Value.Min += MarginSize;
+                Value.Max += MarginSize;
                 if (PrimaryAxis == 0)
                 {
                     Value.Grow = FVector2f(ChildLayoutSelf->GetGrowForLayoutContainer(0), 0);
@@ -147,16 +151,8 @@ void ULexLayoutContainerFlexBox::DoCalculate(bool bApplyResult)
     TotalPreferredSize = FVector2f(0, 0);
     
     auto Gap = FVector2f(WidthGap, HeightGap);
-    FVector2f ContainerSize;
     auto Widget = GetWidget();
-    if (auto LayoutSelf = Widget->GetLayoutSelf())
-    {
-        ContainerSize = LayoutSelf->GetLayoutFinalSize();
-    }
-    else
-    {
-        ContainerSize = FVector2f(Widget->GetWidth(), Widget->GetHeight());
-    }
+    auto ContainerSize = FVector2f(Widget->GetWidth(), Widget->GetHeight());
     ThisWidgetSize = ContainerSize;
     ContainerSize.Y -= Padding.Top + Padding.Bottom;
     ContainerSize.X -= Padding.Left + Padding.Right;

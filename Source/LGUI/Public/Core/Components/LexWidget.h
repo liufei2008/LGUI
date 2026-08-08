@@ -320,8 +320,6 @@ public:
 	void UpdateClip(ULexUIDataAsTexture* ClipDataTexture, TArray<TSharedPtr<FLexUIClipData>>& ClipDataList);
 	/** Called by LexCanvas */
 	void UpdateVisual()const;
-	
-	void ForceUpdateLayout();
 protected:
 	void RenewRenderCanvasRecursive(ULexCanvas* InParentRenderCanvas);
 
@@ -451,6 +449,8 @@ public:
 		void SetWidth(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		void SetHeight(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetSize(FVector2D Value);
 
 	/** This function only valid if UIItem have parent */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
@@ -823,7 +823,6 @@ private:
 	mutable uint32 bFlattenHierarchyIndexDirty : 1;
 	
 	void MarkClipDirty(bool InClipTypeChanged)const;
-	void MarkWidgetLayoutDirty();
 	
 	/** find root UIItem of hierarchy */
 	void CheckRootWidget(ULexWidget* RootWidgetInParent = nullptr);

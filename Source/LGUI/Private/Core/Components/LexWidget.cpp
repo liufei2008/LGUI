@@ -2285,6 +2285,56 @@ void ULexWidget::SetHeight(float Value)
 	}
 }
 
+void ULexWidget::SetSize(FVector2D Value)
+{
+	if (CacheWidth != Value.X || bCacheWidthDirty || CacheHeight != Value.Y || bCacheHeightDirty)
+	{
+		bCacheWidthDirty = false;
+		CacheWidth = Value.X;
+		bCacheHeightDirty = false;
+		CacheHeight = Value.Y;
+		if (Parent.IsValid())
+		{
+			if (AnchorData.IsHorizontalStretched() || AnchorData.IsVerticalStretched())
+			{
+				auto CalculatedSizeDeltaX = Value.X - (Parent->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
+				auto CalculatedSizeDeltaY = Value.Y - (Parent->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
+				bool bWidthChanged = AnchorData.SizeDelta.X != CalculatedSizeDeltaX;
+				bool bHeightChanged = AnchorData.SizeDelta.Y != CalculatedSizeDeltaY;
+				if (bWidthChanged || bHeightChanged)
+				{
+					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+					MarkAnchorDataChanged_Recursive(false, bWidthChanged, bHeightChanged, false);
+					MarkLayoutForRebuild(this);
+				}
+			}
+			else
+			{
+				auto bWidthChanged = AnchorData.SizeDelta.X != Value.X;
+				auto bHeightChanged = AnchorData.SizeDelta.Y != Value.Y;
+				if (bWidthChanged || bHeightChanged)
+				{
+					AnchorData.SizeDelta = Value;
+					MarkAnchorDataChanged_Recursive(false, bWidthChanged, bHeightChanged, false);
+					MarkLayoutForRebuild(this);
+				}
+			}
+		}
+		else
+		{
+			auto bWidthChanged = AnchorData.SizeDelta.X != Value.X;
+			auto bHeightChanged = AnchorData.SizeDelta.Y != Value.Y;
+			if (bWidthChanged || bHeightChanged)
+			{
+				AnchorData.SizeDelta = Value;
+				MarkAnchorDataChanged_Recursive(false, bWidthChanged, bHeightChanged, false);
+				MarkLayoutForRebuild(this);
+			}
+		}
+	}
+}
+
 #pragma endregion
 
 void ULexWidget::RegisterRenderCanvas(ULexCanvas* InRenderCanvas)
@@ -2439,12 +2489,6 @@ void ULexWidget::UpdateVisual() const
 	{
 		Visual->UpdateGeometry();
 	}
-}
-
-void ULexWidget::ForceUpdateLayout()
-{
-	MarkWidgetLayoutDirty();
-	UpdateLayout();
 }
 
 void ULexWidget::SetRenderCanvas(ULexCanvas* InNewCanvas)
@@ -2986,7 +3030,10 @@ void ULexWidget::MarkLayoutForRebuild(ULexWidget* InWidget)
 	}
 	if (bMarkLayoutDirty)
 	{
-		RootWidgetOfLayoutTree->MarkWidgetLayoutDirty();
+		if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(RootWidgetOfLayoutTree->GetWorld()))
+		{
+			LexUIManager->AddLayoutDirtyWidget(RootWidgetOfLayoutTree);
+		}
 	}
 }
 
@@ -2995,14 +3042,6 @@ void ULexWidget::RebuildLayoutImmediately(ULexWidget* InWidget)
 	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(InWidget->GetWorld()))
 	{
 		LexUIManager->RebuildLayoutImmediately(InWidget);
-	}
-}
-
-void ULexWidget::MarkWidgetLayoutDirty()
-{
-	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
-	{
-		LexUIManager->AddLayoutDirtyWidget(this);
 	}
 }
 

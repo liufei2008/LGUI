@@ -29,15 +29,7 @@ float FLexLayoutSize::Calculate(ULexWidget* Widget, bool IsVertical) const
             {
                 if (IsVertical)
                 {
-                    float FinalSize = 0;
-                    if (auto ParentLayoutSelf = ParentWidget->GetLayoutSelf())
-                    {
-                        FinalSize = ParentLayoutSelf->GetLayoutFinalSize().Y;
-                    }
-                    else
-                    {
-                        FinalSize = ParentWidget->GetHeight();
-                    }
+                    float FinalSize = ParentWidget->GetHeight();
                     if (auto ParentLayoutContainer = Cast<ULexLayoutContainerFlexBox>(ParentWidget->GetLayoutContainer()))
                     {
                         auto& Padding = ParentLayoutContainer->GetPadding();
@@ -47,15 +39,7 @@ float FLexLayoutSize::Calculate(ULexWidget* Widget, bool IsVertical) const
                 }
                 else
                 {
-                    float FinalSize = 0;
-                    if (auto ParentLayoutSelf = ParentWidget->GetLayoutSelf())
-                    {
-                        FinalSize = ParentLayoutSelf->GetLayoutFinalSize().X;
-                    }
-                    else
-                    {
-                        FinalSize = ParentWidget->GetWidth();
-                    }
+                    float FinalSize = ParentWidget->GetWidth();
                     if (auto ParentLayoutContainer = Cast<ULexLayoutContainerFlexBox>(ParentWidget->GetLayoutContainer()))
                     {
                         auto& Padding = ParentLayoutContainer->GetPadding();
@@ -86,27 +70,11 @@ float FLexLayoutMinMaxSize::Calculate(ULexWidget* Widget, bool IsVertical,
             {
                 if (IsVertical)
                 {
-                    if (auto LayoutSelf = ParentWidget->GetLayoutSelf())
-                    {
-                        auto FinalSize = LayoutSelf->GetLayoutFinalSize();
-                        return PercentValue * FinalSize.Y;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return PercentValue * ParentWidget->GetHeight();
                 }
                 else
                 {
-                    if (auto LayoutSelf = ParentWidget->GetLayoutSelf())
-                    {
-                        auto FinalSize = LayoutSelf->GetLayoutFinalSize();
-                        return PercentValue * FinalSize.X;
-                    }
-                    else
-                    {
-                        return CalculatedValue;
-                    }
+                    return PercentValue * ParentWidget->GetWidth();
                 }
             }
             else
@@ -205,19 +173,6 @@ FVector2f ULexLayoutSelfFlexBox::GetLayoutPreferredSize()
     return FVector2f(CalculatedPreferredWidth, CalculatedPreferredHeight);
 }
 
-FVector2f ULexLayoutSelfFlexBox::GetLayoutFinalSize()
-{
-    if (auto ParentWidget = GetWidget()->GetParent())
-    {
-        if (auto LayoutContainer = ParentWidget->GetLayoutContainer())
-        {
-            //since we calculate form root to leaf, final size should already be set by parent LayoutContainer
-            return FVector2f(CalculatedFinalWidth, CalculatedFinalHeight);
-        }
-    }
-    return FVector2f(CalculatedPreferredWidth, CalculatedPreferredHeight);
-}
-
 void ULexLayoutSelfFlexBox::GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax)
 {
     OutMin.X = CalculatedMinWidth;
@@ -306,15 +261,15 @@ void ULexLayoutSelfFlexBox::CalculateSize()
     {
         auto AnchorMin = Widget->GetAnchorMin();
         auto AnchorMax = Widget->GetAnchorMax();
-        if (AnchorMin.X != AnchorMax.X)//custom anchor not support
+        if (PreferredWidth.bEnable && AnchorMin.X != AnchorMax.X)//custom anchor not support
         {
             Widget->SetHorizontalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
         }
-        if (AnchorMin.Y != AnchorMax.Y)
+        if (PreferredHeight.bEnable && AnchorMin.Y != AnchorMax.Y)
         {
             Widget->SetVerticalAnchorMinMax(FVector2D(0.5, 0.5), true, true);
         }
-        Widget->SetSizeDelta(FVector2D(CalculatedPreferredWidth, CalculatedPreferredHeight));
+        Widget->SetSize(FVector2D(CalculatedPreferredWidth, CalculatedPreferredHeight));
 
 #if WITH_EDITOR
         if (PreferredWidth.Type == ELexLayoutSizeType::Auto)

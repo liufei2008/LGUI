@@ -222,7 +222,6 @@ public:
 #endif
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* Widget)const override;
 	virtual FVector2f GetLayoutPreferredSize() override;
-	virtual FVector2f GetLayoutFinalSize() override;
 	virtual void CalculateSize() override;
 	virtual void MarkLayoutDirty() override;
 	void GetLayoutMinMax(FVector2f& OutMin, FVector2f& OutMax);

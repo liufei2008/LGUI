@@ -208,7 +208,5 @@ public:
 	//called by LexWidget during layout processing
 	virtual void CalculateSize(){}
 	
-	virtual FVector2f GetLayoutFinalSize();
-	
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* Widget) const override{return FLexLayoutControlAnchorData();}
 };

@@ -1062,47 +1062,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 	}
 
 	//update layout
-	if (LayoutDirtyWidgetArray.Num() > 0)
-	{
-		bIsExecutingLayout = true;
-		int LayoutCalcCount = 0;
-#if LEXUI_LAYOUT_DEBUG
-		const double Time = FPlatformTime::Seconds();
-		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
-#endif
-		LayoutContainerArrayWhichHasSnapshot.Reset();
-		while (LayoutDirtyWidgetArray.Num() > 0)
-		{
-			SCOPE_CYCLE_COUNTER(STAT_UpdateLayout);
-			LayoutCalcCount++;
-
-			TArray<TWeakObjectPtr<ULexWidget>> CopiedLayoutDirtyWidgetArray;
-			Swap(CopiedLayoutDirtyWidgetArray, LayoutDirtyWidgetArray);
-			
-			for (int i = CopiedLayoutDirtyWidgetArray.Num() - 1; i >= 0; i--)
-			{
-				auto& Widget = CopiedLayoutDirtyWidgetArray[i];
-				CalculateLayoutTree(Widget.Get());
-			}
-		}
-		for (auto& SnapshotLayout : LayoutContainerArrayWhichHasSnapshot)
-		{
-			SnapshotLayout->ApplyLayoutResult();
-		}
-#if LEXUI_LAYOUT_DEBUG
-		for (auto& CalcCountKeyValue : LayoutCalculationCounterMap)
-		{
-			if (CalcCountKeyValue.Value >= 2)
-			{
-				UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *CalcCountKeyValue.Key, CalcCountKeyValue.Value);
-			}
-		}
-		LayoutCalculationCounterMap.Reset();
-		const double ElapsedMs = (FPlatformTime::Seconds() - Time) * 1000.0;
-		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, ElapsedMs);
-#endif
-		bIsExecutingLayout = false;
-	}
+	CalculateLayout();
 
 #if WITH_EDITOR
 	int ScreenSpaceOverlayCanvasCount = 0;
@@ -1545,9 +1505,53 @@ void ULexUIManagerWorldSubsystem::CalculateLayoutTree(ULexWidget* RootLayoutWidg
 		Widget->UpdateLayout();
 	}
 }
+void ULexUIManagerWorldSubsystem::CalculateLayout()
+{
+	if (LayoutDirtyWidgetArray.Num() > 0)
+	{
+		bIsExecutingLayout = true;
+		int LayoutCalcCount = 0;
+#if LEXUI_LAYOUT_DEBUG
+		const double Time = FPlatformTime::Seconds();
+		UE_LOG(LGUI, Log, TEXT("---Begin layout frame:%d, World:%s---"), GFrameNumber, *GetWorld()->GetPathName());
+#endif
+		LayoutContainerArrayWhichHasSnapshot.Reset();
+		while (LayoutDirtyWidgetArray.Num() > 0)
+		{
+			SCOPE_CYCLE_COUNTER(STAT_UpdateLayout);
+			LayoutCalcCount++;
 
+			TArray<TWeakObjectPtr<ULexWidget>> CopiedLayoutDirtyWidgetArray;
+			Swap(CopiedLayoutDirtyWidgetArray, LayoutDirtyWidgetArray);
+			
+			for (int i = CopiedLayoutDirtyWidgetArray.Num() - 1; i >= 0; i--)
+			{
+				auto& Widget = CopiedLayoutDirtyWidgetArray[i];
+				CalculateLayoutTree(Widget.Get());
+			}
+		}
+		for (auto& SnapshotLayout : LayoutContainerArrayWhichHasSnapshot)
+		{
+			SnapshotLayout->ApplyLayoutResult();
+		}
+#if LEXUI_LAYOUT_DEBUG
+		for (auto& CalcCountKeyValue : LayoutCalculationCounterMap)
+		{
+			if (CalcCountKeyValue.Value >= 2)
+			{
+				UE_LOG(LGUI, Warning, TEXT("Widget %s has been calculated layout %d times in a frame"), *CalcCountKeyValue.Key, CalcCountKeyValue.Value);
+			}
+		}
+		LayoutCalculationCounterMap.Reset();
+		const double ElapsedMs = (FPlatformTime::Seconds() - Time) * 1000.0;
+		UE_LOG(LGUI, Log, TEXT("---end layout frame:%d, count:%d, time:%f"), GFrameNumber, LayoutCalcCount, ElapsedMs);
+#endif
+		bIsExecutingLayout = false;
+	}
+}
 void ULexUIManagerWorldSubsystem::RebuildLayoutImmediately(ULexWidget* InWidget)
 {
+#if 0//@todo: optimize layout calculation, only calculate specific layout tree, not all 
 	auto RootLayoutWidget = InWidget;
 	//move up, find if parent widget affect by layout then mark dirty
 	while (RootLayoutWidget)
@@ -1579,6 +1583,9 @@ void ULexUIManagerWorldSubsystem::RebuildLayoutImmediately(ULexWidget* InWidget)
 	{
 		CalculateLayoutTree(RootLayoutWidget);
 	}
+#else
+	CalculateLayout();
+#endif
 }
 
 #if LEXUI_LAYOUT_DEBUG

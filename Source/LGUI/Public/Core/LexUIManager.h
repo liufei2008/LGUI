@@ -196,6 +196,7 @@ private:
 	void OnCultureChanged();
 	bool bShouldUpdateOnCultureChanged = false;
 	FDelegateHandle OnCultureChangedDelegateHandle;
+	void CalculateLayout();
 
 	TSharedPtr<class FLexUIRenderer, ESPMode::ThreadSafe> MainViewportViewExtension;
 public:
