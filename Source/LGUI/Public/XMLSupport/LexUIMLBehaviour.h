@@ -11,7 +11,7 @@ class ULexUIMLResource;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(Abstract, Experimental)
 class LGUI_API ULexUIMLBehaviour : public ULexUIBehaviour
 {
 	GENERATED_BODY()
