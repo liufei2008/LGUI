@@ -2526,6 +2526,7 @@ void ULexWidget::SetRenderCanvas(ULexCanvas* InNewCanvas)
 			RenderCanvas->RegisterVisual(Visual);
 		}
 	}
+	OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
 }
 
 void ULexWidget::OnHierarchyAttachmentChanged(ULexCanvas* ParentRenderCanvas, ULexWidget* ParentRoot)

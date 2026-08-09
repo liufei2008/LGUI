@@ -438,6 +438,7 @@ public:
 		for (int i = 0; i < SectionArray.Num(); i++)
 		{
 			auto Section = SectionArray[i];
+			DetachChildCanvasSection_RenderThread(Section);
 			Section->Disable();
 		}
 	}
@@ -661,6 +662,7 @@ public:
 					if (VisibilityMap & (1 << ViewIndex))
 					{
 						// Draw the mesh.
+						check(Section->VertexFactory.IsInitialized());
 						FMeshBatch& Mesh = Collector.AllocateMesh();
 						FMeshBatchElement& BatchElement = Mesh.Elements[0];
 						BatchElement.IndexBuffer = &Section->IndexBuffer;
@@ -1119,7 +1121,7 @@ TSharedPtr<FLexUIRenderSection> ULexUIMeshComponent::SetupRenderSection(ELexUIRe
 		{
 			auto ChildCanvasSectionPtr = static_cast<FLexUIRenderSection_ChildCanvas*>(RenderSection.Get());
 			ChildCanvasSectionPtr->ChildCanvasMeshComponent = InDrawCallData->ChildCanvas->GetUIMesh();
-			ChildCanvasSectionPtr->ChildCanvasMeshComponent->SetParentCanvasMeshComp(InDrawCallData->ChildCanvas->GetUIMesh());
+			ChildCanvasSectionPtr->ChildCanvasMeshComponent->SetParentCanvasMeshComp(this);
 			if (ChildCanvasSectionPtr->RenderProxy)
 			{
 				if (this->SceneProxy != nullptr)

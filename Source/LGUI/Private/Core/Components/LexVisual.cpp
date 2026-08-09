@@ -192,7 +192,7 @@ void ULexVisual::OnTransformChanged(bool InPositionChanged, bool InScaleChanged)
 
 void ULexVisual::OnRenderCanvasChanged(ULexCanvas* InOldCanvas, ULexCanvas* InNewCanvas)
 {
-	bWidgetPropertyDataFontMarkDirty = true;
+	MarkAllDirty();
 }
 
 void ULexVisual::MarkColorDirty()
