@@ -669,6 +669,7 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	auto PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bForceRenderToTarget))
 	{
+		ClearDrawCall();//editor just use the most convenient way to make corrent render
 		if (bForceRenderToTarget)
 		{
 			RenderMode = ELexRenderMode::RenderTarget;
@@ -678,6 +679,10 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		{
 			OnRenderTargetChanged.Broadcast(nullptr);
 		}
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting))
+	{
+		ClearDrawCall();//editor just use the most convenient way to make corrent render
 	}
 
 	OnViewportParameterChanged();
@@ -2004,6 +2009,10 @@ void ULexCanvas::SetOverrideSorting(bool Value)
 	if (bOverrideSorting != Value)
 	{
 		bOverrideSorting = Value;
+		if (IsValid(UIMesh) && ParentCanvas.IsValid())
+		{
+			UIMesh->ClearParentCanvasMeshComp(ParentCanvas->GetUIMesh());//clear parent canvas mesh component, so it will be render by itself
+		}
 		if (CheckRootCanvas())
 		{
 			RootCanvas->bNeedToSortRenderPriority = true;
@@ -2222,6 +2231,10 @@ void ULexCanvas::SetForceRenderToTarget(bool Value)
 	if (bForceRenderToTarget != Value)
 	{
 		bForceRenderToTarget = Value;
+		if (IsValid(UIMesh) && ParentCanvas.IsValid())
+		{
+			UIMesh->ClearParentCanvasMeshComp(ParentCanvas->GetUIMesh());//clear parent canvas mesh component, so it will be render by itself
+		}
 		if (bForceRenderToTarget)
 		{
 			MarkCanvasUpdate(true);
