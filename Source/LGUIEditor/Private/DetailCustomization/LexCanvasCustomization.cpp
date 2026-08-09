@@ -98,22 +98,6 @@ void FLexCanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		]
 		;
 	}
-
-	auto OverrideSortingHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting));
-	bool bOverrideSorting = false;
-	OverrideSortingHandle->GetValue(bOverrideSorting);
-	OverrideSortingHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexCanvasCustomization::ForceRefresh, &DetailBuilder));
-
-	if (bOverrideSorting)
-	{
-		auto& Group = Category.AddGroup(TEXT("OverrideSortingGroup"), OverrideSortingHandle->GetPropertyDisplayName());
-		Group.HeaderProperty(OverrideSortingHandle);
-		Group.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, SortOrder)));
-	}
-	else
-	{
-		NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, SortOrder));
-	}
 	
 	auto ForceRenderToTarget_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, bForceRenderToTarget));
 	ForceRenderToTarget_PH->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexCanvasCustomization::ForceRefresh, &DetailBuilder));
@@ -174,8 +158,8 @@ void FLexCanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, bEnableDepthTest));
 		NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, TraceChannel));
 
-		auto overrideParametersHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, OverrideParameters));
-		overrideParametersHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexCanvasCustomization::ForceRefresh, &DetailBuilder));
+		auto OverrideParametersHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, OverrideParameters));
+		OverrideParametersHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexCanvasCustomization::ForceRefresh, &DetailBuilder));
 		if (!TargetScriptArray[0]->GetOverrideDefaultMaterial())
 		{
 			NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, DefaultMaterial));
@@ -211,6 +195,25 @@ void FLexCanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		RenderTargetGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderTargetSizeMode)));
 		RenderTargetGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderTargetResolutionScale)));
 		RenderTargetGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderTargetClearColor)));
+	}
+	//override sorting
+	{
+		auto OverrideSortingHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting));
+		bool bOverrideSorting = false;
+		OverrideSortingHandle->GetValue(bOverrideSorting);
+		OverrideSortingHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexCanvasCustomization::ForceRefresh, &DetailBuilder));
+
+		if (bOverrideSorting)
+		{
+			auto& Group = Category.AddGroup(TEXT("OverrideSortingGroup"), OverrideSortingHandle->GetPropertyDisplayName());
+			Group.HeaderProperty(OverrideSortingHandle);
+			Group.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexCanvas, SortOrder)));
+		}
+		else
+		{
+			Category.AddProperty(OverrideSortingHandle);
+			NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, SortOrder));
+		}
 	}
 
 	auto& CanvasScalerCategory = DetailBuilder.EditCategory("LGUI-CanvasScaler");
