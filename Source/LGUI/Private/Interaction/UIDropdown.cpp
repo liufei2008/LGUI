@@ -27,34 +27,45 @@ void UUIDropdown::Awake()
 		MaxHeight = ListRoot->GetHeight();
 	}
 	//set default display
-	if (Options.Num() > 0)
+	bool bHasValidValue = Options.IsValidIndex(Value);
+	if (Placeholder.IsValid())
 	{
-		auto tempValue = FMath::Clamp(Value, 0, Options.Num() - 1);
-		if (CaptionText.IsValid())
-		{
-			CaptionText->SetText(Options[tempValue].Text);
-		}
-		if (CaptionImage.IsValid())
-		{
-			CaptionImage->SetBrush(Options[tempValue].ImageBrush);
-		}
+		Placeholder->SetWidgetActive(!bHasValidValue);
+	}
+	if (CaptionText.IsValid())
+	{
+		if (bHasValidValue)
+			CaptionText->SetText(Options[Value].Text);
+		CaptionText->GetWidget()->SetWidgetActive(bHasValidValue);
+	}
+	if (CaptionImage.IsValid())
+	{
+		if (bHasValidValue)
+			CaptionImage->SetBrush(Options[Value].ImageBrush);
+		CaptionImage->GetWidget()->SetWidgetActive(bHasValidValue);
 	}
 }
 #if WITH_EDITOR
 void UUIDropdown::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (Options.Num() > 0)
+	
+	bool bHasValidValue = Options.IsValidIndex(Value);
+	if (Placeholder.IsValid())
 	{
-		auto TempValue = FMath::Clamp(Value, 0, Options.Num() - 1);
-		if (CaptionText.IsValid())
-		{
-			CaptionText->SetText(Options[TempValue].Text);
-		}
-		if (CaptionImage.IsValid())
-		{
-			CaptionImage->SetBrush(Options[TempValue].ImageBrush);
-		}
+		Placeholder->SetWidgetActive(!bHasValidValue);
+	}
+	if (CaptionText.IsValid())
+	{
+		if (bHasValidValue)
+			CaptionText->SetText(Options[Value].Text);
+		CaptionText->GetWidget()->SetWidgetActive(bHasValidValue);
+	}
+	if (CaptionImage.IsValid())
+	{
+		if (bHasValidValue)
+			CaptionImage->SetBrush(Options[Value].ImageBrush);
+		CaptionImage->GetWidget()->SetWidgetActive(bHasValidValue);
 	}
 }
 #endif
@@ -344,7 +355,7 @@ void UUIDropdown::CreateListItems()
 	}
 	ItemTemplateWidget->SetWidgetActive(false);
 
-	ULexWidget::RebuildLayoutImmediately(ScrollViewContentWidget);
+	// ULexWidget::RebuildLayoutImmediately(ScrollViewContentWidget);
 	float HeightOffset = 0;
 	if (auto ViewportWidget = ScrollViewContentWidget->GetParent())
 	{
@@ -464,24 +475,34 @@ void UUIDropdown::OnSelectItem(int Index)
 }
 void UUIDropdown::ApplyValueToVisual()
 {
-	if (!Options.IsValidIndex(Value))return;
-
+	bool bHasValidValue = Options.IsValidIndex(Value);
+	if (Placeholder.IsValid())
+	{
+		Placeholder->SetWidgetActive(!bHasValidValue);
+	}
 	if (CaptionText.IsValid())
 	{
-		CaptionText->SetText(Options[Value].Text);
+		if (bHasValidValue)
+			CaptionText->SetText(Options[Value].Text);
+		CaptionText->GetWidget()->SetWidgetActive(bHasValidValue);
 	}
 	if (CaptionImage.IsValid())
 	{
-		CaptionImage->SetBrush(Options[Value].ImageBrush);
+		if (bHasValidValue)
+			CaptionImage->SetBrush(Options[Value].ImageBrush);
+		CaptionImage->GetWidget()->SetWidgetActive(bHasValidValue);
 	}
 
 	//apply to options
-	for (int i = 0; i < Options.Num() && i < CreatedItemArray.Num(); i++)
+	if (bHasValidValue)
 	{
-		auto script = CreatedItemArray[i];
-		if (script.IsValid())
+		for (int i = 0; i < Options.Num() && i < CreatedItemArray.Num(); i++)
 		{
-			script->SetSelectionState(i == Value);
+			auto ItemScript = CreatedItemArray[i];
+			if (ItemScript.IsValid())
+			{
+				ItemScript->SetSelectionState(i == Value);
+			}
 		}
 	}
 }

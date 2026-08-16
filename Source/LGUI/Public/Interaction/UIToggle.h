@@ -105,7 +105,7 @@ protected:
 	FLexUIMulticastDelegateBool OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
 	FUIToggleValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
 
 	void SetValue(bool Value, bool SendCallback);

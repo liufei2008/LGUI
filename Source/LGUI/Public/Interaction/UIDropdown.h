@@ -11,7 +11,6 @@
 
 class UUIToggle;
 class ULexImage;
-class ULexWidgetContainer;
 class ULexWidget;
 class ULexText;
 
@@ -85,6 +84,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TWeakObjectPtr<ULexWidget> ListRoot;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+		TWeakObjectPtr<ULexWidget> Placeholder;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TWeakObjectPtr<ULexText> CaptionText;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TWeakObjectPtr<ULexImage> CaptionImage;
@@ -100,7 +101,7 @@ protected:
 	
 	/** Current selected option index. -1 means none selected */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
-		int Value = 0;
+		int Value = -1;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TArray<FUIDropdownOptionData> Options;
 
@@ -126,7 +127,7 @@ protected:
 	FLexUIMulticastDelegateInt32 OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-Dropdown")
 	FUIDropdownValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
 
 	/** Bind this delegate and set custom data for option list item. */
