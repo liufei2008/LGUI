@@ -6,6 +6,7 @@
 #include "IPropertyUtilities.h"
 #include "PropertyCustomizationHelpers.h"
 #include "LexWidgetHierarchyPickerView.h"
+#include "Widgets/SBoxPanel.h"
 #include "Core/LexUIBehaviour.h"
 #include "Core/Components/LexWidget.h"
 #include "Core/Components/LexWidgetSubObjectBehaviour.h"
@@ -92,14 +93,88 @@ void FLexWidgetDetailPropertyExtensionHandler::ExtendWidgetRow(FDetailWidgetRow&
 		}
 		return FText::FromString(PathStr);
 	};
-	InWidgetRow.ValueContent()
-	[
-		SNew(SBox)
+	// For container (array/set/map) element rows the default detail row decoration would normally provide insert/delete/duplicate buttons.
+	TSharedPtr<IPropertyUtilities> PropertyUtilities = InDetailBuilder.GetPropertyUtilities();
+	TSharedPtr<SWidget> ContainerActionWidget;
+	TSharedPtr<IPropertyHandle> ParentHandle = InPropertyHandle->GetParentHandle();
+	if (ParentHandle.IsValid() && InPropertyHandle->GetNumOuterObjects() == 1)
+	{
+		const int32 ElementIndex = InPropertyHandle->GetIndexInArray();
+		if (TSharedPtr<IPropertyHandleArray> ArrayHandle = ParentHandle->AsArray())
+		{
+			FProperty* ArrayProperty = ParentHandle->GetProperty();
+			if (ArrayProperty != nullptr && !ArrayProperty->HasAnyPropertyFlags(CPF_EditFixedSize))
+			{
+				FExecuteAction InsertAction;
+				FExecuteAction DuplicateAction;
+				FExecuteAction DeleteAction;
+				if (PropertyUtilities.IsValid())
+				{
+					InsertAction = FExecuteAction::CreateLambda([PropertyUtilities, ArrayHandle, ElementIndex]()
+					{
+						PropertyUtilities->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([ArrayHandle, ElementIndex]()
+						{
+							ArrayHandle->Insert(ElementIndex);
+						}));
+					});
+					DeleteAction = FExecuteAction::CreateLambda([PropertyUtilities, ArrayHandle, ElementIndex]()
+					{
+						PropertyUtilities->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([ArrayHandle, ElementIndex]()
+						{
+							ArrayHandle->DeleteItem(ElementIndex);
+						}));
+					});
+					if (!ParentHandle->HasMetaData(TEXT("NoElementDuplicate")))
+					{
+						DuplicateAction = FExecuteAction::CreateLambda([PropertyUtilities, ArrayHandle, ElementIndex]()
+						{
+							PropertyUtilities->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([ArrayHandle, ElementIndex]()
+							{
+								ArrayHandle->DuplicateItem(ElementIndex);
+							}));
+						});
+					}
+				}
+				ContainerActionWidget = PropertyCustomizationHelpers::MakeInsertDeleteDuplicateButton(InsertAction, DeleteAction, DuplicateAction);
+			}
+		}
+		else if (TSharedPtr<IPropertyHandleSet> SetHandle = ParentHandle->AsSet())
+		{
+			FProperty* SetProperty = ParentHandle->GetProperty();
+			if (SetProperty != nullptr && !SetProperty->HasAnyPropertyFlags(CPF_EditFixedSize) && PropertyUtilities.IsValid())
+			{
+				ContainerActionWidget = PropertyCustomizationHelpers::MakeDeleteButton(
+					FSimpleDelegate::CreateLambda([PropertyUtilities, SetHandle, ElementIndex]()
+					{
+						PropertyUtilities->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([SetHandle, ElementIndex]()
+						{
+							SetHandle->DeleteItem(ElementIndex);
+						}));
+					}));
+			}
+		}
+		else if (TSharedPtr<IPropertyHandleMap> MapHandle = ParentHandle->AsMap())
+		{
+			FProperty* MapProperty = ParentHandle->GetProperty();
+			if (MapProperty != nullptr && !MapProperty->HasAnyPropertyFlags(CPF_EditFixedSize) && PropertyUtilities.IsValid())
+			{
+				ContainerActionWidget = PropertyCustomizationHelpers::MakeDeleteButton(
+					FSimpleDelegate::CreateLambda([PropertyUtilities, MapHandle, ElementIndex]()
+					{
+						PropertyUtilities->EnqueueDeferredAction(FSimpleDelegate::CreateLambda([MapHandle, ElementIndex]()
+						{
+							MapHandle->DeleteItem(ElementIndex);
+						}));
+					}));
+			}
+		}
+	}
+
+	TSharedRef<SBox> PickerBox = SNew(SBox)
 		.IsEnabled_Lambda([=]()
 		{
 			return InPropertyHandle->IsEditable();
 		})
-		.WidthOverride(5000)
 		[
 			SNew(SBox)
 			.MinDesiredWidth(125)
@@ -128,9 +203,46 @@ void FLexWidgetDetailPropertyExtensionHandler::ExtendWidgetRow(FDetailWidgetRow&
 					]
 				]
 			]
-		]
-	]
-	;
+		];
+
+	if (ContainerActionWidget.IsValid())
+	{
+		InWidgetRow.ValueContent()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			[
+				PickerBox
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.HAlign(HAlign_Left)
+			.VAlign(VAlign_Center)
+			.Padding(4.0f, 1.0f, 0.0f, 1.0f)
+			[
+				SNew(SBox)
+				.IsEnabled_Lambda([=]()
+				{
+					return InPropertyHandle->IsEditable();
+				})
+				[
+					ContainerActionWidget.ToSharedRef()
+				]
+			]
+		];
+	}
+	else
+	{
+		InWidgetRow.ValueContent()
+		[
+			SNew(SBox)
+			.WidthOverride(5000)
+			[
+				PickerBox
+			]
+		];
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
