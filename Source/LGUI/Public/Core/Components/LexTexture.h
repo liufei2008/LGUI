@@ -20,12 +20,15 @@ public:
 #endif
 protected:
 	virtual void BeginPlay()override;
+	virtual void OnRegister() override;
 protected:
 	friend class FLexTextureCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELexUISpriteDrawType DrawType = ELexUISpriteDrawType::Normal;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush", meta=(ClampMin = "0.01"))
 	float PixelsPerUnitMultiplier = 1;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	bool bFillCenter = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLexUISpriteInfo SpriteInfo;
 	/** Texture UV offset and scale info. Only get good result when DrawType is Normal */
@@ -41,14 +44,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float FillAmount = 1;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial90 fillOriginType_Radial90;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial180 fillOriginType_Radial180;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial360 fillOriginType_Radial360;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial90 FillOriginType_Radial90;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial180 FillOriginType_Radial180;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial360 FillOriginType_Radial360;
 #endif
 
-	void CheckSpriteData();
+	void CheckSpriteInfo();
 
 	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)override;
+	
+	//width direction rectangle count, in tiled mode
+	int32 Tiled_WidthRectCount = 0;
+	//height direction rectangle count, in tiled mode
+	int32 Tiled_HeightRectCount = 0;
+	//width direction half rectangle size, in tiled mode
+	float Tiled_WidthRemainedRectSize = 0;
+	//height direction half rectangle size, in tiled mode
+	float Tiled_HeightRemainedRectSize = 0;
+	void CalculateTiledParams();
 
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
@@ -56,6 +69,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FLexUISpriteInfo GetSpriteInfo()const { return SpriteInfo; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector4f GetUVRect()const { return UVRect; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFillCenter() const { return bFillCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	ELexUISpriteFillMethod GetFillMethod()const { return FillMethod; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	uint8 GetFillOrigin()const { return FillOrigin; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return FillDirectionFlip; }
@@ -65,6 +79,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetSpriteInfo(FLexUISpriteInfo Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetUVRect(FVector4f Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetPixelsPerUnitMultiplier(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillCenter(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(ELexUISpriteFillMethod Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool Value);

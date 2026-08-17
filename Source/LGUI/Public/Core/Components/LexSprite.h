@@ -10,7 +10,6 @@ enum class ELexUISpriteDrawType :uint8
 {
 	Normal,
 	Sliced,
-	SlicedFrame,
 	Tiled,
 	Filled,
 };
@@ -62,14 +61,17 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnRegister() override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	friend class FLexSpriteCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELexUISpriteDrawType DrawType = ELexUISpriteDrawType::Normal;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush", meta=(ClampMin = "0.01" ))
 	float PixelsPerUnitMultiplier = 1;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	bool bFillCenter = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELexUISpriteFillMethod FillMethod = ELexUISpriteFillMethod::Horizontal;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -94,13 +96,13 @@ protected:
 	float Tiled_WidthRemainedRectSize = 0;
 	//height direction half rectangle size, in tiled mode
 	float Tiled_HeightRemainedRectSize = 0;
-	void CalculateTiledWidth();
-	void CalculateTiledHeight();
+	void CalculateTiledParams();
 
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteDrawType GetSpriteDrawType()const { return DrawType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFillCenter() const { return bFillCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	ELexUISpriteFillMethod GetFillMethod()const { return FillMethod; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	uint8 GetFillOrigin()const { return FillOrigin; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return FillDirectionFlip; }
@@ -108,6 +110,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetDrawType(ELexUISpriteDrawType Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetPixelsPerUnitMultiplier(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillCenter(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(ELexUISpriteFillMethod Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool Value);

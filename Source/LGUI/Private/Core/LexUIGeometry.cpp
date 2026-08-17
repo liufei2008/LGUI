@@ -333,7 +333,7 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 #pragma region UISprite_UITexture_Border
 void FLexUIGeometry::UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCenter,
 	float width, float height, FVector2f pivot, const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, FColor color,
-	float pixelsPerUnitMultiplier,
+	float inv_PixelsPerUnitMultiplier,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -389,18 +389,18 @@ void FLexUIGeometry::UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCe
 			float geoHeight = halfH * 2;
 			//vertices
 			float x0, x1, x2, x3, y0, y1, y2, y3;
-			float widthBorder = (spriteInfo.Border.Left + spriteInfo.Border.Right) * pixelsPerUnitMultiplier;
-			float heightBorder = (spriteInfo.Border.Top + spriteInfo.Border.Bottom) * pixelsPerUnitMultiplier;
+			float widthBorder = (spriteInfo.Border.Left + spriteInfo.Border.Right) * inv_PixelsPerUnitMultiplier;
+			float heightBorder = (spriteInfo.Border.Top + spriteInfo.Border.Bottom) * inv_PixelsPerUnitMultiplier;
 			float widthScale = geoWidth < widthBorder ? geoWidth / widthBorder : 1.0f;
 			float heightScale = geoHeight < heightBorder ? geoHeight / heightBorder : 1.0f;
 			x0 = (-halfW + pivotOffsetX);
-			x1 = (x0 + spriteInfo.Border.Left * widthScale * pixelsPerUnitMultiplier);
+			x1 = (x0 + spriteInfo.Border.Left * widthScale * inv_PixelsPerUnitMultiplier);
 			x3 = (halfW + pivotOffsetX);
-			x2 = (x3 - spriteInfo.Border.Right * widthScale * pixelsPerUnitMultiplier);
+			x2 = (x3 - spriteInfo.Border.Right * widthScale * inv_PixelsPerUnitMultiplier);
 			y0 = (-halfH + pivotOffsetY);
-			y1 = (y0 + spriteInfo.Border.Bottom * heightScale * pixelsPerUnitMultiplier);
+			y1 = (y0 + spriteInfo.Border.Bottom * heightScale * inv_PixelsPerUnitMultiplier);
 			y3 = (halfH + pivotOffsetY);
-			y2 = (y3 - spriteInfo.Border.Top * heightScale * pixelsPerUnitMultiplier);
+			y2 = (y3 - spriteInfo.Border.Top * heightScale * inv_PixelsPerUnitMultiplier);
 
 			originVertices[0].Position = FVector3f(0, x0, y0);
 			originVertices[1].Position = FVector3f(0, x1, y0);
@@ -476,6 +476,7 @@ void FLexUIGeometry::UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCe
 #pragma region UISprite_Tiled
 void FLexUIGeometry::UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo,
 	const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, float width, float height, FVector2f pivot, const int& widthRectCount, const int& heightRectCount, float widthRemainedRectSize, float heightRemainedRectSize, FColor color,
+	float inv_PixelsPerUnitMultiplier,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
 {
@@ -511,24 +512,30 @@ void FLexUIGeometry::UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo,
 			CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 			//vertices
 			int vertIndex = 0;
+			auto PushVertex = [&](float x, float y)
+			{
+				originVertices[vertIndex++].Position = FVector3f(0, x, y);
+			};
+			float centerWidth = spriteInfo.Width * inv_PixelsPerUnitMultiplier;
+			float centerHeight = spriteInfo.Height * inv_PixelsPerUnitMultiplier;
 			float startX = (-halfW + pivotOffsetX);
 			float startY = (-halfH + pivotOffsetY);
 			float x = startX, y = startY;
 			for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
 			{
-				float realHeight = heightRectIndex == heightRectCount ? heightRemainedRectSize : spriteInfo.Height;
+				float realHeight = heightRectIndex == heightRectCount ? heightRemainedRectSize : centerHeight;
 				for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 				{
-					float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : spriteInfo.Width;
-					originVertices[vertIndex++].Position = FVector3f(0, x, y);
-					originVertices[vertIndex++].Position = FVector3f(0, x + realWidth, y);
-					originVertices[vertIndex++].Position = FVector3f(0, x, y + realHeight);
-					originVertices[vertIndex++].Position = FVector3f(0, x + realWidth, y + realHeight);
+					float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : centerWidth;
+					PushVertex(x, y);
+					PushVertex(x + realWidth, y);
+					PushVertex(x, y + realHeight);
+					PushVertex(x + realWidth, y + realHeight);
 
-					x += spriteInfo.Width;
+					x += centerWidth;
 				}
 				x = startX;
-				y += spriteInfo.Height;
+				y += centerHeight;
 			}
 			//snap pixel
 			if (pixelPerfect)
@@ -540,18 +547,368 @@ void FLexUIGeometry::UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo,
 		if (InVertexUVChanged)
 		{
 			int vertIndex = 0;
-			float remainedUV3X = spriteInfo.BorderMinUV.X + (spriteInfo.BorderMaxUV.X - spriteInfo.BorderMinUV.X) * widthRemainedRectSize / spriteInfo.Width;
-			float remainedUV3Y = spriteInfo.BorderMaxUV.Y + (spriteInfo.BorderMinUV.Y - spriteInfo.BorderMaxUV.Y) * heightRemainedRectSize / spriteInfo.Height;
+			auto PushUV = [&](float x, float y)
+			{
+				vertices[vertIndex++].TextureCoordinate[0] = FVector2f(x, y);
+			};
+			float centerWidth = spriteInfo.Width * inv_PixelsPerUnitMultiplier;
+			float centerHeight = spriteInfo.Height * inv_PixelsPerUnitMultiplier;
+			float remainedUV3X = spriteInfo.MinUV.X + (spriteInfo.MaxUV.X - spriteInfo.MinUV.X) * widthRemainedRectSize / centerWidth;
+			float remainedUV3Y = spriteInfo.MaxUV.Y + (spriteInfo.MinUV.Y - spriteInfo.MaxUV.Y) * heightRemainedRectSize / centerHeight;
 			for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
 			{
-				float realUV3Y = heightRectIndex == heightRectCount ? remainedUV3Y : spriteInfo.BorderMaxUV.Y;
+				float realUV3Y = heightRectIndex == heightRectCount ? remainedUV3Y : spriteInfo.MinUV.Y;
 				for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 				{
-					float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo.BorderMaxUV.X;
-					vertices[vertIndex++].TextureCoordinate[0] = FVector2f(spriteInfo.BorderMinUV.X, spriteInfo.BorderMaxUV.Y);
-					vertices[vertIndex++].TextureCoordinate[0] = FVector2f(realUV3X, spriteInfo.BorderMaxUV.Y);
-					vertices[vertIndex++].TextureCoordinate[0] = FVector2f(spriteInfo.BorderMinUV.X, realUV3Y);
-					vertices[vertIndex++].TextureCoordinate[0] = FVector2f(realUV3X, realUV3Y);
+					float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo.MaxUV.X;
+					PushUV(spriteInfo.MinUV.X, spriteInfo.MaxUV.Y);
+					PushUV(realUV3X, spriteInfo.MaxUV.Y);
+					PushUV(spriteInfo.MinUV.X, realUV3Y);
+					PushUV(realUV3X, realUV3Y);
+				}
+			}
+		}
+
+		if (InVertexColorChanged)
+		{
+			UpdateUIColor(uiGeo, color);
+		}
+
+		//additional data
+		{
+			//normal & tangent
+			if (renderCanvas->GetActualRequireNormalAndTangent())
+			{
+				for (int i = 0; i < originVertices.Num(); i++)
+				{
+					originVertices[i].Normal = FVector3f(-1, 0, 0);
+					originVertices[i].Tangent = FVector3f(0, 1, 0);
+				}
+			}
+		}
+	}
+}
+void FLexUIGeometry::UpdateUIRectTiledBorderVertex(FLexUIGeometry* uiGeo, bool fillCenter,
+	const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, float width, float height, FVector2f pivot, const int& widthRectCount, const int& heightRectCount, float widthRemainedRectSize, float heightRemainedRectSize, FColor color,
+	float inv_PixelsPerUnitMultiplier,
+	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
+)
+{
+	int centerTileCount = widthRectCount * heightRectCount;
+	auto& triangles = uiGeo->Triangles;
+	auto triangleCount = 6 * (
+			4//4 corner
+			+ heightRectCount * 2//height direction
+			+ widthRectCount * 2//width direction
+		)
+		;
+	if (fillCenter)
+	{
+		triangleCount += 6 * centerTileCount;
+	}
+	LexUIGeometrySetArrayNum(triangles, triangleCount);
+	if (InTriangleChanged)
+	{
+		int triangleIndicesIndex = 0;
+		int vertIndex = 0;
+		auto PushTriangle = [&]
+		{
+			triangles[triangleIndicesIndex++] = vertIndex;
+			triangles[triangleIndicesIndex++] = vertIndex + 3;
+			triangles[triangleIndicesIndex++] = vertIndex + 2;
+			triangles[triangleIndicesIndex++] = vertIndex;
+			triangles[triangleIndicesIndex++] = vertIndex + 1;
+			triangles[triangleIndicesIndex++] = vertIndex + 3;
+			vertIndex+=4;
+		};
+		//border
+		{
+			//4 corner
+			PushTriangle();
+			PushTriangle();
+			PushTriangle();
+			PushTriangle();
+			//left & right side
+			{
+				for (int i = 0; i < heightRectCount; i++)
+				{
+					PushTriangle();
+					PushTriangle();
+				}
+			}
+			//bottom & top side
+			{
+				for (int i = 0; i < widthRectCount; i++)
+				{
+					PushTriangle();
+					PushTriangle();
+				}
+			}
+		}
+		//center fill tiles
+		if (fillCenter)
+		{
+			for (int i = 0; i < centerTileCount; i++)
+			{
+				PushTriangle();
+			}
+		}
+	}
+	
+	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	auto& vertices = uiGeo->Vertices;
+	auto& originVertices = uiGeo->OriginVertices;
+	auto verticesCount = 
+		4 * 4//4 corner
+		+ heightRectCount * 2 * 4//2 side at height direction
+		+ widthRectCount * 2 * 4//2 side at width direction
+	;
+	if (fillCenter)
+	{
+		verticesCount += 4 * centerTileCount;//center fill tiles
+	}
+	LexUIGeometrySetArrayNum(vertices, verticesCount);
+	LexUIGeometrySetArrayNum(originVertices, verticesCount);
+	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+	{
+		if (InVertexPositionChanged)
+		{
+			//pivot offset
+			float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+			CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
+			//vertices
+			float geoWidth = halfW * 2;
+			float geoHeight = halfH * 2;
+			//vertices
+			float x0, x1, x2, x3, y0, y1, y2, y3;
+			auto borderSize = spriteInfo.Border.GetDesiredSize2f();
+			auto multipliedBorderSize = borderSize * inv_PixelsPerUnitMultiplier;
+			float widthScale = geoWidth < multipliedBorderSize.X ? geoWidth / borderSize.X : inv_PixelsPerUnitMultiplier;
+			float heightScale = geoHeight < multipliedBorderSize.Y ? geoHeight / borderSize.Y : inv_PixelsPerUnitMultiplier;
+			x0 = (-halfW + pivotOffsetX);
+			x1 = (x0 + spriteInfo.Border.Left * widthScale);
+			x3 = (halfW + pivotOffsetX);
+			x2 = (x3 - spriteInfo.Border.Right * widthScale);
+			y0 = (-halfH + pivotOffsetY);
+			y1 = (y0 + spriteInfo.Border.Bottom * heightScale);
+			y3 = (halfH + pivotOffsetY);
+			y2 = (y3 - spriteInfo.Border.Top * heightScale);
+			int vertIndex = 0;
+			auto PushVertex = [&](float x, float y)
+			{
+				originVertices[vertIndex++].Position = FVector3f(0, x, y);
+			};
+			float centerWidth = (spriteInfo.Width - borderSize.X) * inv_PixelsPerUnitMultiplier;
+			float centerHeight = (spriteInfo.Height - borderSize.Y) * inv_PixelsPerUnitMultiplier;
+			//border vertices
+			{
+				//left bottom corner
+				{
+					PushVertex(x0, y0);
+					PushVertex(x1, y0);
+					PushVertex(x0, y1);
+					PushVertex(x1, y1);
+				}
+				//right bottom corner
+				{
+					PushVertex(x2, y0);
+					PushVertex(x3, y0);
+					PushVertex(x2, y1);
+					PushVertex(x3, y1);
+				}
+				//left top corner
+				{
+					PushVertex(x0, y2);
+					PushVertex(x1, y2);
+					PushVertex(x0, y3);
+					PushVertex(x1, y3);
+				}
+				//right top corner
+				{
+					PushVertex(x2, y2);
+					PushVertex(x3, y2);
+					PushVertex(x2, y3);
+					PushVertex(x3, y3);
+				}
+				
+				//left side
+				{
+					float y = y1;
+					for (int i = 1; i <= heightRectCount; i++)
+					{
+						float realHeight = i == heightRectCount ? heightRemainedRectSize : centerHeight;
+						PushVertex(x0, y);
+						PushVertex(x1, y);
+						PushVertex(x0, y + realHeight);
+						PushVertex(x1, y + realHeight);
+						y+=centerHeight;
+					}
+				}
+				//right side
+				{
+					float y = y1;
+					for (int i = 1; i <= heightRectCount; i++)
+					{
+						float realHeight = i == heightRectCount ? heightRemainedRectSize : centerHeight;
+						PushVertex(x2, y);
+						PushVertex(x3, y);
+						PushVertex(x2, y + realHeight);
+						PushVertex(x3, y + realHeight);
+						y+=centerHeight;
+					}
+				}
+				//bottom side
+				{
+					float x = x1;
+					for (int i = 1; i <= widthRectCount; i++)
+					{
+						float realWidth = i == widthRectCount ? widthRemainedRectSize : centerWidth;
+						PushVertex(x, y0);
+						PushVertex(x + realWidth, y0);
+						PushVertex(x, y1);
+						PushVertex(x + realWidth, y1);
+						x+=centerWidth;
+					}
+				}
+				//top side
+				{
+					float x = x1;
+					for (int i = 1; i <= widthRectCount; i++)
+					{
+						float realWidth = i == widthRectCount ? widthRemainedRectSize : centerWidth;
+						PushVertex(x, y2);
+						PushVertex(x + realWidth, y2);
+						PushVertex(x, y3);
+						PushVertex(x + realWidth, y3);
+						x+=centerWidth;
+					}
+				}
+			}
+			
+			//center tiles
+			if (fillCenter)
+			{
+				float startX = x1;
+				float startY = y1;
+				float x = startX, y = startY;
+				for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
+				{
+					float realHeight = heightRectIndex == heightRectCount ? heightRemainedRectSize : centerHeight;
+					for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
+					{
+						float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : centerWidth;
+						originVertices[vertIndex++].Position = FVector3f(0, x, y);
+						originVertices[vertIndex++].Position = FVector3f(0, x + realWidth, y);
+						originVertices[vertIndex++].Position = FVector3f(0, x, y + realHeight);
+						originVertices[vertIndex++].Position = FVector3f(0, x + realWidth, y + realHeight);
+
+						x += centerWidth;
+					}
+					x = startX;
+					y += centerHeight;
+				}
+			}
+			//snap pixel
+			if (pixelPerfect)
+			{
+				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+			}
+		}
+
+		if (InVertexUVChanged)
+		{
+			int vertIndex = 0;
+			auto PushUV = [&](float x, float y)
+			{
+				vertices[vertIndex++].TextureCoordinate[0] = FVector2f(x, y);
+			};
+			auto borderSize = spriteInfo.Border.GetDesiredSize2f();
+			float centerWidth = (spriteInfo.Width - borderSize.X) * inv_PixelsPerUnitMultiplier;
+			float centerHeight = (spriteInfo.Height - borderSize.Y) * inv_PixelsPerUnitMultiplier;
+			float remainedUV3X = spriteInfo.BorderMinUV.X + (spriteInfo.BorderMaxUV.X - spriteInfo.BorderMinUV.X) * widthRemainedRectSize / centerWidth;
+			float remainedUV3Y = spriteInfo.BorderMaxUV.Y + (spriteInfo.BorderMinUV.Y - spriteInfo.BorderMaxUV.Y) * heightRemainedRectSize / centerHeight;
+			//border
+			{
+				//left bottom corner
+				PushUV(spriteInfo.MinUV.X, spriteInfo.MaxUV.Y);
+				PushUV(spriteInfo.BorderMinUV.X, spriteInfo.MaxUV.Y);
+				PushUV(spriteInfo.MinUV.X, spriteInfo.BorderMaxUV.Y);
+				PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMaxUV.Y);
+				//right bottom corner
+				PushUV(spriteInfo.BorderMaxUV.X, spriteInfo.MaxUV.Y);
+				PushUV(spriteInfo.MaxUV.X, spriteInfo.MaxUV.Y);
+				PushUV(spriteInfo.BorderMaxUV.X, spriteInfo.BorderMaxUV.Y);
+				PushUV(spriteInfo.MaxUV.X, spriteInfo.BorderMaxUV.Y);
+				//left top corner
+				PushUV(spriteInfo.MinUV.X, spriteInfo.BorderMinUV.Y);
+				PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMinUV.Y);
+				PushUV(spriteInfo.MinUV.X, spriteInfo.MinUV.Y);
+				PushUV(spriteInfo.BorderMinUV.X, spriteInfo.MinUV.Y);
+				//right top corner
+				PushUV(spriteInfo.BorderMaxUV.X, spriteInfo.BorderMinUV.Y);
+				PushUV(spriteInfo.MaxUV.X, spriteInfo.BorderMinUV.Y);
+				PushUV(spriteInfo.BorderMaxUV.X, spriteInfo.MinUV.Y);
+				PushUV(spriteInfo.MaxUV.X, spriteInfo.MinUV.Y);
+				
+				//left side
+				{
+					for (int i = 1; i <= heightRectCount; i++)
+					{
+						float realUV3Y = i == heightRectCount ? remainedUV3Y : spriteInfo.BorderMinUV.Y;
+						PushUV(spriteInfo.MinUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(spriteInfo.MinUV.X, realUV3Y);
+						PushUV(spriteInfo.BorderMinUV.X, realUV3Y);
+					}
+				}
+				//right side
+				{
+					for (int i = 1; i <= heightRectCount; i++)
+					{
+						float realUV3Y = i == heightRectCount ? remainedUV3Y : spriteInfo.BorderMinUV.Y;
+						PushUV(spriteInfo.BorderMaxUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(spriteInfo.MaxUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(spriteInfo.BorderMaxUV.X, realUV3Y);
+						PushUV(spriteInfo.MaxUV.X, realUV3Y);
+					}
+				}
+				//bottom side
+				{
+					for (int i = 1; i <= widthRectCount; i++)
+					{
+						float realUV3X = i == widthRectCount ? remainedUV3X : spriteInfo.BorderMaxUV.X;
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.MaxUV.Y);
+						PushUV(realUV3X, spriteInfo.MaxUV.Y);
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(realUV3X, spriteInfo.BorderMaxUV.Y);
+					}
+				}
+				//top side
+				{
+					for (int i = 1; i <= widthRectCount; i++)
+					{
+						float realUV3X = i == widthRectCount ? remainedUV3X : spriteInfo.BorderMaxUV.X;
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMinUV.Y);
+						PushUV(realUV3X, spriteInfo.BorderMinUV.Y);
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.MinUV.Y);
+						PushUV(realUV3X, spriteInfo.MinUV.Y);
+					}
+				}
+			}
+			//center tiles
+			if (fillCenter)
+			{
+				for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
+				{
+					float realUV3Y = heightRectIndex == heightRectCount ? remainedUV3Y : spriteInfo.BorderMinUV.Y;
+					for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
+					{
+						float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo.BorderMaxUV.X;
+						PushUV(spriteInfo.BorderMinUV.X, spriteInfo.BorderMaxUV.Y);
+						PushUV(realUV3X, spriteInfo.BorderMaxUV.Y);
+						PushUV(spriteInfo.BorderMinUV.X, realUV3Y);
+						PushUV(realUV3X, realUV3Y);
+					}
 				}
 			}
 		}

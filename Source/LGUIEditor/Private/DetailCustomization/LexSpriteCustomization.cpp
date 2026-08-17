@@ -45,25 +45,40 @@ void FLexSpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 	if (DrawType == ELexUISpriteDrawType::Normal)
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, PixelsPerUnitMultiplier));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, bFillCenter));
 	}
-	else if (DrawType == ELexUISpriteDrawType::Sliced || DrawType == ELexUISpriteDrawType::SlicedFrame)
+	else if (DrawType == ELexUISpriteDrawType::Sliced)
 	{
 		if (TargetScriptPtr->Sprite != nullptr)
 		{
-			if (TargetScriptPtr->Sprite->GetSpriteInfo().HasBorder() == false)
+			if (TargetScriptPtr->Sprite->GetSpriteInfo().HasBorder())
+			{
+				
+			}
+			else
 			{
 				category.AddCustomRow(LOCTEXT("NoBorderWarning", "NoBorderWarning"))
+					.Visibility(TAttribute<EVisibility>::CreateSPLambda(this, [this]()
+					{
+						return (TargetScriptPtr->Sprite && TargetScriptPtr->Sprite->GetSpriteInfo().HasBorder()) ? EVisibility::Collapsed : EVisibility::Visible;
+					}))
 					.WholeRowContent()
 					.MinDesiredWidth(300)
+					.VAlign(VAlign_Center)
 					[
 						SNew(STextBlock)
 						.AutoWrapText(true)
 						.Text(LOCTEXT("Warning", "Target Sprite does not have any border information!"))
-						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+						.ColorAndOpacity(FSlateColor(FLinearColor::Yellow))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 			}
 		}
+		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, bFillCenter)));
+	}
+	else if (DrawType == ELexUISpriteDrawType::Tiled)
+	{
+		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, bFillCenter)));
 	}
 	else if (DrawType == ELexUISpriteDrawType::Filled)
 	{
@@ -72,6 +87,7 @@ void FLexSpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, fillMethodProperty);
 		ELexUISpriteFillMethod fillMethod = TargetScriptPtr->FillMethod;
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, PixelsPerUnitMultiplier));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, bFillCenter));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, FillOrigin));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, FillOriginType_Radial90));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, FillOriginType_Radial180));
@@ -108,10 +124,6 @@ void FLexSpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		}
 		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, FillDirectionFlip)));
 		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, FillAmount)));
-	}
-	else if (DrawType == ELexUISpriteDrawType::Filled)
-	{
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexSprite, PixelsPerUnitMultiplier));
 	}
 
 	if (DrawType != ELexUISpriteDrawType::Filled)

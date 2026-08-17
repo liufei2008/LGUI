@@ -181,7 +181,7 @@ public:
 public:
 	static void UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCenter,
 		float width, float height, FVector2f pivot, const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, FColor color,
-		float pixelsPerUnitMultiplier,
+		float inv_PixelsPerUnitMultiplier,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion
@@ -189,6 +189,12 @@ public:
 public:
 	static void UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo, 
 		const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, float width, float height, FVector2f pivot, const int& widthRectCount, const int& heightRectCount, float widthRemainedRectSize, float heightRemainedRectSize, FColor color,
+		float inv_PixelsPerUnitMultiplier,
+		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
+	);
+	static void UpdateUIRectTiledBorderVertex(FLexUIGeometry* uiGeo, bool fillCenter,
+		const FLexUISpriteInfo& spriteInfo, ULexCanvas* renderCanvas, ULexVisual* uiComp, float width, float height, FVector2f pivot, const int& widthRectCount, const int& heightRectCount, float widthRemainedRectSize, float heightRemainedRectSize, FColor color,
+		float inv_PixelsPerUnitMultiplier,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
 #pragma endregion

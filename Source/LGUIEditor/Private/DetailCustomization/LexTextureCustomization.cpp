@@ -42,16 +42,56 @@ void FLexTextureCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	category.AddProperty(spriteTypeHandle);
 	spriteTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexTextureCustomization::ForceRefresh, &DetailBuilder));
 	auto DrawType = TargetScriptPtr->DrawType;
+	if (DrawType == ELexUISpriteDrawType::Normal)
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, PixelsPerUnitMultiplier));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, bFillCenter));
+	}
+	else if (DrawType == ELexUISpriteDrawType::Sliced)
+	{
+		if (TargetScriptPtr->Texture != nullptr)
+		{
+			if (TargetScriptPtr->SpriteInfo.HasBorder())
+			{
+				
+			}
+			else
+			{
+				category.AddCustomRow(LOCTEXT("NoBorderWarning", "NoBorderWarning"))
+					.Visibility(TAttribute<EVisibility>::CreateSPLambda(this, [this]()
+					{
+						return (TargetScriptPtr->Texture && TargetScriptPtr->SpriteInfo.HasBorder()) ? EVisibility::Collapsed : EVisibility::Visible;
+					}))
+					.WholeRowContent()
+					.MinDesiredWidth(300)
+					.VAlign(VAlign_Center)
+					[
+						SNew(STextBlock)
+						.AutoWrapText(true)
+						.Text(LOCTEXT("Warning", "Sprite info does not have any border information!"))
+						.ColorAndOpacity(FSlateColor(FLinearColor::Yellow))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					];
+			}
+		}
+		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, bFillCenter)));
+	}
+	else if (DrawType == ELexUISpriteDrawType::Tiled)
+	{
+		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, bFillCenter)));
+	}
 	if (DrawType == ELexUISpriteDrawType::Filled)
 	{
 		auto fillMethodProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillMethod));
 		fillMethodProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexTextureCustomization::ForceRefresh, &DetailBuilder));
 		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, fillMethodProperty);
 		ELexUISpriteFillMethod fillMethod = TargetScriptPtr->FillMethod;
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, PixelsPerUnitMultiplier));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, bFillCenter));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOrigin));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial90));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial180));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial360));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial90));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial180));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial360));
 		switch (fillMethod)
 		{
 		case ELexUISpriteFillMethod::Horizontal:
@@ -59,24 +99,24 @@ void FLexTextureCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			break;
 		case ELexUISpriteFillMethod::Radial90:
 		{
-			TargetScriptPtr->fillOriginType_Radial90 = (ELexUISpriteFillOriginType_Radial90)TargetScriptPtr->FillOrigin;
-			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial90));
+			TargetScriptPtr->FillOriginType_Radial90 = (ELexUISpriteFillOriginType_Radial90)TargetScriptPtr->FillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial90));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
 		case ELexUISpriteFillMethod::Radial180:
 		{
-			TargetScriptPtr->fillOriginType_Radial180 = (ELexUISpriteFillOriginType_Radial180)TargetScriptPtr->FillOrigin;
-			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial180));
+			TargetScriptPtr->FillOriginType_Radial180 = (ELexUISpriteFillOriginType_Radial180)TargetScriptPtr->FillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial180));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
 		case ELexUISpriteFillMethod::Radial360:
 		{
-			TargetScriptPtr->fillOriginType_Radial360 = (ELexUISpriteFillOriginType_Radial360)TargetScriptPtr->FillOrigin;
-			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial360));
+			TargetScriptPtr->FillOriginType_Radial360 = (ELexUISpriteFillOriginType_Radial360)TargetScriptPtr->FillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial360));
 			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
@@ -86,11 +126,6 @@ void FLexTextureCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		FLexUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillAmount)));
 	}
 
-	if (DrawType != ELexUISpriteDrawType::Sliced && DrawType != ELexUISpriteDrawType::SlicedFrame)
-	{
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, PixelsPerUnitMultiplier));
-	}
-
 	if (DrawType != ELexUISpriteDrawType::Filled)
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillMethod));
@@ -98,9 +133,9 @@ void FLexTextureCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillDirectionFlip));
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillAmount));
 
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial90));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial180));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, fillOriginType_Radial360));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial90));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial180));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, FillOriginType_Radial360));
 	}
 }
 void FLexTextureCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
