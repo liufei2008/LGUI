@@ -1387,8 +1387,11 @@ void ULexUIManagerWorldSubsystem::RefreshAllUI(UWorld* InWorld)
 			if (!Canvas->IsRootCanvas())continue;
 			if (auto Widget = Canvas->GetWidget())
 			{
-				Widget->EnsureDataForRebuild();
-				Widget->MarkCanvasUpdate(true);
+				if (Widget->IsRootWidgetInHierarchy())
+				{
+					Widget->EnsureDataForRebuild();
+					Widget->MarkCanvasUpdate(true);
+				}
 			}
 		}
 	}

@@ -356,6 +356,10 @@ void ULexCanvas::PostInitProperties()
 
 void ULexCanvas::ClearDrawCall()
 {
+	if (IsValid(UIMesh) && ParentCanvas.IsValid())
+	{
+		UIMesh->ClearParentCanvasMeshComp(ParentCanvas->GetUIMesh());//clear parent canvas mesh component, so it will be render by itself
+	}
 	if (IsValid(UIMesh))
 	{
 		UIMesh->ClearRenderData();
@@ -599,43 +603,43 @@ bool ULexCanvas::CanEditChange(const FProperty* InProperty) const
 		|| this->GetWorld() == nullptr;//world is null maybe it is blueprint editor
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, ProjectionType))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, FieldOfView))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, NearClipPlane))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, FarClipPlane))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, ScaleMode))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, ReferenceResolution))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, MatchFromWidthToHeight))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, ScreenMatchMode))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bFixedSizeInEditMode))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, SizeInEditMode))
 		{
-			return bIsRootCanvas;
+			return bIsRootCanvas || bForceRenderToTarget;
 		}
 		if (MemberName == GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderMode))
 		{
@@ -670,6 +674,7 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bForceRenderToTarget))
 	{
 		ClearDrawCall();//editor just use the most convenient way to make corrent render
+		CheckRootCanvas(true);
 		if (bForceRenderToTarget)
 		{
 			RenderMode = ELexRenderMode::RenderTarget;
@@ -682,10 +687,10 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting))
 	{
-		ClearDrawCall();//editor just use the most convenient way to make corrent render
+		ClearDrawCall();//editor just use the most convenient way to make refresh render
 	}
 
-	OnViewportParameterChanged();
+	CheckAndApplyViewportParameter();
 }
 void ULexCanvas::PostLoad()
 {
@@ -2231,10 +2236,8 @@ void ULexCanvas::SetForceRenderToTarget(bool Value)
 	if (bForceRenderToTarget != Value)
 	{
 		bForceRenderToTarget = Value;
-		if (IsValid(UIMesh) && ParentCanvas.IsValid())
-		{
-			UIMesh->ClearParentCanvasMeshComp(ParentCanvas->GetUIMesh());//clear parent canvas mesh component, so it will be render by itself
-		}
+		ClearDrawCall();
+		CheckRootCanvas(true);
 		if (bForceRenderToTarget)
 		{
 			MarkCanvasUpdate(true);
@@ -2490,24 +2493,52 @@ bool ULexCanvasCustomScale::ConvertPositionFromCanvasToViewport(const FVector2D&
 
 void ULexCanvas::CheckAndApplyViewportParameter()
 {
-	switch (this->GetRenderMode())
+	if (this->IsRootCanvas() && !bForceRenderToTarget)
 	{
-	case ELexRenderMode::ScreenSpaceOverlay:
-	{
-		ViewportSize = this->GetViewportSize();
-		OnViewportParameterChanged();
-	}
-	break;
-	case ELexRenderMode::RenderTarget:
-	{
-		if (IsValid(RenderTarget))
+		switch (this->GetRenderMode())
 		{
-			ViewportSize.X = RenderTarget->SizeX / RenderTargetResolutionScale;
-			ViewportSize.Y = RenderTarget->SizeY / RenderTargetResolutionScale;
-			OnViewportParameterChanged();
+		case ELexRenderMode::ScreenSpaceOverlay:
+			{
+				ViewportSize = this->GetViewportSize();
+				OnViewportParameterChanged();
+			}
+		break;
+		case ELexRenderMode::RenderTarget:
+			{
+				switch (RenderTargetSizeMode)
+				{
+				case ELexCanvasRenderTargetSizeMode::None:
+				case ELexCanvasRenderTargetSizeMode::CanvasFitToRenderTarget:
+					if (IsValid(RenderTarget))
+					{
+						ViewportSize.X = RenderTarget->SizeX / RenderTargetResolutionScale;
+						ViewportSize.Y = RenderTarget->SizeY / RenderTargetResolutionScale;
+						OnViewportParameterChanged();
+					}
+					break;
+				case ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas:
+					break;
+				}
+			}
+		break;
 		}
 	}
-	break;
+	else if (bForceRenderToTarget)
+	{
+		switch (RenderTargetSizeMode)
+		{
+		case ELexCanvasRenderTargetSizeMode::None:
+		case ELexCanvasRenderTargetSizeMode::CanvasFitToRenderTarget:
+			if (IsValid(RenderTarget))
+			{
+				ViewportSize.X = RenderTarget->SizeX / RenderTargetResolutionScale;
+				ViewportSize.Y = RenderTarget->SizeY / RenderTargetResolutionScale;
+				OnViewportParameterChanged();
+			}
+			break;
+		case ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas:
+			break;
+		}
 	}
 }
 

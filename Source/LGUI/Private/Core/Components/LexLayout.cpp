@@ -49,6 +49,7 @@ ULexLayoutContainer* ULexLayoutAnimation::GetLayoutContainer()const
 
 ULTweener* ULexLayoutAnimation::AnimPosition2D(ULexWidget* Widget, FVector2D StartPosition, FVector2D EndPosition, float Duration, float Delay, ELTweenEase Ease)
 {
+	if (!IsValid(Widget))return nullptr;
 	Widget->SetPositionForLayoutAnimation(StartPosition);
 	auto Tweener = ULTweenManager::To(Widget
 		, FLTweenFloatGetterFunction::CreateLambda([=]()
@@ -65,6 +66,7 @@ ULTweener* ULexLayoutAnimation::AnimPosition2D(ULexWidget* Widget, FVector2D Sta
 
 ULTweener* ULexLayoutAnimation::AnimSize(ULexWidget* Widget, FVector2D StartSize, FVector2D EndSize, float Duration, float Delay, ELTweenEase Ease)
 {
+	if (!IsValid(Widget))return nullptr;
 	Widget->SetSizeForLayoutAnimation(StartSize);
 	auto Tweener = ULTweenManager::To(Widget
 		, FLTweenFloatGetterFunction::CreateLambda([=]()
@@ -81,6 +83,7 @@ ULTweener* ULexLayoutAnimation::AnimSize(ULexWidget* Widget, FVector2D StartSize
 
 ULTweener* ULexLayoutAnimation::AnimScale(ULexWidget* Widget, FVector StartScale, FVector EndScale, float Duration, float Delay, ELTweenEase Ease)
 {
+	if (!IsValid(Widget))return nullptr;
 	Widget->SetRelativeScale(StartScale);
 	auto Tweener = ULTweenManager::To(Widget
 		, FLTweenFloatGetterFunction::CreateLambda([=]()
@@ -97,6 +100,7 @@ ULTweener* ULexLayoutAnimation::AnimScale(ULexWidget* Widget, FVector StartScale
 
 ULTweener* ULexLayoutAnimation::AnimRotation(ULexWidget* Widget, FRotator StartRotation, FRotator EndRotation, float Duration, float Delay, ELTweenEase Ease)
 {
+	if (!IsValid(Widget))return nullptr;
 	Widget->SetRelativeRotation(StartRotation.Quaternion());
 	auto Tweener = ULTweenManager::To(Widget
 		, FLTweenFloatGetterFunction::CreateLambda([=]()
@@ -113,6 +117,7 @@ ULTweener* ULexLayoutAnimation::AnimRotation(ULexWidget* Widget, FRotator StartR
 
 ULTweener* ULexLayoutAnimation::AnimRenderOpacity(ULexWidget* Widget, float StartOpacity, float EndOpacity, float Duration, float Delay, ELTweenEase Ease)
 {
+	if (!IsValid(Widget))return nullptr;
 	Widget->SetRenderOpacity(StartOpacity);
 	auto Tweener = ULTweenManager::To(Widget
 		, FLTweenFloatGetterFunction::CreateLambda([=]()

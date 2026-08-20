@@ -3022,25 +3022,9 @@ void ULexWidget::MarkLayoutForRebuild(ULexWidget* InWidget)
 		}
 		break;
 	}
-
-	bool bMarkLayoutDirty = true;
-	if (RootWidgetOfLayoutTree == InWidget)//no valid layout parent
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(RootWidgetOfLayoutTree->GetWorld()))
 	{
-		if (InWidget->GetLayoutContainer())//self contains layout container
-		{
-			bMarkLayoutDirty = true;
-		}
-		else
-		{
-			bMarkLayoutDirty = false;
-		}
-	}
-	if (bMarkLayoutDirty)
-	{
-		if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(RootWidgetOfLayoutTree->GetWorld()))
-		{
-			LexUIManager->AddLayoutDirtyWidget(RootWidgetOfLayoutTree);
-		}
+		LexUIManager->AddLayoutDirtyWidget(RootWidgetOfLayoutTree);
 	}
 }
 

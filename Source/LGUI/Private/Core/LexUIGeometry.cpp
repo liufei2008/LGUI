@@ -3543,10 +3543,10 @@ void FLexUIGeometry::CalculateOffsetAndSize(
 
 	if (spriteInfo.HasPadding())
 	{
-		float widthScale = width / spriteInfo.GetSourceWidth();
-		float heightScale = height / spriteInfo.GetSourceHeight();
-		float geoWidth = spriteInfo.Width * widthScale;
-		float geoHeight = spriteInfo.Height * heightScale;
+		float geoWidth, geoHeight;
+		float widthScale = 1.0f, heightScale = 1.0f;
+		geoWidth = width + spriteInfo.Padding.Left + spriteInfo.Padding.Right;
+		geoHeight = height + spriteInfo.Padding.Bottom + spriteInfo.Padding.Top;
 		pivotOffsetX += (-width + geoWidth) * 0.5f + spriteInfo.Padding.Left * widthScale;
 		pivotOffsetY += (-height + geoHeight) * 0.5f + spriteInfo.Padding.Bottom * heightScale;
 		halfWidth = geoWidth * 0.5f;

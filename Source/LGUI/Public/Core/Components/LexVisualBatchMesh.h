@@ -147,7 +147,7 @@ protected:
 	friend class FLexVisualBatchMeshCustomization;
 
 	/** enable properties for material */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
+	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
 	TArray<TWeakObjectPtr<ULexMeshModifierBase>> MeshModifierArray;
 

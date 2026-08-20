@@ -277,7 +277,7 @@ public:
 /*
  * This is a preset actor that contains a LexEventSystem component
  */
-UCLASS(ClassGroup = LGUI)
+UCLASS(ClassGroup = LGUI, Abstract, NotPlaceable)
 class LGUI_API ALexEventSystemActor : public AActor
 {
 	GENERATED_BODY()

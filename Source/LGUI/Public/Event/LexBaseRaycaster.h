@@ -20,10 +20,10 @@ class LGUI_API ULexBaseRaycaster : public UActorComponent
 	
 public:	
 	ULexBaseRaycaster();
-protected:
 	virtual void BeginPlay()override;
 	virtual void Activate(bool bReset = false)override;
 	virtual void Deactivate()override;
+protected:
 	virtual void OnUnregister()override;
 
 	friend class FUIBaseRaycasterCustomization;

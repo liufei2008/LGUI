@@ -4,6 +4,12 @@
 #include "Core/LexUISettings.h"
 
 
+ULexWorldSpaceRaycasterSource::ULexWorldSpaceRaycasterSource()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
 void ULexWorldSpaceRaycasterSource::BeginPlay()
 {
 	Super::BeginPlay();
@@ -48,6 +54,7 @@ bool ULexWorldSpaceRaycasterSource::ShouldStartDrag(ULexPointerEventData* InPoin
 ALexWorldSpaceRaycasterSourceActor::ALexWorldSpaceRaycasterSourceActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 }
 
 ULexWorldSpaceRaycasterBase::ULexWorldSpaceRaycasterBase()

@@ -201,8 +201,7 @@ void ULexLayoutSelfFlexBox::RebuildSelfLayout()
                     return;
             }
         }
-        bIsLayoutDirty = true;
-        CalculateSize();//build layout and apply immediately
+        ULexWidget::MarkLayoutForRebuild(Widget);
     }
 }
 

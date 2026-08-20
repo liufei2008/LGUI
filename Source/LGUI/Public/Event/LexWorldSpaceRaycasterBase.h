@@ -15,8 +15,10 @@ UCLASS(ClassGroup = (LGUI), Blueprintable, Abstract, HideCategories = (Sockets, 
 class LGUI_API ULexWorldSpaceRaycasterSource : public USceneComponent
 {
 	GENERATED_BODY()
-protected:
+public:
+	ULexWorldSpaceRaycasterSource();
 	virtual void BeginPlay() override;
+protected:
 	
 	/** ray length for line trace hit */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -64,7 +66,7 @@ protected:
 		bool ReceiveShouldStartDrag(ULexPointerEventData* InPointerEventData);
 };
 
-UCLASS(ClassGroup = LGUI, Abstract, HideCategories=(Rendering, Replication, Collision, HLOD, Physics, Networking, Input, Actor, Navigation, LevelInstance, Cooking))
+UCLASS(ClassGroup = LGUI, Abstract, NotPlaceable, HideCategories=(Rendering, Replication, Collision, HLOD, Physics, Networking, Input, Actor, Navigation, LevelInstance, Cooking))
 class LGUI_API ALexWorldSpaceRaycasterSourceActor : public AActor
 {
 	GENERATED_BODY()
@@ -89,8 +91,8 @@ class LGUI_API ULexWorldSpaceRaycasterBase : public ULexBaseRaycaster
 public:	
 	ULexWorldSpaceRaycasterBase();
 	virtual void BeginPlay()override;
-	virtual void OnRegister()override;
 protected:
+	virtual void OnRegister()override;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 	TWeakObjectPtr<ALexWorldSpaceRaycasterSourceActor> RaycasterSourceActor = nullptr;
