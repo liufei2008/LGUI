@@ -49,6 +49,10 @@ void ULexTexture::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 			FillOriginType_Radial180 = (ELexUISpriteFillOriginType_Radial180)FillOrigin;
 			FillOriginType_Radial90 = (ELexUISpriteFillOriginType_Radial90)FillOrigin;
 		}
+		else if (PropName == GET_MEMBER_NAME_CHECKED(ULexTexture, FlipMode))
+		{
+			MarkVerticesDirty(false, true, true, false);
+		}
 		if (IsValid(Texture) && DrawType == ELexUISpriteDrawType::Tiled)
 		{
 			CalculateTiledParams();
@@ -81,18 +85,36 @@ void ULexTexture::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged
 {
 	auto Widget = GetWidget();
 	auto RenderCanvas = Widget->GetRenderCanvas();
+	bool bFlipH = false, bFlipV = false;
+	switch (FlipMode)
+	{
+	case ELexUISpriteFlipMode::Horizontal:
+		bFlipH = true;
+		break;
+	case ELexUISpriteFlipMode::Vertical:
+		bFlipV = true;
+		break;
+	case ELexUISpriteFlipMode::Both:
+		bFlipH = bFlipV = true;
+		break;
+	case ELexUISpriteFlipMode::Nothing:
+	default:
+		break;
+	}
+	FLexUISpriteInfo RenderSpriteInfo = SpriteInfo;
+	FLexUISpriteInfo::ApplyFlip(RenderSpriteInfo, bFlipH, bFlipV);
 	switch (DrawType)
 	{
 	case ELexUISpriteDrawType::Normal:
 		FLexUIGeometry::UpdateUIRectSimpleVertex(&InGeo,
-			Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, RenderCanvas, this, GetFinalColor(),
+			Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, RenderCanvas, this, GetFinalColor(),
 			InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 		);
 		break;
 	case ELexUISpriteDrawType::Sliced:
-		if (SpriteInfo.HasBorder())
+		if (RenderSpriteInfo.HasBorder())
 		{
-			FLexUIGeometry::UpdateUIRectBorderVertex(&InGeo, bFillCenter, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, RenderCanvas, this, GetFinalColor(),
+			FLexUIGeometry::UpdateUIRectBorderVertex(&InGeo, bFillCenter, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, RenderCanvas, this, GetFinalColor(),
 				1.0f / PixelsPerUnitMultiplier, 
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
@@ -100,22 +122,22 @@ void ULexTexture::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged
 		else
 		{
 			FLexUIGeometry::UpdateUIRectSimpleVertex(&InGeo,
-				Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, RenderCanvas, this, GetFinalColor(),
+				Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, RenderCanvas, this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 		}
 		break;
 	case ELexUISpriteDrawType::Tiled:
-		if (SpriteInfo.HasBorder())
+		if (RenderSpriteInfo.HasBorder())
 		{
-			FLexUIGeometry::UpdateUIRectTiledBorderVertex(&InGeo, bFillCenter, SpriteInfo, RenderCanvas, this, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, GetFinalColor(), 
+			FLexUIGeometry::UpdateUIRectTiledBorderVertex(&InGeo, bFillCenter, RenderSpriteInfo, RenderCanvas, this, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, GetFinalColor(), 
 				1.0f / PixelsPerUnitMultiplier,
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 		}
 		else
 		{
-			FLexUIGeometry::UpdateUIRectTiledVertex(&InGeo, SpriteInfo, RenderCanvas, this, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, GetFinalColor(), 
+			FLexUIGeometry::UpdateUIRectTiledVertex(&InGeo, RenderSpriteInfo, RenderCanvas, this, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, GetFinalColor(), 
 				1.0f / PixelsPerUnitMultiplier,
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
@@ -127,22 +149,22 @@ void ULexTexture::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged
 		{
 		case ELexUISpriteFillMethod::Horizontal:
 		case ELexUISpriteFillMethod::Vertical:
-			FLexUIGeometry::UpdateUIRectFillHorizontalVerticalVertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, FillDirectionFlip, FillAmount, FillMethod == ELexUISpriteFillMethod::Horizontal, RenderCanvas, this, GetFinalColor(),
+			FLexUIGeometry::UpdateUIRectFillHorizontalVerticalVertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, FillDirectionFlip, FillAmount, FillMethod == ELexUISpriteFillMethod::Horizontal, RenderCanvas, this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case ELexUISpriteFillMethod::Radial90:
-			FLexUIGeometry::UpdateUIRectFillRadial90Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial90)FillOrigin, RenderCanvas, this, GetFinalColor(),
+			FLexUIGeometry::UpdateUIRectFillRadial90Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial90)FillOrigin, RenderCanvas, this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case ELexUISpriteFillMethod::Radial180:
-			FLexUIGeometry::UpdateUIRectFillRadial180Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial180)FillOrigin, RenderCanvas, this, GetFinalColor(),
+			FLexUIGeometry::UpdateUIRectFillRadial180Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial180)FillOrigin, RenderCanvas, this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
 		case ELexUISpriteFillMethod::Radial360:
-			FLexUIGeometry::UpdateUIRectFillRadial360Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), SpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial360)FillOrigin, RenderCanvas, this, GetFinalColor(),
+			FLexUIGeometry::UpdateUIRectFillRadial360Vertex(&InGeo, Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), RenderSpriteInfo, FillDirectionFlip, FillAmount, (ELexUISpriteFillOriginType_Radial360)FillOrigin, RenderCanvas, this, GetFinalColor(),
 				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 			);
 			break;
@@ -251,6 +273,14 @@ void ULexTexture::SetDrawType(ELexUISpriteDrawType Value)
 		{
 			CalculateTiledParams();
 		}
+	}
+}
+void ULexTexture::SetFlipMode(ELexUISpriteFlipMode Value)
+{
+	if (FlipMode != Value)
+	{
+		FlipMode = Value;
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void ULexTexture::SetSpriteInfo(FLexUISpriteInfo Value) 

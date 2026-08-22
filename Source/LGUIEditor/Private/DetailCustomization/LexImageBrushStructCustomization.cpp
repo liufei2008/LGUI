@@ -258,6 +258,7 @@ void FLexImageBrushStructCustomization::CustomizeChildren( TSharedRef<IPropertyH
 	TSharedPtr<IPropertyHandle> UVRegionProperty = StructPropertyHandle->GetChildHandle( TEXT("UVRegion") );
 	TSharedPtr<IPropertyHandle> TintProperty = StructPropertyHandle->GetChildHandle( TEXT("TintColor") );
 	auto PixelsPerUnitMultiplierProperty = StructPropertyHandle->GetChildHandle( TEXT("PixelsPerUnitMultiplier") );
+	auto FlipModeProperty = StructPropertyHandle->GetChildHandle( TEXT("FlipMode") );
 	ResourceObjectProperty = StructPropertyHandle->GetChildHandle( TEXT("ResourceObject") );
 	ImageTypeProperty = StructPropertyHandle->GetChildHandle(TEXT("ImageType"));
 
@@ -306,6 +307,7 @@ void FLexImageBrushStructCustomization::CustomizeChildren( TSharedRef<IPropertyH
 	.Visibility( TAttribute<EVisibility>::CreateSP(this, &FLexImageBrushStructCustomization::GetUVRegionPropertyVisibility ) );
 	StructBuilder.AddProperty(PixelsPerUnitMultiplierProperty.ToSharedRef())
 	.Visibility(TAttribute<EVisibility>::CreateSP(this, &FLexImageBrushStructCustomization::GetPixelsPerUnitMultiplierPropertyVisibility));
+	StructBuilder.AddProperty(FlipModeProperty.ToSharedRef());
 }
 
 EVisibility FLexImageBrushStructCustomization::GetMarginPropertyVisibility() const

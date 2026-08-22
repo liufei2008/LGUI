@@ -549,6 +549,7 @@ void ULexWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		static const FName IgnoreLayoutName = GET_MEMBER_NAME_CHECKED(ULexWidget, bIgnoreLayout);
 		static const FName InteractableName = GET_MEMBER_NAME_CHECKED(ULexWidget, Interactable);
 		static const FName RenderOpacityName = GET_MEMBER_NAME_CHECKED(ULexWidget, RenderOpacity);
+		static const FName IgnoreParentRenderOpacityName = GET_MEMBER_NAME_CHECKED(ULexWidget, bIgnoreParentRenderOpacity);
 
 		if (MemberName == AnchorDataName
 		|| MemberName == WidgetActiveName
@@ -642,23 +643,9 @@ void ULexWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		{
 			CalculateInteractable_Recursive();
 		}
-		if (MemberName == RenderOpacityName)
+		if (MemberName == RenderOpacityName || MemberName == IgnoreParentRenderOpacityName)
 		{
-			struct LOCAL
-			{
-				static void MarkDirty(const ULexWidget* Widget)
-				{
-					if (Widget->Visual)
-					{
-						Widget->Visual->MarkColorDirty();
-					}
-					for (auto& Child : Widget->Children)
-					{
-						MarkDirty(Child);
-					}
-				}
-			};
-			LOCAL::MarkDirty(this);
+			MarkRenderOpacityDirty_Recursive();
 		}
 		ULexUIManagerObject::AddOneShotTickFunction([WeakThis = MakeWeakObjectPtr(this)]()
 		{
@@ -2489,14 +2476,6 @@ void ULexWidget::UpdateClip(ULexUIDataAsTexture* ClipDataTexture, TArray<TShared
 	}
 }
 
-void ULexWidget::UpdateVisual() const
-{
-	if (IsValid(Visual))
-	{
-		Visual->UpdateGeometry();
-	}
-}
-
 void ULexWidget::SetRenderCanvas(ULexCanvas* InNewCanvas)
 {
 	auto OldRenderCanvas = RenderCanvas;
@@ -3103,11 +3082,22 @@ void ULexWidget::SetClippingMargin(FMargin Value)
 
 float ULexWidget::GetFinalRenderOpacity()const
 {
-	if (Parent.IsValid())
+	if (!bIgnoreParentRenderOpacity && Parent.IsValid())
 	{
 		return this->RenderOpacity * Parent->GetFinalRenderOpacity();
 	}
 	return this->RenderOpacity;
+}
+void ULexWidget::MarkRenderOpacityDirty_Recursive()const
+{
+	if (Visual)
+	{
+		Visual->MarkColorDirty();
+	}
+	for (auto& Child : Children)
+	{
+		Child->MarkRenderOpacityDirty_Recursive();
+	}
 }
 void ULexWidget::SetRenderOpacity(float Value)
 {
@@ -3115,21 +3105,15 @@ void ULexWidget::SetRenderOpacity(float Value)
 	if (RenderOpacity != Value)
 	{
 		RenderOpacity = Value;
-		struct LOCAL
-		{
-			static void MarkDirty(const ULexWidget* Widget)
-			{
-				if (Widget->Visual)
-				{
-					Widget->Visual->MarkColorDirty();
-				}
-				for (auto& Child : Widget->Children)
-				{
-					MarkDirty(Child);
-				}
-			}
-		};
-		LOCAL::MarkDirty(this);
+		MarkRenderOpacityDirty_Recursive();
+	}
+}
+void ULexWidget::SetIgnoreParentRenderOpacity(bool Value)
+{
+	if (bIgnoreParentRenderOpacity != Value)
+	{
+		bIgnoreParentRenderOpacity = Value;
+		MarkRenderOpacityDirty_Recursive();
 	}
 }
 

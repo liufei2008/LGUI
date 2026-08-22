@@ -3,6 +3,7 @@
 #pragma once
 
 #include "LexSpriteBase.h"
+#include "Core/LexUISpriteInfo.h"
 #include "LexSprite.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
@@ -68,6 +69,8 @@ protected:
 	friend class FLexSpriteCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELexUISpriteDrawType DrawType = ELexUISpriteDrawType::Normal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		ELexUISpriteFlipMode FlipMode = ELexUISpriteFlipMode::Nothing;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush", meta=(ClampMin = "0.01" ))
 	float PixelsPerUnitMultiplier = 1;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -101,6 +104,7 @@ protected:
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteDrawType GetSpriteDrawType()const { return DrawType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteFlipMode GetFlipMode()const { return FlipMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFillCenter() const { return bFillCenter; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	ELexUISpriteFillMethod GetFillMethod()const { return FillMethod; }
@@ -109,6 +113,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return FillAmount; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetDrawType(ELexUISpriteDrawType Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFlipMode(ELexUISpriteFlipMode Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetPixelsPerUnitMultiplier(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillCenter(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(ELexUISpriteFillMethod Value);

@@ -81,9 +81,11 @@ void ULexCanvasRenderTargetPreviewer::RegisterRenderTargetChangedEvent()
 		{
 			if (!WeakThis.IsValid())return;
 			WeakThis->MarkTextureDirty();
+			WeakThis->MarkVerticesDirty(true, true, true, true);
 			WeakThis->UpdateSpriteData();
 		});
 		MarkTextureDirty();
+		MarkVerticesDirty(true, true, true, true);
 		UpdateSpriteData();
 	}
 }

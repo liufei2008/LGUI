@@ -685,11 +685,16 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 			OnRenderTargetChanged.Broadcast(nullptr);
 		}
 	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderMode))
+	{
+		ClearDrawCall();
+	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting))
 	{
 		ClearDrawCall();//editor just use the most convenient way to make refresh render
 	}
 
+	MarkCanvasUpdate(true);
 	CheckAndApplyViewportParameter();
 }
 void ULexCanvas::PostLoad()
@@ -1264,10 +1269,10 @@ void ULexCanvas::UpdateCanvasDrawCall()
 			for (const auto& Widget : WidgetList)
 			{
 				Widget->UpdateClip(RootCanvas->ClipDataAsTexture, RootCanvas->ClipDataList);
-				if (Widget->GetWidgetActiveInHierarchy() && Widget->GetRenderCanvas() == this)
-				{
-					Widget->UpdateVisual();
-				}
+				if (!Widget->GetWidgetActiveInHierarchy())continue;
+				auto Visual = Widget->GetVisual();
+				if (!Visual)continue;
+				Visual->UpdateGeometry();
 			}
 		}
 		WidgetPropertyDataAsTexture->Flush();

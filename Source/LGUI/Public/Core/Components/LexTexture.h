@@ -25,6 +25,8 @@ protected:
 	friend class FLexTextureCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELexUISpriteDrawType DrawType = ELexUISpriteDrawType::Normal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		ELexUISpriteFlipMode FlipMode = ELexUISpriteFlipMode::Nothing;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush", meta=(ClampMin = "0.01"))
 	float PixelsPerUnitMultiplier = 1;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -66,6 +68,7 @@ protected:
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteDrawType GetDrawType()const { return DrawType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteFlipMode GetFlipMode()const { return FlipMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FLexUISpriteInfo GetSpriteInfo()const { return SpriteInfo; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector4f GetUVRect()const { return UVRect; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
@@ -76,6 +79,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return FillAmount; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetDrawType(ELexUISpriteDrawType Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFlipMode(ELexUISpriteFlipMode Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetSpriteInfo(FLexUISpriteInfo Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetUVRect(FVector4f Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetPixelsPerUnitMultiplier(float Value);

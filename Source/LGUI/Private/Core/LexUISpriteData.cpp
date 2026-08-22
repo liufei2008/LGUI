@@ -18,6 +18,10 @@
 
 bool FLexUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
 {
+#if WITH_EDITOR
+	PosX = InX;
+	PosY = InY;
+#endif
 	auto NewMinUV = FVector2f(InX * texFullWidthReciprocal, InY * texFullHeightReciprocal);
 	auto NewMaxUV = FVector2f((InX + InWidth) * texFullWidthReciprocal, (InY + InHeight) * texFullHeightReciprocal);
 	
@@ -32,6 +36,10 @@ bool FLexUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeig
 }
 bool FLexUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal, const FVector4f& uvRect)
 {
+#if WITH_EDITOR
+	PosX = InX;
+	PosY = InY;
+#endif
 	auto NewMinUV = FVector2f(InX * texFullWidthReciprocal + uvRect.X, InY * texFullHeightReciprocal + uvRect.Y);
 	auto NewMaxUV = FVector2f((InX + InWidth) * texFullWidthReciprocal * uvRect.Z + uvRect.X, (InY + InHeight) * texFullHeightReciprocal * uvRect.W + uvRect.Y);
 	
@@ -61,6 +69,24 @@ bool FLexUISpriteInfo::ApplyBorderUV(float texFullWidthReciprocal, float texFull
 	BorderMinUV = NewBorderMinUV;
 	BorderMaxUV = NewBorderMaxUV;
 	return true;
+}
+
+void FLexUISpriteInfo::ApplyFlip(FLexUISpriteInfo& Result, bool bFlipH, bool bFlipV)
+{
+	if (bFlipH)
+	{
+		Swap(Result.MinUV.X, Result.MaxUV.X);
+		Swap(Result.BorderMinUV.X, Result.BorderMaxUV.X);
+		Swap(Result.Border.Left, Result.Border.Right);
+		Swap(Result.Padding.Left, Result.Padding.Right);
+	}
+	if (bFlipV)
+	{
+		Swap(Result.MinUV.Y, Result.MaxUV.Y);
+		Swap(Result.BorderMinUV.Y, Result.BorderMaxUV.Y);
+		Swap(Result.Border.Top, Result.Border.Bottom);
+		Swap(Result.Padding.Top, Result.Padding.Bottom);
+	}
 }
 
 ULexUISpriteData::ULexUISpriteData()
@@ -209,22 +235,18 @@ void ULexUISpriteData::PostEditChangeChainProperty(struct FPropertyChangedChainE
 			PropertyPath += ".";
 		}
 	}
-	if (PropertyPath.StartsWith(GET_MEMBER_NAME_CHECKED(ULexUISpriteData, SpriteInfo.Border).ToString()))
+	if (SpriteTexture != nullptr)
 	{
-		SpriteInfo.bIsBorderDirty = true;
-		//Sprite data, apply border
-		if (SpriteTexture != nullptr)
-		{
 #if WITH_EDITOR
-			FTextureCompilingManager::Get().FinishCompilation({ SpriteTexture });
+		FTextureCompilingManager::Get().FinishCompilation({ SpriteTexture });
 #endif
-			SpriteInfo.Width = SpriteTexture->GetSizeX();
-			SpriteInfo.Height = SpriteTexture->GetSizeY();
-			if (bIsInitialized)
-			{
-				float atlasTextureSizeInv = 1.0f / GetAtlasTexture()->GetSizeX();
-				SpriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
-			}
+		SpriteInfo.Width = SpriteTexture->GetSizeX();
+		SpriteInfo.Height = SpriteTexture->GetSizeY();
+		if (bIsInitialized)
+		{
+			float atlasTextureSizeInv = 1.0f / GetAtlasTexture()->GetSizeX();
+			SpriteInfo.ApplyUV(SpriteInfo.PosX, SpriteInfo.PosY, SpriteInfo.Width, SpriteInfo.Height, atlasTextureSizeInv, atlasTextureSizeInv);
+			SpriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
 		}
 	}
 }

@@ -36,6 +36,11 @@ void ULexImage::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyCha
 			ULexWidget::MarkLayoutForRebuild(Widget);
 		}
 	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(FLexUIImageBrush, FlipMode))
+	{
+		MarkVerticesDirty(false, true, true, false);
+	}
 }
 #endif
 
@@ -112,6 +117,23 @@ void ULexImage::OnUpdateGeometry(FLexUIGeometry& InMesh, bool InTriangleChanged,
 	auto RenderCanvas = Widget->GetRenderCanvas();
 	auto FinalColor = FLexUIUtils::MultiplyColor(Brush.TintColor, this->GetFinalColor());
 
+	bool bFlipH = false, bFlipV = false;
+	switch (Brush.FlipMode)
+	{
+	case ELexUISpriteFlipMode::Horizontal:
+		bFlipH = true;
+		break;
+	case ELexUISpriteFlipMode::Vertical:
+		bFlipV = true;
+		break;
+	case ELexUISpriteFlipMode::Both:
+		bFlipH = bFlipV = true;
+		break;
+	case ELexUISpriteFlipMode::Nothing:
+	default:
+		break;
+	}
+
 	switch (Brush.DrawAs)
 	{
 	case ELexUIImageBrushDrawType::None:
@@ -131,6 +153,7 @@ void ULexImage::OnUpdateGeometry(FLexUIGeometry& InMesh, bool InTriangleChanged,
 				SpriteInfo.Height = Brush.ImageSize.Y;
 				SpriteInfo.ApplyUV(0, 0, SpriteInfo.Width, SpriteInfo.Height, 1.0f / SpriteInfo.Width, 1.0f / SpriteInfo.Height, Brush.UVRegion);
 			}
+			FLexUISpriteInfo::ApplyFlip(SpriteInfo, bFlipH, bFlipV);
 			FLexUIGeometry::UpdateUIRectSimpleVertex(&InMesh, RenderSize.X, RenderSize.Y, FVector2f(Pivot)
 			, SpriteInfo, RenderCanvas, this, FinalColor
 			, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
@@ -168,6 +191,7 @@ void ULexImage::OnUpdateGeometry(FLexUIGeometry& InMesh, bool InTriangleChanged,
 				SpriteInfo.ApplyUV(0, 0, SpriteInfo.Width, SpriteInfo.Height, 1.0f / SpriteInfo.Width, 1.0f / SpriteInfo.Height, Brush.UVRegion);
 				SpriteInfo.ApplyBorderUV(1.0f / SpriteInfo.Width, 1.0f / SpriteInfo.Height);
 			}
+			FLexUISpriteInfo::ApplyFlip(SpriteInfo, bFlipH, bFlipV);
 			FLexUIGeometry::UpdateUIRectBorderVertex(&InMesh, bFillCenter, RenderSize.X, RenderSize.Y, FVector2f(Pivot)
 				, SpriteInfo, RenderCanvas, this, FinalColor
 				, Brush.PixelsPerUnitMultiplier

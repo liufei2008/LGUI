@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Styling/SlateBrush.h"
+#include "Core/LexUISpriteInfo.h"
 #include "LexUIImageBrush.generated.h"
 
 UENUM(BlueprintType)
@@ -54,6 +55,8 @@ public:
 	FVector4f UVRegion = FVector4f(0,0,1,1);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush")
 	float PixelsPerUnitMultiplier = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush")
+	ELexUISpriteFlipMode FlipMode = ELexUISpriteFlipMode::Nothing;
 	
 	UObject* GetResourceObject()const { return ResourceObject; }
 	void SetResourceObject(UObject* Value) { ResourceObject = Value; }

@@ -5,6 +5,14 @@
 #include "CoreMinimal.h"
 #include "LexUISpriteInfo.generated.h"
 
+UENUM(BlueprintType, Category = LGUI)
+enum class ELexUISpriteFlipMode :uint8
+{
+	Nothing,
+	Horizontal,
+	Vertical,
+	Both,
+};
 
 /**
  * SpriteInfo contains information for render a Sprite
@@ -24,7 +32,13 @@ public:
 	FMargin Border;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 	FMargin Padding;
-
+	
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	uint16 PosX = 0;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	uint16 PosY = 0;
+#endif
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	FVector2f MinUV = FVector2f(0, 0);
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
@@ -71,6 +85,7 @@ public:
 		BorderMinUV *= InMultiply;
 		BorderMaxUV *= InMultiply;
 	}
+	static void ApplyFlip(FLexUISpriteInfo& Result, bool bFlipH, bool bFlipV);
 
 	bool operator == (const FLexUISpriteInfo& Other)const
 	{

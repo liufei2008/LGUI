@@ -520,6 +520,11 @@ private:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin="0", UIMax="1"))
 	float RenderOpacity = 1.0f;
+	/**
+	 * If true then this widget's final render opacity only use its own RenderOpacity, and parent's RenderOpacity is not multiplied in.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetIgnoreParentRenderOpacity", Setter = "SetIgnoreParentRenderOpacity", meta = (AllowPrivateAccess = true))
+	bool bIgnoreParentRenderOpacity = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	ELexWidgetClipping Clipping = ELexWidgetClipping::Inherit;
 	TWeakPtr<FLexUIClipData> ClipData = nullptr;
@@ -588,7 +593,8 @@ public:
 	float GetRenderOpacity()const { return RenderOpacity; }
 	/**
 	 * Retrieves the final opacity value used during rendering for this widget, considering all relevant settings and parent opacity.
-	 * This value is influenced by the widget's own `RenderOpacity` property and hierarchical parent `RenderOpacity`.
+	 * This value is influenced by the widget's own `RenderOpacity` property and hierarchical parent `RenderOpacity`,
+	 * unless `bIgnoreParentRenderOpacity` is true, in which case only the widget's own `RenderOpacity` is used.
 	 *
 	 * @return The calculated final opacity value for rendering this widget.
 	 */
@@ -596,6 +602,10 @@ public:
 	float GetFinalRenderOpacity()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetRenderOpacity(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	bool GetIgnoreParentRenderOpacity()const { return bIgnoreParentRenderOpacity; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetIgnoreParentRenderOpacity(bool Value);
 	
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	EWidgetPixelSnapping GetPixelSnapping()const { return PixelSnapping; }
@@ -834,6 +844,7 @@ private:
 	void CalculateWidgetActive_Recursive();
 	void CalculateInteractable_Recursive();
 	void CalculateRaycastable_Recursive();
+	void MarkRenderOpacityDirty_Recursive()const;
 public:
 #pragma region TweenAnimation
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Local Position X To"), Category = "LTween")

@@ -195,6 +195,7 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 
 	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bWidgetActive));
 	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, RenderOpacity));
+	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bIgnoreParentRenderOpacity));
 	auto Clipping_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, Clipping));
 	auto& ClippingGroup = LGUICategory.AddGroup(TEXT("ClippingGroup"), LOCTEXT("ClippingGroup", "Clipping"));
 	ClippingGroup.HeaderProperty(Clipping_PH);
