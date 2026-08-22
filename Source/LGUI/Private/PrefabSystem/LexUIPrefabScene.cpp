@@ -2,6 +2,7 @@
 
 #include "PrefabSystem/LexUIPrefabScene.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Misc/CoreDelegates.h"
 #include "UObject/Package.h"
 #include "SceneInterface.h"
 #include "Components/MeshComponent.h"
@@ -85,9 +86,17 @@ FLexUIPrefabScene::FLexUIPrefabScene(FLexUIPrefabScene::ConstructionValues CVS)
 		LineBatcher->bCalculateAccurateBounds = false;
 		AddComponent(LineBatcher, FTransform::Identity);
 	}
+
+	FCoreDelegates::OnEnginePreExit.AddRaw(this, &FLexUIPrefabScene::Uninitialize);
 }
 
 FLexUIPrefabScene::~FLexUIPrefabScene()
+{
+	FCoreDelegates::OnEnginePreExit.RemoveAll(this);
+	Uninitialize();
+}
+
+void FLexUIPrefabScene::Uninitialize()
 {
 	// Stop any audio components playing in this scene
 	if (GEngine)
@@ -122,14 +131,21 @@ FLexUIPrefabScene::~FLexUIPrefabScene()
 
 		Component->UnregisterComponent();
 	}
-	
+
+	// Uninitialize can get called from the destructor or from FCoreDelegates::OnEnginePreExit (or both),
+	// so make sure we empty Components and set PreviewWorld to nullptr to avoid doing the work twice.
+	Components.Empty();
+
+	UWorld* LocalPreviewWorld = PreviewWorld;
+	PreviewWorld = nullptr;
+
 	// The world may be released by now.
-	if (PreviewWorld && GEngine)
+	if (LocalPreviewWorld && GEngine)
 	{
-		PreviewWorld->CleanupWorld();
-		GEngine->DestroyWorldContext(GetWorld());
+		LocalPreviewWorld->CleanupWorld();
+		GEngine->DestroyWorldContext(LocalPreviewWorld);
 		// Release PhysicsScene for fixing big fbx importing bug
-		PreviewWorld->ReleasePhysicsScene();
+		LocalPreviewWorld->ReleasePhysicsScene();
 	}
 }
 
