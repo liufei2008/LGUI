@@ -790,6 +790,17 @@ void ULexWidget::EnsureDataForRebuild()
 	check(this == RootWidget);
 	struct LOCAL
 	{
+		static void MarkLayoutDirtyRecursive(ULexWidget* Widget)
+		{
+			MarkLayoutForRebuild(Widget);
+			for (auto& uiChild : Widget->Children)
+			{
+				if (IsValid(uiChild))
+				{
+					MarkLayoutDirtyRecursive(uiChild);
+				}
+			}
+		}
 		static void RenewRenderCanvas(ULexWidget* Widget)
 		{
 			auto ThisRenderCanvas = Widget->GetComponent<ULexCanvas>();
@@ -829,6 +840,7 @@ void ULexWidget::EnsureDataForRebuild()
 		}
 	};
 	MarkAllDirtyRecursive();
+	LOCAL::MarkLayoutDirtyRecursive(this);
 	LOCAL::RenewRenderCanvas(this);
 	LOCAL::EnsureDataForRebuildRecursive(this);
 	LOCAL::ForceRefreshRenderCanvasRecursive(this);

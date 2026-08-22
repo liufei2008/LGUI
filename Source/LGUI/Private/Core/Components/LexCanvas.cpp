@@ -313,12 +313,7 @@ void ULexCanvas::OnUnregister()
 	{
 		LexUIManager->RemoveCanvas(this);
 	}
-	ClearDrawCall();
-	if (IsValid(UIMesh))
-	{
-		UIMesh->DestroyComponent();
-		UIMesh = nullptr;
-	}
+	ClearRenderData();
 	if (DrawCallProcessingRunnable.IsValid())
 	{
 		DrawCallProcessingRunnable->Stop();
@@ -368,6 +363,16 @@ void ULexCanvas::ClearDrawCall()
 	PooledDefaultMaterialList.Empty();
 	MapSrcMatToDynamicMat.Empty();
 	CurrentDrawCallData.DrawCallArray.Empty();
+}
+
+void ULexCanvas::ClearRenderData()
+{
+	ClearDrawCall();
+	if (IsValid(UIMesh))
+	{
+		UIMesh->DestroyComponent();
+		UIMesh = nullptr;
+	}
 }
 
 void ULexCanvas::RemoveFromViewExtension(bool PropogateToChildrenCanvas)
@@ -673,7 +678,7 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	auto PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bForceRenderToTarget))
 	{
-		ClearDrawCall();//editor just use the most convenient way to make corrent render
+		ClearRenderData();
 		CheckRootCanvas(true);
 		if (bForceRenderToTarget)
 		{
@@ -687,11 +692,11 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, RenderMode))
 	{
-		ClearDrawCall();
+		ClearRenderData();
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting))
 	{
-		ClearDrawCall();//editor just use the most convenient way to make refresh render
+		ClearRenderData();
 	}
 
 	MarkCanvasUpdate(true);

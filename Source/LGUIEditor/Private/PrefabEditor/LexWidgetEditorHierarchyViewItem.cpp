@@ -745,7 +745,7 @@ bool SLexWidgetEditorHierarchyViewItem::SupportDrop(ULexWidget* Dragging, ULexWi
 {
 	if (Current == Current->GetRootWidgetInHierarchy())
 	{
-		if (ULexUIPrefabHelperObject::GetPrefabHelperObject_WhichManageThisWidget(Current))//contains prefab-helper-object, means it is a prefab editor mode
+		if (ULexUIPrefabHelperObject::GetPrefabHelperObject_WhichManageThisWidget(Dragging))//contains prefab-helper-object, means it is a prefab editor mode
 		{
 			return false;//editor world's root widget can't be dropped
 		}

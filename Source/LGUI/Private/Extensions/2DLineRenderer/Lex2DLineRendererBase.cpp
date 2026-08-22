@@ -31,8 +31,8 @@ void ULex2DLineRendererBase::Update2DLineRendererBaseUV(FLexUIGeometry& InGeo, c
 	{
 		auto LexSprite = (ULexUISpriteData_BaseObject*)Brush.GetResourceObject();
 		auto& SpriteInfo = LexSprite->GetSpriteInfo();
-		MinUV = FVector2f(SpriteInfo.MinUV.X, SpriteInfo.MaxUV.Y);
-		MaxUV = FVector2f(SpriteInfo.MaxUV.X, SpriteInfo.MinUV.Y);
+		MinUV = SpriteInfo.MinUV;
+		MaxUV = SpriteInfo.MaxUV;
 	}
 	else
 	{
@@ -59,8 +59,8 @@ void ULex2DLineRendererBase::Update2DLineRendererBaseUV(FLexUIGeometry& InGeo, c
 			auto& uvi0 = vertices[i + i + 2].TextureCoordinate[0];
 			auto& uvi1 = vertices[i + i + 3].TextureCoordinate[0];
 			uvi0.X = MinUV.X;
+			uvi0.Y = MinUV.Y;
 			uvi1.X = MaxUV.X;
-			uvi0.Y = MaxUV.Y;
 			uvi1.Y = MinUV.Y;
 		}
 		//end point cap
@@ -68,9 +68,9 @@ void ULex2DLineRendererBase::Update2DLineRendererBaseUV(FLexUIGeometry& InGeo, c
 			auto& uvi0 = vertices[i + i].TextureCoordinate[0];
 			auto& uvi1 = vertices[i + i + 1].TextureCoordinate[0];
 			uvi0.X = MinUV.X;
-			uvi1.X = MaxUV.X;
 			uvi0.Y = MaxUV.Y;
-			uvi1.Y = MinUV.Y;
+			uvi1.X = MaxUV.X;
+			uvi1.Y = MaxUV.Y;
 		}
 	}
 }
@@ -81,11 +81,10 @@ void ULex2DLineRendererBase::Update2DLineRendererBaseTriangle(FLexUIGeometry& In
 	auto& triangles = InGeo.Triangles;
 
 	int pointIndex = 0;
-	int vertIndex = 0, triangleIndex = 0;
 	for (int count = pointCount - 1; pointIndex < count; pointIndex++)
 	{
-		vertIndex = pointIndex * 2;
-		triangleIndex = pointIndex * 6;
+		int vertIndex = pointIndex * 2;
+		int triangleIndex = pointIndex * 6;
 		triangles[triangleIndex] = vertIndex;
 		triangles[triangleIndex + 1] = vertIndex + 2;
 		triangles[triangleIndex + 2] = vertIndex + 3;
@@ -108,8 +107,8 @@ void ULex2DLineRendererBase::Update2DLineRendererBaseTriangle(FLexUIGeometry& In
 	}
 	else if (EndType == ELex2DLineRenderer_EndType::Cap)
 	{
-		vertIndex = pointIndex * 2;
-		triangleIndex = pointIndex * 6;
+		int vertIndex = pointIndex * 2;
+		int triangleIndex = pointIndex * 6;
 		//start point cap
 		{
 			triangles[triangleIndex + 0] = vertIndex;

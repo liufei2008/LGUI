@@ -670,7 +670,7 @@ void FLexUIEditorTools::CreatePrefabAsset(TFunction<ULexWidget*()> GetSelectedWi
 	}
 }
 
-void FLexUIEditorTools::RefreshLoadedPrefab()
+void FLexUIEditorTools::RefreshLevelLoadedPrefab()
 {
 	// for (TObjectIterator<ULexUIPrefabHelperObject> Itr; Itr; ++Itr)
 	// {

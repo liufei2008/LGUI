@@ -37,7 +37,7 @@ public:
 	
 	static bool CanCreatePrefab(TFunction<ULexWidget*()> GetSelectedWidgetFunction);
 	static void CreatePrefabAsset(TFunction<ULexWidget*()> GetSelectedWidgetFunction);
-	static void RefreshLoadedPrefab();
+	static void RefreshLevelLoadedPrefab();
 	static void RefreshOpenedPrefabEditor(ULexUIPrefab* InPrefab);
 	static void RefreshOnSubPrefabChange(ULexUIPrefab* InSubPrefab);
 	static TArray<ULexUIPrefab*> GetAllPrefabArray();

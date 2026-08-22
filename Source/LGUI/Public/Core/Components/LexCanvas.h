@@ -209,8 +209,10 @@ public:
 		return GET_MEMBER_NAME_CHECKED(ULexCanvas, TraceChannel);
 	}
 private:
-	/** clear draw-calls */
+	/** clear canvas's draw-call data */
 	void ClearDrawCall();
+	/** clear all render data, include draw-call & mesh & render-target */
+	void ClearRenderData();
 	void RemoveFromViewExtension(bool PropagateToChildrenCanvas);
 	TSharedPtr<class FLexUIRenderer, ESPMode::ThreadSafe> RenderTargetViewExtension = nullptr;
 	TSharedPtr<class FLexUIRenderer, ESPMode::ThreadSafe> GetRenderTargetViewExtension();

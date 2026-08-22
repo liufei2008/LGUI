@@ -98,7 +98,6 @@
 #include "Extensions/LexRing.h"
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "Extensions/UISpriteSheetTexturePlayer.h"
-#include "Extensions/2DLineRenderer/Lex2DLineChildrenAsPoints.h"
 #include "Extensions/2DLineRenderer/Lex2DLineRaw.h"
 #include "Interaction/UIButton.h"
 #include "Interaction/UIDropdown.h"
@@ -617,7 +616,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(TFunction<ULexWidget*
 									.AfterRevertPrefab_Lambda([=, this](ULexUIPrefab* PrefabAsset) {
 										})
 									.AfterApplyPrefab_Lambda([=, this](ULexUIPrefab* PrefabAsset) {
-										FLexUIEditorTools::RefreshLoadedPrefab();
+										FLexUIEditorTools::RefreshLevelLoadedPrefab();
 										FLexUIEditorTools::RefreshOnSubPrefabChange(PrefabAsset);
 										FLexUIEditorTools::RefreshOpenedPrefabEditor(PrefabAsset);
 										})
@@ -901,7 +900,6 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder, TFun
 		FunctionContainer::CreateWidgetVisualElementMenuEntry(MenuBuilder, GetSelectedWidgetFunction, ULexRing::StaticClass(), nullptr);
 		//FunctionContainer::CreateWidgetVisualElementMenuEntry(MenuBuilder, GetSelectedWidgetFunction, ULexStaticMesh::StaticClass(), nullptr);
 		FunctionContainer::CreateWidgetVisualElementMenuEntry(MenuBuilder, GetSelectedWidgetFunction, ULex2DLineRaw::StaticClass(), nullptr);
-		FunctionContainer::CreateWidgetVisualElementMenuEntry(MenuBuilder, GetSelectedWidgetFunction, ULex2DLineChildrenAsPoints::StaticClass(), nullptr);
 		//FunctionContainer::CreateMenuEntryByPrefab(MenuBuilder, TEXT("UIWidget"), LOCTEXT("UIWidget", "UI Widget"), AUIWidgetActor::StaticClass()->GetToolTipText());
 		//FunctionContainer::CreateMenuEntryByPrefab(MenuBuilder, TEXT("UIRenderTarget"), LOCTEXT("UIRenderTarget", "UI Render Target"), AUIRenderTargetActor::StaticClass()->GetToolTipText());
 	}
