@@ -175,7 +175,7 @@ namespace LexUIPrefabSystem
 		if (bIsEditorOrRuntime)
 		{
 			InPrefab->BinaryData = ToBinary;
-			InPrefab->bThumbnailDirty = true;
+			InPrefab->MarkThumbnailDirty();
 			InPrefab->CreateTime = FDateTime::UtcNow();
 
 			//clear old reference data

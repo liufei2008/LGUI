@@ -532,7 +532,7 @@ void FLexUIPrefabEditor::SaveEditorState()
 		}
 	}
 	PrefabBeingEdited->PrefabDataForPrefabEditor.UnexpandedWidgetSet = UnexpandWidgetGuidArray;
-	PrefabBeingEdited->bThumbnailDirty = true;
+	PrefabBeingEdited->MarkThumbnailDirty();
 
 	//refresh parameter, remove invalid
 	for (auto& KeyValue : GetPrefabHelperObject()->SubPrefabMap)

@@ -9,6 +9,9 @@
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
 #include "Engine/Engine.h"
 #include "UObject/ObjectSaveContext.h"
+#include "UObject/Package.h"
+#include "UObject/Class.h"
+#include "Misc/ObjectThumbnail.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
@@ -189,6 +192,20 @@ void ULexUIPrefab::EnsureInstanceObjects()
 	{
 		PrefabHelperObject = NewObject<ULexUIPrefabHelperObject>(this, "PrefabHelper");
 		PrefabHelperObject->Init(this, GetPrefabInstanceScene());
+	}
+}
+
+void ULexUIPrefab::MarkThumbnailDirty()
+{
+	bThumbnailDirty = true;
+	UPackage* Package = GetOutermost();
+	if (Package && Package->HasThumbnailMap())
+	{
+		const FName ThumbnailKey(*UClass::ConvertFullNameToShortTypeFullName(GetFullName()));
+		if (FObjectThumbnail* Thumbnail = Package->AccessThumbnailMap().Find(ThumbnailKey))
+		{
+			Thumbnail->MarkAsDirty();
+		}
 	}
 }
 

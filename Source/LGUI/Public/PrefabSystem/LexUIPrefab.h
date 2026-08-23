@@ -309,6 +309,8 @@ public:
 	void ClearPrefabInstanceScene();
 	void EnsureInstanceObjects();
 	ULexUIPrefabHelperObject* GetPrefabHelperObject();
+	/** Mark this prefab's thumbnail dirty so it gets regenerated and saved with the package. */
+	void MarkThumbnailDirty();
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;

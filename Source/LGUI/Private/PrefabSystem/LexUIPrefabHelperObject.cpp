@@ -505,7 +505,7 @@ bool ULexUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab
 		if (this->PrefabAsset != nullptr)//could be null in level editor
 		{
 #if WITH_EDITOR
-			this->PrefabAsset->bThumbnailDirty = true;
+			this->PrefabAsset->MarkThumbnailDirty();
 #endif
 			this->PrefabAsset->MarkPackageDirty();
 		}
