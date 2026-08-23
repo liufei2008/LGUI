@@ -18,14 +18,14 @@
 
 namespace LexUI_Private
 {
-	// Builds a custom Camera submenu that exposes only two viewport modes:
-	//   "3D" -> Perspective, "2D" -> Back (ortho back).
-	// The button label reflects the active mode (3D / 2D) instead of the engine's
-	// Perspective/Top/.../Back naming, and Top/Bottom/Left/Right/Front are dropped.
-	static FToolMenuEntry MakeCameraSubmenuEntry()
+	// Builds a single Camera toggle button that switches between 3D (Perspective)
+	// and 2D (Back / ortho back). It reuses the engine's Perspective command so the
+	// Perspective shortcut (Alt+G) toggles between the two modes; the command action
+	// is rebound in SLexUIPrefabEditorViewportToolbar::Construct to do the toggling.
+	static FToolMenuEntry MakeCameraToggleEntry()
 	{
 		return FToolMenuEntry::InitDynamicEntry(
-			"DynamicCameraOptions",
+			"DynamicCameraToggle",
 			FNewToolMenuSectionDelegate::CreateLambda(
 				[](FToolMenuSection& InDynamicSection) -> void
 				{
@@ -52,42 +52,15 @@ namespace LexUI_Private
 						}
 					);
 
-					FToolMenuEntry& Entry = InDynamicSection.AddSubMenu(
-						"Camera",
-						Label,
-						LOCTEXT("CameraSubmenuTooltip", "Camera options"),
-						FNewToolMenuDelegate::CreateLambda(
-							[](UToolMenu* Submenu) -> void
-							{
-								const FEditorViewportCommands& ViewportCommands = FEditorViewportCommands::Get();
-								FToolMenuSection& Section = Submenu->AddSection("ViewportMode");
-
-								// 3D (Perspective) - relabel the command to "3D"
-								{
-									FToolMenuEntry& Mode3D = Section.AddMenuEntry(
-										ViewportCommands.Perspective,
-										LOCTEXT("ViewportMode_3D", "3D"),
-										FText::GetEmpty(),
-										FSlateIcon()
-									);
-									Mode3D.UserInterfaceActionType = EUserInterfaceActionType::RadioButton;
-								}
-
-								// 2D (Back / ortho back) - relabel the command to "2D"
-								{
-									FToolMenuEntry& Mode2D = Section.AddMenuEntry(
-										ViewportCommands.Back,
-										LOCTEXT("ViewportMode_2D", "2D"),
-										FText::GetEmpty(),
-										FSlateIcon()
-									);
-									Mode2D.UserInterfaceActionType = EUserInterfaceActionType::RadioButton;
-								}
-							}
-						),
-						false,
-						FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.CameraComponent")
+					FToolMenuEntry& Entry = InDynamicSection.AddEntry(
+						FToolMenuEntry::InitToolBarButton(
+							FEditorViewportCommands::Get().Perspective,
+							Label,
+							LOCTEXT("CameraToggleTooltip", "Toggle between 3D and 2D view"),
+							FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.CameraComponent")
+						)
 					);
+					Entry.UserInterfaceActionType = EUserInterfaceActionType::Button;
 					Entry.ToolBarData.ResizeParams.ClippingPriority = 800;
 				}
 			)
@@ -114,6 +87,26 @@ void SLexUIPrefabEditorViewportToolbar::Construct(const FArguments& InArgs, TSha
 	// here we build a dedicated toolbar that only exposes the Camera and View Modes buttons.
 	TSharedRef<SEditorViewport> ViewportRef = GetInfoProvider().GetViewportWidget();
 
+	// Rebind the engine's Perspective command so its default shortcut (Alt+G) toggles
+	// between 3D (Perspective) and 2D (Back), instead of only switching to Perspective.
+	const FEditorViewportCommands& ViewportCommands = FEditorViewportCommands::Get();
+	ViewportRef->GetCommandList()->MapAction(
+		ViewportCommands.Perspective,
+		FExecuteAction::CreateLambda([WeakViewport = TWeakPtr<SEditorViewport>(ViewportRef)]()
+		{
+			if (TSharedPtr<SEditorViewport> Viewport = WeakViewport.Pin())
+			{
+				if (auto ViewportClient = Viewport->GetViewportClient())
+				{
+					const ELevelViewportType NewViewportType = (ViewportClient->GetViewportType() == LVT_Perspective)
+						? LVT_OrthoBack
+						: LVT_Perspective;
+					ViewportClient->SetViewportType(NewViewportType);
+				}
+			}
+		})
+	);
+
 	static const FName LexUIViewportToolbarName = TEXT("LexUIPrefabEditor.ViewportToolbar");
 	if (!UToolMenus::Get()->IsMenuRegistered(LexUIViewportToolbarName))
 	{
@@ -125,8 +118,8 @@ void SLexUIPrefabEditorViewportToolbar::Construct(const FArguments& InArgs, TSha
 		FToolMenuSection& RightSection = ViewportToolbarMenu->AddSection("Right");
 		RightSection.Alignment = EToolMenuSectionAlign::Last;
 		{
-			// Camera menu (custom: only 3D / 2D modes)
-			RightSection.AddEntry(LexUI_Private::MakeCameraSubmenuEntry());
+			// Camera toggle button (custom: only 3D / 2D modes)
+			RightSection.AddEntry(LexUI_Private::MakeCameraToggleEntry());
 
 			// View Modes menu
 			RightSection.AddEntry(UE::UnrealEd::CreateViewModesSubmenu());

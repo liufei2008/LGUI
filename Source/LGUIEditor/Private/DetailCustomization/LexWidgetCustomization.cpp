@@ -149,10 +149,11 @@ void FLexWidgetCustomization::ForceUpdateUI()
 	}
 }
 
-void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
+void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBuilder>& InDetailBuilder )
 {
+	DetailBuilder = InDetailBuilder;
 	TArray<TWeakObjectPtr<UObject>> TargetObjects;
-	DetailBuilder.GetObjectsBeingCustomized(TargetObjects);
+	DetailBuilder->GetObjectsBeingCustomized(TargetObjects);
 	TargetScriptArray.Empty();
 	bool bIsSubPrefab = false;
 	for (auto Item : TargetObjects)
@@ -179,36 +180,36 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		return;
 	}
 
-	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
-	DetailBuilder.HideCategory("TransformCommon");
-	IDetailCategoryBuilder& TransformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
+	IDetailCategoryBuilder& LGUICategory = DetailBuilder->EditCategory("LGUI");
+	DetailBuilder->HideCategory("TransformCommon");
+	IDetailCategoryBuilder& TransformCategory = DetailBuilder->EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
 
 	//base
 	// {
-	// 	auto uiActiveHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bIsUIActive));
+	// 	auto uiActiveHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bIsUIActive));
 	// 	uiActiveHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this] {
 	// 		ForceUpdateUI();
 	// 	}));
 	// }
 
-	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
+	DetailBuilder->HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
 
 	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bWidgetActive));
 	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, RenderOpacity));
 	LGUICategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bIgnoreParentRenderOpacity));
-	auto Clipping_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, Clipping));
+	auto Clipping_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, Clipping));
 	auto& ClippingGroup = LGUICategory.AddGroup(TEXT("ClippingGroup"), LOCTEXT("ClippingGroup", "Clipping"));
 	ClippingGroup.HeaderProperty(Clipping_PH);
 	{
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bUniformSetClippingCornerRadius));
-		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius));
+		DetailBuilder->HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bUniformSetClippingCornerRadius));
+		DetailBuilder->HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius));
 
-		auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bUniformSetClippingCornerRadius));
-		auto CornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius));
-		auto CornerRadiusXHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.X));
-		auto CornerRadiusYHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.Y));
-		auto CornerRadiusZHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.Z));
-		auto CornerRadiusWHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.W));
+		auto UniformSetCornerRadiusHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, bUniformSetClippingCornerRadius));
+		auto CornerRadiusHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius));
+		auto CornerRadiusXHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.X));
+		auto CornerRadiusYHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.Y));
+		auto CornerRadiusZHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.Z));
+		auto CornerRadiusWHandle = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingCornerRadius.W));
 		auto CornerRadiusPropertyIsEnabledFunction = [=] {
 			bool bUniformSetCornerRadius = false;
 			UniformSetCornerRadiusHandle->GetValue(bUniformSetCornerRadius);
@@ -323,19 +324,19 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		]
 		;
 	}
-	auto ClippingMargin_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingMargin));
+	auto ClippingMargin_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, ClippingMargin));
 	ClippingGroup.AddPropertyRow(ClippingMargin_PH);
 
 	//anchor, width, height
 	{
-		auto AnchorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
-		auto AnchorMinHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMin));
-		auto AnchorMaxHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMax));
-		auto AnchoredPositionHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition));
-		auto SizeDeltaHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta));
+		auto AnchorData_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
+		auto AnchorMin_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMin));
+		auto AnchorMax_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMax));
+		auto AnchoredPosition_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition));
+		auto SizeDelta_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta));
 		FVector2D AnchorMin, AnchorMax;
-		AnchorMinHandle->GetValue(AnchorMin);
-		AnchorMaxHandle->GetValue(AnchorMax);
+		AnchorMin_PH->GetValue(AnchorMin);
+		AnchorMax_PH->GetValue(AnchorMax);
 
 		//anchors preset menu
 		FVector2D anchorItemSize(42, 42);
@@ -350,8 +351,8 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(this, &FLexWidgetCustomization::GetAnchorLabelText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
-					.ToolTipText(this, &FLexWidgetCustomization::GetAnchorLabelTooltipText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
+					.Text(this, &FLexWidgetCustomization::GetAnchorLabelText, AnchorMin_PH, AnchorMax_PH, AnchorLabelIndex)
+					.ToolTipText(this, &FLexWidgetCustomization::GetAnchorLabelTooltipText, AnchorMin_PH, AnchorMax_PH, AnchorLabelIndex)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			;
@@ -374,12 +375,12 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 					.MaxSliderValue(TOptional<float>())
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.UndeterminedString( NSLOCTEXT( "PropertyEditor", "MultipleValues", "Multiple Values") )
-					.Value(this, &FLexWidgetCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
-					.OnValueChanged(this, &FLexWidgetCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
-					.OnValueCommitted(this, &FLexWidgetCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
+					.Value(this, &FLexWidgetCustomization::GetAnchorValue, AnchorData_PH, AnchorValueIndex)
+					.OnValueChanged(this, &FLexWidgetCustomization::OnAnchorValueChanged, AnchorData_PH, AnchorValueIndex)
+					.OnValueCommitted(this, &FLexWidgetCustomization::OnAnchorValueCommitted, AnchorData_PH, AnchorValueIndex)
 					.OnBeginSliderMovement(this, &FLexWidgetCustomization::OnAnchorValueSliderMovementBegin)
-					.OnEndSliderMovement(this, &FLexWidgetCustomization::OnAnchorValueSliderMovementEnd, AnchorHandle, AnchorValueIndex)
-					.IsEnabled(this, &FLexWidgetCustomization::IsAnchorValueEnable, AnchorHandle, AnchorValueIndex)
+					.OnEndSliderMovement(this, &FLexWidgetCustomization::OnAnchorValueSliderMovementEnd, AnchorData_PH, AnchorValueIndex)
+					.IsEnabled(this, &FLexWidgetCustomization::IsAnchorValueEnable, AnchorData_PH, AnchorValueIndex)
 				]
 			;
 		};
@@ -387,12 +388,12 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			return
 				SNew(LGUIAnchorPreviewWidget::SAnchorPreviewWidget, anchorItemSize)
 				.BasePadding(itemBasePadding)
-				.SelectedHAlign(this, &FLexWidgetCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
-				.SelectedVAlign(this, &FLexWidgetCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+				.SelectedHAlign(this, &FLexWidgetCustomization::GetAnchorHAlign, AnchorMin_PH, AnchorMax_PH)
+				.SelectedVAlign(this, &FLexWidgetCustomization::GetAnchorVAlign, AnchorMin_PH, AnchorMax_PH)
 				.PersistentHAlign(HAlign)
 				.PersistentVAlign(VAlign)
 				.ButtonEnable(true)
-				.OnAnchorChange(this, &FLexWidgetCustomization::OnSelectAnchor, DetailBuilderPtr)
+				.OnAnchorChange(this, &FLexWidgetCustomization::OnSelectAnchor, AnchorData_PH)
 			;
 		};//@todo: auto refresh SAnchorPreviewWidget when change from AnchorMinMax
 
@@ -405,10 +406,10 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		))
 		.PasteAction(FUIAction
 		(
-			FExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnPasteAnchor, DetailBuilderPtr),
+			FExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnPasteAnchor),
 			FCanExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnCanPasteAnchor)
 		))
-		.PropertyHandleList({AnchorHandle})
+		.PropertyHandleList({AnchorData_PH})
 		.ValueContent()
 		.MinDesiredWidth(500)
 		[
@@ -522,7 +523,7 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 								.HAlign(EHorizontalAlignment::HAlign_Center)
 								[
 									SNew(STextBlock)
-									.Text(this, &FLexWidgetCustomization::GetHAlignText, AnchorMinHandle, AnchorMaxHandle)
+									.Text(this, &FLexWidgetCustomization::GetHAlignText, AnchorMin_PH, AnchorMax_PH)
 									.Font(IDetailLayoutBuilder::GetDetailFont())
 								]
 							]
@@ -537,8 +538,8 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 									SNew(LGUIAnchorPreviewWidget::SAnchorPreviewWidget, FVector2D(40, 40))
 									.BasePadding(0)
 									.ButtonEnable(false)
-									.PersistentHAlign(this, &FLexWidgetCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
-									.PersistentVAlign(this, &FLexWidgetCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+									.PersistentHAlign(this, &FLexWidgetCustomization::GetAnchorHAlign, AnchorMin_PH, AnchorMax_PH)
+									.PersistentVAlign(this, &FLexWidgetCustomization::GetAnchorVAlign, AnchorMin_PH, AnchorMax_PH)
 									//.SelectedHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
 									//.SelectedVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
 								]
@@ -554,7 +555,7 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 							.HAlign(EHorizontalAlignment::HAlign_Center)
 							[
 								SNew(STextBlock)
-								.Text(this, &FLexWidgetCustomization::GetVAlignText, AnchorMinHandle, AnchorMaxHandle)
+								.Text(this, &FLexWidgetCustomization::GetVAlignText, AnchorMin_PH, AnchorMax_PH)
 								.Font(IDetailLayoutBuilder::GetDetailFont())
 								.Justification(ETextJustify::Center)
 								.RenderTransformPivot(FVector2D(0, 0.5f))
@@ -794,14 +795,14 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 
 		IDetailGroup& AnchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
 
-		IDetailPropertyRow& AnchorMinProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMin)));
+		IDetailPropertyRow& AnchorMinProperty = AnchorGroup.AddPropertyRow(DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMin)));
 		if (!this->IsAnchorEditable())
 		{
 			AnchorMinProperty.IsEnabled(false);
 			AnchorMinProperty.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 		}
 
-		IDetailPropertyRow& AnchorMaxProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMax)));
+		IDetailPropertyRow& AnchorMaxProperty = AnchorGroup.AddPropertyRow(DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchorMax)));
 		if (!this->IsAnchorEditable())
 		{
 			AnchorMaxProperty.IsEnabled(false);
@@ -823,13 +824,13 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			]
 		]
 		;
-		auto& AnchoredPositionProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition)));
-		auto& SizeDeltaProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta)));
+		auto& AnchoredPositionProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition)));
+		auto& SizeDeltaProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta)));
 		AnchoredPositionProperty.IsEnabled(this->IsAnchorEditable());
 		SizeDeltaProperty.IsEnabled(this->IsAnchorEditable());
 	}
 	//pivot
-	auto Pivot_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.Pivot));
+	auto Pivot_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.Pivot));
 	auto& PivotPropertyRow = TransformCategory.AddProperty(Pivot_PH);
 	PivotPropertyRow.IsEnabled(this->IsAnchorEditable());
 	Pivot_PH->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=, this] {
@@ -846,14 +847,14 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		}));
 
 	//location rotation scale
-	const FSelectedActorInfo& selectedActorInfo = DetailBuilder.GetDetailsViewSharedPtr()->GetSelectedActorInfo();
-	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, selectedActorInfo, DetailBuilder));
+	const FSelectedActorInfo& selectedActorInfo = DetailBuilder->GetDetailsViewSharedPtr()->GetSelectedActorInfo();
+	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, selectedActorInfo, DetailBuilder.Get()));
 	TransformCategory.AddCustomBuilder(transformDetails);
 	
 	//SiblingIndex
 	{
-		auto SiblingIndex_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, SiblingIndex));
-		DetailBuilder.HideProperty(SiblingIndex_PH);
+		auto SiblingIndex_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, SiblingIndex));
+		DetailBuilder->HideProperty(SiblingIndex_PH);
 		SiblingIndex_PH->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, this] {
 			ForceUpdateUI();
 			}));
@@ -898,19 +899,19 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			];
 		
 		LGUICategory.AddProperty(SiblingIndex_PH, EPropertyLocation::Advanced).IsEnabled(false);//not editable inside PrefabEditor, because we can drag-drop inside it
-		LGUICategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, FlattenHierarchyIndex)), EPropertyLocation::Advanced);
+		LGUICategory.AddProperty(DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, FlattenHierarchyIndex)), EPropertyLocation::Advanced);
 	}
 		
 	//displayName
-	auto DisplayName_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, DisplayName));
+	auto DisplayName_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, DisplayName));
 	LGUICategory.AddProperty(DisplayName_PH);
 
 	//Layout
 	{
-		auto Layout_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutContainer));
+		auto Layout_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutContainer));
 		UObject* Layout = nullptr;
 		Layout_PH->GetValue(Layout);
-		auto& LayoutCategory = DetailBuilder.EditCategory("LayoutContainer");
+		auto& LayoutCategory = DetailBuilder->EditCategory("LayoutContainer");
 		LayoutCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, Layout_PH, !bIsSubPrefab));
 		LayoutCategory.SetIsEmpty(!IsValid(Layout));
 		LayoutCategory.AddCustomRow(LOCTEXT("LayoutPlaceholder", "Placeholder"))
@@ -925,15 +926,15 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			];
 		LayoutCategory.AddExternalObjects({ Layout }, EPropertyLocation::Default
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
-		DetailBuilder.HideProperty(Layout_PH);
+		DetailBuilder->HideProperty(Layout_PH);
 	}
 
 	//LayoutSelf
 	{
-		auto LayoutSelf_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutSelf));
+		auto LayoutSelf_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutSelf));
 		UObject* LayoutSelf = nullptr;
 		LayoutSelf_PH->GetValue(LayoutSelf);
-		auto& LayoutSelfCategory = DetailBuilder.EditCategory("LayoutSelf");
+		auto& LayoutSelfCategory = DetailBuilder->EditCategory("LayoutSelf");
 		LayoutSelfCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, LayoutSelf_PH, !bIsSubPrefab));
 		LayoutSelfCategory.SetIsEmpty(!IsValid(LayoutSelf));
 		LayoutSelfCategory.AddCustomRow(LOCTEXT("LayoutPlaceholder", "Placeholder"))
@@ -948,15 +949,15 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			];
 		LayoutSelfCategory.AddExternalObjects({ LayoutSelf }, EPropertyLocation::Default
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
-		DetailBuilder.HideProperty(LayoutSelf_PH);
+		DetailBuilder->HideProperty(LayoutSelf_PH);
 	}
 
 	//visual
 	{
-		auto Visual_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, Visual));
+		auto Visual_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, Visual));
 		UObject* Visual = nullptr;
 		Visual_PH->GetValue(Visual);
-		IDetailCategoryBuilder& VisualCategory = DetailBuilder.EditCategory("Visual");
+		IDetailCategoryBuilder& VisualCategory = DetailBuilder->EditCategory("Visual");
 		VisualCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, Visual_PH, !bIsSubPrefab));
 		VisualCategory.SetIsEmpty(Visual == nullptr);
 		VisualCategory.AddCustomRow(LOCTEXT("VisualPlaceholder", "Placeholder"))
@@ -972,7 +973,7 @@ void FLexWidgetCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 			;
 		VisualCategory.AddExternalObjects({ Visual }, EPropertyLocation::Common
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
-		DetailBuilder.HideProperty(Visual_PH);
+		DetailBuilder->HideProperty(Visual_PH);
 	}
 }
 
@@ -1076,7 +1077,7 @@ void FLexWidgetCustomization::OnCopyAnchor()
 		}
 	}
 }
-void FLexWidgetCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
+void FLexWidgetCustomization::OnPasteAnchor()
 {
 	FString PastedText;
 	FPlatformApplicationMisc::ClipboardPaste(PastedText);
@@ -1093,16 +1094,17 @@ void FLexWidgetCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 		FParse::Value(*PastedText, TEXT("AnchoredPositionY="), AnchorData.AnchoredPosition.Y);
 		FParse::Value(*PastedText, TEXT("SizeDeltaX="), AnchorData.SizeDelta.X);
 		FParse::Value(*PastedText, TEXT("SizeDeltaY="), AnchorData.SizeDelta.Y);
+		auto AnchorData_PH = DetailBuilder->GetProperty(ULexWidget::GetPropertyName_AnchorData());
+		AnchorData_PH->NotifyPreChange();
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
 			{
-				auto itemWidget = item->GetAnchorData();
 				item->SetAnchorData(AnchorData);
-				FLexUIUtils::NotifyPropertyChanged(item.Get(), GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
 				item->MarkPackageDirty();
 			}
 		}
+		AnchorData_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
 		ForceUpdateUI();
 		DetailBuilder->ForceRefreshDetails();
 	}
@@ -1143,7 +1145,7 @@ bool FLexWidgetCustomization::IsAnchorEditable()const
 	return true;
 }
 
-TSharedPtr<IPropertyHandle> FLexWidgetCustomization::GetAnchorPropertyHandle(IDetailLayoutBuilder* DetailBuilder, 
+TSharedPtr<IPropertyHandle> FLexWidgetCustomization::GetAnchorPropertyHandle(
 	TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int Index) const
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return nullptr;
@@ -1436,7 +1438,7 @@ LGUIAnchorPreviewWidget::UIAnchorVerticalAlign FLexWidgetCustomization::GetAncho
 	return AnchorVAlign;
 }
 
-void FLexWidgetCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, IDetailLayoutBuilder* DetailBuilder)
+void FLexWidgetCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, TSharedRef<IPropertyHandle> AnchorData_PH)
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
 
@@ -1448,7 +1450,22 @@ void FLexWidgetCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHo
 	{
 		UIItem->Modify();
 	}
+	
+	auto AnchorMin_PH = AnchorData_PH->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, AnchorMin));
+	auto AnchorMax_PH = AnchorData_PH->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, AnchorMax));
+	auto AnchoredPosition_PH = AnchorData_PH->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, AnchoredPosition));
+	auto SizeDelta_PH = AnchorData_PH->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, SizeDelta));
+	auto Pivot_PH = AnchorData_PH->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, Pivot));
 
+	AnchorMin_PH->NotifyPreChange();
+	AnchorMax_PH->NotifyPreChange();
+	AnchoredPosition_PH->NotifyPreChange();
+	SizeDelta_PH->NotifyPreChange();
+	if (ShiftPressed)
+	{
+		Pivot_PH->NotifyPreChange();
+	}
+	
 	for (auto& Widget : TargetScriptArray)
 	{
 		FVector2D DesiredPivot = Widget->GetPivot();
@@ -1582,9 +1599,17 @@ void FLexWidgetCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHo
 			Widget->SetAnchorOffsetBottom(PrevAnchorAsMargin.Bottom);
 			Widget->SetAnchorOffsetTop(PrevAnchorAsMargin.Top);
 		}
-
-		FLexUIUtils::NotifyPropertyChanged(Widget.Get(), GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData));
 	}
+	
+	AnchorMin_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
+	AnchorMax_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
+	AnchoredPosition_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
+	SizeDelta_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
+	if (ShiftPressed)
+	{
+		Pivot_PH->NotifyPostChange(EPropertyChangeType::ValueSet);
+	}
+	
 	TargetScriptArray[0]->MarkCanvasUpdate(true);
 	DetailBuilder->ForceRefreshDetails();
 	GEditor->EndTransaction();
@@ -1871,23 +1896,78 @@ void FLexWidgetCustomization::ApplyValueChanged(float Value, TSharedRef<IPropert
 	FVector2D AnchorMaxValue;
 	AnchorMaxHandle->GetValue(AnchorMaxValue);
 	
+	auto AnchoredPosition_PH = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, AnchoredPosition));
+	auto AnchoredPositionX_PH = AnchoredPosition_PH->GetChildHandle(0);
+	auto AnchoredPositionY_PH = AnchoredPosition_PH->GetChildHandle(1);
+	auto SizeDelta_PH = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, SizeDelta));
+	auto SizeDeltaX_PH = SizeDelta_PH->GetChildHandle(0);
+	auto SizeDeltaY_PH = SizeDelta_PH->GetChildHandle(1);
+	auto RelativeLocation_PH = DetailBuilder->GetProperty(USceneComponent::GetRelativeLocationPropertyName());
+	bool AnchoredPositionX = false, AnchoredPositionY = false, SizeDeltaX = false, SizeDeltaY = false;
+	auto NotifyPropertyChange = [=, &AnchoredPositionX, &AnchoredPositionY, &SizeDeltaX, &SizeDeltaY](bool PreOrPostChange)
+	{
+		if (AnchoredPositionX)
+		{
+			if (PreOrPostChange)
+			{
+				AnchoredPositionY_PH->NotifyPreChange();
+				RelativeLocation_PH->NotifyPreChange();
+			}
+			else
+			{
+				AnchoredPositionX_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+				RelativeLocation_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+			}
+		}
+		if (AnchoredPositionY)
+		{
+			if (PreOrPostChange)
+			{
+				AnchoredPositionY_PH->NotifyPreChange();
+				RelativeLocation_PH->NotifyPreChange();
+			}
+			else
+			{
+				AnchoredPositionY_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+				RelativeLocation_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+			}
+		}
+		if (SizeDeltaX)
+		{
+			if (PreOrPostChange) SizeDeltaX_PH->NotifyPreChange();
+			else SizeDeltaX_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+		}
+		if (SizeDeltaY)
+		{
+			if (PreOrPostChange) SizeDeltaY_PH->NotifyPreChange();
+			else SizeDeltaY_PH->NotifyPostChange(Commited ? EPropertyChangeType::ValueSet : EPropertyChangeType::Interactive);
+		}
+	};
+	
 	switch (AnchorValueIndex)
 	{
 	case 0://anchored position x, stretch left
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
+			AnchoredPositionX = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetHorizontalAnchoredPosition(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 		else
 		{
+			AnchoredPositionX = true;
+			SizeDeltaX = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetAnchorOffsetLeft(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 	}
 	break;
@@ -1895,17 +1975,24 @@ void FLexWidgetCustomization::ApplyValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
+			AnchoredPositionY = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetVerticalAnchoredPosition(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 		else
 		{
+			AnchoredPositionY = true;
+			SizeDeltaY = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetAnchorOffsetTop(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 	}
 	break;
@@ -1913,17 +2000,24 @@ void FLexWidgetCustomization::ApplyValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
+			SizeDeltaX = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetWidth(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 		else
 		{
+			AnchoredPositionX = true;
+			SizeDeltaX = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetAnchorOffsetRight(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 	}
 	break;
@@ -1931,17 +2025,24 @@ void FLexWidgetCustomization::ApplyValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
+			SizeDeltaY = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetHeight(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 		else
 		{
+			AnchoredPositionY = true;
+			SizeDeltaY = true;
+			NotifyPropertyChange(true);
 			for (auto& Item : TargetScriptArray)
 			{
 				Item->SetAnchorOffsetBottom(Value);
 			}
+			NotifyPropertyChange(false);
 		}
 	}
 	break;
@@ -1951,14 +2052,6 @@ void FLexWidgetCustomization::ApplyValueChanged(float Value, TSharedRef<IPropert
 	GUnrealEd->SetPivotMovedIndependently(false);
 	// Redraw
 	GUnrealEd->RedrawLevelEditingViewports();
-
-	auto AnchorProperty = FindFProperty<FProperty>(ULexWidget::StaticClass(), ULexWidget::GetPropertyName_AnchorData());
-	auto RelativeLocationProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), FName(TEXT("RelativeLocation")));
-	for (auto& Item : TargetScriptArray)
-	{
-		FLexUIUtils::NotifyPropertyChanged(Item.Get(), AnchorProperty);
-		FLexUIUtils::NotifyPropertyChanged(Item.Get(), RelativeLocationProperty);
-	}
 }
 void FLexWidgetCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {

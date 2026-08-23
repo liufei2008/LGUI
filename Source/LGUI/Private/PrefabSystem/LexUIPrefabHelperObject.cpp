@@ -514,7 +514,7 @@ bool ULexUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab
 	RefreshSubPrefabVersion(InSubPrefabRootWidget);
 	bCanCollectProperty = true;
 	bCanNotifyComponentCreateDelete = true;
-	ULexUIManagerWorldSubsystem::RefreshAllUI(InSubPrefabRootWidget->GetWorld());
+	ULexUIManagerWorldSubsystem::RefreshAllUI(this->GetPrefabWorld());
 	return AnythingChange;
 }
 

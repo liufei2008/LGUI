@@ -102,6 +102,7 @@ public:
 	virtual UWorld* GetWorld() const override final;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual bool CanEditChange(const FEditPropertyChain& PropertyChain) const override;
@@ -318,8 +319,6 @@ public:
 	void UpdateLayout();
 	/** Called by LexCanvas */
 	void UpdateClip(ULexUIDataAsTexture* ClipDataTexture, TArray<TSharedPtr<FLexUIClipData>>& ClipDataList);
-	/** Called by LexCanvas */
-	void UpdateVisual()const;
 protected:
 	void RenewRenderCanvasRecursive(ULexCanvas* InParentRenderCanvas);
 

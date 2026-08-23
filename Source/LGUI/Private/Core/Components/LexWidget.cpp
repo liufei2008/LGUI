@@ -657,6 +657,11 @@ void ULexWidget::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	}
 }
 
+void ULexWidget::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+}
+
 void ULexWidget::PreEditChange(FProperty* PropertyAboutToChange)
 {
 	Super::PreEditChange(PropertyAboutToChange);

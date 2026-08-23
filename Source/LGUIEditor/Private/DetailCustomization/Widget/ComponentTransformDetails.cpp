@@ -83,11 +83,11 @@ static USceneComponent* GetSceneComponentFromDetailsObject(UObject* InObject)
 	return Cast<USceneComponent>(InObject);
 }
 
-FComponentTransformDetails::FComponentTransformDetails( const TArray< TWeakObjectPtr<ULexWidget> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder& DetailBuilder )
+FComponentTransformDetails::FComponentTransformDetails( const TArray< TWeakObjectPtr<ULexWidget> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder* DetailBuilder )
 	: TNumericUnitTypeInterface(GetDefault<UEditorProjectAppearanceSettings>()->bDisplayUnitsOnComponentTransforms ? EUnit::Centimeters : EUnit::Unspecified)
 	, SelectedActorInfo( InSelectedActorInfo )
 	, SelectedObjects( InSelectedObjects )
-	, NotifyHook( DetailBuilder.GetPropertyUtilities()->GetNotifyHook() )
+	, NotifyHook( DetailBuilder->GetPropertyUtilities()->GetNotifyHook() )
 	, bPreserveScaleRatio( false )
 	, bEditingRotationInUI( false )
 {

@@ -17,9 +17,11 @@ public:
 
 	static TSharedRef<IDetailCustomization> MakeInstance();
 	/** IDetailCustomization interface */
-	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+	virtual void CustomizeDetails( IDetailLayoutBuilder& InDetailBuilder ) override{}
+	virtual void CustomizeDetails( const TSharedPtr<IDetailLayoutBuilder>& InDetailBuilder ) override;
 private:
 	TArray<TWeakObjectPtr<class ULexWidget>> TargetScriptArray;
+	TSharedPtr<IDetailLayoutBuilder> DetailBuilder = nullptr;
 
 	FText GetAnchorsTooltipText()const;
 	
@@ -28,7 +30,7 @@ private:
 	bool OnCanCopyAnchor()const;
 	bool OnCanPasteAnchor()const;
 	void OnCopyAnchor();
-	void OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder);
+	void OnPasteAnchor();
 	void OnCopyHierarchyIndex();
 	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
 	FReply OnClickIncreaseOrDecreaseSiblingIndex(bool IncreaseOrDecrease, TSharedRef<IPropertyHandle> HierarchyIndexHandle);
@@ -46,10 +48,10 @@ private:
 	void OnAnchorValueSliderMovementEnd(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
 	bool IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 	bool IsAnchorEditable()const;
-	TSharedPtr<IPropertyHandle> GetAnchorPropertyHandle(IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int Index)const;
+	TSharedPtr<IPropertyHandle> GetAnchorPropertyHandle(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int Index)const;
 	FText GetAnchorLabelText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelIndex)const;
 	FText GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelTooltipIndex)const;
-	void OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, IDetailLayoutBuilder* DetailBuilder);
+	void OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, TSharedRef<IPropertyHandle> AnchorHandle);
 	LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign GetAnchorHAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
 	LGUIAnchorPreviewWidget::UIAnchorVerticalAlign GetAnchorVAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
 	FText GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;

@@ -33,7 +33,7 @@ namespace ETransformField
 class FComponentTransformDetails : public TSharedFromThis<FComponentTransformDetails>, public IDetailCustomNodeBuilder, public TNumericUnitTypeInterface<FVector::FReal>
 {
 public:
-	FComponentTransformDetails( const TArray< TWeakObjectPtr<ULexWidget> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder& DetailBuilder );
+	FComponentTransformDetails( const TArray< TWeakObjectPtr<ULexWidget> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder* DetailBuilder );
 
 	/**
 	 * Caches the representation of the actor transform for the user input boxes                   
