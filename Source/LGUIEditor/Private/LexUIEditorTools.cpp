@@ -278,7 +278,7 @@ void FLexUIEditorTools::DuplicateWidgets(TFunction<TArray<ULexWidget*>()> GetSel
 				}
 			}
 			CopiedWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::DuplicateWidgetForEditor(Widget->GetWorld(), Widget, Parent, PrefabHelperObject->SubPrefabMap, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
-			CopiedWidget->SetAsLastSibling();
+			CopiedWidget->SetSiblingIndex(Widget->GetSiblingIndex() + 1);
 			for (auto& KeyValue : DuplicatedSubPrefabMap)
 			{
 				TMap<FGuid, TObjectPtr<UObject>> SubMapGuidToObject;
@@ -292,6 +292,7 @@ void FLexUIEditorTools::DuplicateWidgets(TFunction<TArray<ULexWidget*>()> GetSel
 		else 
 		{
 			CopiedWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::DuplicateWidgetForEditor(Widget->GetWorld(), Widget, Parent, {}, InMapObjectToGuid, DuplicatedSubPrefabMap, OutMapGuidToObject);
+			CopiedWidget->SetSiblingIndex(Widget->GetSiblingIndex() + 1);
 		}
 		CopiedWidget->SetDisplayName(CopiedWidgetName);
 		ULexUISelection::GetInstance(World)->SelectWidget(CopiedWidget);
