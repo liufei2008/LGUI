@@ -437,8 +437,6 @@ void FLexUIEditorTools::DeleteWidgets(TFunction<TArray<ULexWidget*>()> GetSelect
 	for (auto Widget : RootWidgetList)
 	{
 		Widget->GetOuter()->Modify();
-		Widget->SetFlags(RF_Public | RF_Transactional);
-		Widget->Modify();
 		if (auto Parent = Widget->GetParent())
 		{
 			Parent->SetFlags(RF_Public | RF_Transactional);
@@ -454,6 +452,21 @@ void FLexUIEditorTools::DeleteWidgets(TFunction<TArray<ULexWidget*>()> GetSelect
 			{
 				PrefabHelperObject->RemoveSubPrefabByAnyWidgetOfSubPrefab(ChildWidget);
 			}
+		}
+		// Record all descendant widgets in the transaction before destroying the
+		// root widget, otherwise undo restores only the root widget and its
+		// children stay marked as garbage and disappear.
+		TArray<ULexWidget*> DescendantWidgets;
+		ULexWidget::CollectChildrenWidgets(Widget, DescendantWidgets, true);
+		for (auto DescendantWidget : DescendantWidgets)
+		{
+			DescendantWidget->SetFlags(RF_Public | RF_Transactional);
+			DescendantWidget->Modify();
+			ForEachObjectWithOuter(DescendantWidget, [](UObject* Object)
+			{
+				Object->SetFlags(RF_Public | RF_Transactional);
+				Object->Modify();
+			});
 		}
 		Widget->SetParent(nullptr);
 		Widget->DestroyWidget();
