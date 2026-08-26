@@ -222,28 +222,32 @@ void MainPS(
 #endif
 
 
-#if SUBSTRATE_ENABLED
+#if SUBSTRATE_ENABLED && TEMPLATE_USES_SUBSTRATE
 
-	// UI element are always rendered with a unlit BSDF behind the scene
-	FSubstrateBSDF UnlitBSDF = PixelMaterialInputs.FrontMaterial.InlinedBSDF;
+	FSubstratePixelHeader SubstratePixelHeader = MaterialParameters.GetFrontSubstrateHeader();
+	FSubstrateBSDF UnlitBSDF = SubstratePixelHeader.SubstrateTree.BSDFs[0];
 	UnlitBSDF.SubstrateSanitizeBSDF();
-	
-	HALF3_TYPE Color = BSDF_GETEMISSIVE(UnlitBSDF);
 
-#if STRATA_USE_PREMULTALPHA_OVERRIDE // AlphaComposite - Premultiplied alpha blending
-	HALF_TYPE Coverage = GetMaterialOpacity(PixelMaterialInputs);
+	HALF3_TYPE Color = BSDF_GETEMISSIVE(UnlitBSDF);
+	HALF_TYPE Coverage;
+
+#if SUBSTRATE_OPAQUE_DEFERRED || (SUBSTRATE_OPAQUE_MATERIAL && SUBSTRATE_FORWARD_SHADING)
+	Coverage = 1.0f;
+#elif SUBSTRATE_USE_PREMULTALPHA_OVERRIDE // AlphaComposite - Premultiplied alpha blending
+	Coverage = GetMaterialOpacity(PixelMaterialInputs);
 #else
-	HALF_TYPE Coverage = saturate(1.0f - UNLIT_TRANSMITTANCE(UnlitBSDF).x);	// Unlit node transmittance is only generated from opacity
-	Color /= Coverage;//Restore color value because material node "Substrate UE4 Unlit Shading"
+	Coverage = saturate(1.0f - UNLIT_TRANSMITTANCE(UnlitBSDF).x);
+	// Substrate's unlit emissive is premultiplied by coverage.
+	Color = Coverage > 0.0f ? Color / Coverage : 0.0f;
 #endif
-	
+
 	OutColor = HALF4_TYPE(Color, Coverage);
 
-#else // SUBSTRATE_ENABLED
+#else // SUBSTRATE_ENABLED && TEMPLATE_USES_SUBSTRATE
 	
     OutColor = HALF4_TYPE(GetMaterialEmissive(PixelMaterialInputs), GetMaterialOpacity(PixelMaterialInputs));
 	
-#endif // SUBSTRATE_ENABLED
+#endif // SUBSTRATE_ENABLED && TEMPLATE_USES_SUBSTRATE
 	
 	// Gamma Correct
     OutColor.rgb = GammaCorrect(OutColor.rgb, _LGUIGammaValues);
