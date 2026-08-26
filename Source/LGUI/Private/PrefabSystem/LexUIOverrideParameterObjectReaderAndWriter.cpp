@@ -8,7 +8,7 @@
 namespace LexUIPrefabSystem
 {
 	FLexUIOverrideParameterObjectWriter::FLexUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
-		: FLexUIObjectWriter(Bytes, InSerializer, {})
+		: FLexUIObjectWriter(Bytes, InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
 		
@@ -67,7 +67,7 @@ namespace LexUIPrefabSystem
 
 
 	FLexUIOverrideParameterObjectReader::FLexUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, const TArray<FName>& InOverridePropertyNames)
-		: FLexUIObjectReader(Bytes, InSerializer, {})
+		: FLexUIObjectReader(Bytes, InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
 		

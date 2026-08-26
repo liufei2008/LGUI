@@ -43,7 +43,7 @@ namespace LexUIPrefabSystem
 	class LGUI_API FLexUIObjectWriter : public FObjectWriter
 	{
 	public:
-		FLexUIObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLexUIObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
 		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
@@ -59,12 +59,11 @@ namespace LexUIPrefabSystem
 		virtual bool SerializeObject(UObject* Object);
 	protected:
 		WidgetSerializerBase& Serializer;
-		TSet<FName> SkipPropertyNames;
 	};
 	class LGUI_API FLexUIObjectReader : public FObjectReader
 	{
 	public:
-		FLexUIObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLexUIObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
 		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
@@ -80,13 +79,12 @@ namespace LexUIPrefabSystem
 		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass);
 	protected:
 		WidgetSerializerBase& Serializer;
-		TSet<FName> SkipPropertyNames;
 	};
 
 	class LGUI_API FLexUIDuplicateObjectWriter : public FLexUIObjectWriter
 	{
 	public:
-		FLexUIDuplicateObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLexUIDuplicateObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
@@ -95,7 +93,7 @@ namespace LexUIPrefabSystem
 	class LGUI_API FLexUIDuplicateObjectReader : public FLexUIObjectReader
 	{
 	public:
-		FLexUIDuplicateObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLexUIDuplicateObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;

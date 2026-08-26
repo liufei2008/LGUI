@@ -47,7 +47,7 @@ namespace LexUIPrefabSystem
 #endif
 		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
@@ -82,7 +82,7 @@ namespace LexUIPrefabSystem
 #endif
 		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
@@ -122,7 +122,7 @@ namespace LexUIPrefabSystem
 #endif
 		serializer.bOverrideVersions = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
@@ -147,7 +147,7 @@ namespace LexUIPrefabSystem
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.bIsSubPrefab = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {

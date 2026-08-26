@@ -7,8 +7,8 @@
 
 namespace LexUIPrefabSystem
 {
-	FLexUIDuplicateObjectWriter::FLexUIDuplicateObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
-		: FLexUIObjectWriter(Bytes, InSerializer, InSkipPropertyNames)
+	FLexUIDuplicateObjectWriter::FLexUIDuplicateObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer)
+		: FLexUIObjectWriter(Bytes, InSerializer)
 	{
 		
 	}
@@ -17,12 +17,6 @@ namespace LexUIPrefabSystem
 		if (InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
 			|| InProperty->IsA<FMulticastDelegateProperty>()
 			|| InProperty->IsA<FDelegateProperty>()
-			)
-		{
-			return true;
-		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName())
-			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
 			)
 		{
 			return true;
@@ -80,8 +74,8 @@ namespace LexUIPrefabSystem
 
 
 
-	FLexUIDuplicateObjectReader::FLexUIDuplicateObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
-		: FLexUIObjectReader(Bytes, InSerializer, InSkipPropertyNames)
+	FLexUIDuplicateObjectReader::FLexUIDuplicateObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer)
+		: FLexUIObjectReader(Bytes, InSerializer)
 	{
 
 	}
@@ -90,12 +84,6 @@ namespace LexUIPrefabSystem
 		if (InProperty->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient | CPF_DisableEditOnInstance)
 			|| InProperty->IsA<FMulticastDelegateProperty>()
 			|| InProperty->IsA<FDelegateProperty>()
-			)
-		{
-			return true;
-		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName())
-			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
 			)
 		{
 			return true;

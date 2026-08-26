@@ -57,7 +57,7 @@ namespace LexUIPrefabSystem
 		}
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectWriter Writer(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIObjectWriter Writer(InOutBuffer, serializer);
 			Writer.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {

@@ -32,7 +32,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		//serialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer);
 			Writer.DoSerialize(InObject);
 		};
 		FLexUIPrefabSaveData SaveData;
@@ -40,7 +40,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		//deserialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
@@ -73,14 +73,14 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 
 		//serialize
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer);
 			Writer.DoSerialize(InObject);
 		};
 		serializer.SerializeWidgetToData(OriginRootWidget, OutData.WidgetData);
 
 		//for deserialize, set once for all use
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 
@@ -145,7 +145,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		//serialize
 		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectWriter Writer(InOutBuffer, serializer);
 			Writer.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
@@ -158,7 +158,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		//deserialize
 		serializer.SubPrefabMap = {};//clear it for deserializer to fill
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer, {});
+			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNameSet) {

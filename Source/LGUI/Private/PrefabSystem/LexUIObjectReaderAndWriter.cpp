@@ -16,10 +16,9 @@ namespace LexUIPrefabSystem
 			;
 	}
 
-	FLexUIObjectWriter::FLexUIObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLexUIObjectWriter::FLexUIObjectWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
-		, SkipPropertyNames(InSkipPropertyNames)
 	{
 		SetIsLoading(false);
 		SetIsSaving(true);
@@ -33,12 +32,6 @@ namespace LexUIPrefabSystem
 	bool FLexUIObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
 	{
 		if (LexUIPrefab_ShouldSkipProperty(InProperty))
-		{
-			return true;
-		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName())
-			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
-			)
 		{
 			return true;
 		}
@@ -201,10 +194,9 @@ namespace LexUIPrefabSystem
 	}
 
 
-	FLexUIObjectReader::FLexUIObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLexUIObjectReader::FLexUIObjectReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer)
 		: FObjectReader(Bytes)
 		, Serializer(InSerializer)
-		, SkipPropertyNames(InSkipPropertyNames)
 	{
 		SetIsLoading(true);
 		SetIsSaving(false);
@@ -218,12 +210,6 @@ namespace LexUIPrefabSystem
 	bool FLexUIObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
 	{
 		if (LexUIPrefab_ShouldSkipProperty(InProperty))
-		{
-			return true;
-		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName())
-			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
-			)
 		{
 			return true;
 		}
