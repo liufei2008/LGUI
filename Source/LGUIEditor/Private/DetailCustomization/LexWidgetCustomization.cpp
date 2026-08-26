@@ -906,27 +906,34 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 	auto DisplayName_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, DisplayName));
 	LGUICategory.AddProperty(DisplayName_PH);
 
-	//Layout
+	//LayoutContainer
 	{
-		auto Layout_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutContainer));
-		UObject* Layout = nullptr;
-		Layout_PH->GetValue(Layout);
+		auto LayoutContainer_PH = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, LayoutContainer));
+		UObject* LayoutContainer = nullptr;
+		LayoutContainer_PH->GetValue(LayoutContainer);
 		auto& LayoutCategory = DetailBuilder->EditCategory("LayoutContainer");
-		LayoutCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, Layout_PH, !bIsSubPrefab));
-		LayoutCategory.SetIsEmpty(!IsValid(Layout));
-		LayoutCategory.AddCustomRow(LOCTEXT("LayoutPlaceholder", "Placeholder"))
-			.Visibility(IsValid(Layout) ? EVisibility::Hidden : EVisibility::Visible)
+		LayoutCategory.AddCustomRow(LOCTEXT("LayoutContainerRow", "LayoutContainer"))
 			.NameContent()
 			[
-				Layout_PH->CreatePropertyNameWidget()
+				LayoutContainer_PH->CreatePropertyNameWidget()
 			]
 			.ValueContent()
 			[
-				Layout_PH->CreatePropertyValueWidget()
-			];
-		LayoutCategory.AddExternalObjects({ Layout }, EPropertyLocation::Default
+				SNew(SLexWidgetSubObjectWidget, LayoutContainer_PH, !bIsSubPrefab)
+			]
+			.OverrideResetToDefault(FResetToDefaultOverride::Create(
+				TAttribute<bool>::CreateLambda([LayoutContainer_PH, bIsSubPrefab]()
+				{
+					return !bIsSubPrefab && LayoutContainer_PH->CanResetToDefault();
+				}),
+				FSimpleDelegate::CreateLambda([LayoutContainer_PH]()
+				{
+					LayoutContainer_PH->ResetToDefault();
+				})
+			));
+		LayoutCategory.AddExternalObjects({ LayoutContainer }, EPropertyLocation::Default
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
-		DetailBuilder->HideProperty(Layout_PH);
+		DetailBuilder->HideProperty(LayoutContainer_PH);
 	}
 
 	//LayoutSelf
@@ -935,18 +942,25 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 		UObject* LayoutSelf = nullptr;
 		LayoutSelf_PH->GetValue(LayoutSelf);
 		auto& LayoutSelfCategory = DetailBuilder->EditCategory("LayoutSelf");
-		LayoutSelfCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, LayoutSelf_PH, !bIsSubPrefab));
-		LayoutSelfCategory.SetIsEmpty(!IsValid(LayoutSelf));
-		LayoutSelfCategory.AddCustomRow(LOCTEXT("LayoutPlaceholder", "Placeholder"))
-			.Visibility(IsValid(LayoutSelf) ? EVisibility::Hidden : EVisibility::Visible)
+		LayoutSelfCategory.AddCustomRow(LOCTEXT("LayoutSelfRow", "LayoutSelf"))
 			.NameContent()
 			[
 				LayoutSelf_PH->CreatePropertyNameWidget()
 			]
 			.ValueContent()
 			[
-				LayoutSelf_PH->CreatePropertyValueWidget()
-			];
+				SNew(SLexWidgetSubObjectWidget, LayoutSelf_PH, !bIsSubPrefab)
+			]
+			.OverrideResetToDefault(FResetToDefaultOverride::Create(
+				TAttribute<bool>::CreateLambda([LayoutSelf_PH, bIsSubPrefab]()
+				{
+					return !bIsSubPrefab && LayoutSelf_PH->CanResetToDefault();
+				}),
+				FSimpleDelegate::CreateLambda([LayoutSelf_PH]()
+				{
+					LayoutSelf_PH->ResetToDefault();
+				})
+			));
 		LayoutSelfCategory.AddExternalObjects({ LayoutSelf }, EPropertyLocation::Default
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
 		DetailBuilder->HideProperty(LayoutSelf_PH);
@@ -958,19 +972,25 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 		UObject* Visual = nullptr;
 		Visual_PH->GetValue(Visual);
 		IDetailCategoryBuilder& VisualCategory = DetailBuilder->EditCategory("Visual");
-		VisualCategory.HeaderContent(SNew(SLexWidgetSubObjectWidget, Visual_PH, !bIsSubPrefab));
-		VisualCategory.SetIsEmpty(Visual == nullptr);
-		VisualCategory.AddCustomRow(LOCTEXT("VisualPlaceholder", "Placeholder"))
-			.Visibility(IsValid(Visual) ? EVisibility::Hidden : EVisibility::Visible)
+		VisualCategory.AddCustomRow(LOCTEXT("VisualRow", "Visual"))
 			.NameContent()
 			[
 				Visual_PH->CreatePropertyNameWidget()
 			]
 			.ValueContent()
 			[
-				Visual_PH->CreatePropertyValueWidget()
+				SNew(SLexWidgetSubObjectWidget, Visual_PH, !bIsSubPrefab)
 			]
-			;
+			.OverrideResetToDefault(FResetToDefaultOverride::Create(
+				TAttribute<bool>::CreateLambda([Visual_PH, bIsSubPrefab]()
+				{
+					return !bIsSubPrefab && Visual_PH->CanResetToDefault();
+				}),
+				FSimpleDelegate::CreateLambda([Visual_PH]()
+				{
+					Visual_PH->ResetToDefault();
+				})
+			));
 		VisualCategory.AddExternalObjects({ Visual }, EPropertyLocation::Common
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
 		DetailBuilder->HideProperty(Visual_PH);

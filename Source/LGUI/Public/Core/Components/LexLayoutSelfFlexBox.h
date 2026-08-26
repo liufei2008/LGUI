@@ -177,7 +177,7 @@ private:
 	FLexLayoutMinMaxSize MaxHeight;
 
 	/** Expands outwards. Only valid when parent have FlexBoxContainer */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (AllowPrivateAccess = true, UIMin=0))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LayoutSelf", meta = (AllowPrivateAccess = true, UIMin=0))
 	FMargin Margin;
 
 	/**
