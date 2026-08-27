@@ -357,14 +357,12 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 				]
 			;
 		};
-		auto DetailBuilderPtr = &DetailBuilder;
 		auto MakeAnchorValueWidget = [=, this](int AnchorValueIndex) {
 			return
 				SNew(SBox)
 				.Padding(AnchorValueMargin)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
-					//GetAnchorPropertyHandle(DetailBuilderPtr, AnchorMinHandle, AnchorMaxHandle, AnchorValueIndex)->CreatePropertyValueWidget()
 					SNew(SNumericEntryBox<float>)
 					.AllowSpin(true)
 					.Delta(1.0f)
@@ -406,7 +404,7 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 		))
 		.PasteAction(FUIAction
 		(
-			FExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnPasteAnchor),
+			FExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnPasteAnchor, AnchorData_PH),
 			FCanExecuteAction::CreateSP(this, &FLexWidgetCustomization::OnCanPasteAnchor)
 		))
 		.PropertyHandleList({AnchorData_PH})
@@ -1097,7 +1095,7 @@ void FLexWidgetCustomization::OnCopyAnchor()
 		}
 	}
 }
-void FLexWidgetCustomization::OnPasteAnchor()
+void FLexWidgetCustomization::OnPasteAnchor(TSharedRef<IPropertyHandle> AnchorData_PH)
 {
 	FString PastedText;
 	FPlatformApplicationMisc::ClipboardPaste(PastedText);
@@ -1114,7 +1112,6 @@ void FLexWidgetCustomization::OnPasteAnchor()
 		FParse::Value(*PastedText, TEXT("AnchoredPositionY="), AnchorData.AnchoredPosition.Y);
 		FParse::Value(*PastedText, TEXT("SizeDeltaX="), AnchorData.SizeDelta.X);
 		FParse::Value(*PastedText, TEXT("SizeDeltaY="), AnchorData.SizeDelta.Y);
-		auto AnchorData_PH = DetailBuilder->GetProperty(ULexWidget::GetPropertyName_AnchorData());
 		AnchorData_PH->NotifyPreChange();
 		for (auto item : TargetScriptArray)
 		{
@@ -1163,39 +1160,6 @@ bool FLexWidgetCustomization::IsAnchorEditable()const
 		}
 	}
 	return true;
-}
-
-TSharedPtr<IPropertyHandle> FLexWidgetCustomization::GetAnchorPropertyHandle(
-	TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int Index) const
-{
-	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return nullptr;
-
-	FVector2D AnchorMinValue;
-	FVector2D AnchorMaxValue;
-	if (AnchorMinHandle->GetValue(AnchorMinValue) == FPropertyAccess::Success
-		&& AnchorMaxHandle->GetValue(AnchorMaxValue) == FPropertyAccess::Success)
-	{
-		switch (Index)
-		{
-		case 0://anchored position y, stretch left
-			if (AnchorMinValue.X == AnchorMaxValue.X)
-				return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition.X));
-			return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, CacheAnchorOffsetLeft));
-		case 1://anchored position z, stretch top
-			if (AnchorMinValue.Y == AnchorMaxValue.Y)
-				return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.AnchoredPosition.Y));
-			return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, CacheAnchorOffsetTop));
-		case 2://width, stretch right
-			if (AnchorMinValue.X == AnchorMaxValue.X)
-				return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta.X));
-			return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, CacheAnchorOffsetRight));
-		case 3://height, stretch bottom
-			if (AnchorMinValue.Y == AnchorMaxValue.Y)
-				return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, AnchorData.SizeDelta.Y));
-			return DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidget, CacheAnchorOffsetBottom));
-		}
-	}
-	return nullptr;
 }
 
 FText FLexWidgetCustomization::GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const

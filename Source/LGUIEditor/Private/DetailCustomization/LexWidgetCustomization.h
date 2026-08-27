@@ -30,7 +30,7 @@ private:
 	bool OnCanCopyAnchor()const;
 	bool OnCanPasteAnchor()const;
 	void OnCopyAnchor();
-	void OnPasteAnchor();
+	void OnPasteAnchor(TSharedRef<IPropertyHandle> AnchorData_PH);
 	void OnCopyHierarchyIndex();
 	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
 	FReply OnClickIncreaseOrDecreaseSiblingIndex(bool IncreaseOrDecrease, TSharedRef<IPropertyHandle> HierarchyIndexHandle);
@@ -48,7 +48,6 @@ private:
 	void OnAnchorValueSliderMovementEnd(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
 	bool IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 	bool IsAnchorEditable()const;
-	TSharedPtr<IPropertyHandle> GetAnchorPropertyHandle(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int Index)const;
 	FText GetAnchorLabelText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelIndex)const;
 	FText GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelTooltipIndex)const;
 	void OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, TSharedRef<IPropertyHandle> AnchorHandle);
