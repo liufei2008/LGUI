@@ -2,6 +2,7 @@
 
 #include "PrefabSystem/WidgetSerializer.h"
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
 #include "Engine/World.h"
 #include "LGUI.h"
 #include "Core/LexUIBehaviour.h"
@@ -54,6 +55,10 @@ namespace LexUIPrefabSystem
 			LexUIPrefabSystem::FLexUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
 			Reader.DoSerialize(InObject);
 		};
+		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
+			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
+			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
+		};
 		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
@@ -88,6 +93,10 @@ namespace LexUIPrefabSystem
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
 			LexUIPrefabSystem::FLexUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
 			Reader.DoSerialize(InObject);
+		};
+		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
+			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
+			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
 		};
 		ULexWidget* result = nullptr;
 		if (SetRelativeTransformToIdentity)
@@ -129,6 +138,10 @@ namespace LexUIPrefabSystem
 			LexUIPrefabSystem::FLexUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
 			Reader.DoSerialize(InObject);
 		};
+		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
+			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
+			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
+		};
 		return serializer.DeserializeWidget(Parent, InPrefab, nullptr, true, RelativeLocation, RelativeRotation, RelativeScale);
 	}
 	ULexWidget* WidgetSerializer::LoadSubPrefab(UWorld* InWorld,
@@ -153,6 +166,10 @@ namespace LexUIPrefabSystem
 		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
 			LexUIPrefabSystem::FLexUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
 			Reader.DoSerialize(InObject);
+		};
+		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
+			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
+			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
 		};
 		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
 		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
@@ -189,6 +206,17 @@ namespace LexUIPrefabSystem
 		for (auto& Item : SubPrefabOverrideParameters)
 		{
 			WriterOrReaderFunctionForSubPrefabOverride(Item.Object, Item.ParameterDatas, Item.ParameterNames);
+			//Nested leaves last. Their roots are never in ParameterNames (a whole member override subsumes them), so
+			//the ordering is not load-bearing, just stable.
+			if (WriterOrReaderFunctionForSubPropertyOverride == nullptr)continue;
+			for (auto& SubPropertyData : Item.SubPropertyOverrides)
+			{
+				FProperty* LeafProperty = nullptr;
+				void* LeafContainer = nullptr;
+				if (FLexUIPrefabOverridePropertyPathUtils::Resolve(Item.Object->GetClass(), Item.Object, SubPropertyData.Segments, LeafProperty, LeafContainer) != EPropertyPathResolveResult::Success)continue;
+				if (LeafProperty->GetID() != SubPropertyData.LeafTypeId)continue;//the leaf type changed since the value was written
+				WriterOrReaderFunctionForSubPropertyOverride(LeafProperty, LeafProperty->ContainerPtrToValuePtr<void>(LeafContainer), SubPropertyData.ValueData);
+			}
 		}
 
 #if LGUIPREFAB_LOG_DETAIL_TIME
@@ -324,6 +352,16 @@ namespace LexUIPrefabSystem
 				InPrefab->BinaryDataForBuild;
 
 			auto FromBinary = FMemoryReader(LoadedData, false);
+			//BinaryDataForBuild is emptied and regenerated on every cook, so it is current-format by construction.
+			//The asset's PrefabVersion cannot be trusted for it: FLexUIPrefabVersionScope restores PrefabVersion to its
+			//pre-cook value after the build blob is written, so an asset still at v9 on disk ships a current-format
+			//blob labelled v9. Reading it with that label would skip newer fields and desync the rest of the buffer.
+			const uint16 BlobVersion =
+#if WITH_EDITOR
+				bIsEditorOrRuntime ? InPrefab->PrefabVersion :
+#endif
+				LEXUI_CURRENT_PREFAB_VERSION;
+			FromBinary.SetCustomVersion(FLexUIPrefabCustomVersion::GUID, (int32)BlobVersion, TEXT("LexUIPrefab"));
 #if WITH_EDITOR
 			if (bIsEditorOrRuntime)
 			{
@@ -518,12 +556,17 @@ namespace LexUIPrefabSystem
 										FLexUIPrefabOverrideParameterData OverrideDataItem;
 										OverrideDataItem.MemberPropertyNames = RecordDataPtr->OverrideParameterNames;
 										OverrideDataItem.Object = ObjectInSubPrefab;
+										for (auto& SubPropertyData : RecordDataPtr->SubPropertyOverrides)
+										{
+											OverrideDataItem.SubPropertyPaths.Add(FLexUIPrefabOverridePropertyPath(SubPropertyData.Segments));
+										}
 										SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
 
 										FSubPrefabObjectOverrideParameterData OverrideData;
 										OverrideData.Object = ObjectInSubPrefab;
 										OverrideData.ParameterDatas = RecordDataPtr->OverrideParameterData;
 										OverrideData.ParameterNames = RecordDataPtr->OverrideParameterNames;
+										OverrideData.SubPropertyOverrides = RecordDataPtr->SubPropertyOverrides;
 										SubPrefabOverrideParameters.Add(OverrideData);//collect override parameters, so when all objects are generated, restore these parameters will get all value back
 									}
 
@@ -534,7 +577,7 @@ namespace LexUIPrefabSystem
 										MapGuidToObject.Add(GuidInParent, ObjectInSubPrefab);
 									}
 								}
-								//if we don't need to get any guid from MapObjectIdToNewlyCreatedId, that means subprefab already have a persistent guid for all objects, then we can clear the data
+								//if we don't need to get any guid from MapObjectIdToNewlyCreatedId, that means sub-prefab already have a persistent guid for all objects, then we can clear the data
 								if (!bAnyGuidFrom_MapObjectIdToNewlyCreatedId)
 								{
 									if (InWidgetData.MapObjectIdToNewlyCreatedId.Num() > 0)

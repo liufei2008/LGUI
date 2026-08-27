@@ -51,6 +51,12 @@ enum class ELexUIPrefabVersion : uint16
 	 * Note: This version is not compatible with previous version, so if you want to use this version, you need to re-create all prefab assets.
 	 */
 	FTextAsReference = 9,
+	/**
+	 * Sub-prefab overrides can address a leaf nested inside a struct member property (e.g. AnchorData.AnchorMin.X)
+	 * instead of only whole member properties. Adds a per-path value record to FLexUIPrefabOverrideParameterSaveData.
+	 * Older assets simply carry no such records, so they load unchanged and become this version on the next save.
+	 */
+	SubPropertyOverride = 10,
 
 	/** new version must be added before this line. */
 	MAX_NO_USE,
@@ -65,6 +71,41 @@ enum class ELexUIPrefabVersion : uint16
 class ULexUIPrefab;
 class ULexUIPrefabHelperObject;
 
+/**
+ * Identifies an overridden property on a sub-prefab's object.
+ * A single segment is a plain member property. Multiple segments address a leaf nested inside struct members,
+ * e.g. { AnchorData, AnchorMin, X }. Containers are never addressed - see LexUIPrefabOverridePropertyPathUtils.
+ */
+USTRUCT(NotBlueprintType)
+struct LGUI_API FLexUIPrefabOverridePropertyPath
+{
+	GENERATED_BODY()
+public:
+	FLexUIPrefabOverridePropertyPath() {};
+	explicit FLexUIPrefabOverridePropertyPath(const TArray<FName>& InSegments) : Segments(InSegments) {};
+
+	/** From the object's member property down to the overridden leaf. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TArray<FName> Segments;
+
+	FName GetRootName()const { return Segments.Num() > 0 ? Segments[0] : NAME_None; }
+	bool IsWholeMember()const { return Segments.Num() <= 1; }
+	/** True if InOther is this path or an ancestor of it. */
+	bool IsSameOrChildOf(const FLexUIPrefabOverridePropertyPath& InOther)const;
+	FString ToString()const;
+
+	bool operator==(const FLexUIPrefabOverridePropertyPath& Other)const { return Segments == Other.Segments; }
+	friend FORCEINLINE uint32 GetTypeHash(const FLexUIPrefabOverridePropertyPath& Other)
+	{
+		uint32 Hash = 0;
+		for (auto& Segment : Other.Segments)
+		{
+			Hash = HashCombine(Hash, GetTypeHash(Segment));
+		}
+		return Hash;
+	}
+};
+
 USTRUCT(NotBlueprintType)
 struct LGUI_API FLexUIPrefabOverrideParameterData
 {
@@ -77,6 +118,12 @@ public:
 	/** UObject's member property name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FName> MemberPropertyNames;
+	/**
+	 * Overrides addressing a leaf nested inside a struct member property.
+	 * Invariant: a root name here never also appears in MemberPropertyNames - a whole member override subsumes them.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TArray<FLexUIPrefabOverridePropertyPath> SubPropertyPaths;
 };
 
 /** Unique id for newly created object in sub-prefab, just for store data here. Check description on ELexUIPrefabVersion.NewObjectOnNestedPrefab */
@@ -113,9 +160,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FLexUISubPrefabObjectUniqueId, FGuid> MapObjectIdToNewlyCreatedId;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
-	/** For level editor, combine all create time (include all sub prefab) to create this MD5, to tell if this prefab is latest version. */
+	/** For level editor, combine all create time (include all sub prefabs) to create this MD5, to tell if this prefab is latest version. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")FString OverallVersionMD5;
-	/** Temporary color for quick identify in editor */
+	/** Temporary color for quick identification in editor */
 	FLinearColor EditorIdentifyColor;
 #endif
 public:
@@ -123,7 +170,11 @@ public:
 	void AddMemberProperty(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
 	void RemoveMemberProperty(UObject* InObject);
-	/** 
+	/** Record an override on a leaf nested inside a struct member property. Single-segment paths are redirected to AddMemberProperty. */
+	void AddSubPropertyPath(UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath);
+	void AddSubPropertyPath(UObject* InObject, const TArray<FLexUIPrefabOverridePropertyPath>& InPaths);
+	void RemoveSubPropertyPath(UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath);
+	/**
 	 * Check parameters, remove invalid.
 	 * @return true if anything changed.
 	 */

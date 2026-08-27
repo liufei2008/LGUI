@@ -7,6 +7,8 @@
 #include LEXUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 #include "Utils/LexUIUtils.h"
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
+#include "PrefabSystem/LexUIPrefabCustomVersion.h"
 #include "Engine/Engine.h"
 #include "UObject/ObjectSaveContext.h"
 #include "UObject/Package.h"
@@ -15,6 +17,8 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
+const FGuid FLexUIPrefabCustomVersion::GUID(0x7B3A1C4E, 0x59D2426F, 0x8E1A0C77, 0xB4F35D08);
+
 
 FLexUISubPrefabData::FLexUISubPrefabData()
 {
@@ -22,6 +26,17 @@ FLexUISubPrefabData::FLexUISubPrefabData()
 	EditorIdentifyColor = FLinearColor::MakeRandomColor();
 #endif
 }
+namespace
+{
+	/** A whole member override subsumes every nested path below it. */
+	void RemoveSubPropertyPathsRootedAt(FLexUIPrefabOverrideParameterData& InDataItem, FName InRootName)
+	{
+		InDataItem.SubPropertyPaths.RemoveAll([InRootName](const FLexUIPrefabOverridePropertyPath& Item) {
+			return Item.GetRootName() == InRootName;
+			});
+	}
+}
+
 void FLexUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyName)
 {
 	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLexUIPrefabOverrideParameterData& Item) {
@@ -41,6 +56,7 @@ void FLexUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyN
 		{
 			DataItem.MemberPropertyNames.Add(InPropertyName);
 		}
+		RemoveSubPropertyPathsRootedAt(DataItem, InPropertyName);
 	}
 }
 
@@ -65,6 +81,7 @@ void FLexUISubPrefabData::AddMemberProperty(UObject* InObject, const TArray<FNam
 			{
 				DataItem.MemberPropertyNames.Add(NameItem);
 			}
+			RemoveSubPropertyPathsRootedAt(DataItem, NameItem);
 		}
 	}
 }
@@ -81,7 +98,7 @@ void FLexUISubPrefabData::RemoveMemberProperty(UObject* InObject, FName InProper
 		{
 			DataItem.MemberPropertyNames.Remove(InPropertyName);
 		}
-		if (DataItem.MemberPropertyNames.Num() <= 0)
+		if (DataItem.MemberPropertyNames.Num() <= 0 && DataItem.SubPropertyPaths.Num() <= 0)
 		{
 			ObjectOverrideParameterArray.RemoveAt(Index);
 		}
@@ -94,6 +111,60 @@ void FLexUISubPrefabData::RemoveMemberProperty(UObject* InObject)
 		return Item.Object == InObject;
 		});
 	if (Index != INDEX_NONE)
+	{
+		ObjectOverrideParameterArray.RemoveAt(Index);
+	}
+}
+
+void FLexUISubPrefabData::AddSubPropertyPath(UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath)
+{
+	if (InPath.Segments.Num() <= 0)return;
+	if (InPath.IsWholeMember())//a single segment is just a member property
+	{
+		AddMemberProperty(InObject, InPath.GetRootName());
+		return;
+	}
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLexUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index == INDEX_NONE)
+	{
+		FLexUIPrefabOverrideParameterData DataItem;
+		DataItem.Object = InObject;
+		DataItem.SubPropertyPaths.Add(InPath);
+		ObjectOverrideParameterArray.Add(DataItem);
+		return;
+	}
+	auto& DataItem = ObjectOverrideParameterArray[Index];
+	if (DataItem.MemberPropertyNames.Contains(InPath.GetRootName()))return;//already covered by a whole member override
+	for (auto& ExistingPath : DataItem.SubPropertyPaths)
+	{
+		if (InPath.IsSameOrChildOf(ExistingPath))return;//an existing ancestor (or an identical path) already covers it
+	}
+	//this path covers existing descendants, which become redundant
+	DataItem.SubPropertyPaths.RemoveAll([&InPath](const FLexUIPrefabOverridePropertyPath& Item) {
+		return Item.IsSameOrChildOf(InPath);
+		});
+	DataItem.SubPropertyPaths.Add(InPath);
+}
+
+void FLexUISubPrefabData::AddSubPropertyPath(UObject* InObject, const TArray<FLexUIPrefabOverridePropertyPath>& InPaths)
+{
+	for (auto& Path : InPaths)
+	{
+		AddSubPropertyPath(InObject, Path);
+	}
+}
+
+void FLexUISubPrefabData::RemoveSubPropertyPath(UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath)
+{
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLexUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index == INDEX_NONE)return;
+	auto& DataItem = ObjectOverrideParameterArray[Index];
+	DataItem.SubPropertyPaths.Remove(InPath);
+	if (DataItem.MemberPropertyNames.Num() <= 0 && DataItem.SubPropertyPaths.Num() <= 0)
 	{
 		ObjectOverrideParameterArray.RemoveAt(Index);
 	}
@@ -127,6 +198,32 @@ bool FLexUISubPrefabData::CheckParameters()
 			{
 				DataItem.MemberPropertyNames.Remove(PropertyName);
 				AnythingChanged = true;
+			}
+
+			//Validate nested paths. A path whose intermediate segment stopped being a plain struct (became an array,
+			//map, ...) is promoted to a whole member override instead of being dropped, so that a refactor of the
+			//target type degrades to the old coarse behaviour rather than silently losing the user's intent.
+			TArray<FName> NamesToPromote;
+			for (int32 PathIndex = DataItem.SubPropertyPaths.Num() - 1; PathIndex >= 0; PathIndex--)
+			{
+				FProperty* LeafProperty = nullptr;
+				const auto Result = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils::ResolveProperty(
+					Object->GetClass(), DataItem.SubPropertyPaths[PathIndex].Segments, LeafProperty);
+				if (Result == LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+				if (Result == LexUIPrefabSystem::EPropertyPathResolveResult::FallbackToWholeMember)
+				{
+					NamesToPromote.Add(DataItem.SubPropertyPaths[PathIndex].GetRootName());
+				}
+				DataItem.SubPropertyPaths.RemoveAt(PathIndex);
+				AnythingChanged = true;
+			}
+			for (auto& PromoteName : NamesToPromote)
+			{
+				if (FindFProperty<FProperty>(Object->GetClass(), PromoteName) != nullptr
+					&& !DataItem.MemberPropertyNames.Contains(PromoteName))
+				{
+					DataItem.MemberPropertyNames.Add(PromoteName);
+				}
 			}
 		}
 	}

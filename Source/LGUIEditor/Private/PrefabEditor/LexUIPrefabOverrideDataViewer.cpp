@@ -3,6 +3,7 @@
 #include "LexUIPrefabOverrideDataViewer.h"
 #include "PrefabSystem/LexUIPrefab.h"
 #include "PrefabSystem/LexUIPrefabHelperObject.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
 #include "LexUIPrefabEditor.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Core/LexUIBehaviour.h"
@@ -47,6 +48,8 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent()
 
 void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverrideParameterData> ObjectOverrideParameterArray, ULexWidget* InReferenceWidget)
 {
+	const float ButtonHeight = 32;
+	
 	RootContentVerticalBox->ClearChildren();
 	if (ObjectOverrideParameterArray.Num() == 0)return;
 
@@ -65,8 +68,24 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 			}
 		}
 	}
+	if (ObjectOverrideParameterArray.Num() == 0)
+	{
+		RootContentVerticalBox->AddSlot()
+		.AutoHeight()
+		[
+			SNew(SBox)
+			.HeightOverride(ButtonHeight)
+			.Padding(FMargin(4, 2))
+			.HAlign(EHorizontalAlignment::HAlign_Center)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("NoParamOverrideHint", "(No Override)"))
+			]
+		];
+		return;
+	}
 
-	const float ButtonHeight = 32;
 	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 	{
 		auto& DataItem = ObjectOverrideParameterArray[i];
@@ -100,7 +119,8 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 			}
 		}
 
-		auto FilteredMemeberPropertyNames = DataItem.MemberPropertyNames;
+		auto FilteredMemberPropertyNames = DataItem.MemberPropertyNames;
+		auto FilteredSubPropertyPaths = DataItem.SubPropertyPaths;
 
 		RootContentVerticalBox->AddSlot()
 		.AutoHeight()
@@ -138,7 +158,7 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 				[
 					PropertyCustomizationHelpers::MakeResetButton(
 						FSimpleDelegate::CreateLambda([=, this]() {
-							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
+							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemberPropertyNames, FilteredSubPropertyPaths);
 							AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
 						, LOCTEXT("RevertObjectAllParameterSet", "Click to revert all parameters of this object to prefab's default value.")
@@ -156,7 +176,7 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 				[
 					PropertyCustomizationHelpers::MakeUseSelectedButton(
 						FSimpleDelegate::CreateLambda([=, this]() {
-							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNames);
+							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), FilteredMemberPropertyNames, FilteredSubPropertyPaths);
 							AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
 						, LOCTEXT("ApplyObjectParameterSet", "Click to apply all parameters of this object to prefab's default value.")
@@ -165,21 +185,20 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 			]
 		]
 		;
-		for (auto& PropertyName : DataItem.MemberPropertyNames)
+		//One row per override: a whole member property, or a path addressing a leaf nested inside a struct member.
+		auto AddOverrideRow = [=, this](const FText& InLabel, const TArray<FName>& InNames, const TArray<FLexUIPrefabOverridePropertyPath>& InPaths, float InIndent)
 		{
-			auto Property = FindFProperty<FProperty>(DataItem.Object->GetClass(), PropertyName);
-			if (!Property)continue;
 			auto HorizontalBox = SNew(SHorizontalBox);
 			HorizontalBox->AddSlot()
 			.AutoWidth()
 			[
 				SNew(SBox)
-				.Padding(FMargin(20, 2, 2, 2))
+				.Padding(FMargin(InIndent, 2, 2, 2))
 				.HAlign(EHorizontalAlignment::HAlign_Left)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(Property->GetDisplayNameText())
+					.Text(InLabel)
 					.ToolTipText(LOCTEXT("ModifiedPropertyName", "Modified property name"))
 				]
 			]
@@ -197,7 +216,7 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 				[
 					PropertyCustomizationHelpers::MakeResetButton(
 						FSimpleDelegate::CreateLambda([=, this]() {
-							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), {PropertyName});
+							PrefabHelperObject->RevertPrefabOverride(DataItem.Object.Get(), InNames, InPaths);
 							RefreshDataContent();
 							AfterRevertPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
@@ -218,7 +237,7 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 				[
 					PropertyCustomizationHelpers::MakeUseSelectedButton(
 						FSimpleDelegate::CreateLambda([=, this]() {
-							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), {PropertyName});
+							PrefabHelperObject->ApplyPrefabOverride(DataItem.Object.Get(), InNames, InPaths);
 							RefreshDataContent();
 							AfterApplyPrefab.ExecuteIfBound(PrefabHelperObject->GetPrefabAssetBySubPrefabObject(DataItem.Object.Get()));
 						})
@@ -227,12 +246,24 @@ void SLexUIPrefabOverrideDataViewer::RefreshDataContent(TArray<FLexUIPrefabOverr
 				]
 			]
 			;
-
 			RootContentVerticalBox->AddSlot()
 			[
 				HorizontalBox
 			]
 			;
+		};
+		for (auto& PropertyName : DataItem.MemberPropertyNames)
+		{
+			auto Property = FindFProperty<FProperty>(DataItem.Object->GetClass(), PropertyName);
+			if (!Property)continue;
+			AddOverrideRow(Property->GetDisplayNameText(), { PropertyName }, {}, 20);
+		}
+		for (auto& Path : DataItem.SubPropertyPaths)
+		{
+			using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+			FProperty* LeafProperty = nullptr;
+			if (FPathUtils::ResolveProperty(DataItem.Object->GetClass(), Path.Segments, LeafProperty) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+			AddOverrideRow(FPathUtils::GetDisplayText(DataItem.Object->GetClass(), Path.Segments), {}, { Path }, 32);
 		}
 	}
 	//revert all, apply all

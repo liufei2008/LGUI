@@ -9,6 +9,7 @@
 #include "PrefabSystem/LexUIPrefab.h"
 #include "Utils/LexUIUtils.h"
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
 
 #include LEXUIPREFAB_SERIALIZER_NEWEST_INCLUDE
 
@@ -153,6 +154,7 @@ void ULexUIPrefabHelperObject::AddMemberPropertyToSubPrefab(ULexWidget* InSubPre
 			if (InSubPrefabWidget == KeyValue.Value)
 			{
 				SubPrefabKeyValue.Value.AddMemberProperty(InObject, InPropertyName);
+				break;
 			}
 		}
 	}
@@ -173,6 +175,58 @@ void ULexUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(ULexWidget* InS
 			}
 		}
 	}
+}
+
+void ULexUIPrefabHelperObject::AddSubPropertyPathToSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath)
+{
+	CleanupInvalidSubPrefab();
+	if (!IsValid(InSubPrefabWidget))return;
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
+	{
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
+		{
+			if (InSubPrefabWidget == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.AddSubPropertyPath(InObject, InPath);
+				break;
+			}
+		}
+	}
+}
+
+void ULexUIPrefabHelperObject::RemoveSubPropertyPathFromSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath)
+{
+	CleanupInvalidSubPrefab();
+	if (!IsValid(InSubPrefabWidget))return;
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
+	{
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
+		{
+			if (InSubPrefabWidget == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.RemoveSubPropertyPath(InObject, InPath);
+				break;
+			}
+		}
+	}
+}
+
+bool ULexUIPrefabHelperObject::IsPropertyPathOverridden(UObject* InObject, const TArray<FName>& InSegments) const
+{
+	if (InObject == nullptr || InSegments.Num() == 0)return false;
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
+	{
+		for (auto& DataItem : SubPrefabKeyValue.Value.ObjectOverrideParameterArray)
+		{
+			if (DataItem.Object.Get() != InObject)continue;
+			if (InSegments.Num() == 1)
+			{
+				return DataItem.MemberPropertyNames.Contains(InSegments[0]);
+			}
+			return DataItem.SubPropertyPaths.Contains(FLexUIPrefabOverridePropertyPath(InSegments));
+		}
+	}
+	return false;
 }
 
 void ULexUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(ULexWidget* InSubPrefabRootWidget, bool InIncludeRootTransform)
@@ -210,7 +264,11 @@ void ULexUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(ULexWidget* 
 				{
 					DataItem.MemberPropertyNames.RemoveSwap(PropertyName);
 				}
-				if (DataItem.MemberPropertyNames.Num() == 0)
+				//nested paths are keyed by their root name, so honour the same filter
+				DataItem.SubPropertyPaths.RemoveAll([&FilterNameSet](const FLexUIPrefabOverridePropertyPath& Item) {
+					return !FilterNameSet.Contains(Item.GetRootName());
+					});
+				if (DataItem.MemberPropertyNames.Num() == 0 && DataItem.SubPropertyPaths.Num() == 0)
 				{
 					SubPrefabData.ObjectOverrideParameterArray.RemoveAt(i);
 					i--;
@@ -319,6 +377,27 @@ void ULexUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* In
 			if (Widget == KeyValue.Value)
 			{
 				SubPrefabKeyValue.Value.AddMemberProperty(InObject, InPropertyNames);
+				break;
+			}
+		}
+	}
+}
+void ULexUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InObject, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths)
+{
+	auto Widget = Cast<ULexWidget>(InObject);
+	if (!Widget)
+	{
+		Widget = InObject->GetTypedOuter<ULexWidget>();
+	}
+
+	for (auto& SubPrefabKeyValue : SubPrefabMap)
+	{
+		for (auto& KeyValue : SubPrefabKeyValue.Value.MapGuidToObject)
+		{
+			if (Widget == KeyValue.Value)
+			{
+				SubPrefabKeyValue.Value.AddSubPropertyPath(InObject, InPropertyPaths);
+				break;
 			}
 		}
 	}
@@ -369,6 +448,10 @@ bool ULexUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab
 			LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer serializer;
 			serializer.bOverrideVersions = false;
 			auto OverrideData = serializer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
+			//Nested-path overrides are the reason this refresh exists: the sub-prefab is about to be reloaded over the
+			//existing objects, which resets every value back to the source prefab's. Only the overridden leaves must
+			//survive, so that a sibling field changed in the source prefab actually comes through.
+			auto SubPropertyOverrideData = serializer.SaveSubPropertyOverrideToData(SubPrefabData.ObjectOverrideParameterArray);
 
 			auto& SubPrefabMapGuidToObject = SubPrefabData.MapGuidToObject;
 
@@ -473,17 +556,33 @@ bool ULexUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab
 					}
 				}
 
+				//Notify at member granularity: a nested path is not resolvable by FindFProperty on the class, and
+				//FLexUIUtils::NotifyPropertyPreChange logs an error plus a stack dump when it cannot find the name.
+				//Deduplicating also avoids notifying a root twice when it has both kinds of override recorded.
+				auto CollectRootNames = [](const FLexUIPrefabOverrideParameterData& InItem) {
+					TSet<FName> RootNames;
+					for (auto& PropName : InItem.MemberPropertyNames)
+					{
+						RootNames.Add(PropName);
+					}
+					for (auto& Path : InItem.SubPropertyPaths)
+					{
+						RootNames.Add(Path.GetRootName());
+					}
+					return RootNames;
+				};
 				for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
 				{
-					for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+					for (auto& PropName : CollectRootNames(ObjectOverrideItem))
 					{
 						FLexUIUtils::NotifyPropertyPreChange(ObjectOverrideItem.Object.Get(), PropName);
 					}
 				}
 				serializer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+				serializer.RestoreSubPropertyOverrideFromData(SubPropertyOverrideData);
 				for (auto& ObjectOverrideItem : SubPrefabData.ObjectOverrideParameterArray)
 				{
-					for (auto& PropName : ObjectOverrideItem.MemberPropertyNames)
+					for (auto& PropName : CollectRootNames(ObjectOverrideItem))
 					{
 						FLexUIUtils::NotifyPropertyChanged(ObjectOverrideItem.Object.Get(), PropName);
 					}
@@ -525,7 +624,23 @@ void ULexUIPrefabHelperObject::OnObjectPropertyChanged(UObject* InObject, struct
 	if (LexUIPrefabSystem::LexUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.MemberProperty))return;
 	if (LexUIPrefabSystem::LexUIPrefab_ShouldSkipProperty(InPropertyChangedEvent.Property))return;
 
-	TryCollectPropertyToOverride(InObject, InPropertyChangedEvent.MemberProperty);
+	//FPropertyChangedEvent only carries the member and the leaf, so a nested path's intermediate segments cannot be
+	//rebuilt here. Reuse what the paired pre-change stashed; otherwise fall back to a whole member override.
+	TArray<FName> Segments;
+	const auto MemberPropertyName = InPropertyChangedEvent.MemberProperty->GetFName();
+	if (PendingOverridePath.Object == InObject
+		&& PendingOverridePath.Segments.Num() > 0
+		&& PendingOverridePath.Segments[0] == MemberPropertyName)
+	{
+		Segments = MoveTemp(PendingOverridePath.Segments);
+	}
+	else
+	{
+		Segments.Add(MemberPropertyName);
+	}
+	PendingOverridePath.Reset();
+
+	TryCollectPropertyToOverride(InObject, InPropertyChangedEvent.MemberProperty, Segments);
 }
 void ULexUIPrefabHelperObject::OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain)
 {
@@ -543,12 +658,25 @@ void ULexUIPrefabHelperObject::OnPreObjectPropertyChanged(UObject* InObject, con
 		if (Property->HasAnyPropertyFlags(CPF_Transient))return;
 	}
 
-	TryCollectPropertyToOverride(InObject, MemberProperty);
+	TArray<FName> Segments;
+	LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils::BuildFromEditPropertyChain(InEditPropertyChain, Segments);
+	if (Segments.Num() == 0)//shape we don't understand, treat as a whole member edit
+	{
+		Segments.Add(MemberProperty->GetFName());
+	}
+	PendingOverridePath.Object = InObject;
+	PendingOverridePath.Segments = Segments;
+
+	TryCollectPropertyToOverride(InObject, MemberProperty, Segments);
 }
 
-void ULexUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty)
+void ULexUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty, const TArray<FName>& InSegments)
 {
-	if (!bCanCollectProperty)return;
+	if (!bCanCollectProperty)
+	{
+		PendingOverridePath.Reset();
+		return;
+	}
 	if (InObject->GetWorld() == this->GetPrefabWorld())
 	{
 		auto PropertyName = InMemberProperty->GetFName();
@@ -603,25 +731,40 @@ void ULexUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, F
 			if (Property != nullptr)
 			{
 				SetAnythingDirty();
-				AddMemberPropertyToSubPrefab(PropertyWidgetInSubPrefab, InObject, PropertyName);
-				if (auto Widget = Cast<ULexWidget>(InObject))
+				using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+				//InObject may have been swapped above, so validate the segments against whatever object we ended up with.
+				bool bUseWholeMember = InSegments.Num() <= 1
+					|| InSegments[0] != PropertyName
+					|| FPathUtils::ShouldForceWholeMemberOverride(InObject, PropertyName);
+				if (!bUseWholeMember)
 				{
-					if (PropertyName == ULexWidget::GetPropertyName_RelativeLocation())//if UI's relative location change, then record anchor data too
+					FProperty* LeafProperty = nullptr;
+					bUseWholeMember = FPathUtils::ResolveProperty(InObject->GetClass(), InSegments, LeafProperty)
+						!= LexUIPrefabSystem::EPropertyPathResolveResult::Success;
+				}
+				if (bUseWholeMember)
+				{
+					AddMemberPropertyToSubPrefab(PropertyWidgetInSubPrefab, InObject, PropertyName);
+					if (auto Widget = Cast<ULexWidget>(InObject))
 					{
-						this->AddMemberPropertyToSubPrefab(Widget, InObject, ULexWidget::GetPropertyName_AnchorData());
-					}
-					else if (PropertyName == ULexWidget::GetPropertyName_AnchorData())//if UI's anchor data change, then record relative location too
-					{
-						this->AddMemberPropertyToSubPrefab(Widget, InObject, ULexWidget::GetPropertyName_RelativeLocation());
+						if (PropertyName == ULexWidget::GetPropertyName_RelativeLocation())//if UI's relative location change, then record AnchoredPosition too
+						{
+							this->AddSubPropertyPathToSubPrefab(Widget, InObject
+								, FLexUIPrefabOverridePropertyPath({ULexWidget::GetPropertyName_AnchorData(), GET_MEMBER_NAME_CHECKED(FLexUIAnchorData, AnchoredPosition)}));
+						}
 					}
 				}
-				//refresh override parameter
+				else
+				{
+					AddSubPropertyPathToSubPrefab(PropertyWidgetInSubPrefab, InObject, FLexUIPrefabOverridePropertyPath(InSegments));
+				}
 			}
 		}
 		else
 		{
 			SetAnythingDirty();
 		}
+		OnSubPrefabOverrideChanged.Broadcast();
 	}
 }
 
@@ -836,8 +979,9 @@ void ULexUIPrefabHelperObject::RevertPrefabPropertyValue(UObject* ContextObject,
 	{
 		Property->CopyCompleteValue_InContainer(ContainerPointerInSrc, ContainerPointerInPrefab);
 	}
+	OnSubPrefabOverrideChanged.Broadcast();
 }
-void ULexUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames)
+void ULexUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
 	InObject->Modify();
@@ -880,20 +1024,28 @@ void ULexUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TAr
 				//notify
 				FLexUIUtils::NotifyPropertyChanged(InObject, Property);
 				SetAnythingDirty();
-
-				auto RelatedPropertyName = GetExtraRelatedPropertyForApplyOrRevert(InObject, PropertyName);
-				if (RelatedPropertyName != NAME_None)
-				{
-					if (auto RelatedProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), RelatedPropertyName))
-					{
-						//set to default value
-						RevertPrefabPropertyValue(InObject, RelatedProperty, InObject, ObjectInPrefab, SubPrefabData);
-						AfterObjectPropertyApplyOrRevert(InObject, RelatedPropertyName);
-						//delete item
-						RemoveMemberPropertyFromSubPrefab(Widget, InObject, RelatedPropertyName);
-					}
-				}
 			}
+		}
+		for (auto& Path : InPropertyPaths)
+		{
+			FProperty* LeafProperty = nullptr;
+			void* ContainerInInstance = nullptr;
+			FProperty* LeafPropertyInPrefab = nullptr;
+			void* ContainerInPrefab = nullptr;
+			using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+			if (FPathUtils::Resolve(InObject->GetClass(), InObject, Path.Segments, LeafProperty, ContainerInInstance) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+			if (FPathUtils::Resolve(ObjectInPrefab->GetClass(), ObjectInPrefab, Path.Segments, LeafPropertyInPrefab, ContainerInPrefab) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+			if (LeafProperty != LeafPropertyInPrefab)continue;//instance and prefab counterpart must be the same type
+			auto RootProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), Path.GetRootName());
+			if (RootProperty == nullptr)continue;
+
+			//Notify with the root member property: that is the granularity layout and the details panel listen at.
+			FLexUIUtils::NotifyPropertyPreChange(InObject, RootProperty);
+			RevertPrefabPropertyValue(InObject, LeafProperty, ContainerInInstance, ContainerInPrefab, SubPrefabData);
+			AfterObjectPropertyApplyOrRevert(InObject, Path.GetRootName());
+			RemoveSubPropertyPathFromSubPrefab(Widget, InObject, Path);
+			FLexUIUtils::NotifyPropertyChanged(InObject, RootProperty);
+			SetAnythingDirty();
 		}
 	}
 	bCanCollectProperty = true;
@@ -901,6 +1053,7 @@ void ULexUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TAr
 	ULexUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootWidget(Widget));
+	OnSubPrefabOverrideChanged.Broadcast();
 }
 
 void ULexUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
@@ -960,26 +1113,32 @@ void ULexUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 					AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 					//notify
 					FLexUIUtils::NotifyPropertyChanged(SourceObject, Property);
-
-					auto RelatedPropertyName = GetExtraRelatedPropertyForApplyOrRevert(InObject, PropertyName);
-					if (RelatedPropertyName != NAME_None)
-					{
-						NamesToClear.Add(RelatedPropertyName);
-						if (auto RelatedProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), RelatedPropertyName))
-						{
-							//set to default value
-							RevertPrefabPropertyValue(InObject, RelatedProperty, SourceObject, ObjectInPrefab, SubPrefabData);
-							AfterObjectPropertyApplyOrRevert(InObject, RelatedPropertyName);
-							//delete item
-							RemoveMemberPropertyFromSubPrefab(Widget, SourceObject, RelatedPropertyName);
-						}
-					}
 				}
 			}
 			for (auto& PropertyName : NamesToClear)
 			{
 				DataItem.MemberPropertyNames.Remove(PropertyName);
 			}
+			for (auto& Path : DataItem.SubPropertyPaths)
+			{
+				if (FilterNameSet.Contains(Path.GetRootName()))continue;
+				FProperty* LeafProperty = nullptr;
+				void* ContainerInInstance = nullptr;
+				FProperty* LeafPropertyInPrefab = nullptr;
+				void* ContainerInPrefab = nullptr;
+				using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+				if (FPathUtils::Resolve(SourceObject->GetClass(), SourceObject, Path.Segments, LeafProperty, ContainerInInstance) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+				if (FPathUtils::Resolve(ObjectInPrefab->GetClass(), ObjectInPrefab, Path.Segments, LeafPropertyInPrefab, ContainerInPrefab) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+				if (LeafProperty != LeafPropertyInPrefab)continue;
+				auto RootProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), Path.GetRootName());
+				if (RootProperty == nullptr)continue;
+
+				FLexUIUtils::NotifyPropertyPreChange(SourceObject, RootProperty);
+				RevertPrefabPropertyValue(InObject, LeafProperty, ContainerInInstance, ContainerInPrefab, SubPrefabData);
+				AfterObjectPropertyApplyOrRevert(InObject, Path.GetRootName());
+				FLexUIUtils::NotifyPropertyChanged(SourceObject, RootProperty);
+			}
+			//no need to clear DataItem here: SubPrefabData is a copy, the real clearing is RemoveAllMemberPropertyFromSubPrefab below
 		}
 		RemoveAllMemberPropertyFromSubPrefab(SubPrefabRootWidget, true);
 
@@ -990,19 +1149,9 @@ void ULexUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 	}
 	bCanCollectProperty = true;
 	ULexUIManagerWorldSubsystem::RefreshAllUI();
+	OnSubPrefabOverrideChanged.Broadcast();
 }
 
-FName ULexUIPrefabHelperObject::GetExtraRelatedPropertyForApplyOrRevert(UObject* InObject, FName InPropertyName)
-{
-	if (InObject->IsA<ULexWidget>())
-	{
-		if (InPropertyName == ULexWidget::GetPropertyName_RelativeLocation())
-		{
-			InPropertyName = ULexWidget::GetPropertyName_AnchorData();
-		}
-	}
-	return NAME_None;
-}
 void ULexUIPrefabHelperObject::AfterObjectPropertyApplyOrRevert(UObject* InObject, FName InPropertyName)
 {
 	if (auto Widget = Cast<ULexWidget>(InObject))
@@ -1162,7 +1311,7 @@ void ULexUIPrefabHelperObject::ApplyPrefabPropertyValue(UObject* ContextObject, 
 		Property->CopyCompleteValue_InContainer(ContainerPointerInPrefab, ContainerPointerInSrc);
 	}
 }
-void ULexUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames)
+void ULexUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperties", "Apply Prefab Override: {0}"), FText::FromString(InObject->GetName())));
 	InObject->Modify();
@@ -1188,6 +1337,7 @@ void ULexUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArr
 	//object not exist
 	if (!ObjectGuid.IsValid())
 	{
+		GEditor->EndTransaction();
 		return;
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
@@ -1208,26 +1358,36 @@ void ULexUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArr
 				FLexUIUtils::NotifyPropertyChanged(ObjectInPrefab, Property);
 
 				SetAnythingDirty();
-				
-				auto RelatedPropertyName = GetExtraRelatedPropertyForApplyOrRevert(InObject, PropertyName);
-				if (RelatedPropertyName != NAME_None)
-				{
-					if (auto RelatedProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), RelatedPropertyName))
-					{
-						//set to default value
-						ApplyPrefabPropertyValue(ObjectInPrefab, RelatedProperty, InObject, ObjectInPrefab, SubPrefabData);
-						AfterObjectPropertyApplyOrRevert(InObject, RelatedPropertyName);
-						//delete item
-						RemoveMemberPropertyFromSubPrefab(Widget, InObject, RelatedPropertyName);
-					}
-				}
 			}
+		}
+		for (auto& Path : InPropertyPaths)
+		{
+			FProperty* LeafProperty = nullptr;
+			void* ContainerInInstance = nullptr;
+			FProperty* LeafPropertyInPrefab = nullptr;
+			void* ContainerInPrefab = nullptr;
+			using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+			if (FPathUtils::Resolve(InObject->GetClass(), InObject, Path.Segments, LeafProperty, ContainerInInstance) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+			if (FPathUtils::Resolve(ObjectInPrefab->GetClass(), ObjectInPrefab, Path.Segments, LeafPropertyInPrefab, ContainerInPrefab) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+			if (LeafProperty != LeafPropertyInPrefab)continue;//instance and prefab counterpart must be the same type
+			auto RootProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), Path.GetRootName());
+			if (RootProperty == nullptr)continue;
+
+			ApplyPrefabPropertyValue(ObjectInPrefab, LeafProperty, ContainerInInstance, ContainerInPrefab, SubPrefabData);
+			AfterObjectPropertyApplyOrRevert(InObject, Path.GetRootName());
+			RemoveSubPropertyPathFromSubPrefab(Widget, InObject, Path);
+			//Notify with the root member property: that is the granularity layout and the details panel listen at.
+			FLexUIUtils::NotifyPropertyChanged(ObjectInPrefab, RootProperty);
+
+			SetAnythingDirty();
 		}
 		//save origin prefab
 		if (bAnythingDirty)
 		{
 			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
 			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, InPropertyNames);
+			//paths must propagate as paths, otherwise the nested prefab would coarsen them back to whole member overrides
+			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, InPropertyPaths);
 
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
@@ -1238,6 +1398,7 @@ void ULexUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TArr
 	ULexUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootWidget(Widget));
+	OnSubPrefabOverrideChanged.Broadcast();
 }
 void ULexUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 {
@@ -1306,21 +1467,31 @@ void ULexUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 						AfterObjectPropertyApplyOrRevert(InObject, PropertyName);
 						//notify
 						FLexUIUtils::NotifyPropertyChanged(ObjectInPrefab, Property);
-
-						auto RelatedPropertyName = GetExtraRelatedPropertyForApplyOrRevert(InObject, PropertyName);
-						if (RelatedPropertyName != NAME_None)
-						{
-							NamesToClear.Add(RelatedPropertyName);
-							if (auto RelatedProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), RelatedPropertyName))
-							{
-								ApplyPrefabPropertyValue(ObjectInPrefab, RelatedProperty, SourceObject, ObjectInPrefab, SubPrefabData);
-								AfterObjectPropertyApplyOrRevert(InObject, RelatedPropertyName);
-							}
-						}
 					}
 				}
 				//mark on sub prefab, because the object could belongs to subprefab's subprefab.
 				SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, DataItem.MemberPropertyNames);
+
+				for (auto& Path : DataItem.SubPropertyPaths)
+				{
+					if (FilterNameSet.Contains(Path.GetRootName()))continue;
+					FProperty* LeafProperty = nullptr;
+					void* ContainerInInstance = nullptr;
+					FProperty* LeafPropertyInPrefab = nullptr;
+					void* ContainerInPrefab = nullptr;
+					using FPathUtils = LexUIPrefabSystem::FLexUIPrefabOverridePropertyPathUtils;
+					if (FPathUtils::Resolve(SourceObject->GetClass(), SourceObject, Path.Segments, LeafProperty, ContainerInInstance) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+					if (FPathUtils::Resolve(ObjectInPrefab->GetClass(), ObjectInPrefab, Path.Segments, LeafPropertyInPrefab, ContainerInPrefab) != LexUIPrefabSystem::EPropertyPathResolveResult::Success)continue;
+					if (LeafProperty != LeafPropertyInPrefab)continue;
+					auto RootProperty = FindFProperty<FProperty>(ObjectInPrefab->GetClass(), Path.GetRootName());
+					if (RootProperty == nullptr)continue;
+
+					ApplyPrefabPropertyValue(ObjectInPrefab, LeafProperty, ContainerInInstance, ContainerInPrefab, SubPrefabData);
+					AfterObjectPropertyApplyOrRevert(InObject, Path.GetRootName());
+					FLexUIUtils::NotifyPropertyChanged(ObjectInPrefab, RootProperty);
+				}
+				//paths must propagate as paths, otherwise the nested prefab would coarsen them back to whole member overrides
+				SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(ObjectInPrefab, DataItem.SubPropertyPaths);
 
 				for (auto& PropertyName : NamesToClear)
 				{
@@ -1351,6 +1522,7 @@ void ULexUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 	ULexUIManagerWorldSubsystem::RefreshAllUI();
 	//when apply or revert parameters in level editor, means we accept sub-prefab's current version, so we mark the version to newest, and we won't get 'update warning'.
 	RefreshSubPrefabVersion(GetSubPrefabRootWidget(Widget));
+	OnSubPrefabOverrideChanged.Broadcast();
 }
 #pragma endregion RevertAndApply
 

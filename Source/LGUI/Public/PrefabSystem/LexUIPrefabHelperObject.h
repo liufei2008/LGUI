@@ -60,12 +60,21 @@ public:
 	bool ClearInvalidObjectAndGuid();
 	void AddMemberPropertyToSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, FName InPropertyName);
+	void AddSubPropertyPathToSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath);
+	void RemoveSubPropertyPathFromSubPrefab(ULexWidget* InSubPrefabWidget, UObject* InObject, const FLexUIPrefabOverridePropertyPath& InPath);
 	void RemoveAllMemberPropertyFromSubPrefab(ULexWidget* InSubPrefabActor, bool InIncludeRootTransform);
 	FLexUISubPrefabData GetSubPrefabData(ULexWidget* InSubPrefabWidget);
+	/**
+	 * Is exactly this property path recorded as an override on InObject?
+	 * Cheap read-only query for details panel decoration: unlike GetSubPrefabData it neither copies the sub-prefab data
+	 * nor runs CheckParameters, so it is safe to call from a Slate attribute that re-evaluates every paint.
+	 */
+	bool IsPropertyPathOverridden(UObject* InObject, const TArray<FName>& InSegments) const;
 	ULexWidget* GetSubPrefabRootWidget(ULexWidget* InSubPrefabWidget);
 	/** For parent prefab. When parent prefab want to apply override parameter to subprefab, but the parameter belongs to subprefab's subprefab, then we need to mark override parameter for subprefab. */
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TArray<FName>& InPropertyNames);
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
+	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths);
 
 	/** If sub prefab changed, then update parent prefab */
 	bool RefreshOnSubPrefabDirty(ULexUIPrefab* InSubPrefab, ULexWidget* InSubPrefabRootWidget = nullptr);
@@ -74,12 +83,11 @@ public:
 
 	void RevertPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLexUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
 	void ApplyPrefabPropertyValue(UObject* ContextObject, FProperty* Property, void* ContainerPointerInSrc, void* ContainerPointerInDst, const FLexUISubPrefabData& SubPrefabData, int RawArrayIndex = 0, bool IsInsideRawArray = false);
-	FName GetExtraRelatedPropertyForApplyOrRevert(UObject* InObject, FName InPropertyName);
 	void AfterObjectPropertyApplyOrRevert(UObject* InObject, FName InPropertyName);
 
-	void RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames);
+	void RevertPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths);
 	void RevertAllPrefabOverride(UObject* InObject);
-	void ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames);
+	void ApplyPrefabOverride(UObject* InObject, const TArray<FName>& InPropertyNames, const TArray<FLexUIPrefabOverridePropertyPath>& InPropertyPaths);
 	void ApplyAllOverrideToPrefab(UObject* InObject);
 
 	void RefreshSubPrefabVersion(ULexWidget* InSubPrefabRootWidget);
@@ -97,6 +105,7 @@ public:
 	 * @return	true if anything changed
 	 */
 	bool CleanupInvalidSubPrefab();
+	FSimpleMulticastDelegate& GetOnSubPrefabOverrideChanged(){return OnSubPrefabOverrideChanged;}
 private:
 	bool bAnythingDirty = false;
 	bool bCanCollectProperty = true;
@@ -105,7 +114,21 @@ private:
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
-	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
+	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty, const TArray<FName>& InSegments);
+
+	/**
+	 * The full property path is only available on the pre-change notification (FEditPropertyChain); the paired
+	 * post-change (FPropertyChangedEvent) carries just the member and the leaf, so intermediate segments cannot be
+	 * reconstructed there. Pre-change stashes the path here for post-change to pick up.
+	 */
+	struct FPendingOverridePath
+	{
+		TWeakObjectPtr<UObject> Object;
+		TArray<FName> Segments;
+		void Reset() { Object = nullptr; Segments.Reset(); }
+	};
+	FPendingOverridePath PendingOverridePath;
+	FSimpleMulticastDelegate OnSubPrefabOverrideChanged;
 
 	UWorld* GetPrefabWorld()const;
 

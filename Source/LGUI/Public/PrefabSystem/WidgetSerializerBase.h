@@ -9,6 +9,7 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
 #include "UObject/ObjectVersion.h"
+#include "UObject/UnrealType.h"
 
 class ULexWidget;
 class ULexUIPrefabWorldSubsystem;
@@ -32,8 +33,24 @@ namespace LexUIPrefabSystem
 	public:
 		virtual ~WidgetSerializerBase() {}
 
-		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(TArray<FLexUIPrefabOverrideParameterData> InData);
-		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLexUIPrefabOverrideParameterData> InNameSetData);
+		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(const TArray<FLexUIPrefabOverrideParameterData>& InData);
+		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, const TArray<FLexUIPrefabOverrideParameterData>& InNameSetData);
+
+		/** A nested-path override value, captured before the sub-prefab gets reloaded over the existing objects. */
+		struct FSubPropertyOverrideValue
+		{
+			TWeakObjectPtr<UObject> Object;
+			FLexUIPrefabOverridePropertyPath Path;
+			FProperty* LeafProperty = nullptr;
+			FDefaultConstructedPropertyElement Value;
+		};
+		/**
+		 * Snapshot nested-path override values with a plain FProperty copy instead of an archive: an archive would
+		 * delta-compare against the archetype and silently drop a value that equals the CDO, and the buffer never
+		 * leaves this process so raw object pointers are fine (same as the whole-member immediate archives).
+		 */
+		TArray<FSubPropertyOverrideValue> SaveSubPropertyOverrideToData(const TArray<FLexUIPrefabOverrideParameterData>& InData);
+		void RestoreSubPropertyOverrideFromData(const TArray<FSubPropertyOverrideValue>& InData);
 
 		virtual void SetupArchive(FArchive& InArchive);
 

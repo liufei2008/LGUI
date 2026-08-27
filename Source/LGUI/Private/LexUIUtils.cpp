@@ -76,13 +76,11 @@ void FLexUIUtils::NotifyPropertyChanged(UObject* Object, FProperty* Property)
 	if (!IsValid(Object))
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid object!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 	if (Property == nullptr)
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid property!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 
@@ -106,13 +104,11 @@ void FLexUIUtils::ChangePropertyWithNotify(UObject* Object, FProperty* Property,
 	if (!IsValid(Object))
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid object!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 	if (Property == nullptr)
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid property!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 
@@ -138,13 +134,11 @@ void FLexUIUtils::NotifyPropertyPreChange(UObject* Object, FProperty* Property)
 	if (!IsValid(Object))
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid object!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 	if (Property == nullptr)
 	{
 		UE_LOG(LGUI, Error, TEXT("[%s].%d InValid property!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Warning);
 		return;
 	}
 

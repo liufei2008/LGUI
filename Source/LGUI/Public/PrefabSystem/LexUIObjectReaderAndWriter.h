@@ -25,19 +25,9 @@ namespace LexUIPrefabSystem
 	};
 
 	/** 
-	 * If not have valid property chain, then it is member property.
-	 * Why use a template instead of FArchiveState? Because FArchiveState's construcion is prirvate, I can't convert FLGUIObjectWriterXXX to FArchiveState.
+	 * Tell if it is a UObject's member property
 	 */
-	template<class T>
-	bool CurrentIsMemberProperty(const T& t)
-	{
-		auto PropertyChain = t.GetSerializedPropertyChain();
-		if (PropertyChain == nullptr || PropertyChain->GetNumProperties() == 0)
-		{
-			return true;
-		}
-		return false;
-	}
+	bool LexUIPrefab_CurrentIsMemberProperty(const FMemoryArchive* InMemAr);
 	bool LexUIPrefab_ShouldSkipProperty(const FProperty* InProperty);
 
 	class LGUI_API FLexUIObjectWriter : public FObjectWriter
@@ -143,6 +133,31 @@ namespace LexUIPrefabSystem
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
 		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass)override;
+	};
+
+
+	/**
+	 * Serializes a single property value rather than a whole object, so one nested leaf can be stored on its own.
+	 * Derives from the override archives to inherit the reference-table remapping for FName/FText/UObject and the
+	 * SerializeObject that refuses to mint new guids for objects outside the prefab.
+	 */
+	class LGUI_API FLexUIOverrideSubPropertyValueWriter : public FLexUIOverrideParameterObjectWriter
+	{
+	public:
+		FLexUIOverrideSubPropertyValueWriter(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
+		void SerializeValue(FProperty* InLeafProperty, void* InLeafValuePtr);
+
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
+		virtual FString GetArchiveName() const override;
+	};
+	class LGUI_API FLexUIOverrideSubPropertyValueReader : public FLexUIOverrideParameterObjectReader
+	{
+	public:
+		FLexUIOverrideSubPropertyValueReader(TArray< uint8 >& Bytes, WidgetSerializerBase& InSerializer);
+		void SerializeValue(FProperty* InLeafProperty, void* InLeafValuePtr);
+
+		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
+		virtual FString GetArchiveName() const override;
 	};
 
 

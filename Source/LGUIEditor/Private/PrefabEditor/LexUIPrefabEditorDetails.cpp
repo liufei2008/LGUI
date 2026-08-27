@@ -1000,6 +1000,13 @@ void SLexUIPrefabEditorDetails::Construct(const FArguments& Args, UWorld* InWorl
 	{
 		TSharedRef<FLexUIDetailKeyframeHandler> KeyframeHandler = MakeShareable(new FLexUIDetailKeyframeHandler(PrefabEditorPtr.Pin()));
 		DetailsView->SetKeyframeHandler(KeyframeHandler);
+		PrefabEditorPtr.Pin()->GetPrefabHelperObject()->GetOnSubPrefabOverrideChanged().AddSPLambda(this, [this]()
+		{
+			if (PrefabOverrideDataViewer.IsValid())
+			{
+				PrefabOverrideDataViewer->RefreshDataContent();
+			}
+		});
 	}
 
 	TSharedRef<FLexWidgetDetailPropertyExtensionHandler> BindingHandler = MakeShareable(new FLexWidgetDetailPropertyExtensionHandler(World.Get()));
@@ -1184,7 +1191,7 @@ bool SLexUIPrefabEditorDetails::IsPrefabButtonEnable()const
 {
 	if (PrefabEditorPtr.IsValid() && CachedWidget.IsValid())
 	{
-		return PrefabEditorPtr.Pin()->WidgetIsSubPrefabRoot(CachedWidget.Get());
+		return PrefabEditorPtr.Pin()->WidgetBelongsToSubPrefab(CachedWidget.Get());
 	}
 	return false;
 }

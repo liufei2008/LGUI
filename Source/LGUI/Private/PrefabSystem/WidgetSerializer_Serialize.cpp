@@ -2,6 +2,7 @@
 
 #include "PrefabSystem/WidgetSerializer.h"
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
 #include "LGUI.h"
 #include "Core/Components/LexWidget.h"
 #include "Misc/NetworkVersion.h"
@@ -64,6 +65,10 @@ namespace LexUIPrefabSystem
 			LexUIPrefabSystem::FLexUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNames);
 			Writer.DoSerialize(InObject);
 		};
+		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
+			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueWriter Writer(InOutBuffer, serializer);
+			Writer.SerializeValue(InLeafProperty, InLeafValuePtr);
+		};
 		bool saveResult = serializer.SerializeWidget(OriginRootWidget, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 		return saveResult;
@@ -85,13 +90,33 @@ namespace LexUIPrefabSystem
 				//serialize override parameter data
 				for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
 				{
-					TArray<uint8> SubPrefabOverrideData;
 					auto SubPrefabObject = DataItem.Object.Get();
 					if (MapObjectToGuid.Contains(SubPrefabObject))
 					{
 						FLexUIPrefabOverrideParameterSaveData RecordDataItem;
 						RecordDataItem.OverrideParameterNames = DataItem.MemberPropertyNames;
-						WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, DataItem.MemberPropertyNames);
+						if (bPromoteSubPropertyRootsToWholeMember)
+						{
+							for (auto& Path : DataItem.SubPropertyPaths)
+							{
+								RecordDataItem.OverrideParameterNames.AddUnique(Path.GetRootName());
+							}
+						}
+						WriterOrReaderFunctionForSubPrefabOverride(SubPrefabObject, RecordDataItem.OverrideParameterData, RecordDataItem.OverrideParameterNames);
+						if (!bPromoteSubPropertyRootsToWholeMember && WriterOrReaderFunctionForSubPropertyOverride != nullptr)
+						{
+							for (auto& Path : DataItem.SubPropertyPaths)
+							{
+								FProperty* LeafProperty = nullptr;
+								void* LeafContainer = nullptr;
+								if (FLexUIPrefabOverridePropertyPathUtils::Resolve(SubPrefabObject->GetClass(), SubPrefabObject, Path.Segments, LeafProperty, LeafContainer) != EPropertyPathResolveResult::Success)continue;
+								FLexUIPrefabOverrideSubPropertySaveData SubPropertyData;
+								SubPropertyData.Segments = Path.Segments;
+								SubPropertyData.LeafTypeId = LeafProperty->GetID();
+								WriterOrReaderFunctionForSubPropertyOverride(LeafProperty, LeafProperty->ContainerPtrToValuePtr<void>(LeafContainer), SubPropertyData.ValueData);
+								RecordDataItem.SubPropertyOverrides.Add(MoveTemp(SubPropertyData));
+							}
+						}
 						WidgetSaveData.MapObjectGuidToSubPrefabOverrideParameter.Add(MapObjectToGuid[SubPrefabObject], RecordDataItem);
 					}
 				}
@@ -155,6 +180,9 @@ namespace LexUIPrefabSystem
 		SerializeWidgetToData(OriginRootWidget, SaveData);
 
 		FBufferArchive ToBinary;
+		//The blob carries no version of its own; seed it so the save data structs can gate new fields.
+		//Mandatory on the saving side: FArchive::CustomVer asserts when the version was never set.
+		ToBinary.SetCustomVersion(FLexUIPrefabCustomVersion::GUID, LEXUI_CURRENT_PREFAB_VERSION, TEXT("LexUIPrefab"));
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{

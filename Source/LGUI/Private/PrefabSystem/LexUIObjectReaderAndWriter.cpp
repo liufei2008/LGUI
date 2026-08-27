@@ -2,11 +2,19 @@
 
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
 #include "PrefabSystem/WidgetSerializerBase.h"
-#include "Serialization/MemoryReader.h"
-#include "Engine/Blueprint.h"
 
 namespace LexUIPrefabSystem
 {
+	bool LexUIPrefab_CurrentIsMemberProperty(const FMemoryArchive* InMemAr)
+	{
+		//If not have valid property chain, then it is member property.
+		auto PropertyChain = InMemAr->GetSerializedPropertyChain();
+		if (PropertyChain == nullptr || PropertyChain->GetNumProperties() == 0)
+		{
+			return true;
+		}
+		return false;
+	}
 	bool LexUIPrefab_ShouldSkipProperty(const FProperty* InProperty)
 	{
 		return

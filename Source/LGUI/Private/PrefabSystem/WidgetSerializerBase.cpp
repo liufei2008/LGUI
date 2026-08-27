@@ -3,6 +3,7 @@
 #include "PrefabSystem/WidgetSerializerBase.h"
 #include "Core/Components/LexWidget.h"
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
+#include "PrefabSystem/LexUIPrefabOverridePropertyPathUtils.h"
 #include "Misc/ConfigCacheIni.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
@@ -125,7 +126,7 @@ namespace LexUIPrefabSystem
 		}
 	}
 
-	TMap<UObject*, TArray<uint8>> WidgetSerializerBase::SaveOverrideParameterToData(TArray<FLexUIPrefabOverrideParameterData> InData)
+	TMap<UObject*, TArray<uint8>> WidgetSerializerBase::SaveOverrideParameterToData(const TArray<FLexUIPrefabOverrideParameterData>& InData)
 	{
 		this->bIsEditorOrRuntime = true;
 		TMap<UObject*, TArray<uint8>> MapObjectToOverrideDatas;
@@ -138,7 +139,7 @@ namespace LexUIPrefabSystem
 		return MapObjectToOverrideDatas;
 	}
 
-	void WidgetSerializerBase::RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLexUIPrefabOverrideParameterData> InNameSetData)
+	void WidgetSerializerBase::RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, const TArray<FLexUIPrefabOverrideParameterData>& InNameSetData)
 	{
 		this->bIsEditorOrRuntime = true;
 		for (auto& KeyValue : InData)
@@ -156,6 +157,46 @@ namespace LexUIPrefabSystem
 		}
 	}
 
+
+	TArray<WidgetSerializerBase::FSubPropertyOverrideValue> WidgetSerializerBase::SaveSubPropertyOverrideToData(const TArray<FLexUIPrefabOverrideParameterData>& InData)
+	{
+		this->bIsEditorOrRuntime = true;
+		TArray<FSubPropertyOverrideValue> Result;
+		for (auto& DataItem : InData)
+		{
+			auto Object = DataItem.Object.Get();
+			if (!IsValid(Object))continue;
+			for (auto& Path : DataItem.SubPropertyPaths)
+			{
+				FProperty* LeafProperty = nullptr;
+				void* LeafContainer = nullptr;
+				if (FLexUIPrefabOverridePropertyPathUtils::Resolve(Object->GetClass(), Object, Path.Segments, LeafProperty, LeafContainer) != EPropertyPathResolveResult::Success)continue;
+				FSubPropertyOverrideValue Item;
+				Item.Object = Object;
+				Item.Path = Path;
+				Item.LeafProperty = LeafProperty;
+				Item.Value = FDefaultConstructedPropertyElement(LeafProperty);
+				LeafProperty->CopyCompleteValue(Item.Value.GetObjAddress(), LeafProperty->ContainerPtrToValuePtr<void>(LeafContainer));
+				Result.Add(MoveTemp(Item));
+			}
+		}
+		return Result;
+	}
+
+	void WidgetSerializerBase::RestoreSubPropertyOverrideFromData(const TArray<FSubPropertyOverrideValue>& InData)
+	{
+		this->bIsEditorOrRuntime = true;
+		for (auto& Item : InData)
+		{
+			auto Object = Item.Object.Get();
+			if (!IsValid(Object))continue;
+			FProperty* LeafProperty = nullptr;
+			void* LeafContainer = nullptr;
+			if (FLexUIPrefabOverridePropertyPathUtils::Resolve(Object->GetClass(), Object, Item.Path.Segments, LeafProperty, LeafContainer) != EPropertyPathResolveResult::Success)continue;
+			if (LeafProperty != Item.LeafProperty)continue;//the type changed while the sub-prefab was reloading
+			LeafProperty->CopyCompleteValue(LeafProperty->ContainerPtrToValuePtr<void>(LeafContainer), Item.Value.GetObjAddress());
+		}
+	}
 
 	int32 WidgetSerializerBase::FindOrAddAssetIdFromList(UObject* AssetObject)
 	{

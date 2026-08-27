@@ -2,8 +2,6 @@
 
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
 #include "PrefabSystem/WidgetSerializerBase.h"
-#include "Serialization/MemoryReader.h"
-#include "Engine/Blueprint.h"
 
 namespace LexUIPrefabSystem
 {
@@ -21,7 +19,7 @@ namespace LexUIPrefabSystem
 		{
 			return true;
 		}
-		if (CurrentIsMemberProperty(*this))
+		if (LexUIPrefab_CurrentIsMemberProperty(this))
 		{
 			if (OverridePropertyNames.Contains(InProperty->GetFName()))
 			{
@@ -85,7 +83,7 @@ namespace LexUIPrefabSystem
 		{
 			return true;
 		}
-		if (CurrentIsMemberProperty(*this))
+		if (LexUIPrefab_CurrentIsMemberProperty(this))
 		{
 			if (OverridePropertyNames.Contains(InProperty->GetFName()))
 			{

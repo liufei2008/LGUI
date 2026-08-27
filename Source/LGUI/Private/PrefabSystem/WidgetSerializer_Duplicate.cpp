@@ -106,7 +106,6 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.AllWidgetArray.Reset();
 		serializer.SubPrefabOverrideParameters.Reset();
 		serializer.bIsSubPrefab = false;
-		serializer.SubPrefabObjectOverrideData.Reset();
 
 		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(InData.WidgetData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
@@ -142,6 +141,8 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.bIsEditorOrRuntime = false;
 #endif
 		serializer.bOverrideVersions = false;
+		//see the comment on this flag: the copy's sub-prefab is reloaded from its asset, so per-path values would be lost
+		serializer.bPromoteSubPropertyRootsToWholeMember = true;
 		//serialize
 		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {

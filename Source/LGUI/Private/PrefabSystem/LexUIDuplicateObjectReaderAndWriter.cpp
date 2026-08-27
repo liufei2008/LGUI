@@ -2,8 +2,6 @@
 
 #include "PrefabSystem/LexUIObjectReaderAndWriter.h"
 #include "PrefabSystem/WidgetSerializerBase.h"
-#include "Serialization/MemoryReader.h"
-#include "Engine/Blueprint.h"
 
 namespace LexUIPrefabSystem
 {

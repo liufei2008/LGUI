@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PrefabSystem/WidgetSerializerBase.h"
 #include "LexUIPrefab.h"
+#include "LexUIPrefabCustomVersion.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
@@ -55,15 +56,48 @@ namespace LexUIPrefabSystem
 		}
 	};
 
+	/** One overridden leaf nested inside a struct member property. */
+	struct FLexUIPrefabOverrideSubPropertySaveData
+	{
+	public:
+		TArray<FName> Segments;
+		/**
+		 * FProperty::GetID() of the leaf at write time. The blob is not self-describing (natively serialized leaves
+		 * like FVector2D write raw bytes), so a double->float change or a struct layout change would otherwise be
+		 * deserialized as garbage straight into the object. One blob per path keeps a mismatch contained to one record.
+		 */
+		FName LeafTypeId;
+		TArray<uint8> ValueData;
+		friend FArchive& operator<<(FArchive& Ar, FLexUIPrefabOverrideSubPropertySaveData& Data)
+		{
+			Ar << Data.Segments;
+			Ar << Data.LeafTypeId;
+			Ar << Data.ValueData;
+			return Ar;
+		}
+		friend void operator<<(FStructuredArchive::FSlot Slot, FLexUIPrefabOverrideSubPropertySaveData& Data)
+		{
+			FStructuredArchive::FRecord Record = Slot.EnterRecord();
+			Record << SA_VALUE(TEXT("Segments"), Data.Segments);
+			Record << SA_VALUE(TEXT("LeafTypeId"), Data.LeafTypeId);
+			Record << SA_VALUE(TEXT("ValueData"), Data.ValueData);
+		}
+	};
+
 	struct FLexUIPrefabOverrideParameterSaveData
 	{
 	public:
 		TArray<uint8> OverrideParameterData;
 		TArray<FName> OverrideParameterNames;
+		TArray<FLexUIPrefabOverrideSubPropertySaveData> SubPropertyOverrides;
 		friend FArchive& operator<<(FArchive& Ar, FLexUIPrefabOverrideParameterSaveData& Data)
 		{
 			Ar << Data.OverrideParameterData;
 			Ar << Data.OverrideParameterNames;
+			if (Ar.CustomVer(FLexUIPrefabCustomVersion::GUID) >= (int32)ELexUIPrefabVersion::SubPropertyOverride)
+			{
+				Ar << Data.SubPropertyOverrides;
+			}
 			return Ar;
 		}
 		friend void operator<<(FStructuredArchive::FSlot Slot, FLexUIPrefabOverrideParameterSaveData& Data)
@@ -71,6 +105,10 @@ namespace LexUIPrefabSystem
 			FStructuredArchive::FRecord Record = Slot.EnterRecord();
 			Record << SA_VALUE(TEXT("OverrideObjectReferenceParameterData"), Data.OverrideParameterData);
 			Record << SA_VALUE(TEXT("OverrideParameterNameSet"), Data.OverrideParameterNames);
+			if (Slot.GetUnderlyingArchive().CustomVer(FLexUIPrefabCustomVersion::GUID) >= (int32)ELexUIPrefabVersion::SubPropertyOverride)
+			{
+				Record << SA_VALUE(TEXT("SubPropertyOverrides"), Data.SubPropertyOverrides);
+			}
 		}
 	};
 
@@ -109,9 +147,9 @@ namespace LexUIPrefabSystem
 	public:
 		bool bIsPrefab = false;
 		int32 PrefabAssetIndex;
-		TMap<FGuid, FLexUIPrefabOverrideParameterSaveData> MapObjectGuidToSubPrefabOverrideParameter;//override sub prefab's parameter
-		TMap<FLexUISubPrefabObjectUniqueIdSaveData, FGuid> MapObjectIdToNewlyCreatedId;
-		TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;//sub prefab's object use a different guid in parent prefab. So multiple same sub prefab can exist in same parent prefab.
+		TMap<FGuid, FLexUIPrefabOverrideParameterSaveData> MapObjectGuidToSubPrefabOverrideParameter;//sub prefab's override parameters
+		TMap<FLexUISubPrefabObjectUniqueIdSaveData, FGuid> MapObjectIdToNewlyCreatedId;//check ELexUIPrefabVersion::NewObjectOnNestedPrefab
+		TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;//Sub prefab's object use a different guid in parent prefab. So multiple same sub prefab can exist in same parent prefab.
 
 		FGuid WidgetGuid;
 
@@ -267,6 +305,7 @@ namespace LexUIPrefabSystem
 			UObject* Object = nullptr;
 			TArray<uint8> ParameterDatas;
 			TArray<FName> ParameterNames;
+			TArray<FLexUIPrefabOverrideSubPropertySaveData> SubPropertyOverrides;
 		};
 		TArray<FSubPrefabObjectOverrideParameterData> SubPrefabOverrideParameters;
 
@@ -285,15 +324,6 @@ namespace LexUIPrefabSystem
 		/** A temporary string for log if loading or saving prefab (not duplicate). */
 		FString PrefabAssetPath;
 		
-		struct FSubPrefabObjectOverideData
-		{
-			UObject* Object;
-			TArray<uint8> Data;
-			TArray<FName> Names;
-		};
-		/** Store sub-prefab's override data(object reference), after all object is generated then restore it. */
-		TArray<FSubPrefabObjectOverideData> SubPrefabObjectOverrideData;
-
 		TFunction<void(ULexWidget*)> CallbackBeforeAwake = nullptr;
 
 		/**
@@ -316,6 +346,19 @@ namespace LexUIPrefabSystem
 		 * @param	TArray<FName>&	Member properties to filter
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, const TArray<FName>&)> WriterOrReaderFunctionForSubPrefabOverride = nullptr;
+		/**
+		 * Writer and Reader for a single overridden leaf nested inside a struct member property.
+		 * @param	FProperty*	The leaf property
+		 * @param	void*	Address of the leaf value
+		 * @param	TArray<uint8>&	Data buffer
+		 */
+		TFunction<void(FProperty*, void*, TArray<uint8>&)> WriterOrReaderFunctionForSubPropertyOverride = nullptr;
+		/**
+		 * Duplication only. The copy's sub-prefab is reloaded from its asset and per-path values are not replayed
+		 * there, so a nested-path root is serialized as a whole member instead - which is value-identical for a
+		 * duplicate, since the live instance's root already contains base value + leaf override.
+		 */
+		bool bPromoteSubPropertyRootsToWholeMember = false;
 	};
 
 	struct FDuplicateWidgetDataContainer
