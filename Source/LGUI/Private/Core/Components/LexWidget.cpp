@@ -964,7 +964,17 @@ void ULexWidget::SetWorldLocationAndRotation(const FVector& InLocation, const FQ
 	}
 	else
 	{
-		this->SetRelativeLocationAndRotation(InLocation, InRotation);
+		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		{
+			auto WorldToParentTransform = WidgetPresenterComponent->GetComponentTransform().Inverse();
+			auto NewPosition = WorldToParentTransform.TransformPosition(InLocation);
+			auto NewRotation = WorldToParentTransform.TransformRotation(InRotation);
+			this->SetRelativeLocationAndRotation(NewPosition, NewRotation);
+		}
+		else
+		{
+			this->SetRelativeLocationAndRotation(InLocation, InRotation);
+		}
 	}
 }
 
@@ -996,7 +1006,14 @@ void ULexWidget::SetWorldTransform(const FTransform& InWorldTransform)
 		this->RelativeRotation = LocalTransform.GetRotation();
 		this->RelativeScale = LocalTransform.GetScale3D();
 		
-		ObjectToWorldTransform = InWorldTransform;
+		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		{
+			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
+		}
+		else
+		{
+			ObjectToWorldTransform = InWorldTransform;
+		}
 	}
 	this->MarkTransformChanged();
 }
@@ -1112,7 +1129,14 @@ void ULexWidget::UpdateObjectToWorldTransform()
 	}
 	else
 	{
-		ObjectToWorldTransform = LocalTransform;
+		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		{
+			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
+		}
+		else
+		{
+			ObjectToWorldTransform = LocalTransform;
+		}
 	}
 	this->MarkTransformChanged();
 }
