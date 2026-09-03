@@ -252,7 +252,7 @@ public:
 	/** is this the root canvas in hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool IsRootCanvas()const;
-	/** return root SceneComponent if the root canvas is attached to a SceneComponent */
+	/** return LexWidgetPresenterComponent if the root canvas is attached to one */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ULexWidgetPresenterComponentBase* GetWidgetPresenterComponent() const;
 	/** Only set on root canvas */

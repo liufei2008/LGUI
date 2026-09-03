@@ -49,23 +49,17 @@ void ULexWidgetPresenterComponentBase::OnRegister()
 
 void ULexWidgetPresenterComponentBase::OnUnregister()
 {
-	bool bIsEditMode = false;
-	if (auto World = GetWorld())
-	{
-		if (!World->IsGameWorld())
-		{
-			bIsEditMode = true;
-		}
-	}
-	if (bIsEditMode)
-	{
-		if (LoadedWidget.IsValid())
-		{
-			LoadedWidget->DestroyWidget();
-			LoadedWidget = nullptr;
-		}
-	}
 	Super::OnUnregister();
+}
+
+void ULexWidgetPresenterComponentBase::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	if (LoadedWidget.IsValid())
+	{
+		LoadedWidget->DestroyWidget();
+		LoadedWidget = nullptr;
+	}
 }
 
 void ULexWidgetPresenterComponentBase::PostLoad()
@@ -153,6 +147,7 @@ void ULexWidgetPresenterComponentBase::PostEditChangeProperty(FPropertyChangedEv
 	if (PropertyChangedEvent.MemberProperty != nullptr)
 	{
 		auto PropertyName = PropertyChangedEvent.GetMemberPropertyName();
+		ReloadWidget();
 	}
 }
 
@@ -333,6 +328,11 @@ UUINavigationInputSelectionHandler* ULexWidgetPresenterComponentBase::GetNavigat
 
 void ULexWidgetPresenterComponentBase::ReloadWidget()
 {
+	if (LoadedWidget.IsValid())
+	{
+		LoadedWidget->DestroyWidget();
+		LoadedWidget = nullptr;
+	}
 	LoadWidget();
 }
 #endif

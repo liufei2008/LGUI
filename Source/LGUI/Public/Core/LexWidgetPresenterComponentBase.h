@@ -23,6 +23,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 	virtual void PostLoad() override;
 	virtual void Serialize(FArchive& Ar) override;
 	virtual void PostInitProperties() override;

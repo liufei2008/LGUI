@@ -103,7 +103,7 @@ public:
 	TArray<TObjectPtr<ULexWidget>> WidgetArray;
 };
 
-#define LEXUI_LAYOUT_DEBUG 1
+#define LEXUI_LAYOUT_DEBUG 0
 
 UCLASS(NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API ULexUIManagerWorldSubsystem : public UTickableWorldSubsystem
@@ -127,6 +127,7 @@ public:
 	void OnWorldPreSendAllEndOfFrameUpdates(UWorld* InWorld);
 #if WITH_EDITOR
 	void DrawHelperGizmo();
+	void UnregisterAllWidgetsForEditor();
 #endif
 	void SubmitCanvasDrawCall();
 	virtual bool IsTickableWhenPaused() const override;

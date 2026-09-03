@@ -964,7 +964,7 @@ void ULexWidget::SetWorldLocationAndRotation(const FVector& InLocation, const FQ
 	}
 	else
 	{
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		if (auto WidgetPresenterComponent = GetWidgetPresenterComponent())
 		{
 			auto WorldToParentTransform = WidgetPresenterComponent->GetComponentTransform().Inverse();
 			auto NewPosition = WorldToParentTransform.TransformPosition(InLocation);
@@ -978,7 +978,7 @@ void ULexWidget::SetWorldLocationAndRotation(const FVector& InLocation, const FQ
 	}
 }
 
-FTransform ULexWidget::GetLocalTransform()const
+FTransform ULexWidget::GetRelativeTransform()const
 {
 	return FTransform(RelativeRotation, RelativeLocation, RelativeScale);
 }
@@ -1006,7 +1006,7 @@ void ULexWidget::SetWorldTransform(const FTransform& InWorldTransform)
 		this->RelativeRotation = LocalTransform.GetRotation();
 		this->RelativeScale = LocalTransform.GetScale3D();
 		
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		if (auto WidgetPresenterComponent = GetWidgetPresenterComponent())
 		{
 			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
 		}
@@ -1122,14 +1122,14 @@ void ULexWidget::MoveComponentToIndex(ULexUIBehaviour* Component, int32 NewIndex
 
 void ULexWidget::UpdateObjectToWorldTransform()
 {
-	auto LocalTransform = GetLocalTransform();
+	auto LocalTransform = GetRelativeTransform();
 	if (Parent.IsValid())
 	{
 		ObjectToWorldTransform = LocalTransform * Parent->GetWorldTransform();
 	}
 	else
 	{
-		if (auto WidgetPresenterComponent = GetAttachedRootSceneComponent())
+		if (auto WidgetPresenterComponent = GetWidgetPresenterComponent())
 		{
 			ObjectToWorldTransform = WidgetPresenterComponent->GetComponentTransform() * LocalTransform;			
 		}
@@ -2752,7 +2752,7 @@ ULexCanvas* ULexWidget::GetRootCanvas()const
 	return nullptr;
 }
 
-USceneComponent* ULexWidget::GetAttachedRootSceneComponent() const
+ULexWidgetPresenterComponentBase* ULexWidget::GetWidgetPresenterComponent() const
 {
 	if (auto RootCanvas = GetRootCanvas())
 	{

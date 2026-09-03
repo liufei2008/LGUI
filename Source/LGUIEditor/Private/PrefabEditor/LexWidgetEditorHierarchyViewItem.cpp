@@ -755,6 +755,12 @@ bool SLexWidgetEditorHierarchyViewItem::SupportDrop(ULexWidget* Dragging, ULexWi
 		}
 		return false;
 	}
+	if (Manager.IsValid() && Current == Manager.Pin()->GetLoadedRootWidget())//drop to loaded root widget
+	{
+		if (DropZone == EItemDropZone::OntoItem)
+			return true;
+		return false;
+	}
 	if (Current->IsChildOf(Dragging))
 	{
 		return false;

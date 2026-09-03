@@ -692,10 +692,9 @@ void FLexUIEditorTools::RefreshLevelLoadedPrefab()
 	// }
 	for (TObjectIterator<ULexUIPrefabPresenterComponent> Itr; Itr; ++Itr)
 	{
-		if (Itr->GetWorld())
-		{
-			Itr->CheckPrefabVersion();
-		}
+		if (!IsValid(*Itr))continue;
+		if (!Itr->GetWorld())continue;
+		Itr->CheckPrefabVersion();
 	}
 }
 

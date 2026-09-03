@@ -25,7 +25,6 @@
 #include "Core/LexUIClipData.h"
 #include "Core/LexUIDataAsTexture.h"
 #include "Core/LexWidgetPresenterComponentBase.h"
-#include "Core/Components/LexLayout.h"
 
 
 #define LOCTEXT_NAMESPACE "LexCanvas"

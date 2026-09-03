@@ -18,6 +18,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor ShadowColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bMultiplySourceColor = true;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bMultiplySourceAlpha = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector3f ShadowOffset = FVector3f(0, 1, -1);
@@ -27,12 +29,20 @@ public:
 	)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FColor GetShadowColor()const { return ShadowColor; }
+	FColor GetShadowColor()const { return ShadowColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector3f GetShadowOffset()const { return ShadowOffset; }
+	bool GetMultiplySourceColor()const { return bMultiplySourceColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	bool GetMultiplySourceAlpha()const { return bMultiplySourceAlpha; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	FVector3f GetShadowOffset()const { return ShadowOffset; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetShadowColor(FColor Value);
+	void SetShadowColor(FColor Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetShadowOffset(FVector3f Value);
+	void SetMultiplySourceColor(bool Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetMultiplySourceAlpha(bool Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetShadowOffset(FVector3f Value);
 };

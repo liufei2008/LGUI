@@ -184,7 +184,10 @@ void ULexMeshModifierOutline::SetOutlineColor(FColor Value)
 	if (OutlineColor != Value)
 	{
 		OutlineColor = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierOutline::SetOutlineSize(FVector2f Value)
@@ -192,7 +195,10 @@ void ULexMeshModifierOutline::SetOutlineSize(FVector2f Value)
 	if (OutlineSize != Value)
 	{
 		OutlineSize = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierOutline::SetUse8Direction(bool Value)
@@ -200,6 +206,9 @@ void ULexMeshModifierOutline::SetUse8Direction(bool Value)
 	if (bUse8Direction != Value)
 	{
 		bUse8Direction = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkVerticesDirty(true, true, true, true);
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }

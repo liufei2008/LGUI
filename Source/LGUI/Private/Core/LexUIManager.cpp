@@ -852,6 +852,7 @@ void ULexUIManagerWorldSubsystem::Deinitialize()
 		EditorTickDelegateHandle.Reset();
 	}
 	OnDeinitialize.Broadcast();
+	UnregisterAllWidgetsForEditor();
 #endif
 	if (MainViewportViewExtension.IsValid())
 	{
@@ -869,16 +870,7 @@ void ULexUIManagerWorldSubsystem::BeginDestroy()
 {
 	check(!IsInitialized());
 #if WITH_EDITOR
-	auto CopiedWidgetArray = AllWidgetArray;//use a copied array, because when Widget.OnUnregister the AllWidgetArray will change
-	for (int i = 0; i < CopiedWidgetArray.Num(); i++)
-	{
-		auto& Widget = CopiedWidgetArray[i];
-		if (Widget->HasRegistered())
-		{
-			Widget->OnUnregister();
-		}
-		check(!Widget->HasBegunPlay());//edit mode should never begin play
-	}
+	UnregisterAllWidgetsForEditor();
 #endif
 	Super::BeginDestroy();
 }
@@ -1189,6 +1181,23 @@ void ULexUIManagerWorldSubsystem::DrawHelperGizmo()
 			}
 			DrawNavigationVisualizerOnUISelectable(Selectable->GetWorld(), Selectable.Get()
 				, bIsScreenSpace);
+		}
+	}
+}
+
+void ULexUIManagerWorldSubsystem::UnregisterAllWidgetsForEditor()
+{
+	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())//editor mode unregister all widgets
+	{
+		auto CopiedWidgetArray = AllWidgetArray;//use a copied array, because when Widget.OnUnregister the AllWidgetArray will change
+		for (int i = 0; i < CopiedWidgetArray.Num(); i++)
+		{
+			auto& Widget = CopiedWidgetArray[i];
+			if (Widget->HasRegistered())
+			{
+				Widget->OnUnregister();
+			}
+			check(!Widget->HasBegunPlay());//edit mode should never begin play
 		}
 	}
 }

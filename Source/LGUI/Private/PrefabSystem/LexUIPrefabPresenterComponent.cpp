@@ -32,8 +32,7 @@ void ULexUIPrefabPresenterComponent::LoadWidget()
 {
 	if (LoadedWidget.IsValid())
 	{
-		LoadedWidget->DestroyWidget();
-		LoadedWidget = nullptr;
+		return;
 	}
 #if WITH_EDITOR
 	if (this->GetName().Contains(TEXT("SKEL_")) || this->GetName().Contains(TEXT("TRASH_")))
@@ -57,6 +56,7 @@ void ULexUIPrefabPresenterComponent::LoadWidget()
 			});
 			LoadedWidget->CalculateObjectToWorldTransform(true);
 #if WITH_EDITOR
+			LoadedWidget->SetSize(WidgetPrefab->PrefabDataForPrefabEditor.CanvasSize);
 			TArray<ULexWidget*> AllLoadedWidgets;
 			ULexWidget::CollectChildrenWidgets(LoadedWidget.Get(), AllLoadedWidgets, true);
 			if (World->WorldType == EWorldType::Editor)
@@ -98,10 +98,6 @@ void ULexUIPrefabPresenterComponent::PostEditChangeProperty(FPropertyChangedEven
 	if (PropertyChangedEvent.MemberProperty != nullptr)
 	{
 		auto PropertyName = PropertyChangedEvent.GetMemberPropertyName();
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexUIPrefabPresenterComponent, WidgetPrefab))
-		{
-			LoadWidget();
-		}
 	}
 }
 
@@ -111,7 +107,7 @@ void ULexUIPrefabPresenterComponent::CheckPrefabVersion()
 	{
 		if (OverallVersionMD5 != WidgetPrefab->GenerateOverallVersionMD5())
 		{
-			LoadWidget();
+			ReloadWidget();
 		}
 	}
 	else

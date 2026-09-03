@@ -210,7 +210,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Transform")
 	void SetWorldLocationAndRotation(const FVector& InLocation, const FQuat& InRotation);
 
-	FTransform GetLocalTransform()const;
+	UFUNCTION(BlueprintCallable, Category = "Transform")
+	FTransform GetRelativeTransform()const;
 	UFUNCTION(BlueprintCallable, Category = "Transform")
 	const FTransform& GetWorldTransform()const;
 
@@ -270,6 +271,7 @@ public:
 	}
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
 	ULexUIBehaviour* AddComponent(TSubclassOf<ULexUIBehaviour> ComponentClass);
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeterminesOutputType = "ComponentTemplate"))
 	ULexUIBehaviour* AddComponentByTemplate(ULexUIBehaviour* ComponentTemplate);
 	template<class T>
 	T* AddComponent()
@@ -278,7 +280,7 @@ public:
 		return Cast<T>(AddComponent(T::StaticClass()));
 	}
 	template<class T>
-	T* AddComponentByTemplate(ULexUIBehaviour* ComponentTemplate)
+	T* AddComponentByTemplate(T* ComponentTemplate)
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexUIBehaviour>::Value, "'T' template parameter to GetComponent must be derived from ULexUIBehaviour");
 		return Cast<T>(AddComponent(T::StaticClass(), ComponentTemplate));
@@ -486,7 +488,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	ULexCanvas* GetRootCanvas()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	USceneComponent* GetAttachedRootSceneComponent()const;
+	ULexWidgetPresenterComponentBase* GetWidgetPresenterComponent()const;
 
 	/** mark all dirty for UI element to update, include all children */
 	void MarkAllDirtyRecursive();

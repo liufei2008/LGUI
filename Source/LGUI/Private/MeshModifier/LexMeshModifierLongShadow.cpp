@@ -115,7 +115,10 @@ void ULexMeshModifierLongShadow::SetShadowColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierLongShadow::SetShadowSize(FVector3f Value)
@@ -123,7 +126,10 @@ void ULexMeshModifierLongShadow::SetShadowSize(FVector3f Value)
 	if (ShadowSize != Value)
 	{
 		ShadowSize = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierLongShadow::SetShadowSegment(uint8 Value)
@@ -131,7 +137,10 @@ void ULexMeshModifierLongShadow::SetShadowSegment(uint8 Value)
 	if (ShadowSegment != Value)
 	{
 		ShadowSegment = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkVerticesDirty(true, true, true, true);
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierLongShadow::SetUseGradientColor(bool Value)
@@ -139,7 +148,10 @@ void ULexMeshModifierLongShadow::SetUseGradientColor(bool Value)
 	if (bUseGradientColor != Value)
 	{
 		bUseGradientColor = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
 void ULexMeshModifierLongShadow::SetGradientColor(FColor Value)
@@ -147,6 +159,9 @@ void ULexMeshModifierLongShadow::SetGradientColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }

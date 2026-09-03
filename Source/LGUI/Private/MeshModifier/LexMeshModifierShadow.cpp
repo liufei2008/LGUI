@@ -42,13 +42,29 @@ void ULexMeshModifierShadow::ModifyUIGeometry(
 		originVertPos += ShadowOffset;
 		originVertices[channelIndex1].Position = originVertPos;
 
-		if (bMultiplySourceAlpha)
+		if (bMultiplySourceColor || bMultiplySourceAlpha)
 		{
 			auto& vertColor = vertices[channelIndex1].Color;
-			vertColor.A = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.A) * ShadowColor.A);
-			vertColor.R = ShadowColor.R;
-			vertColor.G = ShadowColor.G;
-			vertColor.B = ShadowColor.B;
+			if (bMultiplySourceColor)
+			{
+				vertColor.R = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.R) * ShadowColor.R);
+				vertColor.G = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.G) * ShadowColor.G);
+				vertColor.B = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.B) * ShadowColor.B);
+			}
+			else
+			{
+				vertColor.R = ShadowColor.R;
+				vertColor.G = ShadowColor.G;
+				vertColor.B = ShadowColor.B;
+			}
+			if (bMultiplySourceAlpha)
+			{
+				vertColor.A = (uint8)(FLexUIUtils::ByteToFloat01(vertices[channelIndexOrigin].Color.A) * ShadowColor.A);
+			}
+			else
+			{
+				vertColor.A = ShadowColor.A;
+			}
 		}
 		else
 		{
@@ -67,14 +83,45 @@ void ULexMeshModifierShadow::SetShadowColor(FColor Value)
 	if (ShadowColor != Value)
 	{
 		ShadowColor = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkColorDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
+
+void ULexMeshModifierShadow::SetMultiplySourceColor(bool Value)
+{
+	if (bMultiplySourceColor != Value)
+	{
+		bMultiplySourceColor = Value;
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
+	}
+}
+
+void ULexMeshModifierShadow::SetMultiplySourceAlpha(bool Value)
+{
+	if (bMultiplySourceAlpha != Value)
+	{
+		bMultiplySourceAlpha = Value;
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
+	}
+}
+
 void ULexMeshModifierShadow::SetShadowOffset(FVector3f Value)
 {
 	if (ShadowOffset != Value)
 	{
 		ShadowOffset = Value;
-		if (auto Visual = GetVisualBatchMesh())Visual->MarkVertexPositionDirty();
+		if (auto Visual = GetVisualBatchMesh())
+		{
+			Visual->MarkVerticesDirty(true, true, false, true);
+		}
 	}
 }
