@@ -198,7 +198,16 @@ public:
 		}
 
 		//release render target
-		ReleaseRenderTarget();
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("LexUI_Clean"),
+			ERDGPassFlags::None,
+			[ScreenResolvedTexture, PixelateEffectRenderTarget](FRHICommandListImmediate& RHICmdList)mutable 
+			{
+				if (ScreenResolvedTexture.IsValid())
+					ScreenResolvedTexture.SafeRelease();
+				if (PixelateEffectRenderTarget.IsValid())
+					PixelateEffectRenderTarget.SafeRelease();
+			});
 	}
 };
 

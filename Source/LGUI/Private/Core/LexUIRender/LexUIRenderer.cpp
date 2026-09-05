@@ -136,8 +136,10 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 	, FRHISamplerState* SrcTextureSamplerState
 )
 {
-	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst, TEXT("LexUICopyRenderTarget")), ERenderTargetLoadAction::ELoad);
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetSrc"));
+	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
+	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUICopyRenderTarget")), ERenderTargetLoadAction::ELoad);
 	GraphBuilder.AddPass(
 		RDG_EVENT_NAME("LexUICopyRenderTarget"),
 		PassParameters,
@@ -169,8 +171,10 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 void FLexUIRenderer::CopyRenderTarget_ColorCorrect(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap,
 	FTextureRHIRef Src, FTextureRHIRef Dst, FRHISamplerState* SrcTextureSamplerState)
 {
-	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst, TEXT("LexUICopyRenderTarget_ColorCorrect")), ERenderTargetLoadAction::ELoad);
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTarget_ColorCorrectSrc"));
+	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
+	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUICopyRenderTarget_ColorCorrect")), ERenderTargetLoadAction::ELoad);
 	GraphBuilder.AddPass(
 		RDG_EVENT_NAME("LexUICopyRenderTarget_ColorCorrect"),
 		PassParameters,
@@ -202,8 +206,10 @@ void FLexUIRenderer::CopyRenderTarget_ColorCorrect(FRDGBuilder& GraphBuilder, FG
 void FLexUIRenderer::CopyRenderTarget_BlendAlpha(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap,
                                                  FTextureRHIRef Src, FTextureRHIRef Dst, float BlendAlpha, FRHISamplerState* SrcTextureSamplerState)
 {
-	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst, TEXT("LexUICopyRenderTarget_BlendAlpha")), ERenderTargetLoadAction::ELoad);
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTarget_BlendAlphaSrc"));
+	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
+	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUICopyRenderTarget_BlendAlpha")), ERenderTargetLoadAction::ELoad);
 	GraphBuilder.AddPass(
 		RDG_EVENT_NAME("LexUICopyRenderTarget_BlendAlpha"),
 		PassParameters,
@@ -249,7 +255,9 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 	, bool ColorCorrect
 )
 {
-	auto* PassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetOnMeshRegionSrc"));
+	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
 	PassParameters->RenderTargets[0] = FRenderTargetBinding(Dst, ERenderTargetLoadAction::ELoad);
 	auto NumSamples = Dst->Desc.NumSamples;
 
@@ -1101,10 +1109,16 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}
 
-	if (MSAARenderTarget.IsValid())
-	{
-		MSAARenderTarget.SafeRelease();
-	}
+	GraphBuilder.AddPass(
+		RDG_EVENT_NAME("LexUI_Clean"),
+		ERDGPassFlags::None,
+		[&](FRHICommandListImmediate& RHICmdList)
+		{
+			if (MSAARenderTarget.IsValid())
+			{
+				MSAARenderTarget.SafeRelease();
+			}
+		});
 }
 
 

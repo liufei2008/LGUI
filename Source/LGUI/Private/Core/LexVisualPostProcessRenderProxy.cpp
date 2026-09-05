@@ -42,8 +42,10 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 )
 {
 	uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
-	auto PSShaderParameters = GraphBuilder.AllocParameters<FLexUIWorldRenderPSParameter>();
+	auto PSShaderParameters = GraphBuilder.AllocParameters<FLexUIRenderMeshOnScreenPSParameter>();
 	PSShaderParameters->SceneDepthTex = SceneTextures.Depth.Resolve;
+	auto MeshRegionTextureRDG = RegisterExternalTexture(GraphBuilder, MeshRegionTexture.GetReference(), TEXT("LexUIRenderMeshRegionTexture"));
+	PSShaderParameters->MeshRegionTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(MeshRegionTextureRDG));
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LexUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);
 
 	GraphBuilder.AddPass(

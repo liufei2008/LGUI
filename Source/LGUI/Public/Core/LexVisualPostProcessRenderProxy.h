@@ -78,3 +78,9 @@ public:
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
 };
+
+BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )
+	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
+	SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture2D, MeshRegionTexture)
+	RENDER_TARGET_BINDING_SLOTS()
+END_SHADER_PARAMETER_STRUCT()

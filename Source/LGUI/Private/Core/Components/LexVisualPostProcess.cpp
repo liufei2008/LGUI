@@ -240,7 +240,19 @@ void ULexVisualPostProcess::UpdateGeometryClipData(FLexUIGeometry& InMesh, int I
 
 void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 {
-	auto Widget = bUseFullSize ? GetWidget()->GetRenderCanvas()->GetRootCanvas()->GetWidget() : this->GetWidget();
+	auto ThisWidget = this->GetWidget();
+	if (!ThisWidget)return;
+	ULexWidget* Widget = nullptr;
+	if (bUseFullSize)
+	{
+		auto ThisRenderCanvas = ThisWidget->GetRenderCanvas();
+		if (!ThisRenderCanvas)return;
+		Widget = ThisRenderCanvas->GetRootCanvas()->GetWidget();
+	}
+	else
+	{
+		Widget = ThisWidget;
+	}
 	auto RenderCanvas = Widget->GetRenderCanvas();
 	if (RenderProxy && RenderCanvas)
 	{
