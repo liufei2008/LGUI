@@ -2,7 +2,7 @@
 
 #include "Event/LexWorldSpaceRaycaster.h"
 #include "LGUI.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 
 ULexWorldSpaceRaycaster::ULexWorldSpaceRaycaster()
 {
@@ -15,7 +15,7 @@ void ULexWorldSpaceRaycaster::BeginPlay()
 	Super::BeginPlay();
 	if (!RootCanvas.IsValid())
 	{
-		auto WidgetPresenter = GetOwner()->FindComponentByClass<ULexWidgetPresenterComponentBase>();
+		auto WidgetPresenter = GetOwner()->FindComponentByClass<ULexWidgetPresenterComponent>();
 		if (!WidgetPresenter)
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d LexWidgetPresenterComponent is not valid! LexUIScreenSpaceRaycaster can only attach to a Actor which contains a LexWidgetPresenterComponent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);

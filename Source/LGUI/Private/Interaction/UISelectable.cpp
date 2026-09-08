@@ -6,7 +6,7 @@
 #include "Core/Components/LexVisual.h"
 #include "Core/LexUIManager.h"
 #include "LTweenManager.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 #include "Core/Components/LexCanvas.h"
 #include "Event/LexEventSystem.h"
 #include "Core/Components/LexImage.h"

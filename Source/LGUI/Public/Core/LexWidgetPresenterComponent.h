@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LexWidgetPresenterComponentBase.generated.h"
+#include "LexWidgetPresenterComponent.generated.h"
 
 class ULexWidget;
 class UUINavigationInputSelectionHandler;
@@ -11,13 +11,13 @@ class ULexCanvas;
 class ULexUIPrefab;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API ULexWidgetPresenterComponentBase : public USceneComponent
+class LGUI_API ULexWidgetPresenterComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:
-	ULexWidgetPresenterComponentBase();
-	friend class FLexWidgetPresenterBaseCustomization;
+	ULexWidgetPresenterComponent();
+	friend class FLexWidgetPresenterCustomization;
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -31,18 +31,15 @@ protected:
 	virtual void LoadWidget()PURE_VIRTUAL(ULexWidgetPresenterComponentBase::LoadWidget, );
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	static bool bNeedCheckEventSystem;
-	static bool bNeverCheckEventSystem;
-	static bool bNeedCheckRaycasterSource;
-	static bool bNeverCheckRaycasterSource;
 public:
 	void CheckNecessaryObjects();
-	static void MarkNeedCheckNecessaryObjects();
 	
 	void ReloadWidget();
 #endif
 	
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
+	FVector2f RootSizeForWorldSpaceWidget = FVector2f(1920, 1080);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
 	TObjectPtr<ULexCanvas> CanvasTemplate;
 	

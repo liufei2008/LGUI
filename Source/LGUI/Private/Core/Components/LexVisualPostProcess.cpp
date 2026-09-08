@@ -171,7 +171,7 @@ void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVert
 				//snap pixel
 				if (Widget->GetPixelSnappingInHierarchy())
 				{
-					FLexUIGeometry::AdjustPixelPerfectPos(OriginVertices, 0, 4, Widget->GetRenderCanvas(), this);
+					FLexUIGeometry::AdjustPixelSnappingPosition(OriginVertices, 0, 4, Widget->GetRenderCanvas(), this);
 				}
 			}
 

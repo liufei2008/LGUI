@@ -101,7 +101,6 @@ void ULexUIMLPresenterComponent::LoadWidget()
 				if (WeakThis.IsValid())
 				{
 					WeakThis->CheckNecessaryObjects();
-					MarkNeedCheckNecessaryObjects();
 				}
 			}, 1);
 		}

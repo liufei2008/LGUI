@@ -580,17 +580,7 @@ void ULexUIBehaviour::Call_OnWidgetActiveChanged(bool WidgetActive)
 	}
 	else//awake not called, should be the first time that get WidgetActive
 	{
-		if (!this->GetWidget()->HasBegunPlay())
-		{
-			if (WidgetActive)
-			{
-				Call_Awake();
-				if (!bIsEnableCalled)
-				{
-					Call_OnEnable();
-				}
-			}
-		}
+		
 	}
 }
 

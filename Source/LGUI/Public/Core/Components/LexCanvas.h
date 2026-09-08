@@ -11,7 +11,7 @@
 #include "Math/TransformCalculus2D.h"
 #include "LexCanvas.generated.h"
 
-class ULexWidgetPresenterComponentBase;
+class ULexWidgetPresenterComponent;
 class FLexUIClipData;
 class ULexUIDataAsTexture;
 
@@ -254,9 +254,9 @@ public:
 	bool IsRootCanvas()const;
 	/** return LexWidgetPresenterComponent if the root canvas is attached to one */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	ULexWidgetPresenterComponentBase* GetWidgetPresenterComponent() const;
+	ULexWidgetPresenterComponent* GetWidgetPresenterComponent() const;
 	/** Only set on root canvas */
-	void AttachToWidgetPresenterComponent(ULexWidgetPresenterComponentBase* InSceneComp) const;
+	void AttachToWidgetPresenterComponent(ULexWidgetPresenterComponent* InSceneComp) const;
 
 	bool IsRenderToScreenSpace()const;
 	bool IsRenderToRenderTarget()const;
@@ -764,7 +764,7 @@ private:
 	TSharedPtr<FLexUIDrawCall> DrawCallAsChildCanvas = nullptr;//DrawCall that represent this canvas when the canvas is render as child.
 
 	UPROPERTY(Transient)
-	mutable TWeakObjectPtr<ULexWidgetPresenterComponentBase> WidgetPresenterComponent = nullptr;
+	mutable TWeakObjectPtr<ULexWidgetPresenterComponent> WidgetPresenterComponent = nullptr;
 	
 	//clip data is stored in root canvas
 	TArray<TSharedPtr<FLexUIClipData>> ClipDataList;

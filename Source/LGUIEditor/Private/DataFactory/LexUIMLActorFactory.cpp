@@ -33,7 +33,6 @@ bool ULexUIMLActorFactory::CanCreateActorFrom(const FAssetData& AssetData, FText
 
 bool ULexUIMLActorFactory::PreSpawnActor(UObject* Asset, FTransform& InOutLocation)
 {
-	ULexUIMLPresenterComponent::MarkNeedCheckNecessaryObjects();
 	auto Blueprint = Cast<UBlueprint>(Asset);
 	if (Blueprint && Blueprint->GeneratedClass && Blueprint->GeneratedClass->IsChildOf(ULexUIMLBehaviour::StaticClass()))
 	{

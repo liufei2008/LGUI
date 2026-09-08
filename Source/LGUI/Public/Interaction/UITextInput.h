@@ -155,7 +155,7 @@ protected:
 	FLexUIMulticastDelegateString OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
 	FUITextInputValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
 	
 	FLexUIMulticastDelegateString OnSubmitCPP;

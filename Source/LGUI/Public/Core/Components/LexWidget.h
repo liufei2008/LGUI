@@ -312,9 +312,9 @@ private:
 	UPROPERTY(Instanced)
 	TArray<TObjectPtr<ULexUIBehaviour>> Components;
 public:
-	/** Called by LexCanvas, when a new LexCanvas is registered on self actor */
+	/** Called by LexCanvas, when a new LexCanvas is registered on self widget */
 	void RegisterRenderCanvas(ULexCanvas* InRenderCanvas);
-	/** Called by LexCanvas, when LexCanvas is unregistered on self actor */
+	/** Called by LexCanvas, when LexCanvas is unregistered on self widget */
 	void UnregisterRenderCanvas();
 
 	/** Update layout */
@@ -351,7 +351,7 @@ protected:
 	mutable TWeakObjectPtr<ULexWidget> RootWidget = nullptr;//don't mark this Transactional, because undo or redo will call register/unregister, which will trigger check RootUIItem
 	/** UI children array, sorted by hierarchy index */
 	UPROPERTY(Transient) mutable TArray<TObjectPtr<ULexWidget>> Children;
-	/** check valid, incase un-normally deleting actor, like undo */
+	/** check valid, incase un-normally deleting widget, like undo */
 	void EnsureUIChildrenValid();
 	void EnsureUIChildrenSorted()const;
 
@@ -488,7 +488,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	ULexCanvas* GetRootCanvas()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	ULexWidgetPresenterComponentBase* GetWidgetPresenterComponent()const;
+	ULexWidgetPresenterComponent* GetWidgetPresenterComponent()const;
 
 	/** mark all dirty for UI element to update, include all children */
 	void MarkAllDirtyRecursive();
@@ -756,9 +756,6 @@ public:
 private:
 	/** 
 	 * This is useful when you need to find child UI element by name, use function "FindChildByDisplayName" or "FindChildArrayByDisplayName" to do it.
-	 * Mostly the displayName is the same as Actor's ActorLabel. If you want to change it, just change the actor label( Actor's name in world outliner).
-	 * If Actor's ActorLabel start with "//", then the "//" will be ignored.
-	 * ActorLabel is only valid in editor, but this is also valid on runtime.
 	 */
 	UPROPERTY(VisibleAnywhere, Category = LGUI, Getter, Setter, BlueprintReadWrite, AdvancedDisplay, meta=(AllowPrivateAccess=true))
 	FString DisplayName;

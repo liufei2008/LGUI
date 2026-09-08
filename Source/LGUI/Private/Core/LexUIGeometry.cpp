@@ -18,11 +18,11 @@ FORCEINLINE float RoundToFloat(float value)
 	return FMath::FloorToFloat(value + 0.5f);
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelPerfectVertices"), STAT_TransformPixelPerfectVertices, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelSnappingVertices"), STAT_TransformPixelSnappingVertices, STATGROUP_LGUI);
 
-void FLexUIGeometry::AdjustPixelPerfectPos(TArray<FLexUIOriginVertexData>& originVertices, int startIndex, int count, ULexCanvas* RenderCanvas, ULexVisual* Visual)
+void FLexUIGeometry::AdjustPixelSnappingPosition(TArray<FLexUIOriginVertexData>& originVertices, int startIndex, int count, ULexCanvas* RenderCanvas, ULexVisual* Visual)
 {
-	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
+	SCOPE_CYCLE_COUNTER(STAT_TransformPixelSnappingVertices);
 	auto CanvasWidget = RenderCanvas->GetRootCanvas()->GetWidget();
 	auto ComponentToCanvasTransform = Visual->GetWidget()->GetWorldTransform() * CanvasWidget->GetWorldTransform().Inverse();
 	if (!ULexCanvas::Is2DUITransform(ComponentToCanvasTransform))return;//only 2d UI can do pixel perfect
@@ -50,9 +50,9 @@ void FLexUIGeometry::AdjustPixelPerfectPos(TArray<FLexUIOriginVertexData>& origi
 		originVertices[i].Position = FVector3f(canvasToComponentTransform.TransformPosition(FVector(item)));
 	}
 }
-void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLexUIOriginVertexData>& originVertices, ULexCanvas* RenderCanvas, ULexVisual* Visual)
+void AdjustPixelSnappingPos_For_UIRectFillRadial360(TArray<FLexUIOriginVertexData>& originVertices, ULexCanvas* RenderCanvas, ULexVisual* Visual)
 {
-	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
+	SCOPE_CYCLE_COUNTER(STAT_TransformPixelSnappingVertices);
 	auto CanvasWidget = RenderCanvas->GetRootCanvas()->GetWidget();
 	auto ComponentToCanvasTransform = Visual->GetWidget()->GetWorldTransform() * CanvasWidget->GetWorldTransform().Inverse();
 	if (!ULexCanvas::Is2DUITransform(ComponentToCanvasTransform))return;//only 2d UI can do pixel perfect
@@ -82,9 +82,9 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FLexUIOriginVertexData
 		originVertices[vertIndex].Position = FVector3f(canvasToComponentTransform.TransformPosition(canvasSpaceLocation));
 	}
 }
-void AdjustPixelPerfectPos_For_UIText(TArray<FLexUIOriginVertexData>& originVertices, const TArray<FLexUITextCharProperty>& cacheCharPropertyArray, ULexCanvas* RenderCanvas, ULexVisual* Visual)
+void AdjustPixelSnappingPos_For_UIText(TArray<FLexUIOriginVertexData>& originVertices, const TArray<FLexUITextCharProperty>& cacheCharPropertyArray, ULexCanvas* RenderCanvas, ULexVisual* Visual)
 {
-	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
+	SCOPE_CYCLE_COUNTER(STAT_TransformPixelSnappingVertices);
 	if (cacheCharPropertyArray.Num() <= 0)return;
 
 	auto CanvasWidget = RenderCanvas->GetRootCanvas()->GetWidget();
@@ -151,7 +151,7 @@ void FLexUIGeometry::UpdateUIRectSimpleVertex(FLexUIGeometry* uiGeo,
 		triangles[5] = 3;
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	LexUIGeometrySetArrayNum(vertices, 4);
@@ -173,9 +173,9 @@ void FLexUIGeometry::UpdateUIRectSimpleVertex(FLexUIGeometry* uiGeo,
 			originVertices[2].Position = FVector3f(0, minX, maxY);
 			originVertices[3].Position = FVector3f(0, maxX, maxY);
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, 4, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, 4, renderCanvas, uiComp);
 			}
 		}
 
@@ -226,7 +226,7 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 		triangles[5] = 3;
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	LexUIGeometrySetArrayNum(vertices, 4);
@@ -290,10 +290,10 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 				originVertices[3].Position = FVector3f(0, PosMaxX, PosMaxY);
 			}
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
 				int startIndex = 0;
-				AdjustPixelPerfectPos(originVertices, startIndex, startIndex + 4, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, startIndex, startIndex + 4, renderCanvas, uiComp);
 			}
 		}
 
@@ -372,7 +372,7 @@ void FLexUIGeometry::UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCe
 		}
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 16;
@@ -423,9 +423,9 @@ void FLexUIGeometry::UpdateUIRectBorderVertex(FLexUIGeometry* uiGeo, bool fillCe
 			originVertices[15].Position = FVector3f(0, x3, y3);
 
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, verticesCount, renderCanvas, uiComp);
 			}
 		}
 
@@ -497,7 +497,7 @@ void FLexUIGeometry::UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo,
 		}
 	}
 	
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 4 * rectangleCount;
@@ -538,9 +538,9 @@ void FLexUIGeometry::UpdateUIRectTiledVertex(FLexUIGeometry* uiGeo,
 				y += centerHeight;
 			}
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, verticesCount, renderCanvas, uiComp);
 			}
 		}
 
@@ -655,7 +655,7 @@ void FLexUIGeometry::UpdateUIRectTiledBorderVertex(FLexUIGeometry* uiGeo, bool f
 		}
 	}
 	
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 
@@ -809,9 +809,9 @@ void FLexUIGeometry::UpdateUIRectTiledBorderVertex(FLexUIGeometry* uiGeo, bool f
 				}
 			}
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, verticesCount, renderCanvas, uiComp);
 			}
 		}
 
@@ -954,7 +954,7 @@ void FLexUIGeometry::UpdateUIRectFillHorizontalVerticalVertex(FLexUIGeometry* ui
 		triangles[5] = 3;
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 4;
@@ -986,9 +986,9 @@ void FLexUIGeometry::UpdateUIRectFillHorizontalVerticalVertex(FLexUIGeometry* ui
 				originVertices[3].Position = FVector3f(0, posMaxX, posMaxY);
 
 				//snap pixel
-				if (pixelPerfect)
+				if (pixelSnapping)
 				{
-					AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+					AdjustPixelSnappingPosition(originVertices, 0, verticesCount, renderCanvas, uiComp);
 
 					posMinX = originVertices[0].Position.Y;
 					posMinY = originVertices[0].Position.Z;
@@ -1108,7 +1108,7 @@ void FLexUIGeometry::UpdateUIRectFillRadial90Vertex(FLexUIGeometry* uiGeo, float
 		triangles[5] = 3;
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 4;
@@ -1137,9 +1137,9 @@ void FLexUIGeometry::UpdateUIRectFillRadial90Vertex(FLexUIGeometry* uiGeo, float
 			originVertices[2].Position = FVector3f(0, posMinX, posMaxY);
 			originVertices[3].Position = FVector3f(0, posMaxX, posMaxY);
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, verticesCount, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, verticesCount, renderCanvas, uiComp);
 
 				posMinX = originVertices[0].Position.Y;
 				posMinY = originVertices[0].Position.Z;
@@ -1520,7 +1520,7 @@ void FLexUIGeometry::UpdateUIRectFillRadial180Vertex(FLexUIGeometry* uiGeo, floa
 		}
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 5;
@@ -1549,9 +1549,9 @@ void FLexUIGeometry::UpdateUIRectFillRadial180Vertex(FLexUIGeometry* uiGeo, floa
 			originVertices[2].Position = FVector3f(0, posMinX, posMaxY);
 			originVertices[3].Position = FVector3f(0, posMaxX, posMaxY);
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos(originVertices, 0, verticesCount - 1, renderCanvas, uiComp);
+				AdjustPixelSnappingPosition(originVertices, 0, verticesCount - 1, renderCanvas, uiComp);
 
 				posMinX = originVertices[0].Position.Y;
 				posMinY = originVertices[0].Position.Z;
@@ -2069,7 +2069,7 @@ void FLexUIGeometry::UpdateUIRectFillRadial360Vertex(FLexUIGeometry* uiGeo, floa
 		}
 	}
 
-	bool pixelPerfect = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = uiComp->GetShouldAffectByPixelSnapping() && uiComp->GetWidget()->GetPixelSnappingInHierarchy();
 	auto& vertices = uiGeo->Vertices;
 	auto& originVertices = uiGeo->OriginVertices;
 	auto verticesCount = 10;
@@ -2102,9 +2102,9 @@ void FLexUIGeometry::UpdateUIRectFillRadial360Vertex(FLexUIGeometry* uiGeo, floa
 			originVertices[6].Position = FVector3f(0, posMinX, posMaxY);
 			originVertices[8].Position = FVector3f(0, posMaxX, posMaxY);
 			//snap pixel
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
-				AdjustPixelPerfectPos_For_UIRectFillRadial360(originVertices, renderCanvas, uiComp);
+				AdjustPixelSnappingPos_For_UIRectFillRadial360(originVertices, renderCanvas, uiComp);
 
 				posMinX = originVertices[0].Position.Y;
 				posMaxX = originVertices[2].Position.Y;
@@ -2634,7 +2634,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 {
 	float maxFontSize = font->GetFontSizeLimit();
 	fontSize = FMath::Clamp(fontSize, 0.0f, maxFontSize);
-	bool pixelPerfect = LexText->GetShouldAffectByPixelSnapping() && LexText->GetWidget()->GetPixelSnappingInHierarchy();
+	bool pixelSnapping = LexText->GetShouldAffectByPixelSnapping() && LexText->GetWidget()->GetPixelSnappingInHierarchy();
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float dynamicPixelsPerUnit = LexText->GetDynamicPixelsPerUnit() * rootCanvasScale;
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
@@ -2682,7 +2682,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 
 	if (renderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
 	{
-		pixelPerfect = false;
+		pixelSnapping = false;
 		if (dynamicPixelsPerUnit != 1.0f && font->GetSupportDynamicPixelsPerUnit())
 		{
 			shouldScaleFontSizeWithRootCanvas = true;
@@ -2885,7 +2885,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 		auto overrideCharData = charData;
 		if (shouldScaleFontSizeWithRootCanvas)
 		{
-			if (pixelPerfect)
+			if (pixelSnapping)
 			{
 				inFontSize = inFontSize * rootCanvasScale;
 				inFontSize = FMath::Clamp(inFontSize, 0.0f, maxFontSize);
@@ -3499,9 +3499,9 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 	FLexUIGeometry::OffsetVertices(originVertices, originVertices.Num(), xOffset, yOffset);
 
 	//snap pixel
-	if (pixelPerfect)
+	if (pixelSnapping)
 	{
-		AdjustPixelPerfectPos_For_UIText(originVertices, cacheCharPropertyArray, renderCanvas, LexText);
+		AdjustPixelSnappingPos_For_UIText(originVertices, cacheCharPropertyArray, renderCanvas, LexText);
 	}
 }
 

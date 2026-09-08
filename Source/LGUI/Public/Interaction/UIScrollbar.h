@@ -57,7 +57,7 @@ protected:
 	FLexUIMulticastDelegateFloat OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-Scrollbar")
 	FUIScrollbarValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
 
 	float PressValue = 0;

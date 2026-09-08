@@ -11,7 +11,7 @@
 #include "Core/Components/LexVisual.h"
 #include "Components/SceneComponent.h"
 #include "Core/LexUIBehaviour.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 #if WITH_EDITOR
 #include "UObject/UnrealType.h"
 #endif
@@ -1476,7 +1476,10 @@ void ULexWidget::OnUnregister()
 	
 	for (auto Component : Components)
 	{
-		Component->OnUnregister();
+		if (IsValid(Component))
+		{
+			Component->OnUnregister();
+		}
 	}
 
 	if (IsValid(LayoutContainer))
@@ -2752,7 +2755,7 @@ ULexCanvas* ULexWidget::GetRootCanvas()const
 	return nullptr;
 }
 
-ULexWidgetPresenterComponentBase* ULexWidget::GetWidgetPresenterComponent() const
+ULexWidgetPresenterComponent* ULexWidget::GetWidgetPresenterComponent() const
 {
 	if (auto RootCanvas = GetRootCanvas())
 	{

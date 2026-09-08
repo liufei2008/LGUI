@@ -30,7 +30,6 @@ bool ULexUIPrefabActorFactory::CanCreateActorFrom(const FAssetData& AssetData, F
 
 bool ULexUIPrefabActorFactory::PreSpawnActor(UObject* Asset, FTransform& InOutLocation)
 {
-	ULexUIPrefabPresenterComponent::MarkNeedCheckNecessaryObjects();
 	auto Prefab = CastChecked<ULexUIPrefab>(Asset);
 
 	if (Prefab == NULL)

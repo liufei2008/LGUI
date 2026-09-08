@@ -74,7 +74,7 @@ public:
 	virtual float GetVerticalOffset(float FontSize) { return 0; }
 	virtual float GetFontSizeLimit() { return MAX_FLT; }
 	virtual bool GetRequireNormalAndTangent() { return false; }
-	virtual bool GetShouldAffectByPixelPerfect() { return true; }
+	virtual bool GetShouldAffectByPixelSnapping() { return true; }
 	virtual bool GetNeedObjectScale() { return false; }
 	virtual bool GetSupportDynamicPixelsPerUnit() { return false; }
 	virtual ELexUIFontTextureMark GetFontTextureMark() { return ELexUIFontTextureMark::None; }

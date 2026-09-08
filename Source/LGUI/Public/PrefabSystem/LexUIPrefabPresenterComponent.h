@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 #include "LexUIPrefabPresenterComponent.generated.h"
 
 class ULexWidget;
@@ -12,7 +12,7 @@ class ULexCanvas;
 class ULexUIPrefab;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent), DisplayName="LexUI Prefab Presenter Component")
-class LGUI_API ULexUIPrefabPresenterComponent : public ULexWidgetPresenterComponentBase
+class LGUI_API ULexUIPrefabPresenterComponent : public ULexWidgetPresenterComponent
 {
 	GENERATED_BODY()
 

@@ -55,8 +55,11 @@ void ULexUIPrefabPresenterComponent::LoadWidget()
 				RootCanvas->AttachToWidgetPresenterComponent(this);
 			});
 			LoadedWidget->CalculateObjectToWorldTransform(true);
+			if (RootCanvas->IsRenderToWorldSpace())
+			{
+				LoadedWidget->SetSize(FVector2D(RootSizeForWorldSpaceWidget));
+			}
 #if WITH_EDITOR
-			LoadedWidget->SetSize(WidgetPrefab->PrefabDataForPrefabEditor.CanvasSize);
 			TArray<ULexWidget*> AllLoadedWidgets;
 			ULexWidget::CollectChildrenWidgets(LoadedWidget.Get(), AllLoadedWidgets, true);
 			if (World->WorldType == EWorldType::Editor)
@@ -83,7 +86,6 @@ void ULexUIPrefabPresenterComponent::LoadWidget()
 				if (WeakThis.IsValid())
 				{
 					WeakThis->CheckNecessaryObjects();
-					MarkNeedCheckNecessaryObjects();
 				}
 			}, 1);
 		}

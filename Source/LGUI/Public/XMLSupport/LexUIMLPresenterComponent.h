@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 
 #include "LexUIMLPresenterComponent.generated.h"
 
@@ -11,7 +11,7 @@ class ULexUIMLBehaviour;
 class ULexUIMLResource;
 
 UCLASS(ClassGroup=(Custom), Experimental, meta=(BlueprintSpawnableComponent), DisplayName="LexUI XAML Presenter Component")
-class LGUI_API ULexUIMLPresenterComponent : public ULexWidgetPresenterComponentBase
+class LGUI_API ULexUIMLPresenterComponent : public ULexWidgetPresenterComponent
 {
 	GENERATED_BODY()
 

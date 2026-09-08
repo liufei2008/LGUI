@@ -4,7 +4,7 @@
 #include "Core/Components/LexCanvas.h"
 #include "LGUI.h"
 #include "Core/LexUISettings.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 
 #define LOCTEXT_NAMESPACE "LGUIScreenSpaceRaycaster"
 
@@ -17,7 +17,7 @@ void ULexScreenSpaceRaycaster::BeginPlay()
 	Super::BeginPlay();
 	if (!RootCanvas.IsValid())
 	{
-		auto WidgetPresenter = GetOwner()->FindComponentByClass<ULexWidgetPresenterComponentBase>();
+		auto WidgetPresenter = GetOwner()->FindComponentByClass<ULexWidgetPresenterComponent>();
 		if (!WidgetPresenter)
 		{
 			UE_LOG(LGUI, Error, TEXT("[%s].%d LexWidgetPresenterComponent is not valid! LexUIScreenSpaceRaycaster can only attach to a Actor which contains a ULexWidgetPresenterComponent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);

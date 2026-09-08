@@ -66,7 +66,7 @@ protected:
 		bool ReceiveShouldStartDrag(ULexPointerEventData* InPointerEventData);
 };
 
-UCLASS(ClassGroup = LGUI, Abstract, NotPlaceable, HideCategories=(Rendering, Replication, Collision, HLOD, Physics, Networking, Input, Actor, Navigation, LevelInstance, Cooking))
+UCLASS(ClassGroup = LGUI, Abstract, HideCategories=(Rendering, Replication, Collision, HLOD, Physics, Networking, Input, Actor, Navigation, LevelInstance, Cooking))
 class LGUI_API ALexWorldSpaceRaycasterSourceActor : public AActor
 {
 	GENERATED_BODY()
@@ -76,7 +76,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category=LGUI)
 	ULexWorldSpaceRaycasterSource* GetRaycasterSource()const{return RaycasterSource;}
 protected:
-	UPROPERTY(Category = "LGUI", EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULexWorldSpaceRaycasterSource> RaycasterSource;
 };
 

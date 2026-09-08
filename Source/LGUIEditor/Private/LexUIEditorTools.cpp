@@ -33,23 +33,26 @@ struct FLexUIEditorToolsHelperFunctionHolder
 		OutNumericSuffix = SrcWidgetName.Right(rightCount);
 		return SrcWidgetName.Left(SrcWidgetName.Len() - rightCount);
 	}
-	static FString GetCopiedWidgetLabel(ULexWidget* Parent, FString OriginWidgetName, UObject* Outer)
+	static FString GetCopiedWidgetLabel(ULexWidget* Widget, ULexWidget* Parent, FString OriginWidgetName, UObject* Outer)
 	{
 		TArray<ULexWidget*> SameParentWidgetList;//all widgets attached at same parent widget. if parent is null then get all widgets
-		for (TObjectIterator<ULexWidget> WidgetItr; WidgetItr; ++WidgetItr)
+		if (Parent)
 		{
-			if (auto ItemWidget = *WidgetItr)
+			for (ULexWidget* SiblingWidget : Parent->GetChildren())
 			{
-				if (IsValid(ItemWidget) && ItemWidget->GetOuter() == Outer)
+				if (SiblingWidget != Widget)
 				{
-					if (IsValid(Parent))
-					{
-						if (ItemWidget->GetParent() == Parent)
-						{
-							SameParentWidgetList.Add(ItemWidget);
-						}
-					}
-					else
+					SameParentWidgetList.Add(SiblingWidget);
+				}
+			}
+		}
+		else
+		{
+			for (TObjectIterator<ULexWidget> WidgetItr; WidgetItr; ++WidgetItr)
+			{
+				if (auto ItemWidget = *WidgetItr)
+				{
+					if (IsValid(ItemWidget) && ItemWidget->GetOuter() == Outer)
 					{
 						if (ItemWidget->GetParent() == nullptr)
 						{
@@ -220,7 +223,7 @@ void FLexUIEditorTools::DuplicateWidgets(TFunction<TArray<ULexWidget*>()> GetSel
 	for (auto Widget : RootWidgetList)
 	{
 		Widget->GetOuter()->Modify();
-		auto CopiedWidgetName = FLexUIEditorToolsHelperFunctionHolder::GetCopiedWidgetLabel(Widget->GetParent(), Widget->GetDisplayName(), Widget->GetWorld());
+		auto CopiedWidgetName = FLexUIEditorToolsHelperFunctionHolder::GetCopiedWidgetLabel(Widget, Widget->GetParent(), Widget->GetDisplayName(), Widget->GetWorld());
 		ULexWidget* CopiedWidget = nullptr;
 		auto Parent = Widget->GetParent();
 		if (Parent)
@@ -408,7 +411,7 @@ void FLexUIEditorTools::PasteWidgets(TFunction<TArray<ULexWidget*>()> GetSelecte
 		{
 			TMap<FGuid, TObjectPtr<UObject>> OutMapGuidToObject;
 			TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData> LoadedSubPrefabMap;
-			auto CopiedWidgetName = FLexUIEditorToolsHelperFunctionHolder::GetCopiedWidgetLabel(ParentWidget, KeyValuePair.Key, ParentWidget->GetWorld());
+			auto CopiedWidgetName = FLexUIEditorToolsHelperFunctionHolder::GetCopiedWidgetLabel(SelectedWidgets[0], ParentWidget, KeyValuePair.Key, ParentWidget->GetWorld());
 			auto CopiedWidget = KeyValuePair.Value->LoadPrefabInEditor(ParentWidget->GetWorld(), ParentWidget->GetOuter(), ParentWidget, LoadedSubPrefabMap, OutMapGuidToObject, false);
 			for (auto& KeyValue : LoadedSubPrefabMap)
 			{

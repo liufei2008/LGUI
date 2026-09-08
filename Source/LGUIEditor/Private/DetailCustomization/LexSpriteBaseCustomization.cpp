@@ -118,7 +118,7 @@ void FLexSpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 			.VAlign(EVerticalAlignment::VAlign_Center)
 			.OnClicked_Lambda([=, this]()
 			{
-				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize_Transaction", "UISprite snap size"));
+				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize_Transaction", "LexSprite snap size"));
 				for (auto item : TargetScriptArray)
 				{
 					if (item.IsValid())
@@ -134,7 +134,7 @@ void FLexSpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 			})
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
+				.Text(LOCTEXT("SnapSize_ButtonText", "Snap Size"))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 		];

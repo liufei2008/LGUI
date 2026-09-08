@@ -93,7 +93,7 @@ public:
 	virtual float GetKerning(uint32 leftCharIndex, uint32 rightCharIndex, float charSize) override;
 	virtual float GetLineHeight(float fontSize) override;
 	virtual float GetVerticalOffset(float fontSize) override;
-	virtual bool GetShouldAffectByPixelPerfect() override{ return false; }
+	virtual bool GetShouldAffectByPixelSnapping() override{ return false; }
 	virtual bool GetNeedObjectScale() override{ return true; }//sdf font need scale value in material
 	virtual ELexUIFontTextureMark GetFontTextureMark() override{ return ELexUIFontTextureMark::DistanceField; }
 	virtual float GetBoldRatio() override{ return BoldRatio; }

@@ -24,7 +24,7 @@
 #include "Core/LexCanvasDrawCallProcessingRunnable.h"
 #include "Core/LexUIClipData.h"
 #include "Core/LexUIDataAsTexture.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 
 
 #define LOCTEXT_NAMESPACE "LexCanvas"
@@ -752,12 +752,12 @@ bool ULexCanvas::IsRootCanvas()const
 	return GetRootCanvas() == this;
 }
 
-ULexWidgetPresenterComponentBase* ULexCanvas::GetWidgetPresenterComponent() const
+ULexWidgetPresenterComponent* ULexCanvas::GetWidgetPresenterComponent() const
 {
 	return WidgetPresenterComponent.Get();
 }
 
-void ULexCanvas::AttachToWidgetPresenterComponent(ULexWidgetPresenterComponentBase* InSceneComp) const
+void ULexCanvas::AttachToWidgetPresenterComponent(ULexWidgetPresenterComponent* InSceneComp) const
 {
 	WidgetPresenterComponent = InSceneComp;
 }

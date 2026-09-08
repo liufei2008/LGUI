@@ -259,7 +259,7 @@ bool ULexText::GetShouldAffectByPixelSnapping()const
 {
 	if (IsValid(Font))
 	{
-		return Font->GetShouldAffectByPixelPerfect();
+		return Font->GetShouldAffectByPixelSnapping();
 	}
 	return Super::GetShouldAffectByPixelSnapping();
 }

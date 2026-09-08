@@ -63,7 +63,7 @@ protected:
 	FLexUIMulticastDelegateFloat OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-Slider")
 	FUISliderValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Slider", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Slider", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
 	
 public:

@@ -177,9 +177,9 @@ void ULexVisualBatchMesh::UpdateGeometry()
 	}
 	
 	//when use pixel-perfect, the pixel-perfect calculation will take consider transform matrix, so we need to recalculate geometry if pixel-perfect & bTransformChanged
-	bool pixelPerfect = this->GetShouldAffectByPixelSnapping() && Widget->GetPixelSnappingInHierarchy();
-	bool pixelPerfectAffectTransform = pixelPerfect && bTransformChanged;
-	if (GetAnythingDirty() || pixelPerfectAffectTransform)
+	bool pixelSnapping = this->GetShouldAffectByPixelSnapping() && Widget->GetPixelSnappingInHierarchy();
+	bool pixelSnappingAffectTransform = pixelSnapping && bTransformChanged;
+	if (GetAnythingDirty() || pixelSnappingAffectTransform)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_LexUpdateGeometry);
 		UIGeometry->Clear();
@@ -192,7 +192,7 @@ void ULexVisualBatchMesh::UpdateGeometry()
 			if (TempUV)bUVChanged = true;
 			if (TempColor)bColorChanged = true;
 		}
-		OnUpdateGeometry(*(UIGeometry.Get()), bTriangleChanged, bLocalVertexPositionChanged || pixelPerfectAffectTransform, bUVChanged, bColorChanged);
+		OnUpdateGeometry(*(UIGeometry.Get()), bTriangleChanged, bLocalVertexPositionChanged || pixelSnappingAffectTransform, bUVChanged, bColorChanged);
 		ApplyGeometryModifier(bTriangleChanged, bUVChanged, bColorChanged, bLocalVertexPositionChanged);
 		if (bTriangleChanged)//triangle change mostly means vertex count change, so we need to fill widget property
 		{
@@ -215,7 +215,7 @@ void ULexVisualBatchMesh::UpdateGeometry()
 		/** Only update the clip data position coordinate. */
 		FillWidgetPropertyDataForMaterial_ClipDataCoordinate(Canvas->GetWidgetPropertyDataAsTexture());
 	}
-	if (bLocalVertexPositionChanged || bTransformChanged || pixelPerfectAffectTransform)
+	if (bLocalVertexPositionChanged || bTransformChanged || pixelSnappingAffectTransform)
 	{
 		{
 			SCOPE_CYCLE_COUNTER(STAT_TransformVertices)

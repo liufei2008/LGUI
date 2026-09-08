@@ -257,7 +257,7 @@ public:
 		float width, float height, FVector2f pivot, const FLexUISpriteInfo& spriteInfo
 		, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
 	);
-	static void AdjustPixelPerfectPos(
+	static void AdjustPixelSnappingPosition(
 		TArray<FLexUIOriginVertexData>& originVertices, int startIndex, int count
 		, ULexCanvas* RenderCanvas, ULexVisual* Visual
 	);

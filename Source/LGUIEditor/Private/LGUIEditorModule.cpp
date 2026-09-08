@@ -83,14 +83,14 @@
 #include "Core/Components/LexTexture.h"
 #include "Core/Components/LexTextureBase.h"
 #include "Core/Components/LexVisualPostProcess.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
 #include "DetailCustomization/LexImageBrushStructCustomization.h"
 #include "DetailCustomization/LexLayoutContainerCustomization.h"
 #include "DetailCustomization/LexLayoutSelfFlexBoxCustomization.h"
 #include "DetailCustomization/LexLayoutContainerFlexBoxCustomization.h"
 #include "DetailCustomization/LexUIEventDelegatePresetParamCustomization.h"
 #include "DetailCustomization/LexUIFontEmojiDataCustomization.h"
-#include "DetailCustomization/LexWidgetPresenterBaseCustomization.h"
+#include "DetailCustomization/LexWidgetPresenterCustomization.h"
 #include "Event/LexUIEventDelegate_PresetParameter.h"
 #include "Event/LexWorldSpaceRaycasterBase.h"
 #include "Extensions/LexPolygon.h"
@@ -219,7 +219,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULexLayoutContainerFlexBox::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexLayoutContainerFlexBoxCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULexLayoutSelfFlexBox::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexLayoutSelfFlexBoxCustomization::MakeInstance));
 		
-		PropertyModule.RegisterCustomClassLayout(ULexWidgetPresenterComponentBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexWidgetPresenterBaseCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(ULexWidgetPresenterComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexWidgetPresenterCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -464,7 +464,7 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(ULexLayoutContainerFlexBox::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULexLayoutSelfFlexBox::StaticClass()->GetFName());
 		
-		PropertyModule.UnregisterCustomClassLayout(ULexWidgetPresenterComponentBase::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(ULexWidgetPresenterComponent::StaticClass()->GetFName());
 	}
 	//unregister asset
 	{

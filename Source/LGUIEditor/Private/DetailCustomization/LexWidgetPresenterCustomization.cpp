@@ -1,42 +1,43 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "DetailCustomization/LexWidgetPresenterBaseCustomization.h"
+#include "DetailCustomization/LexWidgetPresenterCustomization.h"
 
 #include "DetailCategoryBuilder.h"
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "Widgets/Input/SButton.h"
-#include "Core/LexWidgetPresenterComponentBase.h"
+#include "Core/LexWidgetPresenterComponent.h"
+#include "Core/Components/LexCanvas.h"
 #include "Window/LexUIWidgetInspector.h"
 
 #define LOCTEXT_NAMESPACE "LexWidgetPresenterBaseCustomization"
-FLexWidgetPresenterBaseCustomization::FLexWidgetPresenterBaseCustomization()
+FLexWidgetPresenterCustomization::FLexWidgetPresenterCustomization()
 {
 }
 
-FLexWidgetPresenterBaseCustomization::~FLexWidgetPresenterBaseCustomization()
+FLexWidgetPresenterCustomization::~FLexWidgetPresenterCustomization()
 {
 	
 }
 
-TSharedRef<IDetailCustomization> FLexWidgetPresenterBaseCustomization::MakeInstance()
+TSharedRef<IDetailCustomization> FLexWidgetPresenterCustomization::MakeInstance()
 {
-	return MakeShareable(new FLexWidgetPresenterBaseCustomization);
+	return MakeShareable(new FLexWidgetPresenterCustomization);
 }
-void FLexWidgetPresenterBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
+void FLexWidgetPresenterCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
 	TArray<TWeakObjectPtr<UObject>> TargetObjects;
 	DetailBuilder.GetObjectsBeingCustomized(TargetObjects);
 	TargetScriptArray.Empty();
 	for (auto Item : TargetObjects)
 	{
-		if (auto ValidItem = Cast<ULexWidgetPresenterComponentBase>(Item.Get()))
+		if (auto ValidItem = Cast<ULexWidgetPresenterComponent>(Item.Get()))
 		{
 			TargetScriptArray.Add(ValidItem);
 		}
 	}
-	if (TargetScriptArray.Num() == 0)
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("[%s].%d Get TargetScript is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
@@ -131,21 +132,34 @@ void FLexWidgetPresenterBaseCustomization::CustomizeDetails(IDetailLayoutBuilder
 
 	//canvas template
 	{
-		auto CanvasTemplate_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidgetPresenterComponentBase, CanvasTemplate));
-		UObject* CanvasTemplate = nullptr;
-		CanvasTemplate_PH->GetValue(CanvasTemplate);
+		auto CanvasTemplate_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexWidgetPresenterComponent, CanvasTemplate));
+		ULexCanvas* CanvasTemplate = nullptr;
+		CanvasTemplate_PH->GetValue(*(UObject**)&CanvasTemplate);
+		ELexRenderMode RenderMode = ELexRenderMode::WorldSpace;
+		if (CanvasTemplate != nullptr)
+		{
+			RenderMode = CanvasTemplate->GetRenderMode();
+		}
 		auto& CanvasTemplateCategory = DetailBuilder.EditCategory("CanvasTemplate");
+		if (RenderMode == ELexRenderMode::WorldSpace || RenderMode == ELexRenderMode::WorldSpace_LexUI)
+		{
+			CanvasTemplateCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexWidgetPresenterComponent, RootSizeForWorldSpaceWidget));
+		}
+		else
+		{
+			DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexWidgetPresenterComponent, RootSizeForWorldSpaceWidget));
+		}
 		auto CanvasTemplateRow = CanvasTemplateCategory.AddExternalObjects({ CanvasTemplate }, EPropertyLocation::Default
 			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(true));
 		CanvasTemplateRow->ShouldAutoExpand(true);
 		CanvasTemplateRow->Visibility(TAttribute<EVisibility>::CreateSPLambda(this, [=]()
 		{
-			return TargetWorld->IsGameWorld() ? EVisibility::Collapsed : EVisibility::Visible;
+			return (TargetWorld && TargetWorld->IsGameWorld()) ? EVisibility::Collapsed : EVisibility::Visible;
 		}));
 		DetailBuilder.HideProperty(CanvasTemplate_PH);
 	}
 }
-void FLexWidgetPresenterBaseCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
+void FLexWidgetPresenterCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
 	if (DetailBuilder)
 	{
