@@ -766,6 +766,7 @@ public:
 			FLexUIMeshBatchContainer MeshBatchContainer;
 			MeshBatchContainer.Mesh = Mesh;
 			MeshBatchContainer.VertexBufferRHI = Section->LexUIVertexBuffers.VertexBufferRHI;
+			MeshBatchContainer.IndexBufferRHI = Section->IndexBuffer.IndexBufferRHI;
 			MeshBatchContainer.NumVerts = Section->ValidVerticesCount;
 			ResultArray.Add(MeshBatchContainer);
 		}

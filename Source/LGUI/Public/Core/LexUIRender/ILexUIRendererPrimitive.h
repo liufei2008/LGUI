@@ -16,6 +16,7 @@ struct FLexUIMeshBatchContainer
 {
 	FMeshBatch Mesh;
 	FBufferRHIRef VertexBufferRHI;
+	FBufferRHIRef IndexBufferRHI;
 	int32 NumVerts = 0;
 
 	FLexUIMeshBatchContainer() {}

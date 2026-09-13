@@ -721,12 +721,22 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 							PassParameters->SceneDepthTex = SceneTextures.Depth.Resolve;
 							PassParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTexture, ERenderTargetLoadAction::ELoad);
 
+							//Collect mesh elements before adding the RDG pass, because the pass is deferred by RDG
+							//and the primitive (scene proxy) may be destroyed before the pass executes, which would
+							//cause a PureVirtualCall on the 'ILexUIRendererPrimitive' virtual functions.
+							//MeshElementAllocator must stay at RDG lambda capture parameter list, or the allocated data (UniformBuffer) will be lost.
+							auto MeshElementAllocator = MakeShared<FSceneRenderingBulkObjectAllocator>();
+							FLexUIMeshElementCollector MeshCollector(RenderView->GetFeatureLevel(), *MeshElementAllocator, GraphBuilder.RHICmdList);
+							TArray<FLexUIMeshBatchContainer> MeshBatchContainerArray;
+							RenderPrimitiveItem.Primitive->LexUI_GetMeshElements(*RenderView->Family, MeshCollector, RenderPrimitiveItem, MeshBatchContainerArray);
+
 							GraphBuilder.AddPass(
 								RDG_EVENT_NAME("LexUIRender_WorldSpace"),
 								PassParameters,
 								ERDGPassFlags::Raster,
 								[this, DepthFade = RenderSequenceItem.DepthFade, BlendDepth = RenderSequenceItem.BlendDepth
-									, RenderPrimitiveItem, RenderView, ViewRect, PassParameters
+									, MeshElementAllocator, MeshBatchContainerArray
+									, RenderView, ViewRect, PassParameters
 									, SceneDepthTexST = DepthTextureScaleOffset, NumSamples, GammaValue
 									, bRenderWireframe, bRenderLit, WireframeMaterialInstance](FRHICommandListImmediate& RHICmdList)
 								{
@@ -735,13 +745,9 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 									RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 									RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
-									MeshBatchArray.Reset();
-									FSceneRenderingBulkObjectAllocator Allocator;
-									FLexUIMeshElementCollector MeshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
-									RenderPrimitiveItem.Primitive->LexUI_GetMeshElements(*RenderView->Family, MeshCollector, RenderPrimitiveItem, MeshBatchArray);
-									for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
+									for (int MeshIndex = 0; MeshIndex < MeshBatchContainerArray.Num(); MeshIndex++)
 									{
-										auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
+										const auto& MeshBatchContainer = MeshBatchContainerArray[MeshIndex];
 										const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 		#if LGUI_ENABLE_SCENETEXTURES
 										FRHIUniformBuffer* SceneTextureUniformBuffer = GetSceneTextureExtracts().GetUniformBuffer();
@@ -785,7 +791,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 													PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 													RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-													RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+													RHICmdList.DrawIndexedPrimitive(MeshBatchContainer.IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
 												}
 											}
 											else
@@ -818,7 +824,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 													PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 													RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-													RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+													RHICmdList.DrawIndexedPrimitive(MeshBatchContainer.IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
 												}
 											}
 										};
@@ -997,11 +1003,20 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 						PassParameters->RenderTargets.DepthStencil = FDepthStencilBinding(LexUIScreenSpaceDepthRDGTexture, ERenderTargetLoadAction::EClear, ERenderTargetLoadAction::EClear, FExclusiveDepthStencil::DepthWrite_StencilWrite);
 					}
 				}
+				//Collect mesh elements before adding the RDG pass, because the pass is deferred by RDG
+				//and the primitive (scene proxy) may be destroyed before the pass executes, which would
+				//cause a PureVirtualCall on the 'ILexUIRendererPrimitive' virtual functions.
+				//MeshElementAllocator must stay at RDG lambda capture parameter list, or the allocated data (UniformBuffer) will be lost.
+				auto MeshElementAllocator = MakeShared<FSceneRenderingBulkObjectAllocator>();
+				FLexUIMeshElementCollector MeshCollector(RenderView->GetFeatureLevel(), *MeshElementAllocator, GraphBuilder.RHICmdList);
+				TArray<FLexUIMeshBatchContainer> MeshBatchContainerArray;
+				RenderSequenceItem.Primitive->LexUI_GetMeshElements(*RenderView->Family, MeshCollector, RenderSequenceItem, MeshBatchContainerArray);
+
 				GraphBuilder.AddPass(
 					RDG_EVENT_NAME("LexUIRender_ScreenSpace"),
 					PassParameters,
 					ERDGPassFlags::Raster,
-					[this, RenderSequenceItem, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset
+					[this, MeshElementAllocator, MeshBatchContainerArray, RenderView, ViewRect, SceneDepthTexST = DepthTextureScaleOffset
 						, NumSamples, ValidDepth = LexUIScreenSpaceDepthRDGTexture != nullptr, GammaValue
 						, bRenderLit, bRenderWireframe, WireframeMaterialInstance](FRHICommandListImmediate& RHICmdList)
 					{
@@ -1009,15 +1024,10 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 						FGraphicsPipelineStateInitializer GraphicsPSOInit;
 						RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-						MeshBatchArray.Reset();
-						FSceneRenderingBulkObjectAllocator Allocator;
-						FLexUIMeshElementCollector MeshCollector(RenderView->GetFeatureLevel(), Allocator, RHICmdList);
-						RenderSequenceItem.Primitive->LexUI_GetMeshElements(*RenderView->Family, MeshCollector,
-						RenderSequenceItem, MeshBatchArray);
 
-						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
+						for (int MeshIndex = 0; MeshIndex < MeshBatchContainerArray.Num(); MeshIndex++)
 						{
-							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
+							const auto& MeshBatchContainer = MeshBatchContainerArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 							
 #if LGUI_ENABLE_SCENETEXTURES
@@ -1060,7 +1070,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 									PixelShader->SetGammaValue(RHICmdList, GammaValue);
 
 									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.Elements[0].NumPrimitives, Mesh.Elements[0].NumInstances);
+									RHICmdList.DrawIndexedPrimitive(MeshBatchContainer.IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.Elements[0].NumPrimitives, Mesh.Elements[0].NumInstances);
 								}
 							};
 							if (bRenderLit)
@@ -1112,7 +1122,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 	GraphBuilder.AddPass(
 		RDG_EVENT_NAME("LexUI_Clean"),
 		ERDGPassFlags::None,
-		[&](FRHICommandListImmediate& RHICmdList)
+		[MSAARenderTarget](FRHICommandListImmediate& RHICmdList)mutable
 		{
 			if (MSAARenderTarget.IsValid())
 			{

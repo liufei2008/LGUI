@@ -153,7 +153,6 @@ private:
 	bool bFrustumCulling = true;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UWorld> World;
-	TArray<FLexUIMeshBatchContainer> MeshBatchArray;
 	//if 'bIsRenderToRenderTarget' is true then we need a render target
 	class FTextureRenderTargetResource* RenderTargetResource = nullptr;
 	FColor RenderTargetClearColor = FColor::Transparent;
