@@ -94,17 +94,21 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 	ULexWidget* WidgetSerializer::DuplicateWidgetWithPreparedData(UWorld* InWorld, UObject* InOwnerObject, FDuplicateWidgetDataContainer& InData, ULexWidget* InParent)
 	{
 		const double StartTime = FPlatformTime::Seconds();
-		auto& serializer = InData.Serializer;//use copied, incase undesired data
+		auto& serializer = InData.Serializer;
 		serializer.World = InWorld;
 		serializer.OwnerObject = InOwnerObject;
 		//clear these data for deserializer use
+		serializer.WidgetAttachmentArray.Reset();
+		serializer.AllWidgetArray.Reset();
+		serializer.SubPrefabMap.Reset();
+		serializer.SubPrefabWidgetArray.Reset();
+		serializer.TrySerializeWidgetArray.Reset();
+		serializer.MapObjectToGuid.Reset();
+		serializer.SubPrefabOverrideParameters.Reset();
+		
 		serializer.WillSerializeWidgetArray.Reset();
 		serializer.WillSerializeObjectArray.Reset();
 		serializer.MapGuidToObject.Reset();
-		serializer.MapObjectToGuid.Reset();
-		serializer.SubPrefabMap.Reset();
-		serializer.AllWidgetArray.Reset();
-		serializer.SubPrefabOverrideParameters.Reset();
 		serializer.bIsSubPrefab = false;
 
 		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(InData.WidgetData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
