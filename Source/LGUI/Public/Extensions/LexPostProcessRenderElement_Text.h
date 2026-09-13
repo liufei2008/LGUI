@@ -10,7 +10,7 @@
 class ULexVisualPostProcess;
 /**
  * This component will grab post-process result image and display here.
- * NOTE!!! This only valid when target PostProcess RenderType is set to RenderTarget and bUseFullSize is set to false.
+ * NOTE!!! This only valid when target PostProcess RenderType is set to RenderTarget.
  * UV channel:
  *		UV0 ~ UV2: Check LexText
  *		UV3: TextureCoordinate for sampling PostProcess RenderTarget

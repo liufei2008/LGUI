@@ -113,15 +113,12 @@ public:
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(RectWidth, RectHeight), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			if (RenderTargetResource == nullptr)
 			{
-				if (!bUseFullSize)
+				GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget, TEXT("LexUIBlurEffectRenderTarget1"));
+				if (!BlurEffectRenderTarget.IsValid())
 				{
-					GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget, TEXT("LexUIBlurEffectRenderTarget1"));
-					if (!BlurEffectRenderTarget.IsValid())
-					{
-						ReleaseRenderTarget();
-						return;
-					}
-				}//full screen don't need it
+					ReleaseRenderTarget();
+					return;
+				}
 			}
 			else
 			{
@@ -136,14 +133,7 @@ public:
 		FRHITexture* BlurEffectRHITexture = nullptr;
 		if (RenderTargetResource == nullptr)
 		{
-			if (bUseFullSize)//full screen just use it directly
-			{
-				BlurEffectRHITexture = NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference();
-			}
-			else
-			{
-				BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
-			}
+			BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
 		}
 		else
 		{
@@ -151,29 +141,26 @@ public:
 		}
 
 		auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
-		if (!bUseFullSize)
-		{
-			auto BlurEffectRDGTextureRef = RegisterExternalTexture(GraphBuilder, BlurEffectRHITexture, TEXT("LexUIBlurEffectRenderTexture_ExternalTexture"));
-			//clear the whole target first so the area not covered by the mesh region is deterministic.
+		auto BlurEffectRDGTextureRef = RegisterExternalTexture(GraphBuilder, BlurEffectRHITexture, TEXT("LexUIBlurEffectRenderTexture_ExternalTexture"));
+		//clear the whole target first so the area not covered by the mesh region is deterministic.
 #if 0
-			{
-				auto* ClearParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-				ClearParameters->RenderTargets[0] = FRenderTargetBinding(BlurEffectRDGTextureRef, ERenderTargetLoadAction::EClear);
-				GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackgroundBlur_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
-			}
-#endif
-			//@todo: should use screen-space region
-			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
-				, BlurEffectRDGTextureRef
-				, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
-				, GlobalShaderMap
-				, RenderScreenToMeshRegionVertexArray
-				, ModelViewProjectionMatrix
-				, bIsRenderTarget
-				, FIntRect(0, 0, BlurEffectRHITexture->GetSizeXYZ().X, BlurEffectRHITexture->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
+		{
+			auto* ClearParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+			ClearParameters->RenderTargets[0] = FRenderTargetBinding(BlurEffectRDGTextureRef, ERenderTargetLoadAction::EClear);
+			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackgroundBlur_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
 		}
+#endif
+		//@todo: should use screen-space region
+		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+			, BlurEffectRDGTextureRef
+			, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
+			, GlobalShaderMap
+			, RenderScreenToMeshRegionVertexArray
+			, ModelViewProjectionMatrix
+			, bIsRenderTarget
+			, FIntRect(0, 0, BlurEffectRHITexture->GetSizeXYZ().X, BlurEffectRHITexture->GetSizeXYZ().Y)
+			, ViewTextureScaleOffset
+		);
 
 		float MagicNumber = 1.0f / 2.2f;//this is a magic number which can make blur transition feel smooth
 		uint32 SourceWidth = BlurEffectRHITexture->GetSizeX();
@@ -224,11 +211,8 @@ public:
 		if (RenderTargetResource == nullptr)
 		{
 			//after blur process, copy the blur result image back to screen image of the area
-			if (!bUseFullSize)
-			{
-				//copy on mesh region
-				RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
-			}//full screen don't need it
+			//copy on mesh region
+			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
 		}
 		else
 		{

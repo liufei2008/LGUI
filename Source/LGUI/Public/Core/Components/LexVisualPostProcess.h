@@ -54,20 +54,13 @@ protected:
 	/** MaskTexture UV offset and scale info. Only get good result when MaskTextureType is Simple */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 	FVector4 MaskTextureUVRect = FVector4(0, 0, 1, 1);
-	/**
-	 * Use root canvas size instead of just this UI element rect area.
-	 * For screen-space-overlay UI, this will act as full screen size.
-	 * For world-space-LexUI, this will use root canvas size.
-	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-	bool bUseFullSize = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "!bUseFullSize"))
 	ELexBackgroundBlurRenderType RenderType = ELexBackgroundBlurRenderType::Screen;
 	/**
 	 * Blur result will output to this RenderTarget.
 	 * Will create one if not specified.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="RenderType==ELexBackgroundBlurRenderType::RenderTarget&&!bUseFullSize"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="RenderType==ELexBackgroundBlurRenderType::RenderTarget"))
 	TObjectPtr<UTextureRenderTarget2D> OutputRenderTarget = nullptr;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
 public:
@@ -83,8 +76,6 @@ public:
 	ELexBackgroundBlurRenderType GetRenderType()const { return RenderType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	UTextureRenderTarget2D* GetOutputRenderTarget()const { return OutputRenderTarget; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	bool GetUseFullSize()const{return bUseFullSize;}
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetMaskTexture(UTexture2D* Value);
@@ -92,8 +83,6 @@ public:
 	void SetMaskTextureUVRect(const FVector4& Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetRenderType(ELexBackgroundBlurRenderType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void SetUseFullSize(bool Value);
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();

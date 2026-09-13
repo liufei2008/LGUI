@@ -154,7 +154,7 @@ void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVert
 		{
 			if (InVertexPositionChanged)
 			{
-				auto Widget = bUseFullSize ? GetWidget()->GetRenderCanvas()->GetRootCanvas()->GetWidget() : this->GetWidget();
+				auto Widget = this->GetWidget();
 				//offset and size
 				float pivotOffsetX = 0, pivotOffsetY = 0;
 				FLexUIGeometry::CalculatePivotOffset(Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), pivotOffsetX, pivotOffsetY);
@@ -240,19 +240,9 @@ void ULexVisualPostProcess::UpdateGeometryClipData(FLexUIGeometry& InMesh, int I
 
 void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 {
-	auto ThisWidget = this->GetWidget();
-	if (!ThisWidget)return;
-	ULexWidget* Widget = nullptr;
-	if (bUseFullSize)
-	{
-		auto ThisRenderCanvas = ThisWidget->GetRenderCanvas();
-		if (!ThisRenderCanvas)return;
-		Widget = ThisRenderCanvas->GetRootCanvas()->GetWidget();
-	}
-	else
-	{
-		Widget = ThisWidget;
-	}
+	auto Widget = this->GetWidget();
+	if (!Widget)return;
+
 	auto RenderCanvas = Widget->GetRenderCanvas();
 	if (RenderProxy && RenderCanvas)
 	{
@@ -264,7 +254,6 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 			FVector2f RectSize;
 			FMatrix44f objectToWorldMatrix;
 			FTexture2DDynamicResource* ClipDataTexture = nullptr;
-			bool bUseFullSize;
 			FBox BoundingBox;
 		};
 		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
@@ -272,7 +261,6 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 		updateData->renderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
 		updateData->RectSize = FVector2f(Widget->GetWidth(), Widget->GetHeight());
 		updateData->objectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
-		updateData->bUseFullSize = bUseFullSize;
 		{
 			updateData->BoundingBox = FBox(EForceInit::ForceInit);
 			FVector2D Min, Max;
@@ -295,7 +283,6 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 					TempRenderProxy->RectSize = updateData->RectSize;
 					TempRenderProxy->ObjectToWorldMatrix = updateData->objectToWorldMatrix;
 					TempRenderProxy->ClipDataTexture = updateData->ClipDataTexture;
-					TempRenderProxy->bUseFullSize = updateData->bUseFullSize;
 					TempRenderProxy->BoundingBox = updateData->BoundingBox;
 					delete updateData;
 				});
@@ -336,15 +323,6 @@ void ULexVisualPostProcess::SetRenderType(ELexBackgroundBlurRenderType Value)
 	}
 }
 
-void ULexVisualPostProcess::SetUseFullSize(bool Value)
-{
-	if (bUseFullSize != Value)
-	{
-		bUseFullSize = Value;
-		MarkVertexPositionDirty();
-	}
-}
-
 void ULexVisualPostProcess::SendMaskTextureToRenderProxy()
 {
 	if (RenderProxy)
@@ -369,7 +347,7 @@ void ULexVisualPostProcess::SendRenderTargetToRenderProxy()
 	{
 		auto TempRenderProxy = RenderProxy;
 		FTextureRenderTargetResource* RenderTargetResource = nullptr;
-		if (!bUseFullSize && RenderType == ELexBackgroundBlurRenderType::RenderTarget && IsValid(OutputRenderTarget))
+		if (RenderType == ELexBackgroundBlurRenderType::RenderTarget && IsValid(OutputRenderTarget))
 		{
 			RenderTargetResource = OutputRenderTarget->GameThread_GetRenderTargetResource();
 		}
