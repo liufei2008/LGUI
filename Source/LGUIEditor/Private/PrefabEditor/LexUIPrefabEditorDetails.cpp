@@ -995,6 +995,10 @@ void SLexUIPrefabEditorDetails::Construct(const FArguments& Args, UWorld* InWorl
 
     DetailsView = PropPlugin.CreateDetailView(DetailsViewArgs);
     DetailsView->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateSP(this, &SLexUIPrefabEditorDetails::IsPropertyReadOnly));
+	GEditor->OnBlueprintCompiled().AddSPLambda(this, [this]()
+	{
+		DetailsView->RequestForceRefresh();
+	});
 
 	if (PrefabEditorPtr.IsValid())
 	{
@@ -1185,6 +1189,7 @@ SLexUIPrefabEditorDetails::~SLexUIPrefabEditorDetails()
 	{
 		Selection->OnSelectionChanged.RemoveAll(this);
 	}
+	GEditor->OnBlueprintCompiled().RemoveAll(this);
 }
 
 bool SLexUIPrefabEditorDetails::IsPrefabButtonEnable()const
