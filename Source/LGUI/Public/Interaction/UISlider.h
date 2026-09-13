@@ -88,10 +88,13 @@ public:
 		float GetNavigationChangeInterval()const { return NavigationChangeInterval; }
 
 	/**
+	 * Set Value and send callback event.
+	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
 	 * @param	InValue				New value set for Value
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 	void SetValue(float InValue);
+	/** Set Value and NOT send callback event */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 	void SetValueWithoutNotify(float InValue);
 	/** 

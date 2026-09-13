@@ -108,7 +108,7 @@ protected:
 	FLexUIMulticastDelegateVector2 OnValueChangedCPP;
 	UPROPERTY(BlueprintAssignable, Category = "LGUI-ScrollView")
 	FUIScrollViewValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", DisplayName="OnValueChangedED")
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Vector2);
 public:
 	FLexUIMulticastDelegateVector2& GetOnValueChangedEvent(){return OnValueChangedCPP;}

@@ -82,15 +82,7 @@ bool UUIRecyclableScrollView::CanEditChange(const FProperty* InProperty)const
     if (Super::CanEditChange(InProperty))
     {
         auto PropertyName = InProperty->GetFName();
-        if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollView, CellTemplate))
-        {
-            return CellTemplateType == EUIRecyclableScrollViewCellTemplateType::Actor;
-        }
-        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollView, CellTemplatePrefab))
-        {
-            return CellTemplateType == EUIRecyclableScrollViewCellTemplateType::Prefab;
-        }
-        else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollView, OnlyOneDirection))
+        if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIRecyclableScrollView, OnlyOneDirection))
         {
             return false;
         }
@@ -355,24 +347,11 @@ void UUIRecyclableScrollView::ScrollToByDataIndex(int InDataIndex, bool InEaseAn
     }
 }
 
-void UUIRecyclableScrollView::SetCellTemplate(ULexWidget* value)
-{
-    if (CellTemplate != value)
-    {
-        CellTemplate = value;
-    }
-}
-
 void UUIRecyclableScrollView::SetCellTemplatePrefab(ULexUIPrefab* value)
 {
     if (CellTemplatePrefab != value)
     {
         CellTemplatePrefab = value;
-        if (WorkingCellTemplateType == EUIRecyclableScrollViewCellTemplateType::Prefab)//if WorkingCellTemplate is created by prefab, then we need to destroy it so a new one will be created from new prefab
-        {
-            WorkingCellTemplate->DestroyWidget();
-            WorkingCellTemplate = nullptr;
-        }
     }
 }
 
@@ -383,47 +362,19 @@ void UUIRecyclableScrollView::InitializeOnDataSource()
     if (Horizontal == Vertical)return;
     DataItemCount = IUIRecyclableScrollViewDataSource::Execute_GetItemCount(DataSource);
 
-    switch (CellTemplateType)
+    if (!IsValid(CellTemplatePrefab))return;
+    if (!WorkingCellTemplate.IsValid())//WorkingCellTemplate is already created by prefab
     {
-    default:
-    case EUIRecyclableScrollViewCellTemplateType::Actor:
+        WorkingCellTemplate = CellTemplatePrefab->LoadPrefab(this->GetWorld(), Content.Get());
+    }
+    if (WorkingCellTemplate.Get()->GetComponentByInterface(UUIRecyclableScrollViewCell::StaticClass()) == nullptr)
     {
-        if (!IsValid(CellTemplate))return;
-        WorkingCellTemplate = CellTemplate;
-        if (WorkingCellTemplate.Get()->GetComponentByInterface(UUIRecyclableScrollViewCell::StaticClass()) == nullptr)
-        {
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplate's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"), ANSI_TO_TCHAR(__FUNCTION__));
-            return;
-        }
-        WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
+        WorkingCellTemplate->DestroyWidget();
+        WorkingCellTemplate = nullptr;
+        UE_LOG(LGUI, Error, TEXT("[%s].%d CellTemplatePrefab's root widget must have a Component that implements UIRecyclableScrollViewCell interface!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+        return;
     }
-        break;
-    case EUIRecyclableScrollViewCellTemplateType::Prefab:
-    {
-        if (!IsValid(CellTemplatePrefab))return;
-        if (WorkingCellTemplateType != EUIRecyclableScrollViewCellTemplateType::Prefab || !WorkingCellTemplate.IsValid())//WorkingCellTemplate is already created by prefab
-        {
-            auto CellTemplateInstance = CellTemplatePrefab->LoadPrefab(this->GetWorld(), Content.Get());
-            WorkingCellTemplate = CellTemplateInstance;
-        }
-        if (!WorkingCellTemplate.IsValid())
-        {
-            WorkingCellTemplate->DestroyWidget();
-            WorkingCellTemplate = nullptr;
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must be a UI actor!"), ANSI_TO_TCHAR(__FUNCTION__));
-            return;
-        }
-        if (WorkingCellTemplate.Get()->GetComponentByInterface(UUIRecyclableScrollViewCell::StaticClass()) == nullptr)
-        {
-            WorkingCellTemplate->DestroyWidget();
-            WorkingCellTemplate = nullptr;
-            UE_LOG(LGUI, Error, TEXT("[%s] CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface!"), ANSI_TO_TCHAR(__FUNCTION__));
-            return;
-        }
-        WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Prefab;
-    }
-        break;
-    }
+
     WorkingCellTemplateSize.X = WorkingCellTemplate->GetWidth();
     WorkingCellTemplateSize.Y = WorkingCellTemplate->GetHeight();
 

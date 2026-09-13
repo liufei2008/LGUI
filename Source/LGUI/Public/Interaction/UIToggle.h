@@ -120,7 +120,10 @@ public:
 	void SetToggleGroup(UUIToggleGroup* InGroupComp);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 	bool GetValue()const { return bIsOn; }
-	/** Set IsChecked value and send callback event */
+	/**
+	 * Set IsChecked value and send callback event.
+	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 	virtual void SetValue(bool Value);
 	/** Set IsChecked value and NOT send callback event */

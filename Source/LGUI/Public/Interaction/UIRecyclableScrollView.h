@@ -68,12 +68,6 @@ public:
 		TObjectPtr<ULexWidget> Widget = nullptr;
 };
 
-UENUM(BlueprintType)
-enum class EUIRecyclableScrollViewCellTemplateType :uint8
-{
-	Actor, Prefab,
-};
-
 /**
  * RecyclableScrollView can reuse cell's ui element.
  * Assign your own DataSource object (IUIRecyclableScrollViewDataSource) and create recyclable scroll view on that data.
@@ -94,19 +88,11 @@ protected:
 	virtual bool CanEditChange(const FProperty* InProperty)const override;
 #endif
 protected:
-	/** Use a Actor which implement UIRecyclableScrollViewDataSource interface. */
+	/** Use an Object that implements UIRecyclableScrollViewDataSource interface. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "/Script/LGUI.UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
 		TObjectPtr<UObject> DataSource;
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
-		EUIRecyclableScrollViewCellTemplateType CellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
 	/**
-	 * CellTemplate must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
-	 * Only valid if CellTemplateType is Actor.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
-		TObjectPtr<ULexWidget> CellTemplate;
-	/**
-	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
+	 * CellTemplatePrefab's root widget must contain a Component that implements UIRecyclableScrollViewCell interface.
 	 * Only valid if CellTemplateType is Prefab.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
@@ -151,10 +137,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		const FVector2D& GetSpace()const { return Space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		EUIRecyclableScrollViewCellTemplateType GetCellTemplateType()const { return CellTemplateType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		ULexWidget* GetCellTemplate()const { return CellTemplate; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		class ULexUIPrefab* GetCellTemplatePrefab()const { return CellTemplatePrefab; }
 
 	/**
@@ -179,12 +161,6 @@ public:
 		void SetPadding(const FMargin& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
 		void SetSpace(const FVector2D& value);
-	/**
-	 * CellTemplate must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
-	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
-		void SetCellTemplate(ULexWidget* value);
 	/**
 	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
 	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
@@ -220,7 +196,6 @@ private:
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;
 
 	void InitializeOnDataSource();
-	EUIRecyclableScrollViewCellTemplateType WorkingCellTemplateType = EUIRecyclableScrollViewCellTemplateType::Actor;
 	TWeakObjectPtr<ULexWidget> WorkingCellTemplate = nullptr;//current using cell template, could be CellTemplate or CellTemplatePrefab's instance, tell by 'WorkingCellTemplateType'
 	FVector2D WorkingCellTemplateSize = FVector2D::ZeroVector;
 	FVector2D RangeArea = FVector2D::ZeroVector;//min max range point in parent location

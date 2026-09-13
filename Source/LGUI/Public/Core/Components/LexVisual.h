@@ -200,11 +200,13 @@ public:
 	 * The preferred width this layout element should be allocated if there is sufficient space.
 	 * Can be -1 to ignore it.
 	 */
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual float GetPreferredWidth()const{return -1;}
 	/**
 	 * The preferred height this layout element should be allocated if there is sufficient space.
 	 * Can be -1 to ignore it.
 	 */
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual float GetPreferredHeight()const{return -1;}
 
 	static int WidgetPropertyDataLength;

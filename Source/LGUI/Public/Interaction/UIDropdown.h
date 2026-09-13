@@ -162,8 +162,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		bool GetUseInteractionBlock()const { return bUseInteractionBlock; }
 
+	/**
+	 * Set current selected option index (Value) and send callback event.
+	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 	void SetValue(int InValue);
+	/** Set current selected option index (Value) and NOT send callback event */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 	void SetValueWithoutNotify(int InValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")

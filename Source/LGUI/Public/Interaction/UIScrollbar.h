@@ -71,8 +71,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		float GetNavigationChangeInterval()const { return NavigationChangeInterval; }
 
+	/**
+	 * Set Value and send callback event.
+	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 	void SetValue(float InValue);
+	/** Set Value and NOT send callback event */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 	void SetValueWithoutNotify(float InValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")

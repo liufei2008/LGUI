@@ -267,6 +267,7 @@ void ULexImage::SetBrush_LexUISprite(ULexUISpriteData_BaseObject* Value)
 		}
 		MarkVertexUVDirty();
 		Brush.SetResourceObject(Value);
+		Brush.ImageSize = FVector2f(NewLexSprite->GetSpriteInfo().Width, NewLexSprite->GetSpriteInfo().Height);
 		ULexWidget::MarkLayoutForRebuild(GetWidget());
 		return;
 	}
@@ -291,6 +292,7 @@ void ULexImage::SetBrush_LexUISprite(ULexUISpriteData_BaseObject* Value)
 		MarkMaterialDirty();
 	}
 	Brush.SetResourceObject(Value);
+	Brush.ImageSize = FVector2f(NewLexSprite->GetSpriteInfo().Width, NewLexSprite->GetSpriteInfo().Height);
 	ULexWidget::MarkLayoutForRebuild(GetWidget());
 }
 
@@ -309,6 +311,7 @@ void ULexImage::SetBrush_SlateSprite(TScriptInterface<ISlateTextureAtlasInterfac
 		}
 		MarkVertexUVDirty();
 		Brush.SetResourceObject(Value.GetObject());
+		Brush.ImageSize = FVector2f(NewSlateSprite->GetSlateAtlasData().GetSourceDimensions());
 		ULexWidget::MarkLayoutForRebuild(GetWidget());
 		return;
 	}
@@ -320,6 +323,7 @@ void ULexImage::SetBrush_SlateSprite(TScriptInterface<ISlateTextureAtlasInterfac
 		MarkMaterialDirty();
 	}
 	Brush.SetResourceObject(Value.GetObject());
+	Brush.ImageSize = FVector2f(Value->GetSlateAtlasData().GetSourceDimensions());
 	ULexWidget::MarkLayoutForRebuild(GetWidget());
 }
 
@@ -335,9 +339,10 @@ void ULexImage::SetBrush_Texture(UTexture* Value)
 		MarkMaterialDirty();
 	}
 	Brush.SetResourceObject(Value);
+	Brush.ImageSize = FVector2f(Value->GetSurfaceWidth(), Value->GetSurfaceHeight());
 	ULexWidget::MarkLayoutForRebuild(GetWidget());
 }
-void ULexImage::SetBrush_Material(UTexture* Value)
+void ULexImage::SetBrush_Material(UMaterialInterface* Value)
 {
 	//remove from old sprite
 	UnregisterFromSprite();

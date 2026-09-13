@@ -209,7 +209,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		bool GetReadOnly()const { return bReadOnly; }
 
-	/** Set text value and send callback event */
+	/**
+	 * Set text value and send callback event.
+	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetTextWithoutNotify instead.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 	void SetText(const FString& InText);
 	/** Set text value and NOT send callback event */

@@ -59,7 +59,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Image")
 	void SetBrush_Texture(UTexture* Value);
 	UFUNCTION(BlueprintCallable, Category = "Image")
-	void SetBrush_Material(UTexture* Value);
+	void SetBrush_Material(UMaterialInterface* Value);
 	
 	UFUNCTION(BlueprintCallable, Category = "Image")
 	void SetBrushTintColor(FColor Value);
