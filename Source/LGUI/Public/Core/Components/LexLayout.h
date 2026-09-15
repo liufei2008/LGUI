@@ -70,7 +70,7 @@ public:
 	virtual FVector2f GetLayoutPreferredSize()PURE_VIRTUAL(ULexLayout::GetLayoutProperties, return FVector2f::ZeroVector;);
 	virtual void MarkLayoutDirty();
 protected:
-	bool bIsLayoutDirty = false;
+	bool bIsLayoutDirty = true;
 };
 
 struct FLayoutAnimationSnapshotData
