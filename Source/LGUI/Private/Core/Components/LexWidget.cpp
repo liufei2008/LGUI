@@ -3422,8 +3422,8 @@ void ULexWidget::RemoveLayoutSelf()
 #pragma region TweenAnimation
 
 
-#pragma region PositionXYZ
-ULTweener* ULexWidget::LocalPositionXTo(double endValue, float duration, float delay, ELTweenEase ease)
+#pragma region LocationXYZ
+ULTweener* ULexWidget::RelativeLocationXTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this]
 	{
@@ -3440,7 +3440,7 @@ ULTweener* ULexWidget::LocalPositionXTo(double endValue, float duration, float d
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::LocalPositionYTo(double endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::RelativeLocationYTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this]
 	{
@@ -3457,7 +3457,7 @@ ULTweener* ULexWidget::LocalPositionYTo(double endValue, float duration, float d
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::LocalPositionZTo(double endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::RelativeLocationZTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this] 
 	{
@@ -3477,7 +3477,7 @@ ULTweener* ULexWidget::LocalPositionZTo(double endValue, float duration, float d
 
 
 
-ULTweener* ULexWidget::WorldPositionXTo(double endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::WorldLocationXTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this] 
 	{
@@ -3494,7 +3494,7 @@ ULTweener* ULexWidget::WorldPositionXTo(double endValue, float duration, float d
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::WorldPositionYTo(double endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::WorldLocationYTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this]
 	{
@@ -3511,7 +3511,7 @@ ULTweener* ULexWidget::WorldPositionYTo(double endValue, float duration, float d
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::WorldPositionZTo(double endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::WorldLocationZTo(double endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this, FLTweenDoubleGetterFunction::CreateWeakLambda(this, [this]
 	{
@@ -3528,13 +3528,13 @@ ULTweener* ULexWidget::WorldPositionZTo(double endValue, float duration, float d
 	}
 	return Tweener;
 }
-#pragma endregion PositionXYZ
+#pragma endregion LocationXYZ
 
 
 
 
-#pragma region Position
-ULTweener* ULexWidget::LocalPositionTo(FVector endValue, float duration, float delay, ELTweenEase ease)
+#pragma region Location
+ULTweener* ULexWidget::RelativeLocationTo(FVector endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
 	, FLTweenVectorGetterFunction::CreateWeakLambda(this, [this]
@@ -3553,7 +3553,7 @@ ULTweener* ULexWidget::LocalPositionTo(FVector endValue, float duration, float d
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::WorldPositionTo(FVector endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::WorldLocationTo(FVector endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
 	, FLTweenVectorGetterFunction::CreateUObject(this, &ULexWidget::GetWorldLocation)
@@ -3569,11 +3569,11 @@ ULTweener* ULexWidget::WorldPositionTo(FVector endValue, float duration, float d
 	}
 	return Tweener;
 }
-#pragma endregion Position
+#pragma endregion Location
 
 
 
-ULTweener* ULexWidget::LocalScaleTo(FVector endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::RelativeScaleTo(FVector endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
 	, FLTweenVectorGetterFunction::CreateWeakLambda(this, [this]
@@ -3593,7 +3593,7 @@ ULTweener* ULexWidget::LocalScaleTo(FVector endValue, float duration, float dela
 	return Tweener;
 }
 
-ULTweener* ULexWidget::LocalUniformScaleTo(float endValue, float duration, float delay,	ELTweenEase ease)
+ULTweener* ULexWidget::RelativeUniformScaleTo(float endValue, float duration, float delay,	ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
 	, FLTweenFloatGetterFunction::CreateWeakLambda(this, [this]
@@ -3615,7 +3615,7 @@ ULTweener* ULexWidget::LocalUniformScaleTo(float endValue, float duration, float
 
 
 #pragma region Rotation
-ULTweener* ULexWidget::LocalRotationQuaternionTo(const FQuat& endValue, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::RelativeRotationQuaternionTo(const FQuat& endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
 	, FLTweenQuaternionGetterFunction::CreateWeakLambda(this, [this]
@@ -3630,11 +3630,11 @@ ULTweener* ULexWidget::LocalRotationQuaternionTo(const FQuat& endValue, float du
 	}
 	return Tweener;
 }
-ULTweener* ULexWidget::LocalRotatorTo(FRotator endValue, bool shortestPath, float duration, float delay, ELTweenEase ease)
+ULTweener* ULexWidget::RelativeRotatorTo(FRotator endValue, bool shortestPath, float duration, float delay, ELTweenEase ease)
 {
 	if (shortestPath)
 	{
-		return LocalRotationQuaternionTo(endValue.Quaternion(), duration, delay, ease);
+		return RelativeRotationQuaternionTo(endValue.Quaternion(), duration, delay, ease);
 	}
 	else
 	{

@@ -36,11 +36,11 @@ void UUINavigationInputSelectionHandler::SelectWidget(ULexWidget* InSelected)
 		Widget->SetParent(InSelected, true);
 		auto Pos2D = InSelected->GetLocalSpaceCenter();
 		auto Pos3D = FVector(0, Pos2D.X, Pos2D.Y);
-		auto Tweener = Widget->LocalPositionTo(Pos3D, AnimDuration, 0, ELTweenEase::InOutSine);
+		auto Tweener = Widget->RelativeLocationTo(Pos3D, AnimDuration, 0, ELTweenEase::InOutSine);
 		TweenerCollection.Add(Tweener);
 		Tweener = Widget->SizeDeltaTo(InSelected->GetSize(), AnimDuration, 0, ELTweenEase::InOutSine);
 		TweenerCollection.Add(Tweener);
-		Tweener = Widget->LocalRotationQuaternionTo(FQuat::Identity, AnimDuration, 0, ELTweenEase::InOutSine);
+		Tweener = Widget->RelativeRotationQuaternionTo(FQuat::Identity, AnimDuration, 0, ELTweenEase::InOutSine);
 		TweenerCollection.Add(Tweener);
 
 		if (ThisCanvas.IsValid())

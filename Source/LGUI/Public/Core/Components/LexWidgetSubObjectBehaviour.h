@@ -28,6 +28,6 @@ protected:
 	virtual void OnUnregister(){};
 private:
 	bool bIsRegistered = false;
-	UPROPERTY(Transient, BlueprintReadOnly, Category = LGUI, Getter=GetWidget, meta = (AllowPrivateAccess = true), DisplayName=Widget)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = LGUI, Getter=GetWidget, meta = (AllowPrivateAccess = true), DisplayName=LexWidget)
 	mutable TObjectPtr<ULexWidget> OwnerWidget = nullptr;
 };
