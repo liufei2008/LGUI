@@ -426,6 +426,13 @@ TSharedPtr<SWidget> SLexWidgetEditorHierarchyView::OnContextMenuOpening()
 		}
 		return (ULexWidget*)nullptr;
 	};
+	if (auto SelectedWidget = GetSelectedWidgetFunction())
+	{
+		if (SelectedWidget == SelectedWidget->GetRootWidgetInHierarchy() && SelectedWidget == Manager.Pin()->GetRootAgentWidget())//is selecting root agent
+		{
+			return SNullWidget::NullWidget;
+		}
+	}
 	TFunction<TArray<ULexWidget*>()> GetSelectedWidgetsFunction = [this]()
 	{
 		TArray<ULexWidget*> Widgets;

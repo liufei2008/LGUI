@@ -531,7 +531,7 @@ private:
 			.Padding(2, 0)
 			[
 				SNew(SImage)
-				.ColorAndOpacity(FSlateColor::UseForeground())
+				.ColorAndOpacity(GetComponentForegroundColor(InItem.Get()))
 				.Image_Lambda([=, this]()
 				{
 					if (InItem.IsValid())
@@ -546,6 +546,7 @@ private:
 				SNew(STextBlock)
 				.Text(GetComponentText(InItem.Get()))
 				.ToolTipText(GetComponentTooltipText(InItem.Get()))
+				.ColorAndOpacity(GetComponentForegroundColor(InItem.Get()))
 			]
 		];
 	}
@@ -931,13 +932,31 @@ private:
 		return TargetClass && TargetClass->IsChildOf(ULexUIBehaviour::StaticClass());
 	}
 
+	static bool IsTransientComponent(const ULexUIBehaviour* InComponent)
+	{
+		return IsValid(InComponent) && InComponent->HasAnyFlags(RF_Transient);
+	}
 	static FText GetComponentText(const ULexUIBehaviour* InComponent)
 	{
 		if (!IsValid(InComponent))
 		{
 			return LOCTEXT("InvalidLexWidgetComponent", "Invalid Component");
 		}
-		return InComponent->GetClass()->GetDisplayNameText();
+		const FString DisplayName = InComponent->GetClass()->GetDisplayNameText().ToString();
+		if (IsTransientComponent(InComponent))
+		{
+			return FText::FromString(FString::Printf(TEXT("*%s"), *DisplayName));
+		}
+		return FText::FromString(DisplayName);
+	}
+	static FSlateColor GetComponentForegroundColor(const ULexUIBehaviour* InComponent)
+	{
+		if (IsTransientComponent(InComponent))
+		{
+			//Yellowish tint, similar to how transient actors are shown in the world outliner
+			return FSlateColor(FLinearColor(0.8f, 0.7f, 0.25f));
+		}
+		return FSlateColor::UseForeground();
 	}
 	static FText GetComponentTooltipText(const ULexUIBehaviour* InComponent)
 	{
@@ -946,6 +965,10 @@ private:
 			return LOCTEXT("InvalidLexWidgetComponent", "Invalid Component");
 		}
 
+		if (IsTransientComponent(InComponent))
+		{
+			return FText::Format(LOCTEXT("TransientComponentTooltip", "{0} (Transient)"), FText::FromString(InComponent->GetName()));
+		}
 		return FText::FromString(InComponent->GetName());
 	}
 

@@ -154,6 +154,7 @@ bool UUIScrollView::CheckParameters()
     //add helper comp to detect size change
     {
         auto HelperComp = ContentParent->AddComponent<UUIScrollViewHelper>();
+        HelperComp->SetFlags(RF_Transient);
         HelperComp->TargetComp = this;
     }
     return true;
