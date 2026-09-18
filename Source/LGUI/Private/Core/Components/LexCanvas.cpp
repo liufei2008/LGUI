@@ -1186,7 +1186,7 @@ void ULexCanvas::BatchDrawCallAsync(const FVector2D& InCanvasLeftBottom, const F
 		case ELexUIDrawCallType::PostProcess:
 			{
 				//every postprocess is a draw-call
-				bool is2DUIItem = true;//post process just use true because it not matter
+				bool is2DUIItem = true;//postprocess just use true because it not matters
 				PushSingleDrawCall(RenderData, ELexUIDrawCallType::PostProcess, is2DUIItem);
 				FitInDrawCallMinIndex = InOutUIDrawCallList.Num();
 			}

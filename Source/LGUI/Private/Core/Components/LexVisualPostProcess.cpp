@@ -137,9 +137,13 @@ void ULexVisualPostProcess::UpdateGeometry()
 	{
 		FLexUIGeometry::TransformVertices(RenderCanvas, this, Geometry.Get());
 	}
+	if (bLocalVertexPositionChanged || bUVChanged || bColorChanged || bTransformChanged || bClipDataPositionChanged)
+	{
+		bWidgetOrGeometryDirty = true;
+	}
 	if (RenderScreenToMeshRegionVertexArray.Num() == 0)
 	{
-		//full screen vertex position
+		//full-screen vertex position
 		RenderScreenToMeshRegionVertexArray =
 		{
 			FLexUIPostProcessCopyMeshRegionVertex(FVector2f(-1, -1), FVector2f(0.0f, 0.0f)),
@@ -163,70 +167,28 @@ void ULexVisualPostProcess::PostUpdateDrawCall()
 {
 	auto Widget = GetWidget();
 	auto RenderCanvas = Widget->GetRenderCanvas();
+
+	FIntRect ViewRect(FIntPoint::ZeroValue, FIntPoint::ZeroValue);
+	FMatrix ViewProjectionMatrix = FMatrix::Identity;
 	
-	//calculate screen space AABB rect
-	FVector2f Min = FVector2f(UE_MAX_FLT, UE_MAX_FLT);
-	FVector2f Max = -Min;
 	auto RootCanvas = RenderCanvas->GetRootCanvas();
-	FIntPoint ViewportSize(2, 2);
 	if (RenderCanvas->IsRenderToWorldSpace())
 	{
 #if WITH_EDITOR
 		if (!GetWorld()->IsGameWorld())
 		{
-			auto ProjectWorldToScreen = [](const FVector& WorldPosition, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix, FVector2D& out_ScreenPos)
-			{
-				FPlane Result = ViewProjectionMatrix.TransformFVector4(FVector4(WorldPosition, 1.f));
-				bool bIsInsideView = Result.W > 0.0f;
-				double W = Result.W;
-	
-				// the result of this will be x and y coords in -1..1 projection space
-				const float RHW = 1.0f / W;
-				FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, W);
-
-				// Move from projection space to normalized 0..1 UI space
-				const float NormalizedX = ( PosInScreenSpace.X / 2.f ) + 0.5f;
-				const float NormalizedY = 1.f - ( PosInScreenSpace.Y / 2.f ) - 0.5f;
-
-				FVector2D RayStartViewRectSpace(
-					( NormalizedX * (float)ViewRect.Width() ),
-					( NormalizedY * (float)ViewRect.Height() )
-					);
-
-				out_ScreenPos = RayStartViewRectSpace + FVector2D(static_cast<float>(ViewRect.Min.X), static_cast<float>(ViewRect.Min.Y));
-
-				return bIsInsideView;
-			};
 			if (auto EditorViewportClient = ULexUIManagerWorldSubsystem::GetInstance(GetWorld())->GetEditorViewportClient())
 			{
 				FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(EditorViewportClient->Viewport, EditorViewportClient->GetScene(), EditorViewportClient->EngineShowFlags));
 				auto SceneView = EditorViewportClient->CalcSceneView(&ViewFamily);
-				auto ViewRect = SceneView->UnscaledViewRect;
-				auto ViewProjectionMatrix = SceneView->ViewMatrices.GetViewProjectionMatrix();
-				auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
-				auto& Vertices = Geometry->OriginVertices;
-				for (int i = 0; i < Vertices.Num(); i++)
-				{
-					auto& Vert = Vertices[i];
-					auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
-					FVector2D ScreenPosition = FVector2D::Zero();
-					bool bResult = ProjectWorldToScreen(WorldPosition, ViewRect, ViewProjectionMatrix, ScreenPosition);
-					if (bResult)
-					{
-						Min.X = FMath::Min(Min.X, ScreenPosition.X);
-						Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
-						Max.X = FMath::Max(Max.X, ScreenPosition.X);
-						Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
-					}
-				}
-				ViewportSize = ViewRect.Size();
+				ViewRect = SceneView->UnscaledViewRect;
+				ViewProjectionMatrix = SceneView->ViewMatrices.GetViewProjectionMatrix();
 			}
 		}
 		else
 #endif
 		{
 			auto Player = UGameplayStatics::GetPlayerController(this, 0);
-			const bool bPlayerViewportRelative = true;
 			ULocalPlayer* const LP = Player ? Player->GetLocalPlayer() : nullptr;
 			if (LP && LP->ViewportClient)
 			{
@@ -234,30 +196,80 @@ void ULexVisualPostProcess::PostUpdateDrawCall()
 				FSceneViewProjectionData ProjectionData;
 				if (LP->GetProjectionData(LP->ViewportClient->Viewport, /*out*/ ProjectionData))
 				{
-					FMatrix const ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
-					auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
-					auto& Vertices = Geometry->OriginVertices;
-					auto ViewRect = ProjectionData.GetConstrainedViewRect();
-					for (int i = 0; i < Vertices.Num(); i++)
-					{
-						auto& Vert = Vertices[i];
-						auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
-						FVector2D ScreenPosition = FVector2D::Zero();
-						bool bResult = FSceneView::ProjectWorldToScreen(WorldPosition, ViewRect, ViewProjectionMatrix, ScreenPosition);
-						if (bResult)
-						{
-							if (bPlayerViewportRelative)
-							{
-								ScreenPosition -= FVector2D(ViewRect.Min);
-							}
-							Min.X = FMath::Min(Min.X, ScreenPosition.X);
-							Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
-							Max.X = FMath::Max(Max.X, ScreenPosition.X);
-							Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
-						}
-					}
-					ViewportSize = ViewRect.Size();
+					ViewRect = ProjectionData.GetConstrainedViewRect();
+					ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
 				}
+			}
+		}
+	}
+	else
+	{
+		ViewRect = FIntRect(FIntPoint::ZeroValue, RootCanvas->GetViewportSize());
+		ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
+	}
+	if (bWidgetOrGeometryDirty
+		|| CacheViewRect != ViewRect
+		|| CacheViewProjectionMatrix != ViewProjectionMatrix
+		&& (ViewRect.Max != ViewRect.Min && ViewProjectionMatrix != FMatrix::Identity)//make sure view is valid
+		)
+	{
+		bWidgetOrGeometryDirty = false;
+		CacheViewRect = ViewRect;
+		CacheViewProjectionMatrix = ViewProjectionMatrix;
+	}
+	else
+	{
+		return;//nothing change, no need to calculate
+	}
+
+	//calculate screen space AABB rect
+	FVector2f Min = FVector2f(UE_MAX_FLT, UE_MAX_FLT);
+	FVector2f Max = -Min;
+	if (RenderCanvas->IsRenderToWorldSpace())
+	{
+		auto ProjectWorldToScreen = [](const FVector& WorldPosition, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix, FVector2D& out_ScreenPos)
+		{
+			FPlane Result = ViewProjectionMatrix.TransformFVector4(FVector4(WorldPosition, 1.f));
+			bool bIsInsideView = Result.W > 0.0f;
+			double W = Result.W;
+	
+			// the result of this will be x and y coords in -1..1 projection space
+			const float RHW = 1.0f / W;
+			FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, W);
+
+			// Move from projection space to normalized 0..1 UI space
+			const float NormalizedX = ( PosInScreenSpace.X / 2.f ) + 0.5f;
+			const float NormalizedY = 1.f - ( PosInScreenSpace.Y / 2.f ) - 0.5f;
+
+			FVector2D RayStartViewRectSpace(
+				( NormalizedX * (float)ViewRect.Width() ),
+				( NormalizedY * (float)ViewRect.Height() )
+				);
+
+			out_ScreenPos = RayStartViewRectSpace + FVector2D(static_cast<float>(ViewRect.Min.X), static_cast<float>(ViewRect.Min.Y));
+
+			return bIsInsideView;
+		};
+		
+		auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+		const bool bPlayerViewportRelative = true;
+		auto& Vertices = Geometry->OriginVertices;
+		for (int i = 0; i < Vertices.Num(); i++)
+		{
+			auto& Vert = Vertices[i];
+			auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+			FVector2D ScreenPosition = FVector2D::Zero();
+			bool bResult = ProjectWorldToScreen(WorldPosition, CacheViewRect, CacheViewProjectionMatrix, ScreenPosition);
+			if (bResult)
+			{
+				if (bPlayerViewportRelative)
+				{
+					ScreenPosition -= FVector2D(CacheViewRect.Min);
+				}
+				Min.X = FMath::Min(Min.X, ScreenPosition.X);
+				Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+				Max.X = FMath::Max(Max.X, ScreenPosition.X);
+				Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
 			}
 		}
 	}
@@ -278,65 +290,62 @@ void ULexVisualPostProcess::PostUpdateDrawCall()
 				Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
 			}
 		}
-		ViewportSize = RootCanvas->GetViewportSize();
 	}
 	//clamp to viewport rect
 	Min.X = FMath::Max(Min.X, 0);
 	Min.Y = FMath::Max(Min.Y, 0);
-	Max.X = FMath::Min(Max.X, ViewportSize.X);
-	Max.Y = FMath::Min(Max.Y, ViewportSize.Y);
+	Max.X = FMath::Min(Max.X, ViewRect.Width());
+	Max.Y = FMath::Min(Max.Y, ViewRect.Height());
 	
 	MeshRectInScreen = FIntRect(FIntPoint(Min.X, Min.Y), FIntPoint(Max.X, Max.Y));
 	
 	UpdateRenderTarget();
-	UpdateRegionVertex(ViewportSize);
+	UpdateRegionVertex(ViewRect.Size());
 }
 
 void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	//simple rect geometry for render from screen image to mesh region and inverse
+	auto& Vertices = Geometry->Vertices;
+	auto& OriginVertices = Geometry->OriginVertices;
+	FLexUIGeometry::LexUIGeometrySetArrayNum(Vertices, 4);
+	FLexUIGeometry::LexUIGeometrySetArrayNum(OriginVertices, 4);
+	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
-		auto& Vertices = Geometry->Vertices;
-		auto& OriginVertices = Geometry->OriginVertices;
-		FLexUIGeometry::LexUIGeometrySetArrayNum(Vertices, 4);
-		FLexUIGeometry::LexUIGeometrySetArrayNum(OriginVertices, 4);
-		if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+		if (InVertexPositionChanged)
 		{
-			if (InVertexPositionChanged)
+			auto Widget = this->GetWidget();
+			//offset and size
+			float pivotOffsetX = 0, pivotOffsetY = 0;
+			FLexUIGeometry::CalculatePivotOffset(Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), pivotOffsetX, pivotOffsetY);
+			float halfW = Widget->GetWidth() * 0.5f, halfH = Widget->GetHeight() * 0.5f;
+			//positions
+			float minX = -halfW + pivotOffsetX;
+			float minY = -halfH + pivotOffsetY;
+			float maxX = halfW + pivotOffsetX;
+			float maxY = halfH + pivotOffsetY;
+			OriginVertices[0].Position = FVector3f(0, minX, minY);
+			OriginVertices[1].Position = FVector3f(0, maxX, minY);
+			OriginVertices[2].Position = FVector3f(0, minX, maxY);
+			OriginVertices[3].Position = FVector3f(0, maxX, maxY);
+			//snap pixel
+			if (Widget->GetPixelSnappingInHierarchy())
 			{
-				auto Widget = this->GetWidget();
-				//offset and size
-				float pivotOffsetX = 0, pivotOffsetY = 0;
-				FLexUIGeometry::CalculatePivotOffset(Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot()), pivotOffsetX, pivotOffsetY);
-				float halfW = Widget->GetWidth() * 0.5f, halfH = Widget->GetHeight() * 0.5f;
-				//positions
-				float minX = -halfW + pivotOffsetX;
-				float minY = -halfH + pivotOffsetY;
-				float maxX = halfW + pivotOffsetX;
-				float maxY = halfH + pivotOffsetY;
-				OriginVertices[0].Position = FVector3f(0, minX, minY);
-				OriginVertices[1].Position = FVector3f(0, maxX, minY);
-				OriginVertices[2].Position = FVector3f(0, minX, maxY);
-				OriginVertices[3].Position = FVector3f(0, maxX, maxY);
-				//snap pixel
-				if (Widget->GetPixelSnappingInHierarchy())
-				{
-					FLexUIGeometry::AdjustPixelSnappingPosition(OriginVertices, 0, 4, Widget->GetRenderCanvas(), this);
-				}
+				FLexUIGeometry::AdjustPixelSnappingPosition(OriginVertices, 0, 4, Widget->GetRenderCanvas(), this);
 			}
+		}
 
-			if (InVertexUVChanged)
-			{
-				Vertices[0].TextureCoordinate[0] = FVector2f(0, 1);
-				Vertices[1].TextureCoordinate[0] = FVector2f(1, 1);
-				Vertices[2].TextureCoordinate[0] = FVector2f(0, 0);
-				Vertices[3].TextureCoordinate[0] = FVector2f(1, 0);
-			}
+		if (InVertexUVChanged)
+		{
+			Vertices[0].TextureCoordinate[0] = FVector2f(0, 1);
+			Vertices[1].TextureCoordinate[0] = FVector2f(1, 1);
+			Vertices[2].TextureCoordinate[0] = FVector2f(0, 0);
+			Vertices[3].TextureCoordinate[0] = FVector2f(1, 0);
+		}
 
-			if (InVertexColorChanged)
-			{
-				FLexUIGeometry::UpdateUIColor(Geometry.Get(), GetFinalColor());
-			}
+		if (InVertexColorChanged)
+		{
+			FLexUIGeometry::UpdateUIColor(Geometry.Get(), GetFinalColor());
 		}
 	}
 }

@@ -98,6 +98,10 @@ private:
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
 	uint8 bUVChanged : 1;
+	/** widget's transform or visual's mesh changed */
+	uint8 bWidgetOrGeometryDirty : 1;
+	FMatrix CacheViewProjectionMatrix = FMatrix::Identity;
+	FIntRect CacheViewRect = FIntRect();
 protected:
 	FLexVisualPostProcessRenderProxy* RenderProxy = nullptr;
 	/** update ui geometry */
