@@ -10,7 +10,7 @@ class FLexVisualPostProcessRenderProxy;
 struct FLexUIPostProcessVertex;
 
 UENUM(BlueprintType)
-enum class ELexBackgroundBlurRenderType:uint8
+enum class ELexVisualPostProcessRenderType:uint8
 {
 	/** Render direct to screen */
 	Screen,
@@ -57,12 +57,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 	FVector4 MaskTextureUVRect = FVector4(0, 0, 1, 1);
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-	ELexBackgroundBlurRenderType RenderType = ELexBackgroundBlurRenderType::Screen;
+	ELexVisualPostProcessRenderType RenderType = ELexVisualPostProcessRenderType::Screen;
 	/**
 	 * Blur result will output to this RenderTarget.
 	 * Will create one if not specified.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="RenderType==ELexBackgroundBlurRenderType::RenderTarget"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="RenderType==ELexVisualPostProcessRenderType::RenderTarget"))
 	TObjectPtr<UTextureRenderTarget2D> OutputRenderTarget = nullptr;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
 public:
@@ -75,16 +75,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	const FVector4& GetMaskTextureUVRect()const { return MaskTextureUVRect; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	ELexBackgroundBlurRenderType GetRenderType()const { return RenderType; }
+	ELexVisualPostProcessRenderType GetRenderType()const { return RenderType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	UTextureRenderTarget2D* GetOutputRenderTarget()const { return OutputRenderTarget; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	FBox2f GetBackBufferRect()const{return MeshRectInScreen;}
+	/** xy- min, zw- size */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	FVector4f GetBackBufferRect01()const{return RectInScreen01;}
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetMaskTexture(UTexture2D* Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetMaskTextureUVRect(const FVector4& Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void SetRenderType(ELexBackgroundBlurRenderType Value);
+	void SetRenderType(ELexVisualPostProcessRenderType Value);
+	
+	void ClearMaterialsUsingThisBackBuffer();
+	void RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic);
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
@@ -111,7 +119,11 @@ protected:
 	void UpdateGeometryClipData(FLexUIGeometry& InMesh, int InDataStartPosition);
 	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
-	FIntRect MeshRectInScreen;
+	FBox2f MeshRectInScreen;
+	/** xy- min, zw- size */
+	FVector4f RectInScreen01;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 
 	virtual void SendRegionVertexDataToRenderProxy();
 	void SendMaskTextureToRenderProxy();

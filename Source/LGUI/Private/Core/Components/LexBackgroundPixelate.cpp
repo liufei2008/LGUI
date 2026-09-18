@@ -137,10 +137,11 @@ public:
 		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
 		calculatedStrength += 1;
 
-		auto width = (int)(MeshRectInScreen.Width() / calculatedStrength);
-		auto height = (int)(MeshRectInScreen.Height() / calculatedStrength);
-		width = FMath::Clamp(width, 1, MeshRectInScreen.Width());
-		height = FMath::Clamp(height, 1, MeshRectInScreen.Height());
+		auto RectSize = MeshRectInScreen.GetSize();
+		auto width = (int)(RectSize.X / calculatedStrength);
+		auto height = (int)(RectSize.Y / calculatedStrength);
+		width = FMath::Clamp(width, 1, RectSize.X);
+		height = FMath::Clamp(height, 1, RectSize.Y);
 		auto TextureSize = FIntPoint(width, height);
 		bool bFullScreen = TextureSize == ScreenSize;
 

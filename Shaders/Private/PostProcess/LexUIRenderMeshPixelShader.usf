@@ -34,8 +34,7 @@ void RenderMeshPS(
 	float inv_W = 1.0f / clipSpacePos.w;
 	float2 screenRectUV = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
 	screenRectUV.y = 1.0f - screenRectUV.y;
-	screenRectUV.x = (screenRectUV.x - _ScreenAreaMinAndSize.x) / _ScreenAreaMinAndSize.z;
-	screenRectUV.y = (screenRectUV.y - _ScreenAreaMinAndSize.y) / _ScreenAreaMinAndSize.w;
+	screenRectUV = (screenRectUV - _ScreenAreaMinAndSize.xy) / _ScreenAreaMinAndSize.zw;
 	
     OutColor = LexUIRenderMeshMainTexUB._MainTex.Sample(LexUIRenderMeshMainTexUB._MainTexSampler, screenRectUV);
 #if LEXUI_MASK

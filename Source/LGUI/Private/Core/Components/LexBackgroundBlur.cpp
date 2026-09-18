@@ -106,39 +106,18 @@ public:
 		
 		//get render target
 		{
-			float RectWidth = MeshRectInScreen.Width();
-			float RectHeight = MeshRectInScreen.Height();
-			RectWidth = FMath::Max(RectWidth, 1.0f);
-			RectHeight = FMath::Max(RectHeight, 1.0f);
+			auto RectSize = MeshRectInScreen.GetSize();
+			auto RectWidth = FMath::Max(RectSize.X, 1.0f);
+			auto RectHeight = FMath::Max(RectSize.Y, 1.0f);
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(RectWidth, RectHeight), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			if (RenderTargetResource == nullptr)
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget, TEXT("LexUIBlurEffectRenderTarget1"));
+			if (!BlurEffectRenderTarget.IsValid())
 			{
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget, TEXT("LexUIBlurEffectRenderTarget1"));
-				if (!BlurEffectRenderTarget.IsValid())
-				{
-					ReleaseRenderTarget();
-					return;
-				}
-			}
-			else
-			{
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget, TEXT("LexUIBlurEffectRenderTarget1"));
-				if (!BlurEffectRenderTarget.IsValid())
-				{
-					ReleaseRenderTarget();
-					return;
-				}
+				ReleaseRenderTarget();
+				return;
 			}
 		}
-		FRHITexture* BlurEffectRHITexture = nullptr;
-		if (RenderTargetResource == nullptr)
-		{
-			BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
-		}
-		else
-		{
-			BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
-		}
+		FRHITexture* BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
 
 		auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
 		auto BlurEffectRDGTextureRef = RegisterExternalTexture(GraphBuilder, BlurEffectRHITexture, TEXT("LexUIBlurEffectRenderTexture_ExternalTexture"));

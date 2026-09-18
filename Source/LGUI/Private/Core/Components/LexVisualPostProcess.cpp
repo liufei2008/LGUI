@@ -63,7 +63,7 @@ void ULexVisualPostProcess::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	bUVChanged = true;
 	bLocalVertexPositionChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (RenderType != ELexBackgroundBlurRenderType::RenderTarget)
+	if (RenderType != ELexVisualPostProcessRenderType::RenderTarget)
 	{
 		OnRenderTargetChanged.Broadcast(nullptr);
 	}
@@ -297,10 +297,19 @@ void ULexVisualPostProcess::PostUpdateDrawCall()
 	Max.X = FMath::Min(Max.X, ViewRect.Width());
 	Max.Y = FMath::Min(Max.Y, ViewRect.Height());
 	
-	MeshRectInScreen = FIntRect(FIntPoint(Min.X, Min.Y), FIntPoint(Max.X, Max.Y));
+	MeshRectInScreen = FBox2f(Min, Max);
+	float Inv_ViewWidth = 1.0f / ViewRect.Width();
+	float Inv_ViewHeight = 1.0f / ViewRect.Height();
+	RectInScreen01 = FVector4f(Min.X * Inv_ViewWidth, Min.Y * Inv_ViewHeight, (Max.X - Min.X) * Inv_ViewWidth, (Max.Y - Min.Y) * Inv_ViewHeight);
 	
 	UpdateRenderTarget();
 	UpdateRegionVertex(ViewRect.Size());
+	
+	for (auto& MID : MaterialsUsingThisBackBuffer)
+	{
+		if (!MID.IsValid())continue;
+		MID->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
+	}
 }
 
 void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
@@ -393,7 +402,8 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 		{
 			TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 			TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
-			FIntRect MeshRectInScreen;
+			FBox2f MeshRectInScreen;
+			FVector4f RectInScreen01;
 			FMatrix44f ObjectToWorldMatrix;
 			FTexture2DDynamicResource* ClipDataTexture = nullptr;
 		};
@@ -401,6 +411,7 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 		UpdateData->RenderMeshRegionToScreenVertexArray = this->RenderMeshRegionToScreenVertexArray;
 		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
 		UpdateData->MeshRectInScreen = this->MeshRectInScreen;
+		UpdateData->RectInScreen01 = this->RectInScreen01;
 		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
 		auto ClipDataTex = this->GetClipDataTexture();
 		if (IsValid(ClipDataTex) && ClipDataTex->GetResource() != nullptr)
@@ -413,6 +424,7 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 					TempRenderProxy->RenderScreenToMeshRegionVertexArray = MoveTemp(UpdateData->RenderScreenToMeshRegionVertexArray);
 					TempRenderProxy->RenderMeshRegionToScreenVertexArray = MoveTemp(UpdateData->RenderMeshRegionToScreenVertexArray);
 					TempRenderProxy->MeshRectInScreen = MoveTemp(UpdateData->MeshRectInScreen);
+					TempRenderProxy->RectInScreen01 = MoveTemp(UpdateData->RectInScreen01);
 					TempRenderProxy->ObjectToWorldMatrix = MoveTemp(UpdateData->ObjectToWorldMatrix);
 					TempRenderProxy->ClipDataTexture = UpdateData->ClipDataTexture;
 					delete UpdateData;
@@ -444,7 +456,7 @@ void ULexVisualPostProcess::SetMaskTextureUVRect(const FVector4& Value)
 	}
 }
 
-void ULexVisualPostProcess::SetRenderType(ELexBackgroundBlurRenderType Value)
+void ULexVisualPostProcess::SetRenderType(ELexVisualPostProcessRenderType Value)
 {
 	if (RenderType != Value)
 	{
@@ -452,6 +464,18 @@ void ULexVisualPostProcess::SetRenderType(ELexBackgroundBlurRenderType Value)
 		GetWidget()->MarkCanvasUpdate(false);
 		SendRenderTargetToRenderProxy();
 	}
+}
+
+void ULexVisualPostProcess::ClearMaterialsUsingThisBackBuffer()
+{
+	MaterialsUsingThisBackBuffer.Reset();
+}
+
+void ULexVisualPostProcess::RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic)
+{
+	MaterialsUsingThisBackBuffer.Add(InMaterialInstanceDynamic);
+	InMaterialInstanceDynamic->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
 }
 
 void ULexVisualPostProcess::SendMaskTextureToRenderProxy()
@@ -478,7 +502,7 @@ void ULexVisualPostProcess::SendRenderTargetToRenderProxy()
 	{
 		auto TempRenderProxy = RenderProxy;
 		FTextureRenderTargetResource* RenderTargetResource = nullptr;
-		if (RenderType == ELexBackgroundBlurRenderType::RenderTarget && IsValid(OutputRenderTarget))
+		if (RenderType == ELexVisualPostProcessRenderType::RenderTarget && IsValid(OutputRenderTarget))
 		{
 			RenderTargetResource = OutputRenderTarget->GameThread_GetRenderTargetResource();
 		}
@@ -517,10 +541,10 @@ bool ULexVisualPostProcess::LineTraceUI(FLexUIHitResult& OutHit, const FVector& 
 
 void ULexVisualPostProcess:: UpdateRenderTarget()
 {
-	if (RenderType != ELexBackgroundBlurRenderType::RenderTarget)return;
-	FIntPoint DesiredRenderTargetSize = MeshRectInScreen.Size();
+	if (RenderType != ELexVisualPostProcessRenderType::RenderTarget)return;
+	auto DesiredRenderTargetSize = MeshRectInScreen.GetSize();
 	static const int32 MaxAllowedDrawSize = GetMax2DTextureDimension();
-	if (DesiredRenderTargetSize.X <= 0 || DesiredRenderTargetSize.Y <= 0)
+	if (DesiredRenderTargetSize.X < 1 || DesiredRenderTargetSize.Y < 1)
 	{
 		return;
 	}
@@ -536,6 +560,12 @@ void ULexVisualPostProcess:: UpdateRenderTarget()
 		OutputRenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
 		SendRenderTargetToRenderProxy();
 		OnRenderTargetChanged.Broadcast(OutputRenderTarget);
+		//update material's texture, because OutputRenderTarget could be null when register
+		for (auto& MID : MaterialsUsingThisBackBuffer)
+		{
+			if (!MID.IsValid())continue;
+			MID->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+		}
 	}
 	else
 	{

@@ -1577,6 +1577,8 @@ FName ULexCanvas::LexUI_FontTextureMaterialParameterName = FName(TEXT("LexUI_Fon
 FName ULexCanvas::LexUI_ClipDataTexture_MaterialParameterName = FName(TEXT("LexUI_ClipDataTexture"));
 FName ULexCanvas::LexUI_WidgetPropertyDataTexture_MaterialParameterName = FName(TEXT("LexUI_WidgetPropertyDataTexture"));
 FName ULexCanvas::LexUI_IsRenderByLexUIRenderer_MaterialParameterName = FName(TEXT("LexUI_IsRenderByLexUIRenderer"));
+FName ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName = FName(TEXT("LexUI_BackBufferTexture"));
+FName ULexCanvas::LexUI_BackBufferRect_MaterialParameterName = FName(TEXT("LexUI_BackBufferRect"));
 
 bool ULexCanvas::IsMaterialContainsLexUIParameter(const UMaterialInterface* InMaterial)
 {
@@ -1591,6 +1593,8 @@ bool ULexCanvas::IsMaterialContainsLexUIParameter(const UMaterialInterface* InMa
 				|| Item.Name == LexUI_ClipDataTexture_MaterialParameterName
 				|| Item.Name == LexUI_WidgetPropertyDataTexture_MaterialParameterName
 				|| Item.Name == LexUI_IsRenderByLexUIRenderer_MaterialParameterName
+				|| Item.Name == LexUI_BackBufferTexture_MaterialParameterName
+				|| Item.Name == LexUI_BackBufferRect_MaterialParameterName
 				;
 		});
 	return FoundIndex != INDEX_NONE;
@@ -1637,6 +1641,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 		}
 	}
 
+	ULexVisualPostProcess* LastPostProcessObject = nullptr;
 	for (int i = 0; i < CurrentDrawCallData.DrawCallArray.Num(); i++)
 	{
 		auto& DrawCallItem = CurrentDrawCallData.DrawCallArray[i];
@@ -1748,16 +1753,22 @@ void ULexCanvas::UpdateDrawCallMaterial()
 						ParamCache.Texture = DrawCallItem.Texture;
 						ParamCache.FontTexture = DrawCallItem.FontTexture;
 					}
+					if (LastPostProcessObject != nullptr)
+					{
+						LastPostProcessObject->RegisterMaterialsUsingThisBackBuffer(RenderMat_MID);
+					}
 				}
 				UIMesh->SetMeshSectionMaterial(i, RenderMat);
 			}
 			break;
 		case ELexUIDrawCallType::PostProcess:
+			{
+				LastPostProcessObject = DrawCallItem.PostProcessVisualObject.Get();
+				LastPostProcessObject->ClearMaterialsUsingThisBackBuffer();
+			}
+		break;
 		case ELexUIDrawCallType::ChildCanvas:
 		case ELexUIDrawCallType::DirectMesh:
-			{
-
-			}
 			break;
 		}
 	}

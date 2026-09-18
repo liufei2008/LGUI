@@ -688,6 +688,8 @@ public:
 	static FName LexUI_ClipDataTexture_MaterialParameterName;
 	static FName LexUI_WidgetPropertyDataTexture_MaterialParameterName;
 	static FName LexUI_IsRenderByLexUIRenderer_MaterialParameterName;
+	static FName LexUI_BackBufferTexture_MaterialParameterName;
+	static FName LexUI_BackBufferRect_MaterialParameterName;
 	static bool IsMaterialContainsLexUIParameter(const UMaterialInterface* InMaterial);
 private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);

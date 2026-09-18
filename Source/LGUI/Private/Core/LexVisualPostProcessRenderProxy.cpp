@@ -115,10 +115,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 			}
 			else
 			{
-				float Inv_ViewWidth = 1.0f / ViewRect.Width();
-				float Inv_ViewHeight = 1.0f / ViewRect.Height();
-				auto ScreenAreaMinAndSize = FVector4f(MeshRectInScreen.Min.X * Inv_ViewWidth, MeshRectInScreen.Min.Y * Inv_ViewHeight
-					, MeshRectInScreen.Width() * Inv_ViewWidth, MeshRectInScreen.Height() * Inv_ViewHeight);
+				auto ScreenAreaMinAndSize = RectInScreen01;
 				if (IsWorldSpace)
 				{
 					if (DepthFadeForWorld <= 0.0f)

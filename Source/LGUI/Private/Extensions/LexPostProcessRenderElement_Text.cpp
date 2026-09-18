@@ -95,7 +95,7 @@ void ULexPostProcessRenderElement_Text::SetMaterialParameter()
 		{
 			if (PostProcess.IsValid())
 			{
-				if (PostProcess->GetRenderType() == ELexBackgroundBlurRenderType::RenderTarget)
+				if (PostProcess->GetRenderType() == ELexVisualPostProcessRenderType::RenderTarget)
 				{
 					MaterialInstanceDynamic->SetTextureParameterValue(LexUI_PostProcessTexture, PostProcess->GetOutputRenderTarget());
 					ULexPostProcessRenderElement::SetMaterialMatrixProperty(PostProcess.Get(), MaterialInstanceDynamic);

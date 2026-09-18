@@ -52,7 +52,8 @@ public:
 	FMatrix44f ObjectToWorldMatrix = FMatrix44f::Identity;
 	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
-	FIntRect MeshRectInScreen;
+	FBox2f MeshRectInScreen;
+	FVector4f RectInScreen01;
 	FTexture2DResource* MaskTexture = nullptr;
 	//output target
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;

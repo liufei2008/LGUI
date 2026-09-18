@@ -105,7 +105,7 @@ void ULexPostProcessRenderElement::SetMaterialParameter()
 		{
 			if (PostProcess.IsValid())
 			{
-				if (PostProcess->GetRenderType() == ELexBackgroundBlurRenderType::RenderTarget)
+				if (PostProcess->GetRenderType() == ELexVisualPostProcessRenderType::RenderTarget)
 				{
 					SetMaterialMatrixProperty(PostProcess.Get(), MaterialInstanceDynamic);
 				}
@@ -157,7 +157,7 @@ UTexture* ULexPostProcessRenderElement::GetTextureToCreateGeometry()
 {
 	if (PostProcess.IsValid())
 	{
-		if (PostProcess->GetRenderType() == ELexBackgroundBlurRenderType::RenderTarget)
+		if (PostProcess->GetRenderType() == ELexVisualPostProcessRenderType::RenderTarget)
 		{
 			return PostProcess->GetOutputRenderTarget();
 		}
