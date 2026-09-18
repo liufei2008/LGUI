@@ -206,10 +206,9 @@ public:
 		: FLexUIPostProcessShader(Initializer)
 	{
 		MainTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_MainTextureScaleOffset"));
-		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
 		IsRenderTargetParameter.Bind(Initializer.ParameterMap, TEXT("_IsRenderTarget"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix44f& MVP
+	void SetParameters(FRHICommandListImmediate& RHICmdList
 		, bool bIsRenderTarget
 		, FTextureRHIRef MainTexture, const FVector4f& MainTextureScaleOffset
 		, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
@@ -223,7 +222,6 @@ public:
 		auto UniformBuffer = TUniformBufferRef<FLexUIPostProcessMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
 		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIPostProcessMainTexUB>(), UniformBuffer);
 		
-		SetShaderValue(BatchedParameters, MVPParameter, MVP);
 		SetShaderValue(BatchedParameters, MainTextureScaleOffsetParameter, MainTextureScaleOffset);
 		SetShaderValue(BatchedParameters, IsRenderTargetParameter, bIsRenderTarget ? 1.0f : 0.0f);
 		
@@ -231,7 +229,6 @@ public:
 	}
 private:
 	LAYOUT_FIELD(FShaderParameter, MainTextureScaleOffsetParameter);
-	LAYOUT_FIELD(FShaderParameter, MVPParameter);
 	LAYOUT_FIELD(FShaderParameter, IsRenderTargetParameter);
 };
 class FLexUICopyMeshRegionPS_ColorCorrect : public FLexUICopyMeshRegionPS
@@ -308,13 +305,15 @@ public:
 	FLexUIRenderMeshPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUIPostProcessShader(Initializer)
 	{
+		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
+		ScreenAreaMinAndSizeParameter.Bind(Initializer.ParameterMap, TEXT("_ScreenAreaMinAndSize"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
 		OutEnvironment.SetDefine(TEXT("LEXUI_MASK"), 0);
 		FLexUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix44f& MVP, const FVector4f& ScreenAreaMinAndSize, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
 		
@@ -323,10 +322,14 @@ public:
 		UB._MainTexSampler = MainTextureSampler;
 		auto UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
 		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMainTexUB>(), UniformBuffer);
+		SetShaderValue(BatchedParameters, MVPParameter, MVP);
+		SetShaderValue(BatchedParameters, ScreenAreaMinAndSizeParameter, ScreenAreaMinAndSize);
 		
 		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
 	}
 private:
+	LAYOUT_FIELD(FShaderParameter, MVPParameter);
+	LAYOUT_FIELD(FShaderParameter, ScreenAreaMinAndSizeParameter);
 };
 
 //render mesh pixel shader, use a mask texture

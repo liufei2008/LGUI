@@ -34,6 +34,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
+	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -41,6 +42,7 @@ protected:
 #endif
 	TSharedPtr<FLexUIGeometry> Geometry = nullptr;
 	virtual void UpdateGeometry()override final;
+	void PostUpdateDrawCall();
 
 	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)override;
 	virtual void OnTransformChanged(bool InPositionChanged, bool InScaleChanged) override;
@@ -101,10 +103,11 @@ protected:
 	/** update ui geometry */
 	virtual void OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/** update region vertex data */
-	virtual void UpdateRegionVertex();
+	virtual void UpdateRegionVertex(FIntPoint InViewportSize);
 	void UpdateGeometryClipData(FLexUIGeometry& InMesh, int InDataStartPosition);
-	TArray<FLexUIPostProcessCopyMeshRegionVertex> RenderScreenToMeshRegionVertexArray;
-	TArray<FLexUIPostProcessVertex> RenderMeshRegionToScreenVertexArray;
+	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
+	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
+	FIntRect MeshRectInScreen;
 
 	virtual void SendRegionVertexDataToRenderProxy();
 	void SendMaskTextureToRenderProxy();

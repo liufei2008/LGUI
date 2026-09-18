@@ -39,7 +39,6 @@ void SimpleCopyTargetPS(
 
 
 float4 _MainTextureScaleOffset;
-float4x4 _MVP;
 half _IsRenderTarget;//if this is render to TextureTarget or to Screen
 
 void CopyMeshRegionPS(
@@ -47,11 +46,8 @@ void CopyMeshRegionPS(
     out float4 OutColor : SV_Target0
 )
 {
-    float4 clipSpacePos = mul(float4(input.localPosition.xyz, 1.0), _MVP);
-    float inv_W = 1.0f / clipSpacePos.w;
-    float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
+    float2 uv = input.uv;
     uv.xy = uv.xy * _MainTextureScaleOffset.xy + _MainTextureScaleOffset.zw;
-    uv.y = 1.0f - uv.y;
     OutColor = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, uv);
     //if render to screen then we need set alpha to 1, because default is 0 
     OutColor.a = _IsRenderTarget ? OutColor.a : 1;

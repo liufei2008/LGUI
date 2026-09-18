@@ -21,15 +21,15 @@ void SimplePostProcessVS(
 struct CopyMeshRegionVSToPS
 {
     float4 position : SV_Position;
-    float3 localPosition : TEXCOORD0;
+    float2 uv : TEXCOORD0;
 };
 
 void CopyMeshRegionVS(
-    in float3 ScreenPosition : ATTRIBUTE0,
-    in float3 LocalPosition : ATTRIBUTE1,
+    in float2 ScreenPosition : ATTRIBUTE0,
+    in float2 TextureCoordinate : ATTRIBUTE1,
     out CopyMeshRegionVSToPS v2p
 )
 {
-    v2p.position = float4(ScreenPosition.xyz, 1.0);
-    v2p.localPosition = LocalPosition;
+    v2p.position = float4(ScreenPosition.xy, 0.0, 1.0);
+    v2p.uv = TextureCoordinate;
 }

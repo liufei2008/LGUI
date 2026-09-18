@@ -22,13 +22,24 @@ float2 _ViewSizeInv;
 #include "/Engine/Generated/UniformBuffers/LexUIRenderMeshMaskTexUB.ush"
 #endif
 
+float4 _ScreenAreaMinAndSize;//xy-min,zw-size
+
 void RenderMeshPS(
     RenderMeshVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
-    OutColor = LexUIRenderMeshMainTexUB._MainTex.Sample(LexUIRenderMeshMainTexUB._MainTexSampler, input.uv);
+	//calculate screen space uv, remap to screen-space aabb rect area, for sampling screen-space rect
+	float4 clipSpacePos = mul(float4(input.localPosition.xyz, 1.0), _MVP);
+	float inv_W = 1.0f / clipSpacePos.w;
+	float2 screenRectUV = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
+	screenRectUV.y = 1.0f - screenRectUV.y;
+	screenRectUV.x = (screenRectUV.x - _ScreenAreaMinAndSize.x) / _ScreenAreaMinAndSize.z;
+	screenRectUV.y = (screenRectUV.y - _ScreenAreaMinAndSize.y) / _ScreenAreaMinAndSize.w;
+	
+    OutColor = LexUIRenderMeshMainTexUB._MainTex.Sample(LexUIRenderMeshMainTexUB._MainTexSampler, screenRectUV);
 #if LEXUI_MASK
+	//input.uv is widget's full rect uv, good for sampling mask texture
     OutColor.a *= LexUIRenderMeshMaskTexUB._MaskTex.Sample(LexUIRenderMeshMaskTexUB._MaskTexSampler, input.uv).r;
 #endif
 #if LEXUI_CLIP

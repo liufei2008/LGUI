@@ -50,11 +50,10 @@ public:
 	FTexture2DDynamicResource* ClipDataTexture = nullptr;
 	
 	FMatrix44f ObjectToWorldMatrix = FMatrix44f::Identity;
-	TArray<FLexUIPostProcessCopyMeshRegionVertex> RenderScreenToMeshRegionVertexArray;
-	TArray<FLexUIPostProcessVertex> RenderMeshRegionToScreenVertexArray;
-	FVector2f RectSize;
+	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
+	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
+	FIntRect MeshRectInScreen;
 	FTexture2DResource* MaskTexture = nullptr;
-	FBox BoundingBox;
 	//output target
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;
 

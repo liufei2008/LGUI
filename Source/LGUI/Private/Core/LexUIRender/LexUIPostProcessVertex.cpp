@@ -30,8 +30,8 @@ void FLexUIPostProcessCopyMeshRegionVertexDeclaration::InitRHI(FRHICommandListBa
 {
 	FVertexDeclarationElementList Elements;
 	uint16 Stride = sizeof(FLexUIPostProcessCopyMeshRegionVertex);
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLexUIPostProcessCopyMeshRegionVertex, ScreenPosition), VET_Float3, 0, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLexUIPostProcessCopyMeshRegionVertex, LocalPosition), VET_Float3, 1, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLexUIPostProcessCopyMeshRegionVertex, ScreenPosition), VET_Float2, 0, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLexUIPostProcessCopyMeshRegionVertex, TextureCoordinate), VET_Float2, 1, Stride));
 	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
 }
 void FLexUIPostProcessCopyMeshRegionVertexDeclaration::ReleaseRHI()

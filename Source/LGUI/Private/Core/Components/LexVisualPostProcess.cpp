@@ -4,10 +4,11 @@
 #include "LGUI.h"
 #include "Core/Components/LexCanvas.h"
 #include "Core/LexUIGeometry.h"
+#include "Core/LexUIManager.h"
 #include "Core/LexVisualPostProcessRenderProxy.h"
 #include "Core/Components/LexWidget.h"
 #include "Engine/TextureRenderTarget2D.h"
-
+#include "Kismet/GameplayStatics.h"
 
 
 ULexVisualPostProcess::ULexVisualPostProcess(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
@@ -37,10 +38,23 @@ void ULexVisualPostProcess::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+void ULexVisualPostProcess::OnRegister()
+{
+	Super::OnRegister();
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->GetOnPostUpdateDrawCall().AddUObject(this, &ULexVisualPostProcess::PostUpdateDrawCall);
+	}
+}
+
 void ULexVisualPostProcess::OnUnregister()
 {
 	Super::OnUnregister();
 	OnRenderTargetChanged.Broadcast(nullptr);
+	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(GetWorld()))
+	{
+		LexUIManager->GetOnPostUpdateDrawCall().RemoveAll(this);
+	}
 }
 
 #if WITH_EDITOR
@@ -49,11 +63,7 @@ void ULexVisualPostProcess::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	bUVChanged = true;
 	bLocalVertexPositionChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (RenderType == ELexBackgroundBlurRenderType::RenderTarget)
-	{
-		UpdateRenderTarget();
-	}
-	else
+	if (RenderType != ELexBackgroundBlurRenderType::RenderTarget)
 	{
 		OnRenderTargetChanged.Broadcast(nullptr);
 	}
@@ -79,15 +89,10 @@ void ULexVisualPostProcess::OnDimensionChanged(bool InPivotChange, bool InWidthC
     {
 	    MarkVertexPositionDirty();
     }
-	if (InWidthChange || InHeightChange)
-	{
-		UpdateRenderTarget();
-	}
 }
 void ULexVisualPostProcess::OnTransformChanged(bool InPositionChanged, bool InScaleChanged)
 {
 	Super::OnTransformChanged(InPositionChanged, InScaleChanged);
-	UpdateRenderTarget();
 }
 
 void ULexVisualPostProcess::MarkVertexPositionDirty()
@@ -132,9 +137,20 @@ void ULexVisualPostProcess::UpdateGeometry()
 	{
 		FLexUIGeometry::TransformVertices(RenderCanvas, this, Geometry.Get());
 	}
-	if (bLocalVertexPositionChanged || bUVChanged || bColorChanged || bTransformChanged || bClipDataPositionChanged)
+	if (RenderScreenToMeshRegionVertexArray.Num() == 0)
 	{
-		UpdateRegionVertex();
+		//full screen vertex position
+		RenderScreenToMeshRegionVertexArray =
+		{
+			FLexUIPostProcessCopyMeshRegionVertex(FVector2f(-1, -1), FVector2f(0.0f, 0.0f)),
+			FLexUIPostProcessCopyMeshRegionVertex(FVector2f(1, -1), FVector2f(0.0f, 0.0f)),
+			FLexUIPostProcessCopyMeshRegionVertex(FVector2f(-1, 1), FVector2f(0.0f, 0.0f)),
+			FLexUIPostProcessCopyMeshRegionVertex(FVector2f(1, 1), FVector2f(0.0f, 0.0f))
+		};
+	}
+	if (RenderMeshRegionToScreenVertexArray.Num() == 0)
+	{
+		RenderMeshRegionToScreenVertexArray.SetNumZeroed(4);
 	}
 
 	bLocalVertexPositionChanged = false;
@@ -142,6 +158,140 @@ void ULexVisualPostProcess::UpdateGeometry()
 	bColorChanged = false;
 	bTransformChanged = false;
 }
+
+void ULexVisualPostProcess::PostUpdateDrawCall()
+{
+	auto Widget = GetWidget();
+	auto RenderCanvas = Widget->GetRenderCanvas();
+	
+	//calculate screen space AABB rect
+	FVector2f Min = FVector2f(UE_MAX_FLT, UE_MAX_FLT);
+	FVector2f Max = -Min;
+	auto RootCanvas = RenderCanvas->GetRootCanvas();
+	FIntPoint ViewportSize(2, 2);
+	if (RenderCanvas->IsRenderToWorldSpace())
+	{
+#if WITH_EDITOR
+		if (!GetWorld()->IsGameWorld())
+		{
+			auto ProjectWorldToScreen = [](const FVector& WorldPosition, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix, FVector2D& out_ScreenPos)
+			{
+				FPlane Result = ViewProjectionMatrix.TransformFVector4(FVector4(WorldPosition, 1.f));
+				bool bIsInsideView = Result.W > 0.0f;
+				double W = Result.W;
+	
+				// the result of this will be x and y coords in -1..1 projection space
+				const float RHW = 1.0f / W;
+				FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, W);
+
+				// Move from projection space to normalized 0..1 UI space
+				const float NormalizedX = ( PosInScreenSpace.X / 2.f ) + 0.5f;
+				const float NormalizedY = 1.f - ( PosInScreenSpace.Y / 2.f ) - 0.5f;
+
+				FVector2D RayStartViewRectSpace(
+					( NormalizedX * (float)ViewRect.Width() ),
+					( NormalizedY * (float)ViewRect.Height() )
+					);
+
+				out_ScreenPos = RayStartViewRectSpace + FVector2D(static_cast<float>(ViewRect.Min.X), static_cast<float>(ViewRect.Min.Y));
+
+				return bIsInsideView;
+			};
+			if (auto EditorViewportClient = ULexUIManagerWorldSubsystem::GetInstance(GetWorld())->GetEditorViewportClient())
+			{
+				FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(EditorViewportClient->Viewport, EditorViewportClient->GetScene(), EditorViewportClient->EngineShowFlags));
+				auto SceneView = EditorViewportClient->CalcSceneView(&ViewFamily);
+				auto ViewRect = SceneView->UnscaledViewRect;
+				auto ViewProjectionMatrix = SceneView->ViewMatrices.GetViewProjectionMatrix();
+				auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+				auto& Vertices = Geometry->OriginVertices;
+				for (int i = 0; i < Vertices.Num(); i++)
+				{
+					auto& Vert = Vertices[i];
+					auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+					FVector2D ScreenPosition = FVector2D::Zero();
+					bool bResult = ProjectWorldToScreen(WorldPosition, ViewRect, ViewProjectionMatrix, ScreenPosition);
+					if (bResult)
+					{
+						Min.X = FMath::Min(Min.X, ScreenPosition.X);
+						Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+						Max.X = FMath::Max(Max.X, ScreenPosition.X);
+						Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
+					}
+				}
+				ViewportSize = ViewRect.Size();
+			}
+		}
+		else
+#endif
+		{
+			auto Player = UGameplayStatics::GetPlayerController(this, 0);
+			const bool bPlayerViewportRelative = true;
+			ULocalPlayer* const LP = Player ? Player->GetLocalPlayer() : nullptr;
+			if (LP && LP->ViewportClient)
+			{
+				// get the projection data
+				FSceneViewProjectionData ProjectionData;
+				if (LP->GetProjectionData(LP->ViewportClient->Viewport, /*out*/ ProjectionData))
+				{
+					FMatrix const ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
+					auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+					auto& Vertices = Geometry->OriginVertices;
+					auto ViewRect = ProjectionData.GetConstrainedViewRect();
+					for (int i = 0; i < Vertices.Num(); i++)
+					{
+						auto& Vert = Vertices[i];
+						auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+						FVector2D ScreenPosition = FVector2D::Zero();
+						bool bResult = FSceneView::ProjectWorldToScreen(WorldPosition, ViewRect, ViewProjectionMatrix, ScreenPosition);
+						if (bResult)
+						{
+							if (bPlayerViewportRelative)
+							{
+								ScreenPosition -= FVector2D(ViewRect.Min);
+							}
+							Min.X = FMath::Min(Min.X, ScreenPosition.X);
+							Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+							Max.X = FMath::Max(Max.X, ScreenPosition.X);
+							Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
+						}
+					}
+					ViewportSize = ViewRect.Size();
+				}
+			}
+		}
+	}
+	else
+	{
+		auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+		auto& Vertices = Geometry->OriginVertices;
+		for (int i = 0; i < Vertices.Num(); i++)
+		{
+			auto& Vert = Vertices[i];
+			auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+			FVector2D ScreenPosition = FVector2D::Zero();
+			if (RootCanvas->Project3DToScreen(WorldPosition, ScreenPosition))
+			{
+				Min.X = FMath::Min(Min.X, ScreenPosition.X);
+				Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+				Max.X = FMath::Max(Max.X, ScreenPosition.X);
+				Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
+			}
+		}
+		ViewportSize = RootCanvas->GetViewportSize();
+	}
+	//clamp to viewport rect
+	Min.X = FMath::Max(Min.X, 0);
+	Min.Y = FMath::Max(Min.Y, 0);
+	Max.X = FMath::Min(Max.X, ViewportSize.X);
+	Max.Y = FMath::Min(Max.Y, ViewportSize.Y);
+	
+	MeshRectInScreen = FIntRect(FIntPoint(Min.X, Min.Y), FIntPoint(Max.X, Max.Y));
+	
+	UpdateRenderTarget();
+	UpdateRegionVertex(ViewportSize);
+}
+
 void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	//simple rect geometry for render from screen image to mesh region and inverse
@@ -191,33 +341,16 @@ void ULexVisualPostProcess::OnUpdateGeometry(bool InTriangleChanged, bool InVert
 	}
 }
 
-void ULexVisualPostProcess::UpdateRegionVertex()
+void ULexVisualPostProcess::UpdateRegionVertex(FIntPoint InViewportSize)
 {
-	if (RenderScreenToMeshRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		RenderScreenToMeshRegionVertexArray =
-		{
-			FLexUIPostProcessCopyMeshRegionVertex(FVector3f(-1, -1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
-			FLexUIPostProcessCopyMeshRegionVertex(FVector3f(1, -1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
-			FLexUIPostProcessCopyMeshRegionVertex(FVector3f(-1, 1, 0), FVector3f(0.0f, 0.0f, 0.0f)),
-			FLexUIPostProcessCopyMeshRegionVertex(FVector3f(1, 1, 0), FVector3f(0.0f, 0.0f, 0.0f))
-		};
-	}
+	FVector2f Inv_ViewportSize(1.0f / InViewportSize.X, 1.0f / InViewportSize.Y);
+	RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
+	RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
+	RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
+	RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
 
 	auto& Vertices = Geometry->Vertices;
-	for (int i = 0; i < 4; i++)
-	{
-		auto& copyVert = RenderScreenToMeshRegionVertexArray[i];
-		copyVert.LocalPosition = Vertices[i].Position;
-	}
-	
 	constexpr int VertexBufferSize = 4;
-	if (RenderMeshRegionToScreenVertexArray.Num() != VertexBufferSize)
-	{
-		RenderMeshRegionToScreenVertexArray.SetNumZeroed(VertexBufferSize);
-	}
-
 	for (int i = 0; i < VertexBufferSize; i++)
 	{
 		auto& copyVert = RenderMeshRegionToScreenVertexArray[i];
@@ -249,42 +382,31 @@ void ULexVisualPostProcess::SendRegionVertexDataToRenderProxy()
 		auto TempRenderProxy = RenderProxy;
 		struct FUIPostProcess_SendRegionVertexDataToRenderProxy
 		{
-			TArray<FLexUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
-			TArray<FLexUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-			FVector2f RectSize;
-			FMatrix44f objectToWorldMatrix;
+			TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
+			TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
+			FIntRect MeshRectInScreen;
+			FMatrix44f ObjectToWorldMatrix;
 			FTexture2DDynamicResource* ClipDataTexture = nullptr;
-			FBox BoundingBox;
 		};
-		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
-		updateData->renderMeshRegionToScreenVertexArray = this->RenderMeshRegionToScreenVertexArray;
-		updateData->renderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
-		updateData->RectSize = FVector2f(Widget->GetWidth(), Widget->GetHeight());
-		updateData->objectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
-		{
-			updateData->BoundingBox = FBox(EForceInit::ForceInit);
-			FVector2D Min, Max;
-			this->GetGeometryBoundsInLocalSpace(Min, Max);
-			auto WorldMin = this->GetWidget()->GetWorldTransform().TransformPosition(FVector(0, Min.X, Min.Y));
-			auto WorldMax = this->GetWidget()->GetWorldTransform().TransformPosition(FVector(0, Max.X, Max.Y));
-			updateData->BoundingBox += WorldMin;
-			updateData->BoundingBox += WorldMax;
-		}
+		auto UpdateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
+		UpdateData->RenderMeshRegionToScreenVertexArray = this->RenderMeshRegionToScreenVertexArray;
+		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
+		UpdateData->MeshRectInScreen = this->MeshRectInScreen;
+		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
 		auto ClipDataTex = this->GetClipDataTexture();
 		if (IsValid(ClipDataTex) && ClipDataTex->GetResource() != nullptr)
 		{
-			updateData->ClipDataTexture = (FTexture2DDynamicResource*)ClipDataTex->GetResource();
+			UpdateData->ClipDataTexture = (FTexture2DDynamicResource*)ClipDataTex->GetResource();
 		}
 		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateData)
-			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+			([TempRenderProxy, UpdateData](FRHICommandListImmediate& RHICmdList)
 				{
-					TempRenderProxy->RenderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
-					TempRenderProxy->RenderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
-					TempRenderProxy->RectSize = updateData->RectSize;
-					TempRenderProxy->ObjectToWorldMatrix = updateData->objectToWorldMatrix;
-					TempRenderProxy->ClipDataTexture = updateData->ClipDataTexture;
-					TempRenderProxy->BoundingBox = updateData->BoundingBox;
-					delete updateData;
+					TempRenderProxy->RenderScreenToMeshRegionVertexArray = MoveTemp(UpdateData->RenderScreenToMeshRegionVertexArray);
+					TempRenderProxy->RenderMeshRegionToScreenVertexArray = MoveTemp(UpdateData->RenderMeshRegionToScreenVertexArray);
+					TempRenderProxy->MeshRectInScreen = MoveTemp(UpdateData->MeshRectInScreen);
+					TempRenderProxy->ObjectToWorldMatrix = MoveTemp(UpdateData->ObjectToWorldMatrix);
+					TempRenderProxy->ClipDataTexture = UpdateData->ClipDataTexture;
+					delete UpdateData;
 				});
 	}
 }
@@ -384,11 +506,10 @@ bool ULexVisualPostProcess::LineTraceUI(FLexUIHitResult& OutHit, const FVector& 
 	}
 }
 
-void ULexVisualPostProcess::UpdateRenderTarget()
+void ULexVisualPostProcess:: UpdateRenderTarget()
 {
 	if (RenderType != ELexBackgroundBlurRenderType::RenderTarget)return;
-	auto Widget = GetWidget();
-	FIntPoint DesiredRenderTargetSize(Widget->GetWidth(), Widget->GetHeight());
+	FIntPoint DesiredRenderTargetSize = MeshRectInScreen.Size();
 	static const int32 MaxAllowedDrawSize = GetMax2DTextureDimension();
 	if (DesiredRenderTargetSize.X <= 0 || DesiredRenderTargetSize.Y <= 0)
 	{

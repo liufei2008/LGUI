@@ -3061,22 +3061,17 @@ bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosi
 	if (RootCanvas->RenderMode != ELexRenderMode::ScreenSpaceOverlay && RootCanvas->RenderMode != ELexRenderMode::RenderTarget)return false;
 	auto ViewProjectionMatrix = this->GetViewProjectionMatrix();
 	auto Result = ViewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
-	if (Result.W > 0.0f)
-	{
-		// the result of this will be x and y coords in -1..1 projection space
-		const float RHW = 1.0f / Result.W;
-		FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, Result.W);
+	// the result of this will be x and y coords in -1..1 projection space
+	const float RHW = 1.0f / Result.W;
+	FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, Result.W);
 
-		// Move from projection space to normalized 0..1 UI space
-		OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
-		OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
-		//Convert to LGUI's viewport size
-		OutPosition2D *= this->GetViewportSize();
-		OutPosition2D /= this->CanvasScale;
-
-		return true;
-	}
-	return false;
+	// Move from projection space to normalized 0..1 UI space
+	OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
+	OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
+	//Convert to LGUI's viewport size
+	OutPosition2D *= this->GetViewportSize();
+	OutPosition2D /= this->CanvasScale;
+	return true;
 }
 
 bool ULexCanvas::DeprojectScreenTo3D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDirection)

@@ -247,8 +247,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 	, FRDGTextureRef Dst
 	, FTextureRHIRef Src
 	, FGlobalShaderMap* GlobalShaderMap
-	, const TArray<FLexUIPostProcessCopyMeshRegionVertex>& RegionVertexData
-	, const FMatrix44f& MVP
+	, const TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>>& RegionVertexData
 	, bool bIsRenderTarget
 	, const FIntRect& ViewRect
 	, const FVector4f& SrcTextureScaleOffset
@@ -265,7 +264,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 		RDG_EVENT_NAME("LexUICopyRenderTargetOnMeshRegion"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[Src, GlobalShaderMap, RegionVertexData, MVP, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, ColorCorrect](FRHICommandListImmediate& RHICmdList)
+		[Src, GlobalShaderMap, RegionVertexData, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, ColorCorrect](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -285,7 +284,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-				PixelShader->SetParameters(RHICmdList, MVP, bIsRenderTarget, Src, SrcTextureScaleOffset);
+				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, Src, SrcTextureScaleOffset);
 			}
 			else
 			{
@@ -293,7 +292,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-				PixelShader->SetParameters(RHICmdList, MVP, bIsRenderTarget, Src, SrcTextureScaleOffset);
+				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, Src, SrcTextureScaleOffset);
 			}
 			
 			FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(

@@ -623,7 +623,7 @@ public:
 	bool ConvertPositionFromCanvasToViewport(const FVector2D& InPosition, FVector2D& Result)const;
 	/**
 	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
-	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for convert world space!!!
+	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for world space!!!
 	 * @param	Position3D	GetWorldLocation from the UI element (world location).
 	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
 	 * @return 	convert will fail if this LexCanvas is not root canvas, or not screen space.
@@ -632,7 +632,7 @@ public:
 	bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
 	/**
 	 * Transforms 2D screen coordinates into a 3D world-space origin and direction.
-	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for convert world space!!!
+	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for world space!!!
 	 * @param ScreenPos Screen coordinates in pixels, left bottom is zero point.
 	 * @param OutWorldOrigin World space origin vector
 	 * @param OutWorldDirection World space direction vector

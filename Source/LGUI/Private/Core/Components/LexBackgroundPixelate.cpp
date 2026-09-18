@@ -137,10 +137,10 @@ public:
 		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
 		calculatedStrength += 1;
 
-		auto width = (int)(RectSize.X / calculatedStrength);
-		auto height = (int)(RectSize.Y / calculatedStrength);
-		width = FMath::Clamp(width, 1, (int)RectSize.X);
-		height = FMath::Clamp(height, 1, (int)RectSize.Y);
+		auto width = (int)(MeshRectInScreen.Width() / calculatedStrength);
+		auto height = (int)(MeshRectInScreen.Height() / calculatedStrength);
+		width = FMath::Clamp(width, 1, MeshRectInScreen.Width());
+		height = FMath::Clamp(height, 1, MeshRectInScreen.Height());
 		auto TextureSize = FIntPoint(width, height);
 		bool bFullScreen = TextureSize == ScreenSize;
 
@@ -165,7 +165,6 @@ public:
 				, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
 				, GlobalShaderMap
 				, RenderScreenToMeshRegionVertexArray
-				, ModelViewProjectionMatrix
 				, bIsRenderTarget
 				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
 				, ViewTextureScaleOffset

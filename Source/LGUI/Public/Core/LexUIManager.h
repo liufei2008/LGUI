@@ -145,6 +145,7 @@ public:
 private:
 	bool bLexUIWidgetOutlinerChanged = true;
 #endif
+	DECLARE_EVENT(ULexUIManagerWorldSubsystem, FPostUpdateCanvasEvent);
 	
 private:
 #if WITH_EDITOR
@@ -200,11 +201,13 @@ private:
 	void CalculateLayout();
 
 	TSharedPtr<class FLexUIRenderer, ESPMode::ThreadSafe> MainViewportViewExtension;
+	FPostUpdateCanvasEvent EventOnPostUpdateCanvas;
 public:
 #if WITH_EDITOR
 	static void RefreshAllUI(UWorld* InWorld = nullptr);
 	FSimpleMulticastDelegate EventOnOutlineChanged;
 #endif
+	FPostUpdateCanvasEvent& GetOnPostUpdateDrawCall(){return EventOnPostUpdateCanvas;}
 	
 	const TArray<TWeakObjectPtr<ULexCanvas>>& GetAllCanvasArray()const{return AllCanvasArray;}
 	void AddCanvas(ULexCanvas* InCanvas);

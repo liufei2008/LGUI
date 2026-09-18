@@ -8,8 +8,8 @@
 struct LGUI_API FLexUIPostProcessVertex
 {
 	FVector3f Position;
-	FVector2f TextureCoordinate0;
-	FVector2f TextureCoordinate1;
+	FVector2f TextureCoordinate0;//widget's full rect uv
+	FVector2f TextureCoordinate1;//clip data uv, check ULexCanvas UV1
 
 	FLexUIPostProcessVertex(FVector3f InPosition, FVector2f InTextureCoordinate0)
 	{
@@ -38,13 +38,13 @@ LGUI_API FVertexDeclarationRHIRef& GetLexUIPostProcessVertexDeclaration();
 
 struct LGUI_API FLexUIPostProcessCopyMeshRegionVertex
 {
-	FVector3f ScreenPosition;
-	FVector3f LocalPosition;
+	FVector2f ScreenPosition;
+	FVector2f TextureCoordinate;
 
-	FLexUIPostProcessCopyMeshRegionVertex(FVector3f InScreenPosition, FVector3f InLocalPosition)
+	FLexUIPostProcessCopyMeshRegionVertex(FVector2f InScreenPosition, FVector2f InTextureCoordinate)
 	{
 		ScreenPosition = InScreenPosition;
-		LocalPosition = InLocalPosition;
+		TextureCoordinate = InTextureCoordinate;
 	}
 };
 

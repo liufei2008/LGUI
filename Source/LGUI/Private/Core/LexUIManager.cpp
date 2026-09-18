@@ -1104,6 +1104,7 @@ void ULexUIManagerWorldSubsystem::TickLexUI(float DeltaTime)
 		UpdateCanvas(ELexRenderMode::WorldSpace);
 		UpdateCanvas(ELexRenderMode::WorldSpace_LexUI);
 		UpdateCanvas(ELexRenderMode::RenderTarget);
+		EventOnPostUpdateCanvas.Broadcast();
 	}
 }
 

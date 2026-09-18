@@ -115,6 +115,10 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 			}
 			else
 			{
+				float Inv_ViewWidth = 1.0f / ViewRect.Width();
+				float Inv_ViewHeight = 1.0f / ViewRect.Height();
+				auto ScreenAreaMinAndSize = FVector4f(MeshRectInScreen.Min.X * Inv_ViewWidth, MeshRectInScreen.Min.Y * Inv_ViewHeight
+					, MeshRectInScreen.Width() * Inv_ViewWidth, MeshRectInScreen.Height() * Inv_ViewHeight);
 				if (IsWorldSpace)
 				{
 					if (DepthFadeForWorld <= 0.0f)
@@ -123,7 +127,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 						TShaderMapRef<FLexUIRenderMeshWorldPS_Clip> PixelShader(GlobalShaderMap);
 						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+						PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
 						if (ClipDataTexture != nullptr)
 						{
 							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
@@ -136,7 +140,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 						TShaderMapRef<FLexUIRenderMeshWorldDepthFadePS_Clip> PixelShader(GlobalShaderMap);
 						SET_PIPELINE_STATE_FOR_CLIP();
 						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+						PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
 						if (ClipDataTexture != nullptr)
 						{
 							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
@@ -151,7 +155,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 					TShaderMapRef<FLexUIRenderMeshPS_Clip> PixelShader(GlobalShaderMap);
 					SET_PIPELINE_STATE_FOR_CLIP();
 					VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-					PixelShader->SetParameters(RHICmdList, MeshRegionTexture, ResultTextureSamplerState);
+					PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
 					if (ClipDataTexture != nullptr)
 					{
 						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);

@@ -106,8 +106,8 @@ public:
 		
 		//get render target
 		{
-			float RectWidth = RectSize.X;
-			float RectHeight = RectSize.Y;
+			float RectWidth = MeshRectInScreen.Width();
+			float RectHeight = MeshRectInScreen.Height();
 			RectWidth = FMath::Max(RectWidth, 1.0f);
 			RectHeight = FMath::Max(RectHeight, 1.0f);
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(RectWidth, RectHeight), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
@@ -150,13 +150,11 @@ public:
 			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackgroundBlur_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
 		}
 #endif
-		//@todo: should use screen-space region
 		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
 			, BlurEffectRDGTextureRef
 			, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
 			, GlobalShaderMap
 			, RenderScreenToMeshRegionVertexArray
-			, ModelViewProjectionMatrix
 			, bIsRenderTarget
 			, FIntRect(0, 0, BlurEffectRHITexture->GetSizeXYZ().X, BlurEffectRHITexture->GetSizeXYZ().Y)
 			, ViewTextureScaleOffset
