@@ -173,7 +173,7 @@ class ULexVisual;
 class ULexVisualBatchMesh;
 class ULexVisualDirectMesh;
 class ULexUIMeshComponent;
-class FLexVisualPostProcessRenderProxy;
+class FLexVisualBackBufferRenderProxy;
 class UTextureRenderTarget2D;
 
 /**

@@ -13,14 +13,14 @@ IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshDepthTexUB, "LexUIRende
 IMPLEMENT_SHADER_TYPE(, FLexUISimplePostProcessVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessVertexShader.usf"), TEXT("SimplePostProcessVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLexUIPostProcessGaussianBlurPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessGaussianBlur.usf"), TEXT("GaussianBlurPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS_ColorCorrect, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS_LinearizeColor, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS_BlendAlpha, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 
 
 
 IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessVertexShader.usf"), TEXT("CopyMeshRegionVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("CopyMeshRegionPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionPS_ColorCorrect, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("CopyMeshRegionPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionPS_LinearizeColor, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("CopyMeshRegionPS"), SF_Pixel)
 
 
 

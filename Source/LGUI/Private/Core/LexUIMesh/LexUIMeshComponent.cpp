@@ -14,7 +14,7 @@
 #include "MaterialDomain.h"
 #include "PrimitiveSceneProxy.h"
 #include "Core/LexUIDrawCall.h"
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
 #include "Core/Components/LexVisualDirectMesh.h"
 #include "Core/Components/LexVisualPostProcess.h"
 #include "Core/Components/LexWidget.h"
@@ -161,7 +161,7 @@ struct FLexUIRenderSectionProxy_PostProcess : public FLexUIRenderSectionProxy
 		Type = ELexUIRenderSectionProxyType::PostProcess;
 	}
 
-	FLexVisualPostProcessRenderProxy* PostProcessRenderProxy = nullptr;
+	FLexVisualBackBufferRenderProxy* PostProcessRenderProxy = nullptr;
 
 	virtual void Disable() override
 	{
@@ -277,7 +277,7 @@ public:
 				delete OldSection;
 			});
 	}
-	void UpdatePostProcessSection(FLexUIRenderSection_PostProcess* InSrcSection, FLexVisualPostProcessRenderProxy* InRenderProxy)
+	void UpdatePostProcessSection(FLexUIRenderSection_PostProcess* InSrcSection, FLexVisualBackBufferRenderProxy* InRenderProxy)
 	{
 		ENQUEUE_RENDER_COMMAND(FLexUIRenderSceneProxy_ReplaceSectionData)(
 			[this, InSrcSection, InRenderProxy](FRHICommandListImmediate& RHICmdList) {
@@ -772,7 +772,7 @@ public:
 		}
 	}
 
-	virtual FLexVisualPostProcessRenderProxy* LexUI_GetPostProcessElement(FLexUIRenderSectionProxy* SectionPtr)const override
+	virtual FLexVisualBackBufferRenderProxy* LexUI_GetPostProcessElement(FLexUIRenderSectionProxy* SectionPtr)const override
 	{
 		check(SectionPtr->Type == ELexUIRenderSectionProxyType::PostProcess);
 		return (static_cast<FLexUIRenderSectionProxy_PostProcess*>(SectionPtr))->PostProcessRenderProxy;

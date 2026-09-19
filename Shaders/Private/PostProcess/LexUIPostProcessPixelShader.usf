@@ -32,7 +32,7 @@ void SimpleCopyTargetPS(
 #if LEXUI_BLENDALPHA
     OutColor.a *= _BlendAlpha;
 #endif
-#if LEXUI_COLORCORRECT
+#if LEXUI_LINEARIZE_COLOR
     OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif
 }
@@ -51,7 +51,7 @@ void CopyMeshRegionPS(
     OutColor = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, uv);
     //if render to screen then we need set alpha to 1, because default is 0 
     OutColor.a = _IsRenderTarget ? OutColor.a : 1;
-#if LEXUI_COLORCORRECT
+#if LEXUI_LINEARIZE_COLOR
     OutColor.rgb = LinearizeColor(OutColor.rgb);
 #endif
 }

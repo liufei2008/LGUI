@@ -104,18 +104,18 @@ public:
 	}
 private:
 };
-class FLexUISimpleCopyTargetPS_ColorCorrect : public FLexUISimpleCopyTargetPS
+class FLexUISimpleCopyTargetPS_LinearizeColor : public FLexUISimpleCopyTargetPS
 {
-	DECLARE_SHADER_TYPE(FLexUISimpleCopyTargetPS_ColorCorrect, Global);
+	DECLARE_SHADER_TYPE(FLexUISimpleCopyTargetPS_LinearizeColor, Global);
 public:
-	FLexUISimpleCopyTargetPS_ColorCorrect() {}
-	FLexUISimpleCopyTargetPS_ColorCorrect(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+	FLexUISimpleCopyTargetPS_LinearizeColor() {}
+	FLexUISimpleCopyTargetPS_LinearizeColor(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUISimpleCopyTargetPS(Initializer)
 	{
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_COLORCORRECT"), true);
+		OutEnvironment.SetDefine(TEXT("LEXUI_LINEARIZE_COLOR"), true);
 		FLexUISimpleCopyTargetPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
 private:
@@ -231,18 +231,18 @@ private:
 	LAYOUT_FIELD(FShaderParameter, MainTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, IsRenderTargetParameter);
 };
-class FLexUICopyMeshRegionPS_ColorCorrect : public FLexUICopyMeshRegionPS
+class FLexUICopyMeshRegionPS_LinearizeColor : public FLexUICopyMeshRegionPS
 {
-	DECLARE_SHADER_TYPE(FLexUICopyMeshRegionPS_ColorCorrect, Global);
+	DECLARE_SHADER_TYPE(FLexUICopyMeshRegionPS_LinearizeColor, Global);
 public:
-	FLexUICopyMeshRegionPS_ColorCorrect() {}
-	FLexUICopyMeshRegionPS_ColorCorrect(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+	FLexUICopyMeshRegionPS_LinearizeColor() {}
+	FLexUICopyMeshRegionPS_LinearizeColor(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLexUICopyMeshRegionPS(Initializer)
 	{
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_COLORCORRECT"), true);
+		OutEnvironment.SetDefine(TEXT("LEXUI_LINEARIZE_COLOR"), true);
 		FLexUICopyMeshRegionPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
 private:

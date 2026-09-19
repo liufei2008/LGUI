@@ -82,7 +82,7 @@ public:
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		FRHISamplerState* SrcTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
-	void CopyRenderTarget_ColorCorrect(
+	void CopyRenderTarget_LinearizeColor(
 		FRDGBuilder& GraphBuilder,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
@@ -104,7 +104,7 @@ public:
 		bool bIsRenderTarget,
 		const FIntRect& ViewRect,
 		const FVector4f& SrcTextureScaleOffset,
-		bool ColorCorrect = false
+		bool bLinearizeColor = false
 	);
 	void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList

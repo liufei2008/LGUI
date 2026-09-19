@@ -25,6 +25,7 @@
 #include "Core/LexUIClipData.h"
 #include "Core/LexUIDataAsTexture.h"
 #include "Core/LexWidgetPresenterComponent.h"
+#include "Core/Components/LexBackBufferCopy.h"
 
 
 #define LOCTEXT_NAMESPACE "LexCanvas"
@@ -1641,7 +1642,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 		}
 	}
 
-	ULexVisualPostProcess* LastPostProcessObject = nullptr;
+	ULexBackBufferCopy* LastBackBufferObject = nullptr;
 	for (int i = 0; i < CurrentDrawCallData.DrawCallArray.Num(); i++)
 	{
 		auto& DrawCallItem = CurrentDrawCallData.DrawCallArray[i];
@@ -1753,9 +1754,9 @@ void ULexCanvas::UpdateDrawCallMaterial()
 						ParamCache.Texture = DrawCallItem.Texture;
 						ParamCache.FontTexture = DrawCallItem.FontTexture;
 					}
-					if (LastPostProcessObject != nullptr)
+					if (LastBackBufferObject != nullptr)
 					{
-						LastPostProcessObject->RegisterMaterialsUsingThisBackBuffer(RenderMat_MID);
+						LastBackBufferObject->RegisterMaterialsUsingThisBackBuffer(RenderMat_MID);
 					}
 				}
 				UIMesh->SetMeshSectionMaterial(i, RenderMat);
@@ -1763,8 +1764,11 @@ void ULexCanvas::UpdateDrawCallMaterial()
 			break;
 		case ELexUIDrawCallType::PostProcess:
 			{
-				LastPostProcessObject = DrawCallItem.PostProcessVisualObject.Get();
-				LastPostProcessObject->ClearMaterialsUsingThisBackBuffer();
+				if (auto BackBufferCopy = Cast<ULexBackBufferCopy>(DrawCallItem.PostProcessVisualObject.Get()))
+				{
+					LastBackBufferObject = BackBufferCopy;
+					LastBackBufferObject->ClearMaterialsUsingThisBackBuffer();
+				}
 			}
 		break;
 		case ELexUIDrawCallType::ChildCanvas:

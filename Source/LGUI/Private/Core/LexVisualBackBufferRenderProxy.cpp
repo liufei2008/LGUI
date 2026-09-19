@@ -1,13 +1,13 @@
 ﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
 
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
 #include "Core/LexUIRender/LexUIPostProcessShaders.h"
 #include "Rendering/Texture2DResource.h"
 #include "Core/LexUIRender/LexUIRenderer.h"
 #include "RHIResourceUtils.h"
 #include "SceneTextures.h"
 
-FLexVisualPostProcessRenderProxy::FLexVisualPostProcessRenderProxy()
+FLexVisualBackBufferRenderProxy::FLexVisualBackBufferRenderProxy()
 {
 	
 }

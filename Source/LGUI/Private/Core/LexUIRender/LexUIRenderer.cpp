@@ -14,7 +14,7 @@
 #include "ScenePrivate.h"
 #include "TextureResource.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
 #include "SceneTextures.h"
 #if WITH_EDITOR
 #include "Engine/Engine.h"
@@ -132,7 +132,8 @@ void FLexUIRenderer::PostRenderBasePassDeferred_RenderThread(FRDGBuilder& GraphB
 
 }
 
-void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst
+void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
+	, FTextureRHIRef Src, FTextureRHIRef Dst
 	, FRHISamplerState* SrcTextureSamplerState
 )
 {
@@ -168,8 +169,9 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 		});
 }
 
-void FLexUIRenderer::CopyRenderTarget_ColorCorrect(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap,
-	FTextureRHIRef Src, FTextureRHIRef Dst, FRHISamplerState* SrcTextureSamplerState)
+void FLexUIRenderer::CopyRenderTarget_LinearizeColor(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
+	, FTextureRHIRef Src, FTextureRHIRef Dst
+	, FRHISamplerState* SrcTextureSamplerState)
 {
 	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTarget_ColorCorrectSrc"));
 	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
@@ -193,7 +195,7 @@ void FLexUIRenderer::CopyRenderTarget_ColorCorrect(FRDGBuilder& GraphBuilder, FG
 			GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
 			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLexUIPostProcessVertexDeclaration();
 			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-			TShaderMapRef<FLexUISimpleCopyTargetPS_ColorCorrect> PixelShader(GlobalShaderMap);
+			TShaderMapRef<FLexUISimpleCopyTargetPS_LinearizeColor> PixelShader(GlobalShaderMap);
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 			PixelShader->SetParameters(RHICmdList, Src, SrcTextureSamplerState);
@@ -251,7 +253,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 	, bool bIsRenderTarget
 	, const FIntRect& ViewRect
 	, const FVector4f& SrcTextureScaleOffset
-	, bool ColorCorrect
+	, bool bLinearizeColor
 )
 {
 	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetOnMeshRegionSrc"));
@@ -264,7 +266,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 		RDG_EVENT_NAME("LexUICopyRenderTargetOnMeshRegion"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[Src, GlobalShaderMap, RegionVertexData, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, ColorCorrect](FRHICommandListImmediate& RHICmdList)
+		[Src, GlobalShaderMap, RegionVertexData, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, bLinearizeColor](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -278,9 +280,9 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			GraphicsPSOInit.NumSamples = NumSamples;
-			if (ColorCorrect)
+			if (bLinearizeColor)
 			{
-				TShaderMapRef<FLexUICopyMeshRegionPS_ColorCorrect> PixelShader(GlobalShaderMap);
+				TShaderMapRef<FLexUICopyMeshRegionPS_LinearizeColor> PixelShader(GlobalShaderMap);
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 

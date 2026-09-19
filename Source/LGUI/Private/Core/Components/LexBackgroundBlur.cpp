@@ -3,12 +3,11 @@
 #include "Core/Components/LexBackgroundBlur.h"
 
 #include "LGUI.h"
-#include "Core/LexUIGeometry.h"
 #include "Core/LexUIRender/LexUIPostProcessShaders.h"
 #include "PipelineStateCache.h"
 #include "Core/LexUIRender/LexUIRenderer.h"
 #include "RenderTargetPool.h"
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
 #include "RHIStaticStates.h"
 
 ULexBackgroundBlur::ULexBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
@@ -49,7 +48,6 @@ public:
 	float BlurStrength = 0.0f;
 public:
 	FUIBackgroundBlurRenderProxy()
-		:FLexVisualPostProcessRenderProxy()
 	{
 
 	}
@@ -74,7 +72,7 @@ public:
 	) override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
-		if (BlurStrength <= 0.0f && RenderTargetResource == nullptr)return;
+		if (BlurStrength <= 0.0f)return;
 
 		auto& RHICmdList = GraphBuilder.RHICmdList;
 
@@ -185,16 +183,9 @@ public:
 		}
 		DoBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, Renderer, GlobalShaderMap);
 
-		if (RenderTargetResource == nullptr)
-		{
-			//after blur process, copy the blur result image back to screen image of the area
-			//copy on mesh region
-			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
-		}
-		else
-		{
-			Renderer->CopyRenderTarget_ColorCorrect(GraphBuilder, GlobalShaderMap, BlurEffectRHITexture, RenderTargetResource->GetRenderTargetTexture());
-		}
+		//after blur process, copy the blur result image back to screen image of the area
+		//copy on mesh region
+		RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//Defer releasing the pooled render targets until the graph executes
 		GraphBuilder.AddPass(
@@ -352,14 +343,13 @@ float ULexBackgroundBlur::GetBlurStrengthInternal()
 	return BlurStrength;
 }
 
-FLexVisualPostProcessRenderProxy* ULexBackgroundBlur::GetRenderProxy()
+FLexVisualBackBufferRenderProxy* ULexBackgroundBlur::GetRenderProxy()
 {
 	if (RenderProxy == nullptr)
 	{
 		RenderProxy = new FUIBackgroundBlurRenderProxy();
 		SendRegionVertexDataToRenderProxy();
 		SendMaskTextureToRenderProxy();
-		SendRenderTargetToRenderProxy();
 		SendOthersDataToRenderProxy();
 	}
 	return RenderProxy;

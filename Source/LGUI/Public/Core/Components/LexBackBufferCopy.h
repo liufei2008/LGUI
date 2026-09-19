@@ -6,16 +6,17 @@
 #include "LexBackBufferCopy.generated.h"
 
 /** 
- * UI element that can copy a back-buffer to a texture, so we can use it in our material
+ * UI element that can copy a back-buffer to a texture, so we can use it in our material.
  * Use it in ScreenSpace or WorldSpace-LexUIRenderer.
  * If android OpenGL ES3.1, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable)
-class LGUI_API ULexBackBufferCopy : public ULexVisualPostProcess
+class LGUI_API ULexBackBufferCopy : public ULexVisualBackBufferReader
 {
 	GENERATED_BODY()
 
 public:	
+	DECLARE_EVENT_OneParam(ULexBackBufferCopy, FRenderTargetChangedEvent, UTextureRenderTarget2D*);
 	ULexBackBufferCopy(const FObjectInitializer& ObjectInitializer);
 
 private:
@@ -23,11 +24,29 @@ private:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-public:
-
-	virtual FLexVisualPostProcessRenderProxy* GetRenderProxy()override;
+	/**
+	 * Blur result will output to this RenderTarget.
+	 * Will create one if not specified.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	TObjectPtr<UTextureRenderTarget2D> OutputRenderTarget = nullptr;
+	FRenderTargetChangedEvent OnRenderTargetChanged;
+protected:
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
+	virtual void PostUpdateDrawCall() override;
 	virtual void MarkAllDirty()override;
+public:
+	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()override;
+	void ClearMaterialsUsingThisBackBuffer();
+	void RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic);
+	
+	FRenderTargetChangedEvent& GetRenderTargetChangedEvent(){return OnRenderTargetChanged;}
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UTextureRenderTarget2D* GetOutputRenderTarget()const { return OutputRenderTarget; }
 private:
-	virtual void SendRegionVertexDataToRenderProxy()override;
-	void SendOthersDataToRenderProxy();
+	void UpdateRenderTarget();
+	void SendRenderTargetToRenderProxy();
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 };

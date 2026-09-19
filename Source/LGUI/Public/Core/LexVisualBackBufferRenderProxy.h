@@ -11,13 +11,13 @@ class ULexCanvas;
 class ULexVisualPostProcess;
 
 /**
- * LexVisualPostProcessRenderProxy is a render-agent for LexVisualPostProcess in render thread, just like a SceneProxy for PrimitiveComponent.
+ * this is a render-agent for LexVisualBackBuffer in render thread, just like a SceneProxy for PrimitiveComponent.
  */
-class LGUI_API FLexVisualPostProcessRenderProxy
+class LGUI_API FLexVisualBackBufferRenderProxy
 {
 public:
-	FLexVisualPostProcessRenderProxy();
-	virtual~FLexVisualPostProcessRenderProxy()
+	FLexVisualBackBufferRenderProxy();
+	virtual~FLexVisualBackBufferRenderProxy()
 	{
 		
 	}
@@ -47,17 +47,27 @@ public:
 		const FVector4f& ViewTextureScaleOffset
 	) = 0;
 public:
-	FTexture2DDynamicResource* ClipDataTexture = nullptr;
-	
 	FMatrix44f ObjectToWorldMatrix = FMatrix44f::Identity;
 	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
 	FBox2f MeshRectInScreen;
 	FVector4f RectInScreen01;
-	FTexture2DResource* MaskTexture = nullptr;
-	//output target
-	FTextureRenderTargetResource* RenderTargetResource = nullptr;
+};
 
+BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )
+	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
+	SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture2D, MeshRegionTexture)
+	RENDER_TARGET_BINDING_SLOTS()
+END_SHADER_PARAMETER_STRUCT()
+
+/**
+ * this is a render-agent for LexVisualBackBuffer in render thread, just like a SceneProxy for PrimitiveComponent.
+ */
+class LGUI_API FLexVisualPostProcessRenderProxy : public FLexVisualBackBufferRenderProxy
+{
+public:
+	FTexture2DResource* MaskTexture = nullptr;
+	FTexture2DDynamicResource* ClipDataTexture = nullptr;
 	/**
 	 * Use a mesh to render the MeshRegionTexture to ScreenTargetTexture
 	 */
@@ -77,9 +87,3 @@ public:
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
 };
-
-BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )
-	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
-	SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture2D, MeshRegionTexture)
-	RENDER_TARGET_BINDING_SLOTS()
-END_SHADER_PARAMETER_STRUCT()

@@ -3,10 +3,11 @@
 #include "Core/Components/LexBackBufferCopy.h"
 
 #include "LGUI.h"
-#include "Core/LexUIRender/LexUIPostProcessShaders.h"
 #include "Core/LexUIRender/LexUIRenderer.h"
 #include "RenderTargetPool.h"
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
+#include "Core/Components/LexCanvas.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 ULexBackBufferCopy::ULexBackBufferCopy(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -20,6 +21,7 @@ void ULexBackBufferCopy::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 	if (auto Property = PropertyChangedEvent.Property)
 	{
 	}
+	SendRenderTargetToRenderProxy();
 }
 #endif
 
@@ -29,16 +31,29 @@ void ULexBackBufferCopy::MarkAllDirty()
 	Super::MarkAllDirty();
 
 	SendRegionVertexDataToRenderProxy();
-	SendMaskTextureToRenderProxy();
-	SendOthersDataToRenderProxy();
+	SendRenderTargetToRenderProxy();
+}
+
+void ULexBackBufferCopy::ClearMaterialsUsingThisBackBuffer()
+{
+	MaterialsUsingThisBackBuffer.Reset();
+}
+
+void ULexBackBufferCopy::RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic)
+{
+	MaterialsUsingThisBackBuffer.Add(InMaterialInstanceDynamic);
+	InMaterialInstanceDynamic->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
 }
 
 DECLARE_CYCLE_STAT(TEXT("PostProcess_BackBufferCopy"), STAT_BackBufferCopy, STATGROUP_LGUI);
-class FUIBackBufferCopyRenderProxy : public FLexVisualPostProcessRenderProxy
+class FUIBackBufferCopyRenderProxy : public FLexVisualBackBufferRenderProxy
 {
 public:
+	//output target
+	FTextureRenderTargetResource* RenderTargetResource = nullptr;
+	
 	FUIBackBufferCopyRenderProxy()
-		:FLexVisualPostProcessRenderProxy()
 	{
 
 	}
@@ -96,12 +111,14 @@ public:
 			, bIsRenderTarget
 			, FIntRect(0, 0, RenderTargetRHITexture->GetSizeXYZ().X, RenderTargetRHITexture->GetSizeXYZ().Y)
 			, ViewTextureScaleOffset
-			, true
+			, true//linearize it, so material sample will get correct color
 		);
 
 		//after filter, copy back to render target
 		{
-			// Renderer->CopyRenderTarget_ColorCorrect(GraphBuilder, GlobalShaderMap, RenderTargetRHITexture, RenderTargetResource->GetRenderTargetTexture());
+			// auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
+			// RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, RenderTargetRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
+			// Renderer->CopyRenderTarget_LinearizeColor(GraphBuilder, GlobalShaderMap, RenderTargetRHITexture, RenderTargetResource->GetRenderTargetTexture());
 		}
 
 		//Defer releasing the pooled render targets until the graph executes
@@ -115,33 +132,110 @@ public:
 	}
 };
 
-
-void ULexBackBufferCopy::SendOthersDataToRenderProxy()
+void ULexBackBufferCopy::OnRegister()
 {
-	if (RenderProxy != nullptr)
+	Super::OnRegister();
+}
+
+void ULexBackBufferCopy::OnUnregister()
+{
+	Super::OnUnregister();
+	OnRenderTargetChanged.Broadcast(nullptr);
+}
+
+void ULexBackBufferCopy::PostUpdateDrawCall()
+{
+	Super::PostUpdateDrawCall();
+	UpdateRenderTarget();
+	for (auto& MID : MaterialsUsingThisBackBuffer)
 	{
-		
+		if (!MID.IsValid())continue;
+		MID->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
 	}
 }
 
-FLexVisualPostProcessRenderProxy* ULexBackBufferCopy::GetRenderProxy()
+FLexVisualBackBufferRenderProxy* ULexBackBufferCopy::GetRenderProxy()
 {
 	if (RenderProxy == nullptr)
 	{
 		RenderProxy = new FUIBackBufferCopyRenderProxy();
 		SendRegionVertexDataToRenderProxy();
-		SendMaskTextureToRenderProxy();
 		SendRenderTargetToRenderProxy();
-		SendOthersDataToRenderProxy();
 	}
 	return RenderProxy;
 }
 
-void ULexBackBufferCopy::SendRegionVertexDataToRenderProxy()
+void ULexBackBufferCopy::SendRenderTargetToRenderProxy()
 {
-	Super::SendRegionVertexDataToRenderProxy();
-	if (RenderProxy != nullptr)
+	if (RenderProxy)
 	{
-		
+		auto TempRenderProxy = (FUIBackBufferCopyRenderProxy*)RenderProxy;
+		FTextureRenderTargetResource* RenderTargetResource = nullptr;
+		if (IsValid(OutputRenderTarget))
+		{
+			RenderTargetResource = OutputRenderTarget->GameThread_GetRenderTargetResource();
+		}
+		else
+		{
+			RenderTargetResource = nullptr;
+		}
+		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateMaskTexture)
+			([TempRenderProxy, RenderTargetResource](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->RenderTargetResource = RenderTargetResource;
+				});
 	}
+}
+
+void ULexBackBufferCopy::UpdateRenderTarget()
+{
+	auto DesiredRenderTargetSize = MeshRectInScreen.GetSize();
+	static const int32 MaxAllowedDrawSize = GetMax2DTextureDimension();
+	if (DesiredRenderTargetSize.X < 1 || DesiredRenderTargetSize.Y < 1)
+	{
+		return;
+	}
+	DesiredRenderTargetSize.X = FMath::Min(DesiredRenderTargetSize.X, MaxAllowedDrawSize);
+	DesiredRenderTargetSize.Y = FMath::Min(DesiredRenderTargetSize.Y, MaxAllowedDrawSize);
+
+	if (OutputRenderTarget == nullptr)
+	{
+		OutputRenderTarget = NewObject<UTextureRenderTarget2D>(this, NAME_None, EObjectFlags::RF_Transient);
+		OutputRenderTarget->AddressX = TextureAddress::TA_Clamp;
+		OutputRenderTarget->AddressY = TextureAddress::TA_Clamp;
+		OutputRenderTarget->ClearColor = FLinearColor::Transparent;
+		OutputRenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+		SendRenderTargetToRenderProxy();
+		OnRenderTargetChanged.Broadcast(OutputRenderTarget);
+		//update material's texture, because OutputRenderTarget could be null when register
+		for (auto& MID : MaterialsUsingThisBackBuffer)
+		{
+			if (!MID.IsValid())continue;
+			MID->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+		}
+	}
+	else
+	{
+		if (OutputRenderTarget->SizeX != DesiredRenderTargetSize.X || OutputRenderTarget->SizeY != DesiredRenderTargetSize.Y)
+		{
+			OutputRenderTarget->ClearColor = FLinearColor::Transparent;
+			OutputRenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+			OutputRenderTarget->UpdateResourceImmediate();
+#if WITH_EDITOR
+			OutputRenderTarget->Modify();
+#endif
+			SendRenderTargetToRenderProxy();
+		}
+	}
+
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		if (!OutputRenderTarget->GameThread_GetRenderTargetResource())
+		{
+			OutputRenderTarget->InitCustomFormat(OutputRenderTarget->SizeX, OutputRenderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
+			SendRenderTargetToRenderProxy();
+		}
+	}
+#endif
 }

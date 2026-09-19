@@ -6,7 +6,7 @@
 #include "PipelineStateCache.h"
 #include "Core/LexUIRender/LexUIRenderer.h"
 #include "RenderTargetPool.h"
-#include "Core/LexVisualPostProcessRenderProxy.h"
+#include "Core/LexVisualBackBufferRenderProxy.h"
 #include "RHIStaticStates.h"
 #include "Core/Components/LexWidget.h"
 
@@ -78,7 +78,6 @@ public:
 	float PixelateStrength = 0.0f;
 public:
 	FUIBackgroundPixelateRenderProxy()
-		:FLexVisualPostProcessRenderProxy()
 	{
 
 	}
@@ -176,25 +175,17 @@ public:
 			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
 				, PixelateEffectRenderTargetTexture);
 		}
-
-		if (RenderTargetResource == nullptr)
+	
+		//after pixelate process, copy the area back to screen image
+		if (!bFullScreen)
 		{
-			//after pixelate process, copy the area back to screen image
-			if (!bFullScreen)
-			{
-				RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect
-					, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
-			}
-			else
-			{
-				Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRenderTargetTexture, ScreenTargetTexture
-					, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
-			}
+			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect
+				, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		}
 		else
 		{
-			Renderer->CopyRenderTarget_ColorCorrect(GraphBuilder, GlobalShaderMap, PixelateEffectRenderTargetTexture, RenderTargetResource->GetRenderTargetTexture()
-					, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRenderTargetTexture, ScreenTargetTexture
+				, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		}
 
 		//release render target
@@ -225,7 +216,7 @@ void ULexBackgroundPixelate::SendOthersDataToRenderProxy()
 	}
 }
 
-FLexVisualPostProcessRenderProxy* ULexBackgroundPixelate::GetRenderProxy()
+FLexVisualBackBufferRenderProxy* ULexBackgroundPixelate::GetRenderProxy()
 {
 	if (RenderProxy == nullptr)
 	{

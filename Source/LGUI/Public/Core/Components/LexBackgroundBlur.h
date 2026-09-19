@@ -45,7 +45,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetApplyAlphaToBlur(bool Value);
 
-	virtual FLexVisualPostProcessRenderProxy* GetRenderProxy()override;
+	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()override;
 	virtual void MarkAllDirty()override;
 private:
 	FORCEINLINE float GetBlurStrengthInternal();
