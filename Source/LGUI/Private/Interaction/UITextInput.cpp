@@ -1118,7 +1118,7 @@ void UUITextInput::UpdateCaretPosition(FVector2f InCaretPosition, bool InHideSel
 		CaretWidget->SetAnchorData(FLexUIAnchorData{FVector2D(0.5, 0.5)
 			, FVector2D(0, 0.5), FVector2D(0, 0.5)
 			, FVector2D::Zero(), FVector2D(CaretWidth, TextVisual->GetFontSize())});
-		auto CaretVisual = CaretWidget->CreateNewVisual<ULexImage>();
+		CaretVisual = CaretWidget->CreateNewVisual<ULexImage>();
 		CaretVisual->SetColor(CaretColor);
 		CaretVisual->SetBrush_LexUISprite(ULexUISpriteData::GetDefaultWhiteSolid());
 	}
@@ -1741,9 +1741,9 @@ void UUITextInput::SetCaretColor(FColor Value)
 	if (CaretColor != Value)
 	{
 		CaretColor = Value;
-		if (CaretWidget.IsValid())
+		if (CaretVisual.IsValid())
 		{
-			CaretWidget->GetVisual()->SetColor(CaretColor);
+			CaretVisual->SetColor(CaretColor);
 		}
 	}
 }

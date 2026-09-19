@@ -171,7 +171,7 @@ void UUIToggle::ApplyValueToVisual(bool immediateSet)
 				, FLTweenColorGetterFunction::CreateWeakLambda(ToggleTransitionTarget.Get(), [=, this]()
 			{
 				return ToggleTransitionTarget->GetColor();
-			}), FLTweenColorSetterFunction::CreateUObject(ToggleTransitionTarget.Get(), &ULexVisual::SetColor), Color.GetValue(), ToggleDuration);
+			}), FLTweenColorSetterFunction::CreateUObject(ToggleTransitionTarget.Get(), &ULexVisualBatchMesh::SetColor), Color.GetValue(), ToggleDuration);
 			if (ToggleTransitionTweener)
 			{
 				ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), ToggleTransitionTweener);

@@ -78,7 +78,6 @@ ULexVisual::ULexVisual(const FObjectInitializer& ObjectInitializer) :Super(Objec
 {
 	VisualType = ELexVisualType::None;
 
-	bColorChanged = true;
 	bTransformChanged = true;
 	bClipDataPositionChanged = true;
 	bWidgetPropertyDataStartPositionChanged = true;
@@ -88,7 +87,6 @@ ULexVisual::ULexVisual(const FObjectInitializer& ObjectInitializer) :Super(Objec
 void ULexVisual::OnRegister()
 {
 	Super::OnRegister();
-	bColorChanged = true;
 	bTransformChanged = true;
 }
 
@@ -195,12 +193,6 @@ void ULexVisual::OnRenderCanvasChanged(ULexCanvas* InOldCanvas, ULexCanvas* InNe
 	MarkAllDirty();
 }
 
-void ULexVisual::MarkColorDirty()
-{
-	bColorChanged = true;
-	GetWidget()->MarkCanvasUpdate(false);
-}
-
 void ULexVisual::CheckClipDataStartPosition()
 {
 	auto NowClipDataStartPosition = GetClipDataStartPosition();
@@ -221,7 +213,6 @@ void ULexVisual::UpdateGeometryWidgetPropertyData(TArray<FLexUIMeshVertex>& InVe
 
 void ULexVisual::MarkAllDirty()
 {
-	bColorChanged = true;
 	bTransformChanged = true;
 	bClipDataPositionChanged = true;
 	bWidgetPropertyDataStartPositionChanged = true;
@@ -358,25 +349,6 @@ bool ULexVisual::LineTraceUICustom(FLexUIHitResult& OutHit, const FVector& Start
 	return false;
 }
 
-void ULexVisual::SetColor(FColor Value)
-{
-	if (Color != Value)
-	{
-		Color = Value;
-		MarkColorDirty();
-	}
-}
-void ULexVisual::SetAlpha(float Value)
-{
-	Value = FMath::Clamp(Value, 0.0f, 1.0f);
-	auto uintAlpha = (uint8)(Value * 255);
-	if (Color.A != uintAlpha)
-	{
-		MarkColorDirty();
-		Color.A = uintAlpha;
-	}
-}
-
 void ULexVisual::SetRaycastTarget(bool Value)
 {
 	bRaycastTarget = Value;
@@ -385,23 +357,6 @@ void ULexVisual::SetRaycastTarget(bool Value)
 void ULexVisual::SetCustomRaycastObject(ULexVisualCustomRaycast* Value)
 {
 	CustomRaycastObject = Value;
-}
-
-FColor ULexVisual::GetFinalColor()const
-{
-	FColor Result = this->Color;
-	Result.A = Result.A * GetWidget()->GetFinalRenderOpacity();
-	return Result;
-}
-
-uint8 ULexVisual::GetFinalAlpha()const
-{
-	return Color.A * GetWidget()->GetFinalRenderOpacity();
-}
-
-float ULexVisual::GetFinalAlpha01()const
-{
-	return FLexUIUtils::ByteToFloat01(GetFinalAlpha());
 }
 
 bool ULexVisual::LineTraceUI(FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const
@@ -496,54 +451,3 @@ void ULexVisual::FillWidgetPropertyDataForMaterial_InitialMark(ULexUIDataAsTextu
 	FMemory::Memcpy(BlockBuffer.GetData(), &Marks, 4);
 	DataAsTexture->UpdateBlock(0, StartPosition, MoveTemp(BlockBuffer), 1);
 }
-
-#pragma region TweenAnimation
-#include "LTweenManager.h"
-ULTweener* ULexVisual::ColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
-{
-	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &ULexVisual::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &ULexVisual::SetColor), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
-	}
-	return Tweener;
-}
-ULTweener* ULexVisual::ColorFrom(FColor startValue, float duration, float delay, ELTweenEase ease)
-{
-	auto endValue = this->GetColor();
-	this->SetColor(startValue);
-	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &ULexVisual::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &ULexVisual::SetColor), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
-	}
-	return Tweener;
-}
-
-ULTweener* ULexVisual::AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
-{
-	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &ULexVisual::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &ULexVisual::SetAlpha), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
-	}
-	return Tweener;
-}
-ULTweener* ULexVisual::AlphaFrom(float startValue, float duration, float delay, ELTweenEase ease)
-{
-	auto endValue = this->GetAlpha();
-	this->SetAlpha(startValue);
-	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &ULexVisual::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &ULexVisual::SetAlpha), endValue, duration);
-	if (Tweener)
-	{
-		Tweener->SetEase(ease)->SetDelay(delay);
-		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
-	}
-	return Tweener;
-}
-#pragma endregion
-
-

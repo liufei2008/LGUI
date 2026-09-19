@@ -68,7 +68,7 @@ protected:
 protected:
 	friend class FUIToggleCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-	TWeakObjectPtr<ULexVisual> ToggleTransitionTarget;
+	TWeakObjectPtr<ULexVisualBatchMesh> ToggleTransitionTarget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 	EUISelectableTransitionType ToggleTransitionType = EUISelectableTransitionType::Color;
 	UPROPERTY(EditAnywhere, Category="LGUI-Toggle", meta = (EditCondition = "ToggleTransitionType==EUISelectableTransitionType::Custom"))

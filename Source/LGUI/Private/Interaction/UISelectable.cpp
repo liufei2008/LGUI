@@ -3,7 +3,7 @@
 #include "Interaction/UISelectable.h"
 #include "LGUI.h"
 #include "LTweenBPLibrary.h"
-#include "Core/Components/LexVisual.h"
+#include "Core/Components/LexVisualBatchMesh.h"
 #include "Core/LexUIManager.h"
 #include "LTweenManager.h"
 #include "Core/LexWidgetPresenterComponent.h"
@@ -259,7 +259,7 @@ void UUISelectable::ApplyPointerSelectionState(bool ImmediateSet)
 				, FLTweenColorGetterFunction::CreateWeakLambda(TransitionTarget.Get(), [=, this]()
 			{
 				return TransitionTarget->GetColor();
-			}), FLTweenColorSetterFunction::CreateUObject(TransitionTarget.Get(), &ULexVisual::SetColor), Color.GetValue(), AnimDuration);
+			}), FLTweenColorSetterFunction::CreateUObject(TransitionTarget.Get(), &ULexVisualBatchMesh::SetColor), Color.GetValue(), AnimDuration);
 			if (TransitionTweener)
 			{
 				ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), TransitionTweener);
@@ -380,7 +380,7 @@ EUISelectableSelectionState UUISelectable::GetSelectionState()const
 	return EUISelectableSelectionState::Normal;
 }
 
-void UUISelectable::SetTransitionTarget(ULexVisual* Value)
+void UUISelectable::SetTransitionTarget(ULexVisualBatchMesh* Value)
 {
 	if (TransitionTarget != Value)
 	{

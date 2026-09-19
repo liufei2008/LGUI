@@ -114,10 +114,10 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 
 	Super::UpdateGeometry();
 	
-	if (bLocalVertexPositionChanged || bUVChanged || bColorChanged)
+	if (bLocalVertexPositionChanged || bUVChanged)
 	{
 		Geometry->Clear();
-		OnUpdateGeometry(false, bLocalVertexPositionChanged, bUVChanged, bColorChanged);
+		OnUpdateGeometry(false, bLocalVertexPositionChanged, bUVChanged);
 	}
 	if (bClipDataPositionChanged)
 	{
@@ -127,7 +127,7 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 	{
 		FLexUIGeometry::TransformVertices(RenderCanvas, this, Geometry.Get());
 	}
-	if (bLocalVertexPositionChanged || bUVChanged || bColorChanged || bTransformChanged || bClipDataPositionChanged)
+	if (bLocalVertexPositionChanged || bUVChanged || bTransformChanged || bClipDataPositionChanged)
 	{
 		bWidgetOrGeometryDirty = true;
 	}
@@ -149,7 +149,6 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
-	bColorChanged = false;
 	bTransformChanged = false;
 }
 
@@ -295,14 +294,14 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 	UpdateRegionVertex(ViewRect.Size());
 }
 
-void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged)
 {
 	//simple rect geometry for render from screen image to mesh region and inverse
 	auto& Vertices = Geometry->Vertices;
 	auto& OriginVertices = Geometry->OriginVertices;
 	FLexUIGeometry::LexUIGeometrySetArrayNum(Vertices, 4);
 	FLexUIGeometry::LexUIGeometrySetArrayNum(OriginVertices, 4);
-	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
+	if (InVertexUVChanged || InVertexPositionChanged)
 	{
 		if (InVertexPositionChanged)
 		{
@@ -333,11 +332,6 @@ void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool I
 			Vertices[1].TextureCoordinate[0] = FVector2f(1, 1);
 			Vertices[2].TextureCoordinate[0] = FVector2f(0, 0);
 			Vertices[3].TextureCoordinate[0] = FVector2f(1, 0);
-		}
-
-		if (InVertexColorChanged)
-		{
-			FLexUIGeometry::UpdateUIColor(Geometry.Get(), GetFinalColor());
 		}
 	}
 }

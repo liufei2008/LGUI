@@ -10,9 +10,9 @@
 #include "Core/LexUIImageBrush.h"
 #include "UISelectable.generated.h"
 
+class ULexVisualBatchMesh;
 class UUINavigationInputSelectionHandler;
 class UUISelectable;
-class ULexVisual;
 class ULTweener;
 
 UENUM(BlueprintType, Category = LGUI)
@@ -170,7 +170,7 @@ protected:
 
 #pragma region Transition
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
-	TWeakObjectPtr<ULexVisual> TransitionTarget;
+	TWeakObjectPtr<ULexVisualBatchMesh> TransitionTarget;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 	EUISelectableTransitionType TransitionType = EUISelectableTransitionType::Color;
@@ -239,7 +239,7 @@ protected:
 		TWeakObjectPtr<UUISelectable> NavigationPrevSpecific;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		ULexVisual* GetTransitionTarget()const { return TransitionTarget.Get(); }
+		ULexVisualBatchMesh* GetTransitionTarget()const { return TransitionTarget.Get(); }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
 	FColor GetNormalColor()const { return NormalColor; }
@@ -263,7 +263,7 @@ public:
 		EUISelectableSelectionState GetSelectionState()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		void SetTransitionTarget(ULexVisual* Value);
+		void SetTransitionTarget(ULexVisualBatchMesh* Value);
 	
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 	void SetNormalColor(FColor Value);

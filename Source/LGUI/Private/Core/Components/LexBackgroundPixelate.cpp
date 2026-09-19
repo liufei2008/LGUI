@@ -49,20 +49,23 @@ void ULexBackgroundPixelate::SetPixelateStrength(float Value)
 	}
 }
 
-void ULexBackgroundPixelate::SetApplyAlphaToStrength(bool Value)
+void ULexBackgroundPixelate::SetApplyOpacityToStrength(bool Value)
 {
-	if (ApplyAlphaToStrength != Value)
+	if (ApplyOpacityToStrength != Value)
 	{
-		ApplyAlphaToStrength = Value;
+		ApplyOpacityToStrength = Value;
 		SendOthersDataToRenderProxy();
 	}
 }
 
 float ULexBackgroundPixelate::GetStrengthInternal()
 {
-	if (ApplyAlphaToStrength)
+	if (ApplyOpacityToStrength)
 	{
-		return GetFinalAlpha01() * PixelateStrength;
+		if (auto Widget = GetWidget())
+		{
+			return Widget->GetRenderOpacity() * PixelateStrength;
+		}
 	}
 	return PixelateStrength;
 }

@@ -26,18 +26,18 @@ protected:
 	/** Pixelate effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float PixelateStrength = 10.0f;
-	/** Will alpha affect pixelate strength? If true, then 0 alpha means 0 pixelate strength, and 1 alpha means full pixelate strength. */
+	/** Will RenderOpacity affect pixelate strength? If true, then 0 RenderOpacity means 0 pixelate strength, and 1 RenderOpacity means full pixelate strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool ApplyAlphaToStrength = true;
+		bool ApplyOpacityToStrength = true;
 public:
 	UFUNCTION(BlueprintCallable, Category="LGUI")
 		float GetPixelateStrength() const { return PixelateStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetApplyAlphaToStrength()const { return ApplyAlphaToStrength; }
+		bool GetApplyOpacityToStrength()const { return ApplyOpacityToStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetPixelateStrength(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetApplyAlphaToStrength(bool Value);
+		void SetApplyOpacityToStrength(bool Value);
 
 	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()override;
 	virtual void MarkAllDirty()override;

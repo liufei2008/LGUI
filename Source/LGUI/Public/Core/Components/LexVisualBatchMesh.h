@@ -97,6 +97,7 @@ protected:
 	friend class FLexVisualBatchMeshCustomization;
 	virtual void BeginPlay() override;
 	virtual void EndPlay() override;
+	virtual void OnRegister() override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -112,6 +113,8 @@ protected:
 
 	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)override;
 public:
+	virtual void MarkRenderOpacityDirty() override{MarkColorDirty();}
+	void MarkColorDirty();
 	void MarkVertexPositionDirty();
 	void MarkVertexUVDirty();
 	void MarkCanvasUpdate();
@@ -140,12 +143,41 @@ public:
 	void AddMeshModifier(ULexMeshModifierBase* InModifier);
 	void RemoveMeshModifier(ULexMeshModifierBase* InModifier);
 	void MarkMeshModifierOrderChanged();
-protected:
-	virtual bool LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const;
-	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const { return false; }
+	
+	static const FName GetPropertyName_Color()
+	{
+		return GET_MEMBER_NAME_CHECKED(ULexVisualBatchMesh, Color);
+	}
+	
+	UFUNCTION()
+	FColor GetColor() const { return Color; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
+	
+	UFUNCTION()
+	void SetColor(FColor Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetAlpha(float Value);
+	
+	uint8 GetFinalAlpha()const;
+	/** get final alpha, calculated with inherited RenderOpacity */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	float GetFinalAlpha01()const;
+	/** get final color, calculated with inherited RenderOpacity */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	FColor GetFinalColor()const;
+	
 protected:
 	friend class FLexVisualBatchMeshCustomization;
-
+	
+	virtual bool LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const;
+	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const { return false; }
+	
+	/**
+	 * Render color of UI element.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI", Getter, Setter, BlueprintReadWrite)
+	FColor Color = FColor::White;
 	/** enable properties for material */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
@@ -183,6 +215,7 @@ protected:
 		void ReceiveOnUpdateGeometry(ULexUIGeometryHelper* InGeometryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 private:
+	uint8 bColorChanged : 1;
 	/** local space vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
@@ -195,4 +228,16 @@ private:
 	FVector LocalMinPoint3D = FVector::ZeroVector, LocalMaxPoint3D = FVector::ZeroVector;
 	void CalculateLocalBounds();
 	UPROPERTY(Transient)TObjectPtr<ULexUIGeometryHelper> GeometryHelper = nullptr;
+	
+public:
+#pragma region TweenAnimation
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	ULTweener* ColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	ULTweener* ColorFrom(FColor startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	ULTweener* AlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
+#pragma endregion
 };

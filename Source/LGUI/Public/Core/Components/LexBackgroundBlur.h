@@ -25,9 +25,9 @@ private:
 	/** Blur effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = 0.0, ClampMax = 1.0f))
 		float BlurStrength = 0.1f;
-	/** Will alpha affect blur strength? If true, then 0 alpha means 0 blur strength, and 1 alpha means full blur strength. */
+	/** Will RenderOpacity affect blur strength? If true, then 0 opacity means 0 blur strength, and 1 opacity means full blur strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool ApplyAlphaToBlur = true;
+		bool ApplyOpacityToBlur = true;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		int MaxDownSampleLevel = 7;
@@ -37,13 +37,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	int GetMaxDownSampleLevel() const { return MaxDownSampleLevel; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	bool GetApplyAlphaToBlur()const { return ApplyAlphaToBlur; }
+	bool GetApplyOpacityToBlur()const { return ApplyOpacityToBlur; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetBlurStrength(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetMaxDownSampleLevel(int Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void SetApplyAlphaToBlur(bool Value);
+	void SetApplyOpacityToBlur(bool Value);
 
 	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()override;
 	virtual void MarkAllDirty()override;

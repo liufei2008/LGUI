@@ -20,6 +20,7 @@ ULexVisualBatchMesh::ULexVisualBatchMesh(const FObjectInitializer& ObjectInitial
 	VisualType = ELexVisualType::BatchMesh;
 	UIGeometry = TSharedPtr<FLexUIGeometry>(new FLexUIGeometry);
 
+	bColorChanged = true;
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
@@ -39,6 +40,12 @@ void ULexVisualBatchMesh::BeginPlay()
 void ULexVisualBatchMesh::EndPlay()
 {
 	Super::EndPlay();
+}
+
+void ULexVisualBatchMesh::OnRegister()
+{
+	Super::OnRegister();
+	bColorChanged = true;
 }
 
 #if WITH_EDITOR
@@ -79,6 +86,11 @@ void ULexVisualBatchMesh::MarkVerticesDirty(bool InTriangleDirty, bool InVertexP
 	GetWidget()->MarkCanvasUpdate(bLocalVertexPositionChanged);
 }
 
+void ULexVisualBatchMesh::MarkColorDirty()
+{
+	bColorChanged = true;
+	GetWidget()->MarkCanvasUpdate(false);
+}
 void ULexVisualBatchMesh::MarkVertexPositionDirty()
 {
 	MarkVerticesDirty(false, true, false, false);
@@ -106,6 +118,7 @@ void ULexVisualBatchMesh::MarkMaterialDirty()
 
 void ULexVisualBatchMesh::MarkAllDirty()
 {
+	bColorChanged = true;
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
@@ -303,6 +316,42 @@ void ULexVisualBatchMesh::MarkMeshModifierOrderChanged()
 	MarkVerticesDirty(true, true, true, true);
 }
 
+void ULexVisualBatchMesh::SetColor(FColor Value)
+{
+	if (Color != Value)
+	{
+		Color = Value;
+		MarkColorDirty();
+	}
+}
+void ULexVisualBatchMesh::SetAlpha(float Value)
+{
+	Value = FMath::Clamp(Value, 0.0f, 1.0f);
+	auto uintAlpha = (uint8)(Value * 255);
+	if (Color.A != uintAlpha)
+	{
+		MarkColorDirty();
+		Color.A = uintAlpha;
+	}
+}
+
+FColor ULexVisualBatchMesh::GetFinalColor()const
+{
+	FColor Result = this->Color;
+	Result.A = Result.A * GetWidget()->GetFinalRenderOpacity();
+	return Result;
+}
+
+uint8 ULexVisualBatchMesh::GetFinalAlpha()const
+{
+	return Color.A * GetWidget()->GetFinalRenderOpacity();
+}
+
+float ULexVisualBatchMesh::GetFinalAlpha01()const
+{
+	return FLexUIUtils::ByteToFloat01(GetFinalAlpha());
+}
+
 bool ULexVisualBatchMesh::LineTraceVisiblePixel(float InAlphaThreshold, FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const
 {
 	auto Widget = this->GetWidget();
@@ -470,6 +519,57 @@ void ULexVisualBatchMesh::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangl
 		ReceiveOnUpdateGeometry(GeometryHelper, InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
 	}
 }
+
+
+#pragma region TweenAnimation
+#include "LTweenManager.h"
+ULTweener* ULexVisualBatchMesh::ColorTo(FColor endValue, float duration, float delay, ELTweenEase ease)
+{
+	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &ULexVisualBatchMesh::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &ULexVisualBatchMesh::SetColor), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
+	}
+	return Tweener;
+}
+ULTweener* ULexVisualBatchMesh::ColorFrom(FColor startValue, float duration, float delay, ELTweenEase ease)
+{
+	auto endValue = this->GetColor();
+	this->SetColor(startValue);
+	auto Tweener = ULTweenManager::To(this, FLTweenColorGetterFunction::CreateUObject(this, &ULexVisualBatchMesh::GetColor), FLTweenColorSetterFunction::CreateUObject(this, &ULexVisualBatchMesh::SetColor), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
+	}
+	return Tweener;
+}
+
+ULTweener* ULexVisualBatchMesh::AlphaTo(float endValue, float duration, float delay, ELTweenEase ease)
+{
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &ULexVisualBatchMesh::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &ULexVisualBatchMesh::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
+	}
+	return Tweener;
+}
+ULTweener* ULexVisualBatchMesh::AlphaFrom(float startValue, float duration, float delay, ELTweenEase ease)
+{
+	auto endValue = this->GetAlpha();
+	this->SetAlpha(startValue);
+	auto Tweener = ULTweenManager::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &ULexVisualBatchMesh::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(this, &ULexVisualBatchMesh::SetAlpha), endValue, duration);
+	if (Tweener)
+	{
+		Tweener->SetEase(ease)->SetDelay(delay);
+		ULexWidget::SetWidgetTweenerAffectByGamePauseAndTimeDilation(GetWidget(), Tweener);
+	}
+	return Tweener;
+}
+#pragma endregion
+
 
 
 void ULexUIGeometryHelper::AddVertexSimple(FVector position, FColor color, FVector2D uv0)

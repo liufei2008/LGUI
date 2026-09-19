@@ -9,6 +9,7 @@
 #include "RenderTargetPool.h"
 #include "Core/LexVisualBackBufferRenderProxy.h"
 #include "RHIStaticStates.h"
+#include "Core/Components/LexWidget.h"
 
 ULexBackgroundBlur::ULexBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -316,11 +317,11 @@ void ULexBackgroundBlur::SetBlurStrength(float Value)
 	}
 }
 
-void ULexBackgroundBlur::SetApplyAlphaToBlur(bool Value)
+void ULexBackgroundBlur::SetApplyOpacityToBlur(bool Value)
 {
-	if (ApplyAlphaToBlur != Value)
+	if (ApplyOpacityToBlur != Value)
 	{
-		ApplyAlphaToBlur = Value;
+		ApplyOpacityToBlur = Value;
 		SendOthersDataToRenderProxy();
 	}
 }
@@ -336,9 +337,12 @@ void ULexBackgroundBlur::SetMaxDownSampleLevel(int Value)
 
 float ULexBackgroundBlur::GetBlurStrengthInternal()
 {
-	if (ApplyAlphaToBlur)
+	if (ApplyOpacityToBlur)
 	{
-		return GetFinalAlpha01() * BlurStrength;
+		if (auto Widget = GetWidget())
+		{
+			return Widget->GetRenderOpacity() * BlurStrength;
+		}
 	}
 	return BlurStrength;
 }

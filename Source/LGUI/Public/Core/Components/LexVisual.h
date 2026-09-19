@@ -106,12 +106,7 @@ protected:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 #endif
 	ELexVisualType VisualType = ELexVisualType::None;
-
-	/**
-	 * Render color of UI element.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", Getter, Setter, BlueprintReadWrite)
-	FColor Color = FColor::White;
+	
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 	bool bRaycastTarget = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta=(EditCondition=bRaycastTarget))
@@ -129,30 +124,18 @@ protected:
 	
 	void UpdateGeometryWidgetPropertyData(TArray<struct FLexUIMeshVertex>& InVertices, int InValidNumVertices, int InDataStartPosition);
 public:
-	static const FName GetPropertyName_Color()
-	{
-		return GET_MEMBER_NAME_CHECKED(ULexVisual, Color);
-	}
 	
 	/** get visual type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ELexVisualType GetVisualType()const { return VisualType; }
-
-	UFUNCTION()
-	FColor GetColor() const { return Color; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
+	
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	bool GetRaycastTarget()const{return bRaycastTarget;}
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	ELexVisualRaycastType GetRaycastType()const { return RaycastType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ULexVisualCustomRaycast* GetCustomRaycastObject()const { return CustomRaycastObject; }
-
-	UFUNCTION()
-	void SetColor(FColor Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void SetAlpha(float Value);
+	
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetRaycastTarget(bool Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -160,14 +143,6 @@ public:
 	/** Set custom raycast object to handle raycast behaviour, only valid if RaycastType is Custom */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetCustomRaycastObject(ULexVisualCustomRaycast* Value);
-
-	uint8 GetFinalAlpha()const;
-	/** get final alpha, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetFinalAlpha01()const;
-	/** get final color, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FColor GetFinalColor()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool LineTraceUI(FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const;
@@ -180,9 +155,9 @@ public:
 	virtual void OnTransformChanged(bool InPositionChanged, bool InScaleChanged);
 	virtual void OnRenderCanvasChanged(ULexCanvas* InOldCanvas, ULexCanvas* InNewCanvas);
 	
-	void MarkColorDirty();
 	void CheckClipDataStartPosition();
 	virtual void MarkAllDirty();
+	virtual void MarkRenderOpacityDirty(){};
 	
 	/** Called by LexCanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
@@ -215,7 +190,6 @@ public:
 	bool IsRegisteredToCanvas()const{return WidgetPropertyDataStartPosition != INDEX_NONE;}
 	int GetWidgetPropertyDataStartPosition()const{return WidgetPropertyDataStartPosition;}
 protected:
-	uint8 bColorChanged : 1;
 	uint8 bTransformChanged : 1;
 	uint8 bClipDataPositionChanged : 1;
 	uint8 bWidgetPropertyDataStartPositionChanged : 1;
@@ -227,15 +201,4 @@ protected:
 	void FillWidgetPropertyDataForMaterial_ClipDataCoordinate(class ULexUIDataAsTexture* DataAsTexture)const;
 	// Fill initial mark data, only do this when first create widget property data or when render canvas changed
 	void FillWidgetPropertyDataForMaterial_InitialMark(class ULexUIDataAsTexture* DataAsTexture, uint8 FontMark)const;
-public:
-#pragma region TweenAnimation
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* ColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* ColorFrom(FColor startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* AlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
-		ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-#pragma endregion
 };

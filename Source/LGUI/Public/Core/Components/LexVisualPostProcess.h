@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include "LexVisual.h"
 #include "LexVisualBackBufferReader.h"
-#include "Core/LexUIRender/LexUIPostProcessVertex.h"
 #include "LexVisualPostProcess.generated.h"
 
 class FLexVisualBackBufferRenderProxy;

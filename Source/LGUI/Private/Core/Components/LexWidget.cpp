@@ -3136,7 +3136,7 @@ void ULexWidget::MarkRenderOpacityDirty_Recursive()const
 {
 	if (Visual)
 	{
-		Visual->MarkColorDirty();
+		Visual->MarkRenderOpacityDirty();
 	}
 	for (auto& Child : Children)
 	{

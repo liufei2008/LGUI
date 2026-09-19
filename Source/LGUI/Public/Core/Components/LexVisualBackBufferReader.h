@@ -70,7 +70,7 @@ protected:
 	FIntRect CacheViewRect = FIntRect();
 	FLexVisualBackBufferRenderProxy* RenderProxy = nullptr;
 	/** update ui geometry */
-	virtual void OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	virtual void OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged);
 	/** update region vertex data */
 	virtual void UpdateRegionVertex(FIntPoint InViewportSize);
 	void UpdateGeometryClipData(FLexUIGeometry& InMesh, int InDataStartPosition);

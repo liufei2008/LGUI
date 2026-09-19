@@ -30,8 +30,14 @@ void ULexVisualDirectMesh::PostEditChangeProperty(FPropertyChangedEvent& Propert
 }
 #endif
 
+void ULexVisualDirectMesh::MarkColorDirty()
+{
+	bColorChanged = true;
+	GetWidget()->MarkCanvasUpdate(false);
+}
 void ULexVisualDirectMesh::MarkAllDirty()
 {
+	bColorChanged = true;
 	bLocalVertexPositionChanged = true;
 	Super::MarkAllDirty();
 }
@@ -146,4 +152,40 @@ void ULexVisualDirectMesh::PostFillMeshData()
 			FillWidgetPropertyDataForMaterial(this->GetRequirePropertiesForMaterial_Size(), this->GetRequirePropertiesForMaterial_CenterPosition());
 		}
 	}
+}
+
+void ULexVisualDirectMesh::SetColor(FColor Value)
+{
+	if (Color != Value)
+	{
+		Color = Value;
+		MarkColorDirty();
+	}
+}
+void ULexVisualDirectMesh::SetAlpha(float Value)
+{
+	Value = FMath::Clamp(Value, 0.0f, 1.0f);
+	auto uintAlpha = (uint8)(Value * 255);
+	if (Color.A != uintAlpha)
+	{
+		MarkColorDirty();
+		Color.A = uintAlpha;
+	}
+}
+
+FColor ULexVisualDirectMesh::GetFinalColor()const
+{
+	FColor Result = this->Color;
+	Result.A = Result.A * GetWidget()->GetFinalRenderOpacity();
+	return Result;
+}
+
+uint8 ULexVisualDirectMesh::GetFinalAlpha()const
+{
+	return Color.A * GetWidget()->GetFinalRenderOpacity();
+}
+
+float ULexVisualDirectMesh::GetFinalAlpha01()const
+{
+	return FLexUIUtils::ByteToFloat01(GetFinalAlpha());
 }
