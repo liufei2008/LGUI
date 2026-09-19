@@ -42,7 +42,7 @@ void ULexBackBufferCopy::ClearMaterialsUsingThisBackBuffer()
 void ULexBackBufferCopy::RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic)
 {
 	MaterialsUsingThisBackBuffer.Add(InMaterialInstanceDynamic);
-	InMaterialInstanceDynamic->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+	InMaterialInstanceDynamic->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, RenderTarget);
 	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
 }
 
@@ -171,9 +171,9 @@ void ULexBackBufferCopy::SendRenderTargetToRenderProxy()
 	{
 		auto TempRenderProxy = (FUIBackBufferCopyRenderProxy*)RenderProxy;
 		FTextureRenderTargetResource* RenderTargetResource = nullptr;
-		if (IsValid(OutputRenderTarget))
+		if (IsValid(RenderTarget))
 		{
-			RenderTargetResource = OutputRenderTarget->GameThread_GetRenderTargetResource();
+			RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 		}
 		else
 		{
@@ -184,6 +184,16 @@ void ULexBackBufferCopy::SendRenderTargetToRenderProxy()
 				{
 					TempRenderProxy->RenderTargetResource = RenderTargetResource;
 				});
+	}
+}
+
+void ULexBackBufferCopy::SetRenderTarget(UTextureRenderTarget2D* InRenderTarget)
+{
+	if (RenderTarget != InRenderTarget)
+	{
+		RenderTarget = InRenderTarget;
+		UpdateRenderTarget();
+		OnRenderTargetChanged.Broadcast(RenderTarget);
 	}
 }
 
@@ -198,31 +208,31 @@ void ULexBackBufferCopy::UpdateRenderTarget()
 	DesiredRenderTargetSize.X = FMath::Min(DesiredRenderTargetSize.X, MaxAllowedDrawSize);
 	DesiredRenderTargetSize.Y = FMath::Min(DesiredRenderTargetSize.Y, MaxAllowedDrawSize);
 
-	if (OutputRenderTarget == nullptr)
+	if (RenderTarget == nullptr)
 	{
-		OutputRenderTarget = NewObject<UTextureRenderTarget2D>(this, NAME_None, EObjectFlags::RF_Transient);
-		OutputRenderTarget->AddressX = TextureAddress::TA_Clamp;
-		OutputRenderTarget->AddressY = TextureAddress::TA_Clamp;
-		OutputRenderTarget->ClearColor = FLinearColor::Transparent;
-		OutputRenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+		RenderTarget = NewObject<UTextureRenderTarget2D>(this, NAME_None, EObjectFlags::RF_Transient);
+		RenderTarget->AddressX = TextureAddress::TA_Clamp;
+		RenderTarget->AddressY = TextureAddress::TA_Clamp;
+		RenderTarget->ClearColor = FLinearColor::Transparent;
+		RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
 		SendRenderTargetToRenderProxy();
-		OnRenderTargetChanged.Broadcast(OutputRenderTarget);
+		OnRenderTargetChanged.Broadcast(RenderTarget);
 		//update material's texture, because OutputRenderTarget could be null when register
 		for (auto& MID : MaterialsUsingThisBackBuffer)
 		{
 			if (!MID.IsValid())continue;
-			MID->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, OutputRenderTarget);
+			MID->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, RenderTarget);
 		}
 	}
 	else
 	{
-		if (OutputRenderTarget->SizeX != DesiredRenderTargetSize.X || OutputRenderTarget->SizeY != DesiredRenderTargetSize.Y)
+		if (RenderTarget->SizeX != DesiredRenderTargetSize.X || RenderTarget->SizeY != DesiredRenderTargetSize.Y)
 		{
-			OutputRenderTarget->ClearColor = FLinearColor::Transparent;
-			OutputRenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
-			OutputRenderTarget->UpdateResourceImmediate();
+			RenderTarget->ClearColor = FLinearColor::Transparent;
+			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+			RenderTarget->UpdateResourceImmediate();
 #if WITH_EDITOR
-			OutputRenderTarget->Modify();
+			RenderTarget->Modify();
 #endif
 			SendRenderTargetToRenderProxy();
 		}
@@ -231,9 +241,9 @@ void ULexBackBufferCopy::UpdateRenderTarget()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		if (!OutputRenderTarget->GameThread_GetRenderTargetResource())
+		if (!RenderTarget->GameThread_GetRenderTargetResource())
 		{
-			OutputRenderTarget->InitCustomFormat(OutputRenderTarget->SizeX, OutputRenderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
+			RenderTarget->InitCustomFormat(RenderTarget->SizeX, RenderTarget->SizeY, EPixelFormat::PF_B8G8R8A8, false);
 			SendRenderTargetToRenderProxy();
 		}
 	}

@@ -86,6 +86,15 @@ void ULexVisualBackBufferReader::OnTransformChanged(bool InPositionChanged, bool
 	Super::OnTransformChanged(InPositionChanged, InScaleChanged);
 }
 
+void ULexVisualBackBufferReader::SetBackBufferReaderType(ELexVisualBackBufferReaderType InBackBufferReaderType)
+{
+	if (BackBufferReaderType != InBackBufferReaderType)
+	{
+		BackBufferReaderType = InBackBufferReaderType;
+	    MarkVertexPositionDirty();
+	}
+}
+
 void ULexVisualBackBufferReader::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
@@ -109,8 +118,8 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
 	auto Widget = GetWidget();
-	auto RenderCanvas = Widget->GetRenderCanvas();
-	check(RenderCanvas);
+	auto Canvas = Widget->GetRenderCanvas();
+	check(Canvas);
 
 	Super::UpdateGeometry();
 	
@@ -119,13 +128,25 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 		Geometry->Clear();
 		OnUpdateGeometry(false, bLocalVertexPositionChanged, bUVChanged);
 	}
+	if (bWidgetPropertyDataStartPositionChanged)
+	{
+		bWidgetPropertyDataStartPositionChanged = false;
+		UpdateGeometryWidgetPropertyData(Geometry->Vertices, Geometry->Vertices.Num(), this->WidgetPropertyDataStartPosition);
+	}
+	if (bWidgetPropertyDataFontMarkDirty)
+	{
+		bWidgetPropertyDataFontMarkDirty = false;
+		FillWidgetPropertyDataForMaterial_InitialMark(Canvas->GetWidgetPropertyDataAsTexture(), 0);
+	}
 	if (bClipDataPositionChanged)
 	{
 		UpdateGeometryClipData(*Geometry.Get(), ClipDataStartPosition);
+		/** Only update the clip data position coordinate. */
+		FillWidgetPropertyDataForMaterial_ClipDataCoordinate(Canvas->GetWidgetPropertyDataAsTexture());
 	}
 	if (bLocalVertexPositionChanged || bTransformChanged)
 	{
-		FLexUIGeometry::TransformVertices(RenderCanvas, this, Geometry.Get());
+		FLexUIGeometry::TransformVertices(Canvas, this, Geometry.Get());
 	}
 	if (bLocalVertexPositionChanged || bUVChanged || bTransformChanged || bClipDataPositionChanged)
 	{
@@ -147,6 +168,7 @@ void ULexVisualBackBufferReader::UpdateGeometry()
 		RenderMeshRegionToScreenVertexArray.SetNumZeroed(4);
 	}
 
+	bClipDataPositionChanged = false;
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	bTransformChanged = false;
@@ -186,7 +208,10 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 				if (LP->GetProjectionData(LP->ViewportClient->Viewport, /*out*/ ProjectionData))
 				{
 					ViewRect = ProjectionData.GetConstrainedViewRect();
-					ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
+					if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+					{
+						ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
+					}
 				}
 			}
 		}
@@ -194,102 +219,126 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 	else
 	{
 		ViewRect = FIntRect(FIntPoint::ZeroValue, RootCanvas->GetViewportSize());
-		ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
-	}
-	if (bWidgetOrGeometryDirty
-		|| CacheViewRect != ViewRect
-		|| CacheViewProjectionMatrix != ViewProjectionMatrix
-		&& (ViewRect.Max != ViewRect.Min && ViewProjectionMatrix != FMatrix::Identity)//make sure view is valid
-		)
-	{
-		bWidgetOrGeometryDirty = false;
-		CacheViewRect = ViewRect;
-		CacheViewProjectionMatrix = ViewProjectionMatrix;
-	}
-	else
-	{
-		return;//nothing change, no need to calculate
-	}
-
-	//calculate screen space AABB rect
-	FVector2f Min = FVector2f(UE_MAX_FLT, UE_MAX_FLT);
-	FVector2f Max = -Min;
-	if (RenderCanvas->IsRenderToWorldSpace())
-	{
-		auto ProjectWorldToScreen = [](const FVector& WorldPosition, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix, FVector2D& out_ScreenPos)
+		if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
 		{
-			FPlane Result = ViewProjectionMatrix.TransformFVector4(FVector4(WorldPosition, 1.f));
-			bool bIsInsideView = Result.W > 0.0f;
-			double W = Result.W;
+			ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
+		}
+	}
+	if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+	{
+		if (bWidgetOrGeometryDirty
+			|| CacheViewRect != ViewRect
+			|| CacheViewProjectionMatrix != ViewProjectionMatrix
+			&& (ViewRect.Max != ViewRect.Min && ViewProjectionMatrix != FMatrix::Identity)//make sure view is valid
+			)
+		{
+			bWidgetOrGeometryDirty = false;
+			CacheViewRect = ViewRect;
+			CacheViewProjectionMatrix = ViewProjectionMatrix;
+		}
+		else
+		{
+			return;//nothing change, no need to calculate
+		}
+
+		//calculate screen space AABB rect
+		FVector2f Min = FVector2f(UE_MAX_FLT, UE_MAX_FLT);
+		FVector2f Max = -Min;
+		if (RenderCanvas->IsRenderToWorldSpace())
+		{
+			auto ProjectWorldToScreen = [](const FVector& WorldPosition, const FIntRect& ViewRect, const FMatrix& ViewProjectionMatrix, FVector2D& out_ScreenPos)
+			{
+				FPlane Result = ViewProjectionMatrix.TransformFVector4(FVector4(WorldPosition, 1.f));
+				bool bIsInsideView = Result.W > 0.0f;
+				double W = Result.W;
 	
-			// the result of this will be x and y coords in -1..1 projection space
-			const float RHW = 1.0f / W;
-			FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, W);
+				// the result of this will be x and y coords in -1..1 projection space
+				const float RHW = 1.0f / W;
+				FPlane PosInScreenSpace = FPlane(Result.X * RHW, Result.Y * RHW, Result.Z * RHW, W);
 
-			// Move from projection space to normalized 0..1 UI space
-			const float NormalizedX = ( PosInScreenSpace.X / 2.f ) + 0.5f;
-			const float NormalizedY = 1.f - ( PosInScreenSpace.Y / 2.f ) - 0.5f;
+				// Move from projection space to normalized 0..1 UI space
+				const float NormalizedX = ( PosInScreenSpace.X / 2.f ) + 0.5f;
+				const float NormalizedY = 1.f - ( PosInScreenSpace.Y / 2.f ) - 0.5f;
 
-			FVector2D RayStartViewRectSpace(
-				( NormalizedX * (float)ViewRect.Width() ),
-				( NormalizedY * (float)ViewRect.Height() )
-				);
+				FVector2D RayStartViewRectSpace(
+					( NormalizedX * (float)ViewRect.Width() ),
+					( NormalizedY * (float)ViewRect.Height() )
+					);
 
-			out_ScreenPos = RayStartViewRectSpace + FVector2D(static_cast<float>(ViewRect.Min.X), static_cast<float>(ViewRect.Min.Y));
+				out_ScreenPos = RayStartViewRectSpace + FVector2D(static_cast<float>(ViewRect.Min.X), static_cast<float>(ViewRect.Min.Y));
 
-			return bIsInsideView;
-		};
+				return bIsInsideView;
+			};
 		
-		auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
-		const bool bPlayerViewportRelative = true;
-		auto& Vertices = Geometry->OriginVertices;
-		for (int i = 0; i < Vertices.Num(); i++)
-		{
-			auto& Vert = Vertices[i];
-			auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
-			FVector2D ScreenPosition = FVector2D::Zero();
-			bool bResult = ProjectWorldToScreen(WorldPosition, CacheViewRect, CacheViewProjectionMatrix, ScreenPosition);
-			if (bResult)
+			auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+			const bool bPlayerViewportRelative = true;
+			auto& Vertices = Geometry->OriginVertices;
+			for (int i = 0; i < Vertices.Num(); i++)
 			{
-				if (bPlayerViewportRelative)
+				auto& Vert = Vertices[i];
+				auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+				FVector2D ScreenPosition = FVector2D::Zero();
+				bool bResult = ProjectWorldToScreen(WorldPosition, CacheViewRect, CacheViewProjectionMatrix, ScreenPosition);
+				if (bResult)
 				{
-					ScreenPosition -= FVector2D(CacheViewRect.Min);
+					if (bPlayerViewportRelative)
+					{
+						ScreenPosition -= FVector2D(CacheViewRect.Min);
+					}
+					Min.X = FMath::Min(Min.X, ScreenPosition.X);
+					Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+					Max.X = FMath::Max(Max.X, ScreenPosition.X);
+					Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
 				}
-				Min.X = FMath::Min(Min.X, ScreenPosition.X);
-				Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
-				Max.X = FMath::Max(Max.X, ScreenPosition.X);
-				Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
 			}
 		}
+		else
+		{
+			auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
+			auto& Vertices = Geometry->OriginVertices;
+			for (int i = 0; i < Vertices.Num(); i++)
+			{
+				auto& Vert = Vertices[i];
+				auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
+				FVector2D ScreenPosition = FVector2D::Zero();
+				if (RootCanvas->Project3DToScreen(WorldPosition, ScreenPosition))
+				{
+					Min.X = FMath::Min(Min.X, ScreenPosition.X);
+					Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
+					Max.X = FMath::Max(Max.X, ScreenPosition.X);
+					Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
+				}
+			}
+		}
+		//clamp to viewport rect
+		Min.X = FMath::Max(Min.X, 0);
+		Min.Y = FMath::Max(Min.Y, 0);
+		Max.X = FMath::Min(Max.X, ViewRect.Width());
+		Max.Y = FMath::Min(Max.Y, ViewRect.Height());
+	
+		MeshRectInScreen = FBox2f(Min, Max);
+		float Inv_ViewWidth = 1.0f / ViewRect.Width();
+		float Inv_ViewHeight = 1.0f / ViewRect.Height();
+		RectInScreen01 = FVector4f(Min.X * Inv_ViewWidth, Min.Y * Inv_ViewHeight, (Max.X - Min.X) * Inv_ViewWidth, (Max.Y - Min.Y) * Inv_ViewHeight);
 	}
 	else
 	{
-		auto ModelMatrix = Widget->GetWorldTransform().ToMatrixWithScale();
-		auto& Vertices = Geometry->OriginVertices;
-		for (int i = 0; i < Vertices.Num(); i++)
+		if (bWidgetOrGeometryDirty
+			|| CacheViewRect != ViewRect
+			&& (ViewRect.Max != ViewRect.Min)//make sure view is valid
+			)
 		{
-			auto& Vert = Vertices[i];
-			auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
-			FVector2D ScreenPosition = FVector2D::Zero();
-			if (RootCanvas->Project3DToScreen(WorldPosition, ScreenPosition))
-			{
-				Min.X = FMath::Min(Min.X, ScreenPosition.X);
-				Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
-				Max.X = FMath::Max(Max.X, ScreenPosition.X);
-				Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
-			}
+			bWidgetOrGeometryDirty = false;
+			CacheViewRect = ViewRect;
 		}
+		else
+		{
+			return;//nothing change, no need to calculate
+		}
+		
+		MeshRectInScreen = FBox2f(FVector2f::Zero(), ViewRect.Size());
+		RectInScreen01 = FVector4f(0, 0, 1, 1);
 	}
-	//clamp to viewport rect
-	Min.X = FMath::Max(Min.X, 0);
-	Min.Y = FMath::Max(Min.Y, 0);
-	Max.X = FMath::Min(Max.X, ViewRect.Width());
-	Max.Y = FMath::Min(Max.Y, ViewRect.Height());
-	
-	MeshRectInScreen = FBox2f(Min, Max);
-	float Inv_ViewWidth = 1.0f / ViewRect.Width();
-	float Inv_ViewHeight = 1.0f / ViewRect.Height();
-	RectInScreen01 = FVector4f(Min.X * Inv_ViewWidth, Min.Y * Inv_ViewHeight, (Max.X - Min.X) * Inv_ViewWidth, (Max.Y - Min.Y) * Inv_ViewHeight);
 	
 	UpdateRegionVertex(ViewRect.Size());
 }
@@ -338,20 +387,31 @@ void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool I
 
 void ULexVisualBackBufferReader::UpdateRegionVertex(FIntPoint InViewportSize)
 {
-	FVector2f Inv_ViewportSize(1.0f / InViewportSize.X, 1.0f / InViewportSize.Y);
-	RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
-	RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
-	RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
-	RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
-
-	auto& Vertices = Geometry->Vertices;
-	constexpr int VertexBufferSize = 4;
-	for (int i = 0; i < VertexBufferSize; i++)
+	if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
 	{
-		auto& copyVert = RenderMeshRegionToScreenVertexArray[i];
-		copyVert.Position = Vertices[i].Position;
-		copyVert.TextureCoordinate0 = Vertices[i].TextureCoordinate[0];
-		copyVert.TextureCoordinate1 = Vertices[i].TextureCoordinate[1];
+		FVector2f Inv_ViewportSize(1.0f / InViewportSize.X, 1.0f / InViewportSize.Y);
+		RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
+		RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
+		RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
+		RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
+		
+		//RenderMeshRegionToScreenVertexArray only needed in rect mode
+		auto& Vertices = Geometry->Vertices;
+		constexpr int VertexBufferSize = 4;
+		for (int i = 0; i < VertexBufferSize; i++)
+		{
+			auto& copyVert = RenderMeshRegionToScreenVertexArray[i];
+			copyVert.Position = Vertices[i].Position;
+			copyVert.TextureCoordinate0 = Vertices[i].TextureCoordinate[0];
+			copyVert.TextureCoordinate1 = Vertices[i].TextureCoordinate[1];
+		}
+	}
+	else
+	{
+		RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(0, 1);
+		RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(1, 1);
+		RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(0, 0);
+		RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(1, 0);
 	}
 
 	SendRegionVertexDataToRenderProxy();
@@ -381,6 +441,7 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 			TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
 			FBox2f MeshRectInScreen;
 			FVector4f RectInScreen01;
+			bool bFullViewport;
 			FMatrix44f ObjectToWorldMatrix;
 		};
 		auto UpdateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
@@ -388,6 +449,7 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
 		UpdateData->MeshRectInScreen = this->MeshRectInScreen;
 		UpdateData->RectInScreen01 = this->RectInScreen01;
+		UpdateData->bFullViewport = this->BackBufferReaderType == ELexVisualBackBufferReaderType::Viewport;
 		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
 		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateData)
 			([TempRenderProxy, UpdateData](FRHICommandListImmediate& RHICmdList)
@@ -396,6 +458,7 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 					TempRenderProxy->RenderMeshRegionToScreenVertexArray = MoveTemp(UpdateData->RenderMeshRegionToScreenVertexArray);
 					TempRenderProxy->MeshRectInScreen = MoveTemp(UpdateData->MeshRectInScreen);
 					TempRenderProxy->RectInScreen01 = MoveTemp(UpdateData->RectInScreen01);
+					TempRenderProxy->bFullViewport = UpdateData->bFullViewport;
 					TempRenderProxy->ObjectToWorldMatrix = MoveTemp(UpdateData->ObjectToWorldMatrix);
 					delete UpdateData;
 				});

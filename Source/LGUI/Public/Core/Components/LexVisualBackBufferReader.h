@@ -9,6 +9,15 @@
 class FLexVisualBackBufferRenderProxy;
 struct FLexUIPostProcessVertex;
 
+UENUM(BlueprintType)
+enum class ELexVisualBackBufferReaderType : uint8
+{
+	/** use the UI element's rect in viewport */
+	Rect,
+	/** use full viewport rect */
+	Viewport,
+};
+
 /** 
  * UI element that can access back-buffer image.
  * Only valid on LexUIRenderer (ScreenSpaceUI or WorldSpace-LexUIRenderer).
@@ -40,7 +49,8 @@ protected:
 
 protected:
 	friend class FLexBackBufferReaderCustomization;
-	
+	UPROPERTY(EditAnywhere, Category="LGUI", BlueprintReadWrite, Getter, Setter)
+	ELexVisualBackBufferReaderType BackBufferReaderType = ELexVisualBackBufferReaderType::Rect;
 public:
 	
 	FLexUIGeometry* GetGeometry()const { return Geometry.Get(); }
@@ -50,11 +60,15 @@ public:
 	/** same as Get2dBoxInScreen but normalized to 0~1, xy- min, zw- size */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	FVector4f Get2dBoxInScreen01()const{return RectInScreen01;}
+	
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	ELexVisualBackBufferReaderType GetBackBufferReaderType()const{return BackBufferReaderType;}
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetBackBufferReaderType(ELexVisualBackBufferReaderType InBackBufferReaderType);
 
-public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
-public:
+	
 	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
 	virtual bool HaveValidData()const;
 

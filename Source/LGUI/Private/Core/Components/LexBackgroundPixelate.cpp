@@ -123,9 +123,9 @@ public:
 		};
 
 		uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
-		auto ScreenSize = ScreenTargetTexture->GetSizeXY();
 		if (NumSamples > 1)
 		{
+			auto ScreenSize = ScreenTargetTexture->GetSizeXY();
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenSize, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenResolvedTexture, TEXT("LGUIBlurEffectResolveTarget"));
 			if (!ScreenResolvedTexture.IsValid())
@@ -145,7 +145,6 @@ public:
 		width = FMath::Clamp(width, 1, RectSize.X);
 		height = FMath::Clamp(height, 1, RectSize.Y);
 		auto TextureSize = FIntPoint(width, height);
-		bool bFullScreen = TextureSize == ScreenSize;
 
 		//get render target
 		{
@@ -157,37 +156,31 @@ public:
 				return;
 			}
 		}
-		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRHI();
+		auto PixelateEffectRHITexture = PixelateEffectRenderTarget->GetRHI();
 
 		//copy rect area from screen image to a render target, so we can just process this area
-		auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
-		if (!bFullScreen)
-		{
-			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
-				, RegisterExternalTexture(GraphBuilder, PixelateEffectRenderTargetTexture, TEXT("LexUI_PixelateEffectRenderTargetTexture"))
-				, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
-				, GlobalShaderMap
-				, RenderScreenToMeshRegionVertexArray
-				, bIsRenderTarget
-				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
-				, ViewTextureScaleOffset
-			);
-		}
-		else
-		{
-			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
-				, PixelateEffectRenderTargetTexture);
-		}
+		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+			, RegisterExternalTexture(GraphBuilder, PixelateEffectRHITexture, TEXT("LexUI_PixelateEffectRenderTargetTexture"))
+			, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
+			, GlobalShaderMap
+			, RenderScreenToMeshRegionVertexArray
+			, bIsRenderTarget
+			, FIntRect(0, 0, PixelateEffectRHITexture->GetSizeXYZ().X, PixelateEffectRHITexture->GetSizeXYZ().Y)
+			, ViewTextureScaleOffset
+		);
 	
 		//after pixelate process, copy the area back to screen image
-		if (!bFullScreen)
+		if (bFullViewport)
 		{
-			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect
+			//copy full viewport
+			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRHITexture, ScreenTargetTexture
 				, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		}
 		else
 		{
-			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRenderTargetTexture, ScreenTargetTexture
+			//copy on mesh region
+			auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
+			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect
 				, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		}
 

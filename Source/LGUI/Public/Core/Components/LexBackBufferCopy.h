@@ -25,11 +25,11 @@ private:
 #endif
 
 	/**
-	 * Blur result will output to this RenderTarget.
+	 * Copy screen content to this RenderTarget.
 	 * Will create one if not specified.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-	TObjectPtr<UTextureRenderTarget2D> OutputRenderTarget = nullptr;
+	UPROPERTY(EditAnywhere, Category = "LGUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
+	TObjectPtr<UTextureRenderTarget2D> RenderTarget = nullptr;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
 protected:
 	virtual void OnRegister() override;
@@ -42,8 +42,10 @@ public:
 	void RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceDynamic* InMaterialInstanceDynamic);
 	
 	FRenderTargetChangedEvent& GetRenderTargetChangedEvent(){return OnRenderTargetChanged;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	UTextureRenderTarget2D* GetOutputRenderTarget()const { return OutputRenderTarget; }
+	UFUNCTION()
+	UTextureRenderTarget2D* GetRenderTarget()const { return RenderTarget; }
+	UFUNCTION()
+	void SetRenderTarget(UTextureRenderTarget2D* InRenderTarget);
 private:
 	void UpdateRenderTarget();
 	void SendRenderTargetToRenderProxy();

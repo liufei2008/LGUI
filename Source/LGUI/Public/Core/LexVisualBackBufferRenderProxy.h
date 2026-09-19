@@ -52,6 +52,7 @@ public:
 	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
 	FBox2f MeshRectInScreen;
 	FVector4f RectInScreen01;
+	bool bFullViewport = false;
 };
 
 BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )

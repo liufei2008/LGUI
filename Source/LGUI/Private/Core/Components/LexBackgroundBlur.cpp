@@ -91,9 +91,9 @@ public:
 		};
 
 		uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
-		auto ScreenSize = ScreenTargetTexture->GetSizeXY();
 		if (NumSamples > 1)
 		{
+			auto ScreenSize = ScreenTargetTexture->GetSizeXY();
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenSize, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenResolvedRenderTarget, TEXT("LexUIBlurEffectResolveTarget"));
 			if (!ScreenResolvedRenderTarget.IsValid())
@@ -118,7 +118,6 @@ public:
 		}
 		FRHITexture* BlurEffectRHITexture = BlurEffectRenderTarget->GetRHI();
 
-		auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
 		auto BlurEffectRDGTextureRef = RegisterExternalTexture(GraphBuilder, BlurEffectRHITexture, TEXT("LexUIBlurEffectRenderTexture_ExternalTexture"));
 		//clear the whole target first so the area not covered by the mesh region is deterministic.
 #if 0
@@ -185,8 +184,17 @@ public:
 		DoBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, Renderer, GlobalShaderMap);
 
 		//after blur process, copy the blur result image back to screen image of the area
-		//copy on mesh region
-		RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
+		if (bFullViewport)
+		{
+			//copy full viewport
+			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, BlurEffectRHITexture, ScreenTargetTexture);
+		}
+		else
+		{
+			//copy on mesh region
+			auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
+			RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, BlurEffectRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
+		}
 
 		//Defer releasing the pooled render targets until the graph executes
 		GraphBuilder.AddPass(
