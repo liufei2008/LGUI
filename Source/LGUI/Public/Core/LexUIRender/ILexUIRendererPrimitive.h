@@ -25,7 +25,7 @@ struct FLexUIMeshBatchContainer
 enum class ELexUIRendererPrimitiveType :uint8
 {
 	Mesh,
-	PostProcess,
+	BackBufferReader,
 };
 
 struct FLexUIRenderSectionProxy;
@@ -57,5 +57,5 @@ public:
 
 	virtual void LexUI_CollectRenderData(TArray<FLexUIPrimitiveDataContainer>& OutRenderData) = 0;
 	virtual void LexUI_GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector& Collector, const FLexUIPrimitiveDataContainer& PrimitiveData, TArray<FLexUIMeshBatchContainer>& ResultArray) = 0;
-	virtual FLexVisualBackBufferRenderProxy* LexUI_GetPostProcessElement(FLexUIRenderSectionProxy* SectionPtr)const = 0;
+	virtual FLexVisualBackBufferRenderProxy* LexUI_GetBackBufferReaderElement(FLexUIRenderSectionProxy* SectionPtr)const = 0;
 };

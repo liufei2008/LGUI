@@ -62,7 +62,7 @@ enum class ELexVisualType :uint8
 {
 	None,
 	BatchMesh,
-	PostProcess,
+	BackBufferReader,
 	DirectMesh,
 };
 

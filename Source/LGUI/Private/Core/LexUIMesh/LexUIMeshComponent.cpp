@@ -16,7 +16,7 @@
 #include "Core/LexUIDrawCall.h"
 #include "Core/LexVisualBackBufferRenderProxy.h"
 #include "Core/Components/LexVisualDirectMesh.h"
-#include "Core/Components/LexVisualPostProcess.h"
+#include "Core/Components/LexVisualBackBufferReader.h"
 #include "Core/Components/LexWidget.h"
 #include "RHIResourceUtils.h"
 
@@ -26,7 +26,7 @@
 
 enum class ELexUIRenderSectionProxyType :uint8
 {
-	Mesh, PostProcess, ChildCanvas,
+	Mesh, BackBufferReader, ChildCanvas,
 };
 struct FLexUIRenderSectionProxy
 {
@@ -154,18 +154,18 @@ struct FLexUISectionProxy_Mesh : public FLexUIRenderSectionProxy
 		}
 	}
 };
-struct FLexUIRenderSectionProxy_PostProcess : public FLexUIRenderSectionProxy
+struct FLexUIRenderSectionProxy_BackBufferReader : public FLexUIRenderSectionProxy
 {
-	FLexUIRenderSectionProxy_PostProcess()
+	FLexUIRenderSectionProxy_BackBufferReader()
 	{
-		Type = ELexUIRenderSectionProxyType::PostProcess;
+		Type = ELexUIRenderSectionProxyType::BackBufferReader;
 	}
 
-	FLexVisualBackBufferRenderProxy* PostProcessRenderProxy = nullptr;
+	FLexVisualBackBufferRenderProxy* BackBufferReaderRenderProxy = nullptr;
 
 	virtual void Disable() override
 	{
-		PostProcessRenderProxy = nullptr;
+		BackBufferReaderRenderProxy = nullptr;
 		bCanRender = false;
 	}
 };
@@ -277,13 +277,13 @@ public:
 				delete OldSection;
 			});
 	}
-	void UpdatePostProcessSection(FLexUIRenderSection_PostProcess* InSrcSection, FLexVisualBackBufferRenderProxy* InRenderProxy)
+	void UpdateBackBufferReaderSection(FLexUIRenderSection_BackBufferReader* InSrcSection, FLexVisualBackBufferRenderProxy* InRenderProxy)
 	{
 		ENQUEUE_RENDER_COMMAND(FLexUIRenderSceneProxy_ReplaceSectionData)(
 			[this, InSrcSection, InRenderProxy](FRHICommandListImmediate& RHICmdList) {
-				auto PostProcessRenderProxy = static_cast<FLexUIRenderSectionProxy_PostProcess*>(InSrcSection->RenderProxy);
-				PostProcessRenderProxy->PostProcessRenderProxy = InRenderProxy;
-				PostProcessRenderProxy->bCanRender = true;
+				auto BackBufferReaderRenderProxy = static_cast<FLexUIRenderSectionProxy_BackBufferReader*>(InSrcSection->RenderProxy);
+				BackBufferReaderRenderProxy->BackBufferReaderRenderProxy = InRenderProxy;
+				BackBufferReaderRenderProxy->bCanRender = true;
 			});
 	}
 	void UpdateChildCanvasSection(FLexUIRenderSection_ChildCanvas* InSrcSection, ULexUIMeshComponent* InComp)
@@ -361,11 +361,11 @@ public:
 
 				return NewSectionProxy;
 			}
-		case ELexUIRenderSectionType::PostProcess:
+		case ELexUIRenderSectionType::BackBufferReader:
 			{
-				auto SrcSection = static_cast<FLexUIRenderSection_PostProcess*>(InSrcSection);
-				auto NewSectionProxy = new FLexUIRenderSectionProxy_PostProcess();
-				NewSectionProxy->PostProcessRenderProxy = SrcSection->PostProcessVisualObject->GetRenderProxy();
+				auto SrcSection = static_cast<FLexUIRenderSection_BackBufferReader*>(InSrcSection);
+				auto NewSectionProxy = new FLexUIRenderSectionProxy_BackBufferReader();
+				NewSectionProxy->BackBufferReaderRenderProxy = SrcSection->BackBufferReaderVisualObject->GetRenderProxy();
 
 				// Copy info
 				NewSectionProxy->SectionRenderPriority = SrcSection->RenderPriority;
@@ -693,7 +693,7 @@ public:
 				}
 			}
 			break;
-			case ELexUIRenderSectionProxyType::PostProcess:
+			case ELexUIRenderSectionProxyType::BackBufferReader:
 				break;
 			case ELexUIRenderSectionProxyType::ChildCanvas:
 			{
@@ -772,10 +772,10 @@ public:
 		}
 	}
 
-	virtual FLexVisualBackBufferRenderProxy* LexUI_GetPostProcessElement(FLexUIRenderSectionProxy* SectionPtr)const override
+	virtual FLexVisualBackBufferRenderProxy* LexUI_GetBackBufferReaderElement(FLexUIRenderSectionProxy* SectionPtr)const override
 	{
-		check(SectionPtr->Type == ELexUIRenderSectionProxyType::PostProcess);
-		return (static_cast<FLexUIRenderSectionProxy_PostProcess*>(SectionPtr))->PostProcessRenderProxy;
+		check(SectionPtr->Type == ELexUIRenderSectionProxyType::BackBufferReader);
+		return (static_cast<FLexUIRenderSectionProxy_BackBufferReader*>(SectionPtr))->BackBufferReaderRenderProxy;
 	}
 	virtual int LexUI_GetRenderPriority()const override
 	{
@@ -802,7 +802,7 @@ public:
 
 		if (SectionArray[0] == nullptr)return;
 		auto PrevRenderSectionType = SectionArray[0]->Type;
-		auto PrevPrimitiveType = PrevRenderSectionType == ELexUIRenderSectionProxyType::PostProcess ? ELexUIRendererPrimitiveType::PostProcess : ELexUIRendererPrimitiveType::Mesh;
+		auto PrevPrimitiveType = PrevRenderSectionType == ELexUIRenderSectionProxyType::BackBufferReader ? ELexUIRendererPrimitiveType::BackBufferReader : ELexUIRendererPrimitiveType::Mesh;
 		FLexUIPrimitiveDataContainer CurrentRenderData;
 		CurrentRenderData.Primitive = this;
 		CurrentRenderData.Type = PrevPrimitiveType;
@@ -820,7 +820,7 @@ public:
 				PrevRenderSectionType = RenderSection->Type;
 				CurrentRenderData = FLexUIPrimitiveDataContainer();
 				CurrentRenderData.Primitive = this;
-				auto ItemPrimitiveType = RenderSection->Type == ELexUIRenderSectionProxyType::PostProcess ? ELexUIRendererPrimitiveType::PostProcess : ELexUIRendererPrimitiveType::Mesh;
+				auto ItemPrimitiveType = RenderSection->Type == ELexUIRenderSectionProxyType::BackBufferReader ? ELexUIRendererPrimitiveType::BackBufferReader : ELexUIRendererPrimitiveType::Mesh;
 				CurrentRenderData.Type = ItemPrimitiveType;
 			}
 
@@ -833,10 +833,10 @@ public:
 					CurrentRenderData.Sections.Add(SectionData);
 				}
 				break;
-			case ELexUIRenderSectionProxyType::PostProcess:
+			case ELexUIRenderSectionProxyType::BackBufferReader:
 				{
-					auto Section = static_cast<FLexUIRenderSectionProxy_PostProcess*>(RenderSection);
-					if (Section->PostProcessRenderProxy->CanRender())
+					auto Section = static_cast<FLexUIRenderSectionProxy_BackBufferReader*>(RenderSection);
+					if (Section->BackBufferReaderRenderProxy->CanRender())
 					{
 						FLexUIPrimitiveSectionDataContainer SectionData;
 						SectionData.SectionPointer = RenderSection;
@@ -926,9 +926,9 @@ void FLexUIRenderSection_Mesh::ClearBeforePool()
 	Material = nullptr;
 }
 
-void FLexUIRenderSection_PostProcess::ClearBeforePool()
+void FLexUIRenderSection_BackBufferReader::ClearBeforePool()
 {
-	PostProcessVisualObject = nullptr;
+	BackBufferReaderVisualObject = nullptr;
 }
 
 void FLexUIRenderSection_ChildCanvas::ClearBeforePool()
@@ -1005,7 +1005,7 @@ TSharedPtr<FLexUIRenderSection> ULexUIMeshComponent::SetupRenderSection(ELexUIRe
 	case ELexUIRenderSectionType::DirectMesh:
 		RenderSection = GetDirectMeshRenderSectionFromPool(InDrawCallData->DirectMeshVisualObject.Get());
 		break;
-	case ELexUIRenderSectionType::PostProcess:
+	case ELexUIRenderSectionType::BackBufferReader:
 	case ELexUIRenderSectionType::ChildCanvas:
 		RenderSection = GetRenderSectionFromPool();
 		break;
@@ -1017,8 +1017,8 @@ TSharedPtr<FLexUIRenderSection> ULexUIMeshComponent::SetupRenderSection(ELexUIRe
 		case ELexUIRenderSectionType::Mesh:
 			RenderSection = MakeShared<FLexUIRenderSection_Mesh>();
 			break;
-		case ELexUIRenderSectionType::PostProcess:
-			RenderSection = MakeShared<FLexUIRenderSection_PostProcess>();
+		case ELexUIRenderSectionType::BackBufferReader:
+			RenderSection = MakeShared<FLexUIRenderSection_BackBufferReader>();
 			break;
 		case ELexUIRenderSectionType::ChildCanvas:
 			RenderSection = MakeShared<FLexUIRenderSection_ChildCanvas>();
@@ -1088,24 +1088,24 @@ TSharedPtr<FLexUIRenderSection> ULexUIMeshComponent::SetupRenderSection(ELexUIRe
 			DirectMeshVisualObject->OnSupplyMeshSection(this, DirectMeshSectionPtr);
 		}
 		break;
-	case ELexUIRenderSectionType::PostProcess:
+	case ELexUIRenderSectionType::BackBufferReader:
 		{
-			auto PostProcessSectionPtr = static_cast<FLexUIRenderSection_PostProcess*>(RenderSection.Get());
-			auto PostProcessVisualObject = InDrawCallData->PostProcessVisualObject;
-			PostProcessSectionPtr->PostProcessVisualObject = PostProcessVisualObject;
+			auto BackBufferReaderSectionPtr = static_cast<FLexUIRenderSection_BackBufferReader*>(RenderSection.Get());
+			auto BackBufferReaderVisualObject = InDrawCallData->BackBufferReaderVisualObject;
+			BackBufferReaderSectionPtr->BackBufferReaderVisualObject = BackBufferReaderVisualObject;
 			auto BoundingBox = FBox(EForceInit::ForceInit);
 			FVector Min, Max;
-			PostProcessVisualObject->GetGeometryBounds3DInLocalSpace(Min, Max);
+			BackBufferReaderVisualObject->GetGeometryBounds3DInLocalSpace(Min, Max);
 			BoundingBox += Min;
 			BoundingBox += Max;
-			PostProcessSectionPtr->BoundingBox = BoundingBox;
-			if (PostProcessSectionPtr->RenderProxy)//if we have valid render-proxy then update data
+			BackBufferReaderSectionPtr->BoundingBox = BoundingBox;
+			if (BackBufferReaderSectionPtr->RenderProxy)//if we have valid render-proxy then update data
 			{
 				if (this->SceneProxy != nullptr)
 				{
 					auto ThisSceneProxy = static_cast<FLexUIRenderSceneProxy*>(this->SceneProxy);//SceneProxy could change before the RENDER_COMMAND execute, so do necessary check in SetChildCanvasSectionData_RenderThread
-					auto RenderProxy = PostProcessSectionPtr->PostProcessVisualObject->GetRenderProxy();
-					ThisSceneProxy->UpdatePostProcessSection(PostProcessSectionPtr, RenderProxy);
+					auto RenderProxy = BackBufferReaderSectionPtr->BackBufferReaderVisualObject->GetRenderProxy();
+					ThisSceneProxy->UpdateBackBufferReaderSection(BackBufferReaderSectionPtr, RenderProxy);
 				}
 			}
 			else
@@ -1113,7 +1113,7 @@ TSharedPtr<FLexUIRenderSection> ULexUIMeshComponent::SetupRenderSection(ELexUIRe
 				if (this->SceneProxy != nullptr)
 				{
 					auto ThisSceneProxy = static_cast<FLexUIRenderSceneProxy*>(this->SceneProxy);
-					ThisSceneProxy->AddSectionData(PostProcessSectionPtr);
+					ThisSceneProxy->AddSectionData(BackBufferReaderSectionPtr);
 				}
 			}
 		}
@@ -1757,7 +1757,7 @@ FBoxSphereBounds ULexUIMeshComponent::CalcBounds(const FTransform& LocalToWorld)
 				ResultBox += RenderSection->BoundingBox;
 			}
 			break;
-		case ELexUIRenderSectionType::PostProcess:
+		case ELexUIRenderSectionType::BackBufferReader:
 			{
 				if (LexUIRenderer.IsValid())
 				{

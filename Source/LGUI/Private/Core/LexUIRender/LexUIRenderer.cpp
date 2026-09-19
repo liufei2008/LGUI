@@ -690,11 +690,11 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 				{
 					switch (RenderPrimitiveItem.Type)
 					{
-					case ELexUIRendererPrimitiveType::PostProcess://render post process
+					case ELexUIRendererPrimitiveType::BackBufferReader://render post process
 						{
 							for (int i = 0; i < RenderPrimitiveItem.Sections.Num(); i++)
 							{
-								if (auto Primitive = RenderPrimitiveItem.Primitive->LexUI_GetPostProcessElement(RenderPrimitiveItem.Sections[i].SectionPointer))
+								if (auto Primitive = RenderPrimitiveItem.Primitive->LexUI_GetBackBufferReaderElement(RenderPrimitiveItem.Sections[i].SectionPointer))
 								{
 									SCOPE_CYCLE_COUNTER(STAT_LGUI_RHIRenderPostProcess);
 									Primitive->OnRenderPostProcess_RenderThread(
@@ -962,11 +962,11 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		{
 			switch (RenderSequenceItem.Type)
 			{
-			case ELexUIRendererPrimitiveType::PostProcess://render post process
+			case ELexUIRendererPrimitiveType::BackBufferReader://render post process
 			{
 				for (int i = 0; i < RenderSequenceItem.Sections.Num(); i++)
 				{
-					if (auto Primitive = RenderSequenceItem.Primitive->LexUI_GetPostProcessElement(RenderSequenceItem.Sections[i].SectionPointer))
+					if (auto Primitive = RenderSequenceItem.Primitive->LexUI_GetBackBufferReaderElement(RenderSequenceItem.Sections[i].SectionPointer))
 					{
 						SCOPE_CYCLE_COUNTER(STAT_LGUI_RHIRenderPostProcess);
 						Primitive->OnRenderPostProcess_RenderThread(

@@ -10,7 +10,7 @@
 #include "Core/LexUIMesh/LexUIMeshComponent.h"
 #include "Core/LexUIDrawCall.h"
 #include "Core/Components/LexVisual.h"
-#include "Core/Components/LexVisualPostProcess.h"
+#include "Core/Components/LexVisualBackBufferReader.h"
 #include "Core/Components/LexVisualDirectMesh.h"
 #include "Core/Components/LexWidget.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -947,12 +947,12 @@ void ULexCanvas::PrepareDrawCallBatchingData(TArray<FLexUIRenderData>& OutRender
 					OutRenderDataArray.Add(MoveTemp(RenderData));
 				}
 				break;
-			case ELexVisualType::PostProcess:
+			case ELexVisualType::BackBufferReader:
 				{
-					auto LexVisualPostProcess = static_cast<ULexVisualPostProcess*>(Visual);
-					if (!LexVisualPostProcess->HaveValidData())continue;
-					auto RenderData = FLexUIRenderData(ELexUIDrawCallType::PostProcess);
-					RenderData.PostProcessVisualObject = LexVisualPostProcess;
+					auto LexVisualBackBufferReader = static_cast<ULexVisualBackBufferReader*>(Visual);
+					if (!LexVisualBackBufferReader->HaveValidData())continue;
+					auto RenderData = FLexUIRenderData(ELexUIDrawCallType::BackBufferReader);
+					RenderData.BackBufferReaderVisualObject = LexVisualBackBufferReader;
 					OutRenderDataArray.Add(MoveTemp(RenderData));
 				}
 				break;
@@ -1002,9 +1002,9 @@ void ULexCanvas::BatchDrawCallAsync(const FVector2D& InCanvasLeftBottom, const F
 				}
 			}
 			break;
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 			{
-				auto OtherUIGeo = OtherDrawCallItem.PostProcessVisualObject->GetGeometry();
+				auto OtherUIGeo = OtherDrawCallItem.BackBufferReaderVisualObject->GetGeometry();
 				//check bounds overlap
 				if (IntersectBounds(InGeo.BoundsMin2DInCanvasSpace, InGeo.BoundsMax2DInCanvasSpace, OtherUIGeo->BoundsMin2DInCanvasSpace, OtherUIGeo->BoundsMax2DInCanvasSpace))
 				{
@@ -1103,10 +1103,10 @@ void ULexCanvas::BatchDrawCallAsync(const FVector2D& InCanvasLeftBottom, const F
 				InOutUIDrawCallList.Add(MoveTemp(DrawCallItem));
 			}
 			break;
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 			{
 				auto DrawCallItem = FLexUIDrawCall(InDrawCallType);
-				DrawCallItem.PostProcessVisualObject = InRenderData.PostProcessVisualObject;
+				DrawCallItem.BackBufferReaderVisualObject = InRenderData.BackBufferReaderVisualObject;
 				DrawCallItem.bIs2DSpace = InIs2DSpace;
 				InOutUIDrawCallList.Add(MoveTemp(DrawCallItem));
 			}
@@ -1184,11 +1184,11 @@ void ULexCanvas::BatchDrawCallAsync(const FVector2D& InCanvasLeftBottom, const F
 				FitInDrawCallMinIndex = InOutUIDrawCallList.Num();
 			}
 			break;
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 			{
-				//every postprocess is a draw-call
-				bool is2DUIItem = true;//postprocess just use true because it not matters
-				PushSingleDrawCall(RenderData, ELexUIDrawCallType::PostProcess, is2DUIItem);
+				//every BackBufferReader is a draw-call
+				bool is2DUIItem = true;//BackBufferReader just use true because it not matters
+				PushSingleDrawCall(RenderData, ELexUIDrawCallType::BackBufferReader, is2DUIItem);
 				FitInDrawCallMinIndex = InOutUIDrawCallList.Num();
 			}
 			break;
@@ -1413,20 +1413,20 @@ void ULexCanvas::UpdateDrawCallMesh()
 				bNeedToUpdateBounds = true;
 			}
 			break;
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 			{
 				//only LexUI renderer can render post process
 				if (this->GetActualRenderMode() == ELexRenderMode::WorldSpace)
 				{
 					continue;
 				}
-				if (!DrawCallItem.PostProcessVisualObject.IsValid())
+				if (!DrawCallItem.BackBufferReaderVisualObject.IsValid())
 				{
-					UE_LOG(LGUI, Warning, TEXT("[%s].%d Invalid PostProcess draw-call, will ignore it"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+					UE_LOG(LGUI, Warning, TEXT("[%s].%d Invalid BackBufferReader draw-call, will ignore it"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 					continue;
 				}
 
-				UIMesh->SetupRenderSection(ELexUIRenderSectionType::PostProcess, &DrawCallItem);
+				UIMesh->SetupRenderSection(ELexUIRenderSectionType::BackBufferReader, &DrawCallItem);
 				//create new section, need to sort it
 				bNeedToSortRenderPriority = true;
 				bNeedToUpdateBounds = true;
@@ -1544,7 +1544,7 @@ void ULexCanvas::SortDrawCall()
 		{
 		case ELexUIDrawCallType::BatchMesh:
 		case ELexUIDrawCallType::DirectMesh:
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 		{
 		}
 		break;
@@ -1762,9 +1762,9 @@ void ULexCanvas::UpdateDrawCallMaterial()
 				UIMesh->SetMeshSectionMaterial(i, RenderMat);
 			}
 			break;
-		case ELexUIDrawCallType::PostProcess:
+		case ELexUIDrawCallType::BackBufferReader:
 			{
-				if (auto BackBufferCopy = Cast<ULexBackBufferCopy>(DrawCallItem.PostProcessVisualObject.Get()))
+				if (auto BackBufferCopy = Cast<ULexBackBufferCopy>(DrawCallItem.BackBufferReaderVisualObject.Get()))
 				{
 					LastBackBufferObject = BackBufferCopy;
 					LastBackBufferObject->ClearMaterialsUsingThisBackBuffer();

@@ -7,7 +7,7 @@
 #include "Core/LexUIMeshIndex.h"
 #include "Core/LexUIQuadTree.h"
 
-class ULexVisualPostProcess;
+class ULexVisualBackBufferReader;
 struct FLexUIMeshVertex;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
@@ -20,7 +20,7 @@ struct FLexUIRenderSection;
 enum class ELexUIDrawCallType :uint8
 {
 	BatchMesh = 1,
-	PostProcess,
+	BackBufferReader,
 	DirectMesh,
 	ChildCanvas,
 };
@@ -37,7 +37,7 @@ public:
 	FLexUIGeometry BatchMeshGeometry;
 	TWeakObjectPtr<ULexVisualBatchMesh> BatchMeshVisualObject;
 
-	TWeakObjectPtr<ULexVisualPostProcess> PostProcessVisualObject;//post process object
+	TWeakObjectPtr<ULexVisualBackBufferReader> BackBufferReaderVisualObject;//post process object
 
 	TWeakObjectPtr<ULexVisualDirectMesh> DirectMeshVisualObject;
 
@@ -67,7 +67,7 @@ public:
 	TWeakObjectPtr<UMaterialInterface> Material = nullptr;//draw-call use this material to render, can be null to use default material
 	TWeakObjectPtr<UMaterialInterface> RenderMaterial = nullptr;//actual material that render this draw-call
 
-	TWeakObjectPtr<ULexVisualPostProcess> PostProcessVisualObject;//post process object
+	TWeakObjectPtr<ULexVisualBackBufferReader> BackBufferReaderVisualObject;//post process object
 
 	TWeakObjectPtr<ULexVisualDirectMesh> DirectMeshVisualObject;
 

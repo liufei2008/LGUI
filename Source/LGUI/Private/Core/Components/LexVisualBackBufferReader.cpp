@@ -12,7 +12,7 @@
 
 ULexVisualBackBufferReader::ULexVisualBackBufferReader(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-	VisualType = ELexVisualType::PostProcess;
+	VisualType = ELexVisualType::BackBufferReader;
 	Geometry = TSharedPtr<FLexUIGeometry>(new FLexUIGeometry);
 
 	bLocalVertexPositionChanged = true;

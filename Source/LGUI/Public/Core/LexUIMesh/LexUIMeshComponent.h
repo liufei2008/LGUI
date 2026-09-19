@@ -10,14 +10,14 @@
 class FLexUIDrawCall;
 struct FLexUIRenderSectionProxy;
 struct FLexUISectionProxy_Mesh;
-struct FLexUIRenderSectionProxy_PostProcess;
+struct FLexUIRenderSectionProxy_BackBufferReader;
 struct FLexUIRenderSectionProxy_ChildCanvas;
 
 #define DEBUG_PRINT_MESH_MEMORY 0
 
 enum class ELexUIRenderSectionType :uint8
 {
-	Mesh, DirectMesh, PostProcess, ChildCanvas,
+	Mesh, DirectMesh, BackBufferReader, ChildCanvas,
 };
 struct FLexUIRenderSection
 {
@@ -62,15 +62,15 @@ struct FLexUIRenderSection_DirectMesh : public FLexUIRenderSection_Mesh
 
 	TWeakObjectPtr<class ULexVisualDirectMesh> DirectMeshVisualObject = nullptr;
 };
-struct FLexUIRenderSection_PostProcess : public FLexUIRenderSection
+struct FLexUIRenderSection_BackBufferReader : public FLexUIRenderSection
 {
-	FLexUIRenderSection_PostProcess()
+	FLexUIRenderSection_BackBufferReader()
 	{
-		Type = ELexUIRenderSectionType::PostProcess;
+		Type = ELexUIRenderSectionType::BackBufferReader;
 	}
-	virtual ~FLexUIRenderSection_PostProcess()override{}
+	virtual ~FLexUIRenderSection_BackBufferReader()override{}
 
-	TWeakObjectPtr<class ULexVisualPostProcess> PostProcessVisualObject = nullptr;
+	TWeakObjectPtr<class ULexVisualBackBufferReader> BackBufferReaderVisualObject = nullptr;
 
 	virtual void ClearBeforePool() override;
 };
