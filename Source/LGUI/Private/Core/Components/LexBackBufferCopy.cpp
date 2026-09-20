@@ -90,7 +90,7 @@ public:
 				return;
 			auto ResolveSrc = RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LexUIBackBufferCopyResolveSource"));
 			auto ResolveDst = RegisterExternalTexture(GraphBuilder, ScreenResolvedRenderTarget->GetRHI(), TEXT("LexUIBackBufferCopyResolveTarget"));
-			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
+			FLexUIRenderer::AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
 		}
 		
 		auto RenderTargetRHITexture = RenderTargetResource->GetRenderTargetTexture();
@@ -103,7 +103,7 @@ public:
 			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackBufferCopy_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
 		}
 #endif
-		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+		FLexUIRenderer::CopyRenderTargetOnMeshRegion(GraphBuilder
 			, RenderTargetTextureRDG
 			, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
 			, GlobalShaderMap

@@ -180,6 +180,51 @@ private:
 	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
 };
 
+class FLexUIPostProcessDualKawaseBlurDownSamplePS :public FLexUIPostProcessShader
+{
+	DECLARE_SHADER_TYPE(FLexUIPostProcessDualKawaseBlurDownSamplePS, Global);
+public:
+	FLexUIPostProcessDualKawaseBlurDownSamplePS() {}
+	FLexUIPostProcessDualKawaseBlurDownSamplePS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLexUIPostProcessShader(Initializer)
+	{
+		BlurStrengthParameter.Bind(Initializer.ParameterMap, TEXT("_BlurStrength"));
+	}
+	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
+	{
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		
+		FLexUIPostProcessMainTexUB UB;
+		UB._MainTex = MainTexture;
+		UB._MainTexSampler = MainTextureSampler;
+		auto UniformBuffer = TUniformBufferRef<FLexUIPostProcessMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
+		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIPostProcessMainTexUB>(), UniformBuffer);
+		
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		FLexUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetBlurStrength(FRHICommandListImmediate& RHICmdList, const FVector2f& BlurStrength)
+	{
+		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
+		SetShaderValue(BatchedParameters, BlurStrengthParameter, BlurStrength);
+		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
+	}
+private:
+	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
+};
+class FLexUIPostProcessDualKawaseBlurUpSamplePS :public FLexUIPostProcessDualKawaseBlurDownSamplePS
+{
+	DECLARE_SHADER_TYPE(FLexUIPostProcessDualKawaseBlurUpSamplePS, Global);
+public:
+	FLexUIPostProcessDualKawaseBlurUpSamplePS() {}
+	FLexUIPostProcessDualKawaseBlurUpSamplePS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLexUIPostProcessDualKawaseBlurDownSamplePS(Initializer)
+	{
+	}
+};
 
 
 

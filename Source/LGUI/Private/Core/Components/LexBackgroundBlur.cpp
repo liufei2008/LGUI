@@ -47,6 +47,7 @@ class FUIBackgroundBlurRenderProxy : public FLexVisualPostProcessRenderProxy
 public:
 	int MaxDownSampleLevel = 0;
 	float BlurStrength = 0.0f;
+	ELexBackGroundBlurType BlurType = ELexBackGroundBlurType::Gaussian;
 public:
 	FUIBackgroundBlurRenderProxy()
 	{
@@ -100,7 +101,7 @@ public:
 				return;
 			auto ResolveSrc = RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LexUIBlurEffectResolveSource"));
 			auto ResolveDst = RegisterExternalTexture(GraphBuilder, ScreenResolvedRenderTarget->GetRHI(), TEXT("LexUIBlurEffectResolveTarget"));
-			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
+			FLexUIRenderer::AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
 		}
 		
 		//get render target
@@ -127,7 +128,7 @@ public:
 			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackgroundBlur_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
 		}
 #endif
-		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+		FLexUIRenderer::CopyRenderTargetOnMeshRegion(GraphBuilder
 			, BlurEffectRDGTextureRef
 			, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
 			, GlobalShaderMap
@@ -157,37 +158,73 @@ public:
 					, BlurEffectRHITexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 				GRenderTargetPool.FindFreeElement(RHICmdList, RenderTargetDesc, DownSampleRT, *FString::Printf(TEXT("LexUI_DownsampleRT_%d"), i));
 				DownSampleRenderTargetArray.Add(DownSampleRT);
-				Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PrevRT, DownSampleRT->GetRHI());
+				if (BlurType == ELexBackGroundBlurType::Gaussian)
+				{
+#if 0
+					FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, PrevRT, DownSampleRT->GetRHI());
+#else//use DualKawaseDownSample can solve aliasing flickering, but cost more
+					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, PrevRT, DownSampleRT->GetRHI());
+#endif
+				}
+				else
+				{
+					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, PrevRT, DownSampleRT->GetRHI());
+				}
 			
 				PrevRT = DownSampleRT->GetRHI();
 			}
 		}
-		for (int i = MaxDownSampleCount; i >= 1; i--)
+		if (BlurType == ELexBackGroundBlurType::Gaussian)
 		{
-			if (FilteredBlurStrength >= i)
+			for (int i = MaxDownSampleCount; i >= 1; i--)
 			{
-				auto RenderTarget = DownSampleRenderTargetArray[i - 1];
-				DoBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, MagicNumber, GraphBuilder, Renderer, GlobalShaderMap);
-				auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
-				if (FilteredBlurStrength >= i + 1)
+				if (FilteredBlurStrength >= i)
 				{
-					Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT);
+					auto RenderTarget = DownSampleRenderTargetArray[i - 1];
+					DoGaussianBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, MagicNumber, GraphBuilder, GlobalShaderMap);
+					auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
+					if (FilteredBlurStrength >= i + 1)
+					{
+						FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT);
+					}
+					else
+					{
+						auto BlendValue = FMath::Clamp(FilteredBlurStrength - i, 0.0f, 1.0f);
+						BlendValue = FMath::Pow(BlendValue, MagicNumber);
+						FLexUIRenderer::CopyRenderTarget_BlendAlpha(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT, BlendValue);
+					}
 				}
-				else
+			}
+			DoGaussianBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, GlobalShaderMap);
+		}
+		else
+		{
+			for (int i = MaxDownSampleCount; i >= 1; i--)
+			{
+				if (FilteredBlurStrength >= i)
 				{
-					auto BlendValue = FMath::Clamp(FilteredBlurStrength - i, 0.0f, 1.0f);
-					BlendValue = FMath::Pow(BlendValue, MagicNumber);
-					Renderer->CopyRenderTarget_BlendAlpha(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT, BlendValue);
+					auto RenderTarget = DownSampleRenderTargetArray[i - 1];
+					auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
+					if (FilteredBlurStrength >= i + 1)
+					{
+						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, FilteredBlurStrength - i, MagicNumber, RenderTarget->GetRHI(), NextRT);
+					}
+					else
+					{
+						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, RenderTarget->GetRHI(), NextRT);
+						auto BlendValue = FMath::Clamp(FilteredBlurStrength - i, 0.0f, 1.0f);
+						BlendValue = FMath::Pow(BlendValue, MagicNumber);
+						FLexUIRenderer::CopyRenderTarget_BlendAlpha(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT, 1-BlendValue);
+					}
 				}
 			}
 		}
-		DoBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, Renderer, GlobalShaderMap);
 
 		//after blur process, copy the blur result image back to screen image of the area
 		if (bFullViewport)
 		{
 			//copy full viewport
-			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, BlurEffectRHITexture, ScreenTargetTexture);
+			FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, BlurEffectRHITexture, ScreenTargetTexture);
 		}
 		else
 		{
@@ -210,11 +247,10 @@ public:
 				}
 			});
 	}
-	void DoBlur(FRHITexture* RenderTargetTexture
+	void DoGaussianBlur(FRHITexture* RenderTargetTexture
 		, float BlurAmount
 		, float MagicNumber
 		, FRDGBuilder& GraphBuilder
-		, FLexUIRenderer* Renderer
 		, FGlobalShaderMap* GlobalShaderMap
 		)
 	{
@@ -230,8 +266,15 @@ public:
 		TShaderMapRef<FLexUIPostProcessGaussianBlurPS> PixelShader(GlobalShaderMap);
 		auto SamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 
-		BlurAmount = FMath::Clamp(BlurAmount, 0.0f, 1.0f);
-		BlurAmount = FMath::Pow(BlurAmount, MagicNumber);
+		if (BlurAmount < 1)//if BlurAmount is 0~1 then use MagicNumber to make blur feel smooth
+		{
+			BlurAmount = FMath::Pow(BlurAmount, MagicNumber);
+		}
+		else
+		{
+			BlurAmount = 1;//clamp to 1, use full offset value
+		}
+		auto BlurStrength2 = FVector2f(1.0f / RenderTargetTexture->GetSizeX(), 1.0f / RenderTargetTexture->GetSizeY()) * BlurAmount;
 				
 		// Use the pooled overload (member) so RDG keeps the temp render target alive until the graph executes, no manual SafeRelease is needed afterwards.
 		auto RenderTargetTexture_Blur_RDG = GraphBuilder.RegisterExternalTexture(DownSampleRT_Blur, TEXT("LexUIBlurTempTexture"), ERDGTextureFlags::None);
@@ -243,7 +286,7 @@ public:
 			RDG_EVENT_NAME("LexUIBackgroundBlur_Pass_Horizontal"),
 			HorizontalPassParameters,
 			ERDGPassFlags::Raster,
-			[this, VertexShader, PixelShader, Renderer, MainTexture = RenderTargetTexture, SamplerState, BlurAmount](FRHICommandListImmediate& RHICmdList)
+			[this, VertexShader, PixelShader, MainTexture = RenderTargetTexture, SamplerState, BlurStrength2](FRHICommandListImmediate& RHICmdList)
 			{
 				FGraphicsPipelineStateInitializer GraphicsPSOInit;
 				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -259,8 +302,8 @@ public:
 				//render horizontal
 				RHICmdList.SetViewport(0, 0, 0.0f, MainTexture->GetSizeX(), MainTexture->GetSizeY(), 1.0f);
 				PixelShader->SetMainTexture(RHICmdList, MainTexture, SamplerState);
-				PixelShader->SetBlurStrength(RHICmdList, FVector2f(1.0f / MainTexture->GetSizeX() * BlurAmount, 0));
-				Renderer->DrawFullScreenQuad(RHICmdList);
+				PixelShader->SetBlurStrength(RHICmdList, FVector2f(BlurStrength2.X, 0));
+				FLexUIRenderer::DrawFullScreenQuad(RHICmdList);
 			});
 
 		auto* VerticalPassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
@@ -270,7 +313,7 @@ public:
 			RDG_EVENT_NAME("LexUIBackgroundBlur_Pass_Vertical"),
 			VerticalPassParameters,
 			ERDGPassFlags::Raster,
-			[this, VertexShader, PixelShader, Renderer, MainTexture = RenderTargetTexture_Blur, SamplerState, BlurAmount](FRHICommandListImmediate& RHICmdList)
+			[this, VertexShader, PixelShader, MainTexture = RenderTargetTexture_Blur, SamplerState, BlurStrength2](FRHICommandListImmediate& RHICmdList)
 			{
 				FGraphicsPipelineStateInitializer GraphicsPSOInit;
 				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -286,8 +329,104 @@ public:
 				//render vertical
 				RHICmdList.SetViewport(0, 0, 0.0f, MainTexture->GetSizeX(), MainTexture->GetSizeY(), 1.0f);
 				PixelShader->SetMainTexture(RHICmdList, MainTexture, SamplerState);
-				PixelShader->SetBlurStrength(RHICmdList, FVector2f(0, 1.0f / MainTexture->GetSizeY() * BlurAmount));
-				Renderer->DrawFullScreenQuad(RHICmdList);
+				PixelShader->SetBlurStrength(RHICmdList, FVector2f(0, BlurStrength2.Y));
+				FLexUIRenderer::DrawFullScreenQuad(RHICmdList);
+			});
+	}
+	void DualKawaseDownSample(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
+		, float BlurAmount
+		, float MagicNumber
+		, FTextureRHIRef Src, FTextureRHIRef Dst
+	)
+	{
+		if (BlurAmount < 1)//if BlurAmount is 0~1 then use MagicNumber to make blur feel smooth
+		{
+			BlurAmount = FMath::Pow(BlurAmount, MagicNumber);
+		}
+		else
+		{
+			BlurAmount = 1;//clamp to 1, use full offset value
+		}
+		auto BlurStrength2 = FVector2f(1.0f / Src->GetSizeX(), 1.0f / Src->GetSizeY()) * BlurAmount;
+		
+		auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUIDualKawaseDownSampleSrc"));
+		auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+		PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
+		PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUIDualKawaseDownSampleRenderTarget")), ERenderTargetLoadAction::ELoad);
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("LexUIDualKawaseDownSamplePass"),
+			PassParameters,
+			ERDGPassFlags::Raster,
+			[this, GlobalShaderMap, Src, Dst, BlurStrength2](FRHICommandListImmediate& RHICmdList)
+			{
+				RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
+
+				TShaderMapRef<FLexUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+				FGraphicsPipelineStateInitializer GraphicsPSOInit;
+				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
+				GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+				GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
+				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLexUIPostProcessVertexDeclaration();
+				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+				TShaderMapRef<FLexUIPostProcessDualKawaseBlurDownSamplePS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+				PixelShader->SetMainTexture(RHICmdList, Src, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+				PixelShader->SetBlurStrength(RHICmdList, BlurStrength2);
+				VertexShader->SetParameters(RHICmdList);
+
+				FLexUIRenderer::DrawFullScreenQuad(RHICmdList);
+			});
+	}
+	void DualKawaseUpSample(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
+		, float BlurAmount
+		, float MagicNumber
+		, FTextureRHIRef Src, FTextureRHIRef Dst
+	)
+	{
+		if (BlurAmount < 1)//if BlurAmount is 0~1 then use MagicNumber to make blur feel smooth
+		{
+			BlurAmount = FMath::Pow(BlurAmount, MagicNumber);
+		}
+		else
+		{
+			BlurAmount = 1;//clamp to 1, use full offset value
+		}
+		auto BlurStrength2 = FVector2f(1.0f / Src->GetSizeX(), 1.0f / Src->GetSizeY()) * BlurAmount;
+		
+		auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUIDualKawaseUpSampleSrc"));
+		auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
+		PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
+		PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUIDualKawaseUpSampleRenderTarget")), ERenderTargetLoadAction::ELoad);
+		GraphBuilder.AddPass(
+			RDG_EVENT_NAME("LexUIDualKawaseUpSamplePass"),
+			PassParameters,
+			ERDGPassFlags::Raster,
+			[this, GlobalShaderMap, Src, Dst, BlurStrength2](FRHICommandListImmediate& RHICmdList)
+			{
+				RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
+
+				TShaderMapRef<FLexUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+				FGraphicsPipelineStateInitializer GraphicsPSOInit;
+				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None>::GetRHI();
+				GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+				GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
+				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLexUIPostProcessVertexDeclaration();
+				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+				TShaderMapRef<FLexUIPostProcessDualKawaseBlurUpSamplePS> PixelShader(GlobalShaderMap);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
+				PixelShader->SetMainTexture(RHICmdList, Src, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+				PixelShader->SetBlurStrength(RHICmdList, BlurStrength2);
+				VertexShader->SetParameters(RHICmdList);
+
+				FLexUIRenderer::DrawFullScreenQuad(RHICmdList);
 			});
 	}
 };
@@ -298,20 +437,16 @@ void ULexBackgroundBlur::SendOthersDataToRenderProxy()
 	if (RenderProxy != nullptr)
 	{
 		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)RenderProxy;
-		struct FUIBackgroundBlurUpdateOthersData
-		{
-			float BlurStrengthWithAlpha;
-			float MaxDownSampleLevel;
-		};
-		auto updateData = new FUIBackgroundBlurUpdateOthersData();
-		updateData->BlurStrengthWithAlpha = this->GetBlurStrengthInternal();
-		updateData->MaxDownSampleLevel = this->MaxDownSampleLevel;
 		ENQUEUE_RENDER_COMMAND(FLexBackgroundBlur_UpdateData)
-			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+			([BackgroundBlurRenderProxy
+				, BlurStrengthWithAlpha = this->GetBlurStrengthInternal()
+				, MaxDownSampleLevel = this->MaxDownSampleLevel
+				, BlurType = this->BlurType
+				](FRHICommandListImmediate& RHICmdList)
 			{
-				BackgroundBlurRenderProxy->MaxDownSampleLevel = updateData->MaxDownSampleLevel;
-				BackgroundBlurRenderProxy->BlurStrength = updateData->BlurStrengthWithAlpha;
-				delete updateData;
+				BackgroundBlurRenderProxy->BlurStrength = BlurStrengthWithAlpha;
+				BackgroundBlurRenderProxy->MaxDownSampleLevel = MaxDownSampleLevel;
+				BackgroundBlurRenderProxy->BlurType = BlurType;
 			});
 	}
 }
@@ -331,6 +466,14 @@ void ULexBackgroundBlur::SetApplyOpacityToBlur(bool Value)
 	{
 		ApplyOpacityToBlur = Value;
 		SendOthersDataToRenderProxy();
+	}
+}
+
+void ULexBackgroundBlur::SetBlurType(ELexBackGroundBlurType Value)
+{
+	if (BlurType != Value)
+	{
+		BlurType = Value;
 	}
 }
 

@@ -1,0 +1,36 @@
+﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+#include "LexUIPostProcessVertexShader.usf"
+#include "/Engine/Public/Platform.ush"
+#include "/Engine/Generated/UniformBuffers/LexUIPostProcessMainTexUB.ush"
+
+float2 _BlurStrength;
+
+float4 DualKawaseBlurDownSamplePS(SimpleVSToPS input) : SV_Target0
+{
+    float4 center = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv);
+    const float2 offset = _BlurStrength;
+    float4 d0 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(-offset.x, -offset.y));
+    float4 d1 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(offset.x, -offset.y));
+    float4 d2 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(-offset.x, offset.y));
+    float4 d3 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(offset.x, offset.y));
+    float4 color = center * 0.5f + (d0 + d1 + d2 + d3) * 0.125f;
+    return color;
+}
+
+float4 DualKawaseBlurUpSamplePS(SimpleVSToPS input) : SV_Target0
+{
+    const float weight1 = 1.0f / 6.0f;
+    const float2 offset1 = _BlurStrength;
+    float4 d0 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(-offset1.x, -offset1.y));
+    float4 d1 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(offset1.x, -offset1.y));
+    float4 d2 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(-offset1.x, offset1.y));
+    float4 d3 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(offset1.x, offset1.y));
+    const float weight2 = 1.0f / 12.0f;
+    const float2 offset2 = 2 * _BlurStrength;
+    float4 c0 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(-offset2.x, 0));
+    float4 c1 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(offset2.x, 0));
+    float4 c2 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(0, offset2.y));
+    float4 c3 = LexUIPostProcessMainTexUB._MainTex.Sample(LexUIPostProcessMainTexUB._MainTexSampler, input.uv + float2(0, -offset2.y));
+    float4 color = (d0 + d1 + d2 + d3) * weight1 + (c0 + c1 + c2 + c3) * weight2;
+    return color;
+}

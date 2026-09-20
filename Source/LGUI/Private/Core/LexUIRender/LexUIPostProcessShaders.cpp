@@ -16,6 +16,8 @@ IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS, TEXT("/Plugin/LGUI/Private/Pos
 IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS_LinearizeColor, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLexUISimpleCopyTargetPS_BlendAlpha, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 
+IMPLEMENT_SHADER_TYPE(, FLexUIPostProcessDualKawaseBlurDownSamplePS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessDualKawaseBlur.usf"), TEXT("DualKawaseBlurDownSamplePS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLexUIPostProcessDualKawaseBlurUpSamplePS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessDualKawaseBlur.usf"), TEXT("DualKawaseBlurUpSamplePS"), SF_Pixel)
 
 
 IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIPostProcessVertexShader.usf"), TEXT("CopyMeshRegionVS"), SF_Vertex)

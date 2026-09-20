@@ -145,7 +145,7 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 		RDG_EVENT_NAME("LexUICopyRenderTarget"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[this, GlobalShaderMap, Src, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
+		[GlobalShaderMap, Src, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
@@ -181,7 +181,7 @@ void FLexUIRenderer::CopyRenderTarget_LinearizeColor(FRDGBuilder& GraphBuilder, 
 		RDG_EVENT_NAME("LexUICopyRenderTarget_ColorCorrect"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[this, GlobalShaderMap, Src, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
+		[GlobalShaderMap, Src, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
@@ -216,7 +216,7 @@ void FLexUIRenderer::CopyRenderTarget_BlendAlpha(FRDGBuilder& GraphBuilder, FGlo
 		RDG_EVENT_NAME("LexUICopyRenderTarget_BlendAlpha"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[this, GlobalShaderMap, Src, Dst, SrcTextureSamplerState, BlendAlpha](FRHICommandListImmediate& RHICmdList)
+		[GlobalShaderMap, Src, Dst, SrcTextureSamplerState, BlendAlpha](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 

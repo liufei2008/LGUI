@@ -76,26 +76,26 @@ public:
 
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
-	void CopyRenderTarget(
+	static void CopyRenderTarget(
 		FRDGBuilder& GraphBuilder,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		FRHISamplerState* SrcTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
-	void CopyRenderTarget_LinearizeColor(
+	static void CopyRenderTarget_LinearizeColor(
 		FRDGBuilder& GraphBuilder,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		FRHISamplerState* SrcTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
-	void CopyRenderTarget_BlendAlpha(
+	static void CopyRenderTarget_BlendAlpha(
 		FRDGBuilder& GraphBuilder,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		float BlendAlpha,
 		FRHISamplerState* SrcTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 		);
-	void CopyRenderTargetOnMeshRegion(
+	static void CopyRenderTargetOnMeshRegion(
 		FRDGBuilder& GraphBuilder,
 		FRDGTextureRef Dst,
 		FTextureRHIRef Src,
@@ -106,10 +106,10 @@ public:
 		const FVector4f& SrcTextureScaleOffset,
 		bool bLinearizeColor = false
 	);
-	void DrawFullScreenQuad(
+	static void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList
 	);
-	void AddResolvePass(
+	static void AddResolvePass(
 		FRDGBuilder& GraphBuilder
 		, FRDGTextureMSAA SceneColor
 		, const FIntRect& ViewRect

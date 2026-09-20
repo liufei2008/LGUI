@@ -132,7 +132,7 @@ public:
 				return;
 			auto ResolveSrc = RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LGUIBlurEffectResolveSource"));
 			auto ResolveDst = RegisterExternalTexture(GraphBuilder, ScreenResolvedTexture->GetRHI(), TEXT("LGUIBlurEffectResolveTarget"));
-			Renderer->AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
+			FLexUIRenderer::AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
 		}
 
 		float calculatedStrength = FMath::Pow(PixelateStrength * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
@@ -159,7 +159,7 @@ public:
 		auto PixelateEffectRHITexture = PixelateEffectRenderTarget->GetRHI();
 
 		//copy rect area from screen image to a render target, so we can just process this area
-		Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+		FLexUIRenderer::CopyRenderTargetOnMeshRegion(GraphBuilder
 			, RegisterExternalTexture(GraphBuilder, PixelateEffectRHITexture, TEXT("LexUI_PixelateEffectRenderTargetTexture"))
 			, NumSamples > 1 ? ScreenResolvedTexture->GetRHI() : ScreenTargetTexture.GetReference()
 			, GlobalShaderMap
@@ -173,7 +173,7 @@ public:
 		if (bFullViewport)
 		{
 			//copy full viewport
-			Renderer->CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRHITexture, ScreenTargetTexture
+			FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, PixelateEffectRHITexture, ScreenTargetTexture
 				, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		}
 		else

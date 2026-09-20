@@ -5,6 +5,14 @@
 #include "LexVisualPostProcess.h"
 #include "LexBackgroundBlur.generated.h"
 
+UENUM(BlueprintType)
+enum class ELexBackGroundBlurType:uint8
+{
+	/** High quality GaussianBlur with continuously blur strength */
+	Gaussian,
+	/** Fast & efficient blur, but not continuously blur strength */
+	Kawase,
+};
 /** 
  * UI element that can add blur effect on background image, just like UMG's BackgroundBlur.
  * Use it in ScreenSpace or WorldSpace-LexUIRenderer.
@@ -28,6 +36,8 @@ private:
 	/** Will RenderOpacity affect blur strength? If true, then 0 opacity means 0 blur strength, and 1 opacity means full blur strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ApplyOpacityToBlur = true;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+	ELexBackGroundBlurType BlurType = ELexBackGroundBlurType::Gaussian;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		int MaxDownSampleLevel = 7;
@@ -39,11 +49,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	bool GetApplyOpacityToBlur()const { return ApplyOpacityToBlur; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	ELexBackGroundBlurType GetBlurType()const{return BlurType;}
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetBlurStrength(float Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetMaxDownSampleLevel(int Value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetApplyOpacityToBlur(bool Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void SetBlurType(ELexBackGroundBlurType Value);
 
 	virtual FLexVisualBackBufferRenderProxy* GetRenderProxy()override;
 	virtual void MarkAllDirty()override;
