@@ -48,6 +48,7 @@ public:
 	int MaxDownSampleLevel = 0;
 	float BlurStrength = 0.0f;
 	ELexBackGroundBlurType BlurType = ELexBackGroundBlurType::Gaussian;
+	const float MagicNumber = 1.0f / 2.2f;//this is a magic number which can make blur transition feel smooth
 public:
 	FUIBackgroundBlurRenderProxy()
 	{
@@ -60,7 +61,6 @@ public:
 	virtual void OnRenderPostProcess_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
-		FLexUIRenderer* Renderer,
 		FTextureRHIRef ScreenTargetTexture,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
@@ -138,7 +138,6 @@ public:
 			, ViewTextureScaleOffset
 		);
 
-		float MagicNumber = 1.0f / 2.2f;//this is a magic number which can make blur transition feel smooth
 		uint32 SourceWidth = BlurEffectRHITexture->GetSizeX();
 		uint32 SourceHeight = BlurEffectRHITexture->GetSizeY();
 		auto MaxDownSampleCount = FMath::Min3(FMath::FloorLog2(SourceWidth), FMath::FloorLog2(SourceHeight), static_cast<uint32>(MaxDownSampleLevel));
@@ -163,12 +162,12 @@ public:
 #if 0
 					FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, PrevRT, DownSampleRT->GetRHI());
 #else//use DualKawaseDownSample can solve aliasing flickering, but cost more
-					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, PrevRT, DownSampleRT->GetRHI());
+					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, PrevRT, DownSampleRT->GetRHI());
 #endif
 				}
 				else
 				{
-					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, PrevRT, DownSampleRT->GetRHI());
+					DualKawaseDownSample(GraphBuilder, GlobalShaderMap, 1, PrevRT, DownSampleRT->GetRHI());
 				}
 			
 				PrevRT = DownSampleRT->GetRHI();
@@ -181,7 +180,7 @@ public:
 				if (FilteredBlurStrength >= i)
 				{
 					auto RenderTarget = DownSampleRenderTargetArray[i - 1];
-					DoGaussianBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, MagicNumber, GraphBuilder, GlobalShaderMap);
+					DoGaussianBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, GraphBuilder, GlobalShaderMap);
 					auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
 					if (FilteredBlurStrength >= i + 1)
 					{
@@ -195,7 +194,7 @@ public:
 					}
 				}
 			}
-			DoGaussianBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, GlobalShaderMap);
+			DoGaussianBlur(BlurEffectRHITexture, FilteredBlurStrength, GraphBuilder, GlobalShaderMap);
 		}
 		else
 		{
@@ -207,11 +206,11 @@ public:
 					auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
 					if (FilteredBlurStrength >= i + 1)
 					{
-						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, FilteredBlurStrength - i, MagicNumber, RenderTarget->GetRHI(), NextRT);
+						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, FilteredBlurStrength - i, RenderTarget->GetRHI(), NextRT);
 					}
 					else
 					{
-						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, 1, MagicNumber, RenderTarget->GetRHI(), NextRT);
+						DualKawaseUpSample(GraphBuilder, GlobalShaderMap, 1, RenderTarget->GetRHI(), NextRT);
 						auto BlendValue = FMath::Clamp(FilteredBlurStrength - i, 0.0f, 1.0f);
 						BlendValue = FMath::Pow(BlendValue, MagicNumber);
 						FLexUIRenderer::CopyRenderTarget_BlendAlpha(GraphBuilder, GlobalShaderMap, RenderTarget->GetRHI(), NextRT, 1-BlendValue);
@@ -249,7 +248,6 @@ public:
 	}
 	void DoGaussianBlur(FRHITexture* RenderTargetTexture
 		, float BlurAmount
-		, float MagicNumber
 		, FRDGBuilder& GraphBuilder
 		, FGlobalShaderMap* GlobalShaderMap
 		)
@@ -335,7 +333,6 @@ public:
 	}
 	void DualKawaseDownSample(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
 		, float BlurAmount
-		, float MagicNumber
 		, FTextureRHIRef Src, FTextureRHIRef Dst
 	)
 	{
@@ -383,7 +380,6 @@ public:
 	}
 	void DualKawaseUpSample(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
 		, float BlurAmount
-		, float MagicNumber
 		, FTextureRHIRef Src, FTextureRHIRef Dst
 	)
 	{

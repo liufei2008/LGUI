@@ -700,7 +700,6 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 									Primitive->OnRenderPostProcess_RenderThread(
 										GraphBuilder,
 										SceneTextures,
-										this,
 										ScreenColorRenderTargetTexture,
 										GlobalShaderMap,
 										ViewProjectionMatrix,
@@ -972,7 +971,6 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 						Primitive->OnRenderPostProcess_RenderThread(
 							GraphBuilder,
 							SceneTextures,
-							this,
 							ScreenColorRenderTargetTexture,
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,

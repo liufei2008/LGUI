@@ -29,7 +29,7 @@ void ULexVisualBackBufferReader::BeginPlay()
 
 void ULexVisualBackBufferReader::BeginDestroy()
 {
-	ENQUEUE_RENDER_COMMAND(FLexPostProcess_ReleaseRenderProxy)
+	ENQUEUE_RENDER_COMMAND(ULexVisualBackBufferReader_ReleaseRenderProxy)
 			([RenderProxyPtr = RenderProxy](FRHICommandListImmediate& RHICmdList)
 				{
 					delete RenderProxyPtr;

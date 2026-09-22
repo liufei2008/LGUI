@@ -30,15 +30,11 @@ class LGUI_API ULexVisualBackBufferReader : public ULexVisual
 public:
 	ULexVisualBackBufferReader(const FObjectInitializer& ObjectInitializer);
 
-protected:
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual bool CanEditChange(const FProperty* InProperty) const override;
-#endif
+
 	TSharedPtr<FLexUIGeometry> Geometry = nullptr;
 	virtual void UpdateGeometry()override final;
 	virtual void PostUpdateDrawCall();
@@ -48,6 +44,11 @@ protected:
 	virtual void MarkAllDirty()override;
 
 protected:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
+#endif
+	
 	friend class FLexBackBufferReaderCustomization;
 	UPROPERTY(EditAnywhere, Category="LGUI", BlueprintReadWrite, Getter, Setter)
 	ELexVisualBackBufferReaderType BackBufferReaderType = ELexVisualBackBufferReaderType::Rect;
