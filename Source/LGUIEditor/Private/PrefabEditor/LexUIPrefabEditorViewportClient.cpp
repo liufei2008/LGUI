@@ -523,7 +523,7 @@ public:
 			for (auto& Vertex : VertexArray)
 			{
 				Vertex.Position = AxisRot.RotateVector(Vertex.Position);
-				Vertex.Color = ColorAxisY;
+				Vertex.Color = ColorAxisZ;
 			}
 			RotateAxisZ = MakeShared<FLexUIGizmoMesh>(VertexArray, SrcMeshIndexArray, ELexUIGizmoMeshPrimitiveType::Triangle);
 			RotateAxisZ->UpdateLocalBounds();

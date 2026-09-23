@@ -35,4 +35,9 @@ private:
 	FLexUIMeshVertexBuffer VertexBuffer;
 	/** Index buffer for this section */
 	FLexUIMeshIndexBuffer IndexBuffer;
+	/** cache current color to skip redundant vertex buffer update */
+	FColor CurrentColor = FColor(0, 0, 0, 0);
+	bool bCurrentColorValid = false;
+	/** vertex color was changed before RHI init finished, update it after initialized */
+	bool bNeedToUpdateAfterInitRHI = false;
 };
