@@ -10,7 +10,6 @@
 #include "Core/LexUIMesh/LexUIMeshComponent.h"
 #include "Core/LexUIDrawCall.h"
 #include "Core/Components/LexVisual.h"
-#include "Core/Components/LexVisualBackBufferReader.h"
 #include "Core/Components/LexVisualDirectMesh.h"
 #include "Core/Components/LexWidget.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -1766,8 +1765,11 @@ void ULexCanvas::UpdateDrawCallMaterial()
 			{
 				if (auto BackBufferCopy = Cast<ULexBackBufferCopy>(DrawCallItem.BackBufferReaderVisualObject.Get()))
 				{
-					LastBackBufferObject = BackBufferCopy;
-					LastBackBufferObject->ClearMaterialsUsingThisBackBuffer();
+					if (BackBufferCopy->GetRenderMode() == ELexBackBufferCopyRenderMode::RenderToTarget)
+					{
+						LastBackBufferObject = BackBufferCopy;//only set for RenderTarget mode
+					}
+					BackBufferCopy->ClearMaterialsUsingThisBackBuffer();//clear for both mode
 				}
 			}
 		break;

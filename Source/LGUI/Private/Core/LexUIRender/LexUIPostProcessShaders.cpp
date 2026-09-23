@@ -6,7 +6,6 @@
 // Implement uniform buffer structs for Metal compatibility
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIPostProcessMainTexUB, "LexUIPostProcessMainTexUB");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMainTexUB, "LexUIRenderMeshMainTexUB");
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMaskTexUB, "LexUIRenderMeshMaskTexUB");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshClipDataTexUB, "LexUIRenderMeshClipDataTexUB");
 IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshDepthTexUB, "LexUIRenderMeshDepthTexUB");
 
@@ -27,19 +26,11 @@ IMPLEMENT_SHADER_TYPE(, FLexUICopyMeshRegionPS_LinearizeColor, TEXT("/Plugin/LGU
 
 
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshVertexShader.usf"), TEXT("RenderMeshVS"), SF_Vertex)
-
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWithMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshPS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWithMaskPS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-
 
 
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWorldVS, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshVertexShader.usf"), TEXT("RenderMeshVS"), SF_Vertex)
-
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWorldPS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWorldDepthFadePS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWithMaskWorldPS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
-IMPLEMENT_SHADER_TYPE(, FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip, TEXT("/Plugin/LGUI/Private/PostProcess/LexUIRenderMeshPixelShader.usf"), TEXT("RenderMeshPS"), SF_Pixel)
 	 

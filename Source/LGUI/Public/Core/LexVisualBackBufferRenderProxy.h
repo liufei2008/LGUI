@@ -31,7 +31,7 @@ public:
 	 * @param	ScreenTargetTexture				The full screen render target
 	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
 	 */
-	virtual void OnRenderPostProcess_RenderThread(
+	virtual void OnRenderBackBuffer_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
 		FTextureRHIRef ScreenTargetTexture,
@@ -52,21 +52,7 @@ public:
 	FBox2f MeshRectInScreen;
 	FVector4f RectInScreen01;
 	bool bFullViewport = false;
-};
-
-BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )
-	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
-	SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture2D, MeshRegionTexture)
-	RENDER_TARGET_BINDING_SLOTS()
-END_SHADER_PARAMETER_STRUCT()
-
-/**
- * this is a render-agent for LexVisualBackBuffer in render thread, just like a SceneProxy for PrimitiveComponent.
- */
-class LGUI_API FLexVisualPostProcessRenderProxy : public FLexVisualBackBufferRenderProxy
-{
-public:
-	FTexture2DResource* MaskTexture = nullptr;
+	
 	FTexture2DDynamicResource* ClipDataTexture = nullptr;
 	/**
 	 * Use a mesh to render the MeshRegionTexture to ScreenTargetTexture
@@ -86,4 +72,19 @@ public:
 		, const FIntRect& ViewRect
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
+};
+
+BEGIN_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshOnScreenPSParameter, )
+	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
+	SHADER_PARAMETER_RDG_TEXTURE_SRV(Texture2D, MeshRegionTexture)
+	RENDER_TARGET_BINDING_SLOTS()
+END_SHADER_PARAMETER_STRUCT()
+
+/**
+ * this is a render-agent for LexVisualBackBuffer in render thread, just like a SceneProxy for PrimitiveComponent.
+ */
+class LGUI_API FLexVisualPostProcessRenderProxy : public FLexVisualBackBufferRenderProxy
+{
+public:
+	FTexture2DResource* MaskTexture = nullptr;
 };

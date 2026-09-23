@@ -24,11 +24,6 @@ BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMainTexUB, )
 	SHADER_PARAMETER_SAMPLER(SamplerState, _MainTexSampler)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshMaskTexUB, )
-	SHADER_PARAMETER_TEXTURE(Texture2D, _MaskTex)
-	SHADER_PARAMETER_SAMPLER(SamplerState, _MaskTexSampler)
-END_GLOBAL_SHADER_PARAMETER_STRUCT()
-
 BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FLexUIRenderMeshClipDataTexUB, )
 	SHADER_PARAMETER_TEXTURE(Texture2D, _ClipDataTex)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
@@ -377,51 +372,6 @@ private:
 	LAYOUT_FIELD(FShaderParameter, ScreenAreaMinAndSizeParameter);
 };
 
-//render mesh pixel shader, use a mask texture
-class FLexUIRenderMeshWithMaskPS :public FLexUIPostProcessShader
-{
-	DECLARE_SHADER_TYPE(FLexUIRenderMeshWithMaskPS, Global);
-public:
-	FLexUIRenderMeshWithMaskPS() {}
-	FLexUIRenderMeshWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLexUIPostProcessShader(Initializer)
-	{
-	}
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_MASK"), 1);
-		FLexUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList
-		, FTextureRHIRef MainTexture
-		, FTextureRHIRef MaskTexture
-		, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-		, FRHISamplerState* MaskTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-	)
-	{
-		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-
-		{
-			FLexUIRenderMeshMainTexUB UB;
-			UB._MainTex = MainTexture;
-			UB._MainTexSampler = MainTextureSampler;
-			auto UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMainTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
-			SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMainTexUB>(), UniformBuffer);
-		}
-
-		{
-			FLexUIRenderMeshMaskTexUB UB;
-			UB._MaskTex = MaskTexture;
-			UB._MaskTexSampler = MaskTextureSampler;
-			auto UniformBuffer = TUniformBufferRef<FLexUIRenderMeshMaskTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
-			SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshMaskTexUB>(), UniformBuffer);
-		}
-		
-		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
-	}
-private:
-};
-
 #pragma region Clip
 //render mesh pixel shader
 class FLexUIRenderMeshPS_Clip :public FLexUIRenderMeshPS
@@ -507,103 +457,6 @@ public:
 	{
 		OutEnvironment.SetDefine(TEXT("LEXUI_DEPTH_FADE"), true);
 		FLexUIRenderMeshWorldPS_Clip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-	}
-	void SetDepthFadeParameter(FRHICommandList& RHICmdList, int DepthFade, const FVector2f& ViewSizeInv)
-	{
-		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		SetShaderValue(BatchedParameters, SceneDepthFadeParameter, DepthFade);
-		SetShaderValue(BatchedParameters, ViewSizeInvParameter, ViewSizeInv);
-		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
-	}
-private:
-	LAYOUT_FIELD(FShaderParameter, SceneDepthFadeParameter);
-	LAYOUT_FIELD(FShaderParameter, ViewSizeInvParameter);
-};
-//render mesh pixel shader, use a mask texture
-class FLexUIRenderMeshWithMaskPS_Clip :public FLexUIRenderMeshWithMaskPS
-{
-	DECLARE_SHADER_TYPE(FLexUIRenderMeshWithMaskPS_Clip, Global);
-public:
-	FLexUIRenderMeshWithMaskPS_Clip() {}
-	FLexUIRenderMeshWithMaskPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLexUIRenderMeshWithMaskPS(Initializer)
-	{
-		InvMParameter.Bind(Initializer.ParameterMap, TEXT("_Inv_M"));
-	}
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters & Parameters, FShaderCompilerEnvironment & OutEnvironment)
-	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_CLIP"), true);
-		FLexUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-	}
-	void SetClipParameters(FRHICommandListImmediate & RHICmdList
-		, const FMatrix44f& InvM
-		, FTextureRHIRef ClipTexture
-		, FRHISamplerState * ClipTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
-	{
-		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-
-		FLexUIRenderMeshClipDataTexUB UB;
-		UB._ClipDataTex = ClipTexture;
-		auto UniformBuffer = TUniformBufferRef<FLexUIRenderMeshClipDataTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
-		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshClipDataTexUB>(), UniformBuffer);
-		
-		SetShaderValue(BatchedParameters, InvMParameter, InvM);
-		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
-	}
-private:
-	LAYOUT_FIELD(FShaderParameter, InvMParameter);
-};
-class FLexUIRenderMeshWithMaskWorldPS_Clip : public FLexUIRenderMeshWithMaskPS_Clip
-{
-public:
-	DECLARE_SHADER_TYPE(FLexUIRenderMeshWithMaskWorldPS_Clip, Global);
-
-	FLexUIRenderMeshWithMaskWorldPS_Clip() {}
-	FLexUIRenderMeshWithMaskWorldPS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLexUIRenderMeshWithMaskPS_Clip(Initializer)
-	{
-		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
-		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
-	}
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_BLEND_DEPTH"), true);
-		FLexUIRenderMeshWithMaskPS_Clip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
-	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4f& DepthTextureScaleOffset, FRHITexture* DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
-	{
-		FRHIBatchedShaderParameters& BatchedParameters = RHICmdList.GetScratchShaderParameters();
-		
-		FLexUIRenderMeshDepthTexUB UB;
-		UB._SceneDepthTex = DepthTexture;
-		UB._SceneDepthTexSampler = DepthTextureSampler;
-		auto UniformBuffer = TUniformBufferRef<FLexUIRenderMeshDepthTexUB>::CreateUniformBufferImmediate(UB, UniformBuffer_SingleFrame);
-		SetUniformBufferParameter(BatchedParameters, GetUniformBufferParameter<FLexUIRenderMeshDepthTexUB>(), UniformBuffer);
-		
-		SetShaderValue(BatchedParameters, SceneDepthBlendParameter, DepthBlend);
-		SetShaderValue(BatchedParameters, SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
-		RHICmdList.SetBatchedShaderParameters(RHICmdList.GetBoundPixelShader(), BatchedParameters);
-	}
-private:
-	LAYOUT_FIELD(FShaderParameter, SceneDepthTextureScaleOffsetParameter);
-	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
-};
-class FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip : public FLexUIRenderMeshWithMaskWorldPS_Clip
-{
-public:
-	DECLARE_SHADER_TYPE(FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip, Global);
-
-	FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip() {}
-	FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLexUIRenderMeshWithMaskWorldPS_Clip(Initializer)
-	{
-		SceneDepthFadeParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthFade"));
-		ViewSizeInvParameter.Bind(Initializer.ParameterMap, TEXT("_ViewSizeInv"));
-	}
-	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
-	{
-		OutEnvironment.SetDefine(TEXT("LEXUI_DEPTH_FADE"), true);
-		FLexUIRenderMeshWithMaskWorldPS_Clip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
 	void SetDepthFadeParameter(FRHICommandList& RHICmdList, int DepthFade, const FVector2f& ViewSizeInv)
 	{

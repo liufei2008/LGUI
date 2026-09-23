@@ -7,6 +7,7 @@
 #include "RenderTargetPool.h"
 #include "Core/LexVisualBackBufferRenderProxy.h"
 #include "Core/Components/LexCanvas.h"
+#include "Core/Components/LexWidget.h"
 #include "Core/LexUIRender/LexUIPostProcessShaders.h"
 #include "Engine/TextureRenderTarget2D.h"
 
@@ -26,8 +27,13 @@ void ULexBackBufferCopy::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 		{
 			SendFilterToRenderProxy();
 		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexBackBufferCopy, RenderMode))
+		{
+			GetWidget()->MarkCanvasUpdate(true);
+		}
 	}
 	SendRenderTargetToRenderProxy();
+	SendOthersToRenderProxy();
 }
 #endif
 
@@ -43,6 +49,13 @@ void ULexBackBufferCopy::MarkAllDirty()
 
 void ULexBackBufferCopy::ClearMaterialsUsingThisBackBuffer()
 {
+	for (auto Element : MaterialsUsingThisBackBuffer)
+	{
+		if (Element.IsValid())
+		{
+			Element->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, nullptr);
+		}
+	}
 	MaterialsUsingThisBackBuffer.Reset();
 }
 
@@ -53,13 +66,14 @@ void ULexBackBufferCopy::RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceD
 	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
 }
 
-DECLARE_CYCLE_STAT(TEXT("PostProcess_BackBufferCopy"), STAT_BackBufferCopy, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("FLexBackBufferCopy"), STAT_BackBufferCopy, STATGROUP_LGUI);
 class FUIBackBufferCopyRenderProxy : public FLexVisualBackBufferRenderProxy
 {
 public:
 	FLexBackBufferCopyFilterRenderProxy* BackBufferCopyFilter = nullptr;
 	//output target
 	FTextureRenderTargetResource* RenderTargetResource = nullptr;
+	bool bRenderToViewport = false;
 	
 	FUIBackBufferCopyRenderProxy()
 	{
@@ -69,7 +83,7 @@ public:
 	{
 		return RenderTargetResource != nullptr;
 	}
-	virtual void OnRenderPostProcess_RenderThread(
+	virtual void OnRenderBackBuffer_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
 		FTextureRHIRef ScreenTargetTexture,
@@ -118,12 +132,27 @@ public:
 			, bIsRenderTarget
 			, FIntRect(0, 0, RenderTargetRHITexture->GetSizeXYZ().X, RenderTargetRHITexture->GetSizeXYZ().Y)
 			, ViewTextureScaleOffset
-			, true//linearize it, so material sample will get correct color
+			, !bRenderToViewport//linearize it, so material sample will get correct color
 		);
 
 		if (BackBufferCopyFilter != nullptr)
 		{
 			BackBufferCopyFilter->DoFilter(GraphBuilder, GlobalShaderMap, RenderTargetRHITexture);
+		}
+		
+		if (bRenderToViewport)//after blur process, copy the blur result image back to screen image of the area
+		{
+			if (bFullViewport)
+			{
+				//copy full viewport
+				FLexUIRenderer::CopyRenderTarget(GraphBuilder, GlobalShaderMap, RenderTargetRHITexture, ScreenTargetTexture);
+			}
+			else
+			{
+				//copy on mesh region
+				auto ModelViewProjectionMatrix = ObjectToWorldMatrix * ViewProjectionMatrix;
+				RenderMeshOnScreen_RenderThread(GraphBuilder, SceneTextures, ScreenTargetTexture, GlobalShaderMap, RenderTargetRHITexture, ModelViewProjectionMatrix, ObjectToWorldMatrix, bIsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect);
+			}
 		}
 
 		//Defer releasing the pooled render targets until the graph executes
@@ -167,6 +196,7 @@ FLexVisualBackBufferRenderProxy* ULexBackBufferCopy::GetRenderProxy()
 		SendRegionVertexDataToRenderProxy();
 		SendRenderTargetToRenderProxy();
 		SendFilterToRenderProxy();
+		SendOthersToRenderProxy();
 	}
 	return RenderProxy;
 }
@@ -185,7 +215,7 @@ void ULexBackBufferCopy::SendRenderTargetToRenderProxy()
 		{
 			RenderTargetResource = nullptr;
 		}
-		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateMaskTexture)
+		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopy_UpdateRenderTarget)
 			([TempRenderProxy, RenderTargetResource](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->RenderTargetResource = RenderTargetResource;
@@ -199,11 +229,47 @@ void ULexBackBufferCopy::SendFilterToRenderProxy()
 	{
 		auto TempRenderProxy = (FUIBackBufferCopyRenderProxy*)RenderProxy;
 		auto Filter = IsValid(BackBufferCopyFilter) ? BackBufferCopyFilter->GetRenderProxy() : nullptr;
-		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateMaskTexture)
+		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopy_UpdateFilter)
 			([TempRenderProxy, Filter](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->BackBufferCopyFilter = Filter;
 				});
+	}
+}
+
+void ULexBackBufferCopy::SendOthersToRenderProxy()
+{
+	if (RenderProxy)
+	{
+		auto TempRenderProxy = (FUIBackBufferCopyRenderProxy*)RenderProxy;
+		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopy_UpdateOthersData)
+			([TempRenderProxy, bRenderToViewport = RenderMode == ELexBackBufferCopyRenderMode::RenderToViewport](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->bRenderToViewport = bRenderToViewport;
+				});
+	}
+}
+
+void ULexBackBufferCopy::SendRegionVertexDataToRenderProxy()
+{
+	Super::SendRegionVertexDataToRenderProxy();
+	auto Widget = this->GetWidget();
+	if (!Widget)return;
+
+	auto RenderCanvas = Widget->GetRenderCanvas();
+	if (RenderProxy && RenderCanvas)
+	{
+		auto TempRenderProxy = (FUIBackBufferCopyRenderProxy*)RenderProxy;
+		auto ClipDataTex = this->GetClipDataTexture();
+		if (IsValid(ClipDataTex) && ClipDataTex->GetResource() != nullptr)
+		{
+			auto ClipDataTexture = (FTexture2DDynamicResource*)ClipDataTex->GetResource();
+			ENQUEUE_RENDER_COMMAND(FLexBackBufferCopy_UpdateClipDataTexture)
+				([TempRenderProxy, ClipDataTexture](FRHICommandListImmediate& RHICmdList)
+					{
+						TempRenderProxy->ClipDataTexture = ClipDataTexture;
+					});
+		}
 	}
 }
 
@@ -214,6 +280,15 @@ void ULexBackBufferCopy::SetRenderTarget(UTextureRenderTarget2D* InRenderTarget)
 		RenderTarget = InRenderTarget;
 		UpdateRenderTarget();
 		OnRenderTargetChanged.Broadcast(RenderTarget);
+	}
+}
+
+void ULexBackBufferCopy::SetRenderMode(ELexBackBufferCopyRenderMode Value)
+{
+	if (RenderMode != Value)
+	{
+		RenderMode = Value;
+		SendOthersToRenderProxy();
 	}
 }
 
@@ -282,7 +357,7 @@ void ULexBackBufferCopyFilter::BeginDestroy()
 
 struct FLexBackBufferCopyFilterRenderProxy_Blur : public FLexBackBufferCopyFilterRenderProxy
 {
-	void DoGaussianBlur(FRHITexture* RenderTargetTexture
+	void GaussianBlur(FRHITexture* RenderTargetTexture
 		, float BlurAmount
 		, float MagicNumber
 		, FRDGBuilder& GraphBuilder
@@ -488,7 +563,7 @@ struct FLexBackBufferCopyFilterRenderProxy_GaussianBlur : public FLexBackBufferC
 			if (FilteredBlurStrength >= i)
 			{
 				auto RenderTarget = DownSampleRenderTargetArray[i - 1];
-				DoGaussianBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, MagicNumber, GraphBuilder, GlobalShaderMap);
+				GaussianBlur(RenderTarget->GetRHI(), FilteredBlurStrength - i, MagicNumber, GraphBuilder, GlobalShaderMap);
 				auto NextRT = i == 1 ? BlurEffectRHITexture : DownSampleRenderTargetArray[i - 2]->GetRHI();
 				if (FilteredBlurStrength >= i + 1)
 				{
@@ -502,7 +577,7 @@ struct FLexBackBufferCopyFilterRenderProxy_GaussianBlur : public FLexBackBufferC
 				}
 			}
 		}
-		DoGaussianBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, GlobalShaderMap);
+		GaussianBlur(BlurEffectRHITexture, FilteredBlurStrength, MagicNumber, GraphBuilder, GlobalShaderMap);
 
 
 		//Defer releasing the pooled render targets until the graph executes
@@ -570,7 +645,7 @@ void ULexBackBufferCopyFilter_GaussianBlur::SendDataToRenderProxy()
 	if (RenderProxy)
 	{
 		auto TempRenderProxy = (FLexBackBufferCopyFilterRenderProxy_GaussianBlur*)RenderProxy;
-		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateMaskTexture)
+		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopyFilter_GaussianBlur_UpdateData)
 			([TempRenderProxy, BlurStrength = BlurStrength, MaxDownSampleLevel = MaxDownSampleLevel](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->BlurStrength = BlurStrength;
@@ -603,7 +678,7 @@ void ULexBackBufferCopyFilter_DualKawaseBlur::SendDataToRenderProxy()
 	if (RenderProxy)
 	{
 		auto TempRenderProxy = (FLexBackBufferCopyFilterRenderProxy_DualKawaseBlur*)RenderProxy;
-		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateMaskTexture)
+		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopyFilter_DualKawaseBlur_UpdateData)
 			([TempRenderProxy, DownSampleLevel = FMath::Clamp(DownSampleLevel, 0, 10)](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->DownSampleLevel = DownSampleLevel;

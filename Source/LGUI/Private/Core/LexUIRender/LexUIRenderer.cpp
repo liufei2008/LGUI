@@ -697,7 +697,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 								if (auto Primitive = RenderPrimitiveItem.Primitive->LexUI_GetBackBufferReaderElement(RenderPrimitiveItem.Sections[i].SectionPointer))
 								{
 									SCOPE_CYCLE_COUNTER(STAT_LGUI_RHIRenderPostProcess);
-									Primitive->OnRenderPostProcess_RenderThread(
+									Primitive->OnRenderBackBuffer_RenderThread(
 										GraphBuilder,
 										SceneTextures,
 										ScreenColorRenderTargetTexture,
@@ -968,7 +968,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 					if (auto Primitive = RenderSequenceItem.Primitive->LexUI_GetBackBufferReaderElement(RenderSequenceItem.Sections[i].SectionPointer))
 					{
 						SCOPE_CYCLE_COUNTER(STAT_LGUI_RHIRenderPostProcess);
-						Primitive->OnRenderPostProcess_RenderThread(
+						Primitive->OnRenderBackBuffer_RenderThread(
 							GraphBuilder,
 							SceneTextures,
 							ScreenColorRenderTargetTexture,

@@ -86,7 +86,7 @@ void ULexVisualBackBufferReader::OnTransformChanged(bool InPositionChanged, bool
 	Super::OnTransformChanged(InPositionChanged, InScaleChanged);
 }
 
-void ULexVisualBackBufferReader::SetBackBufferReaderType(ELexVisualBackBufferReaderType InBackBufferReaderType)
+void ULexVisualBackBufferReader::SetBackBufferReaderType(ELexVisualBackBufferReaderMode InBackBufferReaderType)
 {
 	if (BackBufferReaderType != InBackBufferReaderType)
 	{
@@ -208,7 +208,7 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 				if (LP->GetProjectionData(LP->ViewportClient->Viewport, /*out*/ ProjectionData))
 				{
 					ViewRect = ProjectionData.GetConstrainedViewRect();
-					if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+					if (BackBufferReaderType == ELexVisualBackBufferReaderMode::Rect)
 					{
 						ViewProjectionMatrix = ProjectionData.ComputeViewProjectionMatrix();
 					}
@@ -219,12 +219,12 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 	else
 	{
 		ViewRect = FIntRect(FIntPoint::ZeroValue, RootCanvas->GetViewportSize());
-		if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+		if (BackBufferReaderType == ELexVisualBackBufferReaderMode::Rect)
 		{
 			ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
 		}
 	}
-	if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+	if (BackBufferReaderType == ELexVisualBackBufferReaderMode::Rect)
 	{
 		if (bWidgetOrGeometryDirty
 			|| CacheViewRect != ViewRect
@@ -387,7 +387,7 @@ void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool I
 
 void ULexVisualBackBufferReader::UpdateRegionVertex(FIntPoint InViewportSize)
 {
-	if (BackBufferReaderType == ELexVisualBackBufferReaderType::Rect)
+	if (BackBufferReaderType == ELexVisualBackBufferReaderMode::Rect)
 	{
 		FVector2f Inv_ViewportSize(1.0f / InViewportSize.X, 1.0f / InViewportSize.Y);
 		RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
@@ -449,7 +449,7 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
 		UpdateData->MeshRectInScreen = this->MeshRectInScreen;
 		UpdateData->RectInScreen01 = this->RectInScreen01;
-		UpdateData->bFullViewport = this->BackBufferReaderType == ELexVisualBackBufferReaderType::Viewport;
+		UpdateData->bFullViewport = this->BackBufferReaderType == ELexVisualBackBufferReaderMode::Viewport;
 		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
 		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateData)
 			([TempRenderProxy, UpdateData](FRHICommandListImmediate& RHICmdList)

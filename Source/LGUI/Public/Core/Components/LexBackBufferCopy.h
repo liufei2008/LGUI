@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LexVisualPostProcess.h"
+#include "LexVisualBackBufferReader.h"
 #include "LexBackBufferCopy.generated.h"
 
 struct FLexBackBufferCopyFilterRenderProxy
@@ -22,8 +22,17 @@ protected:
 	FLexBackBufferCopyFilterRenderProxy* RenderProxy = nullptr;
 };
 
+UENUM(BlueprintType)
+enum class ELexBackBufferCopyRenderMode : uint8
+{
+	/** Copy back-buffer to a RenderTarget, then we can use it in our material */
+	RenderToTarget,
+	/** Render back-buffer back to viewport */
+	RenderToViewport,
+};
+
 /** 
- * UI element that can copy a back-buffer to a texture, so we can use it in our material.
+ * UI element that can copy a back-buffer and do a filter effect, then we can use it in our material or render back to viewport.
  * Use it in ScreenSpace or WorldSpace-LexUIRenderer.
  * If android OpenGL ES3.1, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
  */
@@ -40,6 +49,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void SendRegionVertexDataToRenderProxy() override;
 
 	/**
 	 * Copy screen content to this RenderTarget.
@@ -48,6 +58,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget = nullptr;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
+	//Render filtered BackBuffer image directly to viewport
+	UPROPERTY(EditAnywhere, Category = "LGUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
+	ELexBackBufferCopyRenderMode RenderMode = ELexBackBufferCopyRenderMode::RenderToTarget;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Instanced, Getter, meta=(AllowPrivateAccess = true))
 	TObjectPtr<ULexBackBufferCopyFilter> BackBufferCopyFilter;
 public:
@@ -66,11 +79,16 @@ public:
 	UFUNCTION()
 	void SetRenderTarget(UTextureRenderTarget2D* InRenderTarget);
 	UFUNCTION()
+	ELexBackBufferCopyRenderMode GetRenderMode()const { return RenderMode; }
+	UFUNCTION()
+	void SetRenderMode(ELexBackBufferCopyRenderMode Value);
+	UFUNCTION()
 	ULexBackBufferCopyFilter* GetBackBufferCopyFilter()const{return BackBufferCopyFilter;}
 private:
 	void UpdateRenderTarget();
 	void SendRenderTargetToRenderProxy();
 	void SendFilterToRenderProxy();
+	void SendOthersToRenderProxy();
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 };

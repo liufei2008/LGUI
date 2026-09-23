@@ -25,7 +25,7 @@ GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
 GraphicsPSOInit.NumSamples = NumSamples;\
 SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::ForceApply);
 
-void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
+void FLexVisualBackBufferRenderProxy::RenderMeshOnScreen_RenderThread(
 	FRDGBuilder& GraphBuilder
 	, const FMinimalSceneTextures& SceneTextures
 	, FTextureRHIRef ScreenTargetTexture
@@ -49,7 +49,7 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 	PSShaderParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenTargetTexture, TEXT("LexUIRendererTargetTexture")), ERenderTargetLoadAction::ELoad);
 
 	GraphBuilder.AddPass(
-		RDG_EVENT_NAME("UIPostProcess_RenderMeshToScreen"),
+		RDG_EVENT_NAME("LexVisualBackBufferRenderProxy_RenderMeshToScreen"),
 		PSShaderParameters,
 		ERDGPassFlags::Raster,
 		[this, PSShaderParameters, GlobalShaderMap, MeshRegionTexture, ModelViewProjectionMatrix, ModelMatrix, IsWorldSpace, BlendDepthForWorld, DepthFadeForWorld, DepthTextureScaleOffset, ViewRect, ResultTextureSamplerState, NumSamples](FRHICommandListImmediate& RHICmdList)
@@ -58,98 +58,14 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 
 			FBufferRHIRef IndexBuffer = nullptr;
 			int32 TriangleCount = 2;
-			if (MaskTexture != nullptr)
+			
+			auto ScreenAreaMinAndSize = RectInScreen01;
+			if (IsWorldSpace)
 			{
-				if (IsWorldSpace)
+				if (DepthFadeForWorld <= 0.0f)
 				{
-					if (DepthFadeForWorld <= 0.0f)
-					{
-						TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLexUIRenderMeshWithMaskWorldPS_Clip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP();
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, MaskTexture->TextureRHI
-							, ResultTextureSamplerState
-							, MaskTexture->SamplerStateRHI
-						);
-						if (ClipDataTexture != nullptr)
-						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
-						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
-					}
-					else
-					{
-						TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLexUIRenderMeshWithMaskWorldDepthFadePS_Clip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP();
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, MeshRegionTexture, MaskTexture->TextureRHI
-							, ResultTextureSamplerState
-							, MaskTexture->SamplerStateRHI
-						);
-						if (ClipDataTexture != nullptr)
-						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
-						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
-						PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld, FVector2f(1.0f / ViewRect.Width(), 1.0f / ViewRect.Height()));
-					}
-				}
-				else
-				{
-					TShaderMapRef<FLexUIRenderMeshVS> VertexShader(GlobalShaderMap);
-					TShaderMapRef<FLexUIRenderMeshWithMaskPS_Clip> PixelShader(GlobalShaderMap);
-					SET_PIPELINE_STATE_FOR_CLIP();
-					VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-					PixelShader->SetParameters(RHICmdList, MeshRegionTexture, MaskTexture->TextureRHI
-						, ResultTextureSamplerState
-						, MaskTexture->SamplerStateRHI
-					);
-					if (ClipDataTexture != nullptr)
-					{
-						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI, ClipDataTexture->SamplerStateRHI);
-					}
-				}
-				IndexBuffer = GLexUIFullScreenQuadIndexBuffer.IndexBufferRHI;
-			}
-			else
-			{
-				auto ScreenAreaMinAndSize = RectInScreen01;
-				if (IsWorldSpace)
-				{
-					if (DepthFadeForWorld <= 0.0f)
-					{
-						TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLexUIRenderMeshWorldPS_Clip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP();
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
-						if (ClipDataTexture != nullptr)
-						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
-						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
-					}
-					else
-					{
-						TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
-						TShaderMapRef<FLexUIRenderMeshWorldDepthFadePS_Clip> PixelShader(GlobalShaderMap);
-						SET_PIPELINE_STATE_FOR_CLIP();
-						VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
-						PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
-						if (ClipDataTexture != nullptr)
-						{
-							PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
-						}
-						PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
-						PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld, FVector2f(1.0f / ViewRect.Width(), 1.0f / ViewRect.Height()));
-					}
-				}
-				else
-				{
-					TShaderMapRef<FLexUIRenderMeshVS> VertexShader(GlobalShaderMap);
-					TShaderMapRef<FLexUIRenderMeshPS_Clip> PixelShader(GlobalShaderMap);
+					TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+					TShaderMapRef<FLexUIRenderMeshWorldPS_Clip> PixelShader(GlobalShaderMap);
 					SET_PIPELINE_STATE_FOR_CLIP();
 					VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
 					PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
@@ -157,9 +73,36 @@ void FLexVisualPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(
 					{
 						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
 					}
+					PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
 				}
-				IndexBuffer = GLexUIFullScreenQuadIndexBuffer.IndexBufferRHI;
+				else
+				{
+					TShaderMapRef<FLexUIRenderMeshWorldVS> VertexShader(GlobalShaderMap);
+					TShaderMapRef<FLexUIRenderMeshWorldDepthFadePS_Clip> PixelShader(GlobalShaderMap);
+					SET_PIPELINE_STATE_FOR_CLIP();
+					VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
+					PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
+					if (ClipDataTexture != nullptr)
+					{
+						PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
+					}
+					PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, PSShaderParameters->SceneDepthTex->GetRHI());
+					PixelShader->SetDepthFadeParameter(RHICmdList, DepthFadeForWorld, FVector2f(1.0f / ViewRect.Width(), 1.0f / ViewRect.Height()));
+				}
 			}
+			else
+			{
+				TShaderMapRef<FLexUIRenderMeshVS> VertexShader(GlobalShaderMap);
+				TShaderMapRef<FLexUIRenderMeshPS_Clip> PixelShader(GlobalShaderMap);
+				SET_PIPELINE_STATE_FOR_CLIP();
+				VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ModelMatrix);
+				PixelShader->SetParameters(RHICmdList, ModelViewProjectionMatrix, ScreenAreaMinAndSize, MeshRegionTexture, ResultTextureSamplerState);
+				if (ClipDataTexture != nullptr)
+				{
+					PixelShader->SetClipParameters(RHICmdList, ModelMatrix.Inverse(), ClipDataTexture->TextureRHI);
+				}
+			}
+			IndexBuffer = GLexUIFullScreenQuadIndexBuffer.IndexBufferRHI;
 			
 			FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
 				RHICmdList, TEXT("RenderMeshOnScreen"), EBufferUsageFlags::Volatile, MakeConstArrayView(RenderMeshRegionToScreenVertexArray)

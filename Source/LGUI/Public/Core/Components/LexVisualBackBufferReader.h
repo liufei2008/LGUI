@@ -10,7 +10,7 @@ class FLexVisualBackBufferRenderProxy;
 struct FLexUIPostProcessVertex;
 
 UENUM(BlueprintType)
-enum class ELexVisualBackBufferReaderType : uint8
+enum class ELexVisualBackBufferReaderMode : uint8
 {
 	/** use the UI element's rect in viewport */
 	Rect,
@@ -51,7 +51,7 @@ protected:
 	
 	friend class FLexBackBufferReaderCustomization;
 	UPROPERTY(EditAnywhere, Category="LGUI", BlueprintReadWrite, Getter, Setter)
-	ELexVisualBackBufferReaderType BackBufferReaderType = ELexVisualBackBufferReaderType::Rect;
+	ELexVisualBackBufferReaderMode BackBufferReaderType = ELexVisualBackBufferReaderMode::Rect;
 public:
 	
 	FLexUIGeometry* GetGeometry()const { return Geometry.Get(); }
@@ -63,9 +63,9 @@ public:
 	FVector4f Get2dBoxInScreen01()const{return RectInScreen01;}
 	
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	ELexVisualBackBufferReaderType GetBackBufferReaderType()const{return BackBufferReaderType;}
+	ELexVisualBackBufferReaderMode GetBackBufferReaderType()const{return BackBufferReaderType;}
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	void SetBackBufferReaderType(ELexVisualBackBufferReaderType InBackBufferReaderType);
+	void SetBackBufferReaderType(ELexVisualBackBufferReaderMode InBackBufferReaderType);
 
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();

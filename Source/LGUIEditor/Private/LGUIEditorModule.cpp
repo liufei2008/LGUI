@@ -52,7 +52,6 @@
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
-#include "DetailCustomization/LexVisualPostProcessCustomization.h"
 
 #include "PrefabEditor/LexUIPrefabOverrideDataViewer.h"
 #include "Engine/Selection.h"
@@ -82,8 +81,8 @@
 #include "Core/Components/LexText.h"
 #include "Core/Components/LexTexture.h"
 #include "Core/Components/LexTextureBase.h"
-#include "Core/Components/LexVisualPostProcess.h"
 #include "Core/LexWidgetPresenterComponent.h"
+#include "Core/Components/LexVisualBackBufferReader.h"
 #include "DetailCustomization/LexImageBrushStructCustomization.h"
 #include "DetailCustomization/LexLayoutContainerCustomization.h"
 #include "DetailCustomization/LexLayoutSelfFlexBoxCustomization.h"
@@ -162,7 +161,6 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULexTextureBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexTextureBaseCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULexRectBlock::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexRectBlockCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULexTexture::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexTextureCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(ULexVisualPostProcess::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexVisualPostProcessCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULexUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexUISpriteDataCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULexUIStaticSpriteAtlasData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLexUIStaticSpriteAtlasDataCustomization::MakeInstance));
@@ -408,7 +406,6 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(ULexText::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULexTextureBase::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULexRectBlock::StaticClass()->GetFName());
-		PropertyModule.UnregisterCustomClassLayout(ULexVisualPostProcess::StaticClass()->GetFName());
 
 		PropertyModule.UnregisterCustomClassLayout(ULexUISpriteData::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULexUIStaticSpriteAtlasData::StaticClass()->GetFName());
@@ -653,9 +650,9 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(TFunction<ULexWidget*
 			NAME_None, EUserInterfaceActionType::None
 		);
 		MenuBuilder.AddSubMenu(
-			LOCTEXT("CreateUIPostProcessSubMenu", "Create UI Post Process"),
-			LOCTEXT("CreateUIPostProcessSubMenu_Tooltip", "Create UI Post Process"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu, GetSelectedWidgetFunction),
+			LOCTEXT("CreateUIBackBufferReaderSubMenu", "Create UI BackBuffer Reader"),
+			LOCTEXT("CreateUIBackBufferReaderSubMenu_Tooltip", "Create UI BackBuffer Reader"),
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIBackBufferReaderSubMenu, GetSelectedWidgetFunction),
 			FUIAction(FExecuteAction()
 				, FCanExecuteAction()
 				, FGetActionCheckState()
@@ -823,7 +820,7 @@ void FLGUIEditorModule::CreateExtraPrefabsSubMenu(FMenuBuilder& MenuBuilder, TFu
 	}
 }
 
-void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder, TFunction<ULexWidget*()> GetSelectedWidgetFunction)
+void FLGUIEditorModule::CreateUIBackBufferReaderSubMenu(FMenuBuilder& MenuBuilder, TFunction<ULexWidget*()> GetSelectedWidgetFunction)
 {
 	struct FunctionContainer
 	{
@@ -839,11 +836,11 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder, TF
 		}
 	};
 
-	MenuBuilder.BeginSection("UIPostProcess");
+	MenuBuilder.BeginSection("UIBackBufferReader");
 	{
 		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
 		{
-			if (ClassItr->IsChildOf(ULexVisualPostProcess::StaticClass()))
+			if (ClassItr->IsChildOf(ULexVisualBackBufferReader::StaticClass()))
 			{
 				if (
 					   !(ClassItr->HasAnyClassFlags(CLASS_Transient))
