@@ -990,7 +990,7 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 				})
 			));
 		VisualCategory.AddExternalObjects({ Visual }, EPropertyLocation::Common
-			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(false));
+			, FAddPropertyParams().HideRootObjectNode(true).CreateCategoryNodes(true));
 		DetailBuilder->HideProperty(Visual_PH);
 	}
 }

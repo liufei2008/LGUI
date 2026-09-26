@@ -309,6 +309,8 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 					Max.Y = FMath::Max(Max.Y, ScreenPosition.Y);
 				}
 			}
+			Min *= RootCanvas->GetCanvasScaleValue();
+			Max *= RootCanvas->GetCanvasScaleValue();
 		}
 		//clamp to viewport rect
 		Min.X = FMath::Max(Min.X, 0);
@@ -424,6 +426,11 @@ void ULexVisualBackBufferReader::UpdateGeometryClipData(FLexUIGeometry& InMesh, 
 	{
 		vertices[i].TextureCoordinate[1].X = InDataStartPosition;
 	}
+}
+
+FVector4f ULexVisualBackBufferReader::GetRectInScreen01ForShader() const
+{
+	return FVector4f(-RectInScreen01.X, -RectInScreen01.Y, 1.0f / RectInScreen01.Z, 1.0f / RectInScreen01.W);//inverse size so shader can multiply it
 }
 
 void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()

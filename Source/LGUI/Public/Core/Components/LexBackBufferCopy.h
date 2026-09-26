@@ -11,7 +11,7 @@ struct FLexBackBufferCopyFilterRenderProxy
 	virtual void DoFilter(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef RenderTargetRHITexture) = 0;
 };
 
-UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
+UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew, meta=(LexUIReference))
 class LGUI_API ULexBackBufferCopyFilter : public UObject
 {
 	GENERATED_BODY()
@@ -55,13 +55,13 @@ protected:
 	 * Copy screen content to this RenderTarget.
 	 * Will create one if not specified.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget = nullptr;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
 	//Render filtered BackBuffer image directly to viewport
-	UPROPERTY(EditAnywhere, Category = "LGUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
 	ELexBackBufferCopyRenderMode RenderMode = ELexBackBufferCopyRenderMode::RenderToTarget;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Instanced, Getter, meta=(AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Instanced, Getter, meta=(AllowPrivateAccess = true))
 	TObjectPtr<ULexBackBufferCopyFilter> BackBufferCopyFilter;
 public:
 	virtual void OnRegister() override;
@@ -89,7 +89,7 @@ private:
 	void SendRenderTargetToRenderProxy();
 	void SendFilterToRenderProxy();
 	void SendOthersToRenderProxy();
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 };
 
@@ -101,7 +101,7 @@ class LGUI_API ULexBackBufferCopyFilter_GaussianBlur : public ULexBackBufferCopy
 	GENERATED_BODY()
 private:
 	/** Blur effect strength. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = 0.0, ClampMax = 1.0f))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = 0.0, ClampMax = 1.0f))
 	float BlurStrength = 0.1f;
 	const int MaxDownSampleLevel = 7;
 	void SendDataToRenderProxy();
@@ -118,7 +118,7 @@ class LGUI_API ULexBackBufferCopyFilter_DualKawaseBlur : public ULexBackBufferCo
 	GENERATED_BODY()
 private:
 	/** Blur effect strength. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = 0, ClampMax = 10))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = 0, ClampMax = 10))
 	int DownSampleLevel = 2;
 	void SendDataToRenderProxy();
 public:

@@ -69,7 +69,7 @@ enum class ELexWidgetComponentsChangedType : uint8
 /**
  * Base class for almost all UI related things.
  */
-UCLASS(ClassGroup = (LGUI), BlueprintType, Blueprintable)
+UCLASS(ClassGroup = (LGUI), BlueprintType, Blueprintable, meta=(LexUIReference))
 class LGUI_API ULexWidget : public UObject
 {
 	GENERATED_BODY()

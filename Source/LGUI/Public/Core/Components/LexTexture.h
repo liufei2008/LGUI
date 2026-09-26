@@ -23,32 +23,32 @@ protected:
 	virtual void OnRegister() override;
 protected:
 	friend class FLexTextureCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUISpriteDrawType DrawType = ELexUISpriteDrawType::Normal;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		ELexUISpriteFlipMode FlipMode = ELexUISpriteFlipMode::Nothing;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImageBrush", meta=(ClampMin = "0.01"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta=(ClampMin = "0.01"))
 	float PixelsPerUnitMultiplier = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bFillCenter = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FLexUISpriteInfo SpriteInfo;
 	/** Texture UV offset and scale info. Only get good result when DrawType is Normal */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FVector4f UVRect = FVector4f(0, 0, 1, 1);
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUISpriteFillMethod FillMethod = ELexUISpriteFillMethod::Horizontal;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		uint8 FillOrigin = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool FillDirectionFlip = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float FillAmount = 1;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial90 FillOriginType_Radial90;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial180 FillOriginType_Radial180;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")ELexUISpriteFillOriginType_Radial360 FillOriginType_Radial360;
+	UPROPERTY(Transient, EditAnywhere, Category = "LexUI")ELexUISpriteFillOriginType_Radial90 FillOriginType_Radial90;
+	UPROPERTY(Transient, EditAnywhere, Category = "LexUI")ELexUISpriteFillOriginType_Radial180 FillOriginType_Radial180;
+	UPROPERTY(Transient, EditAnywhere, Category = "LexUI")ELexUISpriteFillOriginType_Radial360 FillOriginType_Radial360;
 #endif
 
 	void CheckSpriteInfo();

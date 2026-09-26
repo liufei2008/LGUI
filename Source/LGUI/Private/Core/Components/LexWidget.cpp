@@ -3760,8 +3760,8 @@ ULTweener* ULexWidget::HeightTo(float endValue, float duration, float delay, ELT
 ULTweener* ULexWidget::AnchoredPositionTo(const FVector2D& endValue, float duration, float delay, ELTweenEase ease)
 {
 	auto Tweener = ULTweenManager::To(this
-		, FLTweenVector2DGetterFunction::CreateUObject(this, &ULexWidget::GetSizeDelta)
-		, FLTweenVector2DSetterFunction::CreateUObject(this, &ULexWidget::SetSizeDelta)
+		, FLTweenVector2DGetterFunction::CreateUObject(this, &ULexWidget::GetAnchoredPosition)
+		, FLTweenVector2DSetterFunction::CreateUObject(this, &ULexWidget::SetAnchoredPosition)
 		, endValue, duration);
 	if (Tweener)
 	{

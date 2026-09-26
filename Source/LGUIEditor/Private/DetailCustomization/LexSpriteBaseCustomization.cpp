@@ -46,7 +46,7 @@ void FLexSpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 		return;
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI");
 
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(ULexSpriteBase, Sprite));
 	auto spriteHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexSpriteBase, Sprite));

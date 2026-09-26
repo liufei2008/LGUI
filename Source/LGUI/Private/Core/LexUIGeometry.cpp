@@ -30,7 +30,7 @@ void FLexUIGeometry::AdjustPixelSnappingPosition(TArray<FLexUIOriginVertexData>&
 
 	auto halfCanvasWidth = CanvasWidget->GetWidth() * 0.5f;
 	auto halfCanvasHeight = CanvasWidget->GetHeight() * 0.5f;
-	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScale();
+	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScaleValue();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
 
 	for (int i = startIndex; i < count; i++)
@@ -60,7 +60,7 @@ void AdjustPixelSnappingPos_For_UIRectFillRadial360(TArray<FLexUIOriginVertexDat
 
 	auto halfCanvasWidth = CanvasWidget->GetWidth() * 0.5f;
 	auto halfCanvasHeight = CanvasWidget->GetHeight() * 0.5f;
-	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScale();
+	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScaleValue();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
 
 	static TArray<int> vertArray = { 0, 2, 6, 8 };
@@ -94,7 +94,7 @@ void AdjustPixelSnappingPos_For_UIText(TArray<FLexUIOriginVertexData>& originVer
 
 	auto halfCanvasWidth = CanvasWidget->GetWidth() * 0.5f;
 	auto halfCanvasHeight = CanvasWidget->GetHeight() * 0.5f;
-	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScale();
+	float rootCanvasScale = RenderCanvas->GetRootCanvas()->GetCanvasScaleValue();
 	float inv_RootCanvasScale = 1.0f / rootCanvasScale;
 
 	for (int i = 0; i < cacheCharPropertyArray.Num(); i++)
@@ -210,6 +210,7 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 	bool bEnableOuterShadow, FVector2f outerShadowOffset, float outerShadowSize, float outerShadowBlur, bool bSoftEdge,
 	float width, float height, FVector2f pivot, 
 	const FLexUISpriteInfo& uniformSpriteInfo, const FLexUISpriteInfo& spriteInfo,
+	FVector2f srcTextureSize,
 	ULexCanvas* renderCanvas, ULexVisual* uiComp, FColor color,
 	bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 )
@@ -297,7 +298,7 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 			}
 		}
 
-		if (InVertexUVChanged || bSoftEdge)
+		if (InVertexUVChanged)
 		{
 			auto& OriginVert0 = originVertices[0];
 			auto& OriginVert1 = originVertices[1];
@@ -307,25 +308,53 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 			auto& Vert1 = vertices[1];
 			auto& Vert2 = vertices[2];
 			auto& Vert3 = vertices[3];
+
+			if (bSoftEdge)
+			{
+				//uv0 for full rect
+				{
+					float oneDivideWidth = 1.0f / width;
+					float oneDivideHeight = 1.0f / height;
 			
-			float oneDivideWidth = 1.0f / width;
-			float oneDivideHeight = 1.0f / height;
+					auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
+					auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
+					auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
+					auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
 			
-			auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
-			auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
-			auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
-			auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
+					Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0() + uv0_Offset;
+					Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1() + uv1_Offset;
+					Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2() + uv2_Offset;
+					Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3() + uv3_Offset;
+				}
 			
-			Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0() + uv0_Offset;
-			Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1() + uv1_Offset;
-			Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2() + uv2_Offset;
-			Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3() + uv3_Offset;
+				//uv2 store the info for sampling texture and Sprite
+				{
+					float oneDivideWidth = 1.0f / srcTextureSize.X * spriteInfo.Width / width;
+					float oneDivideHeight = 1.0f / srcTextureSize.Y * spriteInfo.Height / height;
 			
-			//uv2 store the info for sampling texture and Sprite
-			Vert0.TextureCoordinate[2] = spriteInfo.GetUV0() + uv0_Offset;
-			Vert1.TextureCoordinate[2] = spriteInfo.GetUV1() + uv1_Offset;
-			Vert2.TextureCoordinate[2] = spriteInfo.GetUV2() + uv2_Offset;
-			Vert3.TextureCoordinate[2] = spriteInfo.GetUV3() + uv3_Offset;
+					auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
+					auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
+					auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
+					auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
+				
+					Vert0.TextureCoordinate[2] = spriteInfo.GetUV0() + uv0_Offset;
+					Vert1.TextureCoordinate[2] = spriteInfo.GetUV1() + uv1_Offset;
+					Vert2.TextureCoordinate[2] = spriteInfo.GetUV2() + uv2_Offset;
+					Vert3.TextureCoordinate[2] = spriteInfo.GetUV3() + uv3_Offset;
+				}
+			}
+			else
+			{
+				Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0();
+				Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1();
+				Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2();
+				Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3();
+
+				Vert0.TextureCoordinate[2] = spriteInfo.GetUV0();
+				Vert1.TextureCoordinate[2] = spriteInfo.GetUV1();
+				Vert2.TextureCoordinate[2] = spriteInfo.GetUV2();
+				Vert3.TextureCoordinate[2] = spriteInfo.GetUV3();
+			}
 		}
 
 		if (InVertexColorChanged)
@@ -2640,7 +2669,7 @@ void FLexUIGeometry::UpdateUIText(const FString& Content
 	float maxFontSize = font->GetFontSizeLimit();
 	fontSize = FMath::Clamp(fontSize, 0.0f, maxFontSize);
 	bool pixelSnapping = LexText->GetShouldAffectByPixelSnapping() && LexText->GetWidget()->GetPixelSnappingInHierarchy();
-	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
+	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScaleValue();
 	float dynamicPixelsPerUnit = LexText->GetDynamicPixelsPerUnit() * rootCanvasScale;
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;

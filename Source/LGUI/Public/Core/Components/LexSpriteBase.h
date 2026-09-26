@@ -42,7 +42,7 @@ protected:
 	friend class SLexUISpriteBorderEditor;
 	friend class FLexSpriteBaseCustomization;
 	
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "true"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (DisplayThumbnail = "true"))
 	TObjectPtr<ULexUISpriteData_BaseObject> Sprite = nullptr;
 	/** Use a custom material to render this sprite */
 	UPROPERTY(EditAnywhere, Category = "LexUI")

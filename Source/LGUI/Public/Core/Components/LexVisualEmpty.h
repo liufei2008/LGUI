@@ -10,7 +10,7 @@
  * LexVisualEmpty is just an empty visual, it will not render, but can handle raycast event
  */
 UCLASS(ClassGroup = (LGUI), BlueprintType, Blueprintable)
-class LGUI_API ULexVisualEmpty : public ULexVisualBatchMesh
+class LGUI_API ULexVisualEmpty : public ULexVisual
 {
 	GENERATED_BODY()
 public:
@@ -18,9 +18,6 @@ public:
 
 protected:
 	
-	virtual UTexture* GetTextureToCreateGeometry()override;
-	virtual UMaterialInterface* GetMaterialToCreateGeometry()override;
-	virtual void OnUpdateGeometry(FLexUIGeometry& InMesh, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual void PostInitProperties() override;
 	virtual void BeginDestroy() override;
 	virtual void OnRegister() override;

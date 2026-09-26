@@ -12,7 +12,7 @@ class USceneComponent;
  * Base class for LexUI's life cycle behaviour related component.
  * Awake execute order in prefab: higher in hierarchy will execute earlier, so scripts on root widget will execute the first.
  */
-UCLASS(ClassGroup = (LGUI), DefaultToInstanced, Abstract, Blueprintable, DisplayName = "LexUI Behaviour")
+UCLASS(ClassGroup = (LGUI), DefaultToInstanced, Abstract, Blueprintable, DisplayName = "LexUI Behaviour", meta=(LexUIReference))
 class LGUI_API ULexUIBehaviour : public UObject
 {
 	GENERATED_BODY()

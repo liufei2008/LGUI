@@ -24,7 +24,7 @@ public:
 protected:
 	virtual void BeginPlay()override;
 	friend class FLexTextureBaseCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (DisplayThumbnail = "false"))
 	TObjectPtr<UTexture> Texture = nullptr;
 	/** Use a custom material to render this texture */
 	UPROPERTY(EditAnywhere, Category = "LexUI")

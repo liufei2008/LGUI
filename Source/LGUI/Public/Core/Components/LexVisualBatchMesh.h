@@ -176,10 +176,10 @@ protected:
 	/**
 	 * Render color of UI element.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", Getter, Setter, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Getter, Setter, BlueprintReadWrite)
 	FColor Color = FColor::White;
 	/** enable properties for material */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
+	UPROPERTY(EditAnywhere, Category = LexUI, AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
 	TArray<TWeakObjectPtr<ULexMeshModifierBase>> MeshModifierArray;
 

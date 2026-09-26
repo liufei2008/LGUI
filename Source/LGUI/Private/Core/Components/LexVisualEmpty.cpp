@@ -19,20 +19,6 @@ ULexVisualEmpty::ULexVisualEmpty(const FObjectInitializer& ObjectInitializer):Su
 {
 }
 
-UTexture* ULexVisualEmpty::GetTextureToCreateGeometry()
-{
-	return FLexUIUtils::GetDefaultWhiteTexture();
-}
-UMaterialInterface* ULexVisualEmpty::GetMaterialToCreateGeometry()
-{
-	return nullptr;
-}
-
-void ULexVisualEmpty::OnUpdateGeometry(FLexUIGeometry& InMesh, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	
-}
-
 void ULexVisualEmpty::PostInitProperties()
 {
 	Super::PostInitProperties();

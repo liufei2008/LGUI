@@ -36,7 +36,7 @@ void FLexTextureCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		UE_LOG(LGUIEditor, Log, TEXT("[%s].%d Get TargetScript is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI");
 
 	auto spriteTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTexture, DrawType));
 	category.AddProperty(spriteTypeHandle);

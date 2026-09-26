@@ -929,6 +929,7 @@ void ULexCanvas::PrepareDrawCallBatchingData(TArray<FLexUIRenderData>& OutRender
 			switch (Visual->GetVisualType())
 			{
 			default:
+				break;
 			case ELexVisualType::BatchMesh:
 				{
 					auto LexVisualBatchMesh = static_cast<ULexVisualBatchMesh*>(Visual);
@@ -1655,7 +1656,7 @@ void ULexCanvas::UpdateDrawCallMaterial()
 				{
 					if (DrawCallItem.Material->IsA<UMaterialInstanceDynamic>())
 					{
-						auto RenderMatDynamic = static_cast<UMaterialInstanceDynamic*>(RenderMat);
+						auto RenderMatDynamic = static_cast<UMaterialInstanceDynamic*>(DrawCallItem.Material.Get());
 						RenderMat = RenderMatDynamic;
 						bShouldSetMaterialParameter = true;
 						SetCommonParameterForMaterial(RenderMatDynamic);
@@ -2624,7 +2625,7 @@ void ULexCanvas::UnregisterCanvasScaler()
 	}
 #endif
 	//reset the canvasScale to default
-	CanvasScale = 1.0f;
+	CanvasScaleValue = 1.0f;
 
 	if (ViewportResizeDelegateHandle.IsValid())
 	{
@@ -2747,7 +2748,7 @@ void ULexCanvas::OnViewportParameterChanged()
 					}
 					break;
 				}
-				this->CanvasScale = TempCanvasScale;
+				this->CanvasScaleValue = TempCanvasScale;
 
 				LexWidget->MarkAllDirtyRecursive();
 				this->MarkCanvasUpdate(true);
@@ -3043,7 +3044,7 @@ bool ULexCanvas::ConvertPositionFromViewportToCanvas(const FVector2D& InPosition
 		Result = FVector2D(InPosition.X, ViewportSize.Y - InPosition.Y);
 		return true;
 	case ELexCanvasScaleMode::ScaleWithScreenSize:
-		Result = FVector2D(InPosition.X, ViewportSize.Y - InPosition.Y) / this->CanvasScale;
+		Result = FVector2D(InPosition.X, ViewportSize.Y - InPosition.Y) / this->CanvasScaleValue;
 		return true;
 	case ELexCanvasScaleMode::Custom:
 		if (IsValid(CustomScale))
@@ -3062,7 +3063,7 @@ bool ULexCanvas::ConvertPositionFromCanvasToViewport(const FVector2D& InPosition
 		Result = FVector2D(InPosition.X, ViewportSize.Y - InPosition.Y);
 		return true;
 	case ELexCanvasScaleMode::ScaleWithScreenSize:
-		Result = FVector2D(InPosition.X * this->CanvasScale, ViewportSize.Y - InPosition.Y * this->CanvasScale);
+		Result = FVector2D(InPosition.X * this->CanvasScaleValue, ViewportSize.Y - InPosition.Y * this->CanvasScaleValue);
 		return true;
 	case ELexCanvasScaleMode::Custom:
 		if (IsValid(CustomScale))
@@ -3087,7 +3088,7 @@ bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosi
 	OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
 	//Convert to LGUI's viewport size
 	OutPosition2D *= this->GetViewportSize();
-	OutPosition2D /= this->CanvasScale;
+	OutPosition2D /= this->CanvasScaleValue;
 	return true;
 }
 

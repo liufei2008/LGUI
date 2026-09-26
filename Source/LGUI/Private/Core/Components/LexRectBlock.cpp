@@ -574,6 +574,17 @@ void ULexRectBlock::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChang
 {
 	auto Widget = GetWidget();
 	static FLexUISpriteInfo SimpleRectSpriteData;
+	SimpleRectSpriteData.Width = Widget->GetWidth();
+	SimpleRectSpriteData.Height = Widget->GetHeight();
+	FVector2f SrcTextureSize(Widget->GetWidth(), Widget->GetHeight());
+	if (BodyTextureMode == ELexRectBlockTextureMode::Sprite)
+	{
+		if (IsValid(BodySpriteTexture))
+		{
+			SrcTextureSize.X = BodySpriteTexture->GetAtlasTexture()->GetSurfaceWidth();
+			SrcTextureSize.Y = BodySpriteTexture->GetAtlasTexture()->GetSurfaceHeight();
+		}
+	}
 	FLexUIGeometry::UpdateRectBlockVertex(&InGeo
 		, this->bEnableOuterShadow
 		, this->GetOuterShadowOffset(Widget->GetWidth(), Widget->GetHeight())
@@ -582,6 +593,7 @@ void ULexRectBlock::OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChang
 		, this->bSoftEdge,
 		Widget->GetWidth(), Widget->GetHeight(), FVector2f(Widget->GetPivot())
 		, SimpleRectSpriteData, BodyTextureMode == ELexRectBlockTextureMode::Sprite ? (IsValid(BodySpriteTexture) ? BodySpriteTexture->GetSpriteInfo() : SimpleRectSpriteData) : SimpleRectSpriteData
+		, SrcTextureSize
 		, Widget->GetRenderCanvas(), this, GetFinalColor(),
 		InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
 	);
@@ -705,7 +717,7 @@ void ULexRectBlock::SetSoftEdge(bool value)
 {
 	this->bSoftEdge = value;
 	bNeedUpdateBlockData = true;
-	MarkVertexPositionDirty();
+	MarkVerticesDirty(false, true, true, false);
 }
 void ULexRectBlock::SetBodyTextureScaleMode(ELexRectBlockTextureScaleMode value)
 {

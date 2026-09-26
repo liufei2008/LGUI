@@ -63,7 +63,8 @@ void ULexBackBufferCopy::RegisterMaterialsUsingThisBackBuffer(UMaterialInstanceD
 {
 	MaterialsUsingThisBackBuffer.Add(InMaterialInstanceDynamic);
 	InMaterialInstanceDynamic->SetTextureParameterValue(ULexCanvas::LexUI_BackBufferTexture_MaterialParameterName, RenderTarget);
-	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
+	auto RectInScreen01ForShader = GetRectInScreen01ForShader();
+	InMaterialInstanceDynamic->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01ForShader);
 }
 
 DECLARE_CYCLE_STAT(TEXT("FLexBackBufferCopy"), STAT_BackBufferCopy, STATGROUP_LGUI);
@@ -181,10 +182,11 @@ void ULexBackBufferCopy::PostUpdateDrawCall()
 {
 	Super::PostUpdateDrawCall();
 	UpdateRenderTarget();
+	auto RectInScreen01ForShader = GetRectInScreen01ForShader();
 	for (auto& MID : MaterialsUsingThisBackBuffer)
 	{
 		if (!MID.IsValid())continue;
-		MID->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01);
+		MID->SetVectorParameterValue(ULexCanvas::LexUI_BackBufferRect_MaterialParameterName, RectInScreen01ForShader);
 	}
 }
 

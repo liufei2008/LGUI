@@ -6,8 +6,10 @@
 #include "IPropertyUtilities.h"
 #include "PropertyCustomizationHelpers.h"
 #include "LexWidgetHierarchyPickerView.h"
+#include "LGUI.h"
 #include "Widgets/SBoxPanel.h"
 #include "Core/LexUIBehaviour.h"
+#include "Core/Components/LexBackBufferCopy.h"
 #include "Core/Components/LexWidget.h"
 #include "Core/Components/LexWidgetSubObjectBehaviour.h"
 
@@ -33,9 +35,18 @@ void FLexWidgetDetailPropertyExtensionHandler::ExtendWidgetRow(FDetailWidgetRow&
 	if (!ObjectProperty)return;
 	if (CastField<FClassProperty>(ObjectProperty) != nullptr)return;//skip class property
 	auto ObjectClass = ObjectProperty->PropertyClass;
-	if (!ObjectClass->IsChildOf(ULexWidget::StaticClass())
-		&& !ObjectClass->IsChildOf(ULexWidgetSubObjectBehaviour::StaticClass())
-		&& !ObjectClass->IsChildOf(ULexUIBehaviour::StaticClass())
+	auto HasLexUIReferenceMetaData = [=]()
+	{
+		auto Class = ObjectClass;
+		while (Class != nullptr)
+		{
+			if (Class->HasMetaData("LexUIReference"))
+				return true;
+			Class = Class->GetSuperClass();
+		}
+		return false;
+	};
+	if (!HasLexUIReferenceMetaData()
 		)return;
 	if (ObjectProperty->HasAnyPropertyFlags(CPF_PersistentInstance))
 		return;

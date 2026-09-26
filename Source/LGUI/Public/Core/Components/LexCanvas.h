@@ -237,10 +237,9 @@ public:
 	FRotator GetViewRotator()const;
 	FIntPoint GetViewportSize()const;
 	/** get scale value of canvas. only valid for root canvas. */
-	FORCEINLINE float GetCanvasScale()const { return CanvasScale; }
+	FORCEINLINE float GetCanvasScaleValue()const { return CanvasScaleValue; }
 private:
-	friend class ULexCanvasScaler;
-	float CanvasScale = 1.0f;//for screen space UI, screen size / root canvas size
+	float CanvasScaleValue = 1.0f;//for screen space UI, screen size / root canvas size
 
 	/** hierarchy changed */
 	void OnUIHierarchyAttachmentChanged();

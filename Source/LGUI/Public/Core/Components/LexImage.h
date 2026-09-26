@@ -24,7 +24,7 @@ public:
 		return GET_MEMBER_NAME_CHECKED(ULexImage, Brush);
 	}
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Image", Getter, Setter, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	FLexUIImageBrush Brush;
 
 	virtual UTexture* GetTextureToCreateGeometry()override;

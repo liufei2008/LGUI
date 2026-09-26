@@ -14,7 +14,7 @@ class LGUI_API ULexRectBlockData :public ULexUIDataAsTexture
 	GENERATED_BODY()
 private:
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TObjectPtr<UMaterialInterface> DefaultMaterial;
 protected:
 	virtual void PostInitProperties()override;
@@ -260,14 +260,14 @@ protected:
 #pragma endregion
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bUniformSetCornerRadius = true;
 #endif
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 		TObjectPtr<class ULexRectBlockData> RectBlockData = nullptr;
 	/** When do raycast interaction, will the CornerRadius be considered? Only support RaycastType.Rect. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Raycast", meta=(EditCondition=bRaycastTarget))
 		bool bRaycastSupportCornerRadius = true;
 
 	int DataStartPosition = 0;

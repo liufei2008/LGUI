@@ -50,7 +50,7 @@ protected:
 #endif
 	
 	friend class FLexBackBufferReaderCustomization;
-	UPROPERTY(EditAnywhere, Category="LGUI", BlueprintReadWrite, Getter, Setter)
+	UPROPERTY(EditAnywhere, Category="LexUI", BlueprintReadWrite, Getter, Setter)
 	ELexVisualBackBufferReaderMode BackBufferReaderType = ELexVisualBackBufferReaderMode::Rect;
 public:
 	
@@ -94,6 +94,7 @@ protected:
 	FBox2f MeshRectInScreen;
 	/** xy- min, zw- size */
 	FVector4f RectInScreen01;
+	FVector4f GetRectInScreen01ForShader()const;
 
 	virtual void SendRegionVertexDataToRenderProxy();
 };

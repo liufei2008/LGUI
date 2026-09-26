@@ -46,7 +46,7 @@ void FLexTextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		return;
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI");
 	auto textureHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexTextureBase, Texture));
 	textureHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexTextureBaseCustomization::ForceRefresh, &DetailBuilder));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(ULexTextureBase, Texture));

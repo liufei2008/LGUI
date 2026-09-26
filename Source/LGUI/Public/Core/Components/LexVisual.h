@@ -82,9 +82,9 @@ enum class ELexVisualRaycastType :uint8
 	 *		3. UIText which use dynamic font can NOT work. (Currently all LGUI's built-in font is dynamic)
 	 * Will fallback to Mesh if ui element not support this raycast type.
 	 */
-	VisiblePixel = 3,
+	VisiblePixel = 2,
 	/** Use a user defined ULexVisualCustomRaycast to process the raycast hit. */
-	Custom = 2,
+	Custom = 10,
 };
 
 /** Base class of UI element that can be rendered by LexCanvas */
@@ -107,15 +107,15 @@ protected:
 #endif
 	ELexVisualType VisualType = ELexVisualType::None;
 	
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Raycast")
 	bool bRaycastTarget = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta=(EditCondition=bRaycastTarget))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Raycast", meta=(EditCondition=bRaycastTarget))
 	ELexVisualRaycastType RaycastType = ELexVisualRaycastType::Rect;
 	/** Custom raycast object to handle raycast behaviour when LexUI do raycast hit test. Only valid if RaycastType is Custom. */
-	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast")
+	UPROPERTY(EditAnywhere, Instanced, Category = "LexUI-Raycast")
 	TObjectPtr<ULexVisualCustomRaycast> CustomRaycastObject;
 	/** Pixel's alpha value threshold, if hit a pixel which alpha value is less than this value, then hit test return false. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Raycast")
 	float VisiblePixelThreshold = 0.1f;
 
 	virtual bool LineTraceUIRect(FLexUIHitResult& OutHit, const FVector& Start, const FVector& End)const;

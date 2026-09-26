@@ -173,6 +173,7 @@ public:
 		bool bEnableOuterShadow, FVector2f outerShadowOffset, float outerShadowSize, float outerShadowBlur, bool bSoftEdge,
 		float width, float height, FVector2f pivot, 
 		const FLexUISpriteInfo& uniformSpriteInfo, const FLexUISpriteInfo& spriteInfo,
+		FVector2f srcTextureSize,
 		ULexCanvas* renderCanvas, ULexVisual* uiComp, FColor color,
 		bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged
 	);
