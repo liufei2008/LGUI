@@ -537,7 +537,7 @@ void UUITextInput::AnyKeyPressed(FKey Key)
 	}
 
 
-	if (IsValidChar(inputChar))
+	if (IsValidChar(inputChar, Text))
 	{
 		DeleteSelection(false);
 		InsertCharAtCaretPosition(inputChar);
@@ -545,7 +545,7 @@ void UUITextInput::AnyKeyPressed(FKey Key)
 	}
 }
 
-bool UUITextInput::IsValidChar(TCHAR c)
+bool UUITextInput::IsValidChar(TCHAR c, const FString& FullString)
 {
 	auto StringContainsChar = [](TCHAR testChar, const FString& string, int stringLength)
 	{
@@ -572,7 +572,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		{
 			if (CaretPositionIndex == 0)
 			{
-				if (StringContainsChar('-', Text, Text.Len()))
+				if (StringContainsChar('-', FullString, FullString.Len()))
 				{
 					return false;
 				}
@@ -581,7 +581,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		}
 		if (c == '-')
 		{
-			if (CaretPositionIndex == 0 && !StringContainsChar('-', Text, Text.Len()))
+			if (CaretPositionIndex == 0 && !StringContainsChar('-', FullString, FullString.Len()))
 			{
 				return true;
 			}
@@ -594,7 +594,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		{
 			if (CaretPositionIndex == 0)
 			{
-				if (StringContainsChar('-', Text, Text.Len()))
+				if (StringContainsChar('-', FullString, FullString.Len()))
 				{
 					return false;
 				}
@@ -603,7 +603,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		}
 		if (c == '.')
 		{
-			if (StringContainsChar('.', Text, Text.Len()))
+			if (StringContainsChar('.', FullString, FullString.Len()))
 			{
 				return false;
 			}
@@ -611,7 +611,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 			{
 				if (CaretPositionIndex == 0)
 				{
-					if (!StringContainsChar('-', Text, Text.Len()))
+					if (!StringContainsChar('-', FullString, FullString.Len()))
 					{
 						return true;
 					}
@@ -625,7 +625,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		}
 		if (c == '-')
 		{
-			if (CaretPositionIndex == 0 && !StringContainsChar('-', Text, Text.Len()))
+			if (CaretPositionIndex == 0 && !StringContainsChar('-', FullString, FullString.Len()))
 			{
 				return true;
 			}
@@ -646,7 +646,7 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		if (c >= '0' && c <= '9') return true;
 		if (c == '@')
 		{
-			return !StringContainsChar('@', Text, Text.Len());
+			return !StringContainsChar('@', FullString, FullString.Len());
 		}
 		static FString kEmailSpecialCharacters = "!#$%&'*+-/=?^_`{|}~";
 		if (StringContainsChar(c, kEmailSpecialCharacters, kEmailSpecialCharacters.Len()))
@@ -655,8 +655,8 @@ bool UUITextInput::IsValidChar(TCHAR c)
 		}
 		if (c == '.')
 		{
-			auto LastChar = (Text.Len() > 0) ? Text[FMath::Clamp(CaretPositionIndex, 0, Text.Len() - 1)] : ' ';
-			auto NextChar = (Text.Len() > 0) ? Text[FMath::Clamp(CaretPositionIndex + 1, 0, Text.Len() - 1)] : '\n';
+			auto LastChar = (FullString.Len() > 0) ? FullString[FMath::Clamp(CaretPositionIndex, 0, FullString.Len() - 1)] : ' ';
+			auto NextChar = (FullString.Len() > 0) ? FullString[FMath::Clamp(CaretPositionIndex + 1, 0, FullString.Len() - 1)] : '\n';
 			if (LastChar != '.' && NextChar != '.')
 				return true;
 			else
@@ -836,7 +836,7 @@ void UUITextInput::Paste()
 	for (int i = 0; i < pasteString.Len(); i++)
 	{
 		TCHAR c = pasteString[i];
-		if (IsValidChar(c))
+		if (IsValidChar(c, Text))
 		{
 			verifiedString.AppendChar(c);
 		}
@@ -879,7 +879,7 @@ bool UUITextInput::VerifyAndInsertStringAtCaretPosition(const FString& Value)
 	for (int i = 0; i < Value.Len(); i++)
 	{
 		TCHAR c = Value[i];
-		if (IsValidChar(c))
+		if (IsValidChar(c, Text))
 		{
 			verifiedString.AppendChar(c);
 		}
@@ -895,7 +895,7 @@ bool UUITextInput::VerifyAndInsertStringAtCaretPosition(const FString& Value)
 bool UUITextInput::VerifyAndInsertCharAtCaretPosition(TCHAR Value)
 {
 	if (bReadOnly)return false;
-	if (IsValidChar(Value))
+	if (IsValidChar(Value, Text))
 	{
 		InsertCharAtCaretPosition(Value);
 		UpdateAfterTextChange(true);
@@ -1632,7 +1632,7 @@ void UUITextInput::SetText(const FString& InText, bool InFireEvent)
 		for (int i = 0; i < InText.Len(); i++)
 		{
 			TCHAR c = InText[i];
-			if (IsValidChar(c))
+			if (IsValidChar(c, TempText))
 			{
 				TempText.AppendChar(c);
 			}
@@ -1951,7 +1951,7 @@ void UUITextInput::FTextInputMethodContext::SetTextInRange(const uint32 BeginInd
 	for (int i = 0; i < InString.Len(); i++)
 	{
 		TCHAR c = InString[i];
-		if (InputComp->IsValidChar(c))
+		if (InputComp->IsValidChar(c, InputComp->Text))
 		{
 			InputComp->Text.InsertAt(BeginIndex + InsertCharCount, c);
 			InsertCharCount++;

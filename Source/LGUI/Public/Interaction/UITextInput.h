@@ -275,7 +275,7 @@ private:
 	void BindKeys();
 	void UnbindKeys();
 	void AnyKeyPressed(FKey key);
-	bool IsValidChar(TCHAR c);
+	bool IsValidChar(TCHAR c, const FString& FullString);
 	/**
 	 * delete selected chars if there is any.
 	 * @return true if anything deleted.
