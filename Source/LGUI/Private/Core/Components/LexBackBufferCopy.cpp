@@ -13,7 +13,7 @@
 
 ULexBackBufferCopy::ULexBackBufferCopy(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-	
+	RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA16f;
 }
 
 #if WITH_EDITOR
@@ -285,6 +285,16 @@ void ULexBackBufferCopy::SetRenderTarget(UTextureRenderTarget2D* InRenderTarget)
 	}
 }
 
+void ULexBackBufferCopy::SetRenderTargetFormat(ETextureRenderTargetFormat Value)
+{
+	if (RenderTargetFormat != Value)
+	{
+		RenderTargetFormat = Value;
+		UpdateRenderTarget();
+		OnRenderTargetChanged.Broadcast(RenderTarget);
+	}
+}
+
 void ULexBackBufferCopy::SetRenderMode(ELexBackBufferCopyRenderMode Value)
 {
 	if (RenderMode != Value)
@@ -311,7 +321,8 @@ void ULexBackBufferCopy::UpdateRenderTarget()
 		RenderTarget->AddressX = TextureAddress::TA_Clamp;
 		RenderTarget->AddressY = TextureAddress::TA_Clamp;
 		RenderTarget->ClearColor = FLinearColor::Transparent;
-		RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+		RenderTarget->RenderTargetFormat = RenderTargetFormat;
+		RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, GetPixelFormatFromRenderTargetFormat(RenderTargetFormat), false);
 		SendRenderTargetToRenderProxy();
 		OnRenderTargetChanged.Broadcast(RenderTarget);
 		//update material's texture, because OutputRenderTarget could be null when register
@@ -323,10 +334,11 @@ void ULexBackBufferCopy::UpdateRenderTarget()
 	}
 	else
 	{
-		if (RenderTarget->SizeX != DesiredRenderTargetSize.X || RenderTarget->SizeY != DesiredRenderTargetSize.Y)
+		if (RenderTarget->SizeX != DesiredRenderTargetSize.X || RenderTarget->SizeY != DesiredRenderTargetSize.Y || RenderTarget->RenderTargetFormat != RenderTargetFormat)
 		{
 			RenderTarget->ClearColor = FLinearColor::Transparent;
-			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+			RenderTarget->RenderTargetFormat = RenderTargetFormat;
+			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, GetPixelFormatFromRenderTargetFormat(RenderTargetFormat), false);
 			RenderTarget->UpdateResourceImmediate();
 #if WITH_EDITOR
 			RenderTarget->Modify();

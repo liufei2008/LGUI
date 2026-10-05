@@ -5,6 +5,8 @@
 #include "LexVisualBackBufferReader.h"
 #include "LexBackBufferCopy.generated.h"
 
+enum ETextureRenderTargetFormat : int;
+
 struct FLexBackBufferCopyFilterRenderProxy
 {
 	virtual~FLexBackBufferCopyFilterRenderProxy(){}
@@ -57,6 +59,8 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget = nullptr;
+	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true), AdvancedDisplay)
+	TEnumAsByte<ETextureRenderTargetFormat> RenderTargetFormat;
 	FRenderTargetChangedEvent OnRenderTargetChanged;
 	//Render filtered BackBuffer image directly to viewport
 	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
@@ -78,6 +82,10 @@ public:
 	UTextureRenderTarget2D* GetRenderTarget()const { return RenderTarget; }
 	UFUNCTION()
 	void SetRenderTarget(UTextureRenderTarget2D* InRenderTarget);
+	UFUNCTION()
+	ETextureRenderTargetFormat GetRenderTargetFormat()const { return RenderTargetFormat; }
+	UFUNCTION()
+	void SetRenderTargetFormat(ETextureRenderTargetFormat Value);
 	UFUNCTION()
 	ELexBackBufferCopyRenderMode GetRenderMode()const { return RenderMode; }
 	UFUNCTION()

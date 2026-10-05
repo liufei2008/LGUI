@@ -11,6 +11,7 @@
 #include "Math/TransformCalculus2D.h"
 #include "LexCanvas.generated.h"
 
+enum ETextureRenderTargetFormat : int;
 class ULexWidgetPresenterComponent;
 class FLexUIClipData;
 class ULexUIDataAsTexture;
@@ -298,6 +299,8 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TObjectPtr<UTextureRenderTarget2D> RenderTarget;
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+	TEnumAsByte<ETextureRenderTargetFormat> RenderTargetFormat;
 	/** Clear color for TextureRenderTarget */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 	FColor RenderTargetClearColor = FColor::Transparent;
@@ -442,6 +445,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTarget(UTextureRenderTarget2D* Value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetRenderTargetFormat(ETextureRenderTargetFormat Value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void SetRenderTargetClearColor(FColor Value);
 	FRenderModeChangedEvent& GetRenderModeChangedEvent(){return OnRenderModeChanged;}
 	FRenderTargetChangedEvent& GetRenderTargetChangedEvent(){return OnRenderTargetChanged;}
@@ -484,9 +489,13 @@ public:
 	/** Get actual render target of this canvas if actual render mode is RenderTarget. Canvas's render-target is inherited from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetActualRenderTarget()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	ETextureRenderTargetFormat GetActualRenderTargetFormat()const;
 	/** Get render target of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return RenderTarget; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	ETextureRenderTargetFormat GetRenderTargetFormat()const { return RenderTargetFormat; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	FColor GetRenderTargetClearColor()const{return RenderTargetClearColor;}
 	UFUNCTION(BlueprintCallable, Category = LGUI)

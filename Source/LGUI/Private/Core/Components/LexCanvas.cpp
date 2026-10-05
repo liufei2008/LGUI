@@ -34,6 +34,7 @@ ULexCanvas::ULexCanvas()
 	DefaultMeshType = ULexUIMeshComponent::StaticClass();
 	DefaultMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/Materials/LexUI_ImageAndFont"));
 	bStartWithTickEnabled = false;
+	RenderTargetFormat = RTF_RGBA16f;
 }
 
 void ULexCanvas::Awake()
@@ -161,7 +162,8 @@ void ULexCanvas::UpdateRenderTarget(bool CallEvent)
 		RenderTarget->AddressX = TextureAddress::TA_Clamp;
 		RenderTarget->AddressY = TextureAddress::TA_Clamp;
 		RenderTarget->ClearColor = FLinearColor::Transparent;
-		RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+		RenderTarget->RenderTargetFormat = RenderTargetFormat;
+		RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, GetPixelFormatFromRenderTargetFormat(RenderTargetFormat), false);
 		if (CallEvent)
 		{
 			OnRenderTargetChanged.Broadcast(RenderTarget);
@@ -182,10 +184,11 @@ void ULexCanvas::UpdateRenderTarget(bool CallEvent)
 		case ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas:
 			break;
 		}
-		if (RenderTarget->SizeX != DesiredRenderTargetSize.X || RenderTarget->SizeY != DesiredRenderTargetSize.Y)
+		if (RenderTarget->SizeX != DesiredRenderTargetSize.X || RenderTarget->SizeY != DesiredRenderTargetSize.Y || RenderTarget->RenderTargetFormat != RenderTargetFormat)
 		{
 			RenderTarget->ClearColor = FLinearColor::Transparent;
-			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, EPixelFormat::PF_B8G8R8A8, false);
+			RenderTarget->RenderTargetFormat = RenderTargetFormat;
+			RenderTarget->InitCustomFormat(DesiredRenderTargetSize.X, DesiredRenderTargetSize.Y, GetPixelFormatFromRenderTargetFormat(RenderTargetFormat), false);
 			RenderTarget->UpdateResourceImmediate();
 #if WITH_EDITOR
 			RenderTarget->Modify();
@@ -2299,6 +2302,19 @@ void ULexCanvas::SetRenderTarget(UTextureRenderTarget2D* Value)
 	}
 }
 
+void ULexCanvas::SetRenderTargetFormat(ETextureRenderTargetFormat Value)
+{
+	if (RenderTargetFormat != Value)
+	{
+		RenderTargetFormat = Value;
+		if (CheckRootCanvas() && RootCanvas == this)
+		{
+			UpdateRenderTarget(false);
+		}
+		OnRenderTargetChanged.Broadcast(RenderTarget);
+	}
+}
+
 void ULexCanvas::SetRenderTargetClearColor(FColor Value)
 {
 	if (RenderTargetClearColor != Value)
@@ -2401,6 +2417,22 @@ UTextureRenderTarget2D* ULexCanvas::GetActualRenderTarget()const
 		}
 	}
 	return nullptr;
+}
+
+ETextureRenderTargetFormat ULexCanvas::GetActualRenderTargetFormat() const
+{
+	if (IsRootCanvas())
+	{
+		return this->RenderTargetFormat;
+	}
+	else
+	{
+		if (CheckRootCanvas())
+		{
+			return RootCanvas->RenderTargetFormat;
+		}
+	}
+	return ETextureRenderTargetFormat::RTF_RGBA16f;
 }
 
 int32 ULexCanvas::GetDrawCallCount()const
