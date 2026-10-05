@@ -309,51 +309,36 @@ void FLexUIGeometry::UpdateRectBlockVertex(FLexUIGeometry* uiGeo,
 			auto& Vert2 = vertices[2];
 			auto& Vert3 = vertices[3];
 
-			if (bSoftEdge)
+			//uv0 for full rect
 			{
-				//uv0 for full rect
-				{
-					float oneDivideWidth = 1.0f / width;
-					float oneDivideHeight = 1.0f / height;
-			
-					auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
-					auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
-					auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
-					auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
-			
-					Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0() + uv0_Offset;
-					Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1() + uv1_Offset;
-					Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2() + uv2_Offset;
-					Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3() + uv3_Offset;
-				}
-			
-				//uv2 store the info for sampling texture and Sprite
-				{
-					float oneDivideWidth = 1.0f / srcTextureSize.X * spriteInfo.Width / width;
-					float oneDivideHeight = 1.0f / srcTextureSize.Y * spriteInfo.Height / height;
-			
-					auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
-					auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
-					auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
-					auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
-				
-					Vert0.TextureCoordinate[2] = spriteInfo.GetUV0() + uv0_Offset;
-					Vert1.TextureCoordinate[2] = spriteInfo.GetUV1() + uv1_Offset;
-					Vert2.TextureCoordinate[2] = spriteInfo.GetUV2() + uv2_Offset;
-					Vert3.TextureCoordinate[2] = spriteInfo.GetUV3() + uv3_Offset;
-				}
+				float oneDivideWidth = 1.0f / width;
+				float oneDivideHeight = 1.0f / height;
+				//use position to calculate uv offset, include outer shadow
+				auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
+				auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
+				auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
+				auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
+		
+				Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0() + uv0_Offset;
+				Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1() + uv1_Offset;
+				Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2() + uv2_Offset;
+				Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3() + uv3_Offset;
 			}
-			else
+		
+			//uv2 store the info for sampling texture and Sprite
 			{
-				Vert0.TextureCoordinate[0] = uniformSpriteInfo.GetUV0();
-				Vert1.TextureCoordinate[0] = uniformSpriteInfo.GetUV1();
-				Vert2.TextureCoordinate[0] = uniformSpriteInfo.GetUV2();
-				Vert3.TextureCoordinate[0] = uniformSpriteInfo.GetUV3();
-
-				Vert0.TextureCoordinate[2] = spriteInfo.GetUV0();
-				Vert1.TextureCoordinate[2] = spriteInfo.GetUV1();
-				Vert2.TextureCoordinate[2] = spriteInfo.GetUV2();
-				Vert3.TextureCoordinate[2] = spriteInfo.GetUV3();
+				float oneDivideWidth = 1.0f / srcTextureSize.X * spriteInfo.Width / width;
+				float oneDivideHeight = 1.0f / srcTextureSize.Y * spriteInfo.Height / height;
+				//use position to calculate uv offset, include outer shadow
+				auto uv0_Offset = FVector2f((OriginVert0.Position.Y - minX) * oneDivideWidth, -(OriginVert0.Position.Z - minY) * oneDivideHeight);
+				auto uv1_Offset = FVector2f((OriginVert1.Position.Y - maxX) * oneDivideWidth, -(OriginVert1.Position.Z - minY) * oneDivideHeight);
+				auto uv2_Offset = FVector2f((OriginVert2.Position.Y - minX) * oneDivideWidth, -(OriginVert2.Position.Z - maxY) * oneDivideHeight);
+				auto uv3_Offset = FVector2f((OriginVert3.Position.Y - maxX) * oneDivideWidth, -(OriginVert3.Position.Z - maxY) * oneDivideHeight);
+			
+				Vert0.TextureCoordinate[2] = spriteInfo.GetUV0() + uv0_Offset;
+				Vert1.TextureCoordinate[2] = spriteInfo.GetUV1() + uv1_Offset;
+				Vert2.TextureCoordinate[2] = spriteInfo.GetUV2() + uv2_Offset;
+				Vert3.TextureCoordinate[2] = spriteInfo.GetUV3() + uv3_Offset;
 			}
 		}
 

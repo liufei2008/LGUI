@@ -468,7 +468,7 @@ public:
 	/** Set SortOrder to lowest, so this canvas will render behind all canvas that belong to same hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfHierarchy(bool PropagateToChildrenCanvas = true);
-	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax);
+	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax, ULexCanvas* Exclude = nullptr);
 
 	/**
 	 * Get actual render mode of this canvas.

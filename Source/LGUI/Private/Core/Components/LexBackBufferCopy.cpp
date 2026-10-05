@@ -674,6 +674,15 @@ FLexBackBufferCopyFilterRenderProxy* ULexBackBufferCopyFilter_GaussianBlur::GetR
 	return RenderProxy;
 }
 
+void ULexBackBufferCopyFilter_GaussianBlur::SetBlurStrength(float Value)
+{
+	if (BlurStrength != Value)
+	{
+		BlurStrength = Value;
+		SendDataToRenderProxy();
+	}
+}
+
 
 void ULexBackBufferCopyFilter_DualKawaseBlur::SendDataToRenderProxy()
 {
@@ -704,4 +713,13 @@ FLexBackBufferCopyFilterRenderProxy* ULexBackBufferCopyFilter_DualKawaseBlur::Ge
 		SendDataToRenderProxy();
 	}
 	return RenderProxy;
+}
+
+void ULexBackBufferCopyFilter_DualKawaseBlur::SetDownSampleLevel(int32 Value)
+{
+	if (DownSampleLevel != Value)
+	{
+		DownSampleLevel = Value;
+		SendDataToRenderProxy();
+	}
 }

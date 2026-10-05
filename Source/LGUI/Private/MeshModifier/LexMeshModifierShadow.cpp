@@ -71,7 +71,7 @@ void ULexMeshModifierShadow::ModifyUIGeometry(
 			vertices[channelIndex1].Color = ShadowColor;
 		}
 
-		for (int i = 0; i < MAX_STATIC_TEXCOORDS; i++)
+		for (int i = 0; i < LEXUI_VERTEX_TEXCOORDINATE_COUNT; i++)
 		{
 			vertices[channelIndex1].TextureCoordinate[i] = vertices[channelIndexOrigin].TextureCoordinate[i];
 		}

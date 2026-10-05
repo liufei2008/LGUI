@@ -1900,32 +1900,35 @@ void ULexCanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanva
 void ULexCanvas::SetSortOrderToHighestOfHierarchy(bool InPropagateToChildrenCanvas)
 {
 	int32 Min = INT_MAX, Max = INT_MIN;
-	GetMinMaxSortOrderOfHierarchy(Min, Max);
+	GetRootCanvas()->GetMinMaxSortOrderOfHierarchy(Min, Max, this);
 	SetSortOrder(Max + 1, InPropagateToChildrenCanvas);
 }
 void ULexCanvas::SetSortOrderToLowestOfHierarchy(bool InPropagateToChildrenCanvas)
 {
 	int32 Min = INT_MAX, Max = INT_MIN;
-	GetMinMaxSortOrderOfHierarchy(Min, Max);
+	GetMinMaxSortOrderOfHierarchy(Min, Max, this);
 	SetSortOrder(Min - 1, InPropagateToChildrenCanvas);
 }
 
-void ULexCanvas::GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax)
+void ULexCanvas::GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax, ULexCanvas* Exclude)
 {
-	auto ThisCanvasSortOrder = this->GetActualSortOrder();
-	if (ThisCanvasSortOrder < OutMin)
+	if (this != Exclude)
 	{
-		OutMin = ThisCanvasSortOrder;
-	}
-	if (ThisCanvasSortOrder > OutMax)
-	{
-		OutMax = ThisCanvasSortOrder;
+		auto ThisCanvasSortOrder = this->GetActualSortOrder();
+		if (ThisCanvasSortOrder < OutMin)
+		{
+			OutMin = ThisCanvasSortOrder;
+		}
+		if (ThisCanvasSortOrder > OutMax)
+		{
+			OutMax = ThisCanvasSortOrder;
+		}
 	}
 	for (auto ChildCanvas : ChildrenCanvasArray)
 	{
 		if (!ChildCanvas.IsValid())continue;
 		if (ChildCanvas->bForceRenderToTarget)continue;
-		ChildCanvas->GetMinMaxSortOrderOfHierarchy(OutMin, OutMax);
+		ChildCanvas->GetMinMaxSortOrderOfHierarchy(OutMin, OutMax, Exclude);
 	}
 }
 

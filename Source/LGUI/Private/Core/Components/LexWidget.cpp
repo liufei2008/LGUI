@@ -1161,13 +1161,13 @@ void ULexWidget::SetParent(ULexWidget* InParent, bool InKeepWorldPosition, int I
 		if (this->Parent == InParent)return;
 		if (InParent->IsChildOf(this))return;
 		if (InParent->Children.Contains(this))return;
+		auto OldObjectToWorldTransform = this->GetWorldTransform();
 		bIsAttaching = true;
 		if (Parent.IsValid())
 		{
 			SetParent(nullptr, InKeepWorldPosition);
 		}
 		bIsAttaching = false;
-		auto OldObjectToWorldTransform = this->GetWorldTransform();
 		if (InSiblingIndex == -1 || !InParent->Children.IsValidIndex(InSiblingIndex))
 		{
 			InParent->Children.Add(this);

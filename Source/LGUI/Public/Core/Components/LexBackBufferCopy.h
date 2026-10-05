@@ -34,7 +34,7 @@ enum class ELexBackBufferCopyRenderMode : uint8
 /** 
  * UI element that can copy a back-buffer and do a filter effect, then we can use it in our material or render back to viewport.
  * Use it in ScreenSpace or WorldSpace-LexUIRenderer.
- * If android OpenGL ES3.1, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
+ * If android OpenGLES, need to enable "ProjectSettings/Platforms/Android/Build/Support Backbuffer Sampling on OpenGL".
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable)
 class LGUI_API ULexBackBufferCopy : public ULexVisualBackBufferReader
@@ -101,7 +101,7 @@ class LGUI_API ULexBackBufferCopyFilter_GaussianBlur : public ULexBackBufferCopy
 	GENERATED_BODY()
 private:
 	/** Blur effect strength. */
-	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = 0.0, ClampMax = 1.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", Getter, Setter, meta = (ClampMin = 0.0, ClampMax = 1.0f, AllowPrivateAccess=true))
 	float BlurStrength = 0.1f;
 	const int MaxDownSampleLevel = 7;
 	void SendDataToRenderProxy();
@@ -110,6 +110,11 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual FLexBackBufferCopyFilterRenderProxy* GetRenderProxy() override;
+	
+	UFUNCTION()
+	float GetBlurStrength()const { return BlurStrength; }
+	UFUNCTION()
+	void SetBlurStrength(float Value);
 };
 /** Fast & efficient blur, but not continuously blur strength */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable)
@@ -118,12 +123,17 @@ class LGUI_API ULexBackBufferCopyFilter_DualKawaseBlur : public ULexBackBufferCo
 	GENERATED_BODY()
 private:
 	/** Blur effect strength. */
-	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = 0, ClampMax = 10))
-	int DownSampleLevel = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", Getter, Setter, meta = (ClampMin = 0, ClampMax = 10, AllowPrivateAccess=true))
+	int32 DownSampleLevel = 2;
 	void SendDataToRenderProxy();
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual FLexBackBufferCopyFilterRenderProxy* GetRenderProxy() override;
+	
+	UFUNCTION()
+	int GetDownSampleLevel()const { return DownSampleLevel; }
+	UFUNCTION()
+	void SetDownSampleLevel(int32 Value);
 };

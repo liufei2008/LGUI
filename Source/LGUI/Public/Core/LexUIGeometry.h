@@ -85,7 +85,7 @@ public:
 	std::atomic<bool> bIsCalculating = false;
 	//local space vertex position/ normal/ tangent
 	TArray<FLexUIOriginVertexData> OriginVertices;
-	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originVertices/originNormals/originTangents
+	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in OriginVertices
 	TArray<FLexUIMeshVertex> Vertices;
 	//triangle indices
 	TArray<FLexUIMeshIndex> Triangles;

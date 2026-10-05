@@ -1154,7 +1154,7 @@ bool FLexWidgetCustomization::IsAnchorEditable()const
 	{
 		auto Widget = TargetScriptArray[0];
 		if (Widget->GetParent() != nullptr)return true;//not root
-		if (Widget->IsCanvasWidget() && Widget->GetRenderCanvas() != nullptr && Widget->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
+		if (Widget->IsCanvasWidget() && Widget->GetRenderCanvas() != nullptr && Widget->GetRenderCanvas()->IsRenderToScreenSpace() && Widget->GetRenderCanvas()->IsRootCanvas())//is root canvas, and is render to screen space
 		{
 			return false;
 		}

@@ -668,7 +668,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void SetRestrictNavigationArea(bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION()
 	ULexVisual* GetVisual()const { return Visual; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType = "VisualClass"))
 	ULexVisual* GetVisualAs(TSubclassOf<ULexVisual> VisualClass)const;

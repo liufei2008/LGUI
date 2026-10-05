@@ -1193,12 +1193,14 @@ void ULexUIManagerWorldSubsystem::UnregisterAllWidgetsForEditor()
 		auto CopiedWidgetArray = AllWidgetArray;//use a copied array, because when Widget.OnUnregister the AllWidgetArray will change
 		for (int i = 0; i < CopiedWidgetArray.Num(); i++)
 		{
-			auto& Widget = CopiedWidgetArray[i];
-			if (Widget->HasRegistered())
+			if (auto Widget = CopiedWidgetArray[i])
 			{
-				Widget->OnUnregister();
+				if (Widget->HasRegistered())
+				{
+					Widget->OnUnregister();
+				}
+				check(!Widget->HasBegunPlay());//edit mode should never begin play
 			}
-			check(!Widget->HasBegunPlay());//edit mode should never begin play
 		}
 	}
 }
