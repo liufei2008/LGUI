@@ -13,11 +13,35 @@ UENUM(BlueprintType, Category = LGUI)
 enum class ELexUINavigationDirection :uint8
 {
 	None,
+	/**
+	 * move to the nearest widget on left of current selected widget,
+	 * but if current widget is a UISlider or a UIScrollbar then it will set the value along the direction.
+	 */
 	Left,
+	/**
+	 * move to the nearest widget on right of current selected widget,
+	 * but if current widget is a UISlider or a UIScrollbar then it will set the value along the direction.
+	 */
 	Right,
+	/**
+	 * move to the nearest widget on up of current selected widget,
+	 * but if current widget is a UISlider or a UIScrollbar then it will set the value along the direction.
+	 */
 	Up,
+	/**
+	 * move to the nearest widget on down of current selected widget,
+	 * but if current widget is a UISlider or a UIScrollbar then it will set the value along the direction.
+	 */
 	Down,
+	/**
+	 * move to the nearest widget on next of current selected widget,
+	 * will not control UISlider or UIScrollbar's value.
+	 */
 	Next,
+	/**
+	 * move to the nearest widget on prev of current selected widget,
+	 * will not control UISlider or UIScrollbar's value.
+	 */
 	Prev,
 };
 UENUM(BlueprintType, Category = LGUI)

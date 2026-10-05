@@ -221,6 +221,10 @@ bool UUIScrollbar::OnPointerEndDrag_Implementation(ULexPointerEventData *EventDa
 }
 bool UUIScrollbar::OnNavigate_Implementation(ELexUINavigationDirection direction, TScriptInterface<ILexNavigationInterface>& result)
 {
+    if (direction == ELexUINavigationDirection::Prev || direction == ELexUINavigationDirection::Next)//prev or next will not trigger value change
+    {
+        return Super::OnNavigate_Implementation(direction, result);
+    }
     float valueIntervalMultiply = 0.0f;
     if (
         (DirectionType == EUIScrollbarDirectionType::LeftToRight && direction == ELexUINavigationDirection::Left) || (DirectionType == EUIScrollbarDirectionType::RightToLeft && direction == ELexUINavigationDirection::Right) || (DirectionType == EUIScrollbarDirectionType::BottomToTop && direction == ELexUINavigationDirection::Down) || (DirectionType == EUIScrollbarDirectionType::TopToBottom && direction == ELexUINavigationDirection::Up))

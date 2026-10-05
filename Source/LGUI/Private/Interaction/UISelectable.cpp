@@ -298,7 +298,7 @@ void UUISelectable::ApplyPointerSelectionState(bool ImmediateSet)
 	}
 }
 
-bool UUISelectable::CheckNavigationSelectionState()
+bool UUISelectable::CheckNavigationSelectionState(bool CreateIfNotValid)
 {
 	if (!NavigationSelection.IsValid())
 	{
@@ -308,7 +308,7 @@ bool UUISelectable::CheckNavigationSelectionState()
 			{
 				if (auto WidgetPresenter = Canvas->GetWidgetPresenterComponent())
 				{
-					NavigationSelection = WidgetPresenter->GetNavigationSelection();
+					NavigationSelection = WidgetPresenter->GetNavigationSelection(CreateIfNotValid);
 				}
 			}
 		}
@@ -323,14 +323,14 @@ void UUISelectable::OnPointerEnter_Implementation(ULexPointerEventData* EventDat
 	ApplyPointerSelectionState(false);
 	if (EventData->InputType == ELexUIPointerInputType::Navigation)
 	{
-		if (CheckNavigationSelectionState())
+		if (CheckNavigationSelectionState(true))
 		{
 			NavigationSelection->SelectWidget(GetWidget());
 		}
 	}
 	else
 	{
-		if (NavigationSelection.IsValid())
+		if (CheckNavigationSelectionState(false))
 		{
 			NavigationSelection->SelectNone();
 		}
@@ -748,12 +748,12 @@ UUISelectable* UUISelectable::FindSelectableOnNext()
 	}
 	if (NavigationNext == EUISelectableNavigationMode::Auto)
 	{
-		auto rightComp = FindSelectableOnRight();
+		auto rightComp = FindSelectable(GetWidget()->GetRightVector());
 		if (rightComp != this)
 		{
 			return rightComp;
 		}
-		return FindSelectableOnDown();
+		return FindSelectable(-GetWidget()->GetUpVector());
 	}
 	return nullptr;
 }
@@ -765,12 +765,12 @@ UUISelectable* UUISelectable::FindSelectableOnPrev()
 	}
 	if (NavigationPrev == EUISelectableNavigationMode::Auto)
 	{
-		auto leftComp = FindSelectableOnLeft();
+		auto leftComp = FindSelectable(-GetWidget()->GetRightVector());
 		if (leftComp != this)
 		{
 			return leftComp;
 		}
-		return FindSelectableOnUp();
+		return FindSelectable(GetWidget()->GetUpVector());
 	}
 	return nullptr;
 }

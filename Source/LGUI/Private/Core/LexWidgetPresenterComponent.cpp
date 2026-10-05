@@ -231,9 +231,9 @@ void ULexWidgetPresenterComponent::CheckNecessaryObjects()
 }
 #endif
 
-UUINavigationInputSelectionHandler* ULexWidgetPresenterComponent::GetNavigationSelection()
+UUINavigationInputSelectionHandler* ULexWidgetPresenterComponent::GetNavigationSelection(bool CreateIfNotValid)
 {
-	if (!NavigationSelection.IsValid())
+	if (!NavigationSelection.IsValid() && CreateIfNotValid)
 	{
 		if (auto Widget = NavigationSelectionPrefab->LoadPrefab(this->GetWorld(), this->LoadedWidget.Get()))
 		{

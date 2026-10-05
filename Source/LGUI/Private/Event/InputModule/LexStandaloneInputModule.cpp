@@ -147,6 +147,10 @@ void ULexStandaloneInputModule::InputNavigation(ELexUINavigationDirection InDire
 	auto EventData = EventSystem->GetPointerEventData(InPointerID, true);
 	if (InPressOrRelease)
 	{
+		if (EventData->InputType != ELexUIPointerInputType::Navigation)//if we just activate navigation input, then no need to move selection to next
+		{
+			InDirection = ELexUINavigationDirection::None;
+		}
 		EventSystem->SetPointerInputType(EventData, ELexUIPointerInputType::Navigation);
 		EventData->NavigateDirection = InDirection;
 	}

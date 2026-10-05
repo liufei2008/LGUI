@@ -165,6 +165,10 @@ bool UUISlider::OnPointerEndDrag_Implementation(ULexPointerEventData *EventData)
 }
 bool UUISlider::OnNavigate_Implementation(ELexUINavigationDirection direction, TScriptInterface<ILexNavigationInterface>& result)
 {
+    if (direction == ELexUINavigationDirection::Prev || direction == ELexUINavigationDirection::Next)//prev or next will not trigger value change
+    {
+        return Super::OnNavigate_Implementation(direction, result);
+    }
     float valueIntervalMultiply = 0.0f;
     if (
         (DirectionType == EUISliderDirectionType::LeftToRight && direction == ELexUINavigationDirection::Left)

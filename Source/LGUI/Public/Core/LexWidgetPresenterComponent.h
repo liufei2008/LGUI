@@ -58,7 +58,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category=LGUI)
-	UUINavigationInputSelectionHandler* GetNavigationSelection();
+	UUINavigationInputSelectionHandler* GetNavigationSelection(bool CreateIfNotValid);
 	UFUNCTION(BlueprintCallable, Category=LGUI)
 	ULexCanvas* GetLoadedCanvas()const{return RootCanvas.Get();}
 	UFUNCTION(BlueprintCallable, Category=LGUI)

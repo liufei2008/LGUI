@@ -204,7 +204,7 @@ protected:
 	void ApplyPointerSelectionState(bool ImmediateSet);
 	bool bIsPointerInsideThis = false;
 	bool bIsPointerDown = false;
-	bool CheckNavigationSelectionState();
+	bool CheckNavigationSelectionState(bool CreateIfNotValid);
 	TWeakObjectPtr<UUINavigationInputSelectionHandler> NavigationSelection;
 #pragma endregion
 	/**

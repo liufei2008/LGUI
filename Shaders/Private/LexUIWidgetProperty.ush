@@ -27,8 +27,8 @@ void LexUI_ReadWidgetProperty(float CoordinateInDataTex, Texture2D DataTex
         uint PixelDataUint = asuint(PixelData);
         uint WidthUint = (PixelDataUint >> 16) & 0x0000ffff;
         uint HeightUint = PixelDataUint & 0x0000ffff;
-        WidgetSize.x = f16tof32(WidthUint);
-        WidgetSize.y = f16tof32(HeightUint);
+        WidgetSize.x = f16tof32(HeightUint);
+        WidgetSize.y = f16tof32(WidthUint);
     }
     
     PixelData = DataTex.Load(Position).x;Position.x += 1;
