@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -20,20 +20,20 @@ public:
 	UFUNCTION()
 	UUIToggle* GetToggleComponent()const;
 protected:
-	UPROPERTY(Transient, BlueprintReadOnly, Getter=GetToggleComponent, Category = "LGUI-Transition", DisplayName=UIToggle)
+	UPROPERTY(Transient, BlueprintReadOnly, Getter=GetToggleComponent, Category = "LexUI-Transition", DisplayName=UIToggle)
 	mutable TObjectPtr<UUIToggle> UIToggleComp;
 
 	/** 
 	 * Called when UISelectableComponent's transition state = normal.
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "ToggleOn"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI-Transition", meta = (DisplayName = "ToggleOn"))
 		void ReceiveToggleOn(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = highlighted.
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "ToggleOff"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI-Transition", meta = (DisplayName = "ToggleOff"))
 		void ReceiveToggleOff(bool InImmediateSet);
 public:
 	/**
@@ -67,45 +67,45 @@ protected:
 #endif
 protected:
 	friend class FUIToggleCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	TWeakObjectPtr<ULexVisualBatchMesh> ToggleTransitionTarget;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI-Toggle")
 	EUISelectableTransitionType ToggleTransitionType = EUISelectableTransitionType::Color;
-	UPROPERTY(EditAnywhere, Category="LGUI-Toggle", meta = (EditCondition = "ToggleTransitionType==EUISelectableTransitionType::Custom"))
+	UPROPERTY(EditAnywhere, Category="LexUI-Toggle", meta = (EditCondition = "ToggleTransitionType==EUISelectableTransitionType::Custom"))
 	TWeakObjectPtr<UUIToggleTransition> CustomToggleTransition = nullptr;
 #pragma region Transition
 	UPROPERTY(Transient) TObjectPtr<class ULTweener> ToggleTransitionTweener = nullptr;
 
 	/** Appearance when this is checked */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	FColor OnColor;
 	/** Appearance when this is unchecked */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	FColor OffColor;
 	
 	/** Appearance when this is checked */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	FLexUIImageBrush OnImageBrush;
 	/** Appearance when this is unchecked */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	FLexUIImageBrush OffImageBrush;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI-Toggle")
 		float ToggleDuration = 0.2f;
 
 #pragma endregion
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 		bool bIsOn = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	TWeakObjectPtr<class UUIToggleGroup> ToggleGroup = nullptr;
 	/** When Awake, if ToggleGroup is not set, enable this will find toggle group in parent component and up hierarchy. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle")
 	bool bAutoFindToggleGroupInParent = false;
 
 	FLexUIMulticastDelegateBool OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Toggle")
 	FUIToggleValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle", DisplayName="OnValueChanged")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
 
 	void SetValue(bool Value, bool SendCallback);
@@ -114,25 +114,25 @@ protected:
 public:
 	FLexUIMulticastDelegateBool& GetOnValueChangedEvent(){ return OnValueChangedCPP;}
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 	UUIToggleGroup* GetToggleGroup()const { return ToggleGroup.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 	void SetToggleGroup(UUIToggleGroup* InGroupComp);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 	bool GetValue()const { return bIsOn; }
 	/**
 	 * Set IsChecked value and send callback event.
 	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 	virtual void SetValue(bool Value);
 	/** Set IsChecked value and NOT send callback event */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 	void SetValueWithoutNotify(bool Value);
 	/**
 	 * If this toggle added to a ToggleGroup, then return index in group. Return -1 if not add to ToggleGroup.
 	 * Index is sorted by flatten-hierarchy-index, from RootComponent(UIItem).
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Toggle")
 		virtual int32 GetIndexInGroup()const;
 };

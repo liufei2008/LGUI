@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -17,13 +17,13 @@ class LGUI_API ULexLayoutSelfGrid : public ULexLayoutSelf
 protected:
 	virtual void BeginPlay() override;
 private:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	int RowIndex = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	int RowCount = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	int ColumnIndex = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	int ColumnCount = 1;
 public:
 #if WITH_EDITOR
@@ -33,21 +33,21 @@ public:
 	
 	void SetSizeByLayoutContainer(FVector2f Value); 
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetRowIndex()const { return RowIndex; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetRowCount()const { return RowCount; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetColumnIndex()const { return ColumnIndex; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetColumnCount()const { return ColumnCount; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRowIndex(int Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRowCount(int Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetColumnIndex(int Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetColumnCount(int Value);
 };

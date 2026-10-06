@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -39,57 +39,57 @@ protected:
 	virtual void OnEnable()override;
 	virtual void OnDimensionsChanged(bool PivotChanged, bool WidthChanged, bool HeightChanged)override;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float Value = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float Size = 0;
 	/** Handle can move inside it's parent */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar")
 		TWeakObjectPtr<ULexWidget> Handle;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar")
 		EUIScrollbarDirectionType DirectionType;
 	/** When use navigation input to change the scroll value, each press will change value as NavigationChangeInterval. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float NavigationChangeInterval = 0.1f;
 
 	UPROPERTY(Transient)TWeakObjectPtr<ULexWidget> HandleArea;
 
 	FLexUIMulticastDelegateFloat OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Scrollbar")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Scrollbar")
 	FUIScrollbarValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", DisplayName="OnValueChanged")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Scrollbar", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Double);
 
 	float PressValue = 0;
 public:
 	FLexUIMulticastDelegateFloat& GetOnValueChangedEvent(){return OnValueChangedCPP;}
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		float GetValue()const { return Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		float GetSize()const { return Size; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		float GetNavigationChangeInterval()const { return NavigationChangeInterval; }
 
 	/**
 	 * Set Value and send callback event.
 	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 	void SetValue(float InValue);
 	/** Set Value and NOT send callback event */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 	void SetValueWithoutNotify(float InValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		void SetSize(float InSize);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		void SetValueAndSize(float InValue, float InSize, bool FireEvent = true);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Slider")
 		void SetNavigationChangeInterval(float InValue);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		ULexWidget* GetHandle()const { return Handle.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Scrollbar")
 		EUIScrollbarDirectionType GetDirectionType()const { return DirectionType; }
 	
 	virtual bool OnPointerDown_Implementation(ULexPointerEventData* EventData)override;

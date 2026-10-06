@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "LexImageSequencePlayer.h"
@@ -17,10 +17,10 @@ protected:
 #endif
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class ULexSpriteBase> Sprite;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<TObjectPtr<ULexUISpriteData_BaseObject>> SpriteSequence;
 	/** should also set size to Sprite-data? */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bSnapSpriteSize = true;
 
 	virtual bool CanPlay()override;
@@ -28,12 +28,12 @@ protected:
 	virtual void PrepareForPlay()override;
 	virtual void OnUpdateAnimation(int FrameNumber)override;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<ULexUISpriteData_BaseObject*>& GetSpriteSequence()const { return SpriteSequence; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetSnapSpriteSize()const { return bSnapSpriteSize; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSpriteSequence(TArray<ULexUISpriteData_BaseObject*> value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSnapSpriteSize(bool value);
 };

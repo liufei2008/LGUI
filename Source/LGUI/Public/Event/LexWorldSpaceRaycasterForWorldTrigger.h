@@ -19,7 +19,7 @@ public:
 
 protected:
 	/** Will get FaceIndex when line trace world object's mesh. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bRequireFaceIndex = false;
 	
 	virtual void BeginPlay() override;

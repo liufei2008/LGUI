@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -29,11 +29,11 @@ USTRUCT(BlueprintType)
 struct LGUI_API FLexLayoutGridSize
 {
 	GENERATED_BODY()
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	ELexLayoutGridSizeType Type = ELexLayoutGridSizeType::Ratio;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0"))
 	float FixedValue = 100.0f;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0"))
 	float RatioValue = 1.0f;
 
 	FLexLayoutGridSize() {}
@@ -74,13 +74,13 @@ public:
 
 private:
 	friend class FUIFlexibleGridLayoutCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FMargin Padding;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FVector2D Spacing;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TArray<FLexLayoutGridSize> Columns;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TArray<FLexLayoutGridSize> Rows;
 
 public:
@@ -90,25 +90,25 @@ public:
 	virtual FLexLayoutControlAnchorData GetLayoutControlAnchor(const ULexWidget* TargetWidget)const override;
 	virtual void CalculateLayout()override;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FMargin GetPadding()const { return Padding; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	const TArray<FLexLayoutGridSize>& GetColumns()const { return Columns; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	const TArray<FLexLayoutGridSize>& GetRows()const { return Rows; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetRowCount()const { return Rows.Num(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetColumnCount()const { return Columns.Num(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector2D GetSpacing()const { return Spacing; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetPadding(FMargin Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRows(const TArray<FLexLayoutGridSize>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetColumns(const TArray<FLexLayoutGridSize>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetSpacing(const FVector2D& Value);
 };

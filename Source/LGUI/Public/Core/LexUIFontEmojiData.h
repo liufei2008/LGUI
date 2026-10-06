@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -43,10 +43,10 @@ struct FLexUIFontEmojiDataItem
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<TObjectPtr<class ULexUISpriteData_BaseObject>> Frames;
 	/** use this value as animation-fps, -1 means not override */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float OverrideAnimationFps = -1;
 };
 
@@ -55,9 +55,9 @@ class LGUI_API ULexUIFontEmojiData :public UObject
 {
 	GENERATED_BODY()
 private:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TMap<FLexUIFontEmojiKey, FLexUIFontEmojiDataItem> DataMap;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float AnimationFps = 4;
 protected:
 #if WITH_EDITOR
@@ -68,19 +68,19 @@ public:
 	/** Called when any data change, and need UIText to refresh. */
 	FLexUIFontEmojiDataRefreshEvent OnDataChange;
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetDataMap(const TMap<FLexUIFontEmojiKey, FLexUIFontEmojiDataItem>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetAnimationFps(float Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TMap<FLexUIFontEmojiKey, FLexUIFontEmojiDataItem>& GetDataMap()const { return DataMap; }
 	/** Get this to directly modify the data. After modify is done, call BroadcastOnDataChange function to notify. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		TMap<FLexUIFontEmojiKey, FLexUIFontEmojiDataItem>& GetMutableDataMap() { return DataMap; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void BroadcastOnDataChange();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetAnimationFps()const { return AnimationFps; }
 
 	void CreateOrUpdateObject(class ULexWidget* parent, const TArray<FLexUIText_Emoji>& emojiArray, TArray<TObjectPtr<class ULexWidget>>& inOutCreatedImageObjectArray);

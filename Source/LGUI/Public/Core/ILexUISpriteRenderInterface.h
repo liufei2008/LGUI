@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -16,8 +16,8 @@ class LGUI_API ILexUISpriteRenderInterface
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
+	UFUNCTION(BlueprintNativeEvent, Category = "LexUI")
 		ULexUISpriteData_BaseObject* SpriteRenderGetSprite()const;
-	UFUNCTION(BlueprintNativeEvent, Category = "LGUI")
+	UFUNCTION(BlueprintNativeEvent, Category = "LexUI")
 		void ApplyAtlasTextureChange();
 };

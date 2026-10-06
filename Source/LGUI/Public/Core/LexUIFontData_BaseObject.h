@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -110,12 +110,12 @@ public:
 	/** Called when emoji data changed, and need LexText to refresh. */
 	FLexUIFontEmojiDataRefreshEvent OnEmojiDataChanged;
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TObjectPtr<ULexUIFontEmojiData> EmojiData;
 
 	/**
 	 * Put materials here so LexText can easily select OverrideMaterial from this array.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TArray<TObjectPtr<UMaterialInterface>> PresetMaterials;
 };

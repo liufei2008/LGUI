@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexUIFontData_FreeTypeRenderCustomization.h"
 #include "Misc/FileHelper.h"
@@ -34,7 +34,7 @@ void FLexUIFontData_FreeTypeRenderCustomization::CustomizeDetails(IDetailLayoutB
 	fontTypeHandle->GetValue(fontTypeUint8);
 	auto fontType = (ELexUIDynamicFontDataType)fontTypeUint8;
 
-	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LexUI");
 	lguiCategory.AddCustomRow(LOCTEXT("ReloadFont", "ReloadFont"))
 	.WholeRowContent()
 	[

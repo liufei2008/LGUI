@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -26,9 +26,9 @@ public:
 	/**
 	 * Register this InputModule to a EventSystem. Only one InputModule is valid in the same time.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void RegisterInputModuleToEventSystem(ULexEventSystem* TargetEventSystem);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void UnregisterInputModuleFromEventSystem();
 protected:
 	UPROPERTY(Transient)TWeakObjectPtr<ULexEventSystem> EventSystem = nullptr;

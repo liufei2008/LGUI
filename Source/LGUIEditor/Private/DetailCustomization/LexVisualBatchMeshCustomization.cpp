@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexVisualBatchMeshCustomization.h"
 #include "Core/Components/LexVisualBatchMesh.h"
@@ -35,6 +35,6 @@ void FLexVisualBatchMeshCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 		UE_LOG(LGUIEditor, Log, TEXT("[%s].%d Get TargetScript is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 
-	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LexUI");
 }
 #undef LOCTEXT_NAMESPACE

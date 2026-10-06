@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexUIStaticSpriteAtlasDataCustomization.h"
 #include "Core/LexUIStaticSpriteAtlasData.h"
@@ -25,7 +25,7 @@ void FLexUIStaticSpriteAtlasDataCustomization::CustomizeDetails(IDetailLayoutBui
 		UE_LOG(LGUIEditor, Log, TEXT("[%s].%d Get TargetScript is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
-	IDetailCategoryBuilder& LguiCategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& LguiCategory = DetailBuilder.EditCategory("LexUI");
 	auto spriteArrayHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexUIStaticSpriteAtlasData, SpriteDataArray));
 	spriteArrayHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {
 		DetailBuilder.ForceRefreshDetails();

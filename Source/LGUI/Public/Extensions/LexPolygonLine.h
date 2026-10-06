@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -19,16 +19,16 @@ public:
 	ULexPolygonLine(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool FullCycle = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float StartAngle = 0.0f;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "!FullCycle"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition = "!FullCycle"))
 		float EndAngle = 90.0f;
 	//Sides of polygon
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		int Sides = 3;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		TArray<float> VertexOffsetArray;
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
@@ -45,28 +45,28 @@ protected:
 	virtual FVector2D GetEndPointTangentDirection()override;
 	//End UI2DLineRendererBase interface
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFullCycle()const { return FullCycle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetStartAngle()const { return StartAngle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetEndAngle()const { return EndAngle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") int GetSides()const { return Sides; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") const TArray<float>& GetVertexOffsetArray()const { return VertexOffsetArray; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool GetFullCycle()const { return FullCycle; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetStartAngle()const { return StartAngle; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetEndAngle()const { return EndAngle; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") int GetSides()const { return Sides; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") const TArray<float>& GetVertexOffsetArray()const { return VertexOffsetArray; }
 	//Return direct mutable array for edit and change. Call MarkVertexPositionDirty() function after change.
 	TArray<float>& GetVertexOffsetArray_Direct() { return VertexOffsetArray; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFullCycle(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetStartAngle(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEndAngle(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSides(int value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetVertexOffsetArray(const TArray<float>& value);
 
-	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLexUI")
 		ULTweener* StartAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLexUI")
 		ULTweener* EndAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 };
 

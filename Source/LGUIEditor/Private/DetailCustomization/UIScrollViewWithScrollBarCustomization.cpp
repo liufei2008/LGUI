@@ -33,7 +33,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		return;
 	}
 	
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-ScrollViewWithScrollbar");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI-ScrollViewWithScrollbar");
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIScrollViewWithScrollbar, Viewport));
 	TArray<FName> needToHidePropertyName;
 	auto ViewportHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIScrollViewWithScrollbar, Viewport));

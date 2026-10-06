@@ -45,17 +45,17 @@ USTRUCT(BlueprintType)
 struct FLexLayoutSize
 {
 	GENERATED_BODY()
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	bool bEnable = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	ELexLayoutSizeType Type = ELexLayoutSizeType::Auto;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	float AutoValue = 0;
 #endif
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (EditCondition = "Type == ELexLayoutSizeType::Fixed", UIMin=0))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta = (EditCondition = "Type == ELexLayoutSizeType::Fixed", UIMin=0))
 	float FixedValue = 100;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (EditCondition = "Type == ELexLayoutSizeType::Percent", UIMin=0, UIMax=1))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta = (EditCondition = "Type == ELexLayoutSizeType::Percent", UIMin=0, UIMax=1))
 	float PercentValue = 0.5;
 
 	FLexLayoutSize(){}
@@ -108,13 +108,13 @@ USTRUCT(BlueprintType)
 struct FLexLayoutMinMaxSize
 {
 	GENERATED_BODY()
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	bool bEnable = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	ELexLayoutMinMaxSizeType Type = ELexLayoutMinMaxSizeType::Fixed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (EditCondition = "Type == ELexLayoutMinMaxSizeType::Fixed", UIMin=0))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta = (EditCondition = "Type == ELexLayoutMinMaxSizeType::Fixed", UIMin=0))
 	float FixedValue = 100;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (EditCondition = "Type == ELexLayoutMinMaxSizeType::Percent", UIMin=0, UIMax=100))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta = (EditCondition = "Type == ELexLayoutMinMaxSizeType::Percent", UIMin=0, UIMax=100))
 	float PercentValue = 0.5f;
 
 	FLexLayoutMinMaxSize(){}

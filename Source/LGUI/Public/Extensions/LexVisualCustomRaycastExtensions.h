@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -14,7 +14,7 @@ class LGUI_API UUIRenderableCustomRaycast_Circle : public UUIRenderableCustomRay
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		float RadiusRange = 1.0f;
 public:
 	virtual bool Raycast(UUIBaseRenderable* InUIRenderable, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)override;
@@ -33,21 +33,21 @@ class LGUI_API ULexVisualCustomRaycast_VisiblePixel : public ULexVisualCustomRay
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		float VisibilityThreshold = 0.1f;
 	/** Use one of pixel's rgba channel, 0123 as rgba, default is 3 means alpha channel */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		uint8 PixelChannel = 3;
 public:
 	virtual bool Raycast(const ULexVisual* InVisual, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)const override;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetVisibilityThreshold()const { return VisibilityThreshold; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		uint8 GetPixelChannel()const { return PixelChannel; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetVisibilityThreshold(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetPixelChannel(uint8 value);
 };

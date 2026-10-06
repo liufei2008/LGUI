@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexWidgetCustomization.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
@@ -180,9 +180,9 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 		return;
 	}
 
-	IDetailCategoryBuilder& LGUICategory = DetailBuilder->EditCategory("LGUI");
+	IDetailCategoryBuilder& LGUICategory = DetailBuilder->EditCategory("LexUI");
 	DetailBuilder->HideCategory("TransformCommon");
-	IDetailCategoryBuilder& TransformCategory = DetailBuilder->EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
+	IDetailCategoryBuilder& TransformCategory = DetailBuilder->EditCategory("LexUITransform", LOCTEXT("LexUI-Transform", "LexUI-Transform"), ECategoryPriority::Transform);
 
 	//base
 	// {

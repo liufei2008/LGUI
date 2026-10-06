@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -153,12 +153,12 @@ public:
 	/**
 	 * Prefabs in these folders will appear in "LGUI Tools" menu, so we can easily create our own UI control.
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor", meta = (LongPackageName))
+	UPROPERTY(EditAnywhere, config, Category = "LexUI Editor", meta = (LongPackageName))
 		TArray<FDirectoryPath> ExtraPrefabFolders;
 	/**
 	 * Draw helper box on selected UI element.
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
+	UPROPERTY(EditAnywhere, config, Category = "LexUI Editor")
 		bool bDrawHelperFrame = true;
 
 	/**
@@ -170,6 +170,6 @@ public:
 	/**
 	 * For load prefab debug, display a log that shows how much time a LoadPrefab cost.
 	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI")
+	UPROPERTY(EditAnywhere, config, Category = "LexUI")
 	bool bLogPrefabLoadTime = false;
 };

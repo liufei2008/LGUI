@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -61,24 +61,24 @@ public:
 
 protected:
 	friend class FLexTextCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<ULexUIFontData_BaseObject> Font;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine="true"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (MultiLine="true"))
 		FText Text = FText::FromString(TEXT("New Text"));
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "2", ClampMax = "500"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "2", ClampMax = "500"))
 		float FontSize = 16;
 	/** use font kerning for better text layout. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bUseKerning = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FVector2D FontSpace = FVector2D(0, 0);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUITextParagraphHorizontalAlign HAlign = ELexUITextParagraphHorizontalAlign::Center;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUITextParagraphVerticalAlign VAlign = ELexUITextParagraphVerticalAlign::Middle;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUITextOverflowType OverflowType = ELexUITextOverflowType::VerticalOverflow;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	ETextWrappingPolicy WrappingPolicy = ETextWrappingPolicy::AllowPerCharacterWrapping;
 	/** Use a custom material to render this text */
     UPROPERTY(EditAnywhere, Category = "LexUI")
@@ -89,7 +89,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LexUI")
 	float ExpandMeshSize = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	ELexUITextFontStyle FontStyle = ELexUITextFontStyle::None;
 	/**
 	 * rich text support, eg:
@@ -107,28 +107,28 @@ protected:
 	 * <MyTag>Custom tag</MyTag> use any string as custom tag. custom tag can use for char selection (check TextAnimation usage), and for custom style (check RichTextCustomStyleData)
 	 * <img=smile/> display a image with key "smile" which defined in RichTextImageData property, can be used for emoji. @todo: image size option
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bRichText = false;
 	/** Flags to enable/disable rich text tag. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexUIText_RichTextTagFilterFlags", EditCondition = "bRichText"))
 		int32 RichTextTagFilterFlags = 0xffffffff;
 	/** rich text custom style data for custom tag and rendering custom style */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "bRichText"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition = "bRichText"))
 		TObjectPtr<ULexUIRichTextCustomStyleData> RichTextCustomStyleData = nullptr;
 	/** rich text image data for rendering image inside UIText */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "bRichText"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition = "bRichText"))
 		TObjectPtr<ULexUIRichTextImageData_BaseObject> RichTextImageData = nullptr;
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmap texture, such as BitmapFont. 
 	 * But!!! Do not set this value too large if you already have large font size of LexText, because that will result in extremely large texture! 
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 	float DynamicPixelsPerUnit = 1.0f;
 	/** created object for rich text image */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", Transient, AdvancedDisplay)
 	TArray<TObjectPtr<ULexWidget>> CreatedRichTextImageObjectArray;
 	/** created object for emoji */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", Transient, AdvancedDisplay)
 	TArray<TObjectPtr<ULexWidget>> CreatedEmojiObjectArray;
 private:
 	bool bHasAddToFont = false;
@@ -137,13 +137,13 @@ private:
 	void UpdateCacheTextGeometry()const;
 	void ConditionalUpdateCacheTextGeometry()const;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<FLexUITextCharProperty>& GetCharPropertyArray()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetVisibleCharCount()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<FLexUIText_RichTextCustomTag>& GetRichTextCustomTagArray()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<FLexUIText_RichTextImageTag>& GetRichTextImageTagArray()const;
 public:
 	virtual void MarkAllDirty()override;
@@ -191,60 +191,60 @@ public:
 	virtual float GetPreferredWidth() const override;
 	virtual float GetPreferredHeight() const override;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULexUIFontData_BaseObject* GetFont()const { return Font; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FText& GetText()const { return Text; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetFontSize()const { return FontSize; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetUseKerning()const { return bUseKerning; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return FontSpace; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUITextOverflowType GetOverflowType()const { return OverflowType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ETextWrappingPolicy GetWrappingPolicy()const{return WrappingPolicy;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUITextFontStyle GetFontStyle()const { return FontStyle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return bRichText; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") int32 GetRichTextTagFilterFlags()const { return RichTextTagFilterFlags; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULexUIRichTextCustomStyleData* GetRichTextCustomStyleData()const { return RichTextCustomStyleData; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULexUIRichTextImageData_BaseObject* GetRichTextImageData()const { return RichTextImageData; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return HAlign; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return VAlign; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetExpandMeshSize()const{return ExpandMeshSize;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetDynamicPixelsPerUnit()const { return DynamicPixelsPerUnit; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ULexUIFontData_BaseObject* GetFont()const { return Font; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI")	const FText& GetText()const { return Text; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetFontSize()const { return FontSize; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool GetUseKerning()const { return bUseKerning; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") FVector2D GetFontSpace()const { return FontSpace; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUITextOverflowType GetOverflowType()const { return OverflowType; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ETextWrappingPolicy GetWrappingPolicy()const{return WrappingPolicy;}
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUITextFontStyle GetFontStyle()const { return FontStyle; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool GetRichText()const { return bRichText; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") int32 GetRichTextTagFilterFlags()const { return RichTextTagFilterFlags; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ULexUIRichTextCustomStyleData* GetRichTextCustomStyleData()const { return RichTextCustomStyleData; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ULexUIRichTextImageData_BaseObject* GetRichTextImageData()const { return RichTextImageData; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return HAlign; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return VAlign; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetExpandMeshSize()const{return ExpandMeshSize;}
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetDynamicPixelsPerUnit()const { return DynamicPixelsPerUnit; }
 
 	/** indicating whether the text is Truncated or using Ellipsis */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool IsTextTruncated()const;
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool IsTextTruncated()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFont(ULexUIFontData_BaseObject* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetText(const FText& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFontSize(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetUseKerning(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFontSpace(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetParagraphHorizontalAlignment(ELexUITextParagraphHorizontalAlign Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetParagraphVerticalAlignment(ELexUITextParagraphVerticalAlign Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverflowType(ELexUITextOverflowType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetWrappingPolicy(ETextWrappingPolicy Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFontStyle(ELexUITextFontStyle Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRichText(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRichTextTagFilterFlags(int32 Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRichTextImageData(ULexUIRichTextImageData_BaseObject* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRichTextCustomStyleData(ULexUIRichTextCustomStyleData* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
     	void SetOverrideMaterial(UMaterialInterface* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetExpandMeshSize(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetDynamicPixelsPerUnit(float Value);
 private:
 	void ClearCreatedRichTextImageObject();

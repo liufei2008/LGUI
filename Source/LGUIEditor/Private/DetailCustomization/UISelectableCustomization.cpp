@@ -35,7 +35,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 
 	FLexUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), LOCTEXT("MultipleUISelectableComponentError", "Multiple UISelectable component in one actor is not allowed!"));
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Selectable");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI-Selectable");
 	auto Transition_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectable, TransitionType));
 	Transition_PH->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
 
@@ -134,7 +134,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		TransitionGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectable, CustomTransition)));
 	}
 
-	IDetailCategoryBuilder& NavigationCategory = DetailBuilder.EditCategory("LGUI-Selectable-Navigation");
+	IDetailCategoryBuilder& NavigationCategory = DetailBuilder.EditCategory("LexUI-Selectable-Navigation");
 	NavigationCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUISelectable, bCanNavigateHere));
 	
 	auto navigationLeftHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectable, NavigationLeft));

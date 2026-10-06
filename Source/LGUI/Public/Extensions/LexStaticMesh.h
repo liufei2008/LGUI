@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -147,11 +147,11 @@ public:
 	ULexStaticMesh(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<ULexUIStaticMeshCacheData> MeshCache;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexStaticMeshVertexColorType VertexColorType = ELexStaticMeshVertexColorType::NotAffectByUIColor;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<UMaterialInterface> ReplaceMaterial;
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
@@ -170,25 +170,25 @@ protected:
 	virtual UMaterialInterface* GetMaterial()const override;
 public:
 	/** return 'MeshCache' property */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") 
+	UFUNCTION(BlueprintCallable, Category = "LexUI") 
 		ULexUIStaticMeshCacheData* GetMeshCache()const { return MeshCache; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexStaticMeshVertexColorType GetVertexColorType()const { return VertexColorType; }
 	/** Get the 'ReplaceMaterial' property */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		class UMaterialInterface* GetReplaceMaterial()const { return ReplaceMaterial; }
 	/** Get actual rendering material. If 'ReplaceMaterial' is valid then return 'ReplaceMaterial', or return the mesh's default material. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		class UMaterialInterface* GetRenderMaterial()const { return GetMaterial(); }
 	/** return current rendering DynamicMaterialInstance, or create one if not valid. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		class UMaterialInstanceDynamic* GetOrCreateDynamicMaterialInstance();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetMesh(ULexUIStaticMeshCacheData* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetVertexColorType(ELexStaticMeshVertexColorType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetReplaceMaterial(UMaterialInterface* Value);
 };
 

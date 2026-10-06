@@ -37,7 +37,7 @@ void FLexTextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder
 		return;
 	}
 	
-	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LexUI");
 	auto Font_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexText, Font));
 	Font_PH->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLexTextCustomization::ForceRefresh, &DetailBuilder));
 	LGUICategory.AddProperty(Font_PH);

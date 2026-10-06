@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -32,7 +32,7 @@ protected:
 	 * @param	OutHitNormal			Hit point normal in this UI's local space
 	 * @return	true if hit this UI object
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Raycast"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "Raycast"))
 		bool ReceiveRaycast(const ULexVisual* InVisual, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)const;
 	/**
 	 * Get pixel value at hit point.
@@ -42,7 +42,7 @@ protected:
 	 *		3. UIText which use dynamic font can not work. (Currently all LGUI's built-in font is dynamic)
 	 * Will fallback to Geometry if ui element not support this raycast type.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static bool GetRaycastPixelFromUIBatchMeshVisual(const class ULexVisualBatchMesh* InVisual, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector2D& OutUV, FColor& OutPixel, FVector& OutHitPoint, FVector& OutHitNormal);
 public:
 	/**
@@ -129,19 +129,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	ELexVisualType GetVisualType()const { return VisualType; }
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetRaycastTarget()const{return bRaycastTarget;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexVisualRaycastType GetRaycastType()const { return RaycastType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexVisualCustomRaycast* GetCustomRaycastObject()const { return CustomRaycastObject; }
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRaycastTarget(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRaycastType(ELexVisualRaycastType Value) { RaycastType = Value; }
 	/** Set custom raycast object to handle raycast behaviour, only valid if RaycastType is Custom */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetCustomRaycastObject(ULexVisualCustomRaycast* Value);
 
 	UFUNCTION(BlueprintCallable, Category = "LexUI")

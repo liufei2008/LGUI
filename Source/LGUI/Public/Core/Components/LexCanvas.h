@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -125,10 +125,10 @@ public:
 	virtual bool ConvertPositionFromCanvasToViewport(const FVector2D& InPosition, FVector2D& Result)const;
 protected:
 	/** Initialize, called when LexCanvas Awake. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LexUI")
 	void ReceiveInit(ULexCanvas* InCanvas);
 	/** Called when LexCanvas calculate viewport size and scale. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CalculateSizeAndScale"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "CalculateSizeAndScale"), Category = "LexUI")
 	void ReceiveCalculateSizeAndScale(ULexCanvas* InCanvas, const FIntPoint& InViewportSize, FIntPoint& OutLexCanvasSize, float& OutScale);
 	/**
 	 * Convert position from viewport to LexCanvas space.
@@ -136,7 +136,7 @@ protected:
 	 * @param Result LexCanvas space position, left bottom is zero point.
 	 * @return convert will fail if this LexCanvas is not root canvas
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ConvertPositionFromViewportToCanvas"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ConvertPositionFromViewportToCanvas"), Category = "LexUI")
 	bool ReceiveConvertPositionFromViewportToCanvas(const FVector2D& InPosition, FVector2D& Result)const;
 	/**
 	 * Convert position from LexCanvas space to viewport.
@@ -144,7 +144,7 @@ protected:
 	 * @param Result in viewport, pixel unit, left top is zero point.
 	 * @return convert will fail if this LexCanvas is not root canvas
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ConvertPositionFromCanvasToViewport"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ConvertPositionFromCanvasToViewport"), Category = "LexUI")
 	bool ReceiveConvertPositionFromCanvasToViewport(const FVector2D& InPosition, FVector2D& Result)const;
 };
 
@@ -290,27 +290,27 @@ protected:
 	 * Force this canvas render to a TextureRenderTarget, no matter what render mode of the root canvas is.
 	 * This will break canvas link and make this canvas as root canvas.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bForceRenderToTarget = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexRenderMode RenderMode = ELexRenderMode::WorldSpace;
 	/**
 	 * Render to RenderTarget, if not specified then LGUI will create a new one.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<UTextureRenderTarget2D> RenderTarget;
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 	TEnumAsByte<ETextureRenderTargetFormat> RenderTargetFormat;
 	/** Clear color for TextureRenderTarget */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FColor RenderTargetClearColor = FColor::Transparent;
 	/** Controls how LexCanvas render to RenderTarget. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexCanvasRenderTargetUpdateMode RenderTargetUpdateMode = ELexCanvasRenderTargetUpdateMode::Automatic;
 	/**
 	 * How RenderTarget and LexCanvas's size change depend on the other.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexCanvasRenderTargetSizeMode RenderTargetSizeMode = ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas;
 	/**
 	 * RenderTarget size scale.
@@ -322,17 +322,17 @@ protected:
 	 * true- Use custom sort order.
 	 * false- Use default sort order management, which is based on hierarchy order.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bOverrideSorting = false;
 	/**
 	 * Canvas with larger order will render on top of lower one.
 	 * NOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="bOverrideSorting"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta=(EditCondition="bOverrideSorting"))
 		int16 SortOrder = 0;
 
 	/** Enable/disable normal and tangent in vertex data. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bRequireNormalAndTangent = false;
 
 	/** Default materials, for render default UI elements. */
@@ -340,16 +340,16 @@ protected:
 	mutable TObjectPtr<UMaterialInterface> DefaultMaterial;
 
 	/** For "World Space - LexUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float BlendDepth = 0.0f;
 	/** For "World Space - LexUI Renderer" only, render with depth fade effect. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0", ClampMax = "10"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0", ClampMax = "10"))
 		int DepthFade = 0;
 	/**
 	 * Create a depth texture so we can do depth test. This is very useful for UIStaticMesh which use Opaque material.
 	 * Only valid for ScreenSpaceOverlay and RenderTarget mode.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bEnableDepthTest = false;
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexCanvasOverrideParameters"))
@@ -359,13 +359,13 @@ protected:
 	 * TraceChannel for line trace of EventSystem interaction.
 	 * Only world space UI need this property.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TEnumAsByte<ETraceTypeQuery> TraceChannel = TraceTypeQuery1;
 
 	/**
 	 * Allow drop canvas frame when canvas draw-call take too much time. This may cause some delay for UI response, but can improve performance.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 	bool bAllowDropFrame = false;
 
 	/**
@@ -373,35 +373,35 @@ protected:
 	 * You can set "OwnerNoSee" "CastShadow" properties for your mesh.
 	 * @todo: override this property from parent canvas?
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (AllowAbstract = "true"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay, meta = (AllowAbstract = "true"))
 		TSubclassOf<ULexUIMeshComponent> DefaultMeshType;
 
 #pragma region CanvasScaler
 	/** Virtual Camera Projection Type.*/
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", AdvancedDisplay, meta = (DisplayName = "Projection Type"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", AdvancedDisplay, meta = (DisplayName = "Projection Type"))
 	TEnumAsByte<ECameraProjectionMode::Type> ProjectionType = ECameraProjectionMode::Perspective;
 	/** Virtual Camera field of view (in degrees). */
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", AdvancedDisplay, meta = (UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", AdvancedDisplay, meta = (UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
 	float FieldOfView = 60;
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", AdvancedDisplay)
 	float NearClipPlane = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", AdvancedDisplay)
 	float FarClipPlane = 10000;
 	
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler")
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler")
 	ELexCanvasScaleMode ScaleMode = ELexCanvasScaleMode::ConstantPixelSize;
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler")
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler")
 	FVector2D ReferenceResolution = FVector2D(1280, 720);
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", meta = (ClampMin = "0.0", ClampMax = "1.0", DisplayName = "Match"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", meta = (ClampMin = "0.0", ClampMax = "1.0", DisplayName = "Match"))
 	float MatchFromWidthToHeight = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler")
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler")
 	ELexCanvasScreenMatchMode ScreenMatchMode = ELexCanvasScreenMatchMode::MatchWidthOrHeight;
 #if WITH_EDITORONLY_DATA
 public:
 	/** When Canvas use ScreenSpaceOverlay, in edit mode it will try to match editor viewport's size. So make this true to use a fixed size. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler")
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler")
 	bool bFixedSizeInEditMode = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-CanvasScaler", meta = (EditCondition = "bFixedSizeInEditMode"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-CanvasScaler", meta = (EditCondition = "bFixedSizeInEditMode"))
 	FIntPoint SizeInEditMode = FIntPoint(1920, 1080);
 #endif
 private:
@@ -409,7 +409,7 @@ private:
 	 * Use this to do custom scale. Only valid if ScaleMode = Custom.
 	 * Will fallback to "ConstantPixelSize" if not assign this value.
 	 */
-	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-CanvasScaler")
+	UPROPERTY(EditAnywhere, Instanced, Category = "LexUI-CanvasScaler")
 	TObjectPtr<ULexCanvasCustomScale> CustomScale;
 	/** Current viewport size*/
 	FIntPoint ViewportSize = FIntPoint(2, 2);
@@ -573,44 +573,44 @@ public:
 		void SetDefaultMeshType(TSubclassOf<ULexUIMeshComponent> InValue);
 
 #pragma region CanvasScaler
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	TEnumAsByte<ECameraProjectionMode::Type> GetProjectionType()const { return ProjectionType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	float GetFieldOfView()const { return FieldOfView; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	float GetNearClipPlane()const { return NearClipPlane; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	float GetFarClipPlane()const { return FarClipPlane; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetFieldOfView(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetNearClipPlane(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetFarClipPlane(float Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	ELexCanvasScaleMode GetScaleMode() { return ScaleMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	FVector2D GetReferenceResolution() { return ReferenceResolution; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	float GetMatchFromWidthToHeight() { return MatchFromWidthToHeight; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	ELexCanvasScreenMatchMode GetScreenMatchMode() { return ScreenMatchMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	ULexCanvasCustomScale* GetCustomScale()const { return CustomScale; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetScaleMode(ELexCanvasScaleMode Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetReferenceResolution(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetMatchFromWidthToHeight(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetScreenMatchMode(ELexCanvasScreenMatchMode Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-CanvasScaler")
 	void SetCustomScale(ULexCanvasCustomScale* Value);
 
 	/**
@@ -619,7 +619,7 @@ public:
 	 * @param Result LexCanvas space position, left bottom is zero point.
 	 * @return convert will fail if this LexCanvas is not root canvas
 	 */
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	bool ConvertPositionFromViewportToCanvas(const FVector2D& InPosition, FVector2D& Result)const;
 	/**
 	 * Convert position from LexCanvas space to viewport.
@@ -627,7 +627,7 @@ public:
 	 * @param Result in viewport, pixel unit, left top is zero point.
 	 * @return convert will fail if this LexCanvas is not root canvas
 	 */
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	bool ConvertPositionFromCanvasToViewport(const FVector2D& InPosition, FVector2D& Result)const;
 	/**
 	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
@@ -636,7 +636,7 @@ public:
 	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
 	 * @return 	convert will fail if this LexCanvas is not root canvas, or not screen space.
 	 */
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
 	/**
 	 * Transforms 2D screen coordinates into a 3D world-space origin and direction.
@@ -646,7 +646,7 @@ public:
 	 * @param OutWorldDirection World space direction vector
 	 * @return convert will fail if this LexCanvas is not root canvas, or not screen space.
 	 */
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	bool DeprojectScreenTo3D(const FVector2D& ScreenPos, FVector& OutWorldOrigin, FVector& OutWorldDirection);
 	/**
 	 * Project 3D world position to 2D screen-space-UI position with specific player's camera.
@@ -656,11 +656,11 @@ public:
 	 * @param OutPosition2D 
 	 * @return 
 	 */
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	static bool ProjectWorldToScreenWithPlayerCamera(APlayerController* Player, class UCameraComponent* PlayerCamera, const FVector& InPosition, FVector2D& OutPosition2D);
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	static bool BuildViewProjectionMatrixForPlayerCamera(APlayerController* Player, class UCameraComponent* PlayerCamera, FMatrix& OutViewProjectionMatrix);
-	UFUNCTION(BlueprintPure, Category = "LGUI-CanvasScaler")
+	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
 	static bool ProjectWorldToScreenWithViewProjectionMatrix(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewportSize, const FVector& InPosition, FVector2D& OutPosition2D);
 	
 private:
@@ -754,14 +754,14 @@ private:
 	UPROPERTY(Transient)
 	mutable TObjectPtr<ULexUIMeshComponent> UIMesh;//current using UIMesh.
 	//DefaultMaterial created MaterialInstanceDynamic pool 
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> PooledDefaultMaterialList;
 	//Currently using material inside PooledDefaultMaterialList from this start index to end
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	int UsingMaterialStartIndex = 0;
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TMap<TObjectPtr<UMaterialInterface>, FLexCanvasDynamicMaterialArrayContainer> MapSrcMatToDynamicMat;//@todo: delete not using material
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TMap<TObjectPtr<UMaterialInterface>, FLexCanvasMaterialParameterCache> MapMatToParamCache;//@todo: delete not using material
 	uint64 NewestDrawCallFrameNumber = 0;
 	FLexCanvasPendingDrawCallData CurrentDrawCallData;//current drawing draw-call
@@ -778,11 +778,11 @@ private:
 	
 	//clip data is stored in root canvas
 	TArray<TSharedPtr<FLexUIClipData>> ClipDataList;
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TObjectPtr<ULexUIDataAsTexture> ClipDataAsTexture;//clip coordinate stored in UV1.x
 	void OnClipDataTextureChanged(UTexture* NewTexture);
 	//widget property data is stored in each canvas (not only root canvas)
-	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TObjectPtr<ULexUIDataAsTexture> WidgetPropertyDataAsTexture;//widget properties coordinate stored in UV1.y
 	void OnWidgetPropertyDataTextureChanged(UTexture* NewTexture);
 	void CheckWidgetPropertyData();

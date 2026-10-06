@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -21,20 +21,20 @@ public:
 	ULexUIPrefabHelperObject();
 
 	/** Prefab object asset, null means this is a level prefab */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<ULexUIPrefab> PrefabAsset = nullptr;
 	/** Root widget of this prefab, null means this is a level prefab */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<ULexWidget> LoadedRootWidget = nullptr;
 	/** Map from guid to object, include all sub-prefab's object. Note object guid is not equals to sub-prefab's same object's guid. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 	/** Map to sub prefab */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData> SubPrefabMap;
 #if WITH_EDITORONLY_DATA
 	/** Broken widget-sub-prefab collection, only for level's sub-prefab */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TSet<TObjectPtr<ULexWidget>> MissingPrefab;
 #endif
 

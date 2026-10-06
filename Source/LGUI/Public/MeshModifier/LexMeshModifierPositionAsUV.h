@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -15,9 +15,9 @@ public:
 	ULexMeshModifierPositionAsUV();
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(UIMin=0, UIMax=3))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta=(UIMin=0, UIMax=3))
 	uint8 UVChannel = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FVector2f Scale = FVector2f::One();
 public:
 	virtual void ModifyUIGeometry(FLexUIGeometry& InGeometry

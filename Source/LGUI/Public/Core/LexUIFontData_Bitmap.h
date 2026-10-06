@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -40,10 +40,10 @@ class LGUI_API ULexUIFontData_Bitmap : public ULexUIFontData_FreeTypeRender
 	GENERATED_BODY()
 protected:
 	/** angle of italic style in degree */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float ItalicAngle = 15.0f;
 	/** bold size radio for bold style, large number create more bold effect */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float BoldRatio = 0.06f;
 public:
 	//Begin ULexUIFontData_FreeTypeRender interface

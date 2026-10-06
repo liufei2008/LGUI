@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -44,13 +44,13 @@ class LGUI_API ULexBaseEventData :public UObject
 	GENERATED_BODY()
 public:
 	/** current selected component. when call Deselect interface, this is also the new selected component*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		TObjectPtr<ULexWidget> SelectedComponent = nullptr;
 	/** event type*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		ELexUIPointerEventType EventType = ELexUIPointerEventType::Click;
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (LexIEventData)", CompactNodeTitle = ".", BlueprintAutocast), Category = "LGUI")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (LexIEventData)", CompactNodeTitle = ".", BlueprintAutocast), Category = "LexUI")
 	virtual FString ToString()const 
 	{
 		return TEXT("");

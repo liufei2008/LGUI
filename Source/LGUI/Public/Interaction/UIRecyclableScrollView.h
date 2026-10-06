@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -34,26 +34,26 @@ public:
 	/**
 	 * @return data item count
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		int GetItemCount();
 	/**
 	 * Init cell when it is created. Only called one time when the cell is created.
 	 * @param	Component		ActorComponent which implement UIRecyclableScrollViewCell interface. Cast this component to your own type and do the init process.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void InitOnCreate(ULexUIBehaviour* Component);
 
 	// Called before calling any "SetCell" function for all children
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void BeforeSetCell();
 	/**
 	 * @param	Component		ActorComponent which implement UIRecyclableScrollViewCell interface. Cast this component to your own type and set cell UI's data.
 	 * @param	Index			Cell's data index.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetCell(ULexUIBehaviour* Component, int Index);
 	// Called after calling "SetCell" function for all children
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void AfterSetCell();
 };
 
@@ -62,9 +62,9 @@ struct FUIRecyclableScrollViewCellContainer
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<ULexUIBehaviour> CellComponent = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<ULexWidget> Widget = nullptr;
 };
 
@@ -89,90 +89,90 @@ protected:
 #endif
 protected:
 	/** Use an Object that implements UIRecyclableScrollViewDataSource interface. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (AllowedClasses = "/Script/LGUI.UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView", meta = (AllowedClasses = "/Script/LGUI.UIRecyclableScrollViewDataSource", DisplayThumbnail = "false"))
 		TObjectPtr<UObject> DataSource;
 	/**
 	 * CellTemplatePrefab's root widget must contain a Component that implements UIRecyclableScrollViewCell interface.
 	 * Only valid if CellTemplateType is Prefab.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView")
 		TObjectPtr<class ULexUIPrefab> CellTemplatePrefab;
 	/** When use horizontal scroll, this can set the row count in every cell. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Horizontal"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Horizontal"))
 		uint16 Rows = 1;
 	/** When use vertical scroll, this can set the column count in every cell. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Vertical"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView", meta = (ClampMin = "1", EditCondition = "Vertical"))
 		uint16 Columns = 1;
 	/**
 	 * Make the scrollview loop infinite.
 	 * Only valid if Rows and Columns equals 1.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView")
 		bool bInfiniteLoop = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView")
 		FMargin Padding = FMargin(0);
 	/** Space between cells */
-	UPROPERTY(EditAnywhere, Category = "LGUI-RecyclableScrollView")
+	UPROPERTY(EditAnywhere, Category = "LexUI-RecyclableScrollView")
 		FVector2D Space = FVector2D::ZeroVector;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		TScriptInterface<IUIRecyclableScrollViewDataSource> GetDataSource()const { return DataSource; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		int GetRows()const { return Rows; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		int GetColumns()const { return Columns; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		bool GetInfiniteLoop()const { return bInfiniteLoop; }
 	/**
 	 * Get all created cell object array. Note this just directly return cell list, which is not in user-friendly order (first one may not at the left-top position).
 	 * Use "GetUserFriendlyCacheCellList" can get the cell list in good order.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		const TArray<FUIRecyclableScrollViewCellContainer>& GetCacheCellList()const { return CacheCellList; }
 	/** Get all created cell object array, with user-friendly order (left-top is the first one, and right-bottom is last). */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void GetUserFriendlyCacheCellList(TArray<FUIRecyclableScrollViewCellContainer>& OutResult)const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		const FMargin& GetPadding()const { return Padding; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		const FVector2D& GetSpace()const { return Space; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		class ULexUIPrefab* GetCellTemplatePrefab()const { return CellTemplatePrefab; }
 
 	/**
 	 * Delete all created cell objects.
 	 * Call "UpdateWithDataSource" to recreate cells.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void ClearAllCells();
 
 	/** Set DataSource object, will automatically recreate cells. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetDataSource(TScriptInterface<IUIRecyclableScrollViewDataSource> InDataSource);
 	/** Set horizontal row count, will automatically recreate cells if current is horizontal scroll. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetRows(int value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetInfiniteLoop(bool value);
 	/** Set vertical column count, will automatically recreate cells if current is vertical scroll. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetColumns(int value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetPadding(const FMargin& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetSpace(const FVector2D& value);
 	/**
 	 * CellTemplatePrefab's root actor must have a ActorComponent which implement UIRecyclableScrollViewCell interface.
 	 * This function only set the parameter. If you want to refresh the display UI list, just call UpdateWithDataSource.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void SetCellTemplatePrefab(class ULexUIPrefab* value);
 
 	/** Recreate cell list. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void RecreateList() { InitializeOnDataSource(); }
 	/** Update list cell's data, this will not change current layout, only set data. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		void UpdateCellData();
 	/**
 	 * RecyclableScrollView will create a cache list to store cell object, use data-index to get the cell that represent the data.
@@ -180,7 +180,7 @@ public:
 	 * @param OutResult			The cell object which represent the data. could be null if there is no cell represent the data (not in render range)
 	 * @return true if have valid result, false otherwise
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-RecyclableScrollView")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-RecyclableScrollView")
 		bool GetCellItemByDataIndex(int Index, FUIRecyclableScrollViewCellContainer& OutResult)const;
 
 	/**
@@ -189,10 +189,10 @@ public:
 	 * @param InEaseAnimation true-use tween animation to make smooth scroll, false-immediate set.
 	 * @param InAnimationDuration Animation duration if InEaseAnimation = true.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		void ScrollToByDataIndex(int InDataIndex, bool InEaseAnimation = true, float InAnimationDuration = 0.5f);
 private:
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI-RecyclableScrollView", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI-RecyclableScrollView", AdvancedDisplay)
 		TArray<FUIRecyclableScrollViewCellContainer> CacheCellList;
 
 	void InitializeOnDataSource();

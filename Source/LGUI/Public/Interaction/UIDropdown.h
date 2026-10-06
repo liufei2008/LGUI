@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -59,9 +59,9 @@ struct FUIDropdownOptionData
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		FText Text;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		FLexUIImageBrush ImageBrush;
 };
 
@@ -81,35 +81,35 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexWidget> ListRoot;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexWidget> Placeholder;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexText> CaptionText;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexImage> CaptionImage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<UUIDropdownItemComponent> ItemTemplate;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		EUIDropdownVerticalPosition VerticalPosition = EUIDropdownVerticalPosition::Automatic;
 	/** If list will overlap this button? Only valid if VerticalPosition NOT equal Middle, because Middle mode always overlay. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", meta = (EditCondition = "VerticalPosition != EUIDropdownVerticalPosition::Middle"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown", meta = (EditCondition = "VerticalPosition != EUIDropdownVerticalPosition::Middle"))
 		bool VerticalOverlap = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		EUIDropdownHorizontalPosition HorizontalPosition = EUIDropdownHorizontalPosition::Center;
 	
 	/** Current selected option index. -1 means none selected */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		int Value = -1;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TArray<FUIDropdownOptionData> Options;
 
 	/** ListRoot's max height */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown", AdvancedDisplay)
 		float MaxHeight = 150;
 	/** When show the list, create a overlay block to block input on other objects. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		bool bUseInteractionBlock = true;
 
 	bool bIsShow = false;
@@ -125,9 +125,9 @@ protected:
 	virtual void CreateListItems();
 
 	FLexUIMulticastDelegateInt32 OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Dropdown")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Dropdown")
 	FUIDropdownValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown", DisplayName="OnValueChanged")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Int32);
 
 	/** Bind this delegate and set custom data for option list item. */
@@ -136,58 +136,58 @@ protected:
 public:
 	FLexUIMulticastDelegateInt32& GetOnValueChangedEvent(){return OnValueChangedCPP;}
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		void Show();
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		void Hide();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		int GetValue()const { return Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		EUIDropdownVerticalPosition GetVerticalPosition()const { return VerticalPosition; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		EUIDropdownHorizontalPosition GetHorizontalPosition()const { return HorizontalPosition; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		bool GetVerticalOverlap()const { return VerticalOverlap; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		const TArray<FUIDropdownOptionData>& GetOptions()const { return Options; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		FUIDropdownOptionData GetOption(int index)const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		FUIDropdownOptionData GetCurrentOption()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		float GetMaxHeight()const { return MaxHeight; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		ULexWidget* GetListRoot()const { return ListRoot.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 		bool GetUseInteractionBlock()const { return bUseInteractionBlock; }
 
 	/**
 	 * Set current selected option index (Value) and send callback event.
 	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetValueWithoutNotify instead.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetValue(int InValue);
 	/** Set current selected option index (Value) and NOT send callback event */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetValueWithoutNotify(int InValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetVerticalPosition(EUIDropdownVerticalPosition InValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetHorizontalPosition(EUIDropdownHorizontalPosition InValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetVerticalOverlap(bool InValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetOptions(const TArray<FUIDropdownOptionData>& InOptions);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void AddOptions(const TArray<FUIDropdownOptionData>& InOptions);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetMaxHeight(float InValue) { MaxHeight = InValue; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetUseInteractionBlock(bool InValue);
 
 	//list items will be created at next time when show the list
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void MarkRecreateList() { bNeedRecreate = true; }
 	
 	/**
@@ -201,12 +201,12 @@ public:
 	/**
 	 * Set custom function to customize option-list item, called when set data for every dropdown-option-list item.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	void SetItemCustomDataFunction(const FUIDropdownComponentDynamicDelegate_SetItemCustomData& InFunction);
 	/**
 	 * Clear the function set by "SetItemCustomDataFunction".
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 	void ClearItemCustomDataFunction();
 };
 
@@ -222,11 +222,11 @@ public:
 	UUIDropdownItemComponent();
 	virtual void Awake()override;
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexText> Text;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<ULexImage> Image;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Dropdown")
 		TWeakObjectPtr<UUIToggle> Toggle;
 
 private:
@@ -240,13 +240,13 @@ protected:
 	 * @param Data Item's data.
 	 * @param OnSelectCallback Callback function that need to be executed by user, when select this item.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LexUI-Dropdown")
 	void ReceiveInit(int32 Index, const FUIDropdownOptionData& Data, const FUIDropdownItem_OnSelect& OnSelectCallback);
 	/**
 	 * Set this item's selection state.
 	 * When select other item, then need to de-select this one.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SetSelectionState"), Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SetSelectionState"), Category = "LexUI-Dropdown")
 	void ReceiveSetSelectionState(bool InSelect);
 public:
 	/**
@@ -263,10 +263,10 @@ public:
 	virtual void SetSelectionState(const bool& InSelect);
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	ULexText* GetText()const { return Text.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	ULexImage* GetImage()const { return Image.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Dropdown")
 	UUIToggle* GetToggle()const;
 };

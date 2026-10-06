@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -35,13 +35,13 @@ protected:
 
 	virtual bool ReadPixelFromMainTexture(const FVector2D& InUV, FColor& OutPixel)const override;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture* GetTexture()const { return Texture; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
+	UFUNCTION(BlueprintCallable, Category = "LexUI") UTexture* GetTexture()const { return Texture; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		virtual void SetTexture(UTexture* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSizeFromTexture();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetOverrideMaterial(UMaterialInterface* Value);
 };

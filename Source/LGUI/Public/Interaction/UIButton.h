@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -15,10 +15,10 @@ class LGUI_API UUIButton : public UUISelectable, public ILexPointerClickInterfac
 	GENERATED_BODY()
 protected:
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-Button", DisplayName="OnClick")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Button", DisplayName="OnClick")
 	FLexUIEventDelegate OnClickED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Empty);
 	FSimpleMulticastDelegate OnClickCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Toggle")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Toggle")
 	FUIButtonClickedEvent OnClick;
 	virtual bool OnPointerClick_Implementation(ULexPointerEventData* EventData)override;
 public:

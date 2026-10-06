@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -42,54 +42,54 @@ class LGUI_API ULexUIFontData_FreeTypeRender : public ULexUIFontData_BaseObject
 protected:
 	friend class FLexUIFontDataCustomization;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUIDynamicFontDataType FontType = ELexUIDynamicFontDataType::CustomFontFile;
 	/** Font file path, absolute path or relative to ProjectDir */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FString FontFilePath;
 	/** Font file use relative path(relative to ProjectDir) or absolute path. After build your game, remember to copy your font file to target path, unless "useExternalFileOrEmbedInToUAsset" is false */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bUseRelativeFilePath = true;
 	/** When in build, use external file or embed into uasset. But in editor, will always load from fontFilePath. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bUseExternalFileOrEmbedInToUAsset = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<class UFontFace> EngineFont;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bCultureFont = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="bCultureFont"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition="bCultureFont"))
 	TMap<FString, TSoftObjectPtr<class UFontFace>> CultureFontMap;
 	void UpdateFontOnCultureChanged();
 	FDelegateHandle OnCultureChangedDelegateHandle;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		int FontFace = 0;
 	/** Current using font face has kerning? */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", Transient, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", Transient, AdvancedDisplay)
 		bool bHasKerning = false;
 	
 	/**
 	 * when packing char pixel into one single atlas texture, LexUI will use this size to create a blank Texture2DArray, then insert char pixel.
 	*/
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	ELexUIAtlasTextureSizeType TextureSizeType = ELexUIAtlasTextureSizeType::SIZE_2048x2048;
 	/**
 	 * rect pack use small cells to pack glyphs, and move to next cell if current cell is full. smaller value get better performance, but leave more garbage area.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	ELexUIAtlasTextureSizeType RectPackCellSizeType = ELexUIAtlasTextureSizeType::SIZE_256x256;
 
 	/** Texture of this font */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<UTexture2DArray> Texture;
 	/** IntermediateTexture for Updating Texture2DArray. */ 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TObjectPtr<UTexture2D> IntermediateTexture;
 	int32 CurrentTextureSlice = 0;
 
 	/** if not find char in current font, LexUI will search the char in this font array until find it. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<TObjectPtr<ULexUIFontData_FreeTypeRender>> FallbackFontArray;
 
 	virtual void FinishDestroy()override;
@@ -123,7 +123,7 @@ public:
 	void SetEngineFont(UFontFace* Value);
 protected:
 	/** Collection of UIText which use this font to render. */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI")
 		TArray<TWeakObjectPtr<ULexText>> RenderTextArray;
 
 	friend class FLexUIFontData_FreeTypeRenderCustomization;
@@ -152,7 +152,7 @@ protected:
 #endif
 #endif
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay)
 		TArray<FString> SubFaces;
 #endif
 	bool bAlreadyInitialized = false;

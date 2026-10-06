@@ -31,7 +31,7 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 		return;
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Input");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI-Input");
 
 	auto InputTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInput, InputType));
 	InputTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));

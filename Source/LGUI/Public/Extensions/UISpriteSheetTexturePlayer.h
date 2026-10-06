@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "LexImageSequencePlayer.h"
@@ -18,10 +18,10 @@ protected:
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class ULexTexture> Texture;
 	/** Sprite element count of horizontal direction in texture. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		int WidthCount = 8;
 	/** Sprite element count of vertical direction in texture. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		int HeightCount = 8;
 
 	float WidthUVInterval, HeightUVInterval;
@@ -30,14 +30,14 @@ protected:
 	virtual void PrepareForPlay()override;
 	virtual void OnUpdateAnimation(int FrameNumber)override;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int GetWidthCount()const { return WidthCount; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int GetHeightCount()const { return HeightCount; }
 	/** Will take effect on next cycle. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetWidthCount(int value);
 	/** Will take effect on next cycle. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetHeightCount(int value);
 };

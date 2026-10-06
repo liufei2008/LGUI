@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexUISpriteDataCustomization.h"
 #include "Core/LexUISettings.h"
@@ -33,7 +33,7 @@ void FLexUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 		return;
 	}
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexUISpriteData, SpriteInfo));
-	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LexUI");
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULexUISpriteData, SpriteTexture));
 	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture_Row", "ReloadTexture"))
 		.ValueContent()

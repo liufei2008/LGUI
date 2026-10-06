@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -52,7 +52,7 @@ protected:
 	 * @param InVertexUVChanged Normally just ignore this.
 	 * @param InVertexColorChanged Normally just ignore this.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateMesh", AdvancedDisplay = 1))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "OnCreateMesh", AdvancedDisplay = 1))
 	void ReceiveOnFillMesh(ULexVisualBatchMesh* InLexMesh, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/**
 	 * Get uv value on raycast hit point. Normally just use "GetHitUVbyFaceIndex".
@@ -64,15 +64,15 @@ protected:
 	 * @param OutHitUV result uv
 	 * @return true if hit suceess
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetHitUV"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "GetHitUV"))
 	bool ReceiveGetHitUV(const ULexVisualBatchMesh* InLexMesh, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV)const;
 	/**
 	 * Is this mesh type support drawcall batching? When the mesh comes in 3d then should not do drawcall batching. Normally just leave it return false.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "SupportDrawcallBatching"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "SupportDrawcallBatching"))
 	bool ReceiveSupportDrawcallBatching()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetHitUVbyFaceIndex(const ULexVisualBatchMesh* InLexMesh, const int32& InHitFaceIndex, const FVector& InHitPoint, FVector2D& OutHitUV)const;
 };
 

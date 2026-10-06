@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -60,93 +60,93 @@ public:
 	 * pointer or navigation input?
 	 * note some data is not valid when in navigation input.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		ELexUIPointerInputType InputType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		int UserIndex = 0;
 	/** id of the pointer (touch id) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		int PointerID = 0;
 	/** current pointer position (mouse position or touchpoint position in screen space. X&Y for mouse position) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PointerPosition = FVector::ZeroVector;
 	/** pointer position when press (mouse position or touchpoint position in screen space. X&Y for mouse position) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PressPointerPosition = FVector::ZeroVector;
 
 	/** entered component */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TObjectPtr<ULexWidget> EnterWidget = nullptr;
 	/** a stack list for store entered component. the latest enter one stay at num-1, first stay at 0. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TArray<TObjectPtr<ULexWidget>> EnterWidgetStack;
 	/** a collection that current pointer hovering objects. the top most one stay at index 0 in array. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TArray<TObjectPtr<ULexWidget>> HoverWidgetArray;
 	/** current world space hit point */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector WorldPoint = FVector(0, 0, 0);
 	/** current world space hit normal */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector WorldNormal = FVector(0, 0, 1);
 	/**
 	 * current hit object's triangle face index.
 	 * For UI element, only valid when target's RaycastType is Geometry.
 	 * For world space static mesh, only valid when LexWorldSpaceRaycaster->bRequireFaceIndex is true.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		int32 FaceIndex = -1;
 
 	/** scroll event. X for horizontal, Y for vertical. if use mouse input, X equals Y */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector2D ScrollAxisValue = FVector2D::ZeroVector;
 	/** current raycaster */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TObjectPtr<ULexBaseRaycaster> Raycaster;
 	/** mouse input type */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		ELexUIMouseButtonType MouseButtonType = ELexUIMouseButtonType::Left;
 
 	/** hit component when press */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TObjectPtr<ULexWidget> PressWidget = nullptr;
 	/** world space hit point when press and hit something */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PressWorldPoint = FVector(0, 0, 0);
 	/** world space normal direction when press and hit something */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PressWorldNormal = FVector(0, 0, 1);
 	/** ray distance when press and hit something */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		float PressDistance = 0;
 	/** ray origin when press and hit something */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PressRayOrigin;
 	/** ray direction when press and hit something */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FVector PressRayDirection;
 	/** world to press component's local transform when trigger press, useful to calculate local space point/normal/delta */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		FTransform PressWorldToLocalTransform;
 	/** raycaster when press */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TObjectPtr<ULexBaseRaycaster> PressRaycaster;
 	/** the last time when trigger click(time is get from GetWorld()->TimeSeconds), can be used to tell double click */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		double ClickTime;
 	/** the last time when trigger release(time is get from GetWorld()->TimeSeconds). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		double ReleaseTime;
 	/** the last time when trigger press(time is tell from GetWorld()->TimeSeconds). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		double PressTime;
 
 	/** is dragging? */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		bool bIsDragging = false;
 	/** current dragging component */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 		TObjectPtr<ULexWidget> DragWidget = nullptr;
 
 	bool bIsUpFiredAtCurrentFrame = false;//PointerUp event is called at current frame?
@@ -169,21 +169,21 @@ public:
 
 	virtual FString ToString()const override;
 	/** Use a line-plane intersection to get world point. The plane is pressComponent's x-axis plane. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") 
+	UFUNCTION(BlueprintCallable, Category = "LexUI") 
 		FVector GetWorldPointInPlane()const;
 	/** Use a line-plane intersection to get world point, and convert to pressComponent's local space. The plane is pressComponent's x-axis plane.  */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") 
+	UFUNCTION(BlueprintCallable, Category = "LexUI") 
 		FVector GetLocalPointInPlane()const;
 	/** Use (ray direction) * (press line distance) + (ray origin) to calculated world point, so the result is a sphere with (ray origin) as center point. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FVector GetWorldPointSpherical()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FVector GetDragRayOrigin()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FVector GetDragRayDirection()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FVector GetCumulativeMoveDelta()const;
 };
 
@@ -191,21 +191,21 @@ USTRUCT(BlueprintType)
 struct FLexUIHitResult
 {
 	GENERATED_BODY()
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	int32 FaceIndex = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	float Time = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	float Distance = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	FVector Location = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	FVector ImpactPoint = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	FVector Normal = FVector::ForwardVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	FVector TraceStart = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	FVector TraceEnd = FVector::ZeroVector;
 
 	TWeakObjectPtr<ULexWidget> Widget = nullptr;

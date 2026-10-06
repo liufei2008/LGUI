@@ -17,26 +17,26 @@ class LGUI_API UUINavigationInputSelectionHandler : public ULexUIBehaviour
 public:
 	UUINavigationInputSelectionHandler();
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 	float AnimDuration = 0.25f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI")
 	TWeakObjectPtr<ULexCanvas> ThisCanvas = nullptr;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LexUI", AdvancedDisplay)
 	TWeakObjectPtr<ULexWidget> CurrentSelected = nullptr;
 
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SelectWidget"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SelectWidget"), Category = "LexUI")
 	void ReceiveSelectWidget(ULexWidget* InSelected);
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SelectNone"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "SelectNone"), Category = "LexUI")
 	void ReceiveSelectNone();
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TArray<TWeakObjectPtr<ULTweener>> TweenerCollection;
 
 	/** True after SelectNone() is called and before the widget is actually destroyed. Prevents re-entry. */
 	bool bIsDestroyPending = false;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void SelectWidget(ULexWidget* InSelected);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void SelectNone();
 };

@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -20,14 +20,14 @@ struct LGUI_API FLexUIComponentReference
 protected:
 	friend class FLexUIComponentReferenceCustomization;
 	/** Editor helper actor */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<AActor> HelperActor = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (AllowAbstract = "true"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (AllowAbstract = "true"))
 		TSubclassOf<UActorComponent> HelperClass;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		FName HelperComponentName;
 
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")
 		mutable TObjectPtr<UActorComponent> TargetComp = nullptr;
 
 	bool CheckTargetObject()const;

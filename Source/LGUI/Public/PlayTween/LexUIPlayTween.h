@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "LTweener.h"
@@ -51,62 +51,62 @@ protected:
 	DECLARE_EVENT(ULexUIPlayTween, FOnCompleteEvent);
 	DECLARE_EVENT_OneParam(ULexUIPlayTween, FOnCycleCompleteEvent, int32);
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void Start();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void Stop();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULTweener* GetTweener()const { return Tweener; }
 
 	FOnStartEvent OnStartCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI", meta=(DisplayName="OnStart"))
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", meta=(DisplayName="OnStart"))
 	FOnLexUIPlayTweenStartDynamicDelegate OnStartBP;
 
 	FOnUpdateProgressEvent OnUpdateProgressCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI", meta=(DisplayName="OnUpdateProgress"))
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", meta=(DisplayName="OnUpdateProgress"))
 	FOnLexUIPlayTweenUpdateProgressDynamicDelegate OnUpdateProgressBP;
 	
 	FOnCompleteEvent OnCompleteCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI", meta=(DisplayName="OnComplete"))
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", meta=(DisplayName="OnComplete"))
 	FOnLexUIPlayTweenCompleteDynamicDelegate OnCompleteBP;
 	
 	FOnCycleCompleteEvent OnCycleCompleteCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI", meta=(DisplayName="OnCycleComplete"))
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", meta=(DisplayName="OnCycleComplete"))
 	FOnLexUIPlayTweenCycleCompleteDynamicDelegate OnCycleCompleteBP;
 
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELTweenLoop GetLoopType()const { return LoopType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int GetLoopCount()const { return LoopCount; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELTweenEase GetEaseType()const { return EaseType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UCurveFloat* GetEaseCurve()const { return EaseCurve; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetDuration()const { return Duration; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetStartDelay()const { return StartDelay; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetAffectByGamePause()const { return bAffectByGamePause; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetAffectByTimeDilation()const { return bAffectByTimeDilation; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetLoopType(ELTweenLoop Value){ LoopType = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetLoopCount(int Value) { LoopCount = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEaseType(ELTweenEase Value) { EaseType = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEaseCurve(UCurveFloat* Value) { EaseCurve = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetDuration(float Value) { Duration = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetStartDelay(float Value) { StartDelay = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetAffectByGamePause(bool Value) { bAffectByGamePause = Value; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetAffectByTimeDilation(bool Value) { bAffectByTimeDilation = Value; }
 protected:
 	virtual void OnUpdate(float progress)PURE_VIRTUAL(ULGUIPlayTween::OnUpdate, );

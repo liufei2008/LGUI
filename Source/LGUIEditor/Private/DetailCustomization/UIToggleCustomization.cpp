@@ -31,7 +31,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		UE_LOG(LGUIEditor, Log, TEXT("[%s].%d Get TargetScript is null"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Toggle");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI-Toggle");
 	auto ToggleTransition_PH = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIToggle, ToggleTransitionType));
 	ToggleTransition_PH->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIToggleCustomization::ForceRefresh, &DetailBuilder));
 

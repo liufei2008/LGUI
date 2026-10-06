@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -23,29 +23,29 @@ struct LGUI_API FLexUISpriteInfo
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	uint16 Width = 0;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	uint16 Height = 0;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FMargin Border;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FMargin Padding;
 	
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	uint16 PosX = 0;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	uint16 PosY = 0;
 #endif
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	FVector2f MinUV = FVector2f(0, 0);
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	FVector2f MaxUV = FVector2f(1, 1);
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	FVector2f BorderMinUV = FVector2f(0, 0);
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	FVector2f BorderMaxUV = FVector2f(1, 1);
 
 #if WITH_EDITORONLY_DATA

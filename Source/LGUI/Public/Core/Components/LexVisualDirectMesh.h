@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -31,7 +31,7 @@ protected:
 	/**
 	 * Render color of UI element.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", Getter, Setter, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Getter, Setter, BlueprintReadWrite)
 	FColor Color = FColor::White;
 	/** enable properties for material */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
@@ -45,20 +45,20 @@ protected:
 public:
 	UFUNCTION()
 	FColor GetColor() const { return Color; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
 	
 	UFUNCTION()
 	void SetColor(FColor Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetAlpha(float Value);
 	
 	uint8 GetFinalAlpha()const;
 	/** get final alpha, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetFinalAlpha01()const;
 	/** get final color, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FColor GetFinalColor()const;
 	
 	FORCEINLINE bool GetRequirePropertiesForMaterial_Size()const{ return PropertiesForMaterial & (1 << (int)ELexVisualPropertiesForMaterial::Size); }

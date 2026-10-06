@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -85,7 +85,7 @@ public:
 	explicit FLexUIPrefabOverridePropertyPath(const TArray<FName>& InSegments) : Segments(InSegments) {};
 
 	/** From the object's member property down to the overridden leaf. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<FName> Segments;
 
 	FName GetRootName()const { return Segments.Num() > 0 ? Segments[0] : NAME_None; }
@@ -113,16 +113,16 @@ struct LGUI_API FLexUIPrefabOverrideParameterData
 public:
 	FLexUIPrefabOverrideParameterData() {};
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TWeakObjectPtr<UObject> Object;
 	/** UObject's member property name */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<FName> MemberPropertyNames;
 	/**
 	 * Overrides addressing a leaf nested inside a struct member property.
 	 * Invariant: a root name here never also appears in MemberPropertyNames - a whole member override subsumes them.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<FLexUIPrefabOverridePropertyPath> SubPropertyPaths;
 };
 
@@ -132,9 +132,9 @@ struct FLexUISubPrefabObjectUniqueId
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FGuid RootWidgetGuidInParentPrefab;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FGuid ObjectGuidInOriginPrefab;
 
 	bool operator==(const FLexUISubPrefabObjectUniqueId& other)const
@@ -153,15 +153,15 @@ struct LGUI_API FLexUISubPrefabData
 	GENERATED_BODY()
 public:
 	FLexUISubPrefabData();
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TObjectPtr<ULexUIPrefab> PrefabAsset = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLexUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")TObjectPtr<ULexUIPrefab> PrefabAsset = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")TArray<FLexUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
 	/** Check description on ELexUIPrefabVersion.NewObjectOnNestedPrefab */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FLexUISubPrefabObjectUniqueId, FGuid> MapObjectIdToNewlyCreatedId;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")TMap<FLexUISubPrefabObjectUniqueId, FGuid> MapObjectIdToNewlyCreatedId;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")TMap<FGuid, TObjectPtr<UObject>> MapGuidToObject;
 #if WITH_EDITORONLY_DATA
 	/** For level editor, combine all create time (include all sub prefabs) to create this MD5, to tell if this prefab is latest version. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")FString OverallVersionMD5;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")FString OverallVersionMD5;
 	/** Temporary color for quick identification in editor */
 	FLinearColor EditorIdentifyColor;
 #endif
@@ -223,20 +223,20 @@ public:
 
 #if WITH_EDITORONLY_DATA
 private:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		bool bIsPrefabVariant = false;
 public:
 	/** put actual UObject in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		TArray<TObjectPtr<UObject>> ReferenceAssetList;
 	/** put actual UClass in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		TArray<TObjectPtr<UClass>> ReferenceClassList;
 	/** put actual FName in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		TArray<FName> ReferenceNameList;
 	/** put actual FText in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	TArray<FText> ReferenceTextList;
 #endif
 
@@ -246,7 +246,7 @@ public:
 	UPROPERTY()
 		TArray<uint8> BinaryData;
 	/** The time point when create/save this prefab. Use UtcNow from prefab version 6. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		FDateTime CreateTime;
 #endif
 	/** Prefab system's version when creating this prefab */
@@ -298,7 +298,7 @@ public:
 	UPROPERTY()
 		FLexUIPrefabDataForPrefabEditor PrefabDataForPrefabEditor;
 private:
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", DuplicateTransient)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", DuplicateTransient)
 		TObjectPtr<ULexUIPrefabHelperObject> PrefabHelperObject = nullptr;
 	TUniquePtr<FLexUIPrefabInstanceScene> PrefabInstanceScene;
 #endif

@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexRectBlockCustomization.h"
 #include "LexUIEditorUtils.h"
@@ -203,9 +203,9 @@ Group.AddPropertyRow(PropertyName##Handle).IsEnabled(IsEnabledAttribute);
 #define AddVectorPropertyRowToGroup(PropertyName, DisplayName, Group, IsEnabledAttribute, EnableMinMax)\
 CreateVectorPropertyWithUnitMode(GET_MEMBER_NAME_CHECKED(ULexRectBlock, PropertyName), Group, LOCTEXT(TO_TEXT(PropertyName##_DisplayName), TO_TEXT(DisplayName)), IsEnabledAttribute, EnableMinMax);
 	
-	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& LGUICategory = DetailBuilder.EditCategory("LexUI");
 	
-	DetailBuilder.HideCategory(TEXT("LGUI-ProceduralRect"));
+	DetailBuilder.HideCategory(TEXT("LexUI-ProceduralRect"));
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULexRectBlock, bUniformSetCornerRadius));
 
 	auto UniformSetCornerRadiusHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULexRectBlock, bUniformSetCornerRadius));

@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -25,13 +25,13 @@ class LGUI_API ULexVisualBatchMeshModifierHelper : public ULexUIGeometryHelper
 	GENERATED_BODY()
 public:
 	/** Get character's center position in UIText's rect range, and convert to 0-1 range (left is 0 and right is 1) */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float UITextHelperFunction_GetCharHorizontalPositionRatio01(ULexText* InUIText, int InCharIndex)const;
 	/**
 	 * Modify character's position & rotation & scale
 	 * @param	InPositionType		Set position type, relative to origin position or absolute position
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Transform(ULexText* InUIText, int InCharIndex
 			, ELexUIMeshModifierHelper_TextPositionType InPositionType
 			, const FVector& InPosition
@@ -41,23 +41,23 @@ public:
 	/**
 	 * Get character's pivot position relative to UIText's pivot position
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_GetCharGeometry_AbsolutePosition(ULexText* InUIText, int InCharIndex, FVector& OutPosition)const;
 	/**
 	 * Modify character's position
 	 * @param	InPositionType		Set position type, relative to origin position or absolute position
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Position(ULexText* InUIText, int InCharIndex
 			, const FVector& InPosition, ELexUIMeshModifierHelper_TextPositionType InPositionType
 		);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Rotate(ULexText* InUIText, int InCharIndex, const FRotator& InRotator = FRotator::ZeroRotator);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Scale(ULexText* InUIText, int InCharIndex, const FVector& InScale = FVector(1, 1, 1));
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Color(ULexText* InUIText, int InCharIndex, const FColor& InColor);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void UITextHelperFunction_ModifyCharGeometry_Alpha(ULexText* InUIText, int InCharIndex, const float& InAlpha);
 };
 
@@ -82,18 +82,18 @@ protected:
 	FDelegateHandle ComponentsChangedDelegateHandle;
 
 	/** Enable this mesh modifier */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bEnable = true;
 
 private:
 	mutable TWeakObjectPtr<ULexVisualBatchMesh> CacheVisualBatchMesh;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexVisualBatchMesh* GetVisualBatchMesh()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnable()const { return bEnable; }
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnable(bool Value);
 	/**
 	 * Modify UI mesh's vertex and triangle.
@@ -122,6 +122,6 @@ protected:
 	/**
 	 * Modify UI geometry's vertex and triangle.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "ModifyUIGeometry"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "ModifyUIGeometry"))
 		void ReceiveModifyUIGeometry(ULexVisualBatchMeshModifierHelper* InGeometryModifierHelper);
 };

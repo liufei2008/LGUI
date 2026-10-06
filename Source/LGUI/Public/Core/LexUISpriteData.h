@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -92,8 +92,8 @@ public:
 
 	/** initialize Sprite data */
 	void InitSpriteData();
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool HavePackingTag()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI") const FName& GetPackingTag()const;
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool HavePackingTag()const;
+	UFUNCTION(BlueprintCallable, Category = "LexUI") const FName& GetPackingTag()const;
 
 	/**
 	 * Create a LexUISpriteData with provided parameter. This can use at runtime
@@ -103,7 +103,7 @@ public:
 	 * @param InPackingTag				See "PackingTag" property
 	 * @return							Created LexUISpriteData, nullptr if something wrong.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static ULexUISpriteData* CreateLexUISpriteData(UObject* Outer, UTexture2D* InSpriteTexture, FMargin InBorder, FName InPackingTag = TEXT("Main"));
 
 	/**
@@ -111,7 +111,7 @@ public:
 	 * Not support packingAtlas (static packing).
 	 */
 	void ReloadTexture();
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D* GetSpriteTexture()const { return SpriteTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") UTexture2D* GetSpriteTexture()const { return SpriteTexture; }
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;

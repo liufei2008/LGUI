@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -79,111 +79,111 @@ protected:
 	friend class FLexRectBlockCustomization;
 
 #pragma region BlockData
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector4f CornerRadius = FVector4f(0.1f, 0.1f, 0.1f, 0.1f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode CornerRadiusUnitMode = ELexRectBlockUnitMode::Percentage;
 	/** Prevent edge aliasing, useful when in 3d. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", AdvancedDisplay)
 		bool bSoftEdge = true;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableBody = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor BodyColor = FColor::White;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockTextureMode BodyTextureMode = ELexRectBlockTextureMode::Sprite;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<class UTexture> BodyTexture = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (DisplayThumbnail = "false"))
 		TObjectPtr<ULexUISpriteData_BaseObject> BodySpriteTexture = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (EditCondition = "BodyTexture"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (EditCondition = "BodyTexture"))
 		ELexRectBlockTextureScaleMode BodyTextureScaleMode = ELexRectBlockTextureScaleMode::Stretch;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableBodyGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor BodyGradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector2f BodyGradientCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode BodyGradientCenterUnitMode = ELexRectBlockUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector2f BodyGradientRadius = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode BodyGradientRadiusUnitMode = ELexRectBlockUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float BodyGradientRotation = 0;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableBorder = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float BorderWidth = 2;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode BorderWidthUnitMode = ELexRectBlockUnitMode::Value;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor BorderColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableBorderGradient = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor BorderGradientColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector2f BorderGradientCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode BorderGradientCenterUnitMode = ELexRectBlockUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector2f BorderGradientRadius = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode BorderGradientRadiusUnitMode = ELexRectBlockUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float BorderGradientRotation = 0;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableInnerShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor InnerShadowColor = FColor::Black;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float InnerShadowSize = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode InnerShadowSizeUnitMode = ELexRectBlockUnitMode::Value;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float InnerShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode InnerShadowBlurUnitMode = ELexRectBlockUnitMode::Value;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float InnerShadowAngle = 45;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float InnerShadowDistance = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode InnerShadowDistanceUnitMode = ELexRectBlockUnitMode::Value;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableRadialFill = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FVector2f RadialFillCenter = FVector2f(0.5f, 0.5f);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode RadialFillCenterUnitMode = ELexRectBlockUnitMode::Percentage;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float RadialFillRotation = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float RadialFillAngle = 270;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		bool bEnableOuterShadow = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		FColor OuterShadowColor = FColor(0, 0, 0, 128);
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float OuterShadowSize = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode OuterShadowSizeUnitMode = ELexRectBlockUnitMode::Value;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0"))
 		float OuterShadowBlur = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode OuterShadowBlurUnitMode = ELexRectBlockUnitMode::Value;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect", meta = (ClampMin = "0.0", ClampMax = "360.0"))
 		float OuterShadowAngle = 45;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		float OuterShadowDistance = 4;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ProceduralRect")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ProceduralRect")
 		ELexRectBlockUnitMode OuterShadowDistanceUnitMode = ELexRectBlockUnitMode::Value;
 
 	void FillData(uint8* Data, float width, float height);
@@ -299,294 +299,294 @@ public:
 	virtual void ApplyAtlasTextureChange_Implementation()override;
 #pragma endregion
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector4f& GetCornerRadius()const { return CornerRadius; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetCornerRadiusUnitMode()const { return CornerRadiusUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableBody()const { return bEnableBody; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetBodyColor()const { return BodyColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UTexture* GetBodyTexture()const { return BodyTexture; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexUISpriteData_BaseObject* GetBodySpriteTexture()const { return BodySpriteTexture; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockTextureMode GetBodyTextureMode()const { return BodyTextureMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockTextureScaleMode GetBodyTextureScaleMode()const { return BodyTextureScaleMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetSoftEdge()const { return bSoftEdge; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableBodyGradient()const { return bEnableBodyGradient; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetBodyGradientColor()const { return BodyGradientColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector2f& GetBodyGradientCenter()const { return BodyGradientCenter; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetBodyGradientCenterUnitMode()const { return BodyGradientCenterUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector2f& GetBodyGradientRadius()const { return BodyGradientRadius; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetBodyGradientRadiusUnitMode()const { return BodyGradientRadiusUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetBodyGradientRotation()const { return BodyGradientRotation; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableBorder()const { return bEnableBorder; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetBorderWidth()const { return BorderWidth; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetBorderWidthUnitMode()const { return BorderWidthUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetBorderColor()const { return BorderColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableBorderGradient()const { return bEnableBorderGradient; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetBorderGradientColor()const { return BorderGradientColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector2f& GetBorderGradientCenter()const { return BorderGradientCenter; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetBorderGradientCenterUnitMode()const { return CornerRadiusUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector2f& GetBorderGradientRadius()const { return BorderGradientRadius; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetBorderGradientRadiusUnitMode()const { return BorderGradientRadiusUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetBorderGradientRotation()const { return BorderGradientRotation; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableInnerShadow()const { return bEnableInnerShadow; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetInnerShadowColor()const { return InnerShadowColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetInnerShadowSize()const { return InnerShadowSize; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetInnerShadowSizeUnitMode()const { return InnerShadowSizeUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetInnerShadowBlur()const { return InnerShadowBlur; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetInnerShadowBlurUnitMode()const { return InnerShadowBlurUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetInnerShadowAngle()const { return InnerShadowAngle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetInnerShadowDistance()const { return InnerShadowDistance; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetInnerShadowDistanceUnitMode()const { return InnerShadowDistanceUnitMode; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableRadialFill()const { return bEnableRadialFill; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FVector2f& GetRadialFillCenter()const { return RadialFillCenter; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetRadialFillCenterUnitMode()const { return RadialFillCenterUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetRadialFillRotation()const { return RadialFillRotation; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetRadialFillAngle()const { return RadialFillAngle; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableOuterShadow()const { return bEnableOuterShadow; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const FColor& GetOuterShadowColor()const { return OuterShadowColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetOuterShadowSize()const { return OuterShadowSize; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetOuterShadowSizeUnitMode()const { return OuterShadowSizeUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetOuterShadowBlur()const { return OuterShadowBlur; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetOuterShadowBlurUnitMode()const { return OuterShadowBlurUnitMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetOuterShadowAngle()const { return OuterShadowAngle; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetOuterShadowDistance()const { return OuterShadowDistance; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRectBlockUnitMode GetOuterShadowDistanceUnitMode()const { return OuterShadowDistanceUnitMode; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetRaycastSupportCornerRadius()const { return bRaycastSupportCornerRadius; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetCornerRadius(const FVector4& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetCornerRadiusUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableBody(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyTexture(UTexture* value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodySpriteTexture(ULexUISpriteData_BaseObject* value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyTextureMode(ELexRectBlockTextureMode value);
 	/** Set size from current body texture or Sprite */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSizeFromBodyTexture();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyTextureScaleMode(ELexRectBlockTextureScaleMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSoftEdge(bool value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableBodyGradient(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientCenter(const FVector2D& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientCenterUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientRadius(const FVector2D& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientRadiusUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBodyGradientRotation(float value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableBorder(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderWidth(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderWidthUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableBorderGradient(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientCenter(const FVector2D& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientCenterUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientRadius(const FVector2D& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientRadiusUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBorderGradientRotation(float value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableInnerShadow(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowSize(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowSizeUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowBlur(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowBlurUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowAngle(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowDistance(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetInnerShadowDistanceUnitMode(ELexRectBlockUnitMode value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableRadialFill(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRadialFillCenter(const FVector2D& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRadialFillCenterUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRadialFillRotation(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRadialFillAngle(float value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableOuterShadow(bool value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowColor(const FColor& value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowSize(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowSizeUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowBlur(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowBlurUnitMode(ELexRectBlockUnitMode value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowAngle(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowDistance(float value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOuterShadowDistanceUnitMode(ELexRectBlockUnitMode value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRaycastSupportCornerRadius(bool value);
 
 #pragma region TweenAnimation
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* CornerRadiusTo(FVector4 endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyGradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyGradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyGradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyGradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BodyGradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderWidthTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderGradientColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderGradientAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderGradientCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderGradientRadiusTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* BorderGradientRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowSizeTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowBlurTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* InnerShadowDistanceTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* RadialFillCenterTo(FVector2D endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* RadialFillRotationTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* RadialFillAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowAlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowSizeTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowBlurTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 		ULTweener* OuterShadowDistanceTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 #pragma endregion
 };

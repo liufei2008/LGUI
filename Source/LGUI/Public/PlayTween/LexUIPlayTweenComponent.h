@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -14,9 +14,9 @@ class LGUI_API ULexUIPlayTweenComponent : public ULexUIBehaviour
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bPlayOnStart = true;
-	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Instanced)
 		TObjectPtr<ULexUIPlayTween> PlayTween;
 
 	virtual void Awake() override;

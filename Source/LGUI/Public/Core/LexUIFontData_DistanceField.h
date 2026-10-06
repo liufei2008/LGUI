@@ -56,26 +56,26 @@ public:
 	ULexUIFontData_DistanceField();
 private:
 	/** Font size when render glyph. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "16", UIMax = "100"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "16", UIMax = "100"))
 		int SampleFontSize = 64;
 	/** The radius of the distance field in pixels. Normally just use 1/4 of FontSize */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "1"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "1"))
 		int SDFRadius = 16;
 	/** Angle of italic style in degree */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float ItalicAngle = 15.0f;
 	/**
 	 * bold size radio for bold style, large number create more bold effect.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		float BoldRatio = 0.06f;
 	/** -1 means not set yet. */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", Transient)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", Transient)
 		int LineHeight = -1;
 	/** -1 means not set yet. */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", Transient)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", Transient)
 		int VerticalOffset = -1;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI", Transient)
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI", Transient)
 	float AdditionalVerticalOffset = 0.0f;
 
 public:

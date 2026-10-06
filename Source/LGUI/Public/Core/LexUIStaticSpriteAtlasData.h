@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -38,16 +38,16 @@ private:
 #endif
 
 	/** Generated atlas texture. */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI")
 		TArray<TObjectPtr<UTexture2D>> AtlasTextureArray;
 #if WITH_EDITORONLY_DATA
 	/** Collected Sprite array to pack. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<TObjectPtr<ULexUISpriteData>> SpriteDataArray;
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ULexUISpriteData>> PrevSpriteDataArray;
 	/** collection of all objects that use this atlas to render. Object must implement IUISpriteRenderableInterface. */
-	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay)
 		TArray<TWeakObjectPtr<UObject>> RenderSpriteArray;
 	/**
 	 * Store texture mip data, so we can recreate atlas texture with this data.

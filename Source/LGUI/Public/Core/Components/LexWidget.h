@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -241,11 +241,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Transform")
 	int GetChildrenCount()const { return Children.Num(); }
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	const TArray<ULexUIBehaviour*>& GetAllComponents()const{return Components;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
 	TArray<ULexUIBehaviour*> GetComponents(TSubclassOf<ULexUIBehaviour> ComponentClass)const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
 	ULexUIBehaviour* GetComponent(TSubclassOf<ULexUIBehaviour> ComponentClass)const;
 	template<class T>
 	T* GetComponent()const
@@ -253,7 +253,7 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexUIBehaviour>::Value, "'T' template parameter to GetComponent must be derived from ULexUIBehaviour");
 		return Cast<T>(GetComponent(T::StaticClass()));
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeterminesOutputType = "InterfaceClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (DeterminesOutputType = "InterfaceClass"))
 	ULexUIBehaviour* GetComponentByInterface(UClass* InterfaceClass)const;
 	/**
 	 * Find the first component in parent and up parent hierarchy with type.
@@ -261,7 +261,7 @@ public:
 	 * @param bIncludeSelf	Include target widget self.
 	 * @param InStopWidget	If parent is InStopWidget then break the search chain. Can be null to ignore it.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass", AdvancedDisplay = "InStopWidget"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Script/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass", AdvancedDisplay = "InStopWidget"))
 	ULexUIBehaviour* GetComponentInParent(TSubclassOf<ULexUIBehaviour> ComponentClass, bool bIncludeSelf = false, ULexWidget* InStopWidget = nullptr)const;
 	template<class T>
 	T* GetComponentInParent(bool bIncludeSelf = false, ULexWidget* InStopWidget = nullptr)const
@@ -269,9 +269,9 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexUIBehaviour>::Value, "'T' template parameter to GetComponentInParent must be derived from ULexUIBehaviour");
 		return Cast<T>(GetComponentInParent(T::StaticClass(), bIncludeSelf, InStopWidget));
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour", DeterminesOutputType = "ComponentClass"))
 	ULexUIBehaviour* AddComponent(TSubclassOf<ULexUIBehaviour> ComponentClass);
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeterminesOutputType = "ComponentTemplate"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (DeterminesOutputType = "ComponentTemplate"))
 	ULexUIBehaviour* AddComponentByTemplate(ULexUIBehaviour* ComponentTemplate);
 	template<class T>
 	T* AddComponent()
@@ -285,9 +285,9 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexUIBehaviour>::Value, "'T' template parameter to GetComponent must be derived from ULexUIBehaviour");
 		return Cast<T>(AddComponent(T::StaticClass(), ComponentTemplate));
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour"))
 	void RemoveComponent(ULexUIBehaviour* Component);
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (ComponentClass = "/Sript/LGUI.LexUIBehaviour"))
 	void MoveComponentToIndex(ULexUIBehaviour* Component, int32 NewIndex);
 	void UpdateObjectToWorldTransform();
 	void CalculateObjectToWorldTransform(bool bPropagateToChildren = true);
@@ -356,20 +356,20 @@ protected:
 	void EnsureUIChildrenSorted()const;
 
 	/** AnchorData contains rect transform and color */
-	UPROPERTY(EditAnywhere, Getter, Setter, Category = "LGUI-AnchorData")
+	UPROPERTY(EditAnywhere, Getter, Setter, Category = "LexUI-AnchorData")
 	FLexUIAnchorData AnchorData;
 
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetWidth", Setter="SetWidth", Category = "LGUI-AnchorData", DisplayName="Width")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetWidth", Setter="SetWidth", Category = "LexUI-AnchorData", DisplayName="Width")
 	mutable float CacheWidth = 0;
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetHeight", Setter="SetHeight", Category = "LGUI-AnchorData", DisplayName="Height")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetHeight", Setter="SetHeight", Category = "LexUI-AnchorData", DisplayName="Height")
 	mutable float CacheHeight = 0;
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorLeft", Setter="SetAnchorLeft", Category = "LGUI-AnchorData", DisplayName="AnchorLeft")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorLeft", Setter="SetAnchorLeft", Category = "LexUI-AnchorData", DisplayName="AnchorLeft")
 	mutable float CacheAnchorOffsetLeft = 0;
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorRight", Setter="SetAnchorRight", Category = "LGUI-AnchorData", DisplayName="AnchorRight")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorRight", Setter="SetAnchorRight", Category = "LexUI-AnchorData", DisplayName="AnchorRight")
 	mutable float CacheAnchorOffsetRight = 0;
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorTop", Setter="SetAnchorTop", Category = "LGUI-AnchorData", DisplayName="AnchorTop")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorTop", Setter="SetAnchorTop", Category = "LexUI-AnchorData", DisplayName="AnchorTop")
 	mutable float CacheAnchorOffsetTop = 0;
-	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorBottom", Setter="SetAnchorBottom", Category = "LGUI-AnchorData", DisplayName="AnchorBottom")
+	//UPROPERTY(EditAnywhere, Transient, Getter="GetAnchorBottom", Setter="SetAnchorBottom", Category = "LexUI-AnchorData", DisplayName="AnchorBottom")
 	mutable float CacheAnchorOffsetBottom = 0;
 	
 	mutable uint8 bCacheWidthDirty : 1 = true, bCacheHeightDirty : 1 = true,
@@ -379,115 +379,115 @@ protected:
 	
 #pragma region AnchorData
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	const FLexUIAnchorData& GetAnchorData()const { return AnchorData; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetPivot() const { return AnchorData.Pivot; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetAnchorMin() const { return AnchorData.AnchorMin; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetAnchorMax() const { return AnchorData.AnchorMax; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetAnchoredPosition() const { return AnchorData.AnchoredPosition; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetSizeDelta() const { return AnchorData.SizeDelta; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	float GetHorizontalAnchoredPosition() const { return AnchorData.AnchoredPosition.X; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	float GetVerticalAnchoredPosition() const { return AnchorData.AnchoredPosition.Y; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetWidth() const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetHeight() const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FVector2D GetSize() const{return FVector2D(GetWidth(), GetHeight());}
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetAnchorOffsetLeft()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetAnchorOffsetTop()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetAnchorOffsetRight()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetAnchorOffsetBottom()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	FMargin GetAnchorOffset()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorData(const FLexUIAnchorData& Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetPivot(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorMin(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorMax(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	void SetAnchorOffset(FMargin Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetHorizontalAndVerticalAnchorMinMax(FVector2D MinValue, FVector2D MaxValue, bool bKeepSize, bool bKeepRelativeLocation);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize = false, bool bKeepRelativeLocation = false);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize = false, bool bKeepRelativeLocation = false);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchoredPosition(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetHorizontalAnchoredPosition(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetVerticalAnchoredPosition(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetSizeDelta(FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 	void SetAnchoredPositionAndSizeDelta(FVector2D Position, FVector2D Size);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetWidth(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetHeight(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetSize(FVector2D Value);
 
 	/** This function only valid if UIItem have parent */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorOffsetLeft(float Value);
 	/** This function only valid if UIItem have parent */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorOffsetTop(float Value);
 	/** This function only valid if UIItem have parent */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorOffsetRight(float Value);
 	/** This function only valid if UIItem have parent */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		void SetAnchorOffsetBottom(float Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		FVector2D GetLocalSpaceRightTopPoint()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		FVector2D GetLocalSpaceCenter()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetLocalSpaceLeft()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetLocalSpaceRight()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetLocalSpaceBottom()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-AnchorData")
 		float GetLocalSpaceTop()const;
 #pragma endregion
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWidget* GetChildByIndex(int index)const;
 	/** Get root canvas of hierarchy */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexCanvas* GetRootCanvas()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWidgetPresenterComponent* GetWidgetPresenterComponent()const;
 
 	/** mark all dirty for UI element to update, include all children */
@@ -519,52 +519,52 @@ private:
 	uint8 bIsAttaching : 1 = false;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin="0", UIMax="1"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true, UIMin="0", UIMax="1"))
 	float RenderOpacity = 1.0f;
 	/**
 	 * If true then this widget's final render opacity only use its own RenderOpacity, and parent's RenderOpacity is not multiplied in.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetIgnoreParentRenderOpacity", Setter = "SetIgnoreParentRenderOpacity", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter = "GetIgnoreParentRenderOpacity", Setter = "SetIgnoreParentRenderOpacity", meta = (AllowPrivateAccess = true))
 	bool bIgnoreParentRenderOpacity = false;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	ELexWidgetClipping Clipping = ELexWidgetClipping::Inherit;
 	TWeakPtr<FLexUIClipData> ClipData = nullptr;
 	/**
 	 * X- RightBottom, Y- RightTop, Z- LeftTop, W- LeftBottom
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true, EditCondition="Clipping!=ELexWidgetClipping::Disabled&&Clipping!=ELexWidgetClipping::Inherit"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true, EditCondition="Clipping!=ELexWidgetClipping::Disabled&&Clipping!=ELexWidgetClipping::Inherit"))
 	FVector4f ClippingCornerRadius = FVector4f::Zero();
 	/**
 	 * Expand clip area outward.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true, EditCondition="Clipping!=ELexWidgetClipping::Disabled&&Clipping!=ELexWidgetClipping::Inherit"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true, EditCondition="Clipping!=ELexWidgetClipping::Disabled&&Clipping!=ELexWidgetClipping::Inherit"))
 	FMargin ClippingMargin = FMargin(0);
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bUniformSetClippingCornerRadius = true;
 #endif
 	/**
 	 * If not WidgetActive, then not visible, not take layout space, not interactable, not hit-testable
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetWidgetActive", Setter="SetWidgetActive", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter = "GetWidgetActive", Setter="SetWidgetActive", meta = (AllowPrivateAccess = true))
 	bool bWidgetActive = true;
 	/** If the widget will draw snapped to the nearest pixel.  Improves clarity but might cause visible stepping in animation. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	EWidgetPixelSnapping PixelSnapping = EWidgetPixelSnapping::Inherit;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	ELexWidgetRaycastableType Raycastable = ELexWidgetRaycastableType::Inherit;
 	/** If the widget enable for interaction? */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter, Setter, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter, Setter, meta = (AllowPrivateAccess = true))
 	ELexWidgetInteractableType Interactable = ELexWidgetInteractableType::Inherit;
 	/**
 	 * Restrict navigation area to only children of this UI node, to forbid it navigate out.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetRestrictNavigationArea", Setter = "SetRestrictNavigationArea", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter = "GetRestrictNavigationArea", Setter = "SetRestrictNavigationArea", meta = (AllowPrivateAccess = true))
 	uint8 bRestrictNavigationArea : 1 = false;
 	/**
 	 * Ignore parent layout container
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", Getter = "GetIgnoreLayout", Setter = "SetIgnoreLayout", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Getter = "GetIgnoreLayout", Setter = "SetIgnoreLayout", meta = (AllowPrivateAccess = true))
 	bool bIgnoreLayout = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Visual", Getter, meta = (AllowPrivateAccess = true))
@@ -575,22 +575,22 @@ protected:
 	TObjectPtr<ULexLayoutSelf> LayoutSelf = nullptr;
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexWidgetClipping GetClipping()const { return Clipping; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsPointVisibleOnClip(const FVector& Value)const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetClipping(ELexWidgetClipping Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector4f GetClippingCornerRadius()const { return ClippingCornerRadius; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FMargin GetClippingMargin()const { return ClippingMargin; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetClippingCornerRadius(FVector4f Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetClippingMargin(FMargin Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetRenderOpacity()const { return RenderOpacity; }
 	/**
 	 * Retrieves the final opacity value used during rendering for this widget, considering all relevant settings and parent opacity.
@@ -599,78 +599,78 @@ public:
 	 *
 	 * @return The calculated final opacity value for rendering this widget.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetFinalRenderOpacity()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRenderOpacity(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetIgnoreParentRenderOpacity()const { return bIgnoreParentRenderOpacity; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetIgnoreParentRenderOpacity(bool Value);
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	EWidgetPixelSnapping GetPixelSnapping()const { return PixelSnapping; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetPixelSnappingInHierarchy()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetPixelSnapping(EWidgetPixelSnapping Value);
 
 	/**
 	 * Get WidgetActive property value
 	 * @return WidgetActive self property
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetWidgetActive()const { return bWidgetActive; }
 	/**
 	 * Get widget active in hierarchy
 	 * @return Is widget active in hierarchy
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetWidgetActiveInHierarchy()const;
 	/**
 	 * Set WidgetActive self property
 	 * @param Value 
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetWidgetActive(bool Value);
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexWidgetRaycastableType GetRaycastable()const { return Raycastable; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRaycastable(ELexWidgetRaycastableType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetRaycastableInHierarchy()const{return bCacheRaycastableInHierarchy;}
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexWidgetInteractableType GetInteractable()const { return Interactable; }
 	/**
 	 * Get if this widget is interactable when use input interaction, considering all parent settings.
 	 * @return If this widget is interactable
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetInteractableInHierarchy()const{return bCacheInteractableInHierarchy;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetInteractable(ELexWidgetInteractableType Value);
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetRestrictNavigationArea()const{return bRestrictNavigationArea;}
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetIgnoreLayout()const{return bIgnoreLayout;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetIgnoreLayout(bool Value);
 
 	/**
 	 * Search up parent LexWidget which bRestrictNavigationArea is true and return it, include this LexWidget self
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	const ULexWidget* GetRestrictNavigationAreaWidget()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRestrictNavigationArea(bool Value);
 
 	UFUNCTION()
 	ULexVisual* GetVisual()const { return Visual; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType = "VisualClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType = "VisualClass"))
 	ULexVisual* GetVisualAs(TSubclassOf<ULexVisual> VisualClass)const;
 	template<class T>
 	T* GetVisualAs()
@@ -678,7 +678,7 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexVisual>::Value, "'T' template parameter to GetVisualAs must be derived from ULexVisual");
 		return (T*)GetVisualAs(T::StaticClass());
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType="VisualClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="VisualClass"))
 	ULexVisual* CreateNewVisual(TSubclassOf<ULexVisual> VisualClass);
 	template<class T>
 	T* CreateNewVisual()
@@ -686,12 +686,12 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexVisual>::Value, "'T' template parameter to CreateNewVisual must be derived from ULexVisual");
 		return (T*)CreateNewVisual(T::StaticClass());
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void RemoveVisual();
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexLayoutContainer* GetLayoutContainer()const { return LayoutContainer; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="LayoutClass"))
 	ULexLayoutContainer* CreateNewLayoutContainer(TSubclassOf<ULexLayoutContainer> Class);
 	template<class T>
 	T* CreateNewLayoutContainer()
@@ -699,12 +699,12 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutContainer>::Value, "'T' template parameter to CreateNewLayoutContainer must be derived from ULexLayoutContainer");
 		return (T*)CreateNewLayoutContainer(T::StaticClass());
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void RemoveLayoutContainer();
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexLayoutSelf* GetLayoutSelf()const{return LayoutSelf;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="LayoutClass"))
 	ULexLayoutSelf* CreateNewLayoutSelf(TSubclassOf<ULexLayoutSelf> Class);
 	template<class T>
 	T* CreateNewLayoutSelf()
@@ -712,7 +712,7 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const ULexLayoutSelf>::Value, "'T' template parameter to CreateNewLayoutSelf must be derived from ULexLayoutSelf");
 		return (T*)CreateNewLayoutSelf(T::StaticClass());
 	}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void RemoveLayoutSelf();
 
 	const TWeakPtr<FLexUIClipData>& GetClipData()const{return ClipData;}
@@ -788,28 +788,28 @@ private:
 
 public:
 	/** Get the canvas that render and update this UI element */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexCanvas* GetRenderCanvas() const;
 	/** Is this UI element render to screen space overlay? */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool IsScreenSpaceOverlayUI()const;
 	/** Is this UI element render to a RenderTarget? */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool IsRenderTargetUI()const;
 	/** Is this UI element render in world space? */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool IsWorldSpaceUI()const;
 
 	bool IsCanvasWidget()const { return bIsCanvasWidget; }
 
 	/** return root Widget in hierarchy, could be null if not initialized yet. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexWidget* GetRootWidgetInHierarchy()const { return RootWidget.Get(); }
 	bool IsRootWidgetInHierarchy()const{return RootWidget.Get() == this;}
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	static void MarkLayoutForRebuild(ULexWidget* InWidget);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	static void RebuildLayoutImmediately(ULexWidget* InWidget);
 
 private:
@@ -879,22 +879,22 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", ToolTip = "Rotate absolute rotator value"), Category = "LTween")
 	ULTweener* WorldRotatorTo(FRotator endValue, bool shortestPath, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 	
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* RenderOpacityTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* SizeDeltaTo(const FVector2D& endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* WidthTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* HeightTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* AnchoredPositionTo(const FVector2D& endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* HorizontalAnchoredPositionTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* VerticalAnchoredPositionTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLexUI")
 	static void SetWidgetTweenerAffectByGamePauseAndTimeDilation(ULexWidget* Widget, ULTweener* Tweener);
 #pragma endregion
 };

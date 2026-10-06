@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
@@ -88,9 +88,9 @@ public:
 	TArray<TWeakObjectPtr<ULexUIBehaviour>> GetSelectedComponents()const{return SelectedComponentArray;}
 	FSimpleMulticastDelegate OnSelectionChanged;
 private:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TWeakObjectPtr<ULexWidget>> SelectedWidgetArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TWeakObjectPtr<ULexUIBehaviour>> SelectedComponentArray;
 };
 
@@ -154,31 +154,31 @@ private:
 #endif
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	mutable TObjectPtr<ULexUISelection> Selection;
 #endif
 	
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TWeakObjectPtr<ULexCanvas>> AllCanvasArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TObjectPtr<ULexWidget>> AllWidgetArray;
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TArray<TWeakObjectPtr<ULexBaseRaycaster>> AllRaycasterArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TArray<TWeakObjectPtr<UUISelectable>> AllSelectableArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TArray<TWeakObjectPtr<UObject>> AllCultureChangedArray;
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TMap<int, TWeakObjectPtr<ULexEventSystem>> MapUserIndexToEventSystem;
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TArray<TWeakObjectPtr<ULexUIBehaviour>> LexUIBehavioursForTick;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TArray<TWeakObjectPtr<ULexUIBehaviour>> LexUIBehavioursForStart;
 
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TArray<TWeakObjectPtr<ULexWidget>> LayoutDirtyWidgetArray;
 	
 	TMap<TObjectPtr<ULexWidget>, FLexUILayoutTree> MapWidgetToLayoutTree;
@@ -227,9 +227,9 @@ public:
 	int IncreateLayoutCalculationCounter(const FString& InPathName);
 #endif
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	static void RegisterLexUICultureChangedEvent(TScriptInterface<ILexUICultureChangedInterface> InItem);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	static void UnregisterLexUICultureChangedEvent(TScriptInterface<ILexUICultureChangedInterface> InItem);
 
 	static TSharedPtr<class FLexUIRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);

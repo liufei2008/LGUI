@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -67,27 +67,27 @@ protected:
 
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteDrawType GetDrawType()const { return DrawType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ELexUISpriteFlipMode GetFlipMode()const { return FlipMode; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FLexUISpriteInfo GetSpriteInfo()const { return SpriteInfo; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector4f GetUVRect()const { return UVRect; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetFillCenter() const { return bFillCenter; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	ELexUISpriteFillMethod GetFillMethod()const { return FillMethod; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	uint8 GetFillOrigin()const { return FillOrigin; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return FillDirectionFlip; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return FillAmount; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUISpriteDrawType GetDrawType()const { return DrawType; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ELexUISpriteFlipMode GetFlipMode()const { return FlipMode; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") FLexUISpriteInfo GetSpriteInfo()const { return SpriteInfo; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") FVector4f GetUVRect()const { return UVRect; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") float GetPixelsPerUnitMultiplier() const { return PixelsPerUnitMultiplier; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") bool GetFillCenter() const { return bFillCenter; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI")	ELexUISpriteFillMethod GetFillMethod()const { return FillMethod; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI")	uint8 GetFillOrigin()const { return FillOrigin; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI")	bool GetFillDirectionFlip()const { return FillDirectionFlip; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI")	float GetFillAmount()const { return FillAmount; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetDrawType(ELexUISpriteDrawType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFlipMode(ELexUISpriteFlipMode Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetSpriteInfo(FLexUISpriteInfo Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetUVRect(FVector4f Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetPixelsPerUnitMultiplier(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillCenter(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(ELexUISpriteFillMethod Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillAmount(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetDrawType(ELexUISpriteDrawType Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFlipMode(ELexUISpriteFlipMode Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetSpriteInfo(FLexUISpriteInfo Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetUVRect(FVector4f Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetPixelsPerUnitMultiplier(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFillCenter(bool Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFillMethod(ELexUISpriteFillMethod Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFillOrigin(uint8 Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFillDirectionFlip(bool Value);
+	UFUNCTION(BlueprintCallable, Category = "LexUI") void SetFillAmount(float Value);
 
 	virtual void SetTexture(UTexture* Value)override;
 };

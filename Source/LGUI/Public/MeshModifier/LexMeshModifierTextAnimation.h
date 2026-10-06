@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -36,10 +36,10 @@ private:
 public:
 	virtual bool Select(ULexText* InUIText, FLexMeshModifierTextAnimation_SelectResult& OutSelection) PURE_VIRTUAL(UUIEffectTextAnimation_Selector::Select, return false;);
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetOffset()const { return Offset; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOffset(float Value);
 };
 
@@ -66,13 +66,13 @@ public:
 	ULexMeshModifierTextAnimation();
 protected:
 	/** Selector defines the method to select characters in text */
-	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Instanced)
 		TObjectPtr<ULexMeshModifierTextAnimation_Selector> Selector;
 	/** Properties defines which property will affect and how */
-	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Instanced)
 		TArray<TObjectPtr<ULexMeshModifierTextAnimation_Property>> Properties;
 	/** This is just a agent to selector's offset property, for Sequencer access it. */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		mutable float SelectorOffset = 0.0f;
 
 	UPROPERTY(Transient)TObjectPtr<ULexText> TextObject;
@@ -89,21 +89,21 @@ public:
 	)override;
 	ULexText* GetLexText();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexMeshModifierTextAnimation_Selector* GetSelector()const { return Selector; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<ULexMeshModifierTextAnimation_Property*>& GetProperties()const { return Properties; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexMeshModifierTextAnimation_Property* GetProperty(int Index)const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetSelectorOffset()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSelector(ULexMeshModifierTextAnimation_Selector* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetProperties(const TArray<ULexMeshModifierTextAnimation_Property*>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetProperty(int Index, ULexMeshModifierTextAnimation_Property* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSelectorOffset(float Value);
 };

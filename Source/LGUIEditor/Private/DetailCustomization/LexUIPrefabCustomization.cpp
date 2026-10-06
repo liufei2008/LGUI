@@ -26,7 +26,7 @@ void FLexUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 		return;
 	}
 
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LexUI");
 
 	//category.AddCustomRow(LOCTEXT("Edit prefab", "Edit prefab"))
 	//	.NameContent()

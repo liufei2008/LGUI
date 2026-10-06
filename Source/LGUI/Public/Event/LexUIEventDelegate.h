@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -71,57 +71,57 @@ private:
 	friend struct FLexUIEventDelegate;
 	friend class FLexUIEventDelegateCustomization;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue = false;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")double DoubleValue = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int8 Int8Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint8 UInt8Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int16 Int16Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint16 UInt16Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int32 Int32Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value = 0;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value = FVector4(0, 0, 0, 0);
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FQuat QuatValue = FQuat::Identity;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue = FColor::White;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue = FLinearColor::White;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue = FRotator::ZeroRotator;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FString StringValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FName NameValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FText TextValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")bool BoolValue = false;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")float FloatValue = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")double DoubleValue = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")int8 Int8Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")uint8 UInt8Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")int16 Int16Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")uint16 UInt16Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")int32 Int32Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")uint32 UInt32Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")int64 Int64Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")uint64 UInt64Value = 0;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FVector2D Vector2Value = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FVector Vector3Value = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FVector4 Vector4Value = FVector4(0, 0, 0, 0);
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FQuat QuatValue = FQuat::Identity;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FColor ColorValue = FColor::White;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FLinearColor LinearColorValue = FLinearColor::White;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FRotator RotatorValue = FRotator::ZeroRotator;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FString StringValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FName NameValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")FText TextValue;
 #endif
 
 	/** target widget */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<ULexWidget> HelperWidget = nullptr;
 	/** target object class. If class is LexWidget then TargetObject is HelperWidget, if class is LexUIBehaviour then TargetObject is the component. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<UClass> HelperClass = nullptr;
 	/** if TargetObject is widget component and HelperWidget have multiple components, then select by component name. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		FName HelperComponentName;
 
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI")
 		TObjectPtr<UObject> TargetObject = nullptr;
 	/** target function name */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FName FunctionName;
 	/** target function supported parameter type */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUIEventDelegateParameterType ParamType = ELexUIEventDelegateParameterType::None;
 
 	/** data buffer stores function's parameter */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<uint8> ParamBuffer;
 	/** Object reference, can reference widget/class/asset */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<UObject> ReferenceObject = nullptr;
 
 	/** use the function's native parameter? */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bUseNativeParameter = false;
 private:
 	UPROPERTY(Transient) TObjectPtr<UFunction> CacheFunction = nullptr;
@@ -156,10 +156,10 @@ public:
 private:
 	friend class FLexUIEventDelegateCustomization;
 	/** event list */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		mutable TArray<FLexUIEventDelegateData> EventList;
 	/** supported parameter type of this event */
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
+	UPROPERTY(EditAnywhere, Transient, Category = "LexUI", meta = (DisplayName = "NativeParameterType"))
 		ELexUIEventDelegateParameterType SupportParameterType = ELexUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLexUIEventDelegate(LexUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;

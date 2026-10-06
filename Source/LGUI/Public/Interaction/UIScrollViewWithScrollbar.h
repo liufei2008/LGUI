@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -37,15 +37,15 @@ protected:
 private:
 	friend class FUIScrollViewWithScrollBarCustomization;
 	//For scrollbars to expand or shrink viewport
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ScrollViewWithScrollbar")
 		TWeakObjectPtr<ULexWidget> Viewport;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ScrollViewWithScrollbar")
 		TWeakObjectPtr<UUIScrollbar> HorizontalScrollbar;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ScrollViewWithScrollbar")
 		ELexUIScrollViewScrollbarVisibility HorizontalScrollbarVisibility = ELexUIScrollViewScrollbarVisibility::AutoHide;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ScrollViewWithScrollbar")
 		TWeakObjectPtr<UUIScrollbar> VerticalScrollbar;
-	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
+	UPROPERTY(EditAnywhere, Category = "LexUI-ScrollViewWithScrollbar")
 		ELexUIScrollViewScrollbarVisibility VerticalScrollbarVisibility = ELexUIScrollViewScrollbarVisibility::AutoHide;
 
 	virtual void CalculateHorizontalRange()override;
@@ -64,19 +64,19 @@ private:
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		ULexWidget* GetViewport()const { return Viewport.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		UUIScrollbar* GetHorizontalScrollbar()const { return HorizontalScrollbar.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		ELexUIScrollViewScrollbarVisibility GetHorizontalScrollbarVisibility()const { return HorizontalScrollbarVisibility; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		UUIScrollbar* GetVerticalScrollbar()const { return VerticalScrollbar.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		ELexUIScrollViewScrollbarVisibility GetVerticalScrollbarVisibility()const { return VerticalScrollbarVisibility; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		void SetHorizontalScrollbarVisibility(ELexUIScrollViewScrollbarVisibility value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-ScrollViewWithScrollbar")
 		void SetVerticalScrollbarVisibility(ELexUIScrollViewScrollbarVisibility value);
 };

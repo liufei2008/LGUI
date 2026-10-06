@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LexCanvasCustomization.h"
 #include "LexUIEditorUtils.h"
@@ -75,7 +75,7 @@ void FLexCanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		}
 	}
 	
-	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("LGUI");
+	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("LexUI");
 	TArray<FName> NeedToHidePropertyNames;
 
 	if (TargetScriptArray[0]->GetWorld() != nullptr)
@@ -216,7 +216,7 @@ void FLexCanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuild
 		}
 	}
 
-	auto& CanvasScalerCategory = DetailBuilder.EditCategory("LGUI-CanvasScaler");
+	auto& CanvasScalerCategory = DetailBuilder.EditCategory("LexUI-CanvasScaler");
 	//add all property
 	NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, ProjectionType));
 	NeedToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULexCanvas, FieldOfView));

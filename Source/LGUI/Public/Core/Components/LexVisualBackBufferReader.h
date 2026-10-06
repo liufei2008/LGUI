@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -56,15 +56,15 @@ public:
 	
 	FLexUIGeometry* GetGeometry()const { return Geometry.Get(); }
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FBox2f Get2dBoxInScreen()const{return MeshRectInScreen;}
 	/** same as Get2dBoxInScreen but normalized to 0~1, xy- min, zw- size */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector4f Get2dBoxInScreen01()const{return RectInScreen01;}
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexVisualBackBufferReaderMode GetBackBufferReaderType()const{return BackBufferReaderType;}
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetBackBufferReaderType(ELexVisualBackBufferReaderMode InBackBufferReaderType);
 
 	void MarkVertexPositionDirty();

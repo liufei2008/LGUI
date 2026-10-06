@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -14,21 +14,21 @@ struct LGUI_API FLexUIGeometryVertex
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		FVector position = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		FColor color = FColor::White;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 		FVector2D uv0 = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", AdvancedDisplay)
 		FVector2D uv1 = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", AdvancedDisplay)
 		FVector2D uv2 = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", AdvancedDisplay)
 		FVector2D uv3 = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", AdvancedDisplay)
 		FVector normal = FVector(-1, 0, 0);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", AdvancedDisplay)
 		FVector tangent = FVector(0, 1, 0);
 };
 /** a helper class for make LGUI geometry */
@@ -38,38 +38,38 @@ class LGUI_API ULexUIGeometryHelper : public UObject
 	GENERATED_BODY()
 public:
 	FLexUIGeometry* UIGeo = nullptr;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void AddVertexSimple(FVector position, FColor color, FVector2D uv0);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void AddVertexStruct(FLexUIGeometryVertex vertex);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void AddTriangle(int index0, int index1, int index2);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetMesh(const TArray<FLexUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
 
 	/**
 	 * Remove vertices and triangle indices data, left the geometry empty.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void Clear();
 
 	/**
 	 * Add a list of triangles.
 	 * @param	InVertexTriangleStream	Vertices to add, length should be divisible by 3.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void AddVertexTriangleStream(const TArray<FLexUIGeometryVertex>& InVertexTriangleStream);
 	/**
 	 * Get a stream of vertex in triangles.
 	 * @param	OutVertexTriangleStream		Vertices stream, length is divisible by 3.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void GetVertexTriangleStream(TArray<FLexUIGeometryVertex>& OutVertexTriangleStream);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static FVector2D CalculatePivotOffset(float InWidth, float InHeight, const FVector2D& InPivot);
 };
 
@@ -127,7 +127,7 @@ public:
 	 * Call this if you want to update vertex data. 
 	 * For blueprint easily use.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void MarkVerticesDirty();
 
 	virtual void MarkAllDirty()override;
@@ -151,20 +151,20 @@ public:
 	
 	UFUNCTION()
 	FColor GetColor() const { return Color; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetAlpha() const { return FLexUIUtils::ByteToFloat01(Color.A); }
 	
 	UFUNCTION()
 	void SetColor(FColor Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetAlpha(float Value);
 	
 	uint8 GetFinalAlpha()const;
 	/** get final alpha, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetFinalAlpha01()const;
 	/** get final color, calculated with inherited RenderOpacity */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FColor GetFinalColor()const;
 	
 protected:
@@ -202,16 +202,16 @@ protected:
 	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const override;
 
 	/** texture for render this UI element */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
 		UTexture* ReceiveGetTextureToCreateGeometry();
 	/** material to render this UI element. if CustomUIMaterial is not valid, then use this material. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetMaterialToCreateGeometry"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "GetMaterialToCreateGeometry"))
 		UMaterialInterface* ReceiveGetMaterialToCreateGeometry();
 	/** do anything before actually create or update geometry */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void ReceiveOnBeforeCreateOrUpdateGeometry();
 	/** fill and update ui geometry */
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "LexUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void ReceiveOnUpdateGeometry(ULexUIGeometryHelper* InGeometryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 private:
@@ -231,13 +231,13 @@ private:
 	
 public:
 #pragma region TweenAnimation
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* ColorTo(FColor endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* ColorFrom(FColor startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* AlphaTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLexUI")
 	ULTweener* AlphaFrom(float startValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 #pragma endregion
 };

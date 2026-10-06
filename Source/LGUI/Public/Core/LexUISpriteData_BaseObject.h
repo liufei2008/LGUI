@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -20,12 +20,12 @@ class LGUI_API ULexUISpriteData_BaseObject :public UObject
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		virtual UTexture2D* GetAtlasTexture()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetAtlasTexture, return nullptr;);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		virtual const FLexUISpriteInfo& GetSpriteInfo()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetSpriteInfo, static FLexUISpriteInfo ForReturn; return ForReturn;);
 	/** This Sprite-data is a individual one? Means it will not pack into any atlas texture. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		virtual bool IsIndividual()const PURE_VIRTUAL(ULGUISpriteData_BaseObject::IsIndividual, return false;);
 	/**
 	 * Read pixel value from packed atlas texture.
@@ -33,7 +33,7 @@ public:
 	 * @param OutPixel result pixel value.
 	 * @return true- successfully read pixel, false- not support read pixel.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		virtual bool ReadPixel(const FVector2D& InUV, FColor& OutPixel)const PURE_VIRTUAL(ULGUISpriteData_BaseObject::ReadPixel, return false;);
 	/**
 	 * Can we read texture's pixel from this Sprite object?

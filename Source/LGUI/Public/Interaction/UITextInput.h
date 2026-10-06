@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -44,7 +44,7 @@ protected:
 	 * @param InIndexOfInsertedChar	New inserted char index in InString.
 	 * @return true if the input string is good to use, false otherwise.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnValidateInput"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnValidateInput"), Category = "LexUI")
 		bool ReceiveOnValidateInput(UUITextInput* InTextInput, const FString& InString, int InIndexOfInsertedChar);
 };
 
@@ -104,157 +104,157 @@ protected:
 #endif
 protected:
 	friend class FUITextInputCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		TWeakObjectPtr<ULexText> TextVisual;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		FString Text;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		EUITextInputType InputType;
 	/** Use this to do custom validation. Only valid when InputType = Custom */
-	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Input", meta = (EditCondition = "InputType==EUITextInputType::Custom"))
+	UPROPERTY(EditAnywhere, Instanced, Category = "LexUI-Input", meta = (EditCondition = "InputType==EUITextInputType::Custom"))
 		TObjectPtr<ULexTextInputCustomValidation> CustomValidation = nullptr;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		EUITextInputDisplayType DisplayType = EUITextInputDisplayType::Standard;
 	//password display character
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		FString PasswordChar = TEXT("*");
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		bool bAllowMultiLine = false;
 	/**
 	 * This will be used in multiline mode, when hit enter, if one of these keys is also pressing then the input will submit, otherwise a new line will be added.
 	 * Commonly only use control/shift/alt key.
 	 * Not allow "Enter" key.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input", meta = (EditCondition="bAllowMultiLine"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input", meta = (EditCondition="bAllowMultiLine"))
 		TArray<FKey> MultiLineSubmitFunctionKeys;
 	/** If PlaceHolderActor is a UITextActor, then mobile virtual keyboard's hint text will get from PlaceHolderActor. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		TWeakObjectPtr<ULexWidget> PlaceHolder;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		float CaretBlinkRate = 0.5f;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		float CaretWidth = 2.0f;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		FColor CaretColor = FColor(50, 50, 50, 255);
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		FColor SelectionColor = FColor(168, 206, 255, 128);
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		FVirtualKeyboardOptions VirtualKeyboardOptions;
 	//Ignore these keys input. eg, if use tab and arrow keys for navigation then you should put tab and arrow keys in this array
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		TArray<FKey> IgnoreKeys;
 	/** Automatic activate input when use navigation input and navigate in this. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		bool bAutoActivateInputWhenNavigateIn = false;
 	/** Select all text value when activate input. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		bool bSelectAllWhenActivateInput = true;
 	/** Read only text block, can copy text content, but not editable. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input")
 		bool bReadOnly = false;
 
 	FLexUIMulticastDelegateString OnValueChangedCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Input")
 	FUITextInputValueChangedEvent OnValueChanged;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnValueChanged")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input", DisplayName="OnValueChanged")
 	FLexUIEventDelegate OnValueChangedED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
 	
 	FLexUIMulticastDelegateString OnSubmitCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Input")
 	FUITextInputValueChangedEvent OnSubmit;
 	/** Input submit by "Enter" key. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnSubmit")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input", DisplayName="OnSubmit")
 	FLexUIEventDelegate OnSubmitED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::String);
 	
 	FLexUIMulticastDelegateBool OnInputActivateCPP;
-	UPROPERTY(BlueprintAssignable, Category = "LGUI-Input")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI-Input")
 	FUITextInputActivateEvent OnInputActivate;
 	/** Input activate or deactivate, means begin input or end input. */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Input", DisplayName="OnInputActivate")
+	UPROPERTY(EditAnywhere, Category = "LexUI-Input", DisplayName="OnInputActivate")
 	FLexUIEventDelegate OnInputActivateED = FLexUIEventDelegate(ELexUIEventDelegateParameterType::Bool);
 
 	void SetText(const FString& InText, bool InFireEvent);
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		class ULexText* GetTextComponent()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		const FString& GetText()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		EUITextInputType GetInputType()const { return InputType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		ULexTextInputCustomValidation* GetCustomValidation()const { return CustomValidation; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		EUITextInputDisplayType GetDisplayType()const { return DisplayType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		const FString& GetPasswordChar()const { return PasswordChar; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		bool GetAllowMultiLine()const { return bAllowMultiLine; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		const TArray<FKey>& GetMultiLineSubmitFunctionKeys()const { return MultiLineSubmitFunctionKeys; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		ULexWidget* GetPlaceHolderActor()const { return PlaceHolder.Get(); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		float GetCaretBlinkRate()const { return CaretBlinkRate; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		float GetCaretWidth()const { return CaretWidth; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		FColor GetCaretColor()const { return CaretColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		FColor GetSelectionColor()const { return SelectionColor; }
 	UFUNCTION()
 		FVirtualKeyboardOptions GetVirtualKeyboardOptions()const { return VirtualKeyboardOptions; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		const TArray<FKey>& GetIgnoreKeys()const { return IgnoreKeys; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		bool GetAutoActivateInputWhenNavigateIn()const { return bAutoActivateInputWhenNavigateIn; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		bool GetReadOnly()const { return bReadOnly; }
 
 	/**
 	 * Set text value and send callback event.
 	 * NOTE!!! This will send callback event, if you don't want to send callback event, use SetTextWithoutNotify instead.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 	void SetText(const FString& InText);
 	/** Set text value and NOT send callback event */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 	void SetTextWithoutNotify(const FString& InText);
 	
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetInputType(EUITextInputType Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetCustomValidation(ULexTextInputCustomValidation* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetDisplayType(EUITextInputDisplayType Value);
 	/** Set password display char. Only allow one char in the value string */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetPasswordChar(const FString& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetAllowMultiLine(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetMultiLineSubmitFunctionKeys(const TArray<FKey>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetPlaceHolder(ULexWidget* Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetCaretBlinkRate(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetCaretWidth(float Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetCaretColor(FColor Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetSelectionColor(FColor Value);
 	UFUNCTION()
 		void SetVirtualKeyboradOptions(FVirtualKeyboardOptions Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetIgnoreKeys(const TArray<FKey>& Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetAutoActivateInputWhenNavigateIn(bool Value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		void SetReadOnly(bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 	void ActivateInput(ULexPointerEventData* EventData = nullptr);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 	void DeactivateInput(bool InFireEvent = true);
 	
 	/**
@@ -262,7 +262,7 @@ public:
 	 * @param Value string value to check and insert.
 	 * @return true- if any char added.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+	UFUNCTION(BlueprintCallable, Category = "LexUI-Input")
 		bool VerifyAndInsertStringAtCaretPosition(const FString& Value);
 	/**
 	 * Verify input char value and insert the char value to text value at current caret position.

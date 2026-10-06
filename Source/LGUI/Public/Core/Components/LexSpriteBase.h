@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -58,17 +58,17 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULexUISpriteData_BaseObject* GetSprite()const { return Sprite; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
+	UFUNCTION(BlueprintCallable, Category = "LexUI") ULexUISpriteData_BaseObject* GetSprite()const { return Sprite; }
+	UFUNCTION(BlueprintCallable, Category = "LexUI") UMaterialInterface* GetOverrideMaterial()const{return OverrideMaterial;}
 #pragma region LexUISpriteRenderInterface
 	virtual ULexUISpriteData_BaseObject* SpriteRenderGetSprite_Implementation()const override{ return Sprite; }
 	virtual void ApplyAtlasTextureChange_Implementation()override;
 #pragma endregion
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSprite(ULexUISpriteData_BaseObject* Value, bool bSetSize = true);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSizeFromSpriteData();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetOverrideMaterial(UMaterialInterface* Value);
 };

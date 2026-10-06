@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -48,9 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetEndAngle(float newValue);
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetSegment(int newValue);
 
-	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLexUI")
 		ULTweener* StartAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, Category = "LTweenLGUI")
+	UFUNCTION(BlueprintCallable, Category = "LTweenLexUI")
 		ULTweener* EndAngleTo(float endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 };
 

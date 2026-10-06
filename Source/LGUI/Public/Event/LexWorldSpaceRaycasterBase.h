@@ -1,4 +1,4 @@
-﻿// Copyright 2019-Present LexLiu. All Rights Reserved.
+// Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #pragma once
 
@@ -59,10 +59,10 @@ public:
 	virtual bool ShouldStartDrag(ULexPointerEventData* InPointerEventData);
 protected:
 	/** Generate ray for raycast hit test */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "EmitRay"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "EmitRay"), Category = "LexUI")
 		bool ReceiveGenerateRay(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd);
 	/** Should convert press event to drag event? */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ShouldStartDrag"), Category = "LGUI")
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ShouldStartDrag"), Category = "LexUI")
 		bool ReceiveShouldStartDrag(ULexPointerEventData* InPointerEventData);
 };
 
@@ -76,7 +76,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category=LGUI)
 	ULexWorldSpaceRaycasterSource* GetRaycasterSource()const{return RaycasterSource;}
 protected:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "LexUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULexWorldSpaceRaycasterSource> RaycasterSource;
 };
 
@@ -94,9 +94,9 @@ public:
 protected:
 	virtual void OnRegister()override;
 	
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TWeakObjectPtr<ALexWorldSpaceRaycasterSourceActor> RaycasterSourceActor = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	mutable TWeakObjectPtr<ULexWorldSpaceRaycasterSource> RaycasterSourceObject = nullptr;
 	UPROPERTY(EditAnywhere, Category = LGUI)
 	TEnumAsByte<ETraceTypeQuery> TraceChannel;
