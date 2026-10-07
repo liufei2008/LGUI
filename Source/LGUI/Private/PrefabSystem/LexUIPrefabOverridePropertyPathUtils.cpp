@@ -72,6 +72,7 @@ namespace LexUIPrefabSystem
 		return Resolve(InStruct, nullptr, InSegments, OutLeafProperty, UnusedContainer);
 	}
 
+#if WITH_EDITOR
 	FText FLexUIPrefabOverridePropertyPathUtils::GetDisplayText(UStruct* InStruct, const TArray<FName>& InSegments)
 	{
 		TArray<FText> Parts;
@@ -105,7 +106,6 @@ namespace LexUIPrefabSystem
 			;
 	}
 
-#if WITH_EDITOR
 	void FLexUIPrefabOverridePropertyPathUtils::BuildFromEditPropertyChain(const FEditPropertyChain& InChain, TArray<FName>& OutSegments)
 	{
 		OutSegments.Reset();

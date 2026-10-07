@@ -101,6 +101,18 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackBufferCopy);
 
+		auto RenderTargetRHITexture = RenderTargetResource->GetRenderTargetTexture();
+		if (!RenderTargetRHITexture)return;
+		auto RenderTargetTextureRDG = RegisterExternalTexture(GraphBuilder, RenderTargetRHITexture, TEXT("LexUIBackBufferCopy_RDG"));
+#if 0
+		//clear the whole target first so the area not covered by the mesh region is deterministic.
+		{
+			auto* ClearParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+			ClearParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTextureRDG, ERenderTargetLoadAction::EClear);
+			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackBufferCopy_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
+		}
+#endif
+		
 		TRefCountPtr<IPooledRenderTarget> ScreenResolvedRenderTarget;
 		uint8 NumSamples = ScreenTargetTexture->GetNumSamples();
 		auto ScreenSize = ScreenTargetTexture->GetSizeXY();
@@ -115,18 +127,6 @@ public:
 			FLexUIRenderer::AddResolvePass(GraphBuilder, FRDGTextureMSAA(ResolveSrc, ResolveDst), FIntRect(0, 0, ScreenSize.X, ScreenSize.Y), NumSamples, GlobalShaderMap);
 		}
 		
-		auto RenderTargetRHITexture = RenderTargetResource->GetRenderTargetTexture();
-		if (!RenderTargetRHITexture)
-			goto END_RENDER;//to release
-		auto RenderTargetTextureRDG = RegisterExternalTexture(GraphBuilder, RenderTargetRHITexture, TEXT("LexUIBackBufferCopy_RDG"));
-#if 0
-		//clear the whole target first so the area not covered by the mesh region is deterministic.
-		{
-			auto* ClearParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-			ClearParameters->RenderTargets[0] = FRenderTargetBinding(RenderTargetTextureRDG, ERenderTargetLoadAction::EClear);
-			GraphBuilder.AddPass(RDG_EVENT_NAME("LexUIBackBufferCopy_ClearRegionTarget"), ClearParameters, ERDGPassFlags::Raster, [](FRHICommandListImmediate&) {});
-		}
-#endif
 		FLexUIRenderer::CopyRenderTargetOnMeshRegion(GraphBuilder
 			, RenderTargetTextureRDG
 			, NumSamples > 1 ? ScreenResolvedRenderTarget->GetRHI() : ScreenTargetTexture.GetReference()
@@ -158,7 +158,6 @@ public:
 			}
 		}
 
-		END_RENDER:
 		//Defer releasing the pooled render targets until the graph executes
 		GraphBuilder.AddPass(
 			RDG_EVENT_NAME("LexUIBackBufferCopy_ReleaseRenderTargets"),

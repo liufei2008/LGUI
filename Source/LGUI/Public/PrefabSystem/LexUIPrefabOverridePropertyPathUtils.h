@@ -32,6 +32,7 @@ namespace LexUIPrefabSystem
 		/** Type-only overload, for validation and UI labels. */
 		static EPropertyPathResolveResult ResolveProperty(UStruct* InStruct, const TArray<FName>& InSegments, FProperty*& OutLeafProperty);
 
+#if WITH_EDITOR
 		/** Display text like "Anchor Data > Anchor Min > X". Falls back to raw names for segments that no longer resolve. */
 		static FText GetDisplayText(UStruct* InStruct, const TArray<FName>& InSegments);
 
@@ -42,7 +43,6 @@ namespace LexUIPrefabSystem
 		 */
 		static bool ShouldForceWholeMemberOverride(const UObject* InObject, FName InRootName);
 
-#if WITH_EDITOR
 		/**
 		 * Build the segment chain of the property currently being edited, from the active member node down to the
 		 * active (leaf) node. Leaves OutSegments empty if the chain has an unexpected shape, which means "fall back".

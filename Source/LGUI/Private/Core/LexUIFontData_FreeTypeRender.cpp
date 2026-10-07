@@ -545,7 +545,7 @@ void ULexUIFontData_FreeTypeRender::UpdateFontTextureRegion(uint32 PosX, uint32 
 {
 	if (!IntermediateTexture->GetResource() || !Texture->GetResource())
 	{
-		UE_LOG(LGUI, Error, TEXT("[%s].%d Texture Resource is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+		UE_LOG(LGUI, Warning, TEXT("[%s].%d Texture Resource is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
 	}
 	

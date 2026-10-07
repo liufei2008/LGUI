@@ -301,7 +301,10 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 				auto& Vert = Vertices[i];
 				auto WorldPosition = ModelMatrix.TransformPosition(FVector(Vert.Position));
 				FVector2D ScreenPosition = FVector2D::Zero();
-				if (RootCanvas->Project3DToScreen(WorldPosition, ScreenPosition))
+				//'Project3DToScreen' returns Y-up coordinates (0 at bottom), but downstream consumers
+				//(CopyMeshRegion vertex UVs, _ScreenAreaMinAndSize, material's BackBufferRect parameter)
+				//all expect Y-down (0 at top), same convention as the world-space path.
+				if (RootCanvas->Project3DToScreen(WorldPosition, ScreenPosition, false))
 				{
 					Min.X = FMath::Min(Min.X, ScreenPosition.X);
 					Min.Y = FMath::Min(Min.Y, ScreenPosition.Y);
@@ -321,7 +324,9 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 		MeshRectInScreen = FBox2f(Min, Max);
 		float Inv_ViewWidth = 1.0f / ViewRect.Width();
 		float Inv_ViewHeight = 1.0f / ViewRect.Height();
-		RectInScreen01 = FVector4f(Min.X * Inv_ViewWidth, Min.Y * Inv_ViewHeight, (Max.X - Min.X) * Inv_ViewWidth, (Max.Y - Min.Y) * Inv_ViewHeight);
+		auto Min01 = FVector2f(Min.X * Inv_ViewWidth, Min.Y * Inv_ViewHeight);
+		auto Max01 = FVector2f(Max.X * Inv_ViewWidth, Max.Y * Inv_ViewHeight);
+		RectInScreen01 = FVector4f(Min01.X, Min01.Y, Max01.X - Min01.X, Max01.Y - Min01.Y);
 	}
 	else
 	{
@@ -342,7 +347,7 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 		RectInScreen01 = FVector4f(0, 0, 1, 1);
 	}
 	
-	UpdateRegionVertex(ViewRect.Size());
+	UpdateRegionVertex();
 }
 
 void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged)
@@ -387,15 +392,16 @@ void ULexVisualBackBufferReader::OnUpdateGeometry(bool InTriangleChanged, bool I
 	}
 }
 
-void ULexVisualBackBufferReader::UpdateRegionVertex(FIntPoint InViewportSize)
+void ULexVisualBackBufferReader::UpdateRegionVertex()
 {
 	if (BackBufferReaderType == ELexVisualBackBufferReaderMode::Rect)
 	{
-		FVector2f Inv_ViewportSize(1.0f / InViewportSize.X, 1.0f / InViewportSize.Y);
-		RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
-		RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Max.Y) * Inv_ViewportSize;
-		RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(MeshRectInScreen.Min.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
-		RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(MeshRectInScreen.Max.X, MeshRectInScreen.Min.Y) * Inv_ViewportSize;
+		FVector2f Min(RectInScreen01.X, RectInScreen01.Y);
+		FVector2f Max(Min.X + RectInScreen01.Z, Min.Y + RectInScreen01.W);
+		RenderScreenToMeshRegionVertexArray[0].TextureCoordinate = FVector2f(Min.X, Max.Y);
+		RenderScreenToMeshRegionVertexArray[1].TextureCoordinate = FVector2f(Max.X, Max.Y);
+		RenderScreenToMeshRegionVertexArray[2].TextureCoordinate = FVector2f(Min.X, Min.Y);
+		RenderScreenToMeshRegionVertexArray[3].TextureCoordinate = FVector2f(Max.X, Min.Y);
 		
 		//RenderMeshRegionToScreenVertexArray only needed in rect mode
 		auto& Vertices = Geometry->Vertices;
@@ -453,7 +459,7 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 		auto UpdateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
 		UpdateData->RenderMeshRegionToScreenVertexArray = this->RenderMeshRegionToScreenVertexArray;
 		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
-		UpdateData->RectInScreen01 = this->RectInScreen01;
+		UpdateData->RectInScreen01 = this->GetRectInScreen01ForShader();
 		UpdateData->bFullViewport = this->BackBufferReaderType == ELexVisualBackBufferReaderMode::Viewport;
 		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
 		ENQUEUE_RENDER_COMMAND(FLexPostProcess_UpdateData)

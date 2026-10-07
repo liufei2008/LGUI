@@ -634,10 +634,11 @@ public:
 	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for world space!!!
 	 * @param	Position3D	GetWorldLocation from the UI element (world location).
 	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
+	 * @param	YUpCoordinate	OutPosition2D will use Y-up coordinates (0 at bottom, LexUI's coordinate).
 	 * @return 	convert will fail if this LexCanvas is not root canvas, or not screen space.
 	 */
 	UFUNCTION(BlueprintPure, Category = "LexUI-CanvasScaler")
-	bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
+	bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D, bool YUpCoordinate = true)const;
 	/**
 	 * Transforms 2D screen coordinates into a 3D world-space origin and direction.
 	 * NOTE!!! This is only for lex-screen-space-UI, DON'T use this for world space!!!

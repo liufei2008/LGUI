@@ -24,6 +24,8 @@ enum class ELexUISpritePackingType : uint8
 	Dynamic,
 };
 
+class ULexUIStaticSpriteAtlasData;
+
 /**
  * A Sprite-data type that can do automatic packing
  */

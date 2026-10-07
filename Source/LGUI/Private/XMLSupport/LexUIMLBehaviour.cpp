@@ -9,7 +9,9 @@
 
 ULexUIMLBehaviour::ULexUIMLBehaviour()
 {
+#if WITH_EDITOR
 	DefaultRenderMode = ELexRenderMode::ScreenSpaceOverlay;
+#endif
 }
 
 void ULexUIMLBehaviour::GetUIMLData(FString& XAMLFilePath, ULexUIMLResource*& XAMLResource) const

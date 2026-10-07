@@ -87,7 +87,7 @@ protected:
 	/** update ui geometry */
 	virtual void OnUpdateGeometry(bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged);
 	/** update region vertex data */
-	virtual void UpdateRegionVertex(FIntPoint InViewportSize);
+	virtual void UpdateRegionVertex();
 	void UpdateGeometryClipData(FLexUIGeometry& InMesh, int InDataStartPosition);
 	TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 	TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;

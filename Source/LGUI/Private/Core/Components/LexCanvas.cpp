@@ -3103,7 +3103,7 @@ bool ULexCanvas::ConvertPositionFromCanvasToViewport(const FVector2D& InPosition
 	}
 	return false;
 }
-bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
+bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D, bool YUpCoordinate)const
 {
 	if (RootCanvas != this)return false;
 	if (RootCanvas->RenderMode != ELexRenderMode::ScreenSpaceOverlay && RootCanvas->RenderMode != ELexRenderMode::RenderTarget)return false;
@@ -3116,6 +3116,10 @@ bool ULexCanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosi
 	// Move from projection space to normalized 0..1 UI space
 	OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
 	OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
+	if (!YUpCoordinate)
+	{
+		OutPosition2D.Y = 1.0f - OutPosition2D.Y;
+	}
 	//Convert to LGUI's viewport size
 	OutPosition2D *= this->GetViewportSize();
 	OutPosition2D /= this->CanvasScaleValue;

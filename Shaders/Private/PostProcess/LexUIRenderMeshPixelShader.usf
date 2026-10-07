@@ -18,7 +18,7 @@ float2 _ViewSizeInv;
 #endif
 #endif
 
-float4 _ScreenAreaMinAndSize;//xy-min,zw-size
+float4 _ScreenAreaMinAndSize;//xy: 0.0-min, zw: 1.0/size
 
 void RenderMeshPS(
     RenderMeshVSToPS input,
@@ -30,7 +30,7 @@ void RenderMeshPS(
 	float inv_W = 1.0f / clipSpacePos.w;
 	float2 screenRectUV = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
 	screenRectUV.y = 1.0f - screenRectUV.y;
-	screenRectUV = (screenRectUV - _ScreenAreaMinAndSize.xy) / _ScreenAreaMinAndSize.zw;
+	screenRectUV = (screenRectUV + _ScreenAreaMinAndSize.xy) * _ScreenAreaMinAndSize.zw;
 	
     OutColor = LexUIRenderMeshMainTexUB._MainTex.Sample(LexUIRenderMeshMainTexUB._MainTexSampler, screenRectUV);
 #if LEXUI_CLIP
