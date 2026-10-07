@@ -1206,7 +1206,17 @@ void ULexWidget::SetParent(ULexWidget* InParent, bool InKeepWorldPosition, int I
 		this->Parent = nullptr;
 		if (InKeepWorldPosition)
 		{
-			auto LocalTransform = OldObjectToWorldTransform;
+			FTransform LocalTransform;
+			if (auto WidgetPresenterComponent = GetWidgetPresenterComponent())
+			{
+				auto WorldToParentTransform = WidgetPresenterComponent->GetComponentTransform().Inverse();
+				LocalTransform = WorldToParentTransform * OldObjectToWorldTransform;	
+			}
+			else
+			{
+				LocalTransform = OldObjectToWorldTransform;	
+			}
+			
 			this->RelativeLocation = LocalTransform.GetLocation();
 			this->RelativeRotation = LocalTransform.GetRotation();
 			this->RelativeScale = LocalTransform.GetScale3D();
