@@ -1418,11 +1418,6 @@ void ULexCanvas::UpdateDrawCallMesh()
 			break;
 		case ELexUIDrawCallType::BackBufferReader:
 			{
-				//only LexUI renderer can render post process
-				if (this->GetActualRenderMode() == ELexRenderMode::WorldSpace)
-				{
-					continue;
-				}
 				if (!DrawCallItem.BackBufferReaderVisualObject.IsValid())
 				{
 					UE_LOG(LGUI, Warning, TEXT("[%s].%d Invalid BackBufferReader draw-call, will ignore it"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
