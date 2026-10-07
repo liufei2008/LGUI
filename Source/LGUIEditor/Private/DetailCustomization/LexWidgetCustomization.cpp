@@ -464,18 +464,7 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 				.AutoHeight()
 				[
 					SNew(SBox)
-					.IsEnabled_Lambda([=, this]()
-					{
-						if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
-						{
-							auto Widget = TargetScriptArray[0];
-							if (Widget->IsCanvasWidget() && Widget->GetRenderCanvas() != nullptr && Widget->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
-							{
-								return false;
-							}
-						}
-						return true;
-					})
+					.IsEnabled(this, &FLexWidgetCustomization::IsAnchorEditable)
 					[
 						SNew(SHorizontalBox)
 						+SHorizontalBox::Slot()

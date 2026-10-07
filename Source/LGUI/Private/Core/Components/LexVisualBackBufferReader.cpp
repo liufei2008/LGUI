@@ -446,7 +446,6 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 		{
 			TArray<FLexUIPostProcessCopyMeshRegionVertex, TFixedAllocator<4>> RenderScreenToMeshRegionVertexArray;
 			TArray<FLexUIPostProcessVertex, TFixedAllocator<4>> RenderMeshRegionToScreenVertexArray;
-			FBox2f MeshRectInScreen;
 			FVector4f RectInScreen01;
 			bool bFullViewport;
 			FMatrix44f ObjectToWorldMatrix;
@@ -454,7 +453,6 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 		auto UpdateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
 		UpdateData->RenderMeshRegionToScreenVertexArray = this->RenderMeshRegionToScreenVertexArray;
 		UpdateData->RenderScreenToMeshRegionVertexArray = this->RenderScreenToMeshRegionVertexArray;
-		UpdateData->MeshRectInScreen = this->MeshRectInScreen;
 		UpdateData->RectInScreen01 = this->RectInScreen01;
 		UpdateData->bFullViewport = this->BackBufferReaderType == ELexVisualBackBufferReaderMode::Viewport;
 		UpdateData->ObjectToWorldMatrix = FMatrix44f(RenderCanvas->GetWidget()->GetWorldTransform().ToMatrixWithScale());
@@ -463,7 +461,6 @@ void ULexVisualBackBufferReader::SendRegionVertexDataToRenderProxy()
 				{
 					TempRenderProxy->RenderScreenToMeshRegionVertexArray = MoveTemp(UpdateData->RenderScreenToMeshRegionVertexArray);
 					TempRenderProxy->RenderMeshRegionToScreenVertexArray = MoveTemp(UpdateData->RenderMeshRegionToScreenVertexArray);
-					TempRenderProxy->MeshRectInScreen = MoveTemp(UpdateData->MeshRectInScreen);
 					TempRenderProxy->RectInScreen01 = MoveTemp(UpdateData->RectInScreen01);
 					TempRenderProxy->bFullViewport = UpdateData->bFullViewport;
 					TempRenderProxy->ObjectToWorldMatrix = MoveTemp(UpdateData->ObjectToWorldMatrix);
