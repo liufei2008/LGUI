@@ -15,22 +15,27 @@ ULexScreenSpaceRaycaster::ULexScreenSpaceRaycaster()
 void ULexScreenSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+bool ULexScreenSpaceRaycaster::CheckRootCanvas()
+{
 	if (!RootCanvas.IsValid())
 	{
 		auto WidgetPresenter = GetOwner()->FindComponentByClass<ULexWidgetPresenterComponent>();
 		if (!WidgetPresenter)
 		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d LexWidgetPresenterComponent is not valid! LexUIScreenSpaceRaycaster can only attach to a Actor which contains a ULexWidgetPresenterComponent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return;
+			UE_LOG(LGUI, Warning, TEXT("[%s].%d LexWidgetPresenterComponent is not valid! LexUIScreenSpaceRaycaster can only attach to a Actor which contains a ULexWidgetPresenterComponent!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return false;
 		}
 		auto Canvas = WidgetPresenter->GetLoadedCanvas();
 		if (!IsValid(Canvas) || Canvas->GetActualRenderMode() != ELexRenderMode::ScreenSpaceOverlay)
 		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d Canvas is not valid! LexUIScreenSpaceRaycaster can only attach to ScreenSpaceUI!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return;
+			UE_LOG(LGUI, Warning, TEXT("[%s].%d Canvas is not valid! LexUIScreenSpaceRaycaster can only attach to ScreenSpaceUI!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
+			return false;
 		}
 		RootCanvas = Canvas;
 	}
+	return true;
 }
 
 bool ULexScreenSpaceRaycaster::GetAffectByGamePause()const
@@ -62,8 +67,7 @@ bool ULexScreenSpaceRaycaster::ShouldStartDrag(ULexPointerEventData* InPointerEv
 }
 bool ULexScreenSpaceRaycaster::GenerateRay(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, float& OutRayLength)
 {
-	if (!RootCanvas.IsValid())
-		return false;
+	if (!CheckRootCanvas())return false;
 
 	auto ViewProjectionMatrix = RootCanvas->GetViewProjectionMatrix();
 	//Get mouse position, convert to range 0-1
@@ -80,7 +84,7 @@ bool ULexScreenSpaceRaycaster::GenerateRay(ULexPointerEventData* InPointerEventD
 
 void ULexScreenSpaceRaycaster::Raycast(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, TArray<FLexUIHitResult>& OutHitResult)
 {
-	if (!RootCanvas.IsValid())return;
+	if (!CheckRootCanvas())return;
 	Super::RaycastUI(InPointerEventData, RootCanvas.Get(), OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult);
 }
 

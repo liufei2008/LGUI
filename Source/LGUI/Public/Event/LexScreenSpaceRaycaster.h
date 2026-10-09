@@ -37,6 +37,7 @@ protected:
 	float DragThresholdSquare = 0;
 	
 	TWeakObjectPtr<ULexCanvas> RootCanvas = nullptr;
+	bool CheckRootCanvas();
 public:
 	virtual bool GetAffectByGamePause()const override;
 	virtual bool ShouldStartDrag(ULexPointerEventData* InPointerEventData)override;

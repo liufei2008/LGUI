@@ -19,6 +19,7 @@ public:
 
 protected:
 	TWeakObjectPtr<ULexCanvas> RootCanvas;
+	bool CheckRootCanvas();
 	
 	virtual void BeginPlay() override;
 	virtual void Raycast(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, TArray<FLexUIHitResult>& OutHitResultArray)override;
