@@ -83,9 +83,6 @@ protected:
 	/** Texture of this font */
 	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<UTexture2DArray> Texture;
-	/** IntermediateTexture for Updating Texture2DArray. */ 
-	UPROPERTY(VisibleAnywhere, Category = "LexUI")
-	TObjectPtr<UTexture2D> IntermediateTexture;
 	int32 CurrentTextureSlice = 0;
 
 	/** if not find char in current font, LexUI will search the char in this font array until find it. */

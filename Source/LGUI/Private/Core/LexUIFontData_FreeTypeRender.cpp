@@ -10,7 +10,6 @@
 #include "Engine/FontFace.h"
 #include "Engine/Texture2DArray.h"
 #include "Internationalization/Culture.h"
-#include "Rendering/Texture2DResource.h"
 #include "Runtime/Engine/Private/Rendering/Texture2DArrayResource.h"
 #if WITH_FREETYPE
 #include <ft2build.h>
@@ -219,9 +218,6 @@ void ULexUIFontData_FreeTypeRender::InitFreeType()
 		auto TextureSize = ULexUISettings::ConvertAtlasTextureSizeTypeToSize(TextureSizeType);
 		BinPack.PrepareRectCellsForText(TextureSize, TextureSize, FreeRectCells, RectPackCellSize, false);
 		RenewFontTexture();
-		//@todo: use small size for intermediate texture, and share same intermediate texture for different fonts
-		IntermediateTexture = CreateIntermediateTexture(RectPackCellSize);
-		IntermediateTexture->AddToRoot();
 		OneDivideTextureSize = 1.0f / TextureSize;
 
 		ClearCharDataCache();
@@ -348,10 +344,6 @@ void ULexUIFontData_FreeTypeRender::BeginDestroy()
 			FInternationalization::Get().OnCultureChanged().Remove(OnCultureChangedDelegateHandle);
 		}
 
-		if (IsValid(IntermediateTexture))
-		{
-			IntermediateTexture->RemoveFromRoot();
-		}
 		if (IsValid(Texture))
 		{
 			Texture->RemoveFromRoot();
@@ -543,7 +535,7 @@ void ULexUIFontData_FreeTypeRender::ApplyPackingAtlasTextureExpand(UTexture2D* n
 
 void ULexUIFontData_FreeTypeRender::UpdateFontTextureRegion(uint32 PosX, uint32 PosY, uint32 Slice, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, TArray<uint8> SrcData)
 {
-	if (!IntermediateTexture->GetResource() || !Texture->GetResource())
+	if (!Texture->GetResource())
 	{
 		UE_LOG(LGUI, Warning, TEXT("[%s].%d Texture Resource is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
 		return;
@@ -568,34 +560,20 @@ void ULexUIFontData_FreeTypeRender::UpdateFontTextureRegion(uint32 PosX, uint32 
 	RegionData.PosX = PosX;
 	RegionData.PosY = PosY;
 	auto Texture2DArrayRes = (FTexture2DArrayResource*)Texture->GetResource();
-	auto IntermediateTexture2DRes = (FTexture2DResource*)IntermediateTexture->GetResource();
 	ENQUEUE_RENDER_COMMAND(FLexUIFontData_UpdateFontTextureRegionData)(
-		[RegionData = MoveTemp(RegionData), IntermediateTexture2DRes, Texture2DArrayRes](FRHICommandListImmediate& RHICmdList)
+		[RegionData = MoveTemp(RegionData), Texture2DArrayRes](FRHICommandListImmediate& RHICmdList)
 		{
-			auto IntermediateTexRHI = IntermediateTexture2DRes->GetTexture2DRHI();
 			auto TexRHI = Texture2DArrayRes->GetTexture2DArrayRHI();
-			check(IntermediateTexRHI && IntermediateTexRHI->IsValid());
 			check(TexRHI && TexRHI->IsValid());
-			RHICmdList.UpdateTexture2D(
-				IntermediateTexRHI,
+			RHICmdList.UpdateTexture3D(
+				TexRHI,
 				0,
-				RegionData.Region,
+				FUpdateTextureRegion3D(RegionData.PosX, RegionData.PosY, RegionData.Slice, 0, 0, 0
+					, RegionData.Region.Width, RegionData.Region.Height, 1),
 				RegionData.SrcPitch,
+				RegionData.SrcPitch * RegionData.Region.Height,
 				RegionData.SrcData.GetData()
-				+ RegionData.Region.SrcY * RegionData.SrcPitch
-				+ RegionData.Region.SrcX * RegionData.SrcBpp
 			);
-
-			FRHICopyTextureInfo CopyInfo;
-			CopyInfo.SourceMipIndex = 0;
-			CopyInfo.NumMips = 1;
-			CopyInfo.SourceSliceIndex = 0;
-			CopyInfo.NumSlices = 1;
-			CopyInfo.DestSliceIndex = RegionData.Slice;
-			CopyInfo.SourcePosition = FIntVector(0, 0, 0);
-			CopyInfo.DestPosition = FIntVector(RegionData.PosX, RegionData.PosY, 0);
-			CopyInfo.Size = FIntVector(RegionData.Region.Width, RegionData.Region.Height, 0);
-			RHICmdList.CopyTexture(IntermediateTexRHI, TexRHI, CopyInfo);
 		});
 }
 void ULexUIFontData_FreeTypeRender::RenewFontTexture()

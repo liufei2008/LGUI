@@ -54,7 +54,7 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		bool AtlasTextureUseSRGB = true;
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
-		TEnumAsByte<TextureFilter> AtlasTextureFilter = TextureFilter::TF_Trilinear;
+		TEnumAsByte<TextureFilter> AtlasTextureFilter = TextureFilter::TF_Bilinear;
 	/** space between two sprites when package into atlas */
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		int32 SpaceBetweenSprites = 2;
