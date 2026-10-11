@@ -21,12 +21,45 @@
 #include "Editor/EditorEngine.h"
 #endif
 #include "Core/LexUISettings.h"
+#include "RenderGraphUtils.h"
 #include "ClearQuad.h"
 #include "RHIResourceUtils.h"
 #include "Core/LexUIMeshVertex.h"
 #include "Core/LexUIMesh/LexUIGizmoMesh.h"
 #include "Core/LexUIRender/LexUIPostProcessVertex.h"
 
+namespace
+{
+	/**
+	 * Render target may be created without TexCreate_ShaderResource, which asserts when creating SRVs (RHI.cpp: 'Attempted to create SRV').
+	 * In that case copy it into a pooled render target that has ShaderResource, using raw CopyTexture (which does not require an SRV on the source).
+	 */
+	FTextureRHIRef EnsureSampleableTexture(FRDGBuilder& GraphBuilder, FTextureRHIRef InTexture)
+	{
+		if (!InTexture.IsValid() || EnumHasAnyFlags(InTexture->GetFlags(), ETextureCreateFlags::ShaderResource))
+		{
+			return InTexture;
+		}
+		//Only non-MSAA textures can be copied via CopyTexture. MSAA sources without
+		//ShaderResource are left as-is (no public resolve helper without SRV in this engine).
+		if (InTexture->GetNumSamples() > 1)
+		{
+			return InTexture;
+		}
+		TRefCountPtr<IPooledRenderTarget> IntermediateTarget;
+		FPooledRenderTargetDesc Desc(FPooledRenderTargetDesc::Create2DDesc(InTexture->GetSizeXY(), InTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
+		GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, Desc, IntermediateTarget, TEXT("LexUISampleableCopy"));
+		if (IntermediateTarget.IsValid())
+		{
+			AddCopyTexturePass(GraphBuilder
+				, RegisterExternalTexture(GraphBuilder, InTexture.GetReference(), TEXT("LexUISampleableCopySrc"))
+				, RegisterExternalTexture(GraphBuilder, IntermediateTarget->GetRHI(), TEXT("LexUISampleableCopyDst"))
+				, FRHICopyTextureInfo());
+			return IntermediateTarget->GetRHI();
+		}
+		return InTexture;
+	}
+}
 
 #if WITH_EDITORONLY_DATA
 #endif
@@ -129,7 +162,9 @@ void FLexUIRenderer::PreRenderView_RenderThread(FRDGBuilder& GraphBuilder, FScen
 }
 void FLexUIRenderer::PostRenderBasePassDeferred_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView, const FRenderTargetBindingSlots& RenderTargets, TRDGUniformBufferRef<FSceneTextureUniformParameters> SceneTextures)
 {
-
+}
+void FLexUIRenderer::PostRenderBasePassMobile_RenderThread(FRHICommandList& RHICmdList, FSceneView& InView)
+{
 }
 
 void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMap* GlobalShaderMap
@@ -137,7 +172,22 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 	, FRHISamplerState* SrcTextureSamplerState
 )
 {
-	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetSrc"));
+	//Fast path: raw CopyTexture. Only valid for same-size, same-format, non-MSAA copies
+	//(CopyTexture can't scale, filter or convert formats, and doesn't support MSAA).
+	if (Src.IsValid() && Dst.IsValid()
+		&& Src->GetSizeXY() == Dst->GetSizeXY()
+		&& Src->GetFormat() == Dst->GetFormat()
+		&& Src->GetNumSamples() == 1 && Dst->GetNumSamples() == 1)
+	{
+		AddCopyTexturePass(GraphBuilder
+			, RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetSrc"))
+			, RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUICopyRenderTargetDst"))
+			, FRHICopyTextureInfo());
+		return;
+	}
+
+	FTextureRHIRef SampleSrc = EnsureSampleableTexture(GraphBuilder, Src);
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, SampleSrc.GetReference(), TEXT("LexUICopyRenderTargetSrc"));
 	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
 	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
 	PassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, Dst.GetReference(), TEXT("LexUICopyRenderTarget")), ERenderTargetLoadAction::ELoad);
@@ -145,7 +195,7 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 		RDG_EVENT_NAME("LexUICopyRenderTarget"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[GlobalShaderMap, Src, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
+		[GlobalShaderMap, SampleSrc, Dst, SrcTextureSamplerState](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
@@ -162,7 +212,7 @@ void FLexUIRenderer::CopyRenderTarget(FRDGBuilder& GraphBuilder, FGlobalShaderMa
 			TShaderMapRef<FLexUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
-			PixelShader->SetParameters(RHICmdList, Src, SrcTextureSamplerState);
+			PixelShader->SetParameters(RHICmdList, SampleSrc, SrcTextureSamplerState);
 			VertexShader->SetParameters(RHICmdList);
 
 			DrawFullScreenQuad(RHICmdList);
@@ -256,7 +306,8 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 	, bool bLinearizeColor
 )
 {
-	auto SrcTexture = RegisterExternalTexture(GraphBuilder, Src.GetReference(), TEXT("LexUICopyRenderTargetOnMeshRegionSrc"));
+	FTextureRHIRef SampleSrc = EnsureSampleableTexture(GraphBuilder, Src);
+	auto SrcTexture = RegisterExternalTexture(GraphBuilder, SampleSrc.GetReference(), TEXT("LexUICopyRenderTargetOnMeshRegionSrc"));
 	auto* PassParameters = GraphBuilder.AllocParameters<FLexUIPostProcessCopyParameters>();
 	PassParameters->InputTexture = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(SrcTexture));
 	PassParameters->RenderTargets[0] = FRenderTargetBinding(Dst, ERenderTargetLoadAction::ELoad);
@@ -266,7 +317,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 		RDG_EVENT_NAME("LexUICopyRenderTargetOnMeshRegion"),
 		PassParameters,
 		ERDGPassFlags::Raster,
-		[Src, GlobalShaderMap, RegionVertexData, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, bLinearizeColor](FRHICommandListImmediate& RHICmdList)
+		[SampleSrc, GlobalShaderMap, RegionVertexData, bIsRenderTarget, ViewRect, SrcTextureScaleOffset, NumSamples, bLinearizeColor](FRHICommandListImmediate& RHICmdList)
 		{
 			RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
@@ -286,7 +337,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, Src, SrcTextureScaleOffset);
+				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, SampleSrc, SrcTextureScaleOffset);
 			}
 			else
 			{
@@ -294,7 +345,7 @@ void FLexUIRenderer::CopyRenderTargetOnMeshRegion(
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0, EApplyRendertargetOption::CheckApply);
 
-				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, Src, SrcTextureScaleOffset);
+				PixelShader->SetParameters(RHICmdList, bIsRenderTarget, SampleSrc, SrcTextureScaleOffset);
 			}
 			
 			FBufferRHIRef VertexBufferRHI = UE::RHIResourceUtils::CreateVertexBufferFromArray(
@@ -442,8 +493,8 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		WireframeMaterialInstance = GEngine->WireframeMaterial->GetRenderProxy();
 	}
 
-	FTextureRHIRef OrignScreenColorRenderTargetTexture = nullptr;
-	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
+	FTextureRHIRef OriginScreenRenderTargetTexture = nullptr;
+	FTextureRHIRef ScreenRenderTargetTexture = nullptr;
 	//msaa render target
 	TRefCountPtr<IPooledRenderTarget> MSAARenderTarget = nullptr;
 
@@ -460,26 +511,26 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		}
 		if (RenderTargetResource != nullptr && RenderTargetResource->GetRenderTargetTexture() != nullptr)
 		{
-			ScreenColorRenderTargetTexture = RenderTargetResource->GetRenderTargetTexture();
-			if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
+			ScreenRenderTargetTexture = RenderTargetResource->GetRenderTargetTexture();
+			if (ScreenRenderTargetTexture == nullptr)return;//invalid render target
 
 			if (NumSamples > 1)
 			{
 				//get msaa render target
-				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenRenderTargetTexture->GetSizeXY(), ScreenRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 				desc.NumSamples = NumSamples;
 				GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LexUI_MSAA_RenderTarget"));
 				if (!MSAARenderTarget.IsValid())
 					return;
 
-				OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
-				ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+				OriginScreenRenderTargetTexture = ScreenRenderTargetTexture;
+				ScreenRenderTargetTexture = MSAARenderTarget->GetRHI();
 			}
 
 			//clear render target
 			{
 				auto Parameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
-				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LexUIRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
+				Parameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, ScreenRenderTargetTexture, TEXT("LexUIRender_ClearRenderTarget")), ERenderTargetLoadAction::ENoAction);
 				GraphBuilder.AddPass(
 					RDG_EVENT_NAME("LexUIRender_ClearRenderTarget"),
 					Parameters,
@@ -492,7 +543,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 			}
 			RenderTargetResource = nullptr;
 
-			ViewRect = FIntRect(0, 0, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y);
+			ViewRect = FIntRect(0, 0, ScreenRenderTargetTexture->GetSizeXYZ().X, ScreenRenderTargetTexture->GetSizeXYZ().Y);
 		}
 		else
 		{
@@ -503,21 +554,21 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 	}
 	else//world space or screen space mode
 	{
-		ScreenColorRenderTargetTexture = InView.Family->RenderTarget->GetRenderTargetTexture();
-		if (ScreenColorRenderTargetTexture == nullptr)return;//invalid render target
+		ScreenRenderTargetTexture = InView.Family->RenderTarget->GetRenderTargetTexture();
+		if (ScreenRenderTargetTexture == nullptr)return;//invalid render target
 
 		if (NumSamples > 1)
 		{
 			//get msaa render target
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenColorRenderTargetTexture->GetSizeXY(), ScreenColorRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenRenderTargetTexture->GetSizeXY(), ScreenRenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 			desc.NumSamples = NumSamples;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, MSAARenderTarget, TEXT("LexUI_MSAA_RenderTarget"));
 			if (!MSAARenderTarget.IsValid())
 				return;
 
-			CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenColorRenderTargetTexture, MSAARenderTarget->GetRHI());
-			OrignScreenColorRenderTargetTexture = ScreenColorRenderTargetTexture;
-			ScreenColorRenderTargetTexture = MSAARenderTarget->GetRHI();
+			CopyRenderTarget(GraphBuilder, GetGlobalShaderMap(InView.GetFeatureLevel()), ScreenRenderTargetTexture, MSAARenderTarget->GetRHI());
+			OriginScreenRenderTargetTexture = ScreenRenderTargetTexture;
+			ScreenRenderTargetTexture = MSAARenderTarget->GetRHI();
 		}
 
 		ViewRect = InView.UnscaledViewRect;
@@ -537,8 +588,8 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		case EStereoscopicPass::eSSP_FULL:
 		{
 			DepthTextureScaleOffset = FVector4f(
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Resolve->Desc.GetSize().X,
-				(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Resolve->Desc.GetSize().Y,
+				(float)ScreenRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Resolve->Desc.GetSize().X,
+				(float)ScreenRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Resolve->Desc.GetSize().Y,
 				0, 0
 			);
 			DepthTextureScaleOffset = DepthTextureScaleOffset * ScreenPercentage;
@@ -571,7 +622,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		}
 	}
 
-	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LexUIRendererTargetTexture"));
+	FRDGTextureRef RenderTargetTexture = RegisterExternalTexture(GraphBuilder, ScreenRenderTargetTexture, TEXT("LexUIRendererTargetTexture"));
 	const float EngineGamma = GEngine ? GEngine->GetDisplayGamma() : 2.2f;
 	float GammaValue =
 		(RendererType == ELexUIRendererType::RenderTarget || !bIsMainViewport) ? 1.0f : EngineGamma;
@@ -700,7 +751,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 									Primitive->OnRenderBackBuffer_RenderThread(
 										GraphBuilder,
 										SceneTextures,
-										ScreenColorRenderTargetTexture,
+										ScreenRenderTargetTexture,
 										GlobalShaderMap,
 										ViewProjectionMatrix,
 										true,
@@ -971,7 +1022,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 						Primitive->OnRenderBackBuffer_RenderThread(
 							GraphBuilder,
 							SceneTextures,
-							ScreenColorRenderTargetTexture,
+							ScreenRenderTargetTexture,
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
 							/*IsWorldSpace*/false,
@@ -1112,8 +1163,8 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 
 	if (NumSamples > 1)
 	{
-		auto Src = RegisterExternalTexture(GraphBuilder, ScreenColorRenderTargetTexture, TEXT("LexUIResolveSrc"));
-		auto Dst = RegisterExternalTexture(GraphBuilder, OrignScreenColorRenderTargetTexture, TEXT("LexUIResolveDst"));
+		auto Src = RegisterExternalTexture(GraphBuilder, ScreenRenderTargetTexture, TEXT("LexUIResolveSrc"));
+		auto Dst = RegisterExternalTexture(GraphBuilder, OriginScreenRenderTargetTexture, TEXT("LexUIResolveDst"));
 
 		AddResolvePass(GraphBuilder, FRDGTextureMSAA(Src, Dst), ViewRect, NumSamples, GetGlobalShaderMap(InView.GetFeatureLevel()));
 	}

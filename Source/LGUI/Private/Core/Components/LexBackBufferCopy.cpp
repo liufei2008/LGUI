@@ -118,7 +118,7 @@ public:
 		auto ScreenSize = ScreenTargetTexture->GetSizeXY();
 		if (NumSamples > 1)
 		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenSize, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(ScreenSize, ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 			GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, desc, ScreenResolvedRenderTarget, TEXT("LexUIBackBufferCopyResolveTarget"));
 			if (!ScreenResolvedRenderTarget.IsValid())
 				return;
@@ -384,7 +384,7 @@ struct FLexBackBufferCopyFilterRenderProxy_Blur : public FLexBackBufferCopyFilte
 		
 		TRefCountPtr<IPooledRenderTarget> DownSampleRT_Blur;
 		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(RenderTargetTexture->GetSizeX(), RenderTargetTexture->GetSizeY())
-			, RenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			, RenderTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 		GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, desc, DownSampleRT_Blur, *FString::Printf(TEXT("LexUI_DownsampleRT_Blur")));
 		auto RenderTargetTexture_Blur = DownSampleRT_Blur->GetRHI();
 		
@@ -562,7 +562,7 @@ struct FLexBackBufferCopyFilterRenderProxy_GaussianBlur : public FLexBackBufferC
 				SourceHeight >>= 1;
 				TRefCountPtr<IPooledRenderTarget> DownSampleRT;
 				FPooledRenderTargetDesc RenderTargetDesc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(SourceWidth, SourceHeight)
-					, BlurEffectRHITexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+					, BlurEffectRHITexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 				GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, RenderTargetDesc, DownSampleRT, *FString::Printf(TEXT("LexUI_DownsampleRT_%d"), i));
 				DownSampleRenderTargetArray.Add(DownSampleRT);
 #if 0
@@ -627,7 +627,7 @@ struct FLexBackBufferCopyFilterRenderProxy_DualKawaseBlur : public FLexBackBuffe
 			if (SourceWidth <= 2 || SourceHeight <= 2)break;
 			TRefCountPtr<IPooledRenderTarget> DownSampleRT;
 			FPooledRenderTargetDesc RenderTargetDesc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(SourceWidth, SourceHeight)
-				, BlurEffectRHITexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+				, BlurEffectRHITexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
 			GRenderTargetPool.FindFreeElement(GraphBuilder.RHICmdList, RenderTargetDesc, DownSampleRT, *FString::Printf(TEXT("LexUI_DownsampleRT_%d"), i));
 			DownSampleRenderTargetArray.Add(DownSampleRT);
 			DualKawaseDownSample(GraphBuilder, GlobalShaderMap, PrevRT, DownSampleRT->GetRHI());

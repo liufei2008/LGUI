@@ -28,13 +28,13 @@ public:
 	virtual bool CanRender() const = 0;
 	/**
 	 * render thread function that will do the post process draw
-	 * @param	ScreenTargetTexture				The full screen render target
+	 * @param	ScreenRenderTargetTexture				The full screen render target
 	 * @param	ViewProjectionMatrix			For vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
 	 */
 	virtual void OnRenderBackBuffer_RenderThread(
 		FRDGBuilder& GraphBuilder,
 		const FMinimalSceneTextures& SceneTextures,
-		FTextureRHIRef ScreenTargetTexture,
+		FTextureRHIRef ScreenRenderTargetTexture,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix44f& ViewProjectionMatrix,
 		bool bIsWorldSpace,
