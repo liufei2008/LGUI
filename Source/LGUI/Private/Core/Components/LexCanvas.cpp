@@ -2808,13 +2808,16 @@ void ULexCanvas::OnEditorTick(float DeltaTime)
 			)
 		{
 			DrawViewportArea();
-			if (ULexUISelection::GetInstance(this->GetWorld())->IsSelected(this->GetWidget()))
+			if (auto Selection = ULexUISelection::GetInstance(this->GetWorld()))
 			{
-				if (auto ViewportClient = ULexUIManagerWorldSubsystem::GetInstance(this->GetWorld())->GetEditorViewportClient())
+				if (Selection->IsSelected(this->GetWidget()))
 				{
-					if (!ViewportClient->IsOrtho())
+					if (auto ViewportClient = ULexUIManagerWorldSubsystem::GetInstance(this->GetWorld())->GetEditorViewportClient())
 					{
-						DrawVirtualCamera();
+						if (!ViewportClient->IsOrtho())
+						{
+							DrawVirtualCamera();
+						}
 					}
 				}
 			}

@@ -43,7 +43,7 @@ void ULexUIFontData_FreeTypeRender::FinishDestroy()
 }
 
 #if WITH_FREETYPE
-const char* GetErrorMessage(FT_Error err)
+const char* ULexUIFontData_FreeTypeRender::GetErrorMessage(int err)
 {
 #undef __FTERRORS_H__
 #define FT_ERRORDEF( e, v, s )  case e: return s;
@@ -480,7 +480,7 @@ FLexUICharData ULexUIFontData_FreeTypeRender::GetCharData(uint32 CharCode, float
 
 bool ULexUIFontData_FreeTypeRender::PackRectAndInsertChar(const FGlyphBitmap& InGlyphBitmap, rbp::MaxRectsBinPack& InOutBinPack, UTexture2DArray* InTexture, FLexUICharData& OutResult)
 {
-	if (InGlyphBitmap.width <= 0 || InGlyphBitmap.height <= 0)//glyph no need to display, could be space
+	if (InGlyphBitmap.width <= 0 || InGlyphBitmap.height <= 0)//glyph no need to display, could be empty char like space, or /r, /n
 	{
 		OutResult.Width = InGlyphBitmap.width;
 		OutResult.Height = InGlyphBitmap.height;
@@ -527,10 +527,6 @@ bool ULexUIFontData_FreeTypeRender::PackRectAndInsertChar(const FGlyphBitmap& In
 		OutResult.SliceIndex = CurrentTextureSlice;
 		return true;
 	}
-}
-void ULexUIFontData_FreeTypeRender::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)
-{
-
 }
 
 void ULexUIFontData_FreeTypeRender::UpdateFontTextureRegion(uint32 PosX, uint32 PosY, uint32 Slice, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, TArray<uint8> SrcData)

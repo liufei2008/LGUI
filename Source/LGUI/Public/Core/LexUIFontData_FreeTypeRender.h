@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
 #include "RHI.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Core/LexUIFontData_BaseObject.h"
@@ -143,6 +142,7 @@ protected:
 	void InitFreeType();
 	void DeinitFreeType();
 	FT_GlyphSlotRec_* RenderGlyphOnFreeType(uint32 CharCode, float CharSize, float BoldSize);
+	static const char* GetErrorMessage(int err);
 
 #if WITH_EDITOR
 	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
@@ -171,8 +171,6 @@ protected:
 	void RenewFontTexture();
 
 	virtual UTexture2DArray* CreateFontTexture(int InTextureSize, int InSliceCount)PURE_VIRTUAL(ULexUIFontData_FreeTypeRender::CreateFontTexture, return nullptr;);
-	virtual UTexture2D* CreateIntermediateTexture(int InTextureSize)PURE_VIRTUAL(ULexUIFontData_FreeTypeRender::CreateIntermediateTexture, return nullptr;);
-	virtual void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 
 	virtual bool GetCharDataFromCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& OutResult) { return false; };
 	virtual void AddCharDataToCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& CharData) {};
