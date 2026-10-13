@@ -1509,6 +1509,7 @@ void ULexUIManagerWorldSubsystem::CalculateLayoutTree(ULexWidget* RootLayoutWidg
 	for (int i = 0; i < LayoutTreeArray.Num(); i++)
 	{
 		auto Widget = LayoutTreeArray[i];
+		if (!IsValid(Widget))continue;
 		if (auto LayoutContainer = Widget->GetLayoutContainer())
 		{
 			if (!LayoutContainerArrayWhichHasSnapshot.Contains(LayoutContainer))

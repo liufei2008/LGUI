@@ -51,6 +51,10 @@ int sdfBuildDistanceField(unsigned char* out, int outstride, float radius,
 void sdfBuildDistanceFieldNoAlloc(unsigned char* out, int outstride, float radius,
 								  const unsigned char* img, int width, int height, int stride,
 								  unsigned char* temp);
+template<typename SetResultFunc>
+void sdfBuildDistanceFieldNoAlloc(SetResultFunc setResultFunc, int outstride, float radius,
+								  const unsigned char* img, int width, int height, int stride,
+								  unsigned char* temp);
 
 // This function converts the antialiased image where each pixel represents coverage (box-filter
 // sampling of the ideal, crisp edge) to a distance field with narrow band radius of sqrt(2).
@@ -193,6 +197,17 @@ static float sdf__distsqr(struct SDFpoint* a, struct SDFpoint* b)
 }
 
 void sdfBuildDistanceFieldNoAlloc(unsigned char* out, int outstride, float radius,
+								  const unsigned char* img, int width, int height, int stride,
+								  unsigned char* temp)
+{
+	sdfBuildDistanceFieldNoAlloc([out](int index, float value01)
+	{
+		out[index] = (unsigned char)(sdf__clamp01(value01) * 255.0f);
+	}, outstride, radius, img, width, height, stride, temp);
+}
+
+template<typename SetResultFunc>
+void sdfBuildDistanceFieldNoAlloc(SetResultFunc setResultFunc, int outstride, float radius,
 								  const unsigned char* img, int width, int height, int stride,
 								  unsigned char* temp)
 {
@@ -366,7 +381,7 @@ void sdfBuildDistanceFieldNoAlloc(unsigned char* out, int outstride, float radiu
 		for (x = 0; x < width; x++) {
 			float d = sqrtf(tdist[x+y*width]) * scale;
 			if (img[x+y*stride] > 127) d = -d;
-			out[x+y*outstride] = (unsigned char)(sdf__clamp01(0.5f - d*0.5f) * 255.0f);
+			setResultFunc(x+y*outstride, sdf__clamp01(0.5f - d*0.5f));
 		}
 	}
 

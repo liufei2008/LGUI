@@ -55,9 +55,8 @@ protected:
 
 	/**
 	 * Copy screen content to this RenderTarget.
-	 * Will create one if not specified.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, meta=(AllowPrivateAccess=true), DuplicateTransient)
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true), AdvancedDisplay)
 	TEnumAsByte<ETextureRenderTargetFormat> RenderTargetFormat;
@@ -65,8 +64,10 @@ protected:
 	//Render filtered BackBuffer image directly to viewport
 	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter, meta=(AllowPrivateAccess=true))
 	ELexBackBufferCopyRenderMode RenderMode = ELexBackBufferCopyRenderMode::RenderToTarget;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Instanced, Getter, meta=(AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexUI", Instanced, Getter, meta=(AllowPrivateAccess = true), DuplicateTransient)
 	TObjectPtr<ULexBackBufferCopyFilter> BackBufferCopyFilter;
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", Transient, AdvancedDisplay)
+	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 public:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
@@ -80,8 +81,6 @@ public:
 	FRenderTargetChangedEvent& GetRenderTargetChangedEvent(){return OnRenderTargetChanged;}
 	UFUNCTION()
 	UTextureRenderTarget2D* GetRenderTarget()const { return RenderTarget; }
-	UFUNCTION()
-	void SetRenderTarget(UTextureRenderTarget2D* InRenderTarget);
 	UFUNCTION()
 	ETextureRenderTargetFormat GetRenderTargetFormat()const { return RenderTargetFormat; }
 	UFUNCTION()
@@ -97,8 +96,6 @@ private:
 	void SendRenderTargetToRenderProxy();
 	void SendFilterToRenderProxy();
 	void SendOthersToRenderProxy();
-	UPROPERTY(VisibleAnywhere, Category = "LexUI")
-	TArray<TWeakObjectPtr<UMaterialInstanceDynamic>> MaterialsUsingThisBackBuffer;
 };
 
 

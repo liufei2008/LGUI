@@ -67,6 +67,21 @@ void ULexUIFontData_DistanceField::AddCharDataToCache(uint32 CharCode, float Cha
 	CharDataMap.Add(FLexUIDistanceFieldCharKey(CharCode, IsBold), CharData);
 }
 
+namespace
+{
+	EPixelFormat GetPixelFormatForSDF(ELexUIFontData_DistanceField_TextureFormat InTextureFormat)
+	{
+		switch (InTextureFormat)
+		{
+		case ELexUIFontData_DistanceField_TextureFormat::R16F:
+			return PF_R16F;
+		case ELexUIFontData_DistanceField_TextureFormat::R32F:
+			return PF_R32_FLOAT;
+		default:
+			return PF_R8;
+		}
+	}
+}
 bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, bool IsBold, FGlyphBitmap& OutResult)
 {
 #if WITH_FREETYPE
@@ -82,8 +97,10 @@ bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, 
 	static TArray<unsigned char> sdfTemp;
 	sourceBuffer.SetNumUninitialized(glyphWidth * glyphHeight);
 	sdfTemp.SetNumUninitialized(sourceBuffer.Num() * sizeof(float) * 3);
-	TArray<unsigned char> sdfResult;
-	sdfResult.SetNumUninitialized(sourceBuffer.Num());
+	TArray<uint8> sdfResult;
+	auto PixelFormat = GetPixelFormatForSDF(TextureFormat);
+	auto PixelSize = GPixelFormats[PixelFormat].BlockBytes;
+	sdfResult.SetNumUninitialized(sourceBuffer.Num() * PixelSize);
 	FMemory::Memzero(sourceBuffer.GetData(), sourceBuffer.Num());
 	FMemory::Memzero(sdfResult.GetData(), sourceBuffer.Num());
 	int sourceBufferOffset = SDFRadius * glyphWidth + SDFRadius;
@@ -94,7 +111,31 @@ bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, 
 		sourceBufferOffset += glyphWidth;
 		freetypeBufferOffset += maxW;
 	}
-	sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
+	switch (TextureFormat)
+	{
+	case ELexUIFontData_DistanceField_TextureFormat::R8:
+		{
+			sdfBuildDistanceFieldNoAlloc(sdfResult.GetData(), glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
+		}
+		break;
+	case ELexUIFontData_DistanceField_TextureFormat::R16F:
+		{
+			sdfBuildDistanceFieldNoAlloc([&sdfResult, PixelSize](int index, float value01)
+			{
+				FFloat16 value16(value01);
+				FMemory::Memcpy(sdfResult.GetData() + index * PixelSize, &value16.Encoded, PixelSize);
+			}, glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
+		}
+		break;
+	case ELexUIFontData_DistanceField_TextureFormat::R32F:
+		{
+			sdfBuildDistanceFieldNoAlloc([&sdfResult, PixelSize](int index, float value01)
+			{
+				FMemory::Memcpy(sdfResult.GetData() + index * PixelSize, &value01, PixelSize);
+			}, glyphWidth, SDFRadius, sourceBuffer.GetData(), glyphWidth, glyphHeight, glyphWidth, sdfTemp.GetData());
+		}
+		break;
+	}
 	//UE_LOG(LGUI, Error, TEXT("Gen sdf time: %f(ms)"), (FPlatformTime::Seconds() - Time) * 1000.0);
 	OutResult.width = glyphWidth;
 	OutResult.height = glyphHeight;
@@ -102,7 +143,7 @@ bool ULexUIFontData_DistanceField::RenderGlyph(uint32 CharCode, float CharSize, 
 	OutResult.vOffset = slot->bitmap_top + SDFRadius;
 	OutResult.hAdvance = slot->metrics.horiAdvance * ONE_DIVIDE_64;
 	OutResult.buffer = MoveTemp(sdfResult);
-	OutResult.pixelSize = 1;
+	OutResult.pixelSize = PixelSize;
 	return true;
 #else
 	return false;
@@ -121,7 +162,7 @@ UTexture2DArray* ULexUIFontData_DistanceField::CreateFontTexture(int InTextureSi
 		GetTransientPackage()
 		, FName(*FString::Printf(TEXT("LexUIFontData_DistanceField_Texture_%d"), TextureNameSuffix++))
 		, RF_Transient);
-	auto PixelFormat = PF_R8;
+	auto PixelFormat = GetPixelFormatForSDF(TextureFormat);
 
 	auto PlatformData = new FTexturePlatformData();
 	PlatformData->SizeX = InTextureSize;

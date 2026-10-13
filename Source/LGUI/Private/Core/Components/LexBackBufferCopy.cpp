@@ -215,10 +215,6 @@ void ULexBackBufferCopy::SendRenderTargetToRenderProxy()
 		{
 			RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 		}
-		else
-		{
-			RenderTargetResource = nullptr;
-		}
 		ENQUEUE_RENDER_COMMAND(FLexBackBufferCopy_UpdateRenderTarget)
 			([TempRenderProxy, RenderTargetResource](FRHICommandListImmediate& RHICmdList)
 				{
@@ -274,16 +270,6 @@ void ULexBackBufferCopy::SendRegionVertexDataToRenderProxy()
 						TempRenderProxy->ClipDataTexture = ClipDataTexture;
 					});
 		}
-	}
-}
-
-void ULexBackBufferCopy::SetRenderTarget(UTextureRenderTarget2D* InRenderTarget)
-{
-	if (RenderTarget != InRenderTarget)
-	{
-		RenderTarget = InRenderTarget;
-		UpdateRenderTarget();
-		OnRenderTargetChanged.Broadcast(RenderTarget);
 	}
 }
 

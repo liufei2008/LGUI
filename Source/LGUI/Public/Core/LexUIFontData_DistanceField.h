@@ -47,6 +47,14 @@ public:
 	}
 };
 
+UENUM(BlueprintType)
+enum class ELexUIFontData_DistanceField_TextureFormat : uint8
+{
+	R8,
+	R16F,
+	R32F,
+};
+
 /** SDF(Signed Distance Field) Font asset for render smooth scaled sdf text. */
 UCLASS(BlueprintType)
 class LGUI_API ULexUIFontData_DistanceField : public ULexUIFontData_FreeTypeRender
@@ -64,6 +72,8 @@ private:
 	/** Angle of italic style in degree */
 	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float ItalicAngle = 15.0f;
+	UPROPERTY(EditAnywhere, Category = "LexUI")
+		ELexUIFontData_DistanceField_TextureFormat TextureFormat = ELexUIFontData_DistanceField_TextureFormat::R8;
 	/**
 	 * bold size radio for bold style, large number create more bold effect.
 	 */
