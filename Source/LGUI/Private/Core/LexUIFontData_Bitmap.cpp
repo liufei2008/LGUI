@@ -335,6 +335,42 @@ UTexture2DArray* ULexUIFontData_Bitmap::CreateFontTexture(int InTextureSize, int
 	return NewTexture;
 }
 
+UTexture2D* ULexUIFontData_Bitmap::CreateIntermediateTexture(int InTextureSize)
+{
+	static int TextureNameSuffix = 0;
+	auto ResultTexture = NewObject<UTexture2D>(
+		GetTransientPackage(),
+		FName(*FString::Printf(TEXT("LexUIFontData_Bitmap_Intermediate_%d"), TextureNameSuffix++)),
+		RF_Transient
+	);
+	auto PixelFormat = PF_B8G8R8A8;
+	auto PlatformData = new FTexturePlatformData();
+	PlatformData->SizeX = InTextureSize;
+	PlatformData->SizeY = InTextureSize;
+	PlatformData->PixelFormat = PixelFormat;
+	// Allocate first mipmap.
+	int32 NumBlocksX = InTextureSize / GPixelFormats[PixelFormat].BlockSizeX;
+	int32 NumBlocksY = InTextureSize / GPixelFormats[PixelFormat].BlockSizeY;
+	FTexture2DMipMap* Mip = new FTexture2DMipMap();
+	PlatformData->Mips.Add(Mip);
+	Mip->SizeX = InTextureSize;
+	Mip->SizeY = InTextureSize;
+	int DataSize = NumBlocksX * NumBlocksY * GPixelFormats[PixelFormat].BlockBytes;
+	Mip->BulkData.Lock(LOCK_READ_WRITE);
+	void* DataPtr = Mip->BulkData.Realloc(DataSize);
+	FMemory::Memzero(DataPtr, DataSize);
+	Mip->BulkData.Unlock();
+	ResultTexture->SetPlatformData(PlatformData);
+
+	ResultTexture->CompressionSettings = TextureCompressionSettings::TC_DistanceFieldFont;
+	ResultTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+	ResultTexture->SRGB = false;
+	ResultTexture->Filter = TextureFilter::TF_Bilinear;
+	ResultTexture->UpdateResource();
+
+	return ResultTexture;
+}
+
 void ULexUIFontData_Bitmap::PrepareForPushCharData(ULexText* InText)
 {
 	BoldSize = InText->GetFontSize() * BoldRatio;

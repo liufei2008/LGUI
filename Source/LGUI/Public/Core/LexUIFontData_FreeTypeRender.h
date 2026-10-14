@@ -82,6 +82,9 @@ protected:
 	/** Texture of this font */
 	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		TObjectPtr<UTexture2DArray> Texture;
+	/** IntermediateTexture for Updating Texture2DArray. */ 
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
+	TObjectPtr<UTexture2D> IntermediateTexture;
 	int32 CurrentTextureSlice = 0;
 
 	/** if not find char in current font, LexUI will search the char in this font array until find it. */
@@ -171,6 +174,7 @@ protected:
 	void RenewFontTexture();
 
 	virtual UTexture2DArray* CreateFontTexture(int InTextureSize, int InSliceCount)PURE_VIRTUAL(ULexUIFontData_FreeTypeRender::CreateFontTexture, return nullptr;);
+	virtual UTexture2D* CreateIntermediateTexture(int InTextureSize)PURE_VIRTUAL(ULexUIFontData_FreeTypeRender::CreateIntermediateTexture, return nullptr;);
 
 	virtual bool GetCharDataFromCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& OutResult) { return false; };
 	virtual void AddCharDataToCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& CharData) {};

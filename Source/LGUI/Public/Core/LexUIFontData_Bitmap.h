@@ -60,6 +60,7 @@ protected:
 	float BoldSize; float ItalicSlop;
 	TMap<FLexUIBitmapCharKey, FLexUICharData> CharDataMap;
 	virtual UTexture2DArray* CreateFontTexture(int InTextureSize, int InSliceCount)override;
+	virtual UTexture2D* CreateIntermediateTexture(int InTextureSize) override;
 
 	virtual bool GetCharDataFromCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& OutResult)override;
 	virtual void AddCharDataToCache(uint32 CharCode, float CharSize, bool IsBold, FLexUICharData& CharData)override;
