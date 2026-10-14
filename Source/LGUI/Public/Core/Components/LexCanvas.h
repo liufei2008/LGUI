@@ -297,7 +297,7 @@ protected:
 	/**
 	 * Render to RenderTarget, if not specified then LGUI will create a new one.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LexUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", DuplicateTransient)
 		TObjectPtr<UTextureRenderTarget2D> RenderTarget;
 	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 	TEnumAsByte<ETextureRenderTargetFormat> RenderTargetFormat;
@@ -441,9 +441,7 @@ public:
 	/** Set parameters for calculating projection matrix. Only valid for ScreenSpace/RenderTarget mode. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
-	/** if renderMode is RenderTarget, then this will change the renderTarget */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetRenderTarget(UTextureRenderTarget2D* Value);
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	void SetRenderTargetFormat(ETextureRenderTargetFormat Value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)

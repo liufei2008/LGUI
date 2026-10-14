@@ -2284,19 +2284,6 @@ void ULexCanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type
 	bIsViewProjectionMatrixDirty = true;
 }
 
-void ULexCanvas::SetRenderTarget(UTextureRenderTarget2D* Value)
-{
-	if (RenderTarget != Value)
-	{
-		RenderTarget = Value;
-		if (CheckRootCanvas() && RootCanvas == this)
-		{
-			UpdateRenderTarget(false);
-		}
-		OnRenderTargetChanged.Broadcast(RenderTarget);
-	}
-}
-
 void ULexCanvas::SetRenderTargetFormat(ETextureRenderTargetFormat Value)
 {
 	if (RenderTargetFormat != Value)
