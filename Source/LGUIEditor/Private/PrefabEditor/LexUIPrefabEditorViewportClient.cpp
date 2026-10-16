@@ -36,8 +36,6 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
-IMPLEMENT_HIT_PROXY(HLevelSocketProxy, HHitProxy);
-
 class FLexUITransformWidget
 {
 private:		
@@ -126,7 +124,7 @@ private:
 			if (SelectedWidget.IsValid())
 			{
 				FVector RayOrigin, RayDirection;
-				FSceneView::DeprojectScreenToWorld(FVector2D(MouseX, MouseY), SceneView->UnscaledViewRect, SceneView->ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
+				FSceneView::DeprojectScreenToWorld(FVector2D(MouseX, MouseY), SceneView->UnscaledViewRect, SceneView->ViewMatrices.GetClipToWorld(), RayOrigin, RayDirection);
 
 				auto Center = ThisTransform.GetTranslation();
 				constexpr float Far = 1e6f;
@@ -256,7 +254,7 @@ private:
 			
 			constexpr float Far = 100000000;
 			FVector ViewRayOrigin, ViewRayDirection;
-			FSceneView::DeprojectScreenToWorld(FVector2D(MouseX, MouseY), SceneView->UnscaledViewRect, SceneView->ViewMatrices.GetInvViewProjectionMatrix(), ViewRayOrigin, ViewRayDirection);
+			FSceneView::DeprojectScreenToWorld(FVector2D(MouseX, MouseY), SceneView->UnscaledViewRect, SceneView->ViewMatrices.GetClipToWorld(), ViewRayOrigin, ViewRayDirection);
 			FVector LineEnd = ViewRayOrigin + ViewRayDirection * Far;
 
 			auto Center = ThisTransform.GetTranslation();
@@ -1012,7 +1010,7 @@ void FLexUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy*
 	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
 
 	FVector RayOrigin, RayDirection;
-	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetInvViewProjectionMatrix(), RayOrigin, RayDirection);
+	View.DeprojectScreenToWorld(FVector2D(HitX, HitY), View.UnscaledViewRect, View.ViewMatrices.GetClipToWorld(), RayOrigin, RayDirection);
 	ULexWidget* ClickHitWidget = nullptr;
 	if (auto LexUIManager = ULexUIManagerWorldSubsystem::GetInstance(this->GetWorld()))
 	{
@@ -1214,7 +1212,7 @@ bool FLexUIPrefabEditorViewportClient::InputWidgetDelta(FViewport* InViewport, E
 		{
 			// Skip actors transformation routine in case if any of the selected actors locked
 			// but still pretend that we have handled the input
-			if (!GEditor->HasLockedActors())
+			if (!GEditor->HasSelectedMovementLockedItems())
 			{
 				const bool LeftMouseButtonDown = InViewport->KeyState(EKeys::LeftMouseButton);
 				const bool RightMouseButtonDown = InViewport->KeyState(EKeys::RightMouseButton);

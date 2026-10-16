@@ -82,7 +82,7 @@ void SLexWidgetHierarchyPickerViewItem::Construct(const FArguments& InArgs, cons
 			{
 				SubObjects.Add(SubObject);
 			}
-		}, true);
+		}, EGetObjectsFlags::IncludeNestedObjects);
 		if (SubObjects.Num() > 0)
 		{
 			MenuBuilder->BeginSection("SubObjectSection", LOCTEXT("SubObjectMenu", "SubObjects"));
@@ -117,7 +117,7 @@ void SLexWidgetHierarchyPickerViewItem::Construct(const FArguments& InArgs, cons
 			{
 				SubObjects.Add(SubObject);
 			}
-		}, false);
+		}, EGetObjectsFlags::None);
 		if (SubObjects.Num() > 0)
 		{
 			MenuBuilder->AddSubMenu(

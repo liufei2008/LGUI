@@ -485,7 +485,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 		)return;//nothing to render
 	bool bIsMainViewport = !(InView.bIsSceneCapture || InView.bIsReflectionCapture || InView.bIsPlanarReflection || InView.bIsVirtualTexture);
 	
-	bool bRenderWireframe = InView.Family->ViewMode == VMI_Wireframe || InView.Family->ViewMode == VMI_Lit_Wireframe;
+	bool bRenderWireframe = InView.Family->ViewMode == VMI_Wireframe || (InView.Family->ViewMode == VMI_Lit && InView.Family->EngineShowFlags.MeshEdges);
 	bool bRenderLit = InView.Family->ViewMode != VMI_Wireframe;
 	FMaterialRenderProxy* WireframeMaterialInstance = NULL;
 	if (bRenderWireframe)
@@ -700,7 +700,7 @@ void FLexUIRenderer::RenderLexUI_RenderThread(
 
 			RenderView->ViewMatrices = InView.ViewMatrices;
 			RenderView->ViewMatrices.HackRemoveTemporalAAProjectionJitter();
-			auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetViewProjectionMatrix());
+			auto ViewProjectionMatrix = FMatrix44f(RenderView->ViewMatrices.GetWorldToClip());
 
 			FViewUniformShaderParameters ViewUniformShaderParameters;
 			RenderView->SetupCommonViewUniformBufferParameters(

@@ -120,7 +120,6 @@ bool ULexUIDataAsTexture::ExpandTextureWidth()
 					((FTexture2DDynamicResource*)NewTexture->GetResource())->GetTexture2DRHI(),
 					CopyInfo
 				);
-				RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
 			});
 	}
 	// set start position to bottom
@@ -167,7 +166,6 @@ bool ULexUIDataAsTexture::ExpandTextureHeight()
 					((FTexture2DDynamicResource*)NewTexture->GetResource())->GetTexture2DRHI(),
 					CopyInfo
 				);
-				RHICmdList.FlushResources();//Flush resource, or the texture will not show correct result
 			});
 	}
 	// set start position to bottom

@@ -504,7 +504,7 @@ void ULexWidget::DestroyWidget()
 			}
 			// Mark all sub-objects (Components, Layout, Visual, etc.) as garbage so TWeakObjectPtr/IsValid returns false immediately.
 			TArray<UObject*> SubObjects;
-			GetObjectsWithOuter(Widget, SubObjects, true);
+			GetObjectsWithOuter(Widget, SubObjects, EGetObjectsFlags::IncludeNestedObjects);
 			for (UObject* SubObj : SubObjects)
 			{
 				if (IsValid(SubObj))

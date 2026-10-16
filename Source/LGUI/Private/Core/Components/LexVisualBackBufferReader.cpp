@@ -193,7 +193,7 @@ void ULexVisualBackBufferReader::PostUpdateDrawCall()
 				FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(EditorViewportClient->Viewport, EditorViewportClient->GetScene(), EditorViewportClient->EngineShowFlags));
 				auto SceneView = EditorViewportClient->CalcSceneView(&ViewFamily);
 				ViewRect = SceneView->UnscaledViewRect;
-				ViewProjectionMatrix = SceneView->ViewMatrices.GetViewProjectionMatrix();
+				ViewProjectionMatrix = SceneView->ViewMatrices.GetWorldToClip();
 			}
 		}
 		else
