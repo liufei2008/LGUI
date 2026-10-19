@@ -49,12 +49,19 @@ void ULexWidgetPresenterComponent::OnRegister()
 
 void ULexWidgetPresenterComponent::OnUnregister()
 {
+	// remove widget
+	if (LoadedWidget.IsValid())
+	{
+		LoadedWidget->DestroyWidget();
+		LoadedWidget = nullptr;
+	}
 	Super::OnUnregister();
 }
 
 void ULexWidgetPresenterComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	// remove widget
 	if (LoadedWidget.IsValid())
 	{
 		LoadedWidget->DestroyWidget();
