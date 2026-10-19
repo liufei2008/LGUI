@@ -4,7 +4,6 @@
 #include "PrefabSystem/LexUIPrefab.h"
 #include "AssetRegistry/AssetData.h"
 #include "Core/LexUIManager.h"
-#include "Event/LexScreenSpaceRaycaster.h"
 #include "PrefabSystem/LexUIPrefabPresenterComponent.h"
 
 
@@ -62,7 +61,6 @@ void ULexUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor
 	auto Prefab = CastChecked<ULexUIPrefab>(Asset);
 
 	auto WidgetPresenterComponent = InNewActor->FindComponentByClass<ULexUIPrefabPresenterComponent>();
-	// WidgetPresenterComponent->GetLoadedWidget()->SetSizeDelta(Prefab->PrefabDataForPrefabEditor.CanvasSize);
 	WidgetPresenterComponent->SetPrefab(Prefab);
 
 	auto World = InNewActor->GetWorld();
@@ -93,30 +91,14 @@ UObject* ULexUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstan
 
 UClass* ULexUIPrefabActorFactory::GetDefaultActorClass(const FAssetData& AssetData)
 {
-	if (auto Prefab = Cast<ULexUIPrefab>(AssetData.GetAsset()))
+	FString ClassName = TEXT("LexWorldSpaceRoot_LexRenderer");
+	
+	NewActorClass = LoadClass<AActor>(NULL, *FString::Printf(TEXT("/LGUI/Blueprints/%s.%s_C"), *ClassName, *ClassName));
+	if (!NewActorClass)
 	{
-		FString ClassName;
-		auto RenderMode = (ELexRenderMode)Prefab->PrefabDataForPrefabEditor.CanvasRenderMode;
-		switch (RenderMode)
-		{
-		case ELexRenderMode::WorldSpace:
-			ClassName = TEXT("LexWorldSpaceRoot_UERenderer");
-			break;
-		case ELexRenderMode::WorldSpace_LexUI:
-			ClassName = TEXT("LexWorldSpaceRoot_LexRenderer");
-			break;
-		case ELexRenderMode::ScreenSpaceOverlay:
-			ClassName = TEXT("LexScreenSpaceRoot");
-		}
-		
-		NewActorClass = LoadClass<AActor>(NULL, *FString::Printf(TEXT("/LGUI/Blueprints/%s.%s_C"), *ClassName, *ClassName));
-		if (!NewActorClass)
-		{
-			NewActorClass = AActor::StaticClass();
-		}
-		return NewActorClass;
+		NewActorClass = AActor::StaticClass();
 	}
-	return nullptr;
+	return NewActorClass;
 }
 
 #undef LOCTEXT_NAMESPACE
