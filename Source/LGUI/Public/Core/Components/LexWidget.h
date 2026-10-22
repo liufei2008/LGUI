@@ -720,7 +720,7 @@ public:
 #pragma region SiblingIndex
 protected:
 	/** hierarchy index, hierarchy order, render order */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 		int32 SiblingIndex = INDEX_NONE;
 	/**
 	 * Flatten depth/hierarchyIndex, relative to root LexWidget. -1 means not set yet.
@@ -732,7 +732,7 @@ protected:
 	 *	     Widget - 5
 	 *	 Widget - 6
 	 */
-	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	mutable int32 FlattenHierarchyIndex = -1;
 	void MarkFlattenHierarchyIndexDirty();
 private:
@@ -741,14 +741,14 @@ private:
 	void CalculateFlattenHierarchyIndex_Recursive(int& index)const;
 	void ApplySiblingIndex();
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetSiblingIndex() const { return SiblingIndex; }
 	/** Get index order of the widget from top most widget in flatten hierarchy. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetFlattenHierarchyIndex()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetAsFirstSibling();
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetAsLastSibling();
 #pragma endregion SiblingIndex
 
@@ -757,10 +757,10 @@ private:
 	/** 
 	 * This is useful when you need to find child UI element by name, use function "FindChildByDisplayName" or "FindChildArrayByDisplayName" to do it.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = LGUI, Getter, Setter, BlueprintReadWrite, AdvancedDisplay, meta=(AllowPrivateAccess=true))
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", Getter, Setter, BlueprintReadWrite, AdvancedDisplay, meta=(AllowPrivateAccess=true))
 	FString DisplayName;
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FString GetPathDisplayName(const UObject* StopOuter = nullptr)const;
 	UFUNCTION()
 	const FString& GetDisplayName()const { return DisplayName; }
@@ -772,14 +772,14 @@ public:
 	 * @param InName	The child's name that need to find, case sensitive
 	 * @param IncludeChildren	Also search in children
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexWidget* FindChildByDisplayName(const FString& InName, bool IncludeChildren = false)const;
 	/**
 	 * Like "FindChildByDisplayName", but return all children that match the case.
 	 * @param InName	The child's name that need to find, case sensitive
 	 * @param IncludeChildren	Also search in children
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		TArray<ULexWidget*> FindChildArrayByDisplayName(const FString& InName, bool IncludeChildren = false)const;
 private:
 	ULexWidget* FindChildByDisplayNameWithChildren_Internal(const FString& InName)const;
@@ -864,9 +864,9 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween")
 	ULTweener* WorldLocationTo(FVector endValue, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween")
 	ULTweener* RelativeScaleTo(FVector endValue = FVector(1.0f, 1.0f, 1.0f), float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween")
 	ULTweener* RelativeUniformScaleTo(float endValue = 1.0f, float duration = 0.5f, float delay = 0.0f, ELTweenEase ease = ELTweenEase::OutCubic);
 
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", ToolTip = "Rotate absolute quaternion rotation value"), Category = "LTween")

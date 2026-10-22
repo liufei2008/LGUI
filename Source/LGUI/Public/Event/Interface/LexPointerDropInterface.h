@@ -24,6 +24,6 @@ public:
 	 * Called when dragging another object and drop on this object.
 	 * @return Allow event bubble up? If all interface of same widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerDrop(ULexPointerEventData* EventData);
 };

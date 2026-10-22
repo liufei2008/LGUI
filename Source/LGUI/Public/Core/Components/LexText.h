@@ -110,7 +110,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bRichText = false;
 	/** Flags to enable/disable rich text tag. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexUIText_RichTextTagFilterFlags", EditCondition = "bRichText"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexUIText_RichTextTagFilterFlags", EditCondition = "bRichText"))
 		int32 RichTextTagFilterFlags = 0xffffffff;
 	/** rich text custom style data for custom tag and rendering custom style */
 	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition = "bRichText"))

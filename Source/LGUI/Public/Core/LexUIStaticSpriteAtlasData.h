@@ -99,8 +99,8 @@ private:
 	virtual void BeginDestroy()override;
 	bool InitCheck();
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UTexture2D* GetAtlasTexture(int32 Index);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool ReadPixel(int InTextureIndex, const FVector2D& InUV, FColor& OutPixel);
 };

@@ -23,27 +23,27 @@ public:
 
 	ULexUIPrefabSequenceComponent();
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexUIPrefabSequence* GetSequenceByDisplayName(const FString& InName) const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexUIPrefabSequence* GetSequenceByIndex(int32 InIndex) const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		const TArray<ULexUIPrefabSequence*>& GetSequenceArray() const { return SequenceArray; }
 	/** Init SequencePlayer with current sequence. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void InitSequencePlayer();
 	/** Find animation in SequenceArray by Index, then set it to SequencePlayer. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSequenceByIndex(int32 InIndex);
 	/** Find animation in SequenceArray by Name, then set it to SequencePlayer */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSequenceByDisplayName(const FString& InName);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetCurrentSequenceIndex()const { return CurrentSequenceIndex; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexUIPrefabSequence* GetCurrentSequence() const { return GetSequenceByIndex(CurrentSequenceIndex); }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexUIPrefabSequencePlayer* GetSequencePlayer() const { return SequencePlayer; }
 
 	ULexUIPrefabSequence* AddNewAnimation();
@@ -64,12 +64,12 @@ public:
 #endif
 protected:
 
-	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = "Playback", meta=(ShowOnlyInnerProperties))
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
 
-	UPROPERTY(VisibleAnywhere, Instanced, Category= Playback)
+	UPROPERTY(VisibleAnywhere, Instanced, Category = "Playback")
 		TArray<TObjectPtr<ULexUIPrefabSequence>> SequenceArray;
-	UPROPERTY(EditAnywhere, Category = Playback)
+	UPROPERTY(EditAnywhere, Category = "Playback")
 		int32 CurrentSequenceIndex = 0;
 
 	UPROPERTY(transient)

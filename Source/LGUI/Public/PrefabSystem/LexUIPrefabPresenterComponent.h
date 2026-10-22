@@ -30,7 +30,7 @@ public:
 #endif
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexWidgetPresenter")
 	TObjectPtr<ULexUIPrefab> WidgetPrefab;
 	
 #if WITH_EDITORONLY_DATA
@@ -39,8 +39,8 @@ private:
 	FString OverallVersionMD5;
 #endif
 public:
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetPrefab(ULexUIPrefab* Value);
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexUIPrefab* GetPrefab()const{return WidgetPrefab;}
 };

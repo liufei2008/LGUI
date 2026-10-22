@@ -24,18 +24,18 @@ public:
 	 * Called when drag this object begin.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerBeginDrag(ULexPointerEventData* EventData);
 	/**
 	 * Called when dragging this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerDrag(ULexPointerEventData* EventData);
 	/**
 	 * Called when drag this object end.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerEndDrag(ULexPointerEventData* EventData);
 };

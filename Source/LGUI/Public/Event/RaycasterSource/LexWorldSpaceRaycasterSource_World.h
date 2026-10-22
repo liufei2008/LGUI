@@ -8,7 +8,7 @@
 
 
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISceneComponentDirection :uint8
 {
 	PositiveX		UMETA(DisplayName = "X+"),
@@ -27,15 +27,15 @@ class LGUI_API ULexWorldSpaceRaycasterSource_World : public ULexWorldSpaceRaycas
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI")
 	ELexUISceneComponentDirection RayDirectionType = ELexUISceneComponentDirection::PositiveX;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LexUI")
 	USceneComponent* TargetSceneComp = nullptr;
 	/** drag threshold relate to line trace distance? If true then use ray distance as drag threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LexUI")
 	bool bDragThresholdRelateToRayDistance = true;
 	/** if bDragThresholdRelateToRayDistance is true, then multiply the ray distance with this value and use the result as drag threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI, meta=(EditCondition=bDragThresholdRelateToRayDistance))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LexUI", meta=(EditCondition=bDragThresholdRelateToRayDistance))
 	float RayDistanceMultiply = 0.003f;
 
 public:

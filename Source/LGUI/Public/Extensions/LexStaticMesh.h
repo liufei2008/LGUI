@@ -124,7 +124,7 @@ private:
 	FBox MeshBounds;
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexStaticMeshVertexColorType :uint8
 {
 	//Multiply mesh's vertex color with LGUI's color parameter

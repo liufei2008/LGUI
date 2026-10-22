@@ -21,13 +21,13 @@ public:
 
 	UFUNCTION()
 	ULexWidget* GetWidget()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FString GetPathDisplayName(const UObject* StopOuter = nullptr) const;
 protected:
 	virtual void OnRegister(){};
 	virtual void OnUnregister(){};
 private:
 	bool bIsRegistered = false;
-	UPROPERTY(Transient, BlueprintReadOnly, Category = LGUI, Getter=GetWidget, meta = (AllowPrivateAccess = true), DisplayName=LexWidget)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "LexUI", Getter=GetWidget, meta = (AllowPrivateAccess = true), DisplayName=LexWidget)
 	mutable TObjectPtr<ULexWidget> OwnerWidget = nullptr;
 };

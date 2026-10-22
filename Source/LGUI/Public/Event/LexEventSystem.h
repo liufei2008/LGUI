@@ -32,7 +32,7 @@ class LGUI_API ULexEventSystem : public UActorComponent
 public:
 	ULexEventSystem();
 
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (WorldContext = "WorldContextObject", DisplayName = "Get Lex Event System Instance"))
+	UFUNCTION(BlueprintPure, Category = "LexUI", meta = (WorldContext = "WorldContextObject", DisplayName = "Get Lex Event System Instance"))
 		static ULexEventSystem* GetLexEventSystemInstance(UObject* WorldContextObject, int UserIndex);
 protected:
 	virtual void BeginPlay() override;
@@ -42,71 +42,71 @@ protected:
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category = LGUI, Getter)
+	UPROPERTY(EditAnywhere, Category = "LexUI", Getter)
 	int UserIndex = 0;
 	
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bOutputLog = false;
 #endif
-	UPROPERTY(VisibleAnywhere, Category = LGUI)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 		bool bRayEventEnable = true;
 
 	void ProcessInputEvent();
 
-	UPROPERTY(VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	TWeakObjectPtr<ULexBaseInputModule> CurrentInputModule = nullptr;
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetUserIndex()const{return UserIndex;}
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexBaseInputModule* GetCurrentInputModule()const{return CurrentInputModule.Get();}
 	void SetInputModule(ULexBaseInputModule* InputModule);
 	void ClearInputModule();
 	
 	/** clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void ClearEvent();
 	/** 
 	 * SetRaycast enable or disable
 	 * @param	bClearEvent		call ClearEvent after disable Raycast
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRaycastEnable(bool bEnable, bool bClearEvent = false);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSelectWidget(ULexWidget* InSelectWidget, ULexBaseEventData* EventData);
 	static void SetSelectWidget(ULexEventSystem* InEventSystem, ULexWidget* InSelectWidget, ULexBaseEventData* EventData);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSelectComponentWithDefault(ULexWidget* InSelectWidget);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexWidget* GetCurrentSelectedComponent(int InPointerID)const;
 	
 	/**
 	 * Get PointerEventData by given pointerID.
 	 * @param	PointerID	0 for mouse input, touch-id for touch input, or other customized value
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexPointerEventData* GetPointerEventData(int PointerID = 0, bool bCreateIfNotExist = false)const;
 	/**
 	 * Remove a PointerEventData. If you ensure that you will not use it anymore, then you can remove it.
 	 * @param	PointerID	0 for mouse input, touch-id for touch input, or other customized value
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void RemovePointerEventData(int PointerID);
 protected:
-	UPROPERTY(VisibleAnywhere, Category = LGUI)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	mutable TMap<int, TObjectPtr<ULexPointerEventData>> PointerEventDataMap;
 	
 	/** called for pointer hit anything */
 	FLexUIRaycastHitDelegate RaycastHitEvent;
-	UPROPERTY(BlueprintAssignable, Category = LGUI, DisplayName="RaycastHitEvent")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", DisplayName="RaycastHitEvent")
 	FLexUIRaycastHitDynamicDelegate RaycastHitEventBP;
 	
 	/** called for all pointer && navigation event */
 	FLexUIMulticastDelegateBaseEventData InputEvent;
-	UPROPERTY(BlueprintAssignable, Category = LGUI, DisplayName="InputEvent")
+	UPROPERTY(BlueprintAssignable, Category = "LexUI", DisplayName="InputEvent")
 	FLexUIBaseEventDataDynamicDelegate InputEventBP;
 	
 	/** called when any pointerEventData's input type is changed */
@@ -123,19 +123,19 @@ public:
 	/**
 	 * Tell if the pointer hovering on any UI object.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool IsPointerOverUIByPointerID(int PointerID = 0);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetHighlightedComponentForNavigation(ULexWidget* InComp, int InPointerID);	
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexWidget* GetHighlightedComponentForNavigation(int InPointerID)const;
 	
 	/**
 	 * Set input type of the pointer, can be pointer or navigation.
 	 * @return true- input type changed, false- otherwise.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool SetPointerInputTypeByPointerID(int InPointerID, ELexUIPointerInputType InInputType);
 	/**
 	 * Set input type of the pointer, can be pointer or navigation..
@@ -147,37 +147,37 @@ public:
 	 * @param InPointerID target pointer's ID.
 	 * @param InDefaultHighlightedComponent default highlighted component for navigation input.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void ActivateNavigationInput(int InPointerID, ULexWidget* InDefaultHighlightedComponent = nullptr);
 private:
-	UPROPERTY(EditAnywhere, Getter, Setter, Category = LGUI)
+	UPROPERTY(EditAnywhere, Getter, Setter, Category = "LexUI")
 	ELexUIPointerInputType DefaultInputType = ELexUIPointerInputType::Pointer;
 	/**
 	 * If keep pressing the navigate button for a while, then will trigger the process of continuous navigation.
 	 * This is the time to trigger the process.
 	 */
-	UPROPERTY(EditAnywhere, Getter, Setter, Category = LGUI)
+	UPROPERTY(EditAnywhere, Getter, Setter, Category = "LexUI")
 	float NavigateInputIntervalForFirstTime = 0.5f;
 	/**
 	 * If keep pressing the navigate button for a while, then will trigger the process of continuous navigation.
 	 * This is the interval trigger time of continuous navigation
 	 */
-	UPROPERTY(EditAnywhere, Getter, Setter, Category = LGUI)
+	UPROPERTY(EditAnywhere, Getter, Setter, Category = "LexUI")
 	float NavigateInputInterval = 0.2f;
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexUIPointerInputType GetDefaultInputType()const{return DefaultInputType;}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetNavigateInputIntervalForFirstTime()const{return NavigateInputIntervalForFirstTime;}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetNavigateInputInterval()const{return NavigateInputInterval;}
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetDefaultInputType(ELexUIPointerInputType Value){ DefaultInputType = Value;}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetNavigateInputIntervalForFirstTime(float Value){ NavigateInputIntervalForFirstTime = Value;}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetNavigateInputInterval(float Value){ NavigateInputInterval = Value;}
 public:
 	template<class UEventData, class UInterfaceFunction>
@@ -233,29 +233,29 @@ public:
 	}
 	static ULexWidget* GetEventHandler(ULexWidget* Widget, UClass* InterfaceClass);
 	
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerEnter(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerExit(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerDown(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerUp(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerClick(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerBeginDrag(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerDrag(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerEndDrag(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerScroll(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnPointerDrop(ULexWidget* TargetWidget, ULexPointerEventData* PointerEventData, bool AllowEventBubbleUp = true);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnSelect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		static void ExecuteEvent_OnDeselect(ULexWidget* TargetWidget, ULexBaseEventData* EventData, bool AllowEventBubbleUp = false);
 
 	void CallOnPointerEnter(ULexWidget* RootComponent, ULexPointerEventData* EventData);

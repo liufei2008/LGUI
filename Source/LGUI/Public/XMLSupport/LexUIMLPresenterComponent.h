@@ -36,12 +36,12 @@ public:
 	FString GetXAMLFilePath() const;
 
 protected:
-	UPROPERTY(EditAnywhere, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, Category = "LexWidgetPresenter")
 	TSubclassOf<ULexUIMLBehaviour> XAMLScriptClass;
 
 public:
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetScriptClass(TSubclassOf<ULexUIMLBehaviour> Value);
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	TSubclassOf<ULexUIMLBehaviour> GetScriptClass()const{return XAMLScriptClass;}
 };

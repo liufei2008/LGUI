@@ -7,7 +7,7 @@
 #include "LexPolygon.generated.h"
 
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexPolygonUVType :uint8
 {
 	//Use full rect uv

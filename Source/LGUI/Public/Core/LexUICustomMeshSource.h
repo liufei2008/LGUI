@@ -84,7 +84,7 @@ public:
 	virtual void OnFillMesh(ULexVisualBatchMesh* InLexMesh, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual bool GetHitUV(const ULexVisualBatchMesh* InLexMesh, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
 protected:
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = -180.0f, ClampMax = 180.0f))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = -180.0f, ClampMax = 180.0f))
 	float CylinderArcAngle = 45;
 };
 
@@ -97,13 +97,13 @@ public:
 	virtual void OnFillMesh(ULexVisualBatchMesh* InLexMesh, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual bool GetHitUV(const ULexVisualBatchMesh* InLexMesh, const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV) const override;
 protected:
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = 1, ClampMax = 200))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = 1, ClampMax = 200))
 	int Segment = 10;
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (
 		DisplayName = "Shape Curve",
 		XAxisName = "Time 0-1",
 		YAxisName = "Value 0-1"))
 	FRuntimeFloatCurve ShapeCurve;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	float CurveScale = 100;
 };

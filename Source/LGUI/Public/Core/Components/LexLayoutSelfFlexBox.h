@@ -28,7 +28,7 @@ enum class ELexLayoutSizeType : uint8
 	Percent,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxSecondaryAxisSelfAlignment :uint8
 {
 	Auto,

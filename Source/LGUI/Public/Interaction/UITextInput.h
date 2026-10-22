@@ -48,7 +48,7 @@ protected:
 		bool ReceiveOnValidateInput(UUITextInput* InTextInput, const FString& InString, int InIndexOfInsertedChar);
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUITextInputType:uint8
 {
 	/** No validation. Any input is valid. */
@@ -81,7 +81,7 @@ enum class EUITextInputType:uint8
 	/** Use a user implemented *CustomValidation* to do custom input check. */
 	Custom = 7,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUITextInputDisplayType :uint8
 {
 	Standard,

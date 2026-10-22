@@ -23,11 +23,11 @@ public:
 	/**
 	 * Called when pointer enter this object.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		void OnPointerEnter(ULexPointerEventData* EventData);
 	/**
 	 * Called when pointer exit this object.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		void OnPointerExit(ULexPointerEventData* EventData);
 };

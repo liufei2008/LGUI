@@ -31,7 +31,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		TArray<float> VertexOffsetArray;
 
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI")TArray<FVector2D> CurrentPointArray;
 
 	//Begin UI2DLineRendererBase interface
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override

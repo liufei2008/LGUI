@@ -35,7 +35,7 @@ DECLARE_DELEGATE_ThreeParams(FUIDropdownComponentDelegate_SetItemCustomData, int
  */
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FUIDropdownComponentDynamicDelegate_SetItemCustomData, int, InItemIndex, class UUIDropdownItemComponent*, InItemScript, ULexWidget*, InItemWidget);
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUIDropdownVerticalPosition : uint8
 {
 	Bottom,
@@ -44,7 +44,7 @@ enum class EUIDropdownVerticalPosition : uint8
 	//automatically choose bottom or top
 	Automatic,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUIDropdownHorizontalPosition : uint8
 {
 	Left,

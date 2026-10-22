@@ -24,6 +24,6 @@ public:
 	 * Called when pointer inside this object and scroll(mouse wheel).
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerScroll(ULexPointerEventData* EventData);
 };

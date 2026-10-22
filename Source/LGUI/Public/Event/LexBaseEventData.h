@@ -7,7 +7,7 @@
 
 class ULexWidget;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIPointerEventType :uint8
 {
 	Click = 0,
@@ -24,7 +24,7 @@ enum class ELexUIPointerEventType :uint8
 	Deselect = 13,
 	Navigate = 14,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIMouseButtonType :uint8
 {
 	Left,Middle,Right,

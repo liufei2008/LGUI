@@ -18,34 +18,34 @@ class LGUI_API ULexStandaloneInputModule : public ULexPointerInputModule
 public:
 	virtual void ProcessInput()override;
 	/** input for mouse press and release */
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (AdvancedDisplay = "inMouseButtonType"))
 		void InputTrigger(const FVector& InMousePosition, bool InTriggerPress, ELexUIMouseButtonType InMouseButtonType = ELexUIMouseButtonType::Left);
 	/**
 	 * input for scroll
 	 * @param	InAxisValue		Use a 2d vector for scroll value. For mouse scroll just fill X&Y with mouse scroll value; For touchpad input use X for horizontal and Y for vertical.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void InputScroll(const FVector2D& InAxisValue);
 	/**
 	 * see "bOverrideMousePosition" property
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void InputMouseMove(const FVector& InMousePosition);
 	/** input for touch press and release */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void InputTouchTrigger(bool InTouchPress, int InTouchID, const FVector& InTouchPointPosition);
 	/** input for touch point moved */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void InputTouchMoved(int InTouchID, const FVector& InTouchPointPosition);
 	/** get current mouse position, return (0,0) if mouse position is not valid */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void GetMousePosition(FVector2D& OutMousePos)const;
 
 	/** input for gamepad or keyboard navigation */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void InputNavigation(ELexUINavigationDirection InDirection, bool InPressOrRelease, int InPointerID);
 	/** input for gamepad or keyboard press and release */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void InputTriggerForNavigation(bool InTriggerPress, int InPointerID);
 protected:
 	void CommonInputTrigger(const FVector& InPointerPosition, bool InTriggerPress, int InPointerID, ELexUIMouseButtonType InMouseButtonType = ELexUIMouseButtonType::Left);

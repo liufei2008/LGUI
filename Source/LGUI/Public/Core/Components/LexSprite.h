@@ -6,7 +6,7 @@
 #include "Core/LexUISpriteInfo.h"
 #include "LexSprite.generated.h"
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteDrawType :uint8
 {
 	Normal,
@@ -15,7 +15,7 @@ enum class ELexUISpriteDrawType :uint8
 	Filled,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteFillMethod:uint8
 {
 	Horizontal,
@@ -25,7 +25,7 @@ enum class ELexUISpriteFillMethod:uint8
 	Radial360,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteFillOriginType_Radial90 :uint8 
 {
 	BottomLeft,
@@ -34,7 +34,7 @@ enum class ELexUISpriteFillOriginType_Radial90 :uint8
 	BottomRight,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteFillOriginType_Radial180 :uint8
 {
 	Bottom,
@@ -43,7 +43,7 @@ enum class ELexUISpriteFillOriginType_Radial180 :uint8
 	Right,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteFillOriginType_Radial360 :uint8
 {
 	Bottom,

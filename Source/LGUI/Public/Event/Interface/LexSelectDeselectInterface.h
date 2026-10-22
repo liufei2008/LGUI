@@ -24,12 +24,12 @@ public:
 	 * Called when LexUI EventSystem select or focus on this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnSelect(ULexBaseEventData* EventData);
 	/**
 	 * Called when LexUI EventSystem deselect or defocus this object.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnDeselect(ULexBaseEventData* EventData);
 };

@@ -7,7 +7,7 @@
 #include "Lex2DLineRendererBase.generated.h"
 
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELex2DLineRenderer_EndType :uint8
 {
 	None,
@@ -30,16 +30,16 @@ public:
 protected:
 	virtual void BeginPlay()override;
 
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		float LineWidth = 10.0f;
 	//Draw extra quad at start and end.
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELex2DLineRenderer_EndType EndType = ELex2DLineRenderer_EndType::Cap;
 	/** When EndType is Cap, if LineWidth bigger or smaller than Sprite's width, then cap size will scale with it. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (EditCondition="EndType==ELex2DLineRenderer_EndType::Cap"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition="EndType==ELex2DLineRenderer_EndType::Cap"))
 		bool bEndCapSizeAffectByLineWidth = false;
 	//This will slide line's width from left to right.
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0", ClampMax = "1"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0", ClampMax = "1"))
 		float LineWidthOffset = 0.5f;
 
 	static TArray<FVector2D> EmptyArray;
@@ -73,20 +73,20 @@ protected:
 	void Update2DLineRendererBaseUV(FLexUIGeometry& InGeo, const TArray<FVector2D>& InPointArray);
 	void Update2DLineRendererBaseVertex(FLexUIGeometry& InGeo, const TArray<FVector2D>& InPointArray);
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetLineWidth()const { return LineWidth; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELex2DLineRenderer_EndType GetEndType()const { return EndType; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetLineWidthOffset()const { return LineWidthOffset; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEndType(ELex2DLineRenderer_EndType newValue);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetLineWidth(float newValue);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetLineWidthOffset(float newValue);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULTweener* LineWidthTo(float endValue, float duration, float delay = 0.0f, ELTweenEase easeType = ELTweenEase::OutCubic);
 };

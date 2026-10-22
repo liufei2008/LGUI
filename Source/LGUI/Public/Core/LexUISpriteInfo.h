@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "LexUISpriteInfo.generated.h"
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUISpriteFlipMode :uint8
 {
 	Nothing,

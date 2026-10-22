@@ -16,7 +16,7 @@ class ULexWidgetPresenterComponent;
 class FLexUIClipData;
 class ULexUIDataAsTexture;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexRenderMode :uint8
 {
 	/**
@@ -43,7 +43,7 @@ enum class ELexRenderMode :uint8
 	None = 255				UMETA(Hidden),
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexCanvasRenderTargetSizeMode : uint8
 {
 	None,
@@ -53,7 +53,7 @@ enum class ELexCanvasRenderTargetSizeMode : uint8
 	RenderTargetFitToCanvas,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexCanvasRenderTargetUpdateMode : uint8
 {
 	/** LexUI will automatically manage update, only draw to RenderTarget when it detect something change. */
@@ -64,7 +64,7 @@ enum class ELexCanvasRenderTargetUpdateMode : uint8
 	WhenRequest,
 };
 
-UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
+UENUM(BlueprintType, meta = (Bitflags), Category = "LexUI")
 enum class ELexCanvasOverrideParameters :uint8
 {
 	DefaultMaterial,
@@ -74,7 +74,7 @@ enum class ELexCanvasOverrideParameters :uint8
 };
 ENUM_CLASS_FLAGS(ELexCanvasOverrideParameters);
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexCanvasScaleMode:uint8
 {
 	/** 1 unit is 1 pixel render in screen*/
@@ -87,7 +87,7 @@ enum class ELexCanvasScaleMode:uint8
 	Custom,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexCanvasScreenMatchMode :uint8
 {
 	/** Use "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI*/
@@ -153,7 +153,7 @@ struct FLexCanvasDynamicMaterialArrayContainer
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> MaterialArray;
 
 	int CurrentIndex = 0;
@@ -163,9 +163,9 @@ USTRUCT()
 struct FLexCanvasMaterialParameterCache
 {
 	GENERATED_BODY()
-	UPROPERTY(VisibleAnywhere, Category=LGUI)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TWeakObjectPtr<UTexture> Texture = nullptr;
-	UPROPERTY(VisibleAnywhere, Category=LGUI)
+	UPROPERTY(VisibleAnywhere, Category = "LexUI")
 	TWeakObjectPtr<UTexture> FontTexture = nullptr;
 };
 
@@ -247,13 +247,13 @@ private:
 	void OnCanvasWidgetActiveChanged(bool WidgetActive);
 public:
 	/** get root canvas on hierarchy */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexCanvas* GetRootCanvas()const;
 	/** is this the root canvas in hierarchy */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsRootCanvas()const;
 	/** return LexWidgetPresenterComponent if the root canvas is attached to one */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWidgetPresenterComponent* GetWidgetPresenterComponent() const;
 	/** Only set on root canvas */
 	void AttachToWidgetPresenterComponent(ULexWidgetPresenterComponent* InSceneComp) const;
@@ -316,7 +316,7 @@ protected:
 	 * RenderTarget size scale.
 	 * Only valid if RenderTargetSizeMode is RenderTargetFitToCanvas.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.01", EditCondition="RenderTargetSizeMode==ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0.01", EditCondition="RenderTargetSizeMode==ELexCanvasRenderTargetSizeMode::RenderTargetFitToCanvas"))
 		float RenderTargetResolutionScale = 1.0f;
 	/**
 	 * true- Use custom sort order.
@@ -336,7 +336,7 @@ protected:
 	bool bRequireNormalAndTangent = false;
 
 	/** Default materials, for render default UI elements. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (DisplayThumbnail = "false"))
 	mutable TObjectPtr<UMaterialInterface> DefaultMaterial;
 
 	/** For "World Space - LexUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible, 0.5-half transparent. */
@@ -352,7 +352,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bEnableDepthTest = false;
 	/** For not root canvas, inherit or override parent canvas parameters. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexCanvasOverrideParameters"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexCanvasOverrideParameters"))
 		int8 OverrideParameters = 0;
 
 	/**
@@ -423,53 +423,53 @@ public:
 	FORCEINLINE bool GetOverrideBlendDepth()const							{ return OverrideParameters & (1 << (int)ELexCanvasOverrideParameters::BlendDepth); }
 	FORCEINLINE bool GetOverrideDepthFade()const							{ return OverrideParameters & (1 << (int)ELexCanvasOverrideParameters::DepthFade); }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UMaterialInterface* GetDefaultMaterial()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetDefaultMaterial(UMaterialInterface* InMaterial);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetTraceChannel(TEnumAsByte<ETraceTypeQuery> InTraceChannel);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	TEnumAsByte<ETraceTypeQuery> GetTraceChannel()const { return TraceChannel; }
 
 	/** Set render mode of this canvas. This may not take effect if the canvas is not a root canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRenderMode(ELexRenderMode Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetForceRenderToTarget(bool Value);
 	/** Set parameters for calculating projection matrix. Only valid for ScreenSpace/RenderTarget mode. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRenderTargetFormat(ETextureRenderTargetFormat Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRenderTargetClearColor(FColor Value);
 	FRenderModeChangedEvent& GetRenderModeChangedEvent(){return OnRenderModeChanged;}
 	FRenderTargetChangedEvent& GetRenderTargetChangedEvent(){return OnRenderTargetChanged;}
 	
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRenderTargetResolutionScale(float Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRenderTargetSizeMode(ELexCanvasRenderTargetSizeMode Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetRenderTargetUpdateMode(ELexCanvasRenderTargetUpdateMode Value);
 	/** Only valid when call this on root canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void RequestUpdateForRenderTarget();
 	
 	/** 
 	 * Set LexCanvas SortOrder
 	 * @param	PropagateToChildrenCanvas	if true, set this Canvas's SortOrder and all children Canvas, not just set absolute value, but keep child Canvas's relative order to this one
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSortOrder(int32 Value, bool PropagateToChildrenCanvas = true);
 	/** Set SortOrder to highest, so this canvas will render on top of all canvas that belong to same hierarchy. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSortOrderToHighestOfHierarchy(bool PropagateToChildrenCanvas = true);
 	/** Set SortOrder to lowest, so this canvas will render behind all canvas that belong to same hierarchy. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetSortOrderToLowestOfHierarchy(bool PropagateToChildrenCanvas = true);
 	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax, ULexCanvas* Exclude = nullptr);
 
@@ -477,97 +477,97 @@ public:
 	 * Get actual render mode of this canvas.
 	 * Normally canvas's render-mode is inherited from parent canvas.
 	 * */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRenderMode GetActualRenderMode()const;
 	/** Get render mode of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexRenderMode GetRenderMode()const { return RenderMode; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetForceRenderToTarget()const{return bForceRenderToTarget;}
 	/** Get actual render target of this canvas if actual render mode is RenderTarget. Canvas's render-target is inherited from root canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UTextureRenderTarget2D* GetActualRenderTarget()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ETextureRenderTargetFormat GetActualRenderTargetFormat()const;
 	/** Get render target of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UTextureRenderTarget2D* GetRenderTarget()const { return RenderTarget; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ETextureRenderTargetFormat GetRenderTargetFormat()const { return RenderTargetFormat; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FColor GetRenderTargetClearColor()const{return RenderTargetClearColor;}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetRenderTargetResolutionScale()const { return RenderTargetResolutionScale; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexCanvasRenderTargetSizeMode GetRenderTargetSizeMode()const { return RenderTargetSizeMode; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexCanvasRenderTargetUpdateMode GetRenderTargetUpdateMode()const { return RenderTargetUpdateMode; }
 
 	/** Get actual BlendDepth value of canvas. This property may inherit from parent canvas depend on OverrideParameters property. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetActualBlendDepth()const;
 	/** Get blendDepth value of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetBlendDepth()const { return BlendDepth; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetBlendDepth(float Value);
 
 	/** Get actual DepthFade value of canvas. This property may inherit from parent canvas depend on OverrideParameters property. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int GetActualDepthFade()const;
 	/** Get blendDepth value of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int GetDepthFade()const { return DepthFade; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetDepthFade(int Value);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableDepthTest()const { return bEnableDepthTest; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableDepthTest(bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetOverrideSorting()const { return bOverrideSorting; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverrideSorting(bool Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetSortOrder()const { return SortOrder; }
 	/** Get actual SortOrder of canvas. This property may inherit from parent canvas depend on OverrideSorting property. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		int32 GetActualSortOrder()const;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetActualRequireNormalAndTangent()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetRequireNormalAndTangent()const { return bRequireNormalAndTangent; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRequireNormalAndTangent(bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetDrawCallCount()const;
 
 	/** Override LexUI's screen space UI render's camera location. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverrideViewLocation(bool Override, FVector Value);
 	/** Override LexUI's screen space UI render's camera rotation. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverrideViewRotation(bool Override, FRotator Value);
 	/**
 	 * Override LexUI's screen space UI render's camera's fov in degree, will affect projection matrix.
 	 * If SetOverrideProjectionMatrix is true, then this will not take effect.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverrideFovAngle(bool Override, float Value);
 	/**
 	 * Override LexUI's screen space UI render's camera's projection matrix.
 	 * If this is set to true, then SetOverrideFovAngle will not take effect.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetOverrideProjectionMatrix(bool Override, FMatrix Value);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		TSubclassOf<ULexUIMeshComponent> GetDefaultMeshType()const { return DefaultMeshType; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetDefaultMeshType(TSubclassOf<ULexUIMeshComponent> InValue);
 
 #pragma region CanvasScaler

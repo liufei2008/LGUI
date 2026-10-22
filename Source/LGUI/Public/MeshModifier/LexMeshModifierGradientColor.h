@@ -6,7 +6,7 @@
 #include "LexMeshModifierGradientColor.generated.h"
 
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexMeshModifierGradientColorDirection :uint8
 {
 	BottomToTop,
