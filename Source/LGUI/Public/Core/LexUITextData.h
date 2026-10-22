@@ -12,7 +12,7 @@ class ULexUIFontData_BaseObject;
 class ULexUIRichTextImageData;
 
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUITextParagraphHorizontalAlign : uint8
 {
 	Left,
@@ -20,7 +20,7 @@ enum class ELexUITextParagraphHorizontalAlign : uint8
 	Right,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUITextParagraphVerticalAlign : uint8
 {
 	Top,
@@ -28,7 +28,7 @@ enum class ELexUITextParagraphVerticalAlign : uint8
 	Bottom,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUITextFontStyle :uint8
 {
 	None,
@@ -37,7 +37,7 @@ enum class ELexUITextFontStyle :uint8
 	BoldAndItalic,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUITextOverflowType :uint8
 {
 	/** chars will go out of rect range horizontally */
@@ -70,61 +70,61 @@ struct FLexUITextSelectionProperty
 	int32 Size = 0;
 };
 /** char property */
-USTRUCT(BlueprintType, Category = LGUI)
+USTRUCT(BlueprintType, Category = "LexUI")
 struct FLexUITextCharProperty
 {
 	GENERATED_BODY()
 	/** char index in string */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndex = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 CharIndex = 0;
 	/** vertex index in UIGeometry::vertices */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartVertIndex = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 StartVertIndex = 0;
 	/** vertex count */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 VertCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 VertCount = 0;
 	/** triangle index in UIGeometry::triangles */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartTriangleIndex = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 StartTriangleIndex = 0;
 	/** triangle indices count */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 IndicesCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 IndicesCount = 0;
 
 	/** center position of the char, in UIText's local space */
 	//FVector2D CenterPosition;
 };
 
-USTRUCT(BlueprintType, Category = LGUI)
+USTRUCT(BlueprintType, Category = "LexUI")
 struct FLexUIText_RichTextCustomTag
 {
 	GENERATED_BODY()
 	/** Tag name */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FName TagName;
 	/** start char index in cacheCharPropertyArray */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexStart = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 CharIndexStart = 0;
 	/** end char index in cacheCharPropertyArray */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 CharIndexEnd = 0;
 };
 
-USTRUCT(BlueprintType, Category = LGUI)
+USTRUCT(BlueprintType, Category = "LexUI")
 struct FLexUIText_RichTextImageTag
 {
 	GENERATED_BODY()
 	/** Tag name */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FName TagName;
 	/** image object position */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Position = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Size = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FColor TintColor = FColor::White;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FVector2D Position = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FVector2D Size = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FColor TintColor = FColor::White;
 };
 
-USTRUCT(BlueprintType, Category = LGUI)
+USTRUCT(BlueprintType, Category = "LexUI")
 struct FLexUIText_Emoji
 {
 	GENERATED_BODY()
 	/** Emoji char */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 EmojiCode = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") int32 EmojiCode = 0;
 	/** image object position */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Position = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FVector2D Size = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FVector2D Position = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI") FVector2D Size = FVector2D::ZeroVector;
 };
 
-UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
+UENUM(BlueprintType, meta = (Bitflags), Category = "LexUI")
 enum class ELexUIText_RichTextTagFilterFlags : uint8
 {
 	Bold, Italic, Underline, Strikethrough, Size, Color, Superscript, Subscript, CustomTag, Image

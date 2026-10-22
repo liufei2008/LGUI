@@ -7,7 +7,7 @@
 
 class UUIScrollbar;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIScrollViewScrollbarVisibility :uint8
 {
 	//Not control scrollbar's visibility

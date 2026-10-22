@@ -27,6 +27,6 @@ public:
 	/**
 	 * Called when current culture changed and LGUI need to update culture.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		void OnCultureChanged();
 };

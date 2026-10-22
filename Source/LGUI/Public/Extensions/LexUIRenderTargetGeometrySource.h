@@ -13,7 +13,7 @@
 class ULexCanvas;
 class ULexWorldSpaceRaycasterSource;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIRenderTargetGeometryMode : uint8
 {
 	Plane = 0,
@@ -40,26 +40,26 @@ public:
 	virtual void EndPlay(EEndPlayReason::Type Reason)override;
 
 private:
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FLexUIComponentReference TargetWidgetPresenter;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		ELexUIRenderTargetGeometryMode GeometryMode = ELexUIRenderTargetGeometryMode::Plane;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FVector2D Pivot = FVector2D(0.5f, 0.5f);
 	/** Curvature of a cylindrical widget in degrees. */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = -180.0f, ClampMax = 180.0f))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = -180.0f, ClampMax = 180.0f))
 		float CylinderArcAngle = 45;
 	/** Use this component's material for target static mesh component. */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bOverrideStaticMeshMaterial = true;
 	/** Enable backside interaction? Front side always interactable. */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bEnableInteractOnBackside = false;
 	/**
 	 * Android GLES is flipped, so we flip it back. This just set the material property "FlipY".
 	 * No need for UE5.1 and upward
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bFlipVerticalOnGLES = true;
 	mutable TWeakObjectPtr<class UStaticMeshComponent> StaticMeshComp = nullptr;
 	mutable TWeakObjectPtr<class ULexCanvas> TargetCanvasObject = nullptr;
@@ -128,40 +128,40 @@ public:
 	const TArray<FDynamicMeshVertex>& GetMeshVertices()const { return Vertices; }
 	const TArray<uint16> GetMeshIndices()const { return Triangles; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexCanvas* GetCanvas()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ELexUIRenderTargetGeometryMode GetGeometryMode()const { return GeometryMode; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FVector2D GetPivot()const { return Pivot; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		float GetCylinderArcAngle()const { return CylinderArcAngle; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetOverrideStaticMeshMaterial()const { return bOverrideStaticMeshMaterial; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetEnableInteractOnBackside()const { return bEnableInteractOnBackside; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool GetFlipVerticalOnGLES()const { return bFlipVerticalOnGLES; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetCanvas(ULexCanvas* Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetGeometryMode(ELexUIRenderTargetGeometryMode Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetPivot(const FVector2D Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetCylinderArcAngle(float Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetEnableInteractOnBackside(bool Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetFlipVerticalOnGLES(bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		FIntPoint GetRenderTargetSize()const;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UMaterialInstanceDynamic* GetMaterialInstance()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		UTextureRenderTarget2D* GetRenderTarget()const;
 private:
 };

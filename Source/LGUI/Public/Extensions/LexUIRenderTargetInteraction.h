@@ -29,9 +29,9 @@ class LGUI_API ILexUIRenderTargetInteractionSourceInterface
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 	ULexCanvas* GetTargetCanvas()const;
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 	bool PerformLineTrace(const int32& InHitFaceIndex, const FVector& InHitPoint, const FVector& InLineStart, const FVector& InLineEnd, FVector2D& OutHitUV);
 };
 
@@ -57,12 +57,12 @@ public:
 	virtual void DeactivateRaycaster()override;
 protected:
 	/** inherited events of this component can bubble up? */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bAllowEventBubbleUp = false;
 
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TWeakObjectPtr<ULexCanvas> TargetCanvas = nullptr;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<UActorComponent> LineTraceSource = nullptr;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay) TObjectPtr<ULexPointerEventData> PointerEventData = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay) TWeakObjectPtr<ULexCanvas> TargetCanvas = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay) TObjectPtr<UActorComponent> LineTraceSource = nullptr;
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay) TObjectPtr<ULexPointerEventData> PointerEventData = nullptr;
 	TWeakObjectPtr<ULexPointerEventData> InputPointerEventData = nullptr;
 
 	virtual bool GenerateRay(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, float& OutRayLength)override { return true; }

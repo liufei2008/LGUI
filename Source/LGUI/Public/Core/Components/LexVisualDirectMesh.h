@@ -34,7 +34,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI", Getter, Setter, BlueprintReadWrite)
 	FColor Color = FColor::White;
 	/** enable properties for material */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
 	
 	virtual void OnDimensionChanged(bool InPivotChange, bool InWidthChange, bool InHeightChange)override;

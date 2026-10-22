@@ -50,7 +50,7 @@ protected:
 #endif
 	
 	friend class FLexBackBufferReaderCustomization;
-	UPROPERTY(EditAnywhere, Category="LexUI", BlueprintReadWrite, Getter, Setter)
+	UPROPERTY(EditAnywhere, Category = "LexUI", BlueprintReadWrite, Getter, Setter)
 	ELexVisualBackBufferReaderMode BackBufferReaderType = ELexVisualBackBufferReaderMode::Rect;
 public:
 	

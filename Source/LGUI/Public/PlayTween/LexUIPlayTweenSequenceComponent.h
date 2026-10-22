@@ -39,8 +39,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "LexUI", meta=(DisplayName="OnComplete"))
 	FOnLexUIPlayTweenSequenceCompleteDynamicDelegate OnCompleteBP;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void Play();
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void Stop();
 };

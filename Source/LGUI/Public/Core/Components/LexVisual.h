@@ -57,7 +57,7 @@ public:
 	virtual bool Raycast(const ULexVisual* InVisual, const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, FVector& OutHitPoint, FVector& OutHitNormal)const;
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexVisualType :uint8
 {
 	None,
@@ -67,7 +67,7 @@ enum class ELexVisualType :uint8
 };
 
 // Defines how mouse or ray hit on LexVisual
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexVisualRaycastType :uint8
 {
 	/** Hit on rect range */
@@ -126,7 +126,7 @@ protected:
 public:
 	
 	/** get visual type */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ELexVisualType GetVisualType()const { return VisualType; }
 	
 	UFUNCTION(BlueprintCallable, Category = "LexUI")

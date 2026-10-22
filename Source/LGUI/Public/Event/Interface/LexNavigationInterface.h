@@ -23,7 +23,7 @@ public:
 	/**
 	 * @return true if we can navigate from other to this, false otherwise
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 	bool CanNavigateHere()const;
 	/**
 	 * Called when a navigation event occurs.
@@ -31,6 +31,6 @@ public:
 	 * @param Result navigate next object
 	 * @return true if this action can navigation to next, false if no need to navigate to next
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 	bool OnNavigate(ELexUINavigationDirection Direction, TScriptInterface<ILexNavigationInterface>& Result);
 };

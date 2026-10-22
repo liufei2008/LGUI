@@ -25,7 +25,7 @@ protected:
 	virtual void OnUpdateGeometry(FLexUIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	/** Use a mesh generator to create your own mesh instead of a simple rect */
-	UPROPERTY(EditAnywhere, Instanced, Category = LGUI)
+	UPROPERTY(EditAnywhere, Instanced, Category = "LexUI")
 		TObjectPtr<ULexUICustomMeshSource> CustomMesh = nullptr;
 
 public:
@@ -34,9 +34,9 @@ public:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexUICustomMeshSource* GetCustomMesh()const { return CustomMesh; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetCustomMesh(ULexUICustomMeshSource* Value);
 };

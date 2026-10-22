@@ -9,7 +9,7 @@
 #include "LexUISettings.generated.h"
 
 /** Atlas texture size must be power of 2 */
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIAtlasTextureSizeType :uint8
 {
 	SIZE_256x256 = 0		UMETA(DisplayName = "256x256"),
@@ -48,15 +48,15 @@ public:
 	/**
 	 * when packing sprites into one atlas texture, LexUI will use this size to create a blank texture then insert sprites.
 	*/
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		ELexUIAtlasTextureSizeType AtlasTextureMaxSize = ELexUIAtlasTextureSizeType::SIZE_2048x2048;
 	/** weather or not use srgb for generate atlas texture */
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		bool AtlasTextureUseSRGB = true;
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		TEnumAsByte<TextureFilter> AtlasTextureFilter = TextureFilter::TF_Bilinear;
 	/** space between two sprites when package into atlas */
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		int32 SpaceBetweenSprites = 2;
 };
 
@@ -67,10 +67,10 @@ class LGUI_API ULexUISettings :public UObject
 	GENERATED_BODY()
 public:
 	/** default atlas setting */
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		FLexUIAtlasSettings DefaultAtlasSetting;
 	/** override atlasSettings for your PackingTag, otherwise use defaultAtlasSettings */
-	UPROPERTY(EditAnywhere, config, Category = Sprite)
+	UPROPERTY(EditAnywhere, config, Category = "Sprite")
 		TMap<FName, FLexUIAtlasSettings> AtlasSettingForSpecificPackingTag;
 
 	/**

@@ -45,9 +45,9 @@ public:
 	
 protected:
 	/** inherited events of this component can bubble up? */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		bool bAllowEventBubbleUp = false;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LexUI", AdvancedDisplay)
 		ULexUMGWidgetInteractionManager* Helper = nullptr;
 
 	virtual void OnPointerEnter_Implementation(ULexPointerEventData* EventData)override;
@@ -71,7 +71,7 @@ public:
 	 * Left/Right mouse button for the Key.  However - advanced uses could also be imagined where you
 	 * send other keys to signal widgets to take special actions if they're under the cursor.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void PressPointerKey(FKey Key);
 
 	/**
@@ -79,7 +79,7 @@ public:
 	 * Left/Right mouse button for the Key.  However - advanced uses could also be imagined where you
 	 * send other keys to signal widgets to take special actions if they're under the cursor.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void ReleasePointerKey(FKey Key);
 
 	/**
@@ -87,53 +87,53 @@ public:
 	 * the Editable Textbox in Slate expect OnKeyChar to be called to signal a specific character being
 	 * send to the widget.  So for those cases you should use SendKeyChar.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool PressKey(FKey Key, bool bRepeat = false);
 
 	/**
 	 * Releases a key as if it had been released by the keyboard.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool ReleaseKey(FKey Key);
 
 	/**
 	 * Does both the press and release of a simulated keyboard key.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool PressAndReleaseKey(FKey Key);
 
 	/**
 	 * Transmits a list of characters to a widget by simulating a OnKeyChar event for each key listed in
 	 * the string.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool SendKeyChar(FString Characters, bool bRepeat = false);
 
 	/**
 	 * Sends a scroll wheel event to the widget under the last hit result.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void ScrollWheel(float ScrollDelta);
 
 	/**
 	 * Returns true if a widget under the hit result is interactive.  e.g. Slate widgets
 	 * that return true for IsInteractable().
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsOverInteractableWidget() const;
 
 	/**
 	 * Returns true if a widget under the hit result is focusable.  e.g. Slate widgets that
 	 * return true for SupportsKeyboardFocus().
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsOverFocusableWidget() const;
 
 	/**
 	 * Returns true if a widget under the hit result is has a visibility that makes it hit test
 	 * visible.  e.g. Slate widgets that return true for GetVisibility().IsHitTestVisible().
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsOverHitTestVisibleWidget() const;
 
 	/**
@@ -144,19 +144,19 @@ public:
 	/**
 	 * Gets the last hit location on the widget in 2D, local pixel units of the render target.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector2D Get2DHitLocation() const;
 
 	/**
 	 * Set custom hit result.  This is only taken into account if InteractionSource is set to EWidgetInteractionSource::Custom.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetCustomHitResult(const FLexUIHitResult& HitResult);
 
 	/**
 	 * Set the focus target of the virtual user managed by this component
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetFocus(UWidget* FocusWidget);
 
 protected:
@@ -177,7 +177,7 @@ public:
 	 * index number, this will maintain separate capture and focus states for them.  Each
 	 * controller or finger-tip should get a unique PointerIndex.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI, meta = (ClampMin = "0", ExposeOnSpawn = true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI", meta = (ClampMin = "0", ExposeOnSpawn = true))
 	int32 VirtualUserIndex;
 
 

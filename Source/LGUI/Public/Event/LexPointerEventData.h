@@ -9,7 +9,7 @@
 class ULexWidget;
 class ULexBaseRaycaster;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUINavigationDirection :uint8
 {
 	None,
@@ -44,7 +44,7 @@ enum class ELexUINavigationDirection :uint8
 	 */
 	Prev,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexUIPointerInputType :uint8
 {
 	Pointer,
@@ -159,12 +159,12 @@ public:
 	TWeakObjectPtr<ULexWidget> HighlightWidgetForNavigation = nullptr;
 	float NavigateTickTime = 0;
 	ELexUINavigationDirection NavigateDirection = ELexUINavigationDirection::None;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetHighlightedWidgetForNavigation(ULexWidget* InWidget);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		ULexWidget* GetHighlightedComponentForNavigation()const { return HighlightWidgetForNavigation.Get(); }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		bool IsPointerOverUI();
 
 	virtual FString ToString()const override;

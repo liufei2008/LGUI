@@ -9,7 +9,7 @@
 class ULexLayoutSelfFlexBox;
 class ULexWidget;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxDirectionType :uint8
 {
 	Horizontal,
@@ -18,7 +18,7 @@ enum class ELexLayoutFlexBoxDirectionType :uint8
 	VerticalReverse,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxWrapType :uint8
 {
 	NoWrap,
@@ -26,7 +26,7 @@ enum class ELexLayoutFlexBoxWrapType :uint8
 	WrapReverse,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxPrimaryAxisAlignment :uint8
 {
 	Start,
@@ -37,7 +37,7 @@ enum class ELexLayoutFlexBoxPrimaryAxisAlignment :uint8
 	SpaceEvenly,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxSecondaryAxisAlignment :uint8
 {
 	Start,
@@ -52,7 +52,7 @@ enum class ELexLayoutFlexBoxSecondaryAxisAlignment :uint8
 	Stretch,
 };
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class ELexLayoutFlexBoxSecondaryAxisLineAlignment :uint8
 {
 	Start,

@@ -74,7 +74,7 @@ public:
 };
 
 /** Widget's properties which can access in material */
-UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
+UENUM(BlueprintType, meta = (Bitflags), Category = "LexUI")
 enum class ELexVisualPropertiesForMaterial :uint8
 {
 	//width & height
@@ -179,7 +179,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI", Getter, Setter, BlueprintReadWrite)
 	FColor Color = FColor::White;
 	/** enable properties for material */
-	UPROPERTY(EditAnywhere, Category = LexUI, AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay, meta = (Bitmask, BitmaskEnum = "/Script/LGUI.ELexVisualPropertiesForMaterial"))
 	int8 PropertiesForMaterial = 0;
 	TArray<TWeakObjectPtr<ULexMeshModifierBase>> MeshModifierArray;
 

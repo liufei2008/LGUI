@@ -15,7 +15,7 @@ class UUINavigationInputSelectionHandler;
 class UUISelectable;
 class ULTweener;
 
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUISelectableTransitionType:uint8
 {
 	None,
@@ -25,7 +25,7 @@ enum class EUISelectableTransitionType:uint8
 	/** You can implement custom UISelectableTransition to do the transition */
 	Custom,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUISelectableSelectionState :uint8
 {
 	/** Not hovered by pointer, just a normal state. */
@@ -37,7 +37,7 @@ enum class EUISelectableSelectionState :uint8
 	/** Disabled, not interactable. */
 	Disabled,
 };
-UENUM(BlueprintType, Category = LGUI)
+UENUM(BlueprintType, Category = "LexUI")
 enum class EUISelectableNavigationMode:uint8
 {
 	/** No navigation, cannot navigate out from this. */
@@ -175,7 +175,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LexUI-Selectable")
 	EUISelectableTransitionType TransitionType = EUISelectableTransitionType::Color;
 
-	UPROPERTY(EditAnywhere, Category="LexUI-Selectable", meta=(EditCondition="TransitionType==EUISelectableTransitionType::Custom"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Selectable", meta=(EditCondition="TransitionType==EUISelectableTransitionType::Custom"))
 	TWeakObjectPtr<UUISelectableTransition> CustomTransition = nullptr;
 	UPROPERTY(Transient)TObjectPtr<class ULTweener> TransitionTweener = nullptr;
 	

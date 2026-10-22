@@ -29,13 +29,13 @@ protected:
 	friend class FUIBaseRaycasterCustomization;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	int UserIndex = 0;
 	/**
 	 * Link PointerID, limit this raycaster to work on specific pointer. This is useful when multiple pointer interact in same level.
 	 * Default is -1, means this raycaster will work on all pointers.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		int32 PointerID = INDEX_NONE;
 	
 	FVector CurrentRayOrigin = FVector::ZeroVector, CurrentRayDirection = FVector(1, 0, 0);
@@ -48,24 +48,24 @@ public:
 	/** Called by InputModule to decide if current trigger press need to convert to drag */
 	virtual bool ShouldStartDrag(ULexPointerEventData* InPointerEventData) PURE_VIRTUAL(ULexBaseRaycaster::ShouldStartDrag, return false;);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)virtual void ActivateRaycaster();
-	UFUNCTION(BlueprintCallable, Category = LGUI)virtual void DeactivateRaycaster();
+	UFUNCTION(BlueprintCallable, Category = "LexUI")virtual void ActivateRaycaster();
+	UFUNCTION(BlueprintCallable, Category = "LexUI")virtual void DeactivateRaycaster();
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int GetUserIndex()const{return UserIndex;}
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	int32 GetPointerID()const { return PointerID; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual bool GetAffectByGamePause()const { return true; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector GetRayOrigin()const { return CurrentRayOrigin; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector GetRayDirection()const { return CurrentRayDirection; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual float GetRayLength()const { return CurrentRayLength; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetPointerID(int32 Value);
 protected:
 	void RaycastUI(ULexPointerEventData* InPointerEventData, ULexCanvas* InRootCanvas, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, TArray<FLexUIHitResult>& OutHitResultArray);

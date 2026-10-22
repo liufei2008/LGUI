@@ -71,7 +71,7 @@ protected:
 	TWeakObjectPtr<ULexVisualBatchMesh> ToggleTransitionTarget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LexUI-Toggle")
 	EUISelectableTransitionType ToggleTransitionType = EUISelectableTransitionType::Color;
-	UPROPERTY(EditAnywhere, Category="LexUI-Toggle", meta = (EditCondition = "ToggleTransitionType==EUISelectableTransitionType::Custom"))
+	UPROPERTY(EditAnywhere, Category = "LexUI-Toggle", meta = (EditCondition = "ToggleTransitionType==EUISelectableTransitionType::Custom"))
 	TWeakObjectPtr<UUIToggleTransition> CustomToggleTransition = nullptr;
 #pragma region Transition
 	UPROPERTY(Transient) TObjectPtr<class ULTweener> ToggleTransitionTweener = nullptr;

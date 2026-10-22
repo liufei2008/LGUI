@@ -20,7 +20,7 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
 
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TArray<FVector2D> PointArray = { FVector2D(-100, 0), FVector2D(100, 0) };
 
 	virtual void CalculatePoints()override {};
@@ -29,6 +29,6 @@ protected:
 		return PointArray;
 	}
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 		void SetPoints(const TArray<FVector2D>& InPoints);
 };

@@ -43,10 +43,10 @@ private:
 	 * Texture of this Sprite. Sprite is actually rendered from atlas texture, so SpriteTexture is not needed if atlas-data is packed; But! since atlas texture is packed at runtime, we must include SpriteTexture inside final package.
 	 * DoNot modify SpriteTexture's setting unless you know what you do
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		TObjectPtr<UTexture2D> SpriteTexture;
 	/** Information needed for render this Sprite */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 		FLexUISpriteInfo SpriteInfo;
 
 	UPROPERTY(EditAnywhere, Category = "AtlasPacking")

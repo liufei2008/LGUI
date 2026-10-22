@@ -24,12 +24,12 @@ public:
 	 * Called when a pointer press event occurs.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerDown(ULexPointerEventData* EventData);
 	/**
 	 * Called when a pointer release event occurs.
 	 * @return Allow event bubble up? If all interfaces of widget's components return true, then the event can bubble up.
 	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LexUI")
 		bool OnPointerUp(ULexPointerEventData* EventData);
 };

@@ -38,9 +38,9 @@ public:
 #endif
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexWidgetPresenter")
 	FVector2f RootSizeForWorldSpaceWidget = FVector2f(1920, 1080);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexWidgetPresenter")
 	TObjectPtr<ULexCanvas> CanvasTemplate;
 	
 	UPROPERTY(Transient)
@@ -50,17 +50,17 @@ protected:
 	/**
 	 * For navigation input, show a selection widget
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LexWidgetPresenter")
 	TObjectPtr<ULexUIPrefab> NavigationSelectionPrefab;
 
-	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly, Category=LexWidgetPresenter, AdvancedDisplay)
+	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly, Category = "LexWidgetPresenter", AdvancedDisplay)
 	TWeakObjectPtr<UUINavigationInputSelectionHandler> NavigationSelection;
 
 public:
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	UUINavigationInputSelectionHandler* GetNavigationSelection(bool CreateIfNotValid);
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexCanvas* GetLoadedCanvas()const{return RootCanvas.Get();}
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWidget* GetLoadedWidget()const{return LoadedWidget.Get();}
 };

@@ -89,10 +89,10 @@ public:
 
 	virtual void OnApplyLayoutResults(const TArray<FLayoutAnimationSnapshotData>& SnapshotDataArray, int32 TweenId);
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexLayoutContainer* GetLayoutContainer()const;
 private:
-	UPROPERTY(Transient, BlueprintReadOnly, Category = LGUI, Getter=GetLayoutContainer, meta = (AllowPrivateAccess = true), DisplayName=LayoutContainer)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "LexUI", Getter=GetLayoutContainer, meta = (AllowPrivateAccess = true), DisplayName=LayoutContainer)
 	mutable TObjectPtr<ULexLayoutContainer> OwnerLayoutContainer;
 	bool bCanExecuteBlueprintEvent;
 protected:

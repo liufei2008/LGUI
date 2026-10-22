@@ -11,7 +11,7 @@ struct LGUI_API FLexUIFontEmojiKey
 {
 	GENERATED_BODY()
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category=LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FString EmojiChar;
 #endif
 	UPROPERTY()

@@ -21,7 +21,7 @@ public:
 	void GetUIMLData(FString& XAMLFilePath, ULexUIMLResource*& XAMLResource)const;
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category=LexWidgetPresenter)
+	UPROPERTY(EditAnywhere, Category = "LexWidgetPresenter")
 	ELexRenderMode DefaultRenderMode;
 #endif
 	

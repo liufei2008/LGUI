@@ -69,7 +69,7 @@ public:
 	TSubclassOf<UUserWidget> GetWidgetClass() const { return WidgetClass; }
 
 	/** Returns the user widget object displayed by this component */
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (UnsafeDuringActorConstruction = true))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta = (UnsafeDuringActorConstruction = true))
 	UUserWidget* GetUserWidgetObject() const;
 
 	/** Returns the Slate widget that was assigned to this component, if any */
@@ -79,7 +79,7 @@ public:
 	TArray<FWidgetAndPointer> GetHitWidgetPath(FVector2D WidgetSpaceHitCoordinate, bool bIgnoreEnabledStatus, float CursorRadius = 0.0f);
 
 	/** Returns the render target to which the user widget is rendered */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	UTextureRenderTarget2D* GetRenderTarget() const;
 
 	/** Returns the window containing the user widget content */
@@ -88,14 +88,14 @@ public:
 	/**
 	 *  Gets the widget that is used by this Widget Component. It will be null if a Slate Widget was set using SetSlateWidget function.
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual UUserWidget* GetUMGWidget() const;
 
 	/**
 	 *  Sets the widget to use directly. This function will keep track of the widget till the next time it's called
 	 *	with either a newer widget or a nullptr
 	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void SetWidget(UUserWidget* Widget);
 
 	/**
@@ -104,53 +104,53 @@ public:
 	virtual void SetSlateWidget(const TSharedPtr<SWidget>& InSlateWidget);
 
 	/** @see bManuallyRedraw */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetManuallyRedraw() const
 	{
 		return bManuallyRedraw;
 	};
 
 	/** @see bManuallyRedraw */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetManuallyRedraw(bool bUseManualRedraw);
 
 	/** Returns the "actual" draw size of the quad in the world */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	FVector2D GetCurrentDrawSize() const;
 
 	/** Requests that the widget have it's render target updated, if TickMode is disabled, this will force a tick to happen to update the render target. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	virtual void RequestRenderUpdate();
 
 	/** Gets whether the widget ticks when offscreen or not */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetTickWhenOffscreen() const
 	{
 		return TickWhenOffscreen;
 	};
 
 	/** Sets whether the widget ticks when offscreen or not */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetTickWhenOffscreen(const bool bWantTickWhenOffscreen)
 	{
 		TickWhenOffscreen = bWantTickWhenOffscreen;
 	};
 
 	/** Sets the background color and opacityscale for this widget */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetBackgroundColor(const FLinearColor NewBackgroundColor);
 
 	/**  */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetRedrawTime() const { return RedrawTime; }
 
 	/**  */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRedrawTime(float InRedrawTime) { RedrawTime = InRedrawTime; }
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetResolutionScale()const { return ResolutionScale; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetResolutionScale(float value) { ResolutionScale = value; }
 
 	/** Get the fake window we create for widgets displayed in the world. */
@@ -160,33 +160,33 @@ public:
 	void SetWidgetClass(TSubclassOf<UUserWidget> InWidgetClass);
 
 	/** @see bWindowFocusable */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetWindowFocusable() const
 	{
 		return bWindowFocusable;
 	};
 
 	/** @see bWindowFocusable */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetWindowFocusable(bool bInWindowFocusable);
 
 	/** Gets the visibility of the virtual window created to host the widget focusable. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	EWindowVisibility GetWindowVisiblility() const
 	{
 		return WindowVisibility;
 	}
 
 	/** Sets the visibility of the virtual window created to host the widget focusable. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetWindowVisibility(EWindowVisibility InVisibility);
 
 	/** Sets the Tick mode of the Widget Component.*/
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetTickMode(ETickMode InTickMode);
 
 	/** Returns true if the the Slate window is visible and that the widget is also visible, false otherwise. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool IsWidgetVisible() const;
 
 	/** Hook to allow this component modify the local position of the widget after it has been projected from world space to screen space. */
@@ -206,15 +206,15 @@ protected:
 
 protected:
 	/** How this widget should deal with timing, pausing, etc. */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	EWidgetTimingPolicy TimingPolicy;
 
 	/** The class of User Widget to create and display an instance of */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TSubclassOf<UUserWidget> WidgetClass;
 
 	/** Should we wait to be told to redraw to actually draw? */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bManuallyRedraw;
 
 	/** Has anyone requested we redraw? */
@@ -225,7 +225,7 @@ protected:
 	 * This will work with bManuallyRedraw as well.  So you can say, manually redraw, but only redraw at this
 	 * maximum rate.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	float RedrawTime;
 
 	/** What was the last time we rendered the widget? */
@@ -237,7 +237,7 @@ protected:
 	/**
 	 * Scale draw size for the widget.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.01"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (ClampMin = "0.01"))
 	float ResolutionScale = 1.0f;
 	/**
 	 * The actual draw size, this changes based on this UI element's size.
@@ -245,26 +245,26 @@ protected:
 	FIntPoint CurrentDrawSize;
 
 	/** Is the virtual window created to host the widget focusable? */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bWindowFocusable = true;
 
 	/** The visibility of the virtual window created to host the widget */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	EWindowVisibility WindowVisibility = EWindowVisibility::SelfHitTestInvisible;
 
 	/**
 	 * Widget components that appear in the world will be gamma corrected by the 3D renderer.
 	 * In some cases, widget components are blitted directly into the backbuffer, in which case gamma correction should be enabled.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LexUI", AdvancedDisplay)
 	bool bApplyGammaCorrection = false;
 
 	/** The background color of the component */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	FLinearColor BackgroundColor = FLinearColor::Transparent;
 
 	/** Should the component tick the widget when it's off screen? */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool TickWhenOffscreen;
 
 	/** The target to which the user widget is rendered */
@@ -273,7 +273,7 @@ protected:
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	ETickMode TickMode = ETickMode::Enabled;
 
 	/** The slate window that contains the user widget content */

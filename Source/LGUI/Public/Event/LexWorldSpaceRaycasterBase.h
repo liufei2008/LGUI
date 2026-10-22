@@ -21,36 +21,36 @@ public:
 protected:
 	
 	/** ray length for line trace hit */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	float RayLength = 100000;
 	/** drag threshold, calculated in target's local space */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	float DragThreshold = 5;
 	/** hold press for a little while to entering drag mode */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	bool bHoldToDrag = false;
 	/** hold press for "holdToDragTime" to entering drag mode */
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (EditCondition = "bHoldToDrag"))
+	UPROPERTY(EditAnywhere, Category = "LexUI", meta = (EditCondition = "bHoldToDrag"))
 	float HoldToDragTime = 0.5f;
 	float DragThresholdSquare = 0;
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetRayLength()const { return RayLength; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetDragThreshold()const { return DragThreshold; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	bool GetHoldToDrag()const { return bHoldToDrag; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	float GetHoldToDragTime()const { return HoldToDragTime; }
 	float GetDragThresholdSquare()const { return DragThresholdSquare; }
 	
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRayLength(float Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetDragThreshold(float Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetHoldToDrag(bool Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetHoldToDragTime(float Value);
 	
 	/** Generate ray for raycast hit test */
@@ -73,7 +73,7 @@ class LGUI_API ALexWorldSpaceRaycasterSourceActor : public AActor
 
 public:
 	ALexWorldSpaceRaycasterSourceActor();
-	UFUNCTION(BlueprintCallable, Category=LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWorldSpaceRaycasterSource* GetRaycasterSource()const{return RaycasterSource;}
 protected:
 	UPROPERTY(Category = "LexUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -98,22 +98,22 @@ protected:
 	TWeakObjectPtr<ALexWorldSpaceRaycasterSourceActor> RaycasterSourceActor = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LexUI", AdvancedDisplay)
 	mutable TWeakObjectPtr<ULexWorldSpaceRaycasterSource> RaycasterSourceObject = nullptr;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = "LexUI")
 	TEnumAsByte<ETraceTypeQuery> TraceChannel;
 public:
 	virtual bool GetAffectByGamePause()const override;
 	virtual bool GenerateRay(ULexPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, float& OutRayLength) override;
 	virtual bool ShouldStartDrag(ULexPointerEventData* InPointerEventData) override;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	TEnumAsByte<ETraceTypeQuery> GetTraceChannel()const { return TraceChannel; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexWorldSpaceRaycasterSource* GetRaycasterSourceObject()const;
 
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetTraceChannel(TEnumAsByte<ETraceTypeQuery> Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRaycasterSourceObject(ULexWorldSpaceRaycasterSource* Value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	void SetRaycasterSourceActor(ALexWorldSpaceRaycasterSourceActor* Value);
 };
