@@ -54,6 +54,9 @@ UObject* ULexUIPrefabFactory::FactoryCreateNew(UClass* Class, UObject* InParent,
 		HelperObject->LoadedRootWidget = NewObject<ULexWidget>(World);
 		HelperObject->LoadedRootWidget->SetParent(PrefabScene->GetParentForLoadPrefab(NewAsset));
 		HelperObject->LoadedRootWidget->SetDisplayName(NewAsset->GetName());
+		HelperObject->LoadedRootWidget->SetAnchorMin(FVector2D::Zero());
+		HelperObject->LoadedRootWidget->SetAnchorMax(FVector2D::One());
+		HelperObject->LoadedRootWidget->SetSizeDelta(FVector2D::Zero());
 		HelperObject->SavePrefab();
 		return NewAsset;
 	}
