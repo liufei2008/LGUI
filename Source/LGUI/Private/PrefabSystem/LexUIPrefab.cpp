@@ -506,7 +506,7 @@ void ULexUIPrefab::PreSave(FObjectPreSaveContext SaveContext)
 
 #endif
 
-ULexWidget* ULexUIPrefab::LoadPrefab(UWorld* InWorld, ULexWidget* InParent, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake, bool SetRelativeTransformToIdentity)
+ULexWidget* ULexUIPrefab::LoadPrefab(UWorld* InWorld, ULexWidget* InParent, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake)const
 {
 	ULexWidget* LoadedRootWidget = nullptr;
 	if (InWorld)
@@ -517,7 +517,7 @@ ULexWidget* ULexUIPrefab::LoadPrefab(UWorld* InWorld, ULexWidget* InParent, cons
 		case ELexUIPrefabVersion::FTextAsReference:
 		case ELexUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
-			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(InWorld, InWorld, this, InParent, SetRelativeTransformToIdentity, InCallbackBeforeAwake);
+			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(InWorld, InWorld, this, InParent, InCallbackBeforeAwake);
 		}
 		break;
 		}
@@ -525,37 +525,26 @@ ULexWidget* ULexUIPrefab::LoadPrefab(UWorld* InWorld, ULexWidget* InParent, cons
 	return LoadedRootWidget;
 }
 
-ULexWidget* ULexUIPrefab::LoadPrefab(UObject* WorldContextObject, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake, bool SetRelativeTransformToIdentity)
+ULexWidget* ULexUIPrefab::LoadPrefab(UObject* WorldContextObject, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)const
 {
 	if (auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		return LoadPrefab(World, InParent, [&InCallbackBeforeAwake](ULexWidget* RootWidget) {
 			InCallbackBeforeAwake.ExecuteIfBound(RootWidget);
-			}, SetRelativeTransformToIdentity);
+			});
 	}
 	return nullptr;
 }
-ULexWidget* ULexUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, ULexWidget* InParent, FVector Location, FRotator Rotation, FVector Scale, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)
+
+ULexUIBehaviour* ULexUIPrefab::LoadPrefabWithScript(UObject* WorldContextObject,	TSubclassOf<ULexUIBehaviour> InScriptClass, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)const
 {
-	ULexWidget* LoadedRootWidget = nullptr;
-	if (auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	if (auto Root = LoadPrefab(WorldContextObject, InParent, InCallbackBeforeAwake))
 	{
-		auto CallbackBeforeAwake = [&InCallbackBeforeAwake](ULexWidget* RootWidget) {
-			InCallbackBeforeAwake.ExecuteIfBound(RootWidget);
-			};
-		switch ((ELexUIPrefabVersion)PrefabVersion)
-		{
-		default:
-		case ELexUIPrefabVersion::FTextAsReference:
-		case ELexUIPrefabVersion::NewObjectOnNestedPrefab:
-		{
-			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(World, World, this, InParent, Location, Rotation.Quaternion(), Scale, CallbackBeforeAwake);
-		}
-		break;
-		}
+		return Root->GetComponent(InScriptClass);
 	}
-	return LoadedRootWidget;
+	return nullptr;
 }
+
 ULexWidget* ULexUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject, ULexWidget* InParent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)
 {
 	ULexWidget* LoadedRootWidget = nullptr;
@@ -606,7 +595,7 @@ ULexWidget* ULexUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject,
 		case ELexUIPrefabVersion::FTextAsReference:
 		case ELexUIPrefabVersion::NewObjectOnNestedPrefab:
 		{
-			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(World, World, this, InParent, false, CallbackBeforeAwake);
+			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(World, World, this, InParent, CallbackBeforeAwake);
 		}
 		break;
 		}
@@ -635,24 +624,6 @@ ULexWidget* ULexUIPrefab::LoadPrefabWithReplacement(UObject* WorldContextObject,
 			{
 				List[Item.Key] = Item.Value;
 			}
-		}
-	}
-	return LoadedRootWidget;
-}
-ULexWidget* ULexUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, ULexWidget* InParent, FVector Location, FQuat Rotation, FVector Scale, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake)
-{
-	ULexWidget* LoadedRootWidget = nullptr;
-	if (auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		switch ((ELexUIPrefabVersion)PrefabVersion)
-		{
-		default:
-		case ELexUIPrefabVersion::FTextAsReference:
-		case ELexUIPrefabVersion::NewObjectOnNestedPrefab:
-		{
-			LoadedRootWidget = LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE::WidgetSerializer::LoadPrefab(World, World, this, InParent, Location, Rotation, Scale, InCallbackBeforeAwake);
-		}
-		break;
 		}
 	}
 	return LoadedRootWidget;
@@ -799,7 +770,7 @@ ULexWidget* ULexUIPrefab::LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, 
 	return LoadedRootWidget;
 }
 
-ULexWidget* ULexUIPrefab::LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, ULexWidget* InParent, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject, bool SetRelativeTransformToIdentity)
+ULexWidget* ULexUIPrefab::LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, ULexWidget* InParent, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject)
 {
 	ULexWidget* LoadedRootWidget = nullptr;
 	switch ((ELexUIPrefabVersion)PrefabVersion)

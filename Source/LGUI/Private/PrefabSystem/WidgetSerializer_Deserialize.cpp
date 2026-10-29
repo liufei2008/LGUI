@@ -18,7 +18,7 @@
 
 namespace LexUIPrefabSystem
 {
-	ULexWidget* WidgetSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent
+	ULexWidget* WidgetSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, UObject* InOuter, const ULexUIPrefab* InPrefab, ULexWidget* Parent
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap
 	)
 	{
@@ -59,13 +59,13 @@ namespace LexUIPrefabSystem
 			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
 			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
 		};
-		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
 		return rootWidget;
 	}
 
-	ULexWidget* WidgetSerializer::LoadPrefab(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent, bool SetRelativeTransformToIdentity, TFunction<void(ULexWidget*)> CallbackBeforeAwake)
+	ULexWidget* WidgetSerializer::LoadPrefab(UWorld* InWorld, UObject* InOuter, const ULexUIPrefab* InPrefab, ULexWidget* Parent, TFunction<void(ULexWidget*)> CallbackBeforeAwake)
 	{
 		if (!IsValid(InWorld))
 		{
@@ -98,51 +98,7 @@ namespace LexUIPrefabSystem
 			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
 			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
 		};
-		ULexWidget* result = nullptr;
-		if (SetRelativeTransformToIdentity)
-		{
-			result = serializer.DeserializeWidget(Parent, InPrefab, nullptr, true);
-		}
-		else
-		{
-			result = serializer.DeserializeWidget(Parent, InPrefab, nullptr);
-		}
-		return result;
-	}
-	ULexWidget* WidgetSerializer::LoadPrefab(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(ULexWidget*)> CallbackBeforeAwake)
-	{
-		if (!IsValid(InWorld))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d Not valid world!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return nullptr;
-		}
-		if (!IsValid(InPrefab))
-		{
-			UE_LOG(LGUI, Error, TEXT("[%s].%d InPrefab is null!"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__);
-			return nullptr;
-		}
-
-		WidgetSerializer serializer;
-		serializer.World = InWorld;
-		serializer.OwnerObject = InOuter;
-		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
-#if !WITH_EDITOR
-		serializer.bIsEditorOrRuntime = false;
-#endif
-		serializer.bOverrideVersions = true;
-		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIObjectReader Reader(InOutBuffer, serializer);
-			Reader.DoSerialize(InObject);
-		};
-		serializer.WriterOrReaderFunctionForSubPrefabOverride = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TArray<FName>& InOverridePropertyNames) {
-			LexUIPrefabSystem::FLexUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNames);
-			Reader.DoSerialize(InObject);
-		};
-		serializer.WriterOrReaderFunctionForSubPropertyOverride = [&serializer](FProperty* InLeafProperty, void* InLeafValuePtr, TArray<uint8>& InOutBuffer) {
-			LexUIPrefabSystem::FLexUIOverrideSubPropertyValueReader Reader(InOutBuffer, serializer);
-			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
-		};
-		return serializer.DeserializeWidget(Parent, InPrefab, nullptr, true, RelativeLocation, RelativeRotation, RelativeScale);
+		return serializer.DeserializeWidget(Parent, InPrefab, nullptr);
 	}
 	ULexWidget* WidgetSerializer::LoadSubPrefab(UWorld* InWorld,
 		UObject* InOwnerObject, ULexUIPrefab* InPrefab, ULexWidget* Parent
@@ -172,12 +128,12 @@ namespace LexUIPrefabSystem
 			Reader.SerializeValue(InLeafProperty, InLeafValuePtr);
 		};
 		serializer.OnSubPrefabFinishDeserializeFunction = InOnSubPrefabFinishDeserializeFunction;
-		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto rootWidget = serializer.DeserializeWidget(Parent, InPrefab, nullptr);
 		return rootWidget;
 	}
 
 #define LGUIPREFAB_LOG_DETAIL_TIME 0
-	ULexWidget* WidgetSerializer::DeserializeWidgetFromData(FLexUIPrefabSaveData& SaveData, ULexWidget* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
+	ULexWidget* WidgetSerializer::DeserializeWidgetFromData(FLexUIPrefabSaveData& SaveData, ULexWidget* Parent)
 	{
 #if LGUIPREFAB_LOG_DETAIL_TIME
 		double Time = FPlatformTime::Seconds();
@@ -267,12 +223,6 @@ namespace LexUIPrefabSystem
 				Widget->OnRegister();
 			}
 		}
-		
-		if (ReplaceTransform)
-		{
-			CreatedRootWidget->SetRelativeLocationAndRotation(InLocation, InRotation);
-			CreatedRootWidget->SetRelativeScale(InScale);
-		}
 
 		if (OnSubPrefabFinishDeserializeFunction != nullptr)
 		{
@@ -308,7 +258,7 @@ namespace LexUIPrefabSystem
 
 		return CreatedRootWidget;
 	}
-	ULexWidget* WidgetSerializer::DeserializeWidget(ULexWidget* Parent, ULexUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
+	ULexWidget* WidgetSerializer::DeserializeWidget(ULexWidget* Parent, const ULexUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize)
 	{
 		const double StartTime = FPlatformTime::Seconds();
 		PrefabAssetPath = InPrefab->GetPathName();
@@ -375,7 +325,7 @@ namespace LexUIPrefabSystem
 		}
 
 		if (InCallbackBeforeDeserialize != nullptr)InCallbackBeforeDeserialize();
-		auto CreatedRootWidget = DeserializeWidgetFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
+		auto CreatedRootWidget = DeserializeWidgetFromData(SaveData, Parent);
 
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{

@@ -178,9 +178,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
 	void SetUseAnimation(bool Value){bUseAnimation = Value;}
 	
-	UFUNCTION(BlueprintCallable, Category = "LayoutContainer", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer")
 	void SetLayoutAnimation(ULexLayoutAnimation* Value);
-	UFUNCTION(BlueprintCallable, Category = "LayoutContainer", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LayoutContainer", meta=(DeterminesOutputType="Class"))
 	ULexLayoutAnimation* CreateNewLayoutAnimation(TSubclassOf<ULexLayoutAnimation> Class);
 	template<class T>
 	T* CreateNewLayoutAnimation()

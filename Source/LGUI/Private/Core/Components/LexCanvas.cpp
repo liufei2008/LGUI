@@ -676,6 +676,15 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		RootCanvas->MarkCanvasUpdate(true);
 		RootCanvas->bRequestUpdateForRenderTarget = true;
 	}
+	
+	auto ActualRenderMode = GetActualRenderMode();
+#if WITH_EDITOR
+	if (GetWorld() && !GetWorld()->IsGameWorld())//edit mode
+	{
+		if (ActualRenderMode == ELexRenderMode::ScreenSpaceOverlay)
+			ActualRenderMode = ELexRenderMode::WorldSpace_LexUI;
+	}
+#endif
 
 	auto PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bForceRenderToTarget))
@@ -699,6 +708,17 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, bOverrideSorting))
 	{
 		ClearRenderData();
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, BlendDepth) || PropertyName == GET_MEMBER_NAME_CHECKED(ULexCanvas, DepthFade))
+	{
+		if (ActualRenderMode == ELexRenderMode::WorldSpace_LexUI)
+		{
+			auto ViewExtension = ULexUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
+			if (ViewExtension.IsValid())
+			{
+				ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
+			}
+		}
 	}
 
 	MarkCanvasUpdate(true);
@@ -1840,17 +1860,6 @@ void ULexCanvas::RequestUpdateForRenderTarget()
 
 void ULexCanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 {
-	if (FMath::Abs(this->SortOrder + InAdditionalValue) > MAX_int16)
-	{
-		auto errorMsg = FText::Format(LOCTEXT("SortOrderOutOfRange", "{0} sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767")
-			, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
-		UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
-#if WITH_EDITOR
-		FLexUIUtils::EditorNotification(errorMsg, false);
-#endif
-		return;
-	}
-
 	this->SortOrder += InAdditionalValue;
 	for (auto ChildCanvas : ChildrenCanvasArray)
 	{
@@ -1876,16 +1885,6 @@ void ULexCanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanva
 		}
 		else
 		{
-			if (FMath::Abs(InSortOrder) > MAX_int16)
-			{
-				auto errorMsg = FText::Format(LOCTEXT("SortOrderOutOfRange", "{0} sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767")
-					, FText::FromString(FString::Printf(TEXT("[%s].%d"), ANSI_TO_TCHAR(__FUNCTION__), __LINE__)));
-				UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
-#if WITH_EDITOR
-				FLexUIUtils::EditorNotification(errorMsg, false);
-#endif
-				InSortOrder = FMath::Clamp(InSortOrder, (int32)MIN_int16, (int32)MAX_int16);
-			}
 			this->SortOrder = InSortOrder;
 		}
 
@@ -2339,15 +2338,12 @@ void ULexCanvas::SetBlendDepth(float Value)
 
 		if (CheckRootCanvas())
 		{
-			if (RootCanvas->RenderModeIsLexRendererOrUERenderer(CurrentRenderMode))
+			if (RootCanvas->GetRenderMode() == ELexRenderMode::WorldSpace_LexUI)
 			{
-				if (RootCanvas->IsRenderToWorldSpace())
+				auto ViewExtension = ULexUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
+				if (ViewExtension.IsValid())
 				{
-					auto ViewExtension = ULexUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
-					if (ViewExtension.IsValid())
-					{
-						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
-					}
+					ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
 				}
 			}
 		}
@@ -2362,15 +2358,12 @@ void ULexCanvas::SetDepthFade(int Value)
 
 		if (CheckRootCanvas())
 		{
-			if (RootCanvas->RenderModeIsLexRendererOrUERenderer(CurrentRenderMode))
+			if (RootCanvas->GetRenderMode() == ELexRenderMode::WorldSpace_LexUI)
 			{
-				if (RootCanvas->IsRenderToWorldSpace())
+				auto ViewExtension = ULexUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
+				if (ViewExtension.IsValid())
 				{
-					auto ViewExtension = ULexUIManagerWorldSubsystem::GetViewExtension(GetWorld(), false);
-					if (ViewExtension.IsValid())
-					{
-						ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
-					}
+					ViewExtension->SetRenderCanvasDepthParameter(this, this->GetActualBlendDepth(), this->GetActualDepthFade());
 				}
 			}
 		}

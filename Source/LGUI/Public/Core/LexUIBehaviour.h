@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Components/ActorComponent.h"
 #include "LexUIBehaviour.generated.h"
 
 class ULexWidget;
