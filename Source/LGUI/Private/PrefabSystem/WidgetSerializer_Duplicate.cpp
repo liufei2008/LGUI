@@ -43,7 +43,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LexUIPrefabSystem::FLexUIDuplicateObjectReader Reader(InOutBuffer, serializer);
 			Reader.DoSerialize(InObject);
 		};
-		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(SaveData, Parent);
 
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
@@ -111,7 +111,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 		serializer.MapGuidToObject.Reset();
 		serializer.bIsSubPrefab = false;
 
-		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(InData.WidgetData, InParent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(InData.WidgetData, InParent);
 		if (GetDefault<ULexUIEditorSettings>()->bLogPrefabLoadTime)
 		{
 			const double ElapsedSeconds = FPlatformTime::Seconds() - StartTime;
@@ -170,7 +170,7 @@ namespace LEXUIPREFAB_SERIALIZER_NEWEST_NAMESPACE
 			LexUIPrefabSystem::FLexUIDuplicateOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
 			Reader.DoSerialize(InObject);
 		};
-		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(SaveData, Parent, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		auto CreatedRootWidget = serializer.DeserializeWidgetFromData(SaveData, Parent);
 
 		OutDuplicatedSubPrefabMap = serializer.SubPrefabMap;
 		OutMapGuidToObject = serializer.MapGuidToObject;

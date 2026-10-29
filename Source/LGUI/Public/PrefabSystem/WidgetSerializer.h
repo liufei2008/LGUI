@@ -238,15 +238,11 @@ namespace LexUIPrefabSystem
 		/**
 		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "LexWidget" is the loaded root widget.
 		 */
-		static ULexWidget* LoadPrefab(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent, bool SetRelativeTransformToIdentity = true, TFunction<void(ULexWidget*)> CallbackBeforeAwake = nullptr);
-		/**
-		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "LexWidget" is the loaded root widget.
-		 */
-		static ULexWidget* LoadPrefab(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(ULexWidget*)> CallbackBeforeAwake = nullptr);
+		static ULexWidget* LoadPrefab(UWorld* InWorld, UObject* InOuter, const ULexUIPrefab* InPrefab, ULexWidget* Parent, TFunction<void(ULexWidget*)> CallbackBeforeAwake = nullptr);
 		/**
 		 * LoadPrefab and keep reference of objects.
 		 */
-		static ULexWidget* LoadPrefabWithExistingObjects(UWorld* InWorld, UObject* InOuter, ULexUIPrefab* InPrefab, ULexWidget* Parent
+		static ULexWidget* LoadPrefabWithExistingObjects(UWorld* InWorld, UObject* InOuter, const ULexUIPrefab* InPrefab, ULexWidget* Parent
 			, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap
 		);
 
@@ -315,8 +311,8 @@ namespace LexUIPrefabSystem
 		void SerializeObjectArray(TMap<FGuid, FLexUIObjectSaveData>& ObjectSaveDataArray, TMap<FGuid, TArray<uint8>>& SavedObjectData);
 		void SerializeWidgetToData(ULexWidget* RootWidget, FLexUIPrefabSaveData& OutData);
 		//deserialize widget
-		ULexWidget* DeserializeWidget(ULexWidget* Parent, ULexUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
-		ULexWidget* DeserializeWidgetFromData(FLexUIPrefabSaveData& SaveData, ULexWidget* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
+		ULexWidget* DeserializeWidget(ULexWidget* Parent, const ULexUIPrefab* InPrefab, const TFunction<void()>& InCallbackBeforeDeserialize);
+		ULexWidget* DeserializeWidgetFromData(FLexUIPrefabSaveData& SaveData, ULexWidget* Parent);
 		ULexWidget* GenerateWidgetArray(TArray<FLexUIWidgetSaveData>& SavedWidgets, TMap<FGuid, FLexUIObjectSaveData>& InSavedObjects, TMap<FGuid, FGuid>& MapWidgetToParent, FGuid ParentGuid);
 		void GenerateObjectArray(TMap<FGuid, FLexUIObjectSaveData>& SavedObjects, TMap<FGuid, FGuid>& MapWidgetToParent);
 

@@ -326,10 +326,9 @@ protected:
 		bool bOverrideSorting = false;
 	/**
 	 * Canvas with larger order will render on top of lower one.
-	 * NOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767
 	 */
 	UPROPERTY(EditAnywhere, Category = "LexUI", meta=(EditCondition="bOverrideSorting"))
-		int16 SortOrder = 0;
+		int32 SortOrder = 0;
 
 	/** Enable/disable normal and tangent in vertex data. */
 	UPROPERTY(EditAnywhere, Category = "LexUI")

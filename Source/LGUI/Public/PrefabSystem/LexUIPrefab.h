@@ -207,7 +207,7 @@ public:
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLexUIPrefab_LoadPrefabCallback, ULexWidget*, LoadedRootWidget);
 
 /**
- * Similar to Unity3D's Prefab. Store actor and it's hierarchy then serialize to asset, deserialize and restore when needed.
+ * Similar to Unity3D's Prefab. Store widget and it's hierarchy then serialize to asset, deserialize and restore when needed.
  * If you don't want to package the prefab for runtime (only use in editor), you can put the prefab in a folder named "EditorOnly".
  */
 UCLASS(ClassGroup = (LGUI), BlueprintType, DisplayName="LexUI Prefab")
@@ -304,42 +304,54 @@ private:
 #endif
 public:
 	/**
-	 * LoadPrefab to create actor.
-	 * Awake function in LexUIBehaviour and LGUIPrefabInterface will be called right after LoadPrefab is done.
-	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
-	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
-	 * @param SetRelativeTransformToIdentity Set created root actor's transform to zero after load.
-	 */
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InCallbackBeforeAwake,SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject", AutoCreateRefTerm = "InCallbackBeforeAwake"), Category = "LexUI")
-		ULexWidget* LoadPrefab(UObject* WorldContextObject, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake, bool SetRelativeTransformToIdentity = false);
-	/**
-	 * LoadPrefab to create actor.
-	 * Awake function in LexUIBehaviour and LexUIPrefabInterface will be called right after LoadPrefab is done.
-	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
-	 * @param Location Set created root actor's location after load.
-	 * @param Rotation Set created root actor's rotation after load.
-	 * @param Scale Set created root actor's scale after load.
+	 * LoadPrefab to create widget hierarchy.
+	 * Awake function in LexUIBehaviour will be called right after LoadPrefab is done.
+	 * @param InParent Parent widget that the created root widget will be attached to. Can be null so the created root widget will not attach to anyone.
+	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "LoadedRootWidget" is the loaded root widget.
 	 */
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InCallbackBeforeAwake", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject", AutoCreateRefTerm = "InCallbackBeforeAwake"), Category = "LexUI")
-		ULexWidget* LoadPrefabWithTransform(UObject* WorldContextObject, ULexWidget* InParent, FVector Location, FRotator Rotation, FVector Scale, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake);
-	ULexWidget* LoadPrefabWithTransform(UObject* WorldContextObject, ULexWidget* InParent, FVector Location, FQuat Rotation, FVector Scale, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake);
+	ULexWidget* LoadPrefab(UObject* WorldContextObject, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)const;
 	/**
-	 * LoadPrefab to create actor.
-	 * Awake function in LexUIBehaviour and LexUIPrefabInterface will be called right after LoadPrefab is done.
-	 * @param InParent Parent widget that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
+	 * LoadPrefab to create widget hierarchy, and return the script component of type InScriptClass.
+	 * Awake function in LexUIBehaviour will be called right after LoadPrefab is done.
+	 * @param InScriptClass Will get component of the type in root widget and return it.
+	 * @param InParent Parent widget that the created root widget will be attached to. Can be null so the created root widget will not attach to anyone.
+	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "LoadedRootWidget" is the loaded root widget.
+	 */
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InCallbackBeforeAwake", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject", AutoCreateRefTerm = "InCallbackBeforeAwake", DeterminesOutputType="InScriptClass"), Category = "LexUI")
+	ULexUIBehaviour* LoadPrefabWithScript(UObject* WorldContextObject, TSubclassOf<ULexUIBehaviour> InScriptClass, ULexWidget* InParent, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake)const;
+	/**
+	 * LoadPrefab to create widget hierarchy.
+	 * Awake function in LexUIBehaviour will be called right after LoadPrefab is done.
+	 * @param InParent Parent widget that the created root widget will be attached to. Can be null so the created root widget will not attach to anyone.
 	 * @param InReplaceAssetMap Replace source asset to dest before load the prefab.
 	 * @param InReplaceClassMap Replace source class to dest before load the prefab.
 	 */
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InCallbackBeforeAwake", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject", AutoCreateRefTerm = "InCallbackBeforeAwake"), Category = "LexUI")
 		ULexWidget* LoadPrefabWithReplacement(UObject* WorldContextObject, ULexWidget* InParent, const TMap<UObject*, UObject*>& InReplaceAssetMap, const TMap<UClass*, UClass*>& InReplaceClassMap, const FLexUIPrefab_LoadPrefabCallback& InCallbackBeforeAwake);
 	/**
-	 * LoadPrefab to create actor.
-	 * Awake function in LexUIBehaviour and LexUIPrefabInterface will be called right after LoadPrefab is done.
-	 * @param InParent Parent scene component that the created root actor will be attached to. Can be null so the created root actor will not attach to anyone.
-	 * @param SetRelativeTransformToIdentity Set created root actor's transform to zero after load.
-	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
+	 * LoadPrefab to create widget hierarchy.
+	 * Awake function in LexUIBehaviour will be called right after LoadPrefab is done.
+	 * @param InParent Parent widget that the created root widget will be attached to. Can be null so the created root widget will not attach to anyone.
+	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "LoadedRootWidget" is the loaded root widget.
 	 */
-	ULexWidget* LoadPrefab(UWorld* InWorld, ULexWidget* InParent, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake = nullptr, bool SetRelativeTransformToIdentity = false);
+	ULexWidget* LoadPrefab(UWorld* InWorld, ULexWidget* InParent, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake = nullptr)const;
+	/**
+	 * LoadPrefab to create widget hierarchy, and return the component of type InScriptClass.
+	 * Awake function in LexUIBehaviour will be called right after LoadPrefab is done.
+	 * @param InParent Parent widget that the created root widget will be attached to. Can be null so the created root widget will not attach to anyone.
+	 * @param InCallbackBeforeAwake This callback function will execute before Awake event, parameter "LoadedRootWidget" is the loaded root widget.
+	 */
+	template<class T>
+	T* LoadPrefab(UWorld* InWorld, ULexWidget* InParent, const TFunction<void(ULexWidget*)>& InCallbackBeforeAwake = nullptr)const
+	{
+		if (auto Root = LoadPrefab(InWorld, InParent, InCallbackBeforeAwake))
+		{
+			return Root->GetComponent<T>();
+		}
+		return nullptr;
+	}
+#if WITH_EDITOR
 	/**
 	 * LoadPrefab and keep reference of source objects.
 	 */
@@ -347,7 +359,6 @@ public:
 		, TMap<FGuid, TObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap
 	);
 	bool IsPrefabBelongsToThisSubPrefab(ULexUIPrefab* InPrefab, bool InRecursive);
-#if WITH_EDITOR
 	void CopyDataTo(ULexUIPrefab* TargetPrefab);
 	bool GetIsPrefabVariant()const { return bIsPrefabVariant; }
 	FString GenerateOverallVersionMD5();
@@ -390,6 +401,6 @@ public:
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */
 	ULexWidget* LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, ULexWidget* Parent);
-	ULexWidget* LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, ULexWidget* Parent, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject, bool SetRelativeTransformToIdentity = true);
+	ULexWidget* LoadPrefabInEditor(UWorld* InWorld, UObject* InOuter, ULexWidget* Parent, TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, TObjectPtr<UObject>>& OutMapGuidToObject);
 #endif
 };

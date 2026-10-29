@@ -412,7 +412,7 @@ void FLexUIEditorTools::PasteWidgets(TFunction<TArray<ULexWidget*>()> GetSelecte
 			TMap<FGuid, TObjectPtr<UObject>> OutMapGuidToObject;
 			TMap<TObjectPtr<ULexWidget>, FLexUISubPrefabData> LoadedSubPrefabMap;
 			auto CopiedWidgetName = FLexUIEditorToolsHelperFunctionHolder::GetCopiedWidgetLabel(SelectedWidgets[0], ParentWidget, KeyValuePair.Key, ParentWidget->GetWorld());
-			auto CopiedWidget = KeyValuePair.Value->LoadPrefabInEditor(ParentWidget->GetWorld(), ParentWidget->GetOuter(), ParentWidget, LoadedSubPrefabMap, OutMapGuidToObject, false);
+			auto CopiedWidget = KeyValuePair.Value->LoadPrefabInEditor(ParentWidget->GetWorld(), ParentWidget->GetOuter(), ParentWidget, LoadedSubPrefabMap, OutMapGuidToObject);
 			for (auto& KeyValue : LoadedSubPrefabMap)
 			{
 				TMap<FGuid, TObjectPtr<UObject>> SubMapGuidToObject;

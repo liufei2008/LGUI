@@ -691,7 +691,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexLayoutContainer* GetLayoutContainer()const { return LayoutContainer; }
-	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="Class"))
 	ULexLayoutContainer* CreateNewLayoutContainer(TSubclassOf<ULexLayoutContainer> Class);
 	template<class T>
 	T* CreateNewLayoutContainer()
@@ -704,7 +704,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "LexUI")
 	ULexLayoutSelf* GetLayoutSelf()const{return LayoutSelf;}
-	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="LayoutClass"))
+	UFUNCTION(BlueprintCallable, Category = "LexUI", meta=(DeterminesOutputType="Class"))
 	ULexLayoutSelf* CreateNewLayoutSelf(TSubclassOf<ULexLayoutSelf> Class);
 	template<class T>
 	T* CreateNewLayoutSelf()
