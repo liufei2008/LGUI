@@ -370,6 +370,8 @@ public:
 	FLexUIPrefabInstanceScene* GetPrefabInstanceScene();
 	void ClearPrefabInstanceScene();
 	void EnsureInstanceObjects();
+	/** Keep the prefab instance scene (a non-UObject FGCObject) and its world alive. */
+	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
 	ULexUIPrefabHelperObject* GetPrefabHelperObject();
 	/** Mark this prefab's thumbnail dirty so it gets regenerated and saved with the package. */
 	void MarkThumbnailDirty();

@@ -275,6 +275,16 @@ FLexUIPrefabInstanceScene* ULexUIPrefab::GetPrefabInstanceScene()
 	return PrefabInstanceScene.Get();
 }
 
+void ULexUIPrefab::AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector)
+{
+	Super::AddReferencedObjects(InThis, Collector);
+	ULexUIPrefab* Prefab = CastChecked<ULexUIPrefab>(InThis);
+	if (Prefab->PrefabInstanceScene.IsValid())
+	{
+		Prefab->PrefabInstanceScene->AddReferencedObjects(Collector);
+	}
+}
+
 void ULexUIPrefab::ClearPrefabInstanceScene()
 {
 	if (PrefabInstanceScene.IsValid())

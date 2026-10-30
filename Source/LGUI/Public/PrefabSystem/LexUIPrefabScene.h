@@ -89,28 +89,7 @@ public:
 	UWorld* GetWorld() const { return PreviewWorld; }
 	FSceneInterface* GetScene() const { return PreviewWorld->Scene; }
 
-	/** Access to line drawing */
-	class ULineBatchComponent* GetLineBatcher() const { return LineBatcher; }
-	/** Clean out the line batcher each frame */
-	void ClearLineBatcher();
-
-	/** Update sky and reflection captures */
-	void UpdateCaptureContents();
-
-	FRotator GetLightDirection();
-	void SetLightDirection(const FRotator& InLightDir);
 	void SetLightBrightness(float LightBrightness);
-	void SetLightColor(const FColor& LightColor);
-
-	void SetSkyBrightness(float SkyBrightness);
-	void SetSkyCubemap(class UTextureCube* Cubemap);
-
-	/** Get the background color we use by default */
-	virtual FLinearColor GetBackgroundColor() const;
-
-	/** Load/Save settings to the config, specifying the key */
-	void LoadSettings(const TCHAR* Section);
-	void SaveSettings(const TCHAR* Section);
 
 	class UDirectionalLightComponent* DirectionalLight;
 	class USkyLightComponent* SkyLight;
