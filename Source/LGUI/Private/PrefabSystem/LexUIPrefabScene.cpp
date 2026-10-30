@@ -1,7 +1,6 @@
 // Copyright 2019-Present LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LexUIPrefabScene.h"
-#include "Misc/ConfigCacheIni.h"
 #include "Misc/CoreDelegates.h"
 #include "UObject/Package.h"
 #include "SceneInterface.h"
@@ -10,7 +9,6 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Components/LineBatchComponent.h"
-#include "Components/ReflectionCaptureComponent.h"
 #include "GameFramework/GameModeBase.h"
 
 #if WITH_EDITOR
@@ -210,43 +208,6 @@ FString FLexUIPrefabScene::GetReferencerName() const
 	return TEXT("FLexUIPrefabScene");
 }
 
-void FLexUIPrefabScene::UpdateCaptureContents()
-{
-	// This function is called from FAdvancedPrefabScene::Tick, FBlueprintEditor::Tick, and FThumbnailPrefabScene::Tick,
-	// so assume we are inside a Tick function.
-	const bool bInsideTick = true;
-
-	USkyLightComponent::UpdateSkyCaptureContents(PreviewWorld);
-	UReflectionCaptureComponent::UpdateReflectionCaptureContents(PreviewWorld, nullptr, false, false, bInsideTick);
-}
-
-void FLexUIPrefabScene::ClearLineBatcher()
-{
-	if (LineBatcher != NULL)
-	{
-		LineBatcher->Flush();
-	}
-}
-
-/** Accessor for finding the current direction of the preview scene's DirectionalLight. */
-FRotator FLexUIPrefabScene::GetLightDirection()
-{
-	return DirectionalLight->GetComponentTransform().GetUnitAxis( EAxis::X ).Rotation();
-}
-
-/** Function for modifying the current direction of the preview scene's DirectionalLight. */
-void FLexUIPrefabScene::SetLightDirection(const FRotator& InLightDir)
-{
-#if WITH_EDITOR
-	DirectionalLight->PreEditChange(NULL);
-#endif // WITH_EDITOR
-	DirectionalLight->SetAbsolute(true, true, true);
-	DirectionalLight->SetRelativeRotation(InLightDir);
-#if WITH_EDITOR
-	DirectionalLight->PostEditChange();
-#endif // WITH_EDITOR
-}
-
 void FLexUIPrefabScene::SetLightBrightness(float LightBrightness)
 {
 #if WITH_EDITOR
@@ -256,47 +217,6 @@ void FLexUIPrefabScene::SetLightBrightness(float LightBrightness)
 #if WITH_EDITOR
 	DirectionalLight->PostEditChange();
 #endif // WITH_EDITOR
-}
-
-void FLexUIPrefabScene::SetLightColor(const FColor& LightColor)
-{
-#if WITH_EDITOR
-	DirectionalLight->PreEditChange(NULL);
-#endif // WITH_EDITOR
-	DirectionalLight->LightColor = LightColor;
-#if WITH_EDITOR
-	DirectionalLight->PostEditChange();
-#endif // WITH_EDITOR
-}
-
-void FLexUIPrefabScene::SetSkyBrightness(float SkyBrightness)
-{
-	SkyLight->SetIntensity(SkyBrightness);
-}
-
-void FLexUIPrefabScene::SetSkyCubemap(UTextureCube* Cubemap)
-{
-	SkyLight->SetCubemap(Cubemap);
-}
-
-void FLexUIPrefabScene::LoadSettings(const TCHAR* Section)
-{
-	FRotator LightDir;
-	if ( GConfig->GetRotator( Section, TEXT("LightDir"), LightDir, GEditorPerProjectIni ) )
-	{
-		SetLightDirection( LightDir );
-	}
-}
-
-void FLexUIPrefabScene::SaveSettings(const TCHAR* Section)
-{
-	GConfig->SetRotator( Section, TEXT("LightDir"), GetLightDirection(), GEditorPerProjectIni );
-}
-
-FLinearColor FLexUIPrefabScene::GetBackgroundColor() const
-{
-	FLinearColor BackgroundColor = FColor(55, 55, 55);
-	return BackgroundColor;
 }
 
 #endif
