@@ -18,10 +18,43 @@
 #include "Core/Components/LexVisualDirectMesh.h"
 #include "Core/Components/LexVisualBackBufferReader.h"
 #include "Core/Components/LexWidget.h"
-#include "RHIResourceUtils.h"
+#include "Core/LexWidgetPresenterComponent.h"
+#if WITH_EDITOR
+#include "EngineUtils.h"//HActor, editor hit proxy only
+#include "Components/ComponentInterfaces.h"//IPrimitiveComponent
+#include "Elements/Framework/TypedElementHandle.h"
+#include "Elements/Framework/EngineElementsLibrary.h"
+#endif
 
 
 #define LOCTEXT_NAMESPACE "LexUIMeshComponent"
+
+#if WITH_EDITOR
+/**
+ * Hit proxy for editor pick of WorldSpaceUI.
+ */
+struct HLexUIMeshActorHitProxy : public HActor
+{
+	DECLARE_HIT_PROXY()
+	HLexUIMeshActorHitProxy(AActor* InActor, const UPrimitiveComponent* InPrimComponent, EHitProxyPriority InPriority)
+		: HActor(InActor, InPrimComponent, InPriority)
+	{
+	}
+	virtual FTypedElementHandle GetElementHandle() const override
+	{
+		if (Actor)
+		{
+			return UEngineElementsLibrary::AcquireEditorActorElementHandle(Actor);
+		}
+		return FTypedElementHandle();
+	}
+	virtual bool AlwaysAllowsTranslucentPrimitives() const override
+	{
+		return true;
+	}
+};
+IMPLEMENT_HIT_PROXY(HLexUIMeshActorHitProxy, HActor);
+#endif
 
 
 enum class ELexUIRenderSectionProxyType :uint8
@@ -241,6 +274,27 @@ public:
 			bIsSupportLexUIRenderer = true;
 		}
 		bIsSupportUERenderer = InComponent->bIsSupportUERenderer;
+#if WITH_EDITOR
+		bIsSupportEditorHitTest = InComponent->bIsSupportEditorHitTest;
+		if (bIsSupportEditorHitTest)
+		{
+			bHasHitProxyOwner = InComponent->GetOwner() != nullptr;
+			if (!bHasHitProxyOwner)
+			{
+				//ULexUIMeshComponent's outer could be ULexWidget(UObject, not AActor), then GetOwner() is null.
+				//In that case use the actor of the presenter component, so we can still create HActor hit proxy.
+				if (auto PresenterComp = InCanvasPtr->GetWidgetPresenterComponent())
+				{
+					bHasHitProxyOwner = PresenterComp->GetOwner() != nullptr;
+				}
+			}
+			//Opaque material used only in hit proxy pass, so translucent UI material won't be filtered out by hit proxy pass.
+			if (auto DefaultMaterial = UMaterial::GetDefaultMaterial(MD_Surface))
+			{
+				EditorHitTestMaterialProxy = DefaultMaterial->GetRenderProxy();
+			}
+		}
+#endif
 
 		auto& SrcSections = InComponent->RenderSectionArray;
 		SectionArray.SetNumZeroed(SrcSections.Num());
@@ -336,7 +390,11 @@ public:
 					BeginInitResource(&NewSectionProxy->IndexBuffer);
 					BeginInitResource(&NewSectionProxy->LexUIVertexBuffers);
 				}
-				if (bIsSupportUERenderer)
+				if (bIsSupportUERenderer
+#if WITH_EDITOR
+					|| bIsSupportEditorHitTest
+#endif
+					)
 				{
 					NewSectionProxy->InitFromLexUIVertexData(SrcVertices);
 
@@ -562,7 +620,11 @@ public:
 			FMemory::Memcpy(VertexBufferData, MeshVertexData.GetData(), VertexDataLength);
 			RHICmdList.UnlockBuffer(Section->LexUIVertexBuffers.VertexBufferRHI);
 		}
-		if(bIsSupportUERenderer)
+		if(bIsSupportUERenderer
+#if WITH_EDITOR
+			|| bIsSupportEditorHitTest
+#endif
+			)
 		{
 			for (int i = 0; i < NumVerts; i++)
 			{
@@ -617,11 +679,32 @@ public:
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
-		if (!bIsSupportUERenderer) return;
-		if (!LexUI_CanRender())return;
-		GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
+		if (bIsSupportUERenderer)
+		{
+			if (LexUI_CanRender())
+			{
+				GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
+			}
+		}
+#if WITH_EDITOR
+		else
+		{
+			//Editor hit proxy pass: submit geometry so it can be picked in editor viewport.
+			if (bIsSupportEditorHitTest && bHasHitProxyOwner && ViewFamily.EngineShowFlags.HitProxies)
+			{
+				//Hit proxy pass for editor pick. Use an opaque material, because translucent material is skipped by
+				//hit proxy pass(FHitProxyMeshProcessor::TryAddMeshBatch) and HActor doesn't allow translucent primitive.
+				const bool bIsHitTestOnly = bIsSupportEditorHitTest && !bIsSupportUERenderer && bHasHitProxyOwner && ViewFamily.EngineShowFlags.HitProxies;
+				GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector, bIsHitTestOnly ? EditorHitTestMaterialProxy : nullptr);
+			}
+		}
+#endif
 	}
-	void GetMeshElements_UERenderer(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const
+	void GetMeshElements_UERenderer(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector
+#if WITH_EDITOR
+		, FMaterialRenderProxy* HitTestMaterialProxy = nullptr
+#endif
+		) const
 	{
 		if (bNeedToSortRenderSections)
 		{
@@ -654,7 +737,13 @@ public:
 			case ELexUIRenderSectionProxyType::Mesh:
 			{
 				auto Section = static_cast<FLexUISectionProxy_Mesh*>(RenderSection);
-				FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy();
+				FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance
+#if WITH_EDITOR
+					: (HitTestMaterialProxy != nullptr ? HitTestMaterialProxy : Section->Material->GetRenderProxy());
+#else
+					: Section->Material->GetRenderProxy());
+#endif
+				
 
 				// For each view..
 				for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
@@ -688,6 +777,13 @@ public:
 						Mesh.Type = PT_TriangleList;
 						Mesh.DepthPriorityGroup = SDPG_World;
 						Mesh.bCanApplyViewModeOverrides = false;
+#if WITH_EDITOR
+						if (HitTestMaterialProxy != nullptr)
+						{
+							Mesh.bSelectable = true;
+							Mesh.bUseForMaterial = true;
+						}
+#endif
 						Collector.AddMesh(ViewIndex, Mesh);
 					}
 				}
@@ -701,7 +797,12 @@ public:
 				auto ChildSceneProxy = Section->ChildCanvasSceneProxy;
 				if (ChildSceneProxy != nullptr)
 				{
-					ChildSceneProxy->GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector);
+					//Pass parent's hit test material down, the child canvas mesh has no hit proxy of its own.
+					ChildSceneProxy->GetMeshElements_UERenderer(Views, ViewFamily, VisibilityMap, Collector
+#if WITH_EDITOR
+						, HitTestMaterialProxy
+#endif
+						);
 				}
 			}
 			break;
@@ -864,6 +965,10 @@ public:
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 	{
 		FPrimitiveViewRelevance Result;
+#if WITH_EDITOR
+		const bool bIsHitProxyPass = View != nullptr && View->Family != nullptr && View->Family->EngineShowFlags.HitProxies;
+		const bool bIsHitTestOnly = bIsSupportEditorHitTest && !bIsSupportUERenderer && bHasHitProxyOwner && bIsHitProxyPass;
+#endif
 		if (bIsSupportUERenderer)
 		{
 			Result.bDrawRelevance = IsShown(View);
@@ -874,6 +979,19 @@ public:
 			Result.bUsesLightingChannels = GetLightingChannelMask() != GetDefaultLightingChannelMask();
 			Result.bRenderCustomDepth = ShouldRenderCustomDepth();
 		}
+#if WITH_EDITOR
+		else if (bIsHitTestOnly)
+		{
+			//Only visible in editor's hit proxy pass, so editor viewport can pick this mesh.
+			Result.bDrawRelevance = true;
+			Result.bShadowRelevance = false;
+			Result.bDynamicRelevance = true;
+			Result.bStaticRelevance = false;
+			Result.bRenderInMainPass = true;
+			Result.bUsesLightingChannels = false;
+			Result.bRenderCustomDepth = false;
+		}
+#endif
 		else
 		{
 			Result.bDrawRelevance = false;
@@ -892,6 +1010,41 @@ public:
 	{
 		return bIsSupportUERenderer && !MaterialRelevance.bDisableDepthTest;
 	}
+
+#if WITH_EDITOR
+	//Create hit proxy for editor pick, so the world space UI can be click-selected in editor viewport.
+	virtual HHitProxy* CreateHitProxies(UPrimitiveComponent* Component, TArray<TRefCountPtr<HHitProxy>>& OutHitProxies) override
+	{
+		return CreateHitProxyForOwnerActor(Component, OutHitProxies);
+	}
+	virtual HHitProxy* CreateHitProxies(IPrimitiveComponent* ComponentInterface, TArray<TRefCountPtr<HHitProxy>>& OutHitProxies) override
+	{
+		UPrimitiveComponent* Component = ComponentInterface != nullptr ? ComponentInterface->GetUObject<UPrimitiveComponent>() : nullptr;
+		return CreateHitProxyForOwnerActor(Component, OutHitProxies);
+	}
+	HHitProxy* CreateHitProxyForOwnerActor(UPrimitiveComponent* Component, TArray<TRefCountPtr<HHitProxy>>& OutHitProxies)
+	{
+		if (!bIsSupportEditorHitTest || Component == nullptr)return nullptr;
+		AActor* OwnerActor = Component->GetOwner();
+		if (OwnerActor == nullptr)
+		{
+			if (auto Canvas = RenderCanvasPtr.Get())
+			{
+				if (auto RootCanvas = Canvas->GetRootCanvas())
+				{
+					if (auto PresenterComp = RootCanvas->GetWidgetPresenterComponent())
+					{
+						OwnerActor = PresenterComp->GetOwner();
+					}
+				}
+			}
+		}
+		if (OwnerActor == nullptr)return nullptr;
+		auto ActorHitProxy = new HLexUIMeshActorHitProxy(OwnerActor, Component, HPP_Foreground);
+		OutHitProxies.Add(ActorHitProxy);
+		return ActorHitProxy;
+	}
+#endif
 
 	virtual uint32 GetMemoryFootprint(void) const override
 	{
@@ -912,6 +1065,13 @@ private:
 	TWeakPtr<FLexUIRenderer, ESPMode::ThreadSafe> LexUIRenderer;
 	bool bIsSupportLexUIRenderer = false;
 	bool bIsSupportUERenderer = true;
+#if WITH_EDITOR
+	bool bIsSupportEditorHitTest = false;
+	/** True if this component belongs to an actor, so engine can create HActor hit proxy for us. */
+	bool bHasHitProxyOwner = false;
+	/** Opaque material used only in editor hit proxy pass, so translucent UI material won't be filtered out. */
+	FMaterialRenderProxy* EditorHitTestMaterialProxy = nullptr;
+#endif
 	bool bIsLexUIRenderToWorld = false;
 	bool bNeedToSortRenderSections = true;
 	bool bIsRenderCanvas = false;
@@ -1652,6 +1812,12 @@ void ULexUIMeshComponent::SetSupportUERenderer(bool InSupportOrNot)
 {
 	bIsSupportUERenderer = InSupportOrNot;
 }
+#if WITH_EDITOR
+void ULexUIMeshComponent::SetSupportEditorHitTest(bool InSupportOrNot)
+{
+	bIsSupportEditorHitTest = InSupportOrNot;
+}
+#endif
 void ULexUIMeshComponent::ClearRenderData()
 {
 	MarkRenderStateDirty();//mark dirty to recreate SceneProxy

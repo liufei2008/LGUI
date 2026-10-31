@@ -723,6 +723,11 @@ void ULexCanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 
 	MarkCanvasUpdate(true);
 	CheckAndApplyViewportParameter();
+	
+	if (auto WidgetPresenter = Cast<ULexWidgetPresenterComponent>(GetOuter()))//created by WidgetPresenterComponent, must be a template
+	{
+		WidgetPresenter->ReloadWidget();
+	}
 }
 void ULexCanvas::PostLoad()
 {
@@ -1547,6 +1552,14 @@ void ULexCanvas::CheckUIMesh()const
 			UIMesh->SetSupportLexUIRenderer(false, nullptr, false);
 			UIMesh->SetSupportUERenderer(true);
 		}
+#if WITH_EDITOR
+		//Editor: prepare UE-renderer-side vertex data so the mesh can answer hit proxy query,
+		//then world space UI(any render mode) can be click-selected in editor viewport.
+		if (GetWorld() && !GetWorld()->IsGameWorld())
+		{
+			UIMesh->SetSupportEditorHitTest(true);
+		}
+#endif
 	}
 }
 
@@ -2783,6 +2796,10 @@ void ULexCanvas::OnEditorTick(float DeltaTime)
 
 	if (this->IsRootCanvas() && !this->bForceRenderToTarget)
 	{
+		if (IsCanvasSelectedInLevelEditor())
+		{
+			DrawSelectionHighlight();
+		}
 		if (this->GetRenderMode() == ELexRenderMode::ScreenSpaceOverlay
 			|| this->GetRenderMode() == ELexRenderMode::RenderTarget
 			)
@@ -2903,6 +2920,32 @@ void ULexCanvas::DrawViewportArea()
 	ULexUIManagerWorldSubsystem::DrawDebugBox(GetWorld()
 		, FVector::Zero(), WorldTransform.ToMatrixWithScale()
 		, RectExtends, RectDrawColor, this, FString::Printf(TEXT("%s.LexCanvas.ViewportArea"), *this->GetWidget()->GetDisplayName())
+		, false);
+}
+
+bool ULexCanvas::IsCanvasSelectedInLevelEditor() const
+{
+	if (auto WidgetPresenter = this->GetWidgetPresenterComponent())
+	{
+		if (auto OwnerActor = WidgetPresenter->GetOwner())
+		{
+			return OwnerActor->IsSelectedInEditor();
+		}
+	}
+	return false;
+}
+
+void ULexCanvas::DrawSelectionHighlight()
+{
+	auto LexWidget = GetWidget();
+	if (LexWidget == nullptr)return;
+	auto RectExtends = FVector(0.1f, LexWidget->GetWidth(), LexWidget->GetHeight()) * 0.5f;
+	auto HighlightColor = FColor(255, 165, 0, 255);//orange means selected object
+	auto WorldTransform = LexWidget->GetWorldTransform();
+
+	ULexUIManagerWorldSubsystem::DrawDebugBox(GetWorld()
+		, FVector::Zero(), WorldTransform.ToMatrixWithScale()
+		, RectExtends, HighlightColor, this, FString::Printf(TEXT("%s.LexCanvas.SelectionHighlight"), *LexWidget->GetDisplayName())
 		, false);
 }
 

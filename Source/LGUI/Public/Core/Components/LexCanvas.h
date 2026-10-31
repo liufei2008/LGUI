@@ -666,6 +666,10 @@ private:
 	FDelegateHandle EditorTickDelegateHandle;
 	void DrawVirtualCamera();
 	void DrawViewportArea();
+	/** Draw a box to highlight this canvas when its owner actor is selected in editor. */
+	void DrawSelectionHighlight();
+	/** Is the actor that owns this canvas selected in editor. */
+	bool IsCanvasSelectedInLevelEditor() const;
 	void OnEditorTick(float DeltaTime);
 #endif
 	void RegisterCanvasScaler();

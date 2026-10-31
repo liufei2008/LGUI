@@ -118,6 +118,13 @@ public:
 	void Init(ULexCanvas* InCanvas);
 	void SetSupportLexUIRenderer(bool InSupportOrNot, TWeakPtr<FLexUIRenderer, ESPMode::ThreadSafe> InLexUIRenderer, bool InIsRenderToWorld);
 	void SetSupportUERenderer(bool InSupportOrNot);
+#if WITH_EDITOR
+	/**
+	 * Editor only. When true, this mesh also prepares UE-renderer-side vertex data and answers hit proxy query,
+	 * so the UI can be click-selected in editor viewport even if it is drawn by LexRenderer.
+	 */
+	void SetSupportEditorHitTest(bool InSupportOrNot);
+#endif
 	void ClearRenderData();
 	void FlushRenderCommand();
 
@@ -188,6 +195,10 @@ protected:
 	bool bIsLexUIRenderToWorld = false;//LexUI renderer render to world or screen
 	TWeakObjectPtr<ULexCanvas> RenderCanvas = nullptr;
 	bool bIsSupportUERenderer = true;
+#if WITH_EDITOR
+	/** Editor only: prepare UE-renderer-side vertex data for editor pick. @see SetSupportEditorHitTest */
+	bool bIsSupportEditorHitTest = false;
+#endif
 	TWeakObjectPtr<ULexUIMeshComponent> ParentCanvasMeshComp = nullptr;
 
 public:
