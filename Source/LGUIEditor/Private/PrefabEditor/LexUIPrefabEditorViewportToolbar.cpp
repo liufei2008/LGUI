@@ -66,11 +66,64 @@ namespace LexUI_Private
 			)
 		);
 	}
+
+	// Builds a Local / World toggle button for the gizmo coordinate system, mirroring the Ctrl+` shortcut.
+	static FToolMenuEntry MakeCoordSystemToggleEntry()
+	{
+		return FToolMenuEntry::InitDynamicEntry(
+			"DynamicCoordSystemToggle",
+			FNewToolMenuSectionDelegate::CreateLambda(
+				[](FToolMenuSection& InDynamicSection) -> void
+				{
+					TWeakPtr<SEditorViewport> WeakViewport;
+					if (UUnrealEdViewportToolbarContext* const EditorViewportContext =
+							InDynamicSection.FindContext<UUnrealEdViewportToolbarContext>())
+					{
+						WeakViewport = EditorViewportContext->Viewport;
+					}
+
+					const TAttribute<FText> Label = TAttribute<FText>::CreateLambda(
+						[WeakViewport]()
+						{
+							if (TSharedPtr<SEditorViewport> Viewport = WeakViewport.Pin())
+							{
+								return Viewport->IsCoordSystemActive(COORD_Local)
+									? LOCTEXT("CoordSystemButton_Local", "Local")
+									: LOCTEXT("CoordSystemButton_World", "World");
+							}
+							return LOCTEXT("CoordSystemSubmenuLabel", "Space");
+						}
+					);
+
+					const TAttribute<FSlateIcon> Icon = TAttribute<FSlateIcon>::CreateLambda(
+						[WeakViewport]()
+						{
+							if (TSharedPtr<SEditorViewport> Viewport = WeakViewport.Pin())
+							{
+								return UE::UnrealEd::GetIconFromCoordSystem(Viewport->GetViewportClient()->GetWidgetCoordSystemSpace());
+							}
+							return FSlateIcon();
+						}
+					);
+
+					FToolMenuEntry& Entry = InDynamicSection.AddEntry(
+						FToolMenuEntry::InitToolBarButton(
+							FEditorViewportCommands::Get().CycleTransformGizmoCoordSystem,
+							Label,
+							LOCTEXT("CoordSystemToggleTooltip", "Toggle the gizmo between world and local space"),
+							Icon
+						)
+					);
+					Entry.UserInterfaceActionType = EUserInterfaceActionType::Button;
+					Entry.ToolBarData.ResizeParams.ClippingPriority = 750;
+				}
+			)
+		);
+	}
 }
 
 ///////////////////////////////////////////////////////////
 // SLexUIPrefabEditorViewportToolbar
-
 ICommonEditorViewportToolbarInfoProvider& SLexUIPrefabEditorViewportToolbar::GetInfoProvider() const
 {
 	return *InfoProviderWeakPtr.Pin().Get();
@@ -120,6 +173,9 @@ void SLexUIPrefabEditorViewportToolbar::Construct(const FArguments& InArgs, TSha
 		{
 			// Camera toggle button (custom: only 3D / 2D modes)
 			RightSection.AddEntry(LexUI_Private::MakeCameraToggleEntry());
+
+			// Gizmo coordinate system toggle (Local / World)
+			RightSection.AddEntry(LexUI_Private::MakeCoordSystemToggleEntry());
 
 			// View Modes menu
 			RightSection.AddEntry(UE::UnrealEd::CreateViewModesSubmenu());

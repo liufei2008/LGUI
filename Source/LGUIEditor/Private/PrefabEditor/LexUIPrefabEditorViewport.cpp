@@ -4,6 +4,8 @@
 #include "LexUIPrefabEditorViewportClient.h"
 #include "LexUIPrefabEditor.h"
 #include "LexUIPrefabEditorViewportToolbar.h"
+#include "EditorViewportCommands.h"
+#include "EditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewport"
 
@@ -16,6 +18,34 @@ void SLexUIPrefabEditorViewport::Construct(const FArguments& InArgs, TSharedPtr<
 void SLexUIPrefabEditorViewport::BindCommands()
 {
 	SEditorViewport::BindCommands();
+
+	// The engine cycle also walks through parent/explicit space when the experimental gizmo is enabled, but this
+	// viewport's gizmo only implements world and local space, so make Ctrl+` a strict two-state toggle.
+	const FEditorViewportCommands& ViewportCommands = FEditorViewportCommands::Get();
+	TWeakPtr<SEditorViewport> WeakViewport = SharedThis(this);
+	CommandList->MapAction(
+		ViewportCommands.CycleTransformGizmoCoordSystem,
+		FExecuteAction::CreateLambda([WeakViewport]()
+			{
+				if (TSharedPtr<SEditorViewport> Viewport = WeakViewport.Pin())
+				{
+					if (TSharedPtr<FEditorViewportClient> ViewportClient = Viewport->GetViewportClient())
+					{
+						const bool bIsLocal = ViewportClient->GetModeTools()->GetCoordSystem(true) == COORD_Local;
+						ViewportClient->SetWidgetCoordSystemSpace(bIsLocal ? COORD_World : COORD_Local);
+					}
+				}
+			}),
+		FCanExecuteAction(),
+		FIsActionChecked::CreateLambda([WeakViewport]()
+			{
+				if (TSharedPtr<SEditorViewport> Viewport = WeakViewport.Pin())
+				{
+					return Viewport->IsCoordSystemActive(COORD_Local);
+				}
+				return false;
+			})
+	);
 }
 TSharedRef<FEditorViewportClient> SLexUIPrefabEditorViewport::MakeEditorViewportClient()
 {
