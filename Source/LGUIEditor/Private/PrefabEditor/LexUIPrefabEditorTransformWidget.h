@@ -9,6 +9,7 @@
 #include "Core/LexUIManager.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInterface.h"
+#include "UnrealWidgetFwd.h"
 
 class FLexUIPrefabEditorViewportClient;
 class FScopedTransaction;
@@ -30,7 +31,8 @@ public:
 
 private:
 	void UpdateAxis();
-
+	/** Coordinate system the gizmo is drawn and dragged in, follows the viewport's Ctrl+` toggle. */
+	ECoordSystem GetCoordSystem()const;
 	FVector PressAxisHitPoint = FVector::Zero();
 	FVector PressAxisVector = FVector::ZeroVector;
 	FTransform ThisTransformWhenPress = FTransform::Identity;
@@ -76,6 +78,8 @@ private:
 	ETransformType TransformType = ETransformType::Move;
 	bool bIsMousePressedAtThisFrame = false;
 	bool bIsDragging = false;
+	/** Coordinate system captured when the drag starts, so toggling space mid-drag cannot flip it under the mouse. */
+	ECoordSystem DragCoordSystem = COORD_Local;
 	TWeakObjectPtr<ULexWidget> SelectedWidget;
 	FLexUIPrefabEditorViewportClient* ViewportClient = nullptr;
 	TUniquePtr<FSceneViewFamilyContext> ViewFamily = nullptr;

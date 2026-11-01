@@ -6,8 +6,19 @@
 #include "Utils/LexUIUtils.h"
 #include "Engine/StaticMesh.h"
 #include "ScopedTransaction.h"
+#include "EditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorTransformWidget"
+
+ECoordSystem FLexUITransformWidget::GetCoordSystem()const
+{
+	if (bIsDragging)
+	{
+		return DragCoordSystem;
+	}
+	// Read the raw value: GetCoordSystem() forces COORD_Local while the widget mode is Scale, which we never use.
+	return ViewportClient ? ViewportClient->GetModeTools()->GetCoordSystem(true) : COORD_Local;
+}
 
 void FLexUITransformWidget::UpdateAxis()
 {
@@ -15,12 +26,10 @@ void FLexUITransformWidget::UpdateAxis()
 	auto MouseX = ViewportClient->Viewport->GetMouseX();
 	auto MouseY = ViewportClient->Viewport->GetMouseY();
 
-	RenderTransform = ThisTransform;
 	float RenderScale = 1;
 	if (bIsDragging)
 	{
 		RenderScale = PressRenderScale;
-		RenderTransform.SetScale3D(FVector(RenderScale, RenderScale, RenderScale));
 	}
 	else
 	{
@@ -37,10 +46,19 @@ void FLexUITransformWidget::UpdateAxis()
 			PressRenderScale = RenderScale; 
 		}
 	}
-	RenderTransform.SetScale3D(FVector(RenderScale, RenderScale, RenderScale));
 	
 	if (bIsDragging)
 	{
+		if (GetCoordSystem() == COORD_Local)
+		{
+			RenderTransform = ThisTransform;
+		}
+		else
+		{
+			RenderTransform.CopyTranslation(ThisTransform);
+		}
+		RenderTransform.SetScale3D(FVector(RenderScale, RenderScale, RenderScale));
+		
 		if (SelectedWidget.IsValid())
 		{
 			FVector RayOrigin, RayDirection;
@@ -58,37 +76,40 @@ void FLexUITransformWidget::UpdateAxis()
 				{
 				case EMoveAxisType::YZ:
 					{
-						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, ThisTransform.GetUnitAxis(EAxis::X));
+						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, RenderTransform.GetUnitAxis(EAxis::X));
 						Diff = HitPoint - PressAxisHitPoint;
 					}
 					break;
 				case EMoveAxisType::ZX:
 					{
-						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, ThisTransform.GetUnitAxis(EAxis::Y));
+						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, RenderTransform.GetUnitAxis(EAxis::Y));
 						Diff = HitPoint - PressAxisHitPoint;
 					}
 					break;
 				case EMoveAxisType::XY:
 					{
-						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, ThisTransform.GetUnitAxis(EAxis::Z));
+						auto HitPoint = FMath::LinePlaneIntersection(LineStartOfMouse, LineEndOfMouse, Center, RenderTransform.GetUnitAxis(EAxis::Z));
 						Diff = HitPoint - PressAxisHitPoint;
 					}
 					break;
 				case EMoveAxisType::X:
 					{
-						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, ThisTransform.TransformPosition(FVector(-Far, 0, 0)), ThisTransform.TransformPosition(FVector(Far, 0, 0)), A, B);
+						const FVector AxisDir = RenderTransform.GetUnitAxis(EAxis::X);
+						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, Center - AxisDir * Far, Center + AxisDir * Far, A, B);
 						Diff = B - PressAxisHitPoint;
 					}
 					break;
 				case EMoveAxisType::Y:
 					{
-						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, ThisTransform.TransformPosition(FVector(0, -Far, 0)), ThisTransform.TransformPosition(FVector(0, Far, 0)), A, B);
+						const FVector AxisDir = RenderTransform.GetUnitAxis(EAxis::Y);
+						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, Center - AxisDir * Far, Center + AxisDir * Far, A, B);
 						Diff = B - PressAxisHitPoint;
 					}
 					break;
 				case EMoveAxisType::Z:
 					{
-						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, ThisTransform.TransformPosition(FVector(0, 0, -Far)), ThisTransform.TransformPosition(FVector(0, 0, Far)), A, B);
+						const FVector AxisDir = RenderTransform.GetUnitAxis(EAxis::Z);
+						FMath::SegmentDistToSegment(LineStartOfMouse, LineEndOfMouse, Center - AxisDir * Far, Center + AxisDir * Far, A, B);
 						Diff = B - PressAxisHitPoint;
 					}
 					break;
@@ -111,7 +132,7 @@ void FLexUITransformWidget::UpdateAxis()
 						auto DotValue = FVector::DotProduct(PressAxisVector, AxisVector);
 						auto AngleInDegree = FMath::RadiansToDegrees(FMath::Acos(DotValue));
 						auto CrossVector = FVector::CrossProduct(PressAxisVector, AxisVector).GetSafeNormal();
-						auto AngleSign = -FMath::Sign(FVector::DotProduct(CrossVector, FVector(1, 0, 0)));
+						auto AngleSign = -FMath::Sign(FVector::DotProduct(CrossVector, RenderTransform.GetUnitAxis(EAxis::X)));
 						AngleInDegree *= AngleSign;
 						Diff.Roll = AngleInDegree;
 					}
@@ -123,7 +144,7 @@ void FLexUITransformWidget::UpdateAxis()
 						auto DotValue = FVector::DotProduct(PressAxisVector, AxisVector);
 						auto AngleInDegree = FMath::RadiansToDegrees(FMath::Acos(DotValue));
 						auto CrossVector = FVector::CrossProduct(PressAxisVector, AxisVector).GetSafeNormal();
-						auto AngleSign = -FMath::Sign(FVector::DotProduct(CrossVector, FVector(0, 1, 0)));
+						auto AngleSign = -FMath::Sign(FVector::DotProduct(CrossVector, RenderTransform.GetUnitAxis(EAxis::Y)));
 						AngleInDegree *= AngleSign;
 						Diff.Pitch = AngleInDegree;
 					}
@@ -135,13 +156,19 @@ void FLexUITransformWidget::UpdateAxis()
 						auto DotValue = FVector::DotProduct(PressAxisVector, AxisVector);
 						auto AngleInDegree = FMath::RadiansToDegrees(FMath::Acos(DotValue));
 						auto CrossVector = FVector::CrossProduct(PressAxisVector, AxisVector).GetSafeNormal();
-						auto AngleSign = FMath::Sign(FVector::DotProduct(CrossVector, FVector(0, 0, 1)));
+						auto AngleSign = FMath::Sign(FVector::DotProduct(CrossVector, RenderTransform.GetUnitAxis(EAxis::Z)));
 						AngleInDegree *= AngleSign;
 						Diff.Yaw = AngleInDegree;
 					}
 					break;
 				}
-				ThisTransform.SetRotation(ThisTransformWhenPress.GetRotation() * Diff.Quaternion());
+				//World space rotates around the world axes, so the delta pre-multiplies the base rotation; local space post-multiplies it.
+				const FQuat RotationWhenPress = ThisTransformWhenPress.GetRotation();
+				ThisTransform.SetRotation(GetCoordSystem() == COORD_World ? Diff.Quaternion() * RotationWhenPress : RotationWhenPress * Diff.Quaternion());
+				if (GetCoordSystem() == COORD_World)
+				{
+					RenderTransform.SetRotation(Diff.Quaternion());
+				}
 				FLexUIUtils::ChangePropertyWithNotify(SelectedWidget.Get(), USceneComponent::GetRelativeRotationPropertyName(), [=, this]
 				{
 					SelectedWidget->SetWorldRotation(ThisTransform.GetRotation());
@@ -151,6 +178,14 @@ void FLexUITransformWidget::UpdateAxis()
 	}
 	else
 	{
+		RenderTransform = ThisTransform;
+		RenderTransform.SetScale3D(FVector(RenderScale, RenderScale, RenderScale));
+		
+		if (GetCoordSystem() == COORD_World)
+		{
+			RenderTransform.SetRotation(FQuat::Identity);
+		}
+		
 		if (SelectedWidget.IsValid())
 		{
 			ThisTransform = SelectedWidget->GetWorldTransform();
@@ -544,6 +579,7 @@ bool FLexUITransformWidget::HandleInputKey(const FInputKeyEventArgs& EventArgs)
 			bIsMousePressedAtThisFrame = false;
 			if (MoveAxisType != EMoveAxisType::None || RotateAxisType != ERotateAxisType::None)
 			{
+				DragCoordSystem = GetCoordSystem();
 				bIsDragging = true;
 				ThisTransformWhenPress = ThisTransform;
 				Transaction = MakeUnique<FScopedTransaction>(LOCTEXT("MoveWidget", "Move Widget"));
