@@ -23,7 +23,7 @@ FLexUIPrefabEditorViewportClient::FLexUIPrefabEditorViewportClient(TWeakPtr<FLex
 
 	// DrawHelper set up
 
-	DrawHelper.PerspectiveGridSize = HALF_WORLD_MAX1;
+	DrawHelper.PerspectiveGridSize = UE_OLD_HALF_WORLD_MAX1;
 	DrawHelper.AxesLineThickness = 1.0f;
 	DrawHelper.bDrawGrid = true;
 

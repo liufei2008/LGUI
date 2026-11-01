@@ -834,8 +834,7 @@ void FLexWidgetCustomization::CustomizeDetails( const TSharedPtr<IDetailLayoutBu
 		}));
 
 	//location rotation scale
-	const FSelectedActorInfo& selectedActorInfo = DetailBuilder->GetDetailsViewSharedPtr()->GetSelectedActorInfo();
-	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, selectedActorInfo, DetailBuilder.Get()));
+	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, DetailBuilder.Get()));
 	TransformCategory.AddCustomBuilder(transformDetails);
 	
 	//SiblingIndex
