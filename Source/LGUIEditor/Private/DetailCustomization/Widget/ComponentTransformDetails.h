@@ -4,15 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Input/Reply.h"
-#include "Layout/Visibility.h"
 #include "Widgets/SWidget.h"
 #include "Framework/Commands/UIAction.h"
 #include "IDetailCustomNodeBuilder.h"
 #include "Widgets/Input/NumericTypeInterface.h"
-#include "AssetSelection.h"
+#include "Math/Axis.h"
 
 class FDetailWidgetRow;
-class FMenuBuilder;
 class FNotifyHook;
 class IDetailChildrenBuilder;
 class IDetailLayoutBuilder;
@@ -33,7 +31,7 @@ namespace ETransformField
 class FComponentTransformDetails : public TSharedFromThis<FComponentTransformDetails>, public IDetailCustomNodeBuilder, public TNumericUnitTypeInterface<FVector::FReal>
 {
 public:
-	FComponentTransformDetails( const TArray< TWeakObjectPtr<ULexWidget> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder* DetailBuilder );
+	FComponentTransformDetails(const TArray<TWeakObjectPtr<ULexWidget>>& InSelectedObjects, IDetailLayoutBuilder* DetailBuilder);
 
 	/**
 	 * Caches the representation of the actor transform for the user input boxes                   
@@ -49,11 +47,8 @@ public:
 	virtual void SetOnRebuildChildren( FSimpleDelegate OnRebuildChildren ) override{}
 
 private:
-	/** @return Whether the transform details panel should be enabled (editable) or not (read-only / greyed out) */
-	bool GetIsEnabled() const;
-
 	/** Sets a vector based on two source vectors and an axis list */
-	FVector GetAxisFilteredVector(EAxisList::Type Axis, const FVector& NewValue, const FVector& OldValue);
+	static FVector GetAxisFilteredVector(EAxisList::Type Axis, const FVector& NewValue, const FVector& OldValue);
 
 	/**
 	 * Sets the selected object(s) axis to passed in value
@@ -76,12 +71,8 @@ private:
 	 */
 	void OnSetTransformAxis(FVector::FReal NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted);
 
-	/**
-	 * Helper to begin a new transaction for a slider interaction.
-	 * @param ActorTransaction		The name to give the transaction when changing an actor transform.
-	 * @param ComponentTransaction	The name to give the transaction when directly editing a component transform.
-	 */
-	void BeginSliderTransaction(FText ActorTransaction, FText ComponentTransaction) const;
+	/** Helper to begin a new transaction for a slider interaction. */
+	void BeginSliderTransaction(const FText& TransactionName) const;
 
 	/**
 	 * Called when the one of the axis sliders for object rotation begins to change for the first time 
@@ -126,10 +117,6 @@ private:
 
 	/** @return true of copy is enabled for the specified field */
 	bool OnCanCopy( ETransformField::Type TransformField ) const;
-
-	bool IsLocationXEnable()const { return true; };
-	bool IsLocationYEnable()const;
-	bool IsLocationZEnable()const;
 
 	/**
 	 * Copies the specified transform field to the clipboard
@@ -187,11 +174,13 @@ private:
 	/** @return The visibility of the "Reset to Default" button for the scale component */
 	bool GetScaleResetVisibility() const;
 
-	/** Cache a single unit to display all location comonents in */
-	void CacheCommonLocationUnits();
-
 	/** Generate a property handle from a property name. */
 	TSharedPtr<IPropertyHandle> GeneratePropertyHandle(FName PropertyName, IDetailChildrenBuilder& ChildrenBuilder);
+
+	/** @return The first selected widget, or nullptr */
+	ULexWidget* GetFirstSelectedWidget() const;
+	/** @return true if the selected widget is the root of the widget tree */
+	bool IsRootWidget() const;
 private:
 	/** A vector where it may optionally be unset */
 	template <typename NumericType>
@@ -229,8 +218,7 @@ private:
 		TOptional<NumericType> Z;
 	};
 	
-	FSelectedActorInfo SelectedActorInfo;
-	/** Copy of selected actor references in the details view */
+	/** Copy of selected widget references in the details view */
 	TArray< TWeakObjectPtr<ULexWidget> > SelectedObjects;
 	/** Cache translation value of the selected set */
 	FOptionalVector<FVector::FReal> CachedLocation;
@@ -239,13 +227,11 @@ private:
 	/** Cache scale value of the selected set */
 	FOptionalVector<FVector::FReal> CachedScale;
 	/** Notify hook to use */
-	FNotifyHook* NotifyHook;
+	FNotifyHook* NotifyHook = nullptr;
 	/** Whether or not to preserve scale ratios */
-	bool bPreserveScaleRatio;
+	bool bPreserveScaleRatio = false;
 	/** Mapping from object to relative rotation values which are not affected by Quat->Rotator conversions during transform calculations */
-	TMap< UObject*, FRotator > ObjectToRelativeRotationMap;
+	TMap<ULexWidget*, FRotator> ObjectToRelativeRotationMap;
 	/** Flag to indicate we are currently editing the rotation in the UI, so we should rely on the cached value in objectToRelativeRotationMap, not the value from the object */
-	bool bEditingRotationInUI;
-	/** Flag to indicate we are currently performing a slider transaction */
-	bool bIsSliderTransaction;
+	bool bEditingRotationInUI = false;
 };
